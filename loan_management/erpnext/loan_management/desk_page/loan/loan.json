@@ -23,7 +23,7 @@
   {
    "hidden": 0,
    "label": "Reports",
-   "links": "[\n    {\n        \"dependencies\": [\n            \"Loan Repayment\"\n        ],\n        \"doctype\": \"Loan Repayment\",\n        \"incomplete_dependencies\": [\n            \"Loan Repayment\"\n        ],\n        \"is_query_report\": true,\n        \"label\": \"Loan Repayment and Closure\",\n        \"name\": \"Loan Repayment and Closure\",\n        \"route\": \"#query-report/Loan Repayment and Closure\",\n        \"type\": \"report\"\n    },\n    {\n        \"dependencies\": [\n            \"Loan Security Pledge\"\n        ],\n        \"doctype\": \"Loan Security Pledge\",\n        \"incomplete_dependencies\": [\n            \"Loan Security Pledge\"\n        ],\n        \"is_query_report\": true,\n        \"label\": \"Loan Security Status\",\n        \"name\": \"Loan Security Status\",\n        \"route\": \"#query-report/Loan Security Status\",\n        \"type\": \"report\"\n    }\n]"
+   "links": "[\n    {\n        \"doctype\": \"Loan Repayment\",\n        \"is_query_report\": true,\n        \"label\": \"Loan Repayment and Closure\",\n        \"name\": \"Loan Repayment and Closure\",\n        \"route\": \"#query-report/Loan Repayment and Closure\",\n        \"type\": \"report\"\n    },\n    {\n        \"doctype\": \"Loan Security Pledge\",\n        \"is_query_report\": true,\n        \"label\": \"Loan Security Status\",\n        \"name\": \"Loan Security Status\",\n        \"route\": \"#query-report/Loan Security Status\",\n        \"type\": \"report\"\n    }\n]"
   }
  ],
  "category": "Modules",
@@ -36,18 +36,21 @@
  "extends_another_page": 0,
  "idx": 0,
  "is_standard": 1,
- "label": "Loan Management",
- "modified": "2020-05-16 08:01:27.784621",
+ "label": "Loan",
+ "modified": "2020-06-07 19:42:14.947902",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Management",
+ "name": "Loan",
  "owner": "Administrator",
  "pin_to_bottom": 0,
  "pin_to_top": 0,
  "shortcuts": [
   {
+   "color": "#ffe8cd",
+   "format": "{} Open",
    "label": "Loan Application",
    "link_to": "Loan Application",
+   "stats_filter": "{ \"status\": \"Open\" }",
    "type": "DocType"
   },
   {
