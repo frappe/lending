@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-{% include 'erpnext/loan_management/loan_common.js' %};
+{% include 'lending/loan_management/loan_common.js' %};
 
 frappe.ui.form.on('Loan Repayment', {
 	// refresh: function(frm) {
@@ -39,7 +39,7 @@ frappe.ui.form.on('Loan Repayment', {
 
 	calculate_repayment_amounts: function(frm) {
 		frappe.call({
-			method: 'erpnext.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
+			method: 'lending.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
 			args: {
 				'against_loan': frm.doc.against_loan,
 				'posting_date': frm.doc.posting_date,

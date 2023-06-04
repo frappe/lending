@@ -1,11 +1,13 @@
 from . import __version__ as app_version
 
 app_name = "lending"
-app_title = "Lending"
-app_publisher = "Frappe"
-app_description = "Lending"
+app_title = "Frappe Lending"
+app_publisher = "Frappe Technologies Pvt. Ltd."
+app_description = "Lending software"
 app_email = "contact@frappe.io"
-app_license = "MIT"
+app_license = "GNU General Public License (v3)"
+required_apps = ["erpnext"]
+
 
 # Includes in <head>
 # ------------------
@@ -113,32 +115,46 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-#	"all": [
-#		"lending.tasks.all"
-#	],
-#	"daily": [
-#		"lending.tasks.daily"
-#	],
-#	"hourly": [
-#		"lending.tasks.hourly"
-#	],
-#	"weekly": [
-#		"lending.tasks.weekly"
-#	],
-#	"monthly": [
-#		"lending.tasks.monthly"
-#	],
-# }
+scheduler_events = {
+	"daily_long": [
+		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
+		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_term_loans",
+	],
+	"monthly_long": [
+		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_demand_loans",
+	],
+}
 
 # Testing
 # -------
 
 # before_tests = "lending.install.before_tests"
 
+bank_reconciliation_doctypes = [
+	"Loan Repayment",
+	"Loan Disbursement",
+]
+
 # Overriding Methods
 # ------------------------------
-#
+
+get_matching_vouchers_for_bank_reconciliation = "lending.loan_management.utils.get_matching_vouchers_for_bank_reconciliation"
+
+get_amounts_not_reflected_in_system_for_bank_reconciliation_statement = "lending.loan_management.utils.get_amounts_not_reflected_in_system_for_bank_reconciliation_statement"
+
+get_payment_entries_for_bank_clearance = "lending.loan_management.utils.get_payment_entries_for_bank_clearance"
+
+get_entries_for_bank_clearance_summary = "lending.loan_management.utils.get_entries_for_bank_clearance_summary"
+
+get_entries_for_bank_reconciliation_statement = "lending.loan_management.utils.get_entries_for_bank_reconciliation_statement"
+
+# ERPNext doctypes for Global Search
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Loan", "index": 44},
+	],
+}
+
 # override_whitelisted_methods = {
 #	"frappe.desk.doctype.event.event.get_events": "lending.event.get_events"
 # }

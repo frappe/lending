@@ -9,14 +9,14 @@ from frappe.utils import add_days, cint, date_diff, flt, get_datetime, getdate
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
-from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_last_accrual_date,
 	get_per_day_interest,
 )
-from erpnext.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
-from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 )
 
@@ -568,7 +568,7 @@ def get_penalty_details(against_loan):
 
 
 def regenerate_repayment_schedule(loan, cancel=0):
-	from erpnext.loan_management.doctype.loan.loan import (
+	from lending.loan_management.doctype.loan.loan import (
 		add_single_month,
 		get_monthly_repayment_amount,
 	)

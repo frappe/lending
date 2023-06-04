@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-{% include 'erpnext/loan_management/loan_common.js' %};
+{% include 'lending/loan_management/loan_common.js' %};
 
 frappe.ui.form.on('Loan Application', {
 
@@ -65,7 +65,7 @@ frappe.ui.form.on('Loan Application', {
 		}
 
 		frappe.model.open_mapped_doc({
-			method: 'erpnext.loan_management.doctype.loan_application.loan_application.create_loan',
+			method: 'lending.loan_management.doctype.loan_application.loan_application.create_loan',
 			frm: frm
 		});
 	},
@@ -76,7 +76,7 @@ frappe.ui.form.on('Loan Application', {
 		}
 
 		frappe.call({
-			method: "erpnext.loan_management.doctype.loan_application.loan_application.create_pledge",
+			method: "lending.loan_management.doctype.loan_application.loan_application.create_pledge",
 			args: {
 				loan_application: frm.doc.name
 			},
@@ -122,7 +122,7 @@ frappe.ui.form.on("Proposed Pledge", {
 
 		if (row.loan_security) {
 			frappe.call({
-				method: "erpnext.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
+				method: "lending.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
 				args: {
 					loan_security: row.loan_security
 				},

@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import flt
 
 import erpnext
-from erpnext.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
+from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
 	get_applicant_wise_total_loan_security_qty,
 	get_loan_security_details,
 )

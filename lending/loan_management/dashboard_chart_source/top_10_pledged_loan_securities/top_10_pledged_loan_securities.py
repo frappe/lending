@@ -5,7 +5,7 @@
 import frappe
 from frappe.utils.dashboard import cache_source
 
-from erpnext.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
+from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
 	get_loan_security_details,
 )
 

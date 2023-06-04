@@ -5,7 +5,7 @@ import unittest
 
 import frappe
 
-from erpnext.loan_management.doctype.loan.test_loan import create_loan_accounts, create_loan_type
+from lending.loan_management.doctype.loan.test_loan import create_loan_accounts, create_loan_type
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
 

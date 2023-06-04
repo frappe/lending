@@ -7,10 +7,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, now_datetime
 
-from erpnext.loan_management.doctype.loan_security_price.loan_security_price import (
+from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
-from erpnext.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
 

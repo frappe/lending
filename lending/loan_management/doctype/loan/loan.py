@@ -21,8 +21,8 @@ from frappe.utils import (
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
-from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from erpnext.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
 
@@ -243,7 +243,7 @@ class Loan(AccountsController):
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def accrue_loan_interest(self):
-		from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_term_loans,
 		)
 

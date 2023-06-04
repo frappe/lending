@@ -30,10 +30,10 @@ class LoanSecurityUnpledge(Document):
 				)
 
 	def validate_unpledge_qty(self):
-		from erpnext.loan_management.doctype.loan_repayment.loan_repayment import (
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 			get_pending_principal_amount,
 		)
-		from erpnext.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 			get_ltv_ratio,
 		)
 

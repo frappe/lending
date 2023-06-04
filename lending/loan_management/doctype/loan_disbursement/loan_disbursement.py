@@ -9,10 +9,10 @@ from frappe.utils import add_days, flt, get_datetime, nowdate
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
-from erpnext.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
-from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 )
 
@@ -200,7 +200,7 @@ def get_total_pledged_security_value(loan):
 
 @frappe.whitelist()
 def get_disbursal_amount(loan, on_current_security_price=0):
-	from erpnext.loan_management.doctype.loan_repayment.loan_repayment import (
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_pending_principal_amount,
 	)
 

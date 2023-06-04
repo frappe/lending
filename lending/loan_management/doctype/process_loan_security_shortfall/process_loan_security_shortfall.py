@@ -6,7 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime
 
-from erpnext.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	check_for_ltv_shortfall,
 )
 

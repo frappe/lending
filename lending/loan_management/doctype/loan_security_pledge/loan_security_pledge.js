@@ -25,7 +25,7 @@ frappe.ui.form.on("Pledge", {
 
 		if (row.loan_security) {
 			frappe.call({
-				method: "erpnext.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
+				method: "lending.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
 				args: {
 					loan_security: row.loan_security
 				},

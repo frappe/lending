@@ -6,7 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
-from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	make_accrual_interest_entry_for_demand_loans,
 	make_accrual_interest_entry_for_term_loans,
 )

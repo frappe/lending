@@ -15,27 +15,27 @@ from frappe.utils import (
 	nowdate,
 )
 
-from erpnext.loan_management.doctype.loan.loan import (
+from lending.loan_management.doctype.loan.loan import (
 	make_loan_write_off,
 	request_loan_closure,
 	unpledge_security,
 )
-from erpnext.loan_management.doctype.loan_application.loan_application import create_pledge
-from erpnext.loan_management.doctype.loan_disbursement.loan_disbursement import (
+from lending.loan_management.doctype.loan_application.loan_application import create_pledge
+from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
-from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from erpnext.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
-from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 	process_loan_interest_accrual_for_term_loans,
 )
-from erpnext.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
+from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,
 )
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict

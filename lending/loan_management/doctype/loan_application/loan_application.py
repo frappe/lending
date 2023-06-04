@@ -11,13 +11,13 @@ from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import cint, flt, rounded
 
-from erpnext.loan_management.doctype.loan.loan import (
+from lending.loan_management.doctype.loan.loan import (
 	get_monthly_repayment_amount,
 	get_sanctioned_amount_limit,
 	get_total_loan_amount,
 	validate_repayment_method,
 )
-from erpnext.loan_management.doctype.loan_security_price.loan_security_price import (
+from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
 

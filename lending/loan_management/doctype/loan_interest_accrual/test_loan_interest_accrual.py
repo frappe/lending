@@ -6,7 +6,7 @@ import unittest
 import frappe
 from frappe.utils import add_to_date, date_diff, flt, get_datetime, get_first_day, nowdate
 
-from erpnext.loan_management.doctype.loan.test_loan import (
+from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan_accounts,
 	create_loan_application,
@@ -16,11 +16,11 @@ from erpnext.loan_management.doctype.loan.test_loan import (
 	create_loan_type,
 	make_loan_disbursement_entry,
 )
-from erpnext.loan_management.doctype.loan_application.loan_application import create_pledge
-from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from lending.loan_management.doctype.loan_application.loan_application import create_pledge
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 )
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
