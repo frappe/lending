@@ -1,9 +1,7 @@
-from . import __version__ as app_version
-
 app_name = "lending"
 app_title = "Frappe Lending"
 app_publisher = "Frappe Technologies Pvt. Ltd."
-app_description = "Lending software"
+app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
 required_apps = ["erpnext"]
@@ -44,7 +42,7 @@ required_apps = ["erpnext"]
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# 	"Role": "home_page"
 # }
 
 # Generators
@@ -58,8 +56,8 @@ required_apps = ["erpnext"]
 
 # add methods and filters to jinja environment
 # jinja = {
-#	"methods": "lending.utils.jinja_methods",
-#	"filters": "lending.utils.jinja_filters"
+# 	"methods": "lending.utils.jinja_methods",
+# 	"filters": "lending.utils.jinja_filters"
 # }
 
 # Installation
@@ -85,11 +83,11 @@ required_apps = ["erpnext"]
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {
-#	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
 #
 # has_permission = {
-#	"Event": "frappe.desk.doctype.event.event.has_permission",
+# 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
 # DocType Class
@@ -97,7 +95,7 @@ required_apps = ["erpnext"]
 # Override standard doctype classes
 
 # override_doctype_class = {
-#	"ToDo": "custom_app.overrides.CustomToDo"
+# 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
 # Document Events
@@ -105,11 +103,11 @@ required_apps = ["erpnext"]
 # Hook on document methods and events
 
 # doc_events = {
-#	"*": {
-#		"on_update": "method",
-#		"on_cancel": "method",
-#		"on_trash": "method"
-#	}
+# 	"*": {
+# 		"on_update": "method",
+# 		"on_cancel": "method",
+# 		"on_trash": "method"
+# 	}
 # }
 
 # Scheduled Tasks
@@ -138,15 +136,23 @@ bank_reconciliation_doctypes = [
 # Overriding Methods
 # ------------------------------
 
-get_matching_vouchers_for_bank_reconciliation = "lending.loan_management.utils.get_matching_vouchers_for_bank_reconciliation"
+get_matching_vouchers_for_bank_reconciliation = (
+	"lending.loan_management.utils.get_matching_vouchers_for_bank_reconciliation"
+)
 
 get_amounts_not_reflected_in_system_for_bank_reconciliation_statement = "lending.loan_management.utils.get_amounts_not_reflected_in_system_for_bank_reconciliation_statement"
 
-get_payment_entries_for_bank_clearance = "lending.loan_management.utils.get_payment_entries_for_bank_clearance"
+get_payment_entries_for_bank_clearance = (
+	"lending.loan_management.utils.get_payment_entries_for_bank_clearance"
+)
 
-get_entries_for_bank_clearance_summary = "lending.loan_management.utils.get_entries_for_bank_clearance_summary"
+get_entries_for_bank_clearance_summary = (
+	"lending.loan_management.utils.get_entries_for_bank_clearance_summary"
+)
 
-get_entries_for_bank_reconciliation_statement = "lending.loan_management.utils.get_entries_for_bank_reconciliation_statement"
+get_entries_for_bank_reconciliation_statement = (
+	"lending.loan_management.utils.get_entries_for_bank_reconciliation_statement"
+)
 
 # ERPNext doctypes for Global Search
 global_search_doctypes = {
@@ -156,14 +162,14 @@ global_search_doctypes = {
 }
 
 # override_whitelisted_methods = {
-#	"frappe.desk.doctype.event.event.get_events": "lending.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "lending.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-#	"Task": "lending.task.get_dashboard_data"
+# 	"Task": "lending.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -189,29 +195,29 @@ global_search_doctypes = {
 # --------------------
 
 # user_data_fields = [
-#	{
-#		"doctype": "{doctype_1}",
-#		"filter_by": "{filter_by}",
-#		"redact_fields": ["{field_1}", "{field_2}"],
-#		"partial": 1,
-#	},
-#	{
-#		"doctype": "{doctype_2}",
-#		"filter_by": "{filter_by}",
-#		"partial": 1,
-#	},
-#	{
-#		"doctype": "{doctype_3}",
-#		"strict": False,
-#	},
-#	{
-#		"doctype": "{doctype_4}"
-#	}
+# 	{
+# 		"doctype": "{doctype_1}",
+# 		"filter_by": "{filter_by}",
+# 		"redact_fields": ["{field_1}", "{field_2}"],
+# 		"partial": 1,
+# 	},
+# 	{
+# 		"doctype": "{doctype_2}",
+# 		"filter_by": "{filter_by}",
+# 		"partial": 1,
+# 	},
+# 	{
+# 		"doctype": "{doctype_3}",
+# 		"strict": False,
+# 	},
+# 	{
+# 		"doctype": "{doctype_4}"
+# 	}
 # ]
 
 # Authentication and authorization
 # --------------------------------
 
 # auth_hooks = [
-#	"lending.auth.validate"
+# 	"lending.auth.validate"
 # ]
