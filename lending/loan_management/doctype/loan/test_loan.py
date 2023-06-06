@@ -41,6 +41,9 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
+territory_test_records = frappe.get_test_records("Territory")
+customer_group_test_records = frappe.get_test_records("Customer Group")
+
 
 class TestLoan(unittest.TestCase):
 	def setUp(self):
@@ -145,6 +148,13 @@ class TestLoan(unittest.TestCase):
 		)
 
 		self.applicant1 = make_employee("robert_loan@loan.com")
+
+		if not frappe.db.exists("Customer Group", "_Test Customer Group"):
+			frappe.get_doc(customer_group_test_records[0]).insert()
+
+		if not frappe.db.exists("Territory", "_Test Territory"):
+			frappe.get_doc(territory_test_records[0]).insert()
+
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
