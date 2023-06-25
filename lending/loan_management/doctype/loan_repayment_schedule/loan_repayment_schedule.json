@@ -1,0 +1,181 @@
+{
+"actions": [],
+"autoname": "LN-RS-.YYYY.-.#####",
+"creation": "2023-05-05 15:02:57.573458",
+"default_view": "List",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+    "loan",
+    "loan_restructure",
+    "loan_amount",
+    "rate_of_interest",
+    "posting_date",
+    "adjusted_interest",
+    "column_break_n6iy",
+    "loan_type",
+    "repayment_schedule_type",
+    "repayment_method",
+    "repayment_periods",
+    "monthly_repayment_amount",
+    "repayment_start_date",
+    "section_break_6rpg",
+    "repayment_schedule",
+    "status",
+    "amended_from"
+],
+"fields": [
+    {
+    "fieldname": "loan",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Loan",
+    "options": "Loan",
+    "reqd": 1
+    },
+    {
+    "fetch_from": "loan.loan_type",
+    "fieldname": "loan_type",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Loan Type",
+    "options": "Loan Type",
+    "reqd": 1
+    },
+    {
+    "fetch_from": "loan_type.repayment_schedule_type",
+    "fieldname": "repayment_schedule_type",
+    "fieldtype": "Data",
+    "label": "Repayment Schedule Type"
+    },
+    {
+    "fieldname": "amended_from",
+    "fieldtype": "Link",
+    "label": "Amended From",
+    "no_copy": 1,
+    "options": "Loan Repayment Schedule",
+    "print_hide": 1,
+    "read_only": 1
+    },
+    {
+    "fieldname": "loan_amount",
+    "fieldtype": "Currency",
+    "label": "Loan Amount",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fetch_from": "loan.repayment_method",
+    "fetch_if_empty": 1,
+    "fieldname": "repayment_method",
+    "fieldtype": "Select",
+    "label": "Repayment Method",
+    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
+    },
+    {
+    "fieldname": "monthly_repayment_amount",
+    "fieldtype": "Currency",
+    "label": "Monthly Repayment Amount",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "status",
+    "fieldtype": "Select",
+    "hidden": 1,
+    "label": "Status",
+    "options": "Initiated\nRejected\nActive\nRestructured"
+    },
+    {
+    "fetch_from": "loan.repayment_start_date",
+    "fetch_if_empty": 1,
+    "fieldname": "repayment_start_date",
+    "fieldtype": "Date",
+    "label": "Repayment Start Date"
+    },
+    {
+    "fetch_from": "loan.repayment_schedule_type",
+    "fieldname": "repayment_schedule",
+    "fieldtype": "Table",
+    "label": "Repayment Schedule",
+    "options": "Repayment Schedule"
+    },
+    {
+    "fieldname": "column_break_n6iy",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "section_break_6rpg",
+    "fieldtype": "Section Break"
+    },
+    {
+    "fetch_from": "loan.repayment_periods",
+    "fetch_if_empty": 1,
+    "fieldname": "repayment_periods",
+    "fieldtype": "Int",
+    "label": "Repayment Period In Months"
+    },
+    {
+    "fetch_from": "loan.rate_of_interest",
+    "fetch_if_empty": 1,
+    "fieldname": "rate_of_interest",
+    "fieldtype": "Float",
+    "label": "Rate Of Interest"
+    },
+    {
+    "fieldname": "posting_date",
+    "fieldtype": "Date",
+    "label": "Posting Date"
+    },
+    {
+    "fieldname": "loan_restructure",
+    "fieldtype": "Link",
+    "label": "Loan Restructure",
+    "options": "Loan Restructure"
+    },
+    {
+    "fieldname": "adjusted_interest",
+    "fieldtype": "Currency",
+    "label": "Adjusted Interest",
+    "options": "Company:company:default_currency"
+    }
+],
+"index_web_pages_for_search": 1,
+"is_submittable": 1,
+"links": [],
+"modified": "2023-05-24 22:45:54.899787",
+"modified_by": "Administrator",
+"module": "Loan Management",
+"name": "Loan Repayment Schedule",
+"naming_rule": "Expression (old style)",
+"owner": "Administrator",
+"permissions": [
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager",
+    "share": 1,
+    "submit": 1,
+    "write": 1
+    },
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Loan Manager",
+    "share": 1,
+    "write": 1
+    }
+],
+"sort_field": "modified",
+"sort_order": "DESC",
+"states": []
+}

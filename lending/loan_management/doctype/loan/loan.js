@@ -13,7 +13,7 @@ frappe.ui.form.on('Loan', {
 	},
 	onload: function (frm) {
 		// Ignore loan security pledge on cancel of loan
-		frm.ignore_doctypes_on_cancel_all = ["Loan Security Pledge"];
+		frm.ignore_doctypes_on_cancel_all = ["Loan Security Pledge", "Loan Repayment Schedule"];
 
 		frm.set_query("loan_application", function () {
 			return {
@@ -264,10 +264,10 @@ frappe.ui.form.on('Loan', {
 
 							frm.refresh_fields("securities");
 						}
-                    }
-                }
-            });
-        }
+					}
+				}
+			});
+		}
 	},
 
 	repayment_method: function (frm) {

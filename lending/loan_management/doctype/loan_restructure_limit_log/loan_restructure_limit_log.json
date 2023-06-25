@@ -1,0 +1,176 @@
+{
+"actions": [],
+"allow_rename": 1,
+"creation": "2023-05-08 16:03:20.333618",
+"default_view": "List",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+    "branch",
+    "date",
+    "column_break_tvos",
+    "company",
+    "normal_limit_section",
+    "principal_outstanding",
+    "limit_percent",
+    "limit_amount",
+    "column_break_qqbk",
+    "utilized_limit",
+    "in_process_limit",
+    "available_limit",
+    "delinquent_limit_section",
+    "delinquent_principal_outstanding",
+    "delinquent_limit_percent",
+    "delinquent_limit_amount",
+    "column_break_7bil",
+    "delinquent_utilized_limit",
+    "delinquent_in_process_limit",
+    "delinquent_available_limit"
+],
+"fields": [
+    {
+    "fieldname": "branch",
+    "fieldtype": "Link",
+    "label": "Branch",
+    "options": "Branch"
+    },
+    {
+    "fieldname": "date",
+    "fieldtype": "Date",
+    "in_list_view": 1,
+    "label": "Date"
+    },
+    {
+    "fieldname": "principal_outstanding",
+    "fieldtype": "Currency",
+    "label": "Principal Outstanding"
+    },
+    {
+    "fieldname": "limit_percent",
+    "fieldtype": "Percent",
+    "label": "Limit Percent"
+    },
+    {
+    "fieldname": "limit_amount",
+    "fieldtype": "Currency",
+    "label": "Limit Amount"
+    },
+    {
+    "fieldname": "utilized_limit",
+    "fieldtype": "Currency",
+    "label": "Utilized Limit"
+    },
+    {
+    "fieldname": "in_process_limit",
+    "fieldtype": "Currency",
+    "label": "In Process Limit"
+    },
+    {
+    "fieldname": "company",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Company",
+    "options": "Company"
+    },
+    {
+    "fieldname": "available_limit",
+    "fieldtype": "Currency",
+    "in_list_view": 1,
+    "label": "Available Limit"
+    },
+    {
+    "fieldname": "column_break_tvos",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "normal_limit_section",
+    "fieldtype": "Section Break",
+    "label": "Normal Limit"
+    },
+    {
+    "fieldname": "column_break_qqbk",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "delinquent_limit_section",
+    "fieldtype": "Section Break",
+    "label": "Delinquent Limit"
+    },
+    {
+    "fieldname": "delinquent_principal_outstanding",
+    "fieldtype": "Currency",
+    "label": "Delinquent Principal Outstanding"
+    },
+    {
+    "fieldname": "delinquent_limit_percent",
+    "fieldtype": "Percent",
+    "label": "Delinquent Limit Percent"
+    },
+    {
+    "fieldname": "delinquent_limit_amount",
+    "fieldtype": "Currency",
+    "label": "Delinquent Limit Amount"
+    },
+    {
+    "fieldname": "column_break_7bil",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "delinquent_utilized_limit",
+    "fieldtype": "Currency",
+    "in_list_view": 1,
+    "label": "Delinquent Utilized Limit"
+    },
+    {
+    "fieldname": "delinquent_in_process_limit",
+    "fieldtype": "Currency",
+    "label": "Delinquent In Process Limit"
+    },
+    {
+    "fieldname": "delinquent_available_limit",
+    "fieldtype": "Currency",
+    "label": "Delinquent Available Limit"
+    }
+],
+"in_create": 1,
+"index_web_pages_for_search": 1,
+"links": [],
+"modified": "2023-05-17 21:50:35.514486",
+"modified_by": "Administrator",
+"module": "Loan Management",
+"name": "Loan Restructure Limit Log",
+"owner": "Administrator",
+"permissions": [
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager",
+    "select": 1,
+    "share": 1,
+    "write": 1
+    },
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Loan Manager",
+    "select": 1,
+    "share": 1,
+    "write": 1
+    }
+],
+"sort_field": "modified",
+"sort_order": "DESC",
+"states": [],
+"title_field": "branch"
+}

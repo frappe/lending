@@ -12,10 +12,11 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import cint, flt, rounded
 
 from lending.loan_management.doctype.loan.loan import (
-	get_monthly_repayment_amount,
 	get_sanctioned_amount_limit,
 	get_total_loan_amount,
-	validate_repayment_method,
+)
+from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
+	get_monthly_repayment_amount,
 )
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
@@ -29,18 +30,22 @@ class LoanApplication(Document):
 		self.validate_loan_amount()
 
 		if self.is_term_loan:
-			validate_repayment_method(
-				self.repayment_method,
-				self.loan_amount,
-				self.repayment_amount,
-				self.repayment_periods,
-				self.is_term_loan,
-			)
+			self.validate_repayment_method()
 
 		self.validate_loan_type()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
+
+	def validate_repayment_method(self):
+		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
+			frappe.throw(_("Please enter Repayment Periods"))
+
+		if self.repayment_method == "Repay Fixed Amount per Period":
+			if not self.monthly_repayment_amount:
+				frappe.throw(_("Please enter repayment Amount"))
+			if self.monthly_repayment_amount > self.loan_amount:
+				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
 	def validate_loan_type(self):
 		company = frappe.get_value("Loan Type", self.loan_type, "company")

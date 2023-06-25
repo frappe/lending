@@ -1,0 +1,554 @@
+{
+"actions": [],
+"autoname": "LOAN-RES-.YYYY.-.#####",
+"creation": "2023-04-30 17:58:03.482907",
+"default_view": "List",
+"doctype": "DocType",
+"editable_grid": 1,
+"engine": "InnoDB",
+"field_order": [
+    "loan",
+    "applicant_type",
+    "applicant",
+    "repayment_method",
+    "restructure_type",
+    "branch",
+    "status",
+    "total_amount_paid",
+    "total_principal_paid",
+    "column_break_xph8",
+    "company",
+    "restructure_date",
+    "reason_for_restructure",
+    "loan_details_section",
+    "loan_type",
+    "old_tenure",
+    "completed_tenure",
+    "old_rate_of_interest",
+    "old_loan_amount",
+    "column_break_gl0p",
+    "old_emi",
+    "current_restructure_count",
+    "pre_restructure_dpd",
+    "disbursed_amount",
+    "principal_amount_details_section",
+    "total_overdue_amount",
+    "restructure_charges",
+    "waive_off_restructure_charges",
+    "column_break_bnny",
+    "pending_principal_amount",
+    "available_security_deposit",
+    "section_break_tbpw",
+    "principal_overdue",
+    "column_break_m3kb",
+    "principal_adjusted",
+    "column_break_gtuc",
+    "balance_principal",
+    "section_break_suab",
+    "interest_overdue",
+    "unaccrued_interest",
+    "penalty_overdue",
+    "charges_overdue",
+    "column_break_jvss",
+    "adjusted_interest_amount",
+    "adjusted_unaccrued_interest",
+    "column_break_hkgd",
+    "interest_waiver_amount",
+    "unaccrued_interest_waiver",
+    "penal_interest_waiver",
+    "other_charges_waiver",
+    "column_break_ujcs",
+    "balance_interest_amount",
+    "balance_unaccrued_interest",
+    "balance_penalty_amount",
+    "balance_charges",
+    "column_break_x8or",
+    "treatment_of_normal_interest",
+    "unaccrued_interest_treatment",
+    "treatment_of_penal_interest",
+    "treatment_of_other_charges",
+    "loan_restructure_details_section",
+    "new_rate_of_interest",
+    "repayment_start_date",
+    "column_break_mqcp",
+    "new_repayment_method",
+    "new_repayment_period_in_months",
+    "new_monthly_repayment_amount",
+    "new_loan_amount",
+    "amended_from"
+],
+"fields": [
+    {
+    "fieldname": "loan",
+    "fieldtype": "Link",
+    "in_list_view": 1,
+    "label": "Loan",
+    "options": "Loan",
+    "reqd": 1
+    },
+    {
+    "fetch_from": "loan.applicant_type",
+    "fieldname": "applicant_type",
+    "fieldtype": "Select",
+    "hidden": 1,
+    "label": "Applicant Type",
+    "options": "Employee\nMember\nCustomer",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.applicant",
+    "fieldname": "applicant",
+    "fieldtype": "Dynamic Link",
+    "label": "Applicant",
+    "options": "applicant_type",
+    "read_only": 1
+    },
+    {
+    "fieldname": "column_break_xph8",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fetch_from": "loan.company",
+    "fieldname": "company",
+    "fieldtype": "Link",
+    "label": "Company",
+    "options": "Company",
+    "read_only": 1
+    },
+    {
+    "fieldname": "amended_from",
+    "fieldtype": "Link",
+    "label": "Amended From",
+    "no_copy": 1,
+    "options": "Loan Restructure",
+    "print_hide": 1,
+    "read_only": 1
+    },
+    {
+    "fieldname": "loan_details_section",
+    "fieldtype": "Section Break",
+    "label": "Pre Restructure Details"
+    },
+    {
+    "fetch_from": "loan.disbursed_amount",
+    "fieldname": "disbursed_amount",
+    "fieldtype": "Currency",
+    "label": "Disbursed Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "reason_for_restructure",
+    "fieldtype": "Small Text",
+    "label": "Reason for Restructure"
+    },
+    {
+    "fieldname": "loan_restructure_details_section",
+    "fieldtype": "Section Break",
+    "label": "Loan Restructure Details"
+    },
+    {
+    "fieldname": "new_repayment_method",
+    "fieldtype": "Select",
+    "label": "New Repayment Method",
+    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
+    },
+    {
+    "fieldname": "new_repayment_period_in_months",
+    "fieldtype": "Int",
+    "label": "New Repayment Period in Months"
+    },
+    {
+    "fieldname": "new_monthly_repayment_amount",
+    "fieldtype": "Currency",
+    "label": "New Monthly Repayment Amount",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "new_rate_of_interest",
+    "fieldtype": "Percent",
+    "label": "New Rate Of Interest"
+    },
+    {
+    "fieldname": "column_break_mqcp",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "interest_waiver_amount",
+    "fieldtype": "Currency",
+    "label": "Interest Waiver Amount",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "other_charges_waiver",
+    "fieldtype": "Currency",
+    "label": "Other Charges Waiver",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "total_overdue_amount",
+    "fieldtype": "Currency",
+    "label": "Total Overdue Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "principal_overdue",
+    "fieldtype": "Currency",
+    "label": "Principal Overdue",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "interest_overdue",
+    "fieldtype": "Currency",
+    "label": "Interest Overdue",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "charges_overdue",
+    "fieldtype": "Currency",
+    "label": "Charges Overdue",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "restructure_date",
+    "fieldtype": "Date",
+    "in_list_view": 1,
+    "label": "Restructure Date",
+    "reqd": 1
+    },
+    {
+    "fieldname": "new_loan_amount",
+    "fieldtype": "Currency",
+    "label": "New Loan Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.days_past_due",
+    "fieldname": "pre_restructure_dpd",
+    "fieldtype": "Int",
+    "label": "Pre Restructure DPD",
+    "read_only": 1
+    },
+    {
+    "fieldname": "repayment_start_date",
+    "fieldtype": "Date",
+    "label": "New Repayment Start Date"
+    },
+    {
+    "fieldname": "pending_principal_amount",
+    "fieldtype": "Currency",
+    "label": "Pending Principal Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.rate_of_interest",
+    "fieldname": "old_rate_of_interest",
+    "fieldtype": "Percent",
+    "label": "Old Rate of Interest",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.loan_type",
+    "fieldname": "loan_type",
+    "fieldtype": "Link",
+    "hidden": 1,
+    "label": "Loan Type",
+    "options": "Loan Type"
+    },
+    {
+    "fieldname": "penal_interest_waiver",
+    "fieldtype": "Currency",
+    "label": "Penal Interest Waiver",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "restructure_type",
+    "fieldtype": "Select",
+    "label": "Restructure Type",
+    "options": "Normal Restructure\nPre Payment"
+    },
+    {
+    "fetch_from": "loan.branch",
+    "fieldname": "branch",
+    "fieldtype": "Link",
+    "label": "Branch",
+    "options": "Branch",
+    "read_only": 1
+    },
+    {
+    "fieldname": "penalty_overdue",
+    "fieldtype": "Currency",
+    "label": "Penalty Overdue",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.repayment_method",
+    "fieldname": "repayment_method",
+    "fieldtype": "Data",
+    "hidden": 1,
+    "label": "Repayment Method"
+    },
+    {
+    "allow_on_submit": 1,
+    "depends_on": "eval:doc.docstatus == 1",
+    "fieldname": "status",
+    "fieldtype": "Select",
+    "label": "Status",
+    "options": "\nInitiated\nApproved\nRejected"
+    },
+    {
+    "fetch_from": "loan.loan_restructure_count",
+    "fieldname": "current_restructure_count",
+    "fieldtype": "Int",
+    "label": "Current Restructure Count",
+    "read_only": 1
+    },
+    {
+    "fieldname": "unaccrued_interest",
+    "fieldtype": "Currency",
+    "label": "Unaccrued Interest",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "old_tenure",
+    "fieldtype": "Int",
+    "label": "Old Tenure",
+    "read_only": 1
+    },
+    {
+    "fetch_from": "loan.monthly_repayment_amount",
+    "fieldname": "old_emi",
+    "fieldtype": "Currency",
+    "label": "Old EMI",
+    "read_only": 1
+    },
+    {
+    "default": "Capitalize",
+    "fieldname": "treatment_of_penal_interest",
+    "fieldtype": "Select",
+    "label": "Penal Treatment",
+    "options": "Capitalize\nCarry Forward"
+    },
+    {
+    "default": "Capitalize",
+    "fieldname": "treatment_of_other_charges",
+    "fieldtype": "Select",
+    "label": "Charges Treatment",
+    "options": "Capitalize\nCarry Forward"
+    },
+    {
+    "default": "Add To First EMI",
+    "fieldname": "treatment_of_normal_interest",
+    "fieldtype": "Select",
+    "label": "Interest Treatment",
+    "options": "Capitalize\nAdd To First EMI"
+    },
+    {
+    "fieldname": "column_break_gl0p",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "principal_amount_details_section",
+    "fieldtype": "Section Break",
+    "label": "Loan Amount Details"
+    },
+    {
+    "fieldname": "column_break_bnny",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "adjusted_interest_amount",
+    "fieldtype": "Currency",
+    "label": "Adjusted Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "column_break_hkgd",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "section_break_tbpw",
+    "fieldtype": "Section Break"
+    },
+    {
+    "fieldname": "balance_interest_amount",
+    "fieldtype": "Currency",
+    "label": "Balance Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "column_break_ujcs",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "balance_penalty_amount",
+    "fieldtype": "Currency",
+    "label": "Balance Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "balance_charges",
+    "fieldtype": "Currency",
+    "label": "Balance Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "column_break_x8or",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "column_break_jvss",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "available_security_deposit",
+    "fieldtype": "Currency",
+    "label": "Available Security Deposit",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "section_break_suab",
+    "fieldtype": "Section Break"
+    },
+    {
+    "fieldname": "column_break_m3kb",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "principal_adjusted",
+    "fieldtype": "Currency",
+    "label": "Principal Adjusted",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "column_break_gtuc",
+    "fieldtype": "Column Break"
+    },
+    {
+    "fieldname": "balance_principal",
+    "fieldtype": "Currency",
+    "label": "Balance Overdue Principal",
+    "read_only": 1
+    },
+    {
+    "fieldname": "restructure_charges",
+    "fieldtype": "Currency",
+    "label": "Restructure Charges",
+    "read_only": 1
+    },
+    {
+    "fieldname": "completed_tenure",
+    "fieldtype": "Int",
+    "label": "Completed Tenure"
+    },
+    {
+    "default": "0",
+    "fieldname": "waive_off_restructure_charges",
+    "fieldtype": "Check",
+    "label": "Waive Off Restructure Charges"
+    },
+    {
+    "fieldname": "adjusted_unaccrued_interest",
+    "fieldtype": "Currency",
+    "label": "Adjusted Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "fieldname": "unaccrued_interest_waiver",
+    "fieldtype": "Currency",
+    "label": "Unaccrued Interest Waiver",
+    "options": "Company:company:default_currency"
+    },
+    {
+    "fieldname": "balance_unaccrued_interest",
+    "fieldtype": "Currency",
+    "label": "Balance Amount",
+    "options": "Company:company:default_currency",
+    "read_only": 1
+    },
+    {
+    "default": "Add To First EMI",
+    "fieldname": "unaccrued_interest_treatment",
+    "fieldtype": "Select",
+    "label": "Unaccrued Interest Treatment",
+    "options": "Capitalize\nAdd To First EMI"
+    },
+    {
+    "fetch_from": "loan.total_amount_paid",
+    "fieldname": "total_amount_paid",
+    "fieldtype": "Currency",
+    "hidden": 1,
+    "label": "Total Amount Paid"
+    },
+    {
+    "fetch_from": "loan.total_principal_paid",
+    "fieldname": "total_principal_paid",
+    "fieldtype": "Currency",
+    "hidden": 1,
+    "label": "Total Principal Paid"
+    },
+    {
+    "fetch_from": "loan.loan_amount",
+    "fieldname": "old_loan_amount",
+    "fieldtype": "Currency",
+    "label": "Old Loan Amount"
+    }
+],
+"index_web_pages_for_search": 1,
+"is_submittable": 1,
+"links": [],
+"modified": "2023-05-31 13:25:01.899763",
+"modified_by": "Administrator",
+"module": "Loan Management",
+"name": "Loan Restructure",
+"naming_rule": "Expression (old style)",
+"owner": "Administrator",
+"permissions": [
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager",
+    "select": 1,
+    "share": 1,
+    "submit": 1,
+    "write": 1
+    },
+    {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Loan Manager",
+    "select": 1,
+    "share": 1,
+    "submit": 1,
+    "write": 1
+    }
+],
+"sort_field": "modified",
+"sort_order": "DESC",
+"states": []
+}

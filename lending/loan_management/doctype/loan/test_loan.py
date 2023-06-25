@@ -41,9 +41,6 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-territory_test_records = frappe.get_test_records("Territory")
-customer_group_test_records = frappe.get_test_records("Customer Group")
-
 
 class TestLoan(unittest.TestCase):
 	def setUp(self):
@@ -148,13 +145,6 @@ class TestLoan(unittest.TestCase):
 		)
 
 		self.applicant1 = make_employee("robert_loan@loan.com")
-
-		if not frappe.db.exists("Customer Group", "_Test Customer Group"):
-			frappe.get_doc(customer_group_test_records[0]).insert()
-
-		if not frappe.db.exists("Territory", "_Test Territory"):
-			frappe.get_doc(territory_test_records[0]).insert()
-
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
@@ -1163,6 +1153,7 @@ def create_loan_type(
 	repayment_periods=None,
 	repayment_schedule_type=None,
 	repayment_date_on=None,
+	days_past_due_threshold_for_npa=None,
 ):
 
 	if not frappe.db.exists("Loan Type", loan_name):
@@ -1186,6 +1177,7 @@ def create_loan_type(
 				"repayment_method": repayment_method,
 				"repayment_periods": repayment_periods,
 				"write_off_amount": 100,
+				"days_past_due_threshold_for_npa": days_past_due_threshold_for_npa,
 			}
 		)
 
@@ -1296,8 +1288,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 		).insert(ignore_permissions=True)
 
 
-def create_repayment_entry(loan, applicant, posting_date, paid_amount):
-
+def create_repayment_entry(loan, applicant, posting_date, paid_amount, offset_based_on_npa=0):
 	lr = frappe.get_doc(
 		{
 			"doctype": "Loan Repayment",
@@ -1307,6 +1298,7 @@ def create_repayment_entry(loan, applicant, posting_date, paid_amount):
 			"applicant": applicant,
 			"amount_paid": paid_amount,
 			"loan_type": "Stock Loan",
+			"offset_based_on_npa": offset_based_on_npa,
 		}
 	).insert(ignore_permissions=True)
 
