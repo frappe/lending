@@ -6,15 +6,15 @@ from frappe import _
 from frappe.utils import add_days, cint, flt, getdate
 
 from erpnext.controllers.accounts_controller import AccountsController
-from erpnext.loan_management.doctype.loan.loan import (
+from lending.loan_management.doctype.loan.loan import (
 	update_all_linked_loan_customer_npa_status,
 	update_watch_period_date_for_all_loans,
 )
-from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	make_accrual_interest_entry_for_demand_loans,
 )
-from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from erpnext.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
 

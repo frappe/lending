@@ -375,7 +375,7 @@ def make_repayment_entry(loan, applicant_type, applicant, loan_type, company, as
 
 @frappe.whitelist()
 def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict=0):
-	from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	if not company:
 		company = frappe.get_value("Loan", loan, "company")

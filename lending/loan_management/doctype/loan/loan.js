@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-{% include 'erpnext/loan_management/loan_common.js' %};
+{% include 'lending/loan_management/loan_common.js' %};
 
 frappe.ui.form.on('Loan', {
 	setup: function(frm) {
@@ -133,7 +133,7 @@ frappe.ui.form.on('Loan', {
 					frm.doc.loan_amount - frm.doc.disbursed_amount : 0,
 				"as_dict": 1
 			},
-			method: "erpnext.loan_management.doctype.loan.loan.make_loan_disbursement",
+			method: "lending.loan_management.doctype.loan.loan.make_loan_disbursement",
 			callback: function (r) {
 				if (r.message)
 					var doc = frappe.model.sync(r.message)[0];
@@ -152,7 +152,7 @@ frappe.ui.form.on('Loan', {
 				"company": frm.doc.company,
 				"as_dict": 1
 			},
-			method: "erpnext.loan_management.doctype.loan.loan.make_repayment_entry",
+			method: "lending.loan_management.doctype.loan.loan.make_repayment_entry",
 			callback: function (r) {
 				if (r.message)
 					var doc = frappe.model.sync(r.message)[0];
@@ -168,7 +168,7 @@ frappe.ui.form.on('Loan', {
 				"company": frm.doc.company,
 				"as_dict": 1
 			},
-			method: "erpnext.loan_management.doctype.loan.loan.make_loan_write_off",
+			method: "lending.loan_management.doctype.loan.loan.make_loan_write_off",
 			callback: function (r) {
 				if (r.message)
 					var doc = frappe.model.sync(r.message)[0];
@@ -182,7 +182,7 @@ frappe.ui.form.on('Loan', {
 			args: {
 				"loan": frm.doc.name
 			},
-			method: "erpnext.loan_management.doctype.loan.loan.make_refund_jv",
+			method: "lending.loan_management.doctype.loan.loan.make_refund_jv",
 			callback: function (r) {
 				if (r.message) {
 					let doc = frappe.model.sync(r.message)[0];
@@ -197,7 +197,7 @@ frappe.ui.form.on('Loan', {
 			args: {
 				"loan": frm.doc.name
 			},
-			method: "erpnext.loan_management.doctype.loan.loan.close_unsecured_term_loan",
+			method: "lending.loan_management.doctype.loan.loan.close_unsecured_term_loan",
 			callback: function () {
 				frm.refresh();
 			}
@@ -211,7 +211,7 @@ frappe.ui.form.on('Loan', {
 					args: {
 						'loan': frm.doc.name
 					},
-					method: "erpnext.loan_management.doctype.loan.loan.request_loan_closure",
+					method: "lending.loan_management.doctype.loan.loan.request_loan_closure",
 					callback: function() {
 						frm.reload_doc();
 					}
@@ -222,7 +222,7 @@ frappe.ui.form.on('Loan', {
 
 	create_loan_security_unpledge: function(frm) {
 		frappe.call({
-			method: "erpnext.loan_management.doctype.loan.loan.unpledge_security",
+			method: "lending.loan_management.doctype.loan.loan.unpledge_security",
 			args : {
 				"loan": frm.doc.name,
 				"as_dict": 1
@@ -238,7 +238,7 @@ frappe.ui.form.on('Loan', {
 	loan_application: function (frm) {
 		if(frm.doc.loan_application){
 			return frappe.call({
-				method: "erpnext.loan_management.doctype.loan.loan.get_loan_application",
+				method: "lending.loan_management.doctype.loan.loan.get_loan_application",
 				args: {
 					"loan_application": frm.doc.loan_application
 				},

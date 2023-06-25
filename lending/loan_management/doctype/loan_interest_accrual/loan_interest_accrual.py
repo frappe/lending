@@ -104,7 +104,7 @@ class LoanInterestAccrual(AccountsController):
 def calculate_accrual_amount_for_demand_loans(
 	loan, posting_date, process_loan_interest, accrual_type
 ):
-	from erpnext.loan_management.doctype.loan_repayment.loan_repayment import (
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		calculate_amounts,
 		get_pending_principal_amount,
 	)
