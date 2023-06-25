@@ -5,19 +5,20 @@ frappe.ui.form.on(cur_frm.doctype, {
 	refresh: function(frm) {
 		if (['Loan Disbursement', 'Loan Repayment', 'Loan Interest Accrual', 'Loan Write Off'].includes(frm.doc.doctype)
 			&& frm.doc.docstatus > 0) {
-
-			frm.add_custom_button(__("Accounting Ledger"), function() {
+			cur_frm.add_custom_button(__('Accounting Ledger'), function() {
 				frappe.route_options = {
 					voucher_no: frm.doc.name,
+					from_date: frm.doc.posting_date,
+					to_date: frm.doc.posting_date,
 					company: frm.doc.company,
-					from_date: moment(frm.doc.posting_date).format('YYYY-MM-DD'),
-					to_date: moment(frm.doc.modified).format('YYYY-MM-DD'),
+					group_by: "Group by Voucher (Consolidated)",
 					show_cancelled_entries: frm.doc.docstatus === 2
 				};
-
 				frappe.set_route("query-report", "General Ledger");
-			},__("View"));
+			}, __("View"));
 		}
+
+		erpnext.hide_company();
 	},
 	applicant: function(frm) {
 		if (!["Loan Application", "Loan"].includes(frm.doc.doctype)) {

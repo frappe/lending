@@ -15,34 +15,31 @@ from frappe.utils import (
 	nowdate,
 )
 
-from lending.loan_management.doctype.loan.loan import (
+from erpnext.loan_management.doctype.loan.loan import (
 	make_loan_write_off,
 	request_loan_closure,
 	unpledge_security,
 )
-from lending.loan_management.doctype.loan_application.loan_application import create_pledge
-from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+from erpnext.loan_management.doctype.loan_application.loan_application import create_pledge
+from erpnext.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
-from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from erpnext.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
-from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 	process_loan_interest_accrual_for_term_loans,
 )
-from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
+from erpnext.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,
 )
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
-
-territory_test_records = frappe.get_test_records("Territory")
-customer_group_test_records = frappe.get_test_records("Customer Group")
 
 
 class TestLoan(unittest.TestCase):
@@ -148,13 +145,6 @@ class TestLoan(unittest.TestCase):
 		)
 
 		self.applicant1 = make_employee("robert_loan@loan.com")
-
-		if not frappe.db.exists("Customer Group", "_Test Customer Group"):
-			frappe.get_doc(customer_group_test_records[0]).insert()
-
-		if not frappe.db.exists("Territory", "_Test Territory"):
-			frappe.get_doc(territory_test_records[0]).insert()
-
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
@@ -1163,6 +1153,7 @@ def create_loan_type(
 	repayment_periods=None,
 	repayment_schedule_type=None,
 	repayment_date_on=None,
+	days_past_due_threshold_for_npa=None,
 ):
 
 	if not frappe.db.exists("Loan Type", loan_name):
@@ -1186,6 +1177,7 @@ def create_loan_type(
 				"repayment_method": repayment_method,
 				"repayment_periods": repayment_periods,
 				"write_off_amount": 100,
+				"days_past_due_threshold_for_npa": days_past_due_threshold_for_npa,
 			}
 		)
 
@@ -1296,8 +1288,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 		).insert(ignore_permissions=True)
 
 
-def create_repayment_entry(loan, applicant, posting_date, paid_amount):
-
+def create_repayment_entry(loan, applicant, posting_date, paid_amount, offset_based_on_npa=0):
 	lr = frappe.get_doc(
 		{
 			"doctype": "Loan Repayment",
@@ -1307,6 +1298,7 @@ def create_repayment_entry(loan, applicant, posting_date, paid_amount):
 			"applicant": applicant,
 			"amount_paid": paid_amount,
 			"loan_type": "Stock Loan",
+			"offset_based_on_npa": offset_based_on_npa,
 		}
 	).insert(ignore_permissions=True)
 

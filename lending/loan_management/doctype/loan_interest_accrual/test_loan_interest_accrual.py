@@ -1,13 +1,11 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
-
 import unittest
 
 import frappe
 from frappe.utils import add_to_date, date_diff, flt, get_datetime, get_first_day, nowdate
 
-from lending.loan_management.doctype.loan.test_loan import (
+from erpnext.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
+	create_loan,
 	create_loan_accounts,
 	create_loan_application,
 	create_loan_security,
@@ -16,12 +14,16 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_loan_type,
 	make_loan_disbursement_entry,
 )
-from lending.loan_management.doctype.loan_application.loan_application import create_pledge
-from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+from erpnext.loan_management.doctype.loan_application.loan_application import create_pledge
+from erpnext.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+from erpnext.loan_management.doctype.process_asset_classification.process_asset_classification import (
+	create_process_asset_classification,
+)
+from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_term_loans,
 )
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -45,6 +47,25 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			"Penalty Income Account - _TC",
 		)
 
+		create_loan_type(
+			loan_name="Term Loan With DPD",
+			maximum_loan_amount=2000000,
+			rate_of_interest=10,
+			penalty_interest_rate=25,
+			is_term_loan=1,
+			grace_period_in_days=5,
+			mode_of_payment="Cash",
+			disbursement_account="Disbursement Account - _TC",
+			payment_account="Payment Account - _TC",
+			loan_account="Loan Account - _TC",
+			interest_income_account="Interest Income Account - _TC",
+			penalty_income_account="Penalty Income Account - _TC",
+			repayment_method="Repay Over Number of Periods",
+			repayment_periods=12,
+			repayment_schedule_type="Monthly as per repayment start date",
+			days_past_due_threshold_for_npa=90,
+		)
+
 		create_loan_security_type()
 		create_loan_security()
 
@@ -56,6 +77,8 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
 		self.applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+
+		setup_asset_classification_ranges("_Test Company")
 
 	def test_loan_interest_accural(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
@@ -82,6 +105,75 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		loan_interest_accural = frappe.get_doc("Loan Interest Accrual", {"loan": loan.name})
 
 		self.assertEqual(flt(loan_interest_accural.interest_amount, 0), flt(accrued_interest_amount, 0))
+
+	def test_dpd_calculation(self):
+		loan = create_loan(
+			applicant=self.applicant,
+			loan_type="Term Loan With DPD",
+			loan_amount=1200000,
+			repayment_method="Repay Over Number of Periods",
+			repayment_periods=12,
+			applicant_type="Customer",
+			repayment_start_date="2023-01-31",
+			posting_date="2023-01-01",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date="2023-02-01")
+		process_loan_interest_accrual_for_term_loans(posting_date="2023-02-01")
+		create_process_asset_classification(
+			posting_date="2023-02-02", loan_type=loan.loan_type, loan=loan.name
+		)
+
+		loan_details = frappe.db.get_value(
+			"Loan",
+			loan.name,
+			["days_past_due", "asset_classification_code", "asset_classification_name"],
+			as_dict=1,
+		)
+
+		self.assertEqual(loan_details.days_past_due, 2)
+		self.assertEqual(loan_details.asset_classification_code, "SMA-0")
+		self.assertEqual(loan_details.asset_classification_name, "Special Mention Account - 0")
+
+		create_process_asset_classification(
+			posting_date="2023-04-05", loan_type=loan.loan_type, loan=loan.name
+		)
+		loan_details = frappe.db.get_value(
+			"Loan",
+			loan.name,
+			["days_past_due", "asset_classification_code", "asset_classification_name"],
+			as_dict=1,
+		)
+
+		self.assertEqual(loan_details.days_past_due, 64)
+		self.assertEqual(loan_details.asset_classification_code, "SMA-2")
+		self.assertEqual(loan_details.asset_classification_name, "Special Mention Account - 2")
+
+		create_process_asset_classification(
+			posting_date="2023-07-05", loan_type=loan.loan_type, loan=loan.name
+		)
+		loan_details = frappe.db.get_value(
+			"Loan",
+			loan.name,
+			[
+				"days_past_due",
+				"asset_classification_code",
+				"asset_classification_name",
+				"is_npa",
+				"manual_npa",
+			],
+			as_dict=1,
+		)
+
+		applicant_status = frappe.db.get_value("Customer", self.applicant, "is_npa")
+
+		self.assertEqual(loan_details.days_past_due, 155)
+		self.assertEqual(loan_details.asset_classification_code, "D1")
+		self.assertEqual(loan_details.asset_classification_name, "Substandard Asset")
+		self.assertEqual(loan_details.is_npa, 1)
+		self.assertEqual(loan_details.manual_npa, 1)
+		self.assertEqual(applicant_status, 1)
 
 	def test_accumulated_amounts(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
@@ -125,3 +217,29 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		self.assertEqual(
 			flt(loan_interest_accrual.total_pending_interest_amount, 0), total_pending_interest_amount
 		)
+
+
+def setup_asset_classification_ranges(company):
+	ranges = [
+		["SMA-0", "Special Mention Account - 0", 0, 30],
+		["SMA-1", "Special Mention Account - 1", 31, 60],
+		["SMA-2", "Special Mention Account - 2", 61, 90],
+		["D1", "Substandard Asset", 91, 365],
+		["D2", "Doubtful Asset", 366, 1098],
+		["D3", "Loss Asset", 1099, 10000000],
+	]
+	company_doc = frappe.get_doc("Company", company)
+	company_doc.set("asset_classification_ranges", [])
+
+	for range in ranges:
+		company_doc.append(
+			"asset_classification_ranges",
+			{
+				"asset_classification_code": range[0],
+				"asset_classification_name": range[1],
+				"min_range": range[2],
+				"max_range": range[3],
+			},
+		)
+
+	company_doc.save()

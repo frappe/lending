@@ -3,25 +3,15 @@
 
 
 import json
-import math
 
 import frappe
 from frappe import _
-from frappe.utils import (
-	add_days,
-	add_months,
-	date_diff,
-	flt,
-	get_last_day,
-	getdate,
-	now_datetime,
-	nowdate,
-)
+from frappe.query_builder import Order
+from frappe.utils import date_diff, flt, getdate, now_datetime, nowdate
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
-from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -35,18 +25,8 @@ class Loan(AccountsController):
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
-
 		if self.is_term_loan:
-			validate_repayment_method(
-				self.repayment_method,
-				self.loan_amount,
-				self.monthly_repayment_amount,
-				self.repayment_periods,
-				self.is_term_loan,
-			)
-			self.make_repayment_schedule()
-			self.set_repayment_period()
-
+			self.make_update_draft_schedule()
 		self.calculate_totals()
 
 	def validate_accounts(self):
@@ -76,10 +56,21 @@ class Loan(AccountsController):
 		self.link_loan_security_pledge()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
+		self.submit_draft_schedule()
 
 	def on_cancel(self):
 		self.unlink_loan_security_pledge()
+		self.cancel_and_delete_repayment_schedule()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+
+	def on_update_after_submit(self):
+		if getdate() < getdate(self.watch_period_end_date):
+			frappe.throw(_("Cannot un mark as NPA before watch period end date"))
+
+		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
+		move_unpaid_interest_to_suspense_ledger(
+			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
+		)
 
 	def set_missing_fields(self):
 		if not self.company:
@@ -90,11 +81,6 @@ class Loan(AccountsController):
 
 		if self.loan_type and not self.rate_of_interest:
 			self.rate_of_interest = frappe.db.get_value("Loan Type", self.loan_type, "rate_of_interest")
-
-		if self.repayment_method == "Repay Over Number of Periods":
-			self.monthly_repayment_amount = get_monthly_repayment_amount(
-				self.loan_amount, self.rate_of_interest, self.repayment_periods
-			)
 
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
@@ -112,91 +98,53 @@ class Loan(AccountsController):
 				)
 			)
 
-	def make_repayment_schedule(self):
-		if not self.repayment_start_date:
-			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
-
-		schedule_type_details = frappe.db.get_value(
-			"Loan Type", self.loan_type, ["repayment_schedule_type", "repayment_date_on"], as_dict=1
+	def make_update_draft_schedule(self):
+		draft_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
 		)
-
-		self.repayment_schedule = []
-		payment_date = self.repayment_start_date
-		balance_amount = self.loan_amount
-
-		while balance_amount > 0:
-			interest_amount, principal_amount, balance_amount, total_payment = self.get_amounts(
-				payment_date,
-				balance_amount,
-				schedule_type_details.repayment_schedule_type,
-				schedule_type_details.repayment_date_on,
+		if draft_schedule:
+			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.update(
+				{
+					"loan": self.name,
+					"repayment_periods": self.repayment_periods,
+					"repayment_method": self.repayment_method,
+					"repayment_start_date": self.repayment_start_date,
+					"posting_date": self.posting_date,
+					"loan_amount": self.loan_amount,
+				}
 			)
-
-			if schedule_type_details.repayment_schedule_type == "Pro-rated calendar months":
-				next_payment_date = get_last_day(payment_date)
-				if schedule_type_details.repayment_date_on == "Start of the next month":
-					next_payment_date = add_days(next_payment_date, 1)
-
-				payment_date = next_payment_date
-
-			self.add_repayment_schedule_row(
-				payment_date, principal_amount, interest_amount, total_payment, balance_amount
-			)
-
-			if (
-				schedule_type_details.repayment_schedule_type == "Monthly as per repayment start date"
-				or schedule_type_details.repayment_date_on == "End of the current month"
-			):
-				next_payment_date = add_single_month(payment_date)
-				payment_date = next_payment_date
-
-	def get_amounts(self, payment_date, balance_amount, schedule_type, repayment_date_on):
-		if schedule_type == "Monthly as per repayment start date":
-			days = 1
-			months = 12
+			schedule.save()
 		else:
-			expected_payment_date = get_last_day(payment_date)
-			if repayment_date_on == "Start of the next month":
-				expected_payment_date = add_days(expected_payment_date, 1)
+			frappe.get_doc(
+				{
+					"doctype": "Loan Repayment Schedule",
+					"loan": self.name,
+					"repayment_method": self.repayment_method,
+					"repayment_start_date": self.repayment_start_date,
+					"repayment_periods": self.repayment_periods,
+					"loan_amount": self.loan_amount,
+					"loan_type": self.loan_type,
+					"rate_of_interest": self.rate_of_interest,
+					"posting_date": self.posting_date,
+				}
+			).insert()
 
-			if expected_payment_date == payment_date:
-				# using 30 days for calculating interest for all full months
-				days = 30
-				months = 365
-			else:
-				days = date_diff(get_last_day(payment_date), payment_date)
-				months = 365
-
-		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
-		principal_amount = self.monthly_repayment_amount - interest_amount
-		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
-		if balance_amount < 0:
-			principal_amount += balance_amount
-			balance_amount = 0.0
-
-		total_payment = principal_amount + interest_amount
-
-		return interest_amount, principal_amount, balance_amount, total_payment
-
-	def add_repayment_schedule_row(
-		self, payment_date, principal_amount, interest_amount, total_payment, balance_loan_amount
-	):
-		self.append(
-			"repayment_schedule",
-			{
-				"payment_date": payment_date,
-				"principal_amount": principal_amount,
-				"interest_amount": interest_amount,
-				"total_payment": total_payment,
-				"balance_loan_amount": balance_loan_amount,
-			},
+	def submit_draft_schedule(self):
+		draft_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
 		)
+		if draft_schedule:
+			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.submit()
 
-	def set_repayment_period(self):
-		if self.repayment_method == "Repay Fixed Amount per Period":
-			repayment_periods = len(self.repayment_schedule)
-
-			self.repayment_periods = repayment_periods
+	def cancel_and_delete_repayment_schedule(self):
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 1}, "name"
+		)
+		if schedule:
+			schedule = frappe.get_doc("Loan Repayment Schedule", schedule)
+			schedule.cancel()
 
 	def calculate_totals(self):
 		self.total_payment = 0
@@ -204,9 +152,12 @@ class Loan(AccountsController):
 		self.total_amount_paid = 0
 
 		if self.is_term_loan:
-			for data in self.repayment_schedule:
+			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
+			for data in schedule.repayment_schedule:
 				self.total_payment += data.total_payment
 				self.total_interest_payable += data.interest_amount
+
+			self.monthly_repayment_amount = schedule.monthly_repayment_amount
 		else:
 			self.total_payment = self.loan_amount
 
@@ -243,7 +194,7 @@ class Loan(AccountsController):
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def accrue_loan_interest(self):
-		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_term_loans,
 		)
 
@@ -333,37 +284,10 @@ def get_sanctioned_amount_limit(applicant_type, applicant, company):
 	)
 
 
-def validate_repayment_method(
-	repayment_method, loan_amount, monthly_repayment_amount, repayment_periods, is_term_loan
-):
-
-	if is_term_loan and not repayment_method:
-		frappe.throw(_("Repayment Method is mandatory for term loans"))
-
-	if repayment_method == "Repay Over Number of Periods" and not repayment_periods:
-		frappe.throw(_("Please enter Repayment Periods"))
-
-	if repayment_method == "Repay Fixed Amount per Period":
-		if not monthly_repayment_amount:
-			frappe.throw(_("Please enter repayment Amount"))
-		if monthly_repayment_amount > loan_amount:
-			frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
-
-
-def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods):
-	if rate_of_interest:
-		monthly_interest_rate = flt(rate_of_interest) / (12 * 100)
-		monthly_repayment_amount = math.ceil(
-			(loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods)
-			/ ((1 + monthly_interest_rate) ** repayment_periods - 1)
-		)
-	else:
-		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
-	return monthly_repayment_amount
-
-
 @frappe.whitelist()
 def request_loan_closure(loan, posting_date=None):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
 	if not posting_date:
 		posting_date = getdate()
 
@@ -451,6 +375,8 @@ def make_repayment_entry(loan, applicant_type, applicant, loan_type, company, as
 
 @frappe.whitelist()
 def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict=0):
+	from erpnext.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
 	if not company:
 		company = frappe.get_value("Loan", loan, "company")
 
@@ -552,13 +478,6 @@ def get_shortfall_applicants():
 	return {"value": len(applicants), "fieldtype": "Int"}
 
 
-def add_single_month(date):
-	if getdate(date) == get_last_day(date):
-		return get_last_day(add_months(date, 1))
-	else:
-		return add_months(date, 1)
-
-
 @frappe.whitelist()
 def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, submit=0):
 	loan_details = frappe.db.get_value(
@@ -609,3 +528,331 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 		refund_jv.submit()
 
 	return refund_jv
+
+
+@frappe.whitelist()
+def update_days_past_due_in_loans(
+	posting_date=None, loan_type=None, loan_name=None, process_asset_classification=None
+):
+	"""Update days past due in loans"""
+	posting_date = posting_date or getdate()
+
+	accruals = get_pending_loan_interest_accruals(loan_type=loan_type, loan_name=loan_name)
+	threshold_map = get_dpd_threshold_map()
+	checked_loans = []
+
+	for loan in accruals:
+		is_npa = 0
+		days_past_due = date_diff(getdate(posting_date), getdate(loan.due_date))
+		if days_past_due < 0:
+			days_past_due = 0
+
+		threshold = threshold_map.get(loan.loan_type, 0)
+
+		if days_past_due and threshold and days_past_due > threshold:
+			is_npa = 1
+
+		update_loan_and_customer_status(
+			loan.loan,
+			loan.company,
+			loan.applicant_type,
+			loan.applicant,
+			days_past_due,
+			is_npa,
+			posting_date or getdate(),
+		)
+
+		create_dpd_record(loan.loan, posting_date, days_past_due, process_asset_classification)
+		checked_loans.append(loan.loan)
+
+	open_loans_with_no_overdue = []
+	if loan_name and not accruals:
+		open_loans_with_no_overdue = [
+			frappe.db.get_value(
+				"Loan", loan_name, ["name", "company", "applicant_type", "applicant"], as_dict=1
+			)
+		]
+	elif not loan_name:
+		open_loans_with_no_overdue = frappe.db.get_all(
+			"Loan",
+			{"status": "Disbursed", "docstatus": 1, "name": ("not in", checked_loans)},
+			["name", "company", "applicant_type", "applicant"],
+		)
+
+	for d in open_loans_with_no_overdue:
+		update_loan_and_customer_status(
+			d.name, d.company, d.applicant_type, d.applicant, 0, 0, posting_date or getdate()
+		)
+
+		create_dpd_record(d.name, posting_date, 0, process_asset_classification)
+
+
+def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
+	pac = frappe.db.get_value(
+		"Process Asset Classification", {"payment_reference": repayment_reference}, "previous_process"
+	)
+	for d in frappe.db.get_all(
+		"Days Past Due Log",
+		filters={
+			"process_asset_classification": pac,
+			"applicant_type": applicant_type,
+			"applicant": applicant,
+		},
+		fields=["loan", "days_past_due"],
+	):
+		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
+
+
+def create_dpd_record(loan, posting_date, days_past_due, process_asset_classification=None):
+	frappe.get_doc(
+		{
+			"doctype": "Days Past Due Log",
+			"loan": loan,
+			"posting_date": posting_date,
+			"days_past_due": days_past_due,
+			"process_asset_classification": process_asset_classification,
+		}
+	).insert(ignore_permissions=True)
+
+
+def update_loan_and_customer_status(
+	loan, company, applicant_type, applicant, days_past_due, is_npa, posting_date
+):
+	asset_code, asset_name = get_asset_classification_code_and_name(days_past_due, company)
+
+	frappe.db.set_value(
+		"Loan",
+		loan,
+		{
+			"days_past_due": days_past_due,
+			"asset_classification_code": asset_code,
+			"asset_classification_name": asset_name,
+		},
+	)
+
+	if is_npa:
+		for loan in frappe.get_all(
+			"Loan",
+			{
+				"status": ("in", ["Disbursed", "Partially Disbursed"]),
+				"applicant_type": applicant_type,
+				"applicant": applicant,
+			},
+			pluck="name",
+		):
+			move_unpaid_interest_to_suspense_ledger(loan, posting_date)
+
+		update_all_linked_loan_customer_npa_status(
+			is_npa, is_npa, applicant_type, applicant, posting_date
+		)
+	else:
+		max_dpd = frappe.db.get_value(
+			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
+		)
+
+		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
+		if max_dpd == 0:
+			update_all_linked_loan_customer_npa_status(
+				is_npa, is_npa, applicant_type, applicant, posting_date
+			)
+
+
+def update_all_linked_loan_customer_npa_status(
+	is_npa, manual_npa, applicant_type, applicant, posting_date
+):
+	"""Update NPA status of all linked customers"""
+	update_system_npa_check(is_npa, applicant_type, applicant, posting_date)
+	update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date)
+
+
+def update_system_npa_check(is_npa, applicant_type, applicant, posting_date):
+	_loan = frappe.qb.DocType("Loan")
+	frappe.qb.update(_loan).set(_loan.is_npa, is_npa).where(
+		(_loan.docstatus == 1)
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.applicant_type == applicant_type)
+		& (_loan.applicant == applicant)
+		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
+	).run()
+
+	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
+
+
+def update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date):
+	_loan = frappe.qb.DocType("Loan")
+	frappe.qb.update(_loan).set(_loan.manual_npa, manual_npa).where(
+		(_loan.docstatus == 1)
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.applicant_type == applicant_type)
+		& (_loan.applicant == applicant)
+		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
+	).run()
+
+	frappe.db.set_value("Customer", applicant, "is_npa", manual_npa)
+
+
+def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type, applicant):
+	_loan = frappe.qb.DocType("Loan")
+	frappe.qb.update(_loan).set(_loan.watch_period_end_date, watch_period_end_date).where(
+		(_loan.docstatus == 1)
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.applicant_type == applicant_type)
+		& (_loan.applicant == applicant)
+	).run()
+
+
+def get_asset_classification_code_and_name(days_past_due, company):
+	asset_code = ""
+	asset_name = ""
+	ranges = frappe.get_all(
+		"Loan Asset Classification Range",
+		fields=["min_range", "max_range", "asset_classification_code", "asset_classification_name"],
+		filters={"parent": company},
+		order_by="min_range",
+	)
+
+	for range in ranges:
+		if range.min_range <= days_past_due <= range.max_range:
+			return range.asset_classification_code, range.asset_classification_name
+
+	return asset_code, asset_name
+
+
+def get_pending_loan_interest_accruals(
+	loan_type=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
+):
+	"""Get pending loan interest accruals"""
+	loan_interest_accrual = frappe.qb.DocType("Loan Interest Accrual")
+
+	query = (
+		frappe.qb.from_(loan_interest_accrual)
+		.select(
+			loan_interest_accrual.name,
+			loan_interest_accrual.loan,
+			loan_interest_accrual.loan_type,
+			loan_interest_accrual.company,
+			loan_interest_accrual.loan_type,
+			loan_interest_accrual.due_date,
+			loan_interest_accrual.applicant_type,
+			loan_interest_accrual.applicant,
+			loan_interest_accrual.interest_amount,
+			loan_interest_accrual.paid_interest_amount,
+		)
+		.where(
+			(loan_interest_accrual.docstatus == 1)
+			& (
+				(loan_interest_accrual.interest_amount - loan_interest_accrual.paid_interest_amount > 0.01)
+				| (
+					loan_interest_accrual.payable_principal_amount - loan_interest_accrual.paid_principal_amount
+					> 0.01
+				)
+			)
+		)
+		.orderby(loan_interest_accrual.due_date, order=Order.desc)
+	)
+
+	if loan_type:
+		query = query.where(loan_interest_accrual.loan_type == loan_type)
+
+	if loan_name:
+		query = query.where(loan_interest_accrual.loan == loan_name)
+
+	if applicant_type:
+		query = query.where(loan_interest_accrual.applicant_type == applicant_type)
+
+	if applicant:
+		query = query.where(loan_interest_accrual.applicant == applicant)
+
+	loans = query.run(as_dict=1)
+
+	if filter_entries:
+		# filter not required accruals:
+		loans = list({loan["loan"]: loan for loan in loans}.values())
+
+	return loans
+
+
+def get_dpd_threshold_map():
+	return frappe._dict(
+		frappe.get_all("Loan Type", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
+	)
+
+
+def move_unpaid_interest_to_suspense_ledger(
+	loan=None, posting_date=None, applicant_type=None, applicant=None, reverse=0
+):
+	posting_date = posting_date or getdate()
+	previous_npa = frappe.db.get_value("Loan", loan, "is_npa")
+	if previous_npa:
+		return
+
+	pending_loan_interest_accruals = get_pending_loan_interest_accruals(
+		loan_name=loan, applicant_type=applicant_type, applicant=applicant, filter_entries=False
+	)
+
+	for accrual in pending_loan_interest_accruals:
+		amount = accrual.interest_amount - accrual.paid_interest_amount
+
+		if reverse:
+			amount = -1 * amount
+
+		account_details = frappe.get_value(
+			"Loan Type",
+			accrual.loan_type,
+			[
+				"suspense_interest_receivable",
+				"suspense_interest_income",
+				"interest_receivable_account",
+				"interest_income_account",
+			],
+			as_dict=1,
+		)
+		jv = frappe.get_doc(
+			{
+				"doctype": "Journal Entry",
+				"voucher_type": "Journal Entry",
+				"posting_date": posting_date,
+				"company": accrual.company,
+				"accounts": [
+					{
+						"account": account_details.suspense_interest_receivable,
+						"party": accrual.applicant,
+						"party_type": accrual.applicant_type,
+						"debit_in_account_currency": amount,
+						"debit": amount,
+						"reference_type": "Loan",
+						"reference_name": accrual.loan,
+						"cost_center": erpnext.get_default_cost_center(accrual.company),
+					},
+					{
+						"account": account_details.interest_receivable_account,
+						"party": accrual.applicant,
+						"party_type": accrual.applicant_type,
+						"credit_in_account_currency": amount,
+						"credit": amount,
+						"reference_type": "Loan",
+						"reference_name": accrual.loan,
+						"cost_center": erpnext.get_default_cost_center(accrual.company),
+					},
+					{
+						"account": account_details.suspense_interest_income,
+						"credit_in_account_currency": amount,
+						"credit": amount,
+						"reference_type": "Loan Interest Accrual",
+						"reference_name": accrual.name,
+						"cost_center": erpnext.get_default_cost_center(accrual.company),
+					},
+					{
+						"account": account_details.interest_income_account,
+						"debit": amount,
+						"debit_in_account_currency": amount,
+						"reference_type": "Loan Interest Accrual",
+						"reference_name": accrual.name,
+						"cost_center": erpnext.get_default_cost_center(accrual.company),
+					},
+				],
+			}
+		)
+
+		jv.flags.ignore_mandatory = True
+		jv.submit()
