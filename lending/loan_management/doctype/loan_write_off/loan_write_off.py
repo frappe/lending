@@ -9,6 +9,7 @@ from frappe.utils import cint, flt, getdate
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
+
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	get_pending_principal_amount,
 )
