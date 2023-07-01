@@ -15,6 +15,8 @@ from frappe.utils import (
 	nowdate,
 )
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
 from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan_accounts,
@@ -36,7 +38,6 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 )
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 
 class TestLoanDisbursement(unittest.TestCase):

@@ -15,6 +15,9 @@ from frappe.utils import (
 	nowdate,
 )
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+from erpnext.setup.doctype.employee.test_employee import make_employee
+
 from lending.loan_management.doctype.loan.loan import (
 	make_loan_write_off,
 	request_loan_closure,
@@ -38,8 +41,6 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,
 )
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-from erpnext.setup.doctype.employee.test_employee import make_employee
 
 territory_test_records = frappe.get_test_records("Territory")
 customer_group_test_records = frappe.get_test_records("Customer Group")

@@ -1,8 +1,9 @@
+from pypika import CustomFunction
+
 import frappe
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt, getdate
-from pypika import CustomFunction
 
 
 def get_payment_entries_for_bank_clearance(
@@ -71,10 +72,7 @@ def get_payment_entries_for_bank_clearance(
 
 	loan_repayments = query.run(as_dict=True)
 
-	entries = (
-		list(loan_disbursements)
-		+ list(loan_repayments)
-	)
+	entries = list(loan_disbursements) + list(loan_repayments)
 
 	return entries
 
