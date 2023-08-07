@@ -4,11 +4,15 @@
 import frappe
 
 def execute():
+	frappe.reload_doc("loan_management", "doctype", "loan_repayment_schedule")
+
 	for loan in frappe.get_all("Loan", filters={"is_term_loan": 1}):
 		loan = frappe.get_cached_doc("Loan", loan.name)
 		loan_repayment_schedule = frappe.new_doc("Loan Repayment Schedule")
 		loan_repayment_schedule.flags.ignore_validate = True
 		loan_repayment_schedule.loan = loan.name
+		loan_repayment_schedule.loan_amount = loan.loan_amount
+		loan_repayment_schedule.monthly_repayment_amount = loan.monthly_repayment_amount
 		loan_repayment_schedule.posting_date = loan.posting_date
 		loan_repayment_schedule.set("repayment_schedule", loan.repayment_schedule)
 		loan_repayment_schedule.status = get_status(loan.status)

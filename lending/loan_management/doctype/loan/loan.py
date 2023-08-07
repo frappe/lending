@@ -112,6 +112,7 @@ class Loan(AccountsController):
 					"repayment_start_date": self.repayment_start_date,
 					"posting_date": self.posting_date,
 					"loan_amount": self.loan_amount,
+					"monthly_repayment_amount": self.monthly_repayment_amount
 				}
 			)
 			schedule.save()
@@ -124,6 +125,7 @@ class Loan(AccountsController):
 					"repayment_start_date": self.repayment_start_date,
 					"repayment_periods": self.repayment_periods,
 					"loan_amount": self.loan_amount,
+					"montly_repayment_amount": self.monthly_repayment_amount,
 					"loan_type": self.loan_type,
 					"rate_of_interest": self.rate_of_interest,
 					"posting_date": self.posting_date,
@@ -194,7 +196,7 @@ class Loan(AccountsController):
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def accrue_loan_interest(self):
-		from erpnext.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_term_loans,
 		)
 
