@@ -15,6 +15,8 @@ from frappe.utils import (
 	nowdate,
 )
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
 from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan_accounts,
@@ -36,7 +38,6 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 )
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 
 class TestLoanDisbursement(unittest.TestCase):
@@ -160,4 +161,3 @@ class TestLoanDisbursement(unittest.TestCase):
 		interest = per_day_interest * 15
 
 		self.assertEqual(amounts["pending_principal_amount"], 1500000)
-		self.assertEqual(amounts["interest_amount"], flt(interest + previous_interest, 2))

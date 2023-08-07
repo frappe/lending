@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import add_days, flt, getdate
 
 import erpnext
+
 from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
 	get_loan_security_details,
 )

@@ -6,6 +6,17 @@ app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
 required_apps = ["erpnext"]
 
+audit_trail_doctypes = [
+	# doctypes that make GL entries require Audit Trail to be maintained
+	# as per the laws applicable to Companies in India
+	"Loan Balance Adjustment",
+	"Loan Disbursement",
+	"Loan Interest Accrual",
+	"Loan Refund",
+	"Loan Repayment",
+	"Loan Write Off",
+]
+
 
 # Includes in <head>
 # ------------------

@@ -3,6 +3,8 @@ import unittest
 import frappe
 from frappe.utils import add_to_date, date_diff, flt, get_datetime, get_first_day, nowdate
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
 from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan,
@@ -25,7 +27,6 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_demand_loans,
 	process_loan_interest_accrual_for_term_loans,
 )
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 
 class TestLoanInterestAccrual(unittest.TestCase):
