@@ -25,9 +25,16 @@ class Loan(AccountsController):
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
+		if self.is_term_loan and not self.is_new():
+			self.update_draft_schedule()
+
+		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
+			self.calculate_totals()
+
+	def after_insert(self):
 		if self.is_term_loan:
-			self.make_update_draft_schedule()
-		self.calculate_totals()
+			self.make_draft_schedule()
+			self.calculate_totals(on_insert=True)
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -98,7 +105,23 @@ class Loan(AccountsController):
 				)
 			)
 
-	def make_update_draft_schedule(self):
+	def make_draft_schedule(self):
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Schedule",
+				"loan": self.name,
+				"repayment_method": self.repayment_method,
+				"repayment_start_date": self.repayment_start_date,
+				"repayment_periods": self.repayment_periods,
+				"loan_amount": self.loan_amount,
+				"monthly_repayment_amount": self.monthly_repayment_amount,
+				"loan_type": self.loan_type,
+				"rate_of_interest": self.rate_of_interest,
+				"posting_date": self.posting_date,
+			}
+		).insert()
+
+	def update_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
 		)
@@ -107,6 +130,7 @@ class Loan(AccountsController):
 			schedule.update(
 				{
 					"loan": self.name,
+					"loan_type": self.loan_type,
 					"repayment_periods": self.repayment_periods,
 					"repayment_method": self.repayment_method,
 					"repayment_start_date": self.repayment_start_date,
@@ -116,21 +140,6 @@ class Loan(AccountsController):
 				}
 			)
 			schedule.save()
-		else:
-			frappe.get_doc(
-				{
-					"doctype": "Loan Repayment Schedule",
-					"loan": self.name,
-					"repayment_method": self.repayment_method,
-					"repayment_start_date": self.repayment_start_date,
-					"repayment_periods": self.repayment_periods,
-					"loan_amount": self.loan_amount,
-					"montly_repayment_amount": self.monthly_repayment_amount,
-					"loan_type": self.loan_type,
-					"rate_of_interest": self.rate_of_interest,
-					"posting_date": self.posting_date,
-				}
-			).insert()
 
 	def submit_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
@@ -148,7 +157,7 @@ class Loan(AccountsController):
 			schedule = frappe.get_doc("Loan Repayment Schedule", schedule)
 			schedule.cancel()
 
-	def calculate_totals(self):
+	def calculate_totals(self, on_insert=False):
 		self.total_payment = 0
 		self.total_interest_payable = 0
 		self.total_amount_paid = 0
@@ -162,6 +171,11 @@ class Loan(AccountsController):
 			self.monthly_repayment_amount = schedule.monthly_repayment_amount
 		else:
 			self.total_payment = self.loan_amount
+
+		if on_insert:
+			self.db_set("total_interest_payable", self.total_interest_payable)
+			self.db_set("monthly_repayment_amount", self.monthly_repayment_amount)
+			self.db_set("total_payment", self.total_payment)
 
 	def set_loan_amount(self):
 		if self.loan_application and not self.loan_amount:

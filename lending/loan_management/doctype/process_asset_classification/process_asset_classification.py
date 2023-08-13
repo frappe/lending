@@ -8,7 +8,7 @@ from frappe.utils import getdate
 
 class ProcessAssetClassification(Document):
 	def on_submit(self):
-		from erpnext.loan_management.doctype.loan.loan import update_days_past_due_in_loans
+		from lending.loan_management.doctype.loan.loan import update_days_past_due_in_loans
 
 		update_days_past_due_in_loans(
 			posting_date=self.posting_date,

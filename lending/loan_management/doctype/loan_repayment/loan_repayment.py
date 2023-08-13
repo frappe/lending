@@ -640,6 +640,8 @@ class LoanRepayment(AccountsController):
 					{
 						"account": penalty_receivable_account,
 						"against": payment_account,
+						"party_type": self.applicant_type,
+						"party": self.applicant,
 						"credit": self.total_penalty_paid,
 						"credit_in_account_currency": self.total_penalty_paid,
 						"against_voucher_type": "Loan",
@@ -1065,6 +1067,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	penalty_amount = 0
 	payable_principal_amount = 0
 	final_due_date = ""
+	last_entry_due_date = ""
 
 	for entry in accrued_interest_entries:
 		# Loan repayment due date is one day after the loan interest is accrued
@@ -1073,11 +1076,10 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 
 		due_date_after_grace_period = add_days(entry.due_date, loan_type_details.grace_period_in_days)
 
-		# Consider one day after already calculated penalty
 		if computed_penalty_date and getdate(computed_penalty_date) >= getdate(
 			due_date_after_grace_period
 		):
-			due_date_after_grace_period = add_days(computed_penalty_date, 1)
+			due_date_after_grace_period = computed_penalty_date
 
 		no_of_late_days = date_diff(posting_date, due_date_after_grace_period)
 
@@ -1105,17 +1107,14 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 			},
 		)
 
+		last_entry_due_date = entry.due_date
 		if entry.due_date and not final_due_date:
 			final_due_date = add_days(entry.due_date, loan_type_details.grace_period_in_days)
 
 	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
 
 	unaccrued_interest = 0
-	if final_due_date:
-		pending_days = date_diff(posting_date, final_due_date)
-	else:
-		last_accrual_date = get_last_accrual_date(against_loan_doc.name, posting_date)
-		pending_days = date_diff(posting_date, last_accrual_date) + 1
+	pending_days = date_diff(posting_date, last_entry_due_date)
 
 	if pending_days > 0:
 		if against_loan_doc.is_term_loan:
