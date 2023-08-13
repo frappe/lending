@@ -75,7 +75,7 @@ audit_trail_doctypes = [
 # ------------
 
 # before_install = "lending.install.before_install"
-# after_install = "lending.install.after_install"
+after_install = "lending.install.after_install"
 
 # Uninstallation
 # ------------
