@@ -12,6 +12,7 @@ from frappe.utils import date_diff, flt, getdate, now_datetime, nowdate
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
+
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -136,7 +137,7 @@ class Loan(AccountsController):
 					"repayment_start_date": self.repayment_start_date,
 					"posting_date": self.posting_date,
 					"loan_amount": self.loan_amount,
-					"monthly_repayment_amount": self.monthly_repayment_amount
+					"monthly_repayment_amount": self.monthly_repayment_amount,
 				}
 			)
 			schedule.save()

@@ -6,6 +6,7 @@ from frappe import _
 from frappe.utils import add_days, cint, flt, getdate
 
 from erpnext.controllers.accounts_controller import AccountsController
+
 from lending.loan_management.doctype.loan.loan import (
 	update_all_linked_loan_customer_npa_status,
 	update_watch_period_date_for_all_loans,

@@ -26,8 +26,7 @@ class TestLoanApplication(unittest.TestCase):
 			"Loan Account - _TC",
 			"Interest Income Account - _TC",
 			"Penalty Income Account - _TC",
-			"Repay Over Number of Periods",
-			18,
+			repayment_schedule_type="Monthly as per repayment start date",
 		)
 		self.applicant = make_employee("kate_loan@loan.com", "_Test Company")
 		self.create_loan_application()
