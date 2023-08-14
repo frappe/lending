@@ -3,6 +3,7 @@
 
 import frappe
 
+
 def execute():
 	frappe.reload_doc("loan_management", "doctype", "loan_repayment_schedule")
 
