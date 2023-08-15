@@ -12,6 +12,7 @@ def execute():
 		loan_repayment_schedule = frappe.new_doc("Loan Repayment Schedule")
 		loan_repayment_schedule.flags.ignore_validate = True
 		loan_repayment_schedule.loan = loan.name
+		loan_repayment_schedule.loan_type = loan.loan_type
 		loan_repayment_schedule.loan_amount = loan.loan_amount
 		loan_repayment_schedule.monthly_repayment_amount = loan.monthly_repayment_amount
 		loan_repayment_schedule.posting_date = loan.posting_date
