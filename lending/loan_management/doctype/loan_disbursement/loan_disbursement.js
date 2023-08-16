@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-{% include 'lending/loan_management/loan_common.js' %};
+lending.common.setup_filters("Loan Disbursement");
 
 frappe.ui.form.on('Loan Disbursement', {
 	setup(frm) {
