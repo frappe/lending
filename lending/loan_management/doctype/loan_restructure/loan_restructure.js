@@ -39,7 +39,7 @@ frappe.ui.form.on("Loan Restructure", {
 
 	calculate_overdue_amounts: function(frm) {
 		frappe.call({
-			method: 'erpnext.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
+			method: 'lending.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
 			args: {
 				'against_loan': frm.doc.loan,
 				'posting_date': frm.doc.restructure_date,
