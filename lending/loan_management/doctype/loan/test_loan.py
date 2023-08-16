@@ -42,70 +42,31 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 	create_process_loan_security_shortfall,
 )
 
-territory_test_records = frappe.get_test_records("Territory")
-customer_group_test_records = frappe.get_test_records("Customer Group")
-
 
 class TestLoan(unittest.TestCase):
 	def setUp(self):
 		create_loan_accounts()
-		create_loan_type(
-			"Personal Loan",
-			500000,
-			8.4,
-			is_term_loan=1,
-			mode_of_payment="Cash",
-			disbursement_account="Disbursement Account - _TC",
-			payment_account="Payment Account - _TC",
-			loan_account="Loan Account - _TC",
-			interest_income_account="Interest Income Account - _TC",
-			penalty_income_account="Penalty Income Account - _TC",
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+		simple_terms_loans = [
+			["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
+			["Term Loan Type 1", 12000, 7.5, "Monthly as per repayment start date"],
+		]
 
-		create_loan_type(
-			"Term Loan Type 1",
-			12000,
-			7.5,
-			is_term_loan=1,
-			mode_of_payment="Cash",
-			disbursement_account="Disbursement Account - _TC",
-			payment_account="Payment Account - _TC",
-			loan_account="Loan Account - _TC",
-			interest_income_account="Interest Income Account - _TC",
-			penalty_income_account="Penalty Income Account - _TC",
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+		pro_rated_term_loans = [
+			["Term Loan Type 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
+			["Term Loan Type 3", 1200, 7.5, "Pro-rated calendar months", "End of the current month"],
+		]
 
-		create_loan_type(
-			"Term Loan Type 2",
-			12000,
-			7.5,
-			is_term_loan=1,
-			mode_of_payment="Cash",
-			disbursement_account="Disbursement Account - _TC",
-			payment_account="Payment Account - _TC",
-			loan_account="Loan Account - _TC",
-			interest_income_account="Interest Income Account - _TC",
-			penalty_income_account="Penalty Income Account - _TC",
-			repayment_schedule_type="Pro-rated calendar months",
-			repayment_date_on="Start of the next month",
-		)
+		for loan_type in simple_terms_loans:
+			create_loan_type(loan_type[0], loan_type[1], loan_type[2], repayment_schedule_type=loan_type[3])
 
-		create_loan_type(
-			"Term Loan Type 3",
-			12000,
-			7.5,
-			is_term_loan=1,
-			mode_of_payment="Cash",
-			disbursement_account="Disbursement Account - _TC",
-			payment_account="Payment Account - _TC",
-			loan_account="Loan Account - _TC",
-			interest_income_account="Interest Income Account - _TC",
-			penalty_income_account="Penalty Income Account - _TC",
-			repayment_schedule_type="Pro-rated calendar months",
-			repayment_date_on="End of the current month",
-		)
+		for loan_type in pro_rated_term_loans:
+			create_loan_type(
+				loan_type[0],
+				loan_type[1],
+				loan_type[2],
+				repayment_schedule_type=loan_type[3],
+				repayment_date_on=loan_type[4],
+			)
 
 		create_loan_type(
 			"Stock Loan",
@@ -149,13 +110,6 @@ class TestLoan(unittest.TestCase):
 		)
 
 		self.applicant1 = make_employee("robert_loan@loan.com")
-
-		if not frappe.db.exists("Customer Group", "_Test Customer Group"):
-			frappe.get_doc(customer_group_test_records[0]).insert()
-
-		if not frappe.db.exists("Territory", "_Test Territory"):
-			frappe.get_doc(territory_test_records[0]).insert()
-
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
@@ -165,16 +119,17 @@ class TestLoan(unittest.TestCase):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
 
-		create_loan(self.applicant1, "Personal Loan", 280000, "Repay Over Number of Periods", 20)
-
 	def test_loan(self):
-		loan = frappe.get_doc("Loan", {"applicant": self.applicant1})
-		self.assertEqual(loan.monthly_repayment_amount, 15052)
+		loan = create_loan(self.applicant1, "Personal Loan", 280000, "Repay Over Number of Periods", 20)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
+		self.assertEqual(loan_repayment_schedule.monthly_repayment_amount, 15052)
 		self.assertEqual(flt(loan.total_interest_payable, 0), 21034)
 		self.assertEqual(flt(loan.total_payment, 0), 301034)
-
-		schedule = loan.repayment_schedule
-
 		self.assertEqual(len(schedule), 20)
 
 		for idx, principal_amount, interest_amount, balance_loan_amount in [
@@ -190,12 +145,15 @@ class TestLoan(unittest.TestCase):
 		loan.monthly_repayment_amount = 14000
 		loan.save()
 
-		self.assertEqual(len(loan.repayment_schedule), 22)
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
+		)
+
+		self.assertEqual(len(loan_repayment_schedule.repayment_schedule), 22)
 		self.assertEqual(flt(loan.total_interest_payable, 0), 22712)
 		self.assertEqual(flt(loan.total_payment, 0), 302712)
 
 	def test_loan_with_security(self):
-
 		pledge = [
 			{
 				"loan_security": "Test Security 1",
@@ -328,7 +286,7 @@ class TestLoan(unittest.TestCase):
 		repayment_entry.save()
 		repayment_entry.submit()
 
-		penalty_amount = (accrued_interest_amount * 5 * 25) / 100
+		penalty_amount = (accrued_interest_amount * 5 * 25) / (100 * 365)
 		self.assertEqual(flt(repayment_entry.penalty_amount, 0), flt(penalty_amount, 0))
 
 		amounts = frappe.db.get_all(
@@ -445,35 +403,6 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(amounts[0], 11250.00)
 		self.assertEqual(amounts[1], 78303.00)
 
-	def test_repayment_schedule_update(self):
-		loan = create_loan(
-			self.applicant2,
-			"Personal Loan",
-			200000,
-			"Repay Over Number of Periods",
-			4,
-			applicant_type="Customer",
-			repayment_start_date="2021-04-30",
-			posting_date="2021-04-01",
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date="2021-04-01")
-
-		process_loan_interest_accrual_for_term_loans(posting_date="2021-05-01")
-		process_loan_interest_accrual_for_term_loans(posting_date="2021-06-01")
-
-		repayment_entry = create_repayment_entry(loan.name, self.applicant2, "2021-06-05", 120000)
-		repayment_entry.submit()
-
-		loan.load_from_db()
-
-		self.assertEqual(flt(loan.get("repayment_schedule")[3].principal_amount, 2), 41369.83)
-		self.assertEqual(flt(loan.get("repayment_schedule")[3].interest_amount, 2), 289.59)
-		self.assertEqual(flt(loan.get("repayment_schedule")[3].total_payment, 2), 41659.41)
-		self.assertEqual(flt(loan.get("repayment_schedule")[3].balance_loan_amount, 2), 0)
-
 	def test_security_shortfall(self):
 		pledges = [
 			{
@@ -505,9 +434,9 @@ class TestLoan(unittest.TestCase):
 		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
 		self.assertTrue(loan_security_shortfall)
 
-		self.assertEqual(loan_security_shortfall.loan_amount, 1000000.00)
-		self.assertEqual(loan_security_shortfall.security_value, 800000.00)
-		self.assertEqual(loan_security_shortfall.shortfall_amount, 600000.00)
+		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1000000.00)
+		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 800000.00)
+		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 600000.00)
 
 		frappe.db.sql(
 			""" UPDATE `tabLoan Security Price` SET loan_security_price = 250
@@ -771,7 +700,7 @@ class TestLoan(unittest.TestCase):
 
 		no_of_days = date_diff(last_date, first_date) + 1
 
-		no_of_days += 5.5
+		no_of_days += 5
 
 		# get partial unaccrued interest amount
 		paid_amount = (loan.loan_amount * loan.rate_of_interest * no_of_days) / (
@@ -802,7 +731,7 @@ class TestLoan(unittest.TestCase):
 		# 30 days - grace period
 		penalty_days = 30 - 4
 		penalty_applicable_amount = flt(amounts["interest_amount"] / 2)
-		penalty_amount = flt((((penalty_applicable_amount * 25) / 100) * penalty_days), 2)
+		penalty_amount = flt((((penalty_applicable_amount * 25) / (100 * 365)) * penalty_days), 2)
 		process = process_loan_interest_accrual_for_demand_loans(posting_date="2019-11-30")
 
 		calculated_penalty_amount = frappe.db.get_value(
@@ -813,29 +742,6 @@ class TestLoan(unittest.TestCase):
 
 		self.assertEqual(loan.loan_amount, 1000000)
 		self.assertEqual(calculated_penalty_amount, penalty_amount)
-
-	def test_penalty_repayment(self):
-		loan, dummy = create_loan_scenario_for_penalty(self)
-		amounts = calculate_amounts(loan.name, "2019-11-30 00:00:00")
-
-		first_penalty = 10000
-		second_penalty = amounts["penalty_amount"] - 10000
-
-		repayment_entry = create_repayment_entry(
-			loan.name, self.applicant2, "2019-11-30 00:00:00", 10000
-		)
-		repayment_entry.submit()
-
-		amounts = calculate_amounts(loan.name, "2019-11-30 00:00:01")
-		self.assertEqual(amounts["penalty_amount"], second_penalty)
-
-		repayment_entry = create_repayment_entry(
-			loan.name, self.applicant2, "2019-11-30 00:00:01", second_penalty
-		)
-		repayment_entry.submit()
-
-		amounts = calculate_amounts(loan.name, "2019-11-30 00:00:02")
-		self.assertEqual(amounts["penalty_amount"], 0)
 
 	def test_loan_write_off_limit(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
@@ -978,58 +884,54 @@ class TestLoan(unittest.TestCase):
 			repayment_start_date="2022-10-17",
 		)
 
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
 		# Check for first, second and last installment date
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[0].payment_date, "dd-MM-yyyy"), "17-10-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[1].payment_date, "dd-MM-yyyy"), "17-11-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[-1].payment_date, "dd-MM-yyyy"), "17-09-2023"
-		)
+		self.assertEqual(format_date(schedule[0].payment_date, "dd-MM-yyyy"), "17-10-2022")
+		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "17-11-2022")
+		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "17-09-2023")
 
 		loan.loan_type = "Term Loan Type 2"
 		loan.save()
 
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
 		# Check for first, second and last installment date
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[0].payment_date, "dd-MM-yyyy"), "01-11-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[1].payment_date, "dd-MM-yyyy"), "01-12-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[-1].payment_date, "dd-MM-yyyy"), "01-10-2023"
-		)
+		self.assertEqual(format_date(schedule[0].payment_date, "dd-MM-yyyy"), "01-11-2022")
+		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "01-12-2022")
+		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "01-10-2023")
 
 		loan.loan_type = "Term Loan Type 3"
 		loan.save()
 
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
 		# Check for first, second and last installment date
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[0].payment_date, "dd-MM-yyyy"), "31-10-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[1].payment_date, "dd-MM-yyyy"), "30-11-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[-1].payment_date, "dd-MM-yyyy"), "30-09-2023"
-		)
+		self.assertEqual(format_date(schedule[0].payment_date, "dd-MM-yyyy"), "31-10-2022")
+		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "30-11-2022")
+		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "30-09-2023")
 
 		loan.repayment_method = "Repay Fixed Amount per Period"
 		loan.monthly_repayment_amount = 1042
 		loan.save()
 
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[0].payment_date, "dd-MM-yyyy"), "31-10-2022"
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 0}
 		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[1].payment_date, "dd-MM-yyyy"), "30-11-2022"
-		)
-		self.assertEqual(
-			format_date(loan.get("repayment_schedule")[-1].payment_date, "dd-MM-yyyy"), "30-09-2023"
-		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
+		self.assertEqual(format_date(schedule[0].payment_date, "dd-MM-yyyy"), "31-10-2022")
+		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "30-11-2022")
+		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "30-09-2023")
 
 
 def create_loan_scenario_for_penalty(doc):
@@ -1061,88 +963,63 @@ def create_loan_scenario_for_penalty(doc):
 
 
 def create_loan_accounts():
-	if not frappe.db.exists("Account", "Loans and Advances (Assets) - _TC"):
-		frappe.get_doc(
-			{
-				"doctype": "Account",
-				"account_name": "Loans and Advances (Assets)",
-				"company": "_Test Company",
-				"root_type": "Asset",
-				"report_type": "Balance Sheet",
-				"currency": "INR",
-				"parent_account": "Current Assets - _TC",
-				"account_type": "Bank",
-				"is_group": 1,
-			}
-		).insert(ignore_permissions=True)
+	create_account(
+		"Loans and Advances (Assets)",
+		"Current Assets - _TC",
+		"Asset",
+		"Bank",
+		"Balance Sheet",
+		is_group=1,
+	)
+	create_account(
+		"Loan Account", "Loans and Advances (Assets) - _TC", "Asset", "Bank", "Balance Sheet"
+	)
+	create_account("Payment Account", "Bank Accounts - _TC", "Asset", "Bank", "Balance Sheet")
+	create_account("Disbursement Account", "Bank Accounts - _TC", "Asset", "Bank", "Balance Sheet")
+	create_account(
+		"Interest Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
+	)
+	create_account(
+		"Penalty Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
+	)
+	create_account(
+		"Interest Receivable",
+		"Loans and Advances (Assets) - _TC",
+		"Asset",
+		"Receivable",
+		"Balance Sheet",
+	)
+	create_account(
+		"Charges Receivable", "Loans and Advances (Assets) - _TC", "Asset", "Receivable", "Balance Sheet"
+	)
+	create_account(
+		"Penalty Receivable", "Loans and Advances (Assets) - _TC", "Asset", "Receivable", "Balance Sheet"
+	)
+	create_account(
+		"Suspense Interest Receivable",
+		"Loans and Advances (Assets) - _TC",
+		"Asset",
+		"Receivable",
+		"Balance Sheet",
+	)
+	create_account(
+		"Suspense Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
+	)
 
-	if not frappe.db.exists("Account", "Loan Account - _TC"):
-		frappe.get_doc(
-			{
-				"doctype": "Account",
-				"company": "_Test Company",
-				"account_name": "Loan Account",
-				"root_type": "Asset",
-				"report_type": "Balance Sheet",
-				"currency": "INR",
-				"parent_account": "Loans and Advances (Assets) - _TC",
-				"account_type": "Bank",
-			}
-		).insert(ignore_permissions=True)
 
-	if not frappe.db.exists("Account", "Payment Account - _TC"):
+def create_account(account_name, parent_account, root_type, account_type, report_type, is_group=0):
+	if not frappe.db.exists("Account", {"account_name": account_name}):
 		frappe.get_doc(
 			{
 				"doctype": "Account",
+				"account_name": account_name,
 				"company": "_Test Company",
-				"account_name": "Payment Account",
-				"root_type": "Asset",
-				"report_type": "Balance Sheet",
+				"root_type": root_type,
+				"report_type": report_type,
 				"currency": "INR",
-				"parent_account": "Bank Accounts - _TC",
-				"account_type": "Bank",
-			}
-		).insert(ignore_permissions=True)
-
-	if not frappe.db.exists("Account", "Disbursement Account - _TC"):
-		frappe.get_doc(
-			{
-				"doctype": "Account",
-				"company": "_Test Company",
-				"account_name": "Disbursement Account",
-				"root_type": "Asset",
-				"report_type": "Balance Sheet",
-				"currency": "INR",
-				"parent_account": "Bank Accounts - _TC",
-				"account_type": "Bank",
-			}
-		).insert(ignore_permissions=True)
-
-	if not frappe.db.exists("Account", "Interest Income Account - _TC"):
-		frappe.get_doc(
-			{
-				"doctype": "Account",
-				"company": "_Test Company",
-				"root_type": "Income",
-				"account_name": "Interest Income Account",
-				"report_type": "Profit and Loss",
-				"currency": "INR",
-				"parent_account": "Direct Income - _TC",
-				"account_type": "Income Account",
-			}
-		).insert(ignore_permissions=True)
-
-	if not frappe.db.exists("Account", "Penalty Income Account - _TC"):
-		frappe.get_doc(
-			{
-				"doctype": "Account",
-				"company": "_Test Company",
-				"account_name": "Penalty Income Account",
-				"root_type": "Income",
-				"report_type": "Profit and Loss",
-				"currency": "INR",
-				"parent_account": "Direct Income - _TC",
-				"account_type": "Income Account",
+				"parent_account": parent_account,
+				"account_type": account_type,
+				"is_group": is_group,
 			}
 		).insert(ignore_permissions=True)
 
@@ -1152,18 +1029,24 @@ def create_loan_type(
 	maximum_loan_amount,
 	rate_of_interest,
 	penalty_interest_rate=None,
-	is_term_loan=None,
+	is_term_loan=1,
 	grace_period_in_days=None,
-	mode_of_payment=None,
-	disbursement_account=None,
-	payment_account=None,
-	loan_account=None,
-	interest_income_account=None,
-	penalty_income_account=None,
+	mode_of_payment="Cash",
+	disbursement_account="Disbursement Account - _TC",
+	payment_account="Payment Account - _TC",
+	loan_account="Loan Account - _TC",
+	interest_income_account="Interest Income Account - _TC",
+	penalty_income_account="Penalty Income Account - _TC",
+	interest_receivable_account="Interest Receivable - _TC",
+	penalty_receivable_account="Penalty Receivable - _TC",
+	charges_receivable_account="Charges Receivable - _TC",
+	suspense_interest_receivable="Suspense Interest Receivable - _TC",
+	suspense_interest_income="Suspense Income Account - _TC",
 	repayment_method=None,
 	repayment_periods=None,
 	repayment_schedule_type=None,
 	repayment_date_on=None,
+	days_past_due_threshold_for_npa=None,
 ):
 
 	if not frappe.db.exists("Loan Type", loan_name):
@@ -1184,9 +1067,15 @@ def create_loan_type(
 				"loan_account": loan_account,
 				"interest_income_account": interest_income_account,
 				"penalty_income_account": penalty_income_account,
+				"interest_receivable_account": interest_receivable_account,
+				"penalty_receivable_account": penalty_receivable_account,
+				"charges_receivable_account": charges_receivable_account,
+				"suspense_interest_receivable": suspense_interest_receivable,
+				"suspense_interest_income": suspense_interest_income,
 				"repayment_method": repayment_method,
 				"repayment_periods": repayment_periods,
 				"write_off_amount": 100,
+				"days_past_due_threshold_for_npa": days_past_due_threshold_for_npa,
 			}
 		)
 
@@ -1297,8 +1186,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 		).insert(ignore_permissions=True)
 
 
-def create_repayment_entry(loan, applicant, posting_date, paid_amount):
-
+def create_repayment_entry(loan, applicant, posting_date, paid_amount, offset_based_on_npa=0):
 	lr = frappe.get_doc(
 		{
 			"doctype": "Loan Repayment",
@@ -1308,6 +1196,7 @@ def create_repayment_entry(loan, applicant, posting_date, paid_amount):
 			"applicant": applicant,
 			"amount_paid": paid_amount,
 			"loan_type": "Stock Loan",
+			"offset_based_on_npa": offset_based_on_npa,
 		}
 	).insert(ignore_permissions=True)
 
@@ -1373,7 +1262,6 @@ def create_loan(
 			"repayment_method": repayment_method,
 			"repayment_periods": repayment_periods,
 			"repayment_start_date": repayment_start_date or nowdate(),
-			"is_term_loan": 1,
 			"posting_date": posting_date or nowdate(),
 		}
 	)

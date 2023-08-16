@@ -41,15 +41,28 @@ class LoanInterestAccrual(AccountsController):
 		gle_map = []
 
 		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
+		account_details = frappe.db.get_value(
+			"Loan Type",
+			self.loan_type,
+			["interest_receivable_account", "suspense_interest_receivable", "suspense_interest_income"],
+			as_dict=1,
+		)
+
+		if self.is_npa:
+			receivable_account = account_details.suspense_interest_receivable
+			income_account = account_details.suspense_interest_income
+		else:
+			receivable_account = account_details.interest_receivable_account
+			income_account = self.interest_income_account
 
 		if self.interest_amount:
 			gle_map.append(
 				self.get_gl_dict(
 					{
-						"account": self.loan_account,
+						"account": receivable_account,
 						"party_type": self.applicant_type,
 						"party": self.applicant,
-						"against": self.interest_income_account,
+						"against": income_account,
 						"debit": self.interest_amount,
 						"debit_in_account_currency": self.interest_amount,
 						"against_voucher_type": "Loan",
@@ -66,8 +79,8 @@ class LoanInterestAccrual(AccountsController):
 			gle_map.append(
 				self.get_gl_dict(
 					{
-						"account": self.interest_income_account,
-						"against": self.loan_account,
+						"account": income_account,
+						"against": receivable_account,
 						"credit": self.interest_amount,
 						"credit_in_account_currency": self.interest_amount,
 						"against_voucher_type": "Loan",
@@ -86,7 +99,7 @@ class LoanInterestAccrual(AccountsController):
 
 
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
-# rate of interest is 13.5 then first loan interest accural will be on '01-10-2019'
+# rate of interest is 13.5 then first loan interest accrual will be on '01-10-2019'
 # which means interest will be accrued for 30 days which should be equal to 11095.89
 def calculate_accrual_amount_for_demand_loans(
 	loan, posting_date, process_loan_interest, accrual_type
@@ -104,12 +117,18 @@ def calculate_accrual_amount_for_demand_loans(
 
 	pending_principal_amount = get_pending_principal_amount(loan)
 
+	if loan.is_term_loan:
+		pending_amounts = calculate_amounts(loan.name, posting_date)
+		pending_principal_amount = pending_principal_amount - flt(
+			pending_amounts["payable_principal_amount"]
+		)
+	else:
+		pending_amounts = calculate_amounts(loan.name, posting_date, payment_type="Loan Closure")
+
 	interest_per_day = get_per_day_interest(
 		pending_principal_amount, loan.rate_of_interest, posting_date
 	)
 	payable_interest = interest_per_day * no_of_days
-
-	pending_amounts = calculate_amounts(loan.name, posting_date, payment_type="Loan Closure")
 
 	args = frappe._dict(
 		{
@@ -124,6 +143,7 @@ def calculate_accrual_amount_for_demand_loans(
 			"penalty_amount": pending_amounts["penalty_amount"],
 			"process_loan_interest": process_loan_interest,
 			"posting_date": posting_date,
+			"due_date": posting_date,
 			"accrual_type": accrual_type,
 		}
 	)
@@ -133,13 +153,20 @@ def calculate_accrual_amount_for_demand_loans(
 
 
 def make_accrual_interest_entry_for_demand_loans(
-	posting_date, process_loan_interest, open_loans=None, loan_type=None, accrual_type="Regular"
+	posting_date,
+	process_loan_interest=None,
+	open_loans=None,
+	loan_type=None,
+	accrual_type="Regular",
+	via_restructure=False,
 ):
 	query_filters = {
 		"status": ("in", ["Disbursed", "Partially Disbursed"]),
 		"docstatus": 1,
-		"is_term_loan": 0,
 	}
+
+	if not via_restructure:
+		query_filters.update({"is_term_loan": 0})
 
 	if loan_type:
 		query_filters.update({"loan_type": loan_type})
@@ -202,6 +229,7 @@ def make_accrual_interest_entry_for_term_loans(
 				"repayment_schedule_name": loan.payment_entry,
 				"posting_date": posting_date,
 				"accrual_type": accrual_type,
+				"due_date": loan.payment_date,
 			}
 		)
 
@@ -217,33 +245,55 @@ def make_accrual_interest_entry_for_term_loans(
 
 
 def get_term_loans(date, term_loan=None, loan_type=None):
-	condition = ""
+	loan = frappe.qb.DocType("Loan")
+	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
+	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
+
+	query = (
+		frappe.qb.from_(loan)
+		.inner_join(loan_schedule)
+		.on(loan.name == loan_schedule.loan)
+		.inner_join(loan_repayment_schedule)
+		.on(loan_repayment_schedule.parent == loan_schedule.name)
+		.select(
+			loan.name,
+			loan.total_payment,
+			loan.total_amount_paid,
+			loan.loan_account,
+			loan.interest_income_account,
+			loan.is_term_loan,
+			loan.disbursement_date,
+			loan.applicant_type,
+			loan.applicant,
+			loan.rate_of_interest,
+			loan.total_interest_payable,
+			loan.repayment_start_date,
+			loan_repayment_schedule.name.as_("payment_entry"),
+			loan_repayment_schedule.payment_date,
+			loan_repayment_schedule.principal_amount,
+			loan_repayment_schedule.interest_amount,
+			loan_repayment_schedule.is_accrued,
+			loan_repayment_schedule.balance_loan_amount,
+		)
+		.where(
+			(loan.docstatus == 1)
+			& (loan.status == "Disbursed")
+			& (loan.is_term_loan == 1)
+			& (loan_schedule.status == "Active")
+			& (loan_repayment_schedule.principal_amount > 0)
+			& (loan_repayment_schedule.payment_date <= date)
+			& (loan_repayment_schedule.is_accrued == 0)
+			& (loan_repayment_schedule.docstatus == 1)
+		)
+	)
 
 	if term_loan:
-		condition += " AND l.name = %s" % frappe.db.escape(term_loan)
+		query = query.where(loan.name == term_loan)
 
 	if loan_type:
-		condition += " AND l.loan_type = %s" % frappe.db.escape(loan_type)
+		query = query.where(loan.loan_type == loan_type)
 
-	term_loans = frappe.db.sql(
-		"""SELECT l.name, l.total_payment, l.total_amount_paid, l.loan_account,
-			l.interest_income_account, l.is_term_loan, l.disbursement_date, l.applicant_type, l.applicant,
-			l.rate_of_interest, l.total_interest_payable, l.repayment_start_date, rs.name as payment_entry,
-			rs.payment_date, rs.principal_amount, rs.interest_amount, rs.is_accrued , rs.balance_loan_amount
-			FROM `tabLoan` l, `tabRepayment Schedule` rs
-			WHERE rs.parent = l.name
-			AND l.docstatus=1
-			AND l.is_term_loan =1
-			AND rs.payment_date <= %s
-			AND rs.is_accrued=0 {0}
-			AND rs.principal_amount > 0
-			AND l.status = 'Disbursed'
-			ORDER BY rs.payment_date""".format(
-			condition
-		),
-		(getdate(date)),
-		as_dict=1,
-	)
+	term_loans = query.run(as_dict=1)
 
 	return term_loans
 
@@ -268,6 +318,7 @@ def make_loan_interest_accrual_entry(args):
 	loan_interest_accrual.repayment_schedule_name = args.repayment_schedule_name
 	loan_interest_accrual.payable_principal_amount = args.payable_principal
 	loan_interest_accrual.accrual_type = args.accrual_type
+	loan_interest_accrual.due_date = args.due_date
 
 	loan_interest_accrual.save()
 	loan_interest_accrual.submit()

@@ -24,10 +24,34 @@ class LoanDisbursement(AccountsController):
 		self.validate_disbursal_amount()
 
 	def on_submit(self):
+		if self.is_term_loan:
+			self.update_repayment_schedule_status()
+
 		self.set_status_and_amounts()
+		self.withheld_security_deposit()
 		self.make_gl_entries()
 
+	def update_repayment_schedule_status(self, cancel=0):
+		if cancel:
+			status = "Initiated"
+			current_status = "Active"
+		else:
+			status = "Active"
+			current_status = "Initiated"
+
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": self.against_loan, "docstatus": 1, "status": current_status},
+			"name",
+		)
+
+		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
+
 	def on_cancel(self):
+		if self.is_term_loan:
+			self.update_repayment_schedule_status(cancel=1)
+
+		self.delete_security_deposit()
 		self.set_status_and_amounts(cancel=1)
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
@@ -41,6 +65,24 @@ class LoanDisbursement(AccountsController):
 
 		if not self.posting_date:
 			self.posting_date = self.disbursement_date or nowdate()
+
+	def withheld_security_deposit(self):
+		if self.withhold_security_deposit:
+			sd = frappe.get_doc(
+				{
+					"doctype": "Loan Security Deposit",
+					"loan": self.against_loan,
+					"loan_disbursement": self.name,
+					"deposit_amount": self.monthly_repayment_amount,
+				}
+			).insert()
+			sd.submit()
+
+	def delete_security_deposit(self):
+		if self.withhold_security_deposit:
+			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
+			sd.cancel()
+			sd.delete()
 
 	def validate_disbursal_amount(self):
 		possible_disbursal_amount = get_disbursal_amount(self.against_loan)
@@ -166,6 +208,44 @@ class LoanDisbursement(AccountsController):
 				}
 			)
 		)
+
+		if self.withhold_security_deposit:
+			security_deposit_account = frappe.db.get_value(
+				"Loan Type", self.loan_type, "security_deposit_account"
+			)
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": security_deposit_account,
+						"against": self.disbursement_account,
+						"credit": self.monthly_repayment_amount,
+						"credit_in_account_currency": self.monthly_repayment_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.against_loan,
+						"remarks": _("Disbursement against loan:") + self.against_loan,
+						"cost_center": self.cost_center,
+						"party_type": self.applicant_type,
+						"party": self.applicant,
+						"posting_date": self.disbursement_date,
+					}
+				)
+			)
+
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": self.disbursement_account,
+						"against": self.loan_account,
+						"credit": -1 * self.monthly_repayment_amount,
+						"credit_in_account_currency": -1 * self.monthly_repayment_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.against_loan,
+						"remarks": _("Disbursement against loan:") + self.against_loan,
+						"cost_center": self.cost_center,
+						"posting_date": self.disbursement_date,
+					}
+				)
+			)
 
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)

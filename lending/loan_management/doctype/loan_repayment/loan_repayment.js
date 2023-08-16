@@ -1,12 +1,12 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-{% include 'lending/loan_management/loan_common.js' %};
+lending.common.setup_filters("Loan Repayment");
 
 frappe.ui.form.on('Loan Repayment', {
-	// refresh: function(frm) {
-
-	// }
+	setup(frm) {
+		frm.ignore_doctypes_on_cancel_all = ["Process Asset Classification"];
+	},
 	onload: function(frm) {
 		frm.set_query('against_loan', function() {
 			return {
@@ -58,6 +58,18 @@ frappe.ui.form.on('Loan Repayment', {
 				frm.set_value('interest_payable', amounts['interest_amount']);
 				frm.set_value('penalty_amount', amounts['penalty_amount']);
 				frm.set_value('payable_amount', amounts['payable_amount']);
+				frm.set_value('total_charges_payable', amounts['total_charges_payable']);
+
+				if (amounts["charges"]) {
+					frm.clear_table("pending_charges");
+					amounts["charges"].forEach(d => {
+						let row = frm.add_child('pending_charges');
+						row.sales_invoice = d.sales_invoice;
+						row.pending_charge_amount = d.pending_charge_amount;
+					})
+					frm.refresh_field('pending_charges');
+				}
+
 			}
 		});
 	}
