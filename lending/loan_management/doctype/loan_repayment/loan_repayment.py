@@ -18,8 +18,8 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
-from lending.loan_management.doctype.process_asset_classification.process_asset_classification import (
-	create_process_asset_classification,
+from lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification import (
+	create_process_loan_asset_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
@@ -41,7 +41,7 @@ class LoanRepayment(AccountsController):
 	def on_submit(self):
 		if self.repayment_type == "Normal Repayment":
 
-			create_process_asset_classification(
+			create_process_loan_asset_classification(
 				posting_date=self.posting_date,
 				loan_type=self.loan_type,
 				loan=self.against_loan,
@@ -71,7 +71,7 @@ class LoanRepayment(AccountsController):
 		self.ignore_linked_doctypes = [
 			"GL Entry",
 			"Payment Ledger Entry",
-			"Process Asset Classification",
+			"Process Loan Asset Classification",
 		]
 		self.make_gl_entries(cancel=1)
 

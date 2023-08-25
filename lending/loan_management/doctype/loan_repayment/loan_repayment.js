@@ -5,7 +5,7 @@ lending.common.setup_filters("Loan Repayment");
 
 frappe.ui.form.on('Loan Repayment', {
 	setup(frm) {
-		frm.ignore_doctypes_on_cancel_all = ["Process Asset Classification"];
+		frm.ignore_doctypes_on_cancel_all = ["Process Loan Asset Classification"];
 	},
 	onload: function(frm) {
 		frm.set_query('against_loan', function() {

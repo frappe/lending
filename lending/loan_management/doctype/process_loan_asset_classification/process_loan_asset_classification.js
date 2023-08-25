@@ -1,7 +1,7 @@
 // Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Process Asset Classification", {
+// frappe.ui.form.on("Process Loan Asset Classification", {
 // 	refresh(frm) {
 
 // 	},
