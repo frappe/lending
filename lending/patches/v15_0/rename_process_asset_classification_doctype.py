@@ -12,4 +12,4 @@ def execute():
 		frappe.rename_doc(
 			"DocType", "Process Asset Classification", "Process Loan Asset Classification", force=True
 		)
-		frappe.reload_doc("assets", "doctype", "process_loan_asset_classification")
+		frappe.reload_doc("loan_management", "doctype", "process_loan_asset_classification")
