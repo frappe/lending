@@ -128,7 +128,7 @@ scheduler_events = {
 	"daily_long": [
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_term_loans",
-		"lending.loan_management.doctype.process_asset_classification.process_asset_classification.create_process_asset_classification",
+		"lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification.create_process_loan_asset_classification",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_demand_loans",

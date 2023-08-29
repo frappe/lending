@@ -549,7 +549,7 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	posting_date=None, loan_type=None, loan_name=None, process_asset_classification=None
+	posting_date=None, loan_type=None, loan_name=None, process_loan_asset_classification=None
 ):
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
@@ -579,7 +579,7 @@ def update_days_past_due_in_loans(
 			posting_date or getdate(),
 		)
 
-		create_dpd_record(loan.loan, posting_date, days_past_due, process_asset_classification)
+		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_asset_classification)
 		checked_loans.append(loan.loan)
 
 	open_loans_with_no_overdue = []
@@ -601,17 +601,19 @@ def update_days_past_due_in_loans(
 			d.name, d.company, d.applicant_type, d.applicant, 0, 0, posting_date or getdate()
 		)
 
-		create_dpd_record(d.name, posting_date, 0, process_asset_classification)
+		create_dpd_record(d.name, posting_date, 0, process_loan_asset_classification)
 
 
 def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 	pac = frappe.db.get_value(
-		"Process Asset Classification", {"payment_reference": repayment_reference}, "previous_process"
+		"Process Loan Asset Classification",
+		{"payment_reference": repayment_reference},
+		"previous_process",
 	)
 	for d in frappe.db.get_all(
 		"Days Past Due Log",
 		filters={
-			"process_asset_classification": pac,
+			"process_loan_asset_classification": pac,
 			"applicant_type": applicant_type,
 			"applicant": applicant,
 		},
@@ -620,14 +622,14 @@ def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
 
 
-def create_dpd_record(loan, posting_date, days_past_due, process_asset_classification=None):
+def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_classification=None):
 	frappe.get_doc(
 		{
 			"doctype": "Days Past Due Log",
 			"loan": loan,
 			"posting_date": posting_date,
 			"days_past_due": days_past_due,
-			"process_asset_classification": process_asset_classification,
+			"process_loan_asset_classification": process_loan_asset_classification,
 		}
 	).insert(ignore_permissions=True)
 
