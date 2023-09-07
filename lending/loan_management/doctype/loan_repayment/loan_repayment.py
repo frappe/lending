@@ -601,6 +601,16 @@ class LoanRepayment(AccountsController):
 		remarks = self.get_remarks()
 		payment_account = self.get_payment_account()
 
+		payment_party_type = ""
+		payment_party = ""
+
+		if (
+			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
+			and self.process_payroll_accounting_entry_based_on_employee
+		):
+			payment_party_type = "Employee"
+			payment_party = self.applicant
+
 		account_details = frappe.db.get_value(
 			"Loan Type",
 			self.loan_type,
@@ -686,6 +696,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -704,6 +716,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -798,6 +812,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -879,6 +895,7 @@ def create_repayment_entry(
 	amount_paid,
 	penalty_amount=None,
 	payroll_payable_account=None,
+	process_payroll_accounting_entry_based_on_employee=0,
 ):
 
 	lr = frappe.get_doc(
@@ -895,6 +912,7 @@ def create_repayment_entry(
 			"amount_paid": amount_paid,
 			"loan_type": loan_type,
 			"payroll_payable_account": payroll_payable_account,
+			"process_payroll_accounting_entry_based_on_employee": process_payroll_accounting_entry_based_on_employee,
 		}
 	).insert()
 
