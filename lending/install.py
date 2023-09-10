@@ -16,10 +16,16 @@ LOAN_CUSTOM_FIELDS = {
 	],
 	"Company": [
 		{
+			"fieldname": "loan_tab",
+			"fieldtype": "Tab Break",
+			"label": "Loan",
+			"insert_after": "expenses_included_in_valuation",
+		},
+		{
 			"fieldname": "loan_settings",
 			"label": "Loan Settings",
 			"fieldtype": "Section Break",
-			"insert_after": "exception_budget_approver_role",
+			"insert_after": "loan_tab",
 		},
 		{
 			"fieldname": "loan_restructure_limit",
