@@ -72,7 +72,7 @@ LOAN_CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "asset_classification_ranges",
-			"label": "Asset Classification Ranges",
+			"label": "Loan Asset Classification Ranges",
 			"fieldtype": "Table",
 			"options": "Loan Asset Classification Range",
 			"insert_after": "loan_section_break_2",
