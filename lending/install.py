@@ -40,9 +40,16 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_restructure_limit",
 		},
 		{
+			"fieldname": "interest_day_count_convention",
+			"label": "Interest Day-Count Convention",
+			"fieldtype": "Select",
+			"options": "Actual/365\nActual/Actual\n30/365\n30/360\nActual/360",
+			"insert_after": "watch_period_post_loan_restructure_in_days",
+		},
+		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "watch_period_post_loan_restructure_in_days",
+			"insert_after": "interest_day_count_convention",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",
