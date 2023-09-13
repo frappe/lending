@@ -28,7 +28,7 @@ frappe.ui.form.on('Loan', {
 		frm.set_query("loan_type", function () {
 			return {
 				"filters": {
-					"docstatus": 1,
+					"disabled": 0,
 					"company": frm.doc.company
 				}
 			};
