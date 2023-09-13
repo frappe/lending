@@ -9,6 +9,5 @@ lending.patches.v15_0.rename_process_asset_classification_doctype
 lending.patches.v15_0.update_loan_types
 lending.patches.v15_0.create_custom_fields #6
 lending.patches.v15_0.make_loan_type_non_submittable
-lending.patches.v15_0.rename_asset_classification_ranges
 lending.patches.v15_0.update_custom_fields_for_company_tab
 lending.patches.v15_0.create_custom_field_for_interest_day_count_convention
