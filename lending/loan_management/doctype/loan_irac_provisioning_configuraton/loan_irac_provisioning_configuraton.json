@@ -21,7 +21,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Loan Type",
-   "options": "\nSecured\nUnsecured\nSemi-Secured"
+   "options": "Secured\nUnsecured\nSemi-Secured"
   },
   {
    "fieldname": "provision_rate",
@@ -64,7 +64,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-09-13 16:45:48.932385",
+ "modified": "2023-09-13 21:39:55.163737",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan IRAC Provisioning Configuraton",
