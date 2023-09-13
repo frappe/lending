@@ -18,8 +18,8 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
-from lending.loan_management.doctype.process_asset_classification.process_asset_classification import (
-	create_process_asset_classification,
+from lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification import (
+	create_process_loan_asset_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
@@ -41,7 +41,7 @@ class LoanRepayment(AccountsController):
 	def on_submit(self):
 		if self.repayment_type == "Normal Repayment":
 
-			create_process_asset_classification(
+			create_process_loan_asset_classification(
 				posting_date=self.posting_date,
 				loan_type=self.loan_type,
 				loan=self.against_loan,
@@ -71,7 +71,7 @@ class LoanRepayment(AccountsController):
 		self.ignore_linked_doctypes = [
 			"GL Entry",
 			"Payment Ledger Entry",
-			"Process Asset Classification",
+			"Process Loan Asset Classification",
 		]
 		self.make_gl_entries(cancel=1)
 
@@ -601,6 +601,16 @@ class LoanRepayment(AccountsController):
 		remarks = self.get_remarks()
 		payment_account = self.get_payment_account()
 
+		payment_party_type = ""
+		payment_party = ""
+
+		if (
+			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
+			and self.process_payroll_accounting_entry_based_on_employee
+		):
+			payment_party_type = "Employee"
+			payment_party = self.applicant
+
 		account_details = frappe.db.get_value(
 			"Loan Type",
 			self.loan_type,
@@ -686,6 +696,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -704,6 +716,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -798,6 +812,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
+							"party_type": payment_party_type,
+							"party": payment_party,
 						}
 					)
 				)
@@ -879,6 +895,7 @@ def create_repayment_entry(
 	amount_paid,
 	penalty_amount=None,
 	payroll_payable_account=None,
+	process_payroll_accounting_entry_based_on_employee=0,
 ):
 
 	lr = frappe.get_doc(
@@ -895,6 +912,7 @@ def create_repayment_entry(
 			"amount_paid": amount_paid,
 			"loan_type": loan_type,
 			"payroll_payable_account": payroll_payable_account,
+			"process_payroll_accounting_entry_based_on_employee": process_payroll_accounting_entry_based_on_employee,
 		}
 	).insert()
 
@@ -959,6 +977,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 		get_monthly_repayment_amount,
 	)
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	loan_doc = frappe.get_doc("Loan", loan)
 	next_accrual_date = None
 	accrued_entries = 0
@@ -996,7 +1015,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 
 	payment_date = next_accrual_date
 
-	while balance_amount > 0:
+	while flt(balance_amount, precision) > 0:
 		interest_amount = flt(balance_amount * flt(loan_doc.rate_of_interest) / (12 * 100))
 		principal_amount = monthly_repayment_amount - interest_amount
 		balance_amount = flt(balance_amount + interest_amount - monthly_repayment_amount)
