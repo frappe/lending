@@ -1085,7 +1085,6 @@ def create_loan_type(
 				loan_type.repayment_date_on = repayment_date_on
 
 		loan_type.insert()
-		loan_type.submit()
 
 
 def create_loan_security_type():
