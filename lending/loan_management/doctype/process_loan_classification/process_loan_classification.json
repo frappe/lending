@@ -39,7 +39,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Process Loan Asset Classification",
+   "options": "Process Loan Classification",
    "print_hide": 1,
    "read_only": 1
   },
@@ -47,7 +47,7 @@
    "fieldname": "previous_process",
    "fieldtype": "Link",
    "label": "Previous Process",
-   "options": "Process Loan Asset Classification",
+   "options": "Process Loan Classification",
    "read_only": 1
   },
   {
@@ -64,7 +64,7 @@
  "modified": "2023-05-17 10:59:34.824696",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Process Loan Asset Classification",
+ "name": "Process Loan Classification",
  "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [

@@ -20,8 +20,8 @@ from lending.loan_management.doctype.loan_application.loan_application import cr
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification import (
-	create_process_loan_asset_classification,
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
@@ -122,7 +122,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date="2023-02-01")
 		process_loan_interest_accrual_for_term_loans(posting_date="2023-02-01")
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-02-02", loan_type=loan.loan_type, loan=loan.name
 		)
 
@@ -137,7 +137,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		self.assertEqual(loan_details.classification_code, "SMA-0")
 		self.assertEqual(loan_details.classification_name, "Special Mention Account - 0")
 
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-04-05", loan_type=loan.loan_type, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(
@@ -151,7 +151,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		self.assertEqual(loan_details.classification_code, "SMA-2")
 		self.assertEqual(loan_details.classification_name, "Special Mention Account - 2")
 
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-07-05", loan_type=loan.loan_type, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(

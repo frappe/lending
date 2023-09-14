@@ -549,7 +549,7 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	posting_date=None, loan_type=None, loan_name=None, process_loan_asset_classification=None
+	posting_date=None, loan_type=None, loan_name=None, process_loan_classification=None
 ):
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
@@ -579,7 +579,7 @@ def update_days_past_due_in_loans(
 			posting_date or getdate(),
 		)
 
-		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_asset_classification)
+		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_classification)
 		checked_loans.append(loan.loan)
 
 	open_loans_with_no_overdue = []
@@ -601,19 +601,19 @@ def update_days_past_due_in_loans(
 			d.name, d.company, d.applicant_type, d.applicant, 0, 0, posting_date or getdate()
 		)
 
-		create_dpd_record(d.name, posting_date, 0, process_loan_asset_classification)
+		create_dpd_record(d.name, posting_date, 0, process_loan_classification)
 
 
 def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 	pac = frappe.db.get_value(
-		"Process Loan Asset Classification",
+		"Process Loan Classification",
 		{"payment_reference": repayment_reference},
 		"previous_process",
 	)
 	for d in frappe.db.get_all(
 		"Days Past Due Log",
 		filters={
-			"process_loan_asset_classification": pac,
+			"process_loan_classification": pac,
 			"applicant_type": applicant_type,
 			"applicant": applicant,
 		},
@@ -622,14 +622,14 @@ def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
 
 
-def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_classification=None):
+def create_dpd_record(loan, posting_date, days_past_due, process_loan_classification=None):
 	frappe.get_doc(
 		{
 			"doctype": "Days Past Due Log",
 			"loan": loan,
 			"posting_date": posting_date,
 			"days_past_due": days_past_due,
-			"process_loan_asset_classification": process_loan_asset_classification,
+			"process_loan_classification": process_loan_classification,
 		}
 	).insert(ignore_permissions=True)
 
@@ -637,15 +637,17 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_clas
 def update_loan_and_customer_status(
 	loan, company, applicant_type, applicant, days_past_due, is_npa, posting_date
 ):
-	asset_code, asset_name = get_classification_code_and_name(days_past_due, company)
+	classification_code, classification_name = get_classification_code_and_name(
+		days_past_due, company
+	)
 
 	frappe.db.set_value(
 		"Loan",
 		loan,
 		{
 			"days_past_due": days_past_due,
-			"classification_code": asset_code,
-			"classification_name": asset_name,
+			"classification_code": classification_code,
+			"classification_name": classification_name,
 		},
 	)
 
@@ -721,8 +723,9 @@ def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type
 
 
 def get_classification_code_and_name(days_past_due, company):
-	asset_code = ""
-	asset_name = ""
+	classification_code = ""
+	classification_name = ""
+
 	ranges = frappe.get_all(
 		"Loan Classification Range",
 		fields=[
@@ -739,7 +742,7 @@ def get_classification_code_and_name(days_past_due, company):
 		if range.min_dpd_range <= days_past_due <= range.max_dpd_range:
 			return range.classification_code, range.classification_name
 
-	return asset_code, asset_name
+	return classification_code, classification_name
 
 
 def get_pending_loan_interest_accruals(

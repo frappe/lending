@@ -33,7 +33,7 @@
   "monthly_repayment_amount",
   "repayment_start_date",
   "is_term_loan",
-  "loan_asset_classification_details_section",
+  "loan_classification_details_section",
   "days_past_due",
   "classification_code",
   "classification_name",
@@ -439,11 +439,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "loan_asset_classification_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Asset Classification Details"
-  },
-  {
    "fieldname": "column_break_zpe2",
    "fieldtype": "Column Break"
   },
@@ -474,12 +469,17 @@
    "label": "Classification Name",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_classification_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Classification Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-14 17:49:24.386484",
+ "modified": "2023-09-14 20:41:41.531824",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
