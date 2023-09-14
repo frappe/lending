@@ -6,6 +6,7 @@
 "editable_grid": 1,
 "engine": "InnoDB",
 "field_order": [
+    "disabled",
     "loan_name",
     "maximum_loan_amount",
     "rate_of_interest",
@@ -15,7 +16,6 @@
     "column_break_2",
     "company",
     "is_term_loan",
-    "disabled",
     "repayment_schedule_type",
     "repayment_date_on",
     "days_past_due_threshold_for_npa",
@@ -298,7 +298,6 @@
     }
 ],
 "index_web_pages_for_search": 1,
-"is_submittable": 1,
 "links": [],
 "modified": "2023-05-29 19:33:15.313331",
 "modified_by": "Administrator",
@@ -308,8 +307,6 @@
 "owner": "Administrator",
 "permissions": [
     {
-    "amend": 1,
-    "cancel": 1,
     "create": 1,
     "delete": 1,
     "email": 1,
@@ -319,7 +316,6 @@
     "report": 1,
     "role": "Loan Manager",
     "share": 1,
-    "submit": 1,
     "write": 1
     },
     {
