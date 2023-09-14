@@ -637,15 +637,15 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_clas
 def update_loan_and_customer_status(
 	loan, company, applicant_type, applicant, days_past_due, is_npa, posting_date
 ):
-	asset_code, asset_name = get_asset_classification_code_and_name(days_past_due, company)
+	asset_code, asset_name = get_classification_code_and_name(days_past_due, company)
 
 	frappe.db.set_value(
 		"Loan",
 		loan,
 		{
 			"days_past_due": days_past_due,
-			"asset_classification_code": asset_code,
-			"asset_classification_name": asset_name,
+			"classification_code": asset_code,
+			"classification_name": asset_name,
 		},
 	)
 
@@ -720,19 +720,24 @@ def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type
 	).run()
 
 
-def get_asset_classification_code_and_name(days_past_due, company):
+def get_classification_code_and_name(days_past_due, company):
 	asset_code = ""
 	asset_name = ""
 	ranges = frappe.get_all(
-		"Loan Asset Classification Range",
-		fields=["min_range", "max_range", "asset_classification_code", "asset_classification_name"],
+		"Loan Classification Range",
+		fields=[
+			"min_dpd_range",
+			"max_dpd_range",
+			"classification_code",
+			"classification_name",
+		],
 		filters={"parent": company},
-		order_by="min_range",
+		order_by="min_dpd_range",
 	)
 
 	for range in ranges:
-		if range.min_range <= days_past_due <= range.max_range:
-			return range.asset_classification_code, range.asset_classification_name
+		if range.min_dpd_range <= days_past_due <= range.max_dpd_range:
+			return range.classification_code, range.classification_name
 
 	return asset_code, asset_name
 

@@ -71,10 +71,10 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "collection_offset_sequence_for_standard_asset",
 		},
 		{
-			"fieldname": "asset_classification_ranges",
-			"label": "Asset Classification Ranges",
+			"fieldname": "loan_classification_ranges",
+			"label": "Loan Classification Ranges",
 			"fieldtype": "Table",
-			"options": "Loan Asset Classification Range",
+			"options": "Loan Classification Range",
 			"insert_after": "loan_section_break_2",
 		},
 		{
@@ -82,7 +82,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "IRAC Provisioning Configuraton",
 			"fieldtype": "Table",
 			"options": "Loan IRAC Provisioning Configuraton",
-			"insert_after": "asset_classification_ranges",
+			"insert_after": "loan_classification_ranges",
 		},
 	],
 	"Customer": [
