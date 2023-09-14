@@ -6,7 +6,7 @@ frappe.ui.form.on('Process Loan Interest Accrual', {
 		frm.set_query("loan_type", function() {
 			return {
 				filters: {
-					"docstatus": 1
+					"disabled": 0,
 				}
 			};
 		});
