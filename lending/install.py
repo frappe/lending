@@ -90,6 +90,13 @@ LOAN_CUSTOM_FIELDS = {
 			"options": "Loan Asset Classification Range",
 			"insert_after": "loan_section_break_2",
 		},
+		{
+			"fieldname": "irac_provisioning_configuraton",
+			"label": "IRAC Provisioning Configuraton",
+			"fieldtype": "Table",
+			"options": "Loan IRAC Provisioning Configuraton",
+			"insert_after": "asset_classification_ranges",
+		},
 	],
 	"Customer": [
 		{
