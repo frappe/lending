@@ -236,7 +236,7 @@ def setup_loan_classification_ranges(company):
 		loan_classification = frappe.new_doc("Loan Classification")
 		loan_classification.classification_code = classification_range[0]
 		loan_classification.classification_name = classification_range[1]
-		loan_classification.insert()
+		loan_classification.insert(ignore_if_duplicate=True)
 
 		company_doc.append(
 			"loan_classification_ranges",
