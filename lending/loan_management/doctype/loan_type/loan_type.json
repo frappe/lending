@@ -301,13 +301,12 @@
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
-   "options": "Loan Category",
-   "reqd": 1
+   "options": "Loan Category"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-14 22:39:58.315286",
+ "modified": "2023-09-14 23:14:46.825558",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Type",
