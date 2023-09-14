@@ -3,6 +3,7 @@
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
 lending.patches.v15_0.generate_loan_repayment_schedule
 lending.patches.v15_0.rename_process_asset_classification_doctype
+lending.patches.v15_0.rename_process_asset_classification_doctype_2
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -12,3 +13,7 @@ lending.patches.v15_0.make_loan_type_non_submittable
 lending.patches.v15_0.update_custom_fields_for_company_tab
 lending.patches.v15_0.create_custom_field_for_interest_day_count_convention
 lending.patches.v15_0.create_custom_field_for_irac_provisioning_configuraton
+lending.patches.v15_0.update_loan_asset_classification_ranges
+lending.patches.v15_0.generate_loan_classifications_from_loan_asset_classification_ranges
+lending.patches.v15_0.update_company_loan_asset_classification_ranges_table
+lending.patches.v15_0.update_classification_fields_in_loan

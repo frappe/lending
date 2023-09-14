@@ -20,8 +20,8 @@ from lending.loan_management.doctype.loan_application.loan_application import cr
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification import (
-	create_process_loan_asset_classification,
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
@@ -79,7 +79,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 
 		self.applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
-		setup_asset_classification_ranges("_Test Company")
+		setup_loan_classification_ranges("_Test Company")
 
 	def test_loan_interest_accural(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
@@ -122,36 +122,36 @@ class TestLoanInterestAccrual(unittest.TestCase):
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date="2023-02-01")
 		process_loan_interest_accrual_for_term_loans(posting_date="2023-02-01")
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-02-02", loan_type=loan.loan_type, loan=loan.name
 		)
 
 		loan_details = frappe.db.get_value(
 			"Loan",
 			loan.name,
-			["days_past_due", "asset_classification_code", "asset_classification_name"],
+			["days_past_due", "classification_code", "classification_name"],
 			as_dict=1,
 		)
 
 		self.assertEqual(loan_details.days_past_due, 2)
-		self.assertEqual(loan_details.asset_classification_code, "SMA-0")
-		self.assertEqual(loan_details.asset_classification_name, "Special Mention Account - 0")
+		self.assertEqual(loan_details.classification_code, "SMA-0")
+		self.assertEqual(loan_details.classification_name, "Special Mention Account - 0")
 
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-04-05", loan_type=loan.loan_type, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(
 			"Loan",
 			loan.name,
-			["days_past_due", "asset_classification_code", "asset_classification_name"],
+			["days_past_due", "classification_code", "classification_name"],
 			as_dict=1,
 		)
 
 		self.assertEqual(loan_details.days_past_due, 64)
-		self.assertEqual(loan_details.asset_classification_code, "SMA-2")
-		self.assertEqual(loan_details.asset_classification_name, "Special Mention Account - 2")
+		self.assertEqual(loan_details.classification_code, "SMA-2")
+		self.assertEqual(loan_details.classification_name, "Special Mention Account - 2")
 
-		create_process_loan_asset_classification(
+		create_process_loan_classification(
 			posting_date="2023-07-05", loan_type=loan.loan_type, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(
@@ -159,8 +159,8 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			loan.name,
 			[
 				"days_past_due",
-				"asset_classification_code",
-				"asset_classification_name",
+				"classification_code",
+				"classification_name",
 				"is_npa",
 				"manual_npa",
 			],
@@ -170,8 +170,8 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		applicant_status = frappe.db.get_value("Customer", self.applicant, "is_npa")
 
 		self.assertEqual(loan_details.days_past_due, 155)
-		self.assertEqual(loan_details.asset_classification_code, "D1")
-		self.assertEqual(loan_details.asset_classification_name, "Substandard Asset")
+		self.assertEqual(loan_details.classification_code, "D1")
+		self.assertEqual(loan_details.classification_name, "Substandard Asset")
 		self.assertEqual(loan_details.is_npa, 1)
 		self.assertEqual(loan_details.manual_npa, 1)
 		self.assertEqual(applicant_status, 1)
@@ -220,8 +220,8 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		)
 
 
-def setup_asset_classification_ranges(company):
-	ranges = [
+def setup_loan_classification_ranges(company):
+	classification_ranges = [
 		["SMA-0", "Special Mention Account - 0", 0, 30],
 		["SMA-1", "Special Mention Account - 1", 31, 60],
 		["SMA-2", "Special Mention Account - 2", 61, 90],
@@ -230,16 +230,20 @@ def setup_asset_classification_ranges(company):
 		["D3", "Loss Asset", 1099, 10000000],
 	]
 	company_doc = frappe.get_doc("Company", company)
-	company_doc.set("asset_classification_ranges", [])
+	company_doc.set("loan_classification_ranges", [])
 
-	for range in ranges:
+	for classification_range in classification_ranges:
+		loan_classification = frappe.new_doc("Loan Classification")
+		loan_classification.classification_code = classification_range[0]
+		loan_classification.classification_name = classification_range[1]
+		loan_classification.insert()
+
 		company_doc.append(
-			"asset_classification_ranges",
+			"loan_classification_ranges",
 			{
-				"asset_classification_code": range[0],
-				"asset_classification_name": range[1],
-				"min_range": range[2],
-				"max_range": range[3],
+				"classification_code": classification_range[0],
+				"min_dpd_range": classification_range[2],
+				"max_dpd_range": classification_range[3],
 			},
 		)
 

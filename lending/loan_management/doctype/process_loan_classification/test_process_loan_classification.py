@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestProcessAssetClassification(FrappeTestCase):
+class TestProcessLoanClassification(FrappeTestCase):
 	pass
