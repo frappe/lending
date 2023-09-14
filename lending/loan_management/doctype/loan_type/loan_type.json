@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_name",
+  "loan_category",
   "maximum_loan_amount",
   "rate_of_interest",
   "penalty_interest_rate",
@@ -295,11 +296,18 @@
    "fieldtype": "Link",
    "label": "Charges Waiver Item",
    "options": "Item"
+  },
+  {
+   "fieldname": "loan_category",
+   "fieldtype": "Link",
+   "label": "Loan Category",
+   "options": "Loan Category",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-10 19:37:44.490880",
+ "modified": "2023-09-14 22:39:58.315286",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Type",
