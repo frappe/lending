@@ -66,9 +66,16 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "collection_offset_sequence_for_sub_standard_asset",
 		},
 		{
+			"fieldname": "collection_offset_sequence_for_written_off_asset",
+			"label": "Collection Offset Sequence for Written Off Asset",
+			"fieldtype": "Select",
+			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"insert_after": "collection_offset_sequence_for_standard_asset",
+		},
+		{
 			"fieldname": "loan_section_break_2",
 			"fieldtype": "Section Break",
-			"insert_after": "collection_offset_sequence_for_standard_asset",
+			"insert_after": "collection_offset_sequence_for_written_off_asset",
 		},
 		{
 			"fieldname": "loan_classification_ranges",
