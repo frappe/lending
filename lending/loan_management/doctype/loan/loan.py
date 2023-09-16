@@ -159,24 +159,24 @@ class Loan(AccountsController):
 			schedule.cancel()
 
 	def calculate_totals(self, on_insert=False):
-		self.total_payment = 0
+		self.total_amount_payable = 0
 		self.total_interest_payable = 0
 		self.total_amount_paid = 0
 
 		if self.is_term_loan:
 			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
 			for data in schedule.repayment_schedule:
-				self.total_payment += data.total_payment
+				self.total_amount_payable += data.total_amount_payable
 				self.total_interest_payable += data.interest_amount
 
 			self.monthly_repayment_amount = schedule.monthly_repayment_amount
 		else:
-			self.total_payment = self.loan_amount
+			self.total_amount_payable = self.loan_amount
 
 		if on_insert:
 			self.db_set("total_interest_payable", self.total_interest_payable)
 			self.db_set("monthly_repayment_amount", self.monthly_repayment_amount)
-			self.db_set("total_payment", self.total_payment)
+			self.db_set("total_amount_payable", self.total_amount_payable)
 
 	def set_loan_amount(self):
 		if self.loan_application and not self.loan_amount:
@@ -237,7 +237,7 @@ def update_total_amount_paid(doc):
 	total_amount_paid = 0
 	for data in doc.repayment_schedule:
 		if data.paid:
-			total_amount_paid += data.total_payment
+			total_amount_paid += data.total_amount_payable
 	frappe.db.set_value("Loan", doc.name, "total_amount_paid", total_amount_paid)
 
 
@@ -254,7 +254,7 @@ def get_total_loan_amount(applicant_type, applicant, company):
 		},
 		fields=[
 			"status",
-			"total_payment",
+			"total_amount_payable",
 			"disbursed_amount",
 			"total_interest_payable",
 			"total_principal_paid",
@@ -273,7 +273,7 @@ def get_total_loan_amount(applicant_type, applicant, company):
 	for loan in loan_details:
 		if loan.status in ("Disbursed", "Loan Closure Requested"):
 			pending_amount += (
-				flt(loan.total_payment)
+				flt(loan.total_amount_payable)
 				- flt(loan.total_interest_payable)
 				- flt(loan.total_principal_paid)
 				- flt(loan.written_off_amount)
@@ -286,7 +286,7 @@ def get_total_loan_amount(applicant_type, applicant, company):
 				- flt(loan.written_off_amount)
 			)
 		elif loan.status == "Sanctioned":
-			pending_amount += flt(loan.total_payment)
+			pending_amount += flt(loan.total_amount_payable)
 
 	pending_amount += interest_amount
 
@@ -508,7 +508,7 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 			"posting_date",
 			"company",
 			"name",
-			"total_payment",
+			"total_amount_payable",
 			"total_principal_paid",
 		],
 		as_dict=1,
@@ -518,7 +518,7 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 	loan_details[loan_details.applicant_type.lower()] = loan_details.applicant
 
 	if not amount:
-		amount = flt(loan_details.total_principal_paid - loan_details.total_payment)
+		amount = flt(loan_details.total_principal_paid - loan_details.total_amount_payable)
 
 		if amount < 0:
 			frappe.throw(_("No excess amount pending for refund"))

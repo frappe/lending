@@ -52,7 +52,7 @@
     "interest_income_account",
     "penalty_income_account",
     "section_break_17",
-    "total_payment",
+    "total_amount_payable",
     "total_principal_paid",
     "written_off_amount",
     "refund_amount",
@@ -189,7 +189,7 @@
     },
     {
     "depends_on": "is_term_loan",
-    "fetch_from": "loan_application.repayment_amount",
+    "fetch_from": "loan_application.monthly_repayment_amount",
     "fetch_if_empty": 1,
     "fieldname": "monthly_repayment_amount",
     "fieldtype": "Currency",
@@ -249,9 +249,9 @@
     },
     {
     "default": "0",
-    "fieldname": "total_payment",
+    "fieldname": "total_amount_payable",
     "fieldtype": "Currency",
-    "label": "Total Payable Amount",
+    "label": "Total Amount Payable",
     "no_copy": 1,
     "options": "Company:company:default_currency",
     "read_only": 1

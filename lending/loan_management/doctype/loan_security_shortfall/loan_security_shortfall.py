@@ -79,7 +79,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 			"name",
 			"loan_amount",
 			"total_principal_paid",
-			"total_payment",
+			"total_amount_payable",
 			"total_interest_payable",
 			"disbursed_amount",
 			"status",
@@ -98,7 +98,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 	for loan in loans:
 		if loan.status == "Disbursed":
 			outstanding_amount = (
-				flt(loan.total_payment) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
+				flt(loan.total_amount_payable) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
 			)
 		else:
 			outstanding_amount = (

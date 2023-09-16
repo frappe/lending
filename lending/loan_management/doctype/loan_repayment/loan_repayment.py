@@ -223,7 +223,7 @@ class LoanRepayment(AccountsController):
 				"total_principal_paid",
 				"status",
 				"is_secured_loan",
-				"total_payment",
+				"total_amount_payable",
 				"debit_adjustment_amount",
 				"credit_adjustment_amount",
 				"refund_amount",
@@ -278,7 +278,7 @@ class LoanRepayment(AccountsController):
 				"total_principal_paid",
 				"status",
 				"is_secured_loan",
-				"total_payment",
+				"total_amount_payable",
 				"loan_amount",
 				"disbursed_amount",
 				"total_interest_payable",
@@ -991,7 +991,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 		else:
 			accrued_entries += 1
 			if last_repayment_amount is None:
-				last_repayment_amount = term.total_payment
+				last_repayment_amount = term.total_amount_payable
 			if last_balance_amount is None:
 				last_balance_amount = term.balance_loan_amount
 
@@ -1023,14 +1023,14 @@ def regenerate_repayment_schedule(loan, cancel=0):
 			principal_amount += balance_amount
 			balance_amount = 0.0
 
-		total_payment = principal_amount + interest_amount
+		total_amount_payable = principal_amount + interest_amount
 		loan_doc.append(
 			"repayment_schedule",
 			{
 				"payment_date": payment_date,
 				"principal_amount": principal_amount,
 				"interest_amount": interest_amount,
-				"total_payment": total_payment,
+				"total_amount_payable": total_amount_payable,
 				"balance_loan_amount": balance_amount,
 			},
 		)
@@ -1043,7 +1043,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 def get_pending_principal_amount(loan):
 	if loan.status in ("Disbursed", "Closed") or loan.disbursed_amount >= loan.loan_amount:
 		pending_principal_amount = (
-			flt(loan.total_payment)
+			flt(loan.total_amount_payable)
 			+ flt(loan.debit_adjustment_amount)
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)

@@ -96,7 +96,7 @@ class LoanDisbursement(AccountsController):
 			fields=[
 				"loan_amount",
 				"disbursed_amount",
-				"total_payment",
+				"total_amount_payable",
 				"total_principal_paid",
 				"total_interest_payable",
 				"status",
@@ -107,9 +107,9 @@ class LoanDisbursement(AccountsController):
 		)[0]
 
 		if cancel:
-			disbursed_amount, status, total_payment = self.get_values_on_cancel(loan_details)
+			disbursed_amount, status, total_amount_payable = self.get_values_on_cancel(loan_details)
 		else:
-			disbursed_amount, status, total_payment = self.get_values_on_submit(loan_details)
+			disbursed_amount, status, total_amount_payable = self.get_values_on_submit(loan_details)
 
 		frappe.db.set_value(
 			"Loan",
@@ -118,20 +118,20 @@ class LoanDisbursement(AccountsController):
 				"disbursement_date": self.disbursement_date,
 				"disbursed_amount": disbursed_amount,
 				"status": status,
-				"total_payment": total_payment,
+				"total_amount_payable": total_amount_payable,
 			},
 		)
 
 	def get_values_on_cancel(self, loan_details):
 		disbursed_amount = loan_details.disbursed_amount - self.disbursed_amount
-		total_payment = loan_details.total_payment
+		total_amount_payable = loan_details.total_amount_payable
 
 		if loan_details.disbursed_amount > loan_details.loan_amount:
 			topup_amount = loan_details.disbursed_amount - loan_details.loan_amount
 			if topup_amount > self.disbursed_amount:
 				topup_amount = self.disbursed_amount
 
-			total_payment = total_payment - topup_amount
+			total_amount_payable = total_amount_payable - topup_amount
 
 		if disbursed_amount == 0:
 			status = "Sanctioned"
@@ -141,11 +141,11 @@ class LoanDisbursement(AccountsController):
 		else:
 			status = "Partially Disbursed"
 
-		return disbursed_amount, status, total_payment
+		return disbursed_amount, status, total_amount_payable
 
 	def get_values_on_submit(self, loan_details):
 		disbursed_amount = self.disbursed_amount + loan_details.disbursed_amount
-		total_payment = loan_details.total_payment
+		total_amount_payable = loan_details.total_amount_payable
 
 		if loan_details.status in ("Disbursed", "Partially Disbursed") and not loan_details.is_term_loan:
 			process_loan_interest_accrual_for_demand_loans(
@@ -163,14 +163,14 @@ class LoanDisbursement(AccountsController):
 			if topup_amount > self.disbursed_amount:
 				topup_amount = self.disbursed_amount
 
-			total_payment = total_payment + topup_amount
+			total_amount_payable = total_amount_payable + topup_amount
 
 		if flt(disbursed_amount) >= loan_details.loan_amount:
 			status = "Disbursed"
 		else:
 			status = "Partially Disbursed"
 
-		return disbursed_amount, status, total_payment
+		return disbursed_amount, status, total_amount_payable
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
@@ -291,7 +291,7 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 		[
 			"loan_amount",
 			"disbursed_amount",
-			"total_payment",
+			"total_amount_payable",
 			"debit_adjustment_amount",
 			"credit_adjustment_amount",
 			"refund_amount",

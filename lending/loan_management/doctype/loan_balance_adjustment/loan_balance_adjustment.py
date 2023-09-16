@@ -61,7 +61,7 @@ class LoanBalanceAdjustment(AccountsController):
 				"loan_amount",
 				"credit_adjustment_amount",
 				"debit_adjustment_amount",
-				"total_payment",
+				"total_amount_payable",
 				"total_principal_paid",
 				"total_interest_payable",
 				"status",

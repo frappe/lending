@@ -42,7 +42,7 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 
 		while balance_amount > 0:
-			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
+			interest_amount, principal_amount, balance_amount, total_amount_payable, days = self.get_amounts(
 				payment_date,
 				balance_amount,
 				schedule_type_details.repayment_schedule_type,
@@ -59,7 +59,7 @@ class LoanRepaymentSchedule(Document):
 				payment_date = next_payment_date
 
 			self.add_repayment_schedule_row(
-				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
+				payment_date, principal_amount, interest_amount, total_amount_payable, balance_amount, days
 			)
 
 			if (
@@ -68,7 +68,7 @@ class LoanRepaymentSchedule(Document):
 			):
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
-				self.get("repayment_schedule")[-1].total_payment = (
+				self.get("repayment_schedule")[-1].total_amount_payable = (
 					self.get("repayment_schedule")[-1].interest_amount
 					+ self.get("repayment_schedule")[-1].principal_amount
 				)
@@ -136,12 +136,12 @@ class LoanRepaymentSchedule(Document):
 		if carry_forward_interest:
 			interest_amount += carry_forward_interest
 
-		total_payment = principal_amount + interest_amount
+		total_amount_payable = principal_amount + interest_amount
 
-		return interest_amount, principal_amount, balance_amount, total_payment, days
+		return interest_amount, principal_amount, balance_amount, total_amount_payable, days
 
 	def add_repayment_schedule_row(
-		self, payment_date, principal_amount, interest_amount, total_payment, balance_loan_amount, days
+		self, payment_date, principal_amount, interest_amount, total_amount_payable, balance_loan_amount, days
 	):
 		self.append(
 			"repayment_schedule",
@@ -150,7 +150,7 @@ class LoanRepaymentSchedule(Document):
 				"payment_date": payment_date,
 				"principal_amount": principal_amount,
 				"interest_amount": interest_amount,
-				"total_payment": total_payment,
+				"total_amount_payable": total_amount_payable,
 				"balance_loan_amount": balance_loan_amount,
 			},
 		)

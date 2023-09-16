@@ -132,14 +132,14 @@ def get_outstanding_pos(branch, company, delinquent=0):
 		"Loan",
 		filters,
 		[
-			"sum(total_payment) as total_payment",
+			"sum(total_amount_payable) as total_amount_payable",
 			"sum(total_principal_paid) as total_principal_paid",
 			"sum(total_interest_payable) as total_interest_payable",
 		],
 		as_dict=1,
 	)
 
-	return flt(pos.total_payment) - flt(pos.total_principal_paid) - flt(pos.total_interest_payable)
+	return flt(pos.total_amount_payable) - flt(pos.total_principal_paid) - flt(pos.total_interest_payable)
 
 
 def get_utilized_limit(branch, company, delinquent=0):

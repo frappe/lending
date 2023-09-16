@@ -164,7 +164,7 @@ def get_active_loan_details(filters):
 			"loan_type",
 			"disbursed_amount",
 			"rate_of_interest",
-			"total_payment",
+			"total_amount_payable",
 			"total_principal_paid",
 			"total_interest_payable",
 			"written_off_amount",
@@ -185,12 +185,12 @@ def get_active_loan_details(filters):
 	currency = erpnext.get_company_currency(filters.get("company"))
 
 	for loan in loan_details:
-		total_payment = loan.total_payment if loan.status == "Disbursed" else loan.disbursed_amount
+		total_amount_payable = loan.total_amount_payable if loan.status == "Disbursed" else loan.disbursed_amount
 
 		loan.update(
 			{
 				"sanctioned_amount": flt(sanctioned_amount_map.get(loan.applicant_name)),
-				"principal_outstanding": flt(total_payment)
+				"principal_outstanding": flt(total_amount_payable)
 				- flt(loan.total_principal_paid)
 				- flt(loan.total_interest_payable)
 				- flt(loan.written_off_amount),

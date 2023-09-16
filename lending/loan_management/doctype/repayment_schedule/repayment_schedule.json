@@ -9,7 +9,7 @@
     "number_of_days",
     "principal_amount",
     "interest_amount",
-    "total_payment",
+    "total_amount_payable",
     "balance_loan_amount",
     "is_accrued"
 ],
@@ -43,10 +43,10 @@
     },
     {
     "columns": 2,
-    "fieldname": "total_payment",
+    "fieldname": "total_amount_payable",
     "fieldtype": "Currency",
     "in_list_view": 1,
-    "label": "Total Payment",
+    "label": "Total Amount Payable",
     "options": "Company:company:default_currency",
     "read_only": 1
     },

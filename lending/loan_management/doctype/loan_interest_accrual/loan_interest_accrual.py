@@ -176,7 +176,7 @@ def make_accrual_interest_entry_for_demand_loans(
 			"Loan",
 			fields=[
 				"name",
-				"total_payment",
+				"total_amount_payable",
 				"total_amount_paid",
 				"debit_adjustment_amount",
 				"credit_adjustment_amount",
@@ -257,7 +257,7 @@ def get_term_loans(date, term_loan=None, loan_type=None):
 		.on(loan_repayment_schedule.parent == loan_schedule.name)
 		.select(
 			loan.name,
-			loan.total_payment,
+			loan.total_amount_payable,
 			loan.total_amount_paid,
 			loan.loan_account,
 			loan.interest_income_account,

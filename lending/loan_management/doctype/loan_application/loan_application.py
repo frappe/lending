@@ -106,7 +106,7 @@ class LoanApplication(Document):
 
 		if self.is_term_loan:
 			if self.repayment_method == "Repay Over Number of Periods":
-				self.repayment_amount = get_monthly_repayment_amount(
+				self.monthly_repayment_amount = get_monthly_repayment_amount(
 					self.loan_amount, self.rate_of_interest, self.repayment_periods
 				)
 
@@ -114,31 +114,31 @@ class LoanApplication(Document):
 				monthly_interest_rate = flt(self.rate_of_interest) / (12 * 100)
 				if monthly_interest_rate:
 					min_repayment_amount = self.loan_amount * monthly_interest_rate
-					if self.repayment_amount - min_repayment_amount <= 0:
+					if self.monthly_repayment_amount - min_repayment_amount <= 0:
 						frappe.throw(_("Repayment Amount must be greater than " + str(flt(min_repayment_amount, 2))))
 					self.repayment_periods = math.ceil(
-						(math.log(self.repayment_amount) - math.log(self.repayment_amount - min_repayment_amount))
+						(math.log(self.monthly_repayment_amount) - math.log(self.monthly_repayment_amount - min_repayment_amount))
 						/ (math.log(1 + monthly_interest_rate))
 					)
 				else:
-					self.repayment_periods = self.loan_amount / self.repayment_amount
+					self.repayment_periods = self.loan_amount / self.monthly_repayment_amount
 
 			self.calculate_payable_amount()
 		else:
-			self.total_payable_amount = self.loan_amount
+			self.total_amount_payable = self.loan_amount
 
 	def calculate_payable_amount(self):
 		balance_amount = self.loan_amount
-		self.total_payable_amount = 0
-		self.total_payable_interest = 0
+		self.total_amount_payable = 0
+		self.total_interest_payable = 0
 
 		while balance_amount > 0:
 			interest_amount = rounded(balance_amount * flt(self.rate_of_interest) / (12 * 100))
-			balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
+			balance_amount = rounded(balance_amount + interest_amount - self.monthly_repayment_amount)
 
-			self.total_payable_interest += interest_amount
+			self.total_interest_payable += interest_amount
 
-		self.total_payable_amount = self.loan_amount + self.total_payable_interest
+		self.total_amount_payable = self.loan_amount + self.total_interest_payable
 
 	def set_loan_amount(self):
 		if self.is_secured_loan and not self.proposed_pledges:

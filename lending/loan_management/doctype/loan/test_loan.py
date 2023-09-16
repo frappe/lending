@@ -129,7 +129,7 @@ class TestLoan(unittest.TestCase):
 
 		self.assertEqual(loan_repayment_schedule.monthly_repayment_amount, 15052)
 		self.assertEqual(flt(loan.total_interest_payable, 0), 21034)
-		self.assertEqual(flt(loan.total_payment, 0), 301034)
+		self.assertEqual(flt(loan.total_amount_payable, 0), 301034)
 		self.assertEqual(len(schedule), 20)
 
 		for idx, principal_amount, interest_amount, balance_loan_amount in [
@@ -151,7 +151,7 @@ class TestLoan(unittest.TestCase):
 
 		self.assertEqual(len(loan_repayment_schedule.repayment_schedule), 22)
 		self.assertEqual(flt(loan.total_interest_payable, 0), 22712)
-		self.assertEqual(flt(loan.total_payment, 0), 302712)
+		self.assertEqual(flt(loan.total_amount_payable, 0), 302712)
 
 	def test_loan_with_security(self):
 		pledge = [

@@ -26,11 +26,11 @@
   "maximum_loan_amount",
   "repayment_info",
   "repayment_method",
-  "total_payable_amount",
+  "total_amount_payable",
   "column_break_11",
   "repayment_periods",
-  "repayment_amount",
-  "total_payable_interest",
+  "monthly_repayment_amount",
+  "total_interest_payable",
   "amended_from"
  ],
  "fields": [
@@ -138,9 +138,9 @@
   },
   {
    "depends_on": "is_term_loan",
-   "fieldname": "total_payable_interest",
+   "fieldname": "total_interest_payable",
    "fieldtype": "Currency",
-   "label": "Total Payable Interest",
+   "label": "Total Interest Payable",
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -150,7 +150,7 @@
   },
   {
    "depends_on": "repayment_method",
-   "fieldname": "repayment_amount",
+   "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
    "options": "Company:company:default_currency"
@@ -162,9 +162,9 @@
    "label": "Repayment Period in Months"
   },
   {
-   "fieldname": "total_payable_amount",
+   "fieldname": "total_amount_payable",
    "fieldtype": "Currency",
-   "label": "Total Payable Amount",
+   "label": "Total Amount Payable",
    "options": "Company:company:default_currency",
    "read_only": 1
   },

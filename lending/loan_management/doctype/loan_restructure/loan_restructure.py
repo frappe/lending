@@ -576,7 +576,7 @@ class LoanRestructure(AccountsController):
 			schedule.insert()
 
 	def update_totals(self, cancel=0):
-		total_payment = 0
+		total_amount_payable = 0
 		total_interest_payable = 0
 
 		if not cancel:
@@ -587,7 +587,7 @@ class LoanRestructure(AccountsController):
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 
 		for data in schedule.repayment_schedule:
-			total_payment += data.total_payment
+			total_amount_payable += data.total_amount_payable
 			total_interest_payable += data.interest_amount
 
 		total_principal_paid = 0
@@ -608,7 +608,7 @@ class LoanRestructure(AccountsController):
 				"loan_amount": loan_amount,
 				"rate_of_interest": self.new_rate_of_interest,
 				"monthly_repayment_amount": monthly_repayment_amount,
-				"total_payment": total_payment,
+				"total_amount_payable": total_amount_payable,
 				"total_interest_payable": total_interest_payable,
 				"total_principal_paid": total_principal_paid,
 				"total_amount_paid": total_amount_paid,
