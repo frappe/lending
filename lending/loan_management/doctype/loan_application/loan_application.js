@@ -12,7 +12,6 @@ frappe.ui.form.on('Loan Application', {
 		}
 	},
 	refresh: function(frm) {
-		frm.trigger("toggle_fields");
 		frm.trigger("add_toolbar_buttons");
 		frm.set_query('loan_type', () => {
 			return {
@@ -22,18 +21,12 @@ frappe.ui.form.on('Loan Application', {
 			};
 		});
 	},
+	is_term_loan: function(frm) {
+		frm.doc.repayment_method = "";
+		frm.doc.repayment_amount = frm.doc.repayment_periods = "";
+	},
 	repayment_method: function(frm) {
 		frm.doc.repayment_amount = frm.doc.repayment_periods = "";
-		frm.trigger("toggle_fields");
-		frm.trigger("toggle_required");
-	},
-	toggle_fields: function(frm) {
-		frm.toggle_enable("repayment_amount", frm.doc.repayment_method=="Repay Fixed Amount per Period")
-		frm.toggle_enable("repayment_periods", frm.doc.repayment_method=="Repay Over Number of Periods")
-	},
-	toggle_required: function(frm){
-		frm.toggle_reqd("repayment_amount", cint(frm.doc.repayment_method=='Repay Fixed Amount per Period'))
-		frm.toggle_reqd("repayment_periods", cint(frm.doc.repayment_method=='Repay Over Number of Periods'))
 	},
 	add_toolbar_buttons: function(frm) {
 		if (frm.doc.status == "Approved") {
@@ -84,10 +77,6 @@ frappe.ui.form.on('Loan Application', {
 				frappe.set_route("Form", "Loan Security Pledge", r.message);
 			}
 		})
-	},
-	is_term_loan: function(frm) {
-		frm.set_df_property('repayment_method', 'hidden', 1 - frm.doc.is_term_loan);
-		frm.set_df_property('repayment_method', 'reqd', frm.doc.is_term_loan);
 	},
 	is_secured_loan: function(frm) {
 		frm.set_df_property('proposed_pledges', 'reqd', frm.doc.is_secured_loan);

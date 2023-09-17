@@ -107,6 +107,11 @@ frappe.ui.form.on('Loan', {
 		frm.trigger("toggle_fields");
 	},
 
+	is_term_loan: function(frm) {
+		frm.doc.repayment_method = frm.doc.repayment_schedule_type = "";
+		frm.doc.monthly_repayment_amount = frm.doc.repayment_periods = "";
+	},
+
 	repayment_schedule_type: function(frm) {
 		if (frm.doc.repayment_schedule_type == "Pro-rated calendar months") {
 			frm.set_df_property("repayment_start_date", "label", "Interest Calculation Start Date");
@@ -114,13 +119,6 @@ frappe.ui.form.on('Loan', {
 			frm.set_df_property("repayment_start_date", "label", "Repayment Start Date");
 		}
 	},
-
-	loan_type: function(frm) {
-		frm.toggle_reqd("repayment_method", frm.doc.is_term_loan);
-		frm.toggle_display("repayment_method", frm.doc.is_term_loan);
-		frm.toggle_display("repayment_periods", frm.doc.is_term_loan);
-	},
-
 
 	make_loan_disbursement: function (frm) {
 		frappe.call({
@@ -245,7 +243,7 @@ frappe.ui.form.on('Loan', {
 				callback: function (r) {
 					if (!r.exc && r.message) {
 
-						let loan_fields = ["loan_type", "loan_amount", "repayment_method",
+						let loan_fields = ["loan_type", "loan_amount", "repayment_method", "repayment_round_up",
 							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan"]
 
 						loan_fields.forEach(field => {
@@ -269,13 +267,4 @@ frappe.ui.form.on('Loan', {
 			});
 		}
 	},
-
-	repayment_method: function (frm) {
-		frm.trigger("toggle_fields")
-	},
-
-	toggle_fields: function (frm) {
-		frm.toggle_enable("monthly_repayment_amount", frm.doc.repayment_method == "Repay Fixed Amount per Period")
-		frm.toggle_enable("repayment_periods", frm.doc.repayment_method == "Repay Over Number of Periods")
-	}
 });

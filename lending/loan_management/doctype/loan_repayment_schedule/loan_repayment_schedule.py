@@ -17,9 +17,10 @@ class LoanRepaymentSchedule(Document):
 
 	def set_missing_fields(self):
 		if self.repayment_method == "Repay Over Number of Periods":
-			self.monthly_repayment_amount = get_monthly_repayment_amount(
+			amount = get_monthly_repayment_amount(
 				self.loan_amount, self.rate_of_interest, self.repayment_periods
 			)
+			self.monthly_repayment_amount = math.ceil(amount) if self.repayment_round_up else amount
 
 	def set_repayment_period(self):
 		if self.repayment_method == "Repay Fixed Amount per Period":
@@ -163,13 +164,12 @@ def add_single_month(date):
 		return add_months(date, 1)
 
 
-def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods):
-	if rate_of_interest:
-		monthly_interest_rate = flt(rate_of_interest) / (12 * 100)
-		monthly_repayment_amount = math.ceil(
-			(loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods)
-			/ ((1 + monthly_interest_rate) ** repayment_periods - 1)
+def get_monthly_repayment_amount(loan_amount, yearly_intrate, periods):
+	if yearly_intrate:
+		monthly_intrate = yearly_intrate / (12 * 100)
+		annuity_factor = (monthly_intrate * (1 + monthly_intrate) ** periods) / (
+			(1 + monthly_intrate) ** periods - 1
 		)
+		return loan_amount * annuity_factor
 	else:
-		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
-	return monthly_repayment_amount
+		return loan_amount / periods

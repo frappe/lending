@@ -17,7 +17,7 @@
   "loan_type",
   "repayment_schedule_type",
   "repayment_method",
-  "repayment_periods",
+  "repayment_round_up",
   "monthly_repayment_amount",
   "repayment_start_date",
   "section_break_6rpg",
@@ -70,6 +70,13 @@
    "fieldtype": "Select",
    "label": "Repayment Method",
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.repayment_method == 'Repay Over Number of Periods'",
+   "fieldname": "repayment_round_up",
+   "fieldtype": "Check",
+   "label": "Round Up"
   },
   {
    "fieldname": "monthly_repayment_amount",
