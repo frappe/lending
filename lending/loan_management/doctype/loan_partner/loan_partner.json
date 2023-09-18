@@ -1,0 +1,715 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:partner_code",
+ "creation": "2023-09-18 19:55:37.996068",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "partner_code",
+  "product_code",
+  "partner_loan_share_ratio",
+  "partner_interest_rate",
+  "column_break_yfag",
+  "effective_date",
+  "own_loan_share_ratio",
+  "repayment_schedule_type",
+  "section_break_pgag",
+  "penal_interest_shared",
+  "penal_interest_sharing_parameter",
+  "section_break_qkjt",
+  "penal_interest_partner_ratio",
+  "penal_interest_percentage",
+  "column_break_cwfd",
+  "penal_interest_own_ratio",
+  "penal_interest_threshold",
+  "processing_fee_sharing_section",
+  "processing_fee_shared",
+  "processing_fee_sharing_parameter",
+  "section_break_ptxq",
+  "processing_fee_partner_ratio",
+  "processing_fee_percentage",
+  "column_break_koqj",
+  "processing_fee_own_ratio",
+  "processing_fee_threshold",
+  "documentation_charges_sharing_section",
+  "documentation_charges_shared",
+  "documentation_charges_sharing_parameter",
+  "section_break_xxhn",
+  "documentation_charges_partner_ratio",
+  "documentation_charges_percentage",
+  "column_break_zuce",
+  "documentation_charges_own_ratio",
+  "preclosure_charges_sharing_section",
+  "preclosure_charges_shared",
+  "preclosure_charges_sharing_parameter",
+  "section_break_brwd",
+  "preclosure_charges_partner_ratio",
+  "preclosure_charges_percentage",
+  "column_break_zkbj",
+  "preclosure_charges_own_ratio",
+  "cheque_bounce_charges_sharing_section",
+  "cheque_bounce_charges_shared",
+  "cheque_bounce_charges_sharing_parameter",
+  "section_break_caxx",
+  "cheque_bounce_charges_partner_ratio",
+  "cheque_bounce_charges_percentage",
+  "column_break_teiz",
+  "cheque_bounce_charges_own_ratio",
+  "insurance_premium_sharing_section",
+  "insurance_premium_shared",
+  "insurance_premium_sharing_parameter",
+  "section_break_jjxv",
+  "insurance_premium_partner_ratio",
+  "insurance_premium_percentage",
+  "column_break_xbtd",
+  "insurance_premium_own_ratio",
+  "security_emi_sharing_section",
+  "security_emi_shared",
+  "column_break_wdby",
+  "security_emi_adjusted_to_dues",
+  "section_break_gmtr",
+  "security_emi_partner_ratio",
+  "column_break_wldw",
+  "security_emi_own_ratio",
+  "legal_and_recovery_fee_sharing_section",
+  "legal_and_recovery_fee_shared",
+  "section_break_hzxv",
+  "legal_and_recovery_fee_partner_ratio",
+  "column_break_gxei",
+  "legal_and_recovery_fee_own_ratio",
+  "valuation_charges_sharing_section",
+  "valuation_charges_shared",
+  "valuation_charges_sharing_parameter",
+  "section_break_uvqm",
+  "valuation_charges_partner_ratio",
+  "valuation_charges_partner_percentage",
+  "column_break_pqhm",
+  "valuation_charges_own_ratio",
+  "adhoc_charges_sharing_section",
+  "adhoc_charges_shared",
+  "section_break_lpnj",
+  "adhoc_charges_sharing_parameters",
+  "misc_section",
+  "servicer_fee",
+  "column_break_lyhm",
+  "loan_restructuring",
+  "column_break_gmlg",
+  "charges_waiving",
+  "section_break_cclp",
+  "partial_payment_mechanism",
+  "column_break_jxog",
+  "processing_fee_billing_against_partner_share"
+ ],
+ "fields": [
+  {
+   "fieldname": "partner_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Partner Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "partner_loan_share_ratio",
+   "fieldtype": "Percent",
+   "label": "Partner Loan Share Ratio",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_yfag",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "own_loan_share_ratio",
+   "fieldtype": "Percent",
+   "label": "Own Loan Share Ratio",
+   "reqd": 1
+  },
+  {
+   "fieldname": "product_code",
+   "fieldtype": "Data",
+   "label": "Product Code"
+  },
+  {
+   "fieldname": "partner_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Partner Interest Rate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Select",
+   "label": "Repayment Schedule Type",
+   "options": "\nPOS Reduction plus interest at partner ROI\nCollection at partner's ratio\nEMI (PMT) based",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cwfd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "penal_interest_shared",
+   "fieldname": "section_break_qkjt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_pgag",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Penal Interest Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "penal_interest_shared",
+   "fieldtype": "Check",
+   "label": "Penal Interest Shared"
+  },
+  {
+   "depends_on": "penal_interest_shared",
+   "fieldname": "penal_interest_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Penal Interest Sharing Parameter",
+   "mandatory_depends_on": "penal_interest_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "eval:doc.penal_interest_sharing_parameter === \"Ratio\"",
+   "fieldname": "penal_interest_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Penal Interest Partner Ratio",
+   "mandatory_depends_on": "eval:doc.penal_interest_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.penal_interest_sharing_parameter === \"Percentage\"",
+   "fieldname": "penal_interest_percentage",
+   "fieldtype": "Percent",
+   "label": "Penal Interest Percentage",
+   "mandatory_depends_on": "eval:doc.penal_interest_sharing_parameter === \"Percentage\""
+  },
+  {
+   "depends_on": "eval:doc.penal_interest_sharing_parameter === \"Ratio\"",
+   "fieldname": "penal_interest_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Penal Interest Own Ratio",
+   "mandatory_depends_on": "eval:doc.penal_interest_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.penal_interest_sharing_parameter === \"Percentage\"",
+   "fieldname": "penal_interest_threshold",
+   "fieldtype": "Percent",
+   "label": "Penal Interest Threshold",
+   "mandatory_depends_on": "eval:doc.penal_interest_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "processing_fee_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Processing Fee Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "processing_fee_shared",
+   "fieldtype": "Check",
+   "label": "Processing fee shared"
+  },
+  {
+   "depends_on": "processing_fee_shared",
+   "fieldname": "processing_fee_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Processing Fee Sharing Parameter",
+   "mandatory_depends_on": "processing_fee_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "processing_fee_shared",
+   "fieldname": "section_break_ptxq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.processing_fee_sharing_parameter === \"Ratio\"",
+   "fieldname": "processing_fee_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Processing Fee Partner Ratio",
+   "mandatory_depends_on": "eval:doc.processing_fee_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "column_break_koqj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.processing_fee_sharing_parameter === \"Ratio\"",
+   "fieldname": "processing_fee_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Processing Fee Own Ratio",
+   "mandatory_depends_on": "eval:doc.processing_fee_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.processing_fee_sharing_parameter === \"Percentage\"",
+   "fieldname": "processing_fee_percentage",
+   "fieldtype": "Percent",
+   "label": "Processing Fee Percentage"
+  },
+  {
+   "depends_on": "eval:doc.processing_fee_sharing_parameter === \"Percentage\"",
+   "fieldname": "processing_fee_threshold",
+   "fieldtype": "Percent",
+   "label": "Processing Fee Threshold",
+   "mandatory_depends_on": "eval:doc.processing_fee_sharing_parameter === \"Percentage\""
+  },
+  {
+   "depends_on": "documentation_charges_shared",
+   "fieldname": "section_break_xxhn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_zuce",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preclosure_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Pre-closure Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "preclosure_charges_shared",
+   "fieldtype": "Check",
+   "label": "Pre-closure Charges Shared"
+  },
+  {
+   "depends_on": "preclosure_charges_shared",
+   "fieldname": "preclosure_charges_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Pre-closure Charges Sharing Parameter",
+   "mandatory_depends_on": "preclosure_charges_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "fieldname": "documentation_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Documentation Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "documentation_charges_shared",
+   "fieldtype": "Check",
+   "label": "Documentation Charges Shared"
+  },
+  {
+   "depends_on": "documentation_charges_shared",
+   "fieldname": "documentation_charges_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Documentation Charges Sharing Parameter",
+   "mandatory_depends_on": "documentation_charges_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "documentation_charges_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Documentation Charges Partner Ratio",
+   "mandatory_depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Percentage\"",
+   "fieldname": "documentation_charges_percentage",
+   "fieldtype": "Percent",
+   "label": "Documentation Charges Percentage",
+   "mandatory_depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Percentage\""
+  },
+  {
+   "depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "documentation_charges_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Documentation Charges Own Ratio",
+   "mandatory_depends_on": "eval:doc.documentation_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "preclosure_charges_shared",
+   "fieldname": "section_break_brwd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "preclosure_charges_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Pre-closure Charges Partner Ratio",
+   "mandatory_depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Percentage\"",
+   "fieldname": "preclosure_charges_percentage",
+   "fieldtype": "Percent",
+   "label": "Pre-closure Charges Percentage",
+   "mandatory_depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "column_break_zkbj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "preclosure_charges_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Pre-closure Charges Own Ratio",
+   "mandatory_depends_on": "eval:doc.preclosure_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "cheque_bounce_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Cheque Bounce Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "cheque_bounce_charges_shared",
+   "fieldtype": "Check",
+   "label": "Cheque Bounce Charges Shared"
+  },
+  {
+   "depends_on": "cheque_bounce_charges_shared",
+   "fieldname": "cheque_bounce_charges_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Cheque Bounce Charges Sharing Parameter",
+   "mandatory_depends_on": "cheque_bounce_charges_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "cheque_bounce_charges_shared",
+   "fieldname": "section_break_caxx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "cheque_bounce_charges_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Cheque Bounce Charges Partner Ratio",
+   "mandatory_depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Percentage\"",
+   "fieldname": "cheque_bounce_charges_percentage",
+   "fieldtype": "Percent",
+   "label": "Cheque Bounce Charges Percentage",
+   "mandatory_depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "column_break_teiz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "cheque_bounce_charges_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Cheque Bounce Charges Own Ratio",
+   "mandatory_depends_on": "eval:doc.cheque_bounce_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "insurance_premium_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Insurance Premium Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "insurance_premium_shared",
+   "fieldtype": "Check",
+   "label": "Insurance Premium Shared"
+  },
+  {
+   "depends_on": "insurance_premium_shared",
+   "fieldname": "insurance_premium_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Insurance Premium Sharing Parameter",
+   "mandatory_depends_on": "insurance_premium_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "insurance_premium_shared",
+   "fieldname": "section_break_jjxv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Ratio\"",
+   "fieldname": "insurance_premium_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Insurance Premium Partner Ratio",
+   "mandatory_depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Percentage\"",
+   "fieldname": "insurance_premium_percentage",
+   "fieldtype": "Percent",
+   "label": "Insurance Premium Percentage",
+   "mandatory_depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "column_break_xbtd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Ratio\"",
+   "fieldname": "insurance_premium_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Insurance Premium Own Ratio",
+   "mandatory_depends_on": "eval:doc.insurance_premium_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "security_emi_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Security EMI Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "security_emi_shared",
+   "fieldtype": "Check",
+   "label": "Security EMI Shared"
+  },
+  {
+   "default": "0",
+   "depends_on": "security_emi_shared",
+   "fieldname": "security_emi_adjusted_to_dues",
+   "fieldtype": "Check",
+   "label": "Security EMI Adjusted To Dues",
+   "mandatory_depends_on": "security_emi_shared"
+  },
+  {
+   "fieldname": "column_break_wdby",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "security_emi_shared",
+   "fieldname": "section_break_gmtr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "security_emi_shared",
+   "fieldname": "security_emi_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Security EMI Partner Ratio",
+   "mandatory_depends_on": "security_emi_shared"
+  },
+  {
+   "fieldname": "column_break_wldw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "security_emi_shared",
+   "fieldname": "security_emi_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Security EMI Own Ratio",
+   "mandatory_depends_on": "security_emi_shared"
+  },
+  {
+   "fieldname": "legal_and_recovery_fee_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Legal and Recovery Fee Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "legal_and_recovery_fee_shared",
+   "fieldtype": "Check",
+   "label": "Legal and Recovery Fee Shared"
+  },
+  {
+   "depends_on": "legal_and_recovery_fee_shared",
+   "fieldname": "section_break_hzxv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "legal_and_recovery_fee_shared",
+   "fieldname": "legal_and_recovery_fee_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Legal and Recovery Fee Partner Ratio",
+   "mandatory_depends_on": "legal_and_recovery_fee_shared"
+  },
+  {
+   "fieldname": "column_break_gxei",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "legal_and_recovery_fee_shared",
+   "fieldname": "legal_and_recovery_fee_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Legal and Recovery Fee Own Ratio",
+   "mandatory_depends_on": "legal_and_recovery_fee_shared"
+  },
+  {
+   "fieldname": "valuation_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Valuation Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "valuation_charges_shared",
+   "fieldtype": "Check",
+   "label": "Valuation Charges Shared"
+  },
+  {
+   "depends_on": "valuation_charges_shared",
+   "fieldname": "valuation_charges_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "Valuation Charges Sharing Parameter",
+   "mandatory_depends_on": "valuation_charges_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "depends_on": "valuation_charges_shared",
+   "fieldname": "section_break_uvqm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "valuation_charges_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "Valuation Charges Partner Ratio",
+   "mandatory_depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Percentage\"",
+   "fieldname": "valuation_charges_partner_percentage",
+   "fieldtype": "Percent",
+   "label": "Valuation Charges Partner Percentage",
+   "mandatory_depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "column_break_pqhm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "valuation_charges_own_ratio",
+   "fieldtype": "Percent",
+   "label": "Valuation Charges Own Ratio",
+   "mandatory_depends_on": "eval:doc.valuation_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "adhoc_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Adhoc Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "adhoc_charges_shared",
+   "fieldtype": "Check",
+   "label": "Adhoc Charges Shared"
+  },
+  {
+   "fieldname": "section_break_lpnj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "adhoc_charges_shared",
+   "fieldname": "adhoc_charges_sharing_parameters",
+   "fieldtype": "Table",
+   "label": "Adhoc Charges Sharing Parameters",
+   "options": "Loan Partner Adhoc Charges Shared"
+  },
+  {
+   "fieldname": "misc_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Misc"
+  },
+  {
+   "default": "0",
+   "fieldname": "servicer_fee",
+   "fieldtype": "Check",
+   "label": "Servicer Fee"
+  },
+  {
+   "fieldname": "column_break_lyhm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "loan_restructuring",
+   "fieldtype": "Check",
+   "label": "Loan Restructuring"
+  },
+  {
+   "fieldname": "column_break_gmlg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "charges_waiving",
+   "fieldtype": "Check",
+   "label": "Charges Waiving"
+  },
+  {
+   "fieldname": "section_break_cclp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "partial_payment_mechanism",
+   "fieldtype": "Select",
+   "label": "Partial Payment Mechanism",
+   "options": "EMI Percentage wise sharing\nComponent wise sharing"
+  },
+  {
+   "fieldname": "column_break_jxog",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "processing_fee_shared",
+   "fieldname": "processing_fee_billing_against_partner_share",
+   "fieldtype": "Percent",
+   "label": "Processing Fee Billing (against partner share)",
+   "mandatory_depends_on": "processing_fee_shared"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-09-19 00:22:47.181896",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Partner",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
