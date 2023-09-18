@@ -17,6 +17,7 @@
   "company",
   "is_term_loan",
   "disabled",
+  "allow_bypassing_application",
   "repayment_schedule_type",
   "cyclic_day_of_the_month",
   "repayment_date_on",
@@ -80,6 +81,12 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_bypassing_application",
+   "fieldtype": "Check",
+   "label": "Allow bypassing application"
   },
   {
    "fieldname": "description",

@@ -28,7 +28,8 @@ frappe.ui.form.on('Loan', {
 		frm.set_query("loan_product", function () {
 			return {
 				"filters": {
-					"company": frm.doc.company
+					"company": frm.doc.company,
+					"allow_bypassing_application": 1
 				}
 			};
 		});
