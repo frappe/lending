@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-09-18 23:55:19.716182",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge_type",
+  "sharing_parameter",
+  "partner_ratio",
+  "own_ratio",
+  "partner_percentage"
+ ],
+ "fields": [
+  {
+   "fieldname": "charge_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Charge Type",
+   "options": "Item"
+  },
+  {
+   "fieldname": "sharing_parameter",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Sharing Parameter",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "fieldname": "partner_ratio",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Partner Ratio",
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\"",
+   "read_only_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "own_ratio",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Own Ratio",
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\"",
+   "read_only_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "partner_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Partner Percentage",
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Percentage\"",
+   "read_only_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-19 00:01:29.855212",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Partner Adhoc Charges Shared",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
