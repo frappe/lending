@@ -96,7 +96,7 @@ def get_matching_queries(
 		queries.append(get_ld_matching_query(bank_account, exact_match, transaction))
 
 	if transaction.deposit > 0.0 and "loan_repayment" in document_types:
-		queries.extend(get_lr_matching_query(bank_account, exact_match, transaction))
+		queries.append(get_lr_matching_query(bank_account, exact_match, transaction))
 
 	return queries
 
