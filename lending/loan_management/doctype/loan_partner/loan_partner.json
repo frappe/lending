@@ -9,13 +9,17 @@
  "engine": "InnoDB",
  "field_order": [
   "partner_code",
-  "product_code",
+  "effective_date",
   "partner_loan_share_ratio",
   "partner_interest_rate",
   "column_break_yfag",
-  "effective_date",
-  "own_loan_share_ratio",
   "repayment_schedule_type",
+  "own_loan_share_ratio",
+  "org_type",
+  "section_break_ksls",
+  "loan_types",
+  "section_break_ekyu",
+  "addresses",
   "section_break_pgag",
   "penal_interest_shared",
   "penal_interest_sharing_parameter",
@@ -88,6 +92,14 @@
   "valuation_charges_partner_percentage",
   "column_break_pqhm",
   "valuation_charges_own_ratio",
+  "motd_charges_sharing_section",
+  "motd_charges_shared",
+  "motd_charges_sharing_parameter",
+  "section_break_puhk",
+  "motd_charges_partner_ratio",
+  "motd_charges_partner_percentage",
+  "column_break_duky",
+  "motd_charges_own_ratio",
   "adhoc_charges_sharing_section",
   "adhoc_charges_shared",
   "section_break_lpnj",
@@ -133,11 +145,6 @@
    "fieldtype": "Percent",
    "label": "Own Loan Share Ratio",
    "reqd": 1
-  },
-  {
-   "fieldname": "product_code",
-   "fieldtype": "Data",
-   "label": "Product Code"
   },
   {
    "fieldname": "partner_interest_rate",
@@ -672,11 +679,87 @@
    "fieldtype": "Percent",
    "label": "Processing Fee Billing (against partner share)",
    "mandatory_depends_on": "processing_fee_shared"
+  },
+  {
+   "fieldname": "section_break_ksls",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "loan_types",
+   "fieldtype": "Table",
+   "label": "Loan Types",
+   "options": "Loan Partner Loan Type"
+  },
+  {
+   "fieldname": "org_type",
+   "fieldtype": "Select",
+   "label": "Org Type",
+   "options": "\nCentralized\nDecentralized",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_ekyu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "motd_charges_sharing_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "MOTD Charges Sharing"
+  },
+  {
+   "default": "0",
+   "fieldname": "motd_charges_shared",
+   "fieldtype": "Check",
+   "label": "MOTD Charges Shared"
+  },
+  {
+   "depends_on": "motd_charges_shared",
+   "fieldname": "motd_charges_sharing_parameter",
+   "fieldtype": "Select",
+   "label": "MOTD Charges Sharing Parameter",
+   "mandatory_depends_on": "motd_charges_shared",
+   "options": "\nRatio\nPercentage"
+  },
+  {
+   "fieldname": "section_break_puhk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.motd_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "motd_charges_partner_ratio",
+   "fieldtype": "Percent",
+   "label": "MOTD Charges Partner Ratio",
+   "mandatory_depends_on": "eval:doc.motd_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "depends_on": "eval:doc.motd_charges_sharing_parameter === \"Percentage\"",
+   "fieldname": "motd_charges_partner_percentage",
+   "fieldtype": "Percent",
+   "label": "MOTD Charges Partner Percentage",
+   "mandatory_depends_on": "eval:doc.motd_charges_sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "column_break_duky",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.motd_charges_sharing_parameter === \"Ratio\"",
+   "fieldname": "motd_charges_own_ratio",
+   "fieldtype": "Percent",
+   "label": "MOTD Charges Own Ratio",
+   "mandatory_depends_on": "eval:doc.motd_charges_sharing_parameter === \"Ratio\""
+  },
+  {
+   "fieldname": "addresses",
+   "fieldtype": "Table",
+   "label": "Addresses",
+   "options": "Loan Partner Address"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-19 00:22:47.181896",
+ "modified": "2023-09-19 18:41:33.457593",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
