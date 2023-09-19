@@ -42,9 +42,9 @@ class LoanApplication(Document):
 			frappe.throw(_("Please enter Repayment Periods"))
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
-			if not self.monthly_repayment_amount:
+			if not self.repayment_amount:
 				frappe.throw(_("Please enter repayment Amount"))
-			if self.monthly_repayment_amount > self.loan_amount:
+			if self.repayment_amount > self.loan_amount:
 				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
 	def validate_loan_type(self):
