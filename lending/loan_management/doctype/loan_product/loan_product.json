@@ -1,0 +1,332 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:product_name",
+ "creation": "2019-08-29 18:08:38.159726",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "product_name",
+  "amended_from",
+  "column_break_2",
+  "company",
+  "pricing_section",
+  "base_interest_rate",
+  "interest_margin",
+  "column_break_vpve",
+  "calculation_model",
+  "interest_rate",
+  "section_break_ytai",
+  "pricing_rules",
+  "configuration_section",
+  "loan_type",
+  "is_term_loan",
+  "repayment_schedule_type",
+  "repayment_date_on",
+  "column_break_bfms",
+  "maximum_loan_amount",
+  "mode_of_payment",
+  "availability_section",
+  "markets_column",
+  "territory",
+  "party_type",
+  "custom_group",
+  "column_break_nr8z",
+  "disabled",
+  "start_date",
+  "end_date",
+  "details_section",
+  "days_past_due_threshold_for_npa",
+  "penalty_interest_rate",
+  "column_break_qeek",
+  "write_off_amount",
+  "grace_period_in_days",
+  "charges_section",
+  "loan_charges",
+  "charges_waiver_item",
+  "notes_tab",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "product_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "loan_type",
+   "fieldtype": "Link",
+   "label": "Loan Type",
+   "options": "Loan Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "maximum_loan_amount",
+   "fieldtype": "Currency",
+   "label": "Maximum Loan Amount",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode of Payment",
+   "options": "Mode of Payment",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_type.is_term_loan",
+   "fieldname": "is_term_loan",
+   "fieldtype": "Check",
+   "label": "Is Term Loan",
+   "read_only": 1
+  },
+  {
+   "description": "Penalty Interest Rate is levied on the pending interest amount on a daily basis in case of delayed repayment ",
+   "fieldname": "penalty_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Penalty Interest Rate (%)"
+  },
+  {
+   "description": "No. of days from due date until which penalty won't be charged in case of delay in loan repayment",
+   "fieldname": "grace_period_in_days",
+   "fieldtype": "Int",
+   "label": "Grace Period in Days"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Product",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_type.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Loan Write Off will be automatically created on loan closure request if pending amount is below this limit",
+   "fieldname": "write_off_amount",
+   "fieldtype": "Currency",
+   "label": "Auto Write Off Amount ",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "depends_on": "is_term_loan",
+   "description": "The schedule type that will be used for generating the term loan schedules (will affect the payment date and monthly repayment amount)",
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Select",
+   "label": "Repayment Schedule Type",
+   "mandatory_depends_on": "is_term_loan",
+   "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date"
+  },
+  {
+   "depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
+   "description": "Select whether the repayment date should be the end of the current month or start of the upcoming month",
+   "fieldname": "repayment_date_on",
+   "fieldtype": "Select",
+   "label": "Repayment Date On",
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
+   "options": "\nStart of the next month\nEnd of the current month"
+  },
+  {
+   "description": "Loans will be marked as NPA when the days past due count exceed this threshold",
+   "fieldname": "days_past_due_threshold_for_npa",
+   "fieldtype": "Int",
+   "label": "Days Past Due Threshold for NPA"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "loan_charges",
+   "fieldtype": "Table",
+   "label": "Loan Charges",
+   "options": "Loan Charges"
+  },
+  {
+   "fieldname": "charges_waiver_item",
+   "fieldtype": "Link",
+   "label": "Charges Waiver Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "charges_section",
+   "fieldtype": "Section Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "column_break_qeek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "availability_section",
+   "fieldtype": "Section Break",
+   "label": "Availability"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Loan Type Territories"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "label": "Party Type",
+   "options": "Loan Type Party Types"
+  },
+  {
+   "fieldname": "column_break_nr8z",
+   "fieldtype": "Column Break",
+   "label": "Product Lifecycle"
+  },
+  {
+   "fieldname": "custom_group",
+   "fieldtype": "Link",
+   "label": "Customer Group",
+   "options": "Loan Type Customer Groups"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "column_break_bfms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "markets_column",
+   "fieldtype": "Column Break",
+   "label": "Markets"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_type.base_rate_of_interest",
+   "fieldname": "base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Base Interest Rate (% p.a.)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.calculation_model != 'Advanced'",
+   "fieldname": "interest_margin",
+   "fieldtype": "Percent",
+   "label": "Interest Margin (p.p.)",
+   "read_only_depends_on": "eval:doc.calculation_model == 'Fixed nominal rate'"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.calculation_model != 'Advanced'",
+   "fieldname": "interest_rate",
+   "fieldtype": "Percent",
+   "label": "Nominal Interest Rate (% p.a.)",
+   "read_only_depends_on": "eval:doc.calculation_model == \"Fixed margin\""
+  },
+  {
+   "fieldname": "pricing_section",
+   "fieldtype": "Section Break",
+   "label": "Pricing"
+  },
+  {
+   "fieldname": "column_break_vpve",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.calculation_model == 'Advanced'",
+   "fieldname": "section_break_ytai",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "pricing_rules",
+   "fieldtype": "Table",
+   "label": "Pricing Rules",
+   "options": "Loan Product Pricing Rules"
+  },
+  {
+   "fieldname": "calculation_model",
+   "fieldtype": "Select",
+   "label": "Calculation model",
+   "options": "Fixed margin\nFixed nominal rate\nAdvanced"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-09-23 15:39:10.368173",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Product",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Employee"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

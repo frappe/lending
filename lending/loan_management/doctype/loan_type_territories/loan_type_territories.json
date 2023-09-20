@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "autoname": "field:territory",
+ "creation": "2023-09-22 19:13:33.488715",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "territory"
+ ],
+ "fields": [
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Territory",
+   "options": "Territory",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-23 03:28:20.793992",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Type Territories",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

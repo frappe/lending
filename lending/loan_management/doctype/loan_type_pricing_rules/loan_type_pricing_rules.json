@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "creation": "2023-09-23 14:53:06.493167",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "from_amount",
+  "column_break_pukk",
+  "to_amount",
+  "section_break_poku",
+  "column_break_sqxy",
+  "minimum_margin",
+  "column_break_xegx",
+  "maximum_margin"
+ ],
+ "fields": [
+  {
+   "fieldname": "from_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "From amount"
+  },
+  {
+   "fieldname": "column_break_pukk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "To amount"
+  },
+  {
+   "fieldname": "section_break_poku",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_sqxy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "minimum_margin",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Minimum margin"
+  },
+  {
+   "fieldname": "column_break_xegx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maximum_margin",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Maximum margin"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-23 14:56:53.690151",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Type Pricing Rules",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

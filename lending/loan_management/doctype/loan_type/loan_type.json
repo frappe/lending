@@ -1,28 +1,49 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "field:loan_name",
- "creation": "2019-08-29 18:08:38.159726",
+ "creation": "2023-09-23 13:59:42.027247",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "disabled",
   "loan_name",
-  "maximum_loan_amount",
-  "rate_of_interest",
-  "penalty_interest_rate",
-  "grace_period_in_days",
-  "write_off_amount",
   "column_break_2",
   "company",
+  "amended_from",
+  "availability_section",
+  "party_types",
+  "customer_groups",
+  "column_break_bvwe",
+  "territories",
+  "amortization_section",
   "is_term_loan",
-  "disabled",
+  "maximum_length",
+  "maximum_loan_amount",
+  "column_break_vfmd",
+  "amortization_types",
+  "interest_rates_section",
+  "base_rate_of_interest",
+  "pricing_minima",
+  "options_section",
+  "column_break_jtfh",
+  "modes_of_payment",
   "repayment_schedule_type",
-  "cyclic_day_of_the_month",
+  "column_break_qouu",
   "repayment_date_on",
+  "cyclic_day_of_the_month",
+  "payment_irreguarities_section",
+  "penalty_interest_rate",
+  "grace_period_in_days",
+  "column_break_quwh",
+  "charges_waiver_item",
+  "write_off_amount",
   "days_past_due_threshold_for_npa",
-  "description",
+  "loan_partners_section",
+  "loan_partners",
+  "accounts_tab",
   "account_details_section",
-  "mode_of_payment",
   "disbursement_account",
   "payment_account",
   "suspense_interest_receivable",
@@ -41,11 +62,7 @@
   "interest_waiver_account",
   "column_break_amrb",
   "penalty_waiver_account",
-  "charges_waiver_account",
-  "section_break_ia6s",
-  "charges_waiver_item",
-  "loan_charges",
-  "amended_from"
+  "charges_waiver_account"
  ],
  "fields": [
   {
@@ -60,14 +77,14 @@
    "fieldname": "maximum_loan_amount",
    "fieldtype": "Currency",
    "label": "Maximum Loan Amount",
+   "non_negative": 1,
    "options": "Company:company:default_currency"
   },
   {
-   "default": "0",
-   "fieldname": "rate_of_interest",
+   "fieldname": "base_rate_of_interest",
    "fieldtype": "Percent",
-   "label": "Rate of Interest (%) Yearly",
-   "reqd": 1
+   "label": "Base interest rate in % p.a.",
+   "precision": "2"
   },
   {
    "fieldname": "column_break_2",
@@ -81,21 +98,15 @@
    "label": "Disabled"
   },
   {
-   "fieldname": "description",
-   "fieldtype": "Text",
-   "label": "Description"
-  },
-  {
    "fieldname": "account_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Account Details"
   },
   {
-   "fieldname": "mode_of_payment",
-   "fieldtype": "Link",
-   "label": "Mode of Payment",
-   "options": "Mode of Payment",
-   "reqd": 1
+   "fieldname": "modes_of_payment",
+   "fieldtype": "Table MultiSelect",
+   "label": "Modes of Payment",
+   "options": "Loan Type Modes of Payment"
   },
   {
    "fieldname": "payment_account",
@@ -275,17 +286,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "section_break_ia6s",
-   "fieldtype": "Section Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "loan_charges",
-   "fieldtype": "Table",
-   "label": "Loan Charges",
-   "options": "Loan Charges"
-  },
-  {
    "fieldname": "security_deposit_account",
    "fieldtype": "Link",
    "label": "Security Deposit Account",
@@ -304,11 +304,108 @@
    "fieldtype": "Int",
    "label": "Cyclic Day Of the Month",
    "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\""
+  },
+  {
+   "fieldname": "availability_section",
+   "fieldtype": "Section Break",
+   "label": "Availability"
+  },
+  {
+   "fieldname": "customer_groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Customer Groups",
+   "options": "Loan Type Customer Groups"
+  },
+  {
+   "fieldname": "party_types",
+   "fieldtype": "Table MultiSelect",
+   "label": "Party Types",
+   "options": "Loan Type Party Types"
+  },
+  {
+   "fieldname": "options_section",
+   "fieldtype": "Section Break",
+   "label": "Repayment Options"
+  },
+  {
+   "fieldname": "column_break_qouu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bvwe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "territories",
+   "fieldtype": "Table MultiSelect",
+   "label": "Territories",
+   "options": "Loan Type Territories"
+  },
+  {
+   "fieldname": "amortization_section",
+   "fieldtype": "Section Break",
+   "label": "Amortization & Limits"
+  },
+  {
+   "fieldname": "column_break_vfmd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amortization_types",
+   "fieldtype": "Table MultiSelect",
+   "label": "Amortization Types",
+   "options": "Loan Type Amortization Types"
+  },
+  {
+   "fieldname": "column_break_jtfh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "is_term_loan",
+   "fieldname": "maximum_length",
+   "fieldtype": "Int",
+   "label": "Maximum length (in months)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "loan_partners_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Partners"
+  },
+  {
+   "fieldname": "loan_partners",
+   "fieldtype": "Table",
+   "options": "Loan Type Loan Partners"
+  },
+  {
+   "fieldname": "accounts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Accounts"
+  },
+  {
+   "fieldname": "payment_irreguarities_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Irregularities"
+  },
+  {
+   "fieldname": "column_break_quwh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "interest_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Interest Rates"
+  },
+  {
+   "fieldname": "pricing_minima",
+   "fieldtype": "Table",
+   "label": "Pricing Minima",
+   "options": "Loan Type Pricing Rules"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-22 11:51:37.789220",
+ "modified": "2023-09-23 14:54:01.492880",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Type",

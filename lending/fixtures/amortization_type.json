@@ -1,0 +1,65 @@
+[
+ {
+  "amortization_type": "None",
+  "code": "NO",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:17:52.094010",
+  "name": "None",
+  "sort_order": 0
+ },
+ {
+  "amortization_type": "Interest only",
+  "code": "IN",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:18:22.039032",
+  "name": "Interest only",
+  "sort_order": 1
+ },
+ {
+  "amortization_type": "Progressive annuities towards RV",
+  "code": "PR",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:19:09.576844",
+  "name": "Progressive annuities towards RV",
+  "sort_order": 2
+ },
+ {
+  "amortization_type": "Progressive annuities towards 0",
+  "code": "P0",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:19:29.894895",
+  "name": "Progressive annuities towards 0",
+  "sort_order": 3
+ },
+ {
+  "amortization_type": "Linear annuities towards RV",
+  "code": "LR",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:21:03.069987",
+  "name": "Linear annuities towards RV",
+  "sort_order": 4
+ },
+ {
+  "amortization_type": "Linear annuities towards 0",
+  "code": "L0",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:21:20.658786",
+  "name": "Linear annuities towards 0",
+  "sort_order": 5
+ },
+ {
+  "amortization_type": "Degressive annuities",
+  "code": "D0",
+  "docstatus": 0,
+  "doctype": "Amortization Type",
+  "modified": "2023-09-23 04:23:40.268938",
+  "name": "Degressive annuities",
+  "sort_order": 6
+ }
+]

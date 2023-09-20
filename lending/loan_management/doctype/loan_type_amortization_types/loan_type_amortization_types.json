@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "autoname": "field:amortization_type",
+ "creation": "2023-09-23 00:01:02.241360",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "amortization_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "amortization_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Amortization Type",
+   "options": "Amortization Type",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-23 00:04:02.405100",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Type Amortization Types",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -14,12 +14,13 @@
   "posting_date",
   "status",
   "section_break_4",
+  "loan_product",
   "loan_type",
   "is_term_loan",
   "loan_amount",
+  "column_break_7",
   "is_secured_loan",
   "rate_of_interest",
-  "column_break_7",
   "description",
   "loan_security_details_section",
   "proposed_pledges",
@@ -91,12 +92,13 @@
    "label": "Loan Info"
   },
   {
+   "fetch_from": "loan_product.loan_type",
    "fieldname": "loan_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Loan Type",
    "options": "Loan Type",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "bold": 1,
@@ -130,7 +132,7 @@
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
   },
   {
-   "fetch_from": "loan_type.rate_of_interest",
+   "fetch_from": "loan_product.rate_of_interest",
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest",
@@ -210,15 +212,23 @@
    "fieldtype": "Check",
    "label": "Is Term Loan",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Product",
+   "options": "Loan Product"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-19 18:24:40.119647",
+ "modified": "2023-09-23 15:13:12.936237",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -273,9 +283,10 @@
    "share": 1
   }
  ],
- "search_fields": "applicant_type, applicant, loan_type, loan_amount",
+ "search_fields": "applicant_type, applicant, loan_product, loan_amount",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "timeline_field": "applicant",
  "title_field": "applicant",
  "track_changes": 1

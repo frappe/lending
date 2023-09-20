@@ -103,7 +103,7 @@ class Loan(AccountsController):
 			self.posting_date = nowdate()
 
 		if self.loan_type and not self.rate_of_interest:
-			self.rate_of_interest = frappe.db.get_value("Loan Type", self.loan_type, "rate_of_interest")
+			self.rate_of_interest = frappe.db.get_value("Loan Product", self.loan_type, "interest_rate")
 
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
