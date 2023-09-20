@@ -9,8 +9,9 @@
   "charge_type",
   "sharing_parameter",
   "partner_ratio",
-  "own_ratio",
-  "partner_percentage"
+  "company_ratio",
+  "partner_percentage",
+  "threshold"
  ],
  "fields": [
   {
@@ -32,33 +33,36 @@
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Partner Ratio",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\"",
-   "read_only_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
-  },
-  {
-   "fieldname": "own_ratio",
-   "fieldtype": "Percent",
-   "in_list_view": 1,
-   "label": "Own Ratio",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\"",
-   "read_only_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
   },
   {
    "fieldname": "partner_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Partner Percentage",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Percentage\"",
-   "read_only_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
+  },
+  {
+   "fieldname": "threshold",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Threshold"
+  },
+  {
+   "fieldname": "company_ratio",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Company Ratio",
+   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-09-19 00:01:29.855212",
+ "modified": "2023-09-20 23:43:34.102749",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Partner Adhoc Charges Shared",
+ "name": "Loan Partner Charges Shared",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
