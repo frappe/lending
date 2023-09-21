@@ -39,7 +39,7 @@ class LoanRepaymentSchedule(Document):
 		self.repayment_schedule = []
 		payment_date = self.repayment_start_date
 		balance_amount = self.loan_amount
-		bmi_days = date_diff(add_months(payment_date, -1), self.posting_date) + 1
+		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 		carry_forward_interest = self.adjusted_interest
 
 		while balance_amount > 0:
@@ -48,7 +48,7 @@ class LoanRepaymentSchedule(Document):
 				balance_amount,
 				schedule_type_details.repayment_schedule_type,
 				schedule_type_details.repayment_date_on,
-				bmi_days,
+				broken_period_interest_days,
 				carry_forward_interest,
 			)
 
@@ -115,6 +115,10 @@ class LoanRepaymentSchedule(Document):
 
 			if schedule_type == "Monthly as per cycle date":
 				days = date_diff(payment_date, add_months(payment_date, -1))
+				if additional_days < 0:
+					days = date_diff(self.repayment_start_date, self.posting_date)
+					additional_days = 0
+
 				months = 365
 				if additional_days:
 					days += additional_days

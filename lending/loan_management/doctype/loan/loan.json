@@ -168,8 +168,7 @@
    "depends_on": "is_term_loan",
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
-   "label": "Repayment Start Date",
-   "mandatory_depends_on": "is_term_loan"
+   "label": "Repayment Start Date"
   },
   {
    "fieldname": "column_break_11",

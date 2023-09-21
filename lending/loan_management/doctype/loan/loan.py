@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order
-from frappe.utils import date_diff, flt, getdate, now_datetime, nowdate
+from frappe.utils import add_days, date_diff, flt, get_last_day, getdate, now_datetime, nowdate
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
@@ -28,6 +28,10 @@ class Loan(AccountsController):
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
+		self.set_cyclic_date()
+
+		if self.is_term_loan and not self.is_new():
+			self.update_draft_schedule()
 
 		if self.docstatus.is_draft():
 			if self.is_term_loan and not self.is_new():
@@ -62,6 +66,19 @@ class Loan(AccountsController):
 
 			if not self.cost_center:
 				frappe.throw(_("Cost center is mandatory for loans having rate of interest greater than 0"))
+
+	def set_cyclic_date(self):
+		if self.repayment_schedule_type == "Monthly as per cycle date":
+			cycle_day = frappe.db.get_value("Loan Type", self.loan_type, "cyclic_day_of_the_month")
+			last_day_of_month = get_last_day(self.posting_date)
+			cyclic_date = add_days(last_day_of_month, cycle_day)
+
+			broken_period_limit = frappe.db.get_value("Company", self.company, "min_bpi_application_days")
+			broken_period_days = date_diff(cyclic_date, self.posting_date)
+			if broken_period_days < broken_period_limit:
+				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+			self.repayment_start_date = cyclic_date
 
 	def on_submit(self):
 		self.link_loan_security_pledge()
