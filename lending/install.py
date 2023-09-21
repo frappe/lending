@@ -47,6 +47,12 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "watch_period_post_loan_restructure_in_days",
 		},
 		{
+			"fieldname": "min_bpi_application_days",
+			"label": "Minimum Days for Broken Period Interest Application",
+			"fieldtype": "Int",
+			"insert_after": "interest_day_count_convention",
+		},
+		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
 			"insert_after": "interest_day_count_convention",

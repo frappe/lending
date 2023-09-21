@@ -17,6 +17,7 @@
   "is_term_loan",
   "disabled",
   "repayment_schedule_type",
+  "cyclic_day_of_the_month",
   "repayment_date_on",
   "days_past_due_threshold_for_npa",
   "description",
@@ -295,11 +296,19 @@
    "fieldtype": "Link",
    "label": "Charges Waiver Item",
    "options": "Item"
+  },
+  {
+   "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
+   "description": "Day of every month on which the repayment date is considered",
+   "fieldname": "cyclic_day_of_the_month",
+   "fieldtype": "Int",
+   "label": "Cyclic Day Of the Month",
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\""
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-10 19:37:44.490880",
+ "modified": "2023-09-21 11:51:37.789220",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Type",
@@ -314,13 +323,9 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Loan Manager",
+   "role": "System Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "read": 1,
-   "role": "Employee"
   }
  ],
  "sort_field": "modified",
