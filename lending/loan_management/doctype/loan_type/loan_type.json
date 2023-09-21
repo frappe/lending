@@ -308,7 +308,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-21 11:51:37.789220",
+ "modified": "2023-09-22 11:51:37.789220",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Type",
@@ -330,5 +330,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
