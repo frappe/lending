@@ -77,45 +77,47 @@ def get_payment_entries_for_bank_clearance(
 	return entries
 
 
-def get_matching_vouchers_for_bank_reconciliation(
+def get_matching_queries(
 	bank_account,
 	company,
 	transaction,
 	document_types,
+	exact_match,
+	account_from_to,
 	from_date,
 	to_date,
 	filter_by_reference_date,
 	from_reference_date,
 	to_reference_date,
-	exact_match,
-	filters,
 ):
-	vouchers = []
+	queries = []
 
 	if transaction.withdrawal > 0.0 and "loan_disbursement" in document_types:
-		vouchers.extend(get_ld_matching_query(bank_account, exact_match, filters))
+		queries.append(get_ld_matching_query(bank_account, exact_match, transaction))
 
 	if transaction.deposit > 0.0 and "loan_repayment" in document_types:
-		vouchers.extend(get_lr_matching_query(bank_account, exact_match, filters))
+		queries.append(get_lr_matching_query(bank_account, exact_match, transaction))
 
-	return vouchers
+	return queries
 
 
-def get_ld_matching_query(bank_account, exact_match, filters):
+def get_ld_matching_query(bank_account, exact_match, transaction):
 	loan_disbursement = frappe.qb.DocType("Loan Disbursement")
-	matching_reference = loan_disbursement.reference_number == filters.get("reference_number")
-	matching_party = loan_disbursement.applicant_type == filters.get(
-		"party_type"
-	) and loan_disbursement.applicant == filters.get("party")
 
-	rank = frappe.qb.terms.Case().when(matching_reference, 1).else_(0)
+	matching_reference = loan_disbursement.reference_number == transaction.get("reference_number")
+	ref_rank = frappe.qb.terms.Case().when(matching_reference, 1).else_(0)
 
-	rank1 = frappe.qb.terms.Case().when(matching_party, 1).else_(0)
+	matching_party = (
+		(loan_disbursement.applicant_type == transaction.party_type)
+		& (loan_disbursement.applicant == transaction.party)
+		& loan_disbursement.applicant.isnotnull()
+	)
+	party_rank = frappe.qb.terms.Case().when(matching_party, 1).else_(0)
 
 	query = (
 		frappe.qb.from_(loan_disbursement)
 		.select(
-			rank + rank1 + 1,
+			ref_rank + party_rank + 1,
 			ConstantColumn("Loan Disbursement").as_("doctype"),
 			loan_disbursement.name,
 			loan_disbursement.disbursed_amount,
@@ -130,30 +132,30 @@ def get_ld_matching_query(bank_account, exact_match, filters):
 	)
 
 	if exact_match:
-		query.where(loan_disbursement.disbursed_amount == filters.get("amount"))
+		query.where(loan_disbursement.disbursed_amount == transaction.unallocated_amount)
 	else:
 		query.where(loan_disbursement.disbursed_amount > 0.0)
 
-	vouchers = query.run(as_list=True)
-
-	return vouchers
+	return query
 
 
-def get_lr_matching_query(bank_account, exact_match, filters):
+def get_lr_matching_query(bank_account, exact_match, transaction):
 	loan_repayment = frappe.qb.DocType("Loan Repayment")
-	matching_reference = loan_repayment.reference_number == filters.get("reference_number")
-	matching_party = loan_repayment.applicant_type == filters.get(
-		"party_type"
-	) and loan_repayment.applicant == filters.get("party")
 
-	rank = frappe.qb.terms.Case().when(matching_reference, 1).else_(0)
+	matching_reference = loan_repayment.reference_number == transaction.get("reference_number")
+	ref_rank = frappe.qb.terms.Case().when(matching_reference, 1).else_(0)
 
-	rank1 = frappe.qb.terms.Case().when(matching_party, 1).else_(0)
+	matching_party = (
+		(loan_repayment.applicant_type == transaction.party_type)
+		& (loan_repayment.applicant == transaction.party)
+		& loan_repayment.applicant.isnotnull()
+	)
+	party_rank = frappe.qb.terms.Case().when(matching_party, 1).else_(0)
 
 	query = (
 		frappe.qb.from_(loan_repayment)
 		.select(
-			rank + rank1 + 1,
+			ref_rank + party_rank + 1,
 			ConstantColumn("Loan Repayment").as_("doctype"),
 			loan_repayment.name,
 			loan_repayment.amount_paid,
@@ -171,13 +173,11 @@ def get_lr_matching_query(bank_account, exact_match, filters):
 		query = query.where((loan_repayment.repay_from_salary == 0))
 
 	if exact_match:
-		query.where(loan_repayment.amount_paid == filters.get("amount"))
+		query.where(loan_repayment.amount_paid == transaction.unallocated_amount)
 	else:
 		query.where(loan_repayment.amount_paid > 0.0)
 
-	vouchers = query.run()
-
-	return vouchers
+	return query
 
 
 def get_entries_for_bank_clearance_summary(filters):

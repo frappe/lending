@@ -145,6 +145,12 @@ class LoanRepayment(AccountsController):
 		if amounts.get("due_date"):
 			self.due_date = amounts.get("due_date")
 
+		if hasattr(self, "repay_from_salary") and hasattr(self, "payroll_payable_account"):
+			if self.repay_from_salary and not self.payroll_payable_account:
+				frappe.throw(_("Please set Payroll Payable Account in Loan Repayment"))
+			elif not self.repay_from_salary and self.payroll_payable_account:
+				self.repay_from_salary = 1
+
 	def check_future_entries(self):
 		future_repayment_date = frappe.db.get_value(
 			"Loan Repayment",
@@ -168,7 +174,7 @@ class LoanRepayment(AccountsController):
 
 				# get posting date upto which interest has to be accrued
 				per_day_interest = get_per_day_interest(
-					self.pending_principal_amount, self.rate_of_interest, self.posting_date
+					self.pending_principal_amount, self.rate_of_interest, self.company, self.posting_date
 				)
 
 				no_of_days = (
@@ -586,7 +592,7 @@ class LoanRepayment(AccountsController):
 			else:
 				# get no of days for which interest can be paid
 				per_day_interest = get_per_day_interest(
-					self.pending_principal_amount, self.rate_of_interest, self.posting_date
+					self.pending_principal_amount, self.rate_of_interest, self.company, self.posting_date
 				)
 
 				no_of_days = cint(interest_paid / per_day_interest)
@@ -1143,7 +1149,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 			principal_amount = flt(pending_principal_amount, precision)
 
 		per_day_interest = get_per_day_interest(
-			principal_amount, loan_type_details.rate_of_interest, posting_date
+			principal_amount, loan_type_details.rate_of_interest, loan_type_details.company, posting_date
 		)
 		unaccrued_interest += pending_days * per_day_interest
 

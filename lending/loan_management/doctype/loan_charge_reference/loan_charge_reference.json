@@ -1,46 +1,46 @@
 {
-"actions": [],
-"allow_rename": 1,
-"creation": "2023-05-16 07:46:48.289502",
-"doctype": "DocType",
-"editable_grid": 1,
-"engine": "InnoDB",
-"field_order": [
-    "sales_invoice",
-    "pending_charge_amount",
-    "allocated_amount"
-],
-"fields": [
-    {
-    "fieldname": "sales_invoice",
-    "fieldtype": "Link",
-    "in_list_view": 1,
-    "label": "Sales Invoice",
-    "options": "Sales Invoice"
-    },
-    {
-    "fieldname": "pending_charge_amount",
-    "fieldtype": "Currency",
-    "in_list_view": 1,
-    "label": "Pending Charge Amount"
-    },
-    {
-    "fieldname": "allocated_amount",
-    "fieldtype": "Currency",
-    "in_list_view": 1,
-    "label": "Allocated Amount"
-    }
-],
-"index_web_pages_for_search": 1,
-"istable": 1,
-"links": [],
-"modified": "2023-05-16 09:14:13.972294",
-"modified_by": "Administrator",
-"module": "Loan Management",
-"name": "Loan Charge Reference",
-"owner": "Administrator",
-"permissions": [],
-"sort_field": "modified",
-"sort_order": "DESC",
-"states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-05-16 07:46:48.289502",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sales_invoice",
+  "pending_charge_amount",
+  "allocated_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "pending_charge_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Pending Charge Amount"
+  },
+  {
+   "fieldname": "allocated_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Allocated Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-05-16 09:14:13.972294",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Charge Reference",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }

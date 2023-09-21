@@ -148,10 +148,7 @@ bank_reconciliation_doctypes = [
 
 # Overriding Methods
 # ------------------------------
-
-get_matching_vouchers_for_bank_reconciliation = (
-	"lending.loan_management.utils.get_matching_vouchers_for_bank_reconciliation"
-)
+get_matching_queries = "lending.loan_management.utils.get_matching_queries"
 
 get_amounts_not_reflected_in_system_for_bank_reconciliation_statement = "lending.loan_management.utils.get_amounts_not_reflected_in_system_for_bank_reconciliation_statement"
 
