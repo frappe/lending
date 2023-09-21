@@ -25,19 +25,19 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 
 class LoanApplication(Document):
 	def validate(self):
-		if not self.docstatus.is_draft():
-			return
+		if self.docstatus.is_draft():
+			self.set_pledge_amount()
+			self.set_loan_amount()
 
-		self.set_pledge_amount()
-		self.set_loan_amount()
+		self.validate_loan_type()
 		self.validate_loan_amount()
 
 		if self.is_term_loan:
 			self.validate_repayment_method()
 
-		self.validate_loan_type()
+		if self.docstatus.is_draft():
+			self.get_repayment_details()
 
-		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
 
 	def validate_repayment_method(self):

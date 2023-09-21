@@ -20,17 +20,20 @@ from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpled
 
 class Loan(AccountsController):
 	def validate(self):
-		self.set_loan_amount()
+		if self.docstatus.is_draft():
+			self.set_missing_fields()
+			self.set_loan_amount()
+
 		self.validate_loan_amount()
-		self.set_missing_fields()
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
-		if self.is_term_loan and not self.is_new():
-			self.update_draft_schedule()
 
-		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
-			self.calculate_totals()
+		if self.docstatus.is_draft():
+			if self.is_term_loan and not self.is_new():
+				self.update_draft_schedule()
+			if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
+				self.calculate_totals()
 
 	def after_insert(self):
 		if self.is_term_loan:
