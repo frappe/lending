@@ -5,10 +5,10 @@ lending.common.setup_filters("Loan Repayment");
 
 frappe.ui.form.on('Loan Repayment', {
 	setup(frm) {
+		frm.ignore_doctypes_on_cancel_all = ["Process Loan Classification"];
 		if (frappe.meta.has_field("Loan Repayment", "repay_from_salary")) {
 			frm.add_fetch("against_loan", "repay_from_salary", "repay_from_salary");
 		}
-		frm.ignore_doctypes_on_cancel_all = ["Process Loan Asset Classification"];
 	},
 
 	onload: function(frm) {

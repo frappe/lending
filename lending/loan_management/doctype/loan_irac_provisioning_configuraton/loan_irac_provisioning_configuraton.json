@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-09-12 15:46:09.401673",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "classification_code",
+  "classification_name",
+  "min_dpd_range",
+  "max_dpd_range",
+  "loan_type",
+  "provision_rate"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "loan_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Loan Type",
+   "options": "Secured\nUnsecured\nSemi-Secured"
+  },
+  {
+   "fieldname": "provision_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Provision Rate"
+  },
+  {
+   "columns": 2,
+   "fieldname": "classification_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Classification Code",
+   "options": "Loan Classification"
+  },
+  {
+   "columns": 1,
+   "fieldname": "min_dpd_range",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Min DPD Range"
+  },
+  {
+   "columns": 1,
+   "fieldname": "max_dpd_range",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max DPD Range"
+  },
+  {
+   "columns": 3,
+   "fetch_from": "classification_code.classification_name",
+   "fieldname": "classification_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Classification Name",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-13 21:39:55.163737",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan IRAC Provisioning Configuraton",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

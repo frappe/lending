@@ -9,7 +9,7 @@
   "loan",
   "posting_date",
   "days_past_due",
-  "process_loan_asset_classification"
+  "process_loan_classification"
  ],
  "fields": [
   {
@@ -32,16 +32,16 @@
    "read_only": 1
   },
   {
-   "fieldname": "process_loan_asset_classification",
+   "fieldname": "process_loan_classification",
    "fieldtype": "Link",
-   "label": "Process Loan Asset Classification",
-   "options": "Process Loan Asset Classification",
+   "label": "Process Loan Classification",
+   "options": "Process Loan Classification",
    "read_only": 1
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-08-25 15:37:21.206963",
+ "modified": "2023-09-14 20:29:11.095918",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Days Past Due Log",

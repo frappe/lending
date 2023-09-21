@@ -33,10 +33,10 @@
   "monthly_repayment_amount",
   "repayment_start_date",
   "is_term_loan",
-  "loan_asset_classification_details_section",
+  "loan_classification_details_section",
   "days_past_due",
-  "asset_classification_code",
-  "asset_classification_name",
+  "classification_code",
+  "classification_name",
   "column_break_zpe2",
   "loan_restructure_count",
   "watch_period_end_date",
@@ -426,22 +426,6 @@
    "label": "Manual NPA"
   },
   {
-   "fieldname": "asset_classification_code",
-   "fieldtype": "Select",
-   "label": "Asset Classification Code",
-   "no_copy": 1,
-   "options": "\nSMA-0\nSMA-1\nSMA-2\nD1\nD2\nD3",
-   "read_only": 1
-  },
-  {
-   "fieldname": "asset_classification_name",
-   "fieldtype": "Select",
-   "label": "Asset Classification Name",
-   "no_copy": 1,
-   "options": "\nSpecial Mention Account - 0\nSpecial Mention Account - 1\nSpecial Mention Account - 2\nSubstandard Asset\nDoubtful Asset\nLoss Asset",
-   "read_only": 1
-  },
-  {
    "fieldname": "branch",
    "fieldtype": "Link",
    "label": "Branch",
@@ -452,11 +436,6 @@
    "fieldtype": "Int",
    "label": "Loan Restructure Count",
    "read_only": 1
-  },
-  {
-   "fieldname": "loan_asset_classification_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Asset Classification Details"
   },
   {
    "fieldname": "column_break_zpe2",
@@ -473,12 +452,33 @@
    "fieldtype": "Int",
    "label": "Tenure Post Restructure",
    "read_only": 1
+  },
+  {
+   "fieldname": "classification_code",
+   "fieldtype": "Link",
+   "label": "Classification Code",
+   "no_copy": 1,
+   "options": "Loan Classification",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "classification_code.classification_name",
+   "fieldname": "classification_name",
+   "fieldtype": "Data",
+   "label": "Classification Name",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "loan_classification_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Classification Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-29 18:12:28.333911",
+ "modified": "2023-09-21 20:41:41.531824",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

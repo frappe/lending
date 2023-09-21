@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class LoanAssetClassificationRange(Document):
+class LoanClassification(Document):
 	pass
