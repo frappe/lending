@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class LoanPartnerChargesShared(Document):
+class LoanPartnerShareable(Document):
 	pass

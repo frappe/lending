@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:partner_code",
+ "autoname": "field:partner_name",
  "creation": "2023-09-18 19:55:37.996068",
  "default_view": "List",
  "doctype": "DocType",
@@ -9,7 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "details_section",
-  "partner_code",
+  "partner_name",
   "effective_date",
   "partner_loan_share_ratio",
   "loan_partner_loan_type",
@@ -24,17 +24,9 @@
   "column_break_iwpj",
   "address_html",
   "section_break_lpnj",
-  "charges_shared"
+  "shareables"
  ],
  "fields": [
-  {
-   "fieldname": "partner_code",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Partner Code",
-   "reqd": 1,
-   "unique": 1
-  },
   {
    "fieldname": "partner_loan_share_ratio",
    "fieldtype": "Percent",
@@ -67,7 +59,7 @@
   {
    "fieldname": "section_break_lpnj",
    "fieldtype": "Section Break",
-   "label": "Charges Sharing"
+   "label": "Shareables"
   },
   {
    "fieldname": "company_loan_share_ratio",
@@ -78,10 +70,10 @@
    "fieldname": "organization_type",
    "fieldtype": "Select",
    "label": "Organization Type",
-   "options": "\nCentralized\nDecentralized",
-   "reqd": 1
+   "options": "\nCentralized\nDecentralized"
   },
   {
+   "depends_on": "eval:!doc.__islocal",
    "fieldname": "section_break_mpap",
    "fieldtype": "Section Break",
    "label": "Organization"
@@ -115,20 +107,28 @@
    "options": "Address"
   },
   {
-   "fieldname": "charges_shared",
-   "fieldtype": "Table",
-   "label": "Charges Shared",
-   "options": "Loan Partner Charges Shared"
-  },
-  {
    "fieldname": "details_section",
    "fieldtype": "Section Break",
    "label": "Details"
+  },
+  {
+   "fieldname": "shareables",
+   "fieldtype": "Table",
+   "label": "Shareables",
+   "options": "Loan Partner Shareable"
+  },
+  {
+   "fieldname": "partner_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Partner Name",
+   "reqd": 1,
+   "unique": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-20 23:51:57.755439",
+ "modified": "2023-09-22 11:24:25.257136",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
