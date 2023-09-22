@@ -18,6 +18,7 @@
   "is_term_loan",
   "disabled",
   "repayment_schedule_type",
+  "cyclic_day_of_the_month",
   "repayment_date_on",
   "days_past_due_threshold_for_npa",
   "description",
@@ -298,6 +299,14 @@
    "options": "Item"
   },
   {
+   "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
+   "description": "Day of every month on which the repayment date is considered",
+   "fieldname": "cyclic_day_of_the_month",
+   "fieldtype": "Int",
+   "label": "Cyclic Day Of the Month",
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\""
+  },
+  {
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
@@ -305,7 +314,6 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
  "modified": "2023-09-14 23:14:46.825558",
  "modified_by": "Administrator",
@@ -315,8 +323,6 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -324,17 +330,13 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Loan Manager",
+   "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
-  },
-  {
-   "read": 1,
-   "role": "Employee"
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

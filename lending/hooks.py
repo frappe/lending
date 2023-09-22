@@ -128,7 +128,7 @@ scheduler_events = {
 	"daily_long": [
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_term_loans",
-		"lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification.create_process_loan_asset_classification",
+		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_demand_loans",
@@ -148,10 +148,7 @@ bank_reconciliation_doctypes = [
 
 # Overriding Methods
 # ------------------------------
-
-get_matching_vouchers_for_bank_reconciliation = (
-	"lending.loan_management.utils.get_matching_vouchers_for_bank_reconciliation"
-)
+get_matching_queries = "lending.loan_management.utils.get_matching_queries"
 
 get_amounts_not_reflected_in_system_for_bank_reconciliation_statement = "lending.loan_management.utils.get_amounts_not_reflected_in_system_for_bank_reconciliation_statement"
 

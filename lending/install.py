@@ -16,10 +16,16 @@ LOAN_CUSTOM_FIELDS = {
 	],
 	"Company": [
 		{
+			"fieldname": "loan_tab",
+			"fieldtype": "Tab Break",
+			"label": "Loan",
+			"insert_after": "expenses_included_in_valuation",
+		},
+		{
 			"fieldname": "loan_settings",
 			"label": "Loan Settings",
 			"fieldtype": "Section Break",
-			"insert_after": "exception_budget_approver_role",
+			"insert_after": "loan_tab",
 		},
 		{
 			"fieldname": "loan_restructure_limit",
@@ -34,9 +40,22 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_restructure_limit",
 		},
 		{
+			"fieldname": "interest_day_count_convention",
+			"label": "Interest Day-Count Convention",
+			"fieldtype": "Select",
+			"options": "Actual/365\nActual/Actual\n30/365\n30/360\nActual/360",
+			"insert_after": "watch_period_post_loan_restructure_in_days",
+		},
+		{
+			"fieldname": "min_bpi_application_days",
+			"label": "Minimum Days for Broken Period Interest Application",
+			"fieldtype": "Int",
+			"insert_after": "interest_day_count_convention",
+		},
+		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "watch_period_post_loan_restructure_in_days",
+			"insert_after": "min_bpi_application_days",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",
@@ -66,16 +85,30 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "collection_offset_sequence_for_sub_standard_asset",
 		},
 		{
-			"fieldname": "loan_section_break_2",
-			"fieldtype": "Section Break",
+			"fieldname": "collection_offset_sequence_for_written_off_asset",
+			"label": "Collection Offset Sequence for Written Off Asset",
+			"fieldtype": "Select",
+			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
 			"insert_after": "collection_offset_sequence_for_standard_asset",
 		},
 		{
-			"fieldname": "asset_classification_ranges",
-			"label": "Asset Classification Ranges",
+			"fieldname": "loan_section_break_2",
+			"fieldtype": "Section Break",
+			"insert_after": "collection_offset_sequence_for_written_off_asset",
+		},
+		{
+			"fieldname": "loan_classification_ranges",
+			"label": "Loan Classification Ranges",
 			"fieldtype": "Table",
-			"options": "Loan Asset Classification Range",
+			"options": "Loan Classification Range",
 			"insert_after": "loan_section_break_2",
+		},
+		{
+			"fieldname": "irac_provisioning_configuration",
+			"label": "IRAC Provisioning Configuration",
+			"fieldtype": "Table",
+			"options": "Loan IRAC Provisioning Configuration",
+			"insert_after": "loan_classification_ranges",
 		},
 	],
 	"Customer": [

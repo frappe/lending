@@ -87,7 +87,10 @@ class LoanDisbursement(AccountsController):
 	def validate_disbursal_amount(self):
 		possible_disbursal_amount = get_disbursal_amount(self.against_loan)
 
-		if self.disbursed_amount > possible_disbursal_amount:
+		if not self.disbursed_amount:
+			frappe.throw(_("Disbursed amount cannot be zero"))
+
+		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
 
 	def set_status_and_amounts(self, cancel=0):
