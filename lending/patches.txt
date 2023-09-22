@@ -19,3 +19,4 @@ lending.patches.v15_0.make_loan_type_non_submittable
 lending.patches.v15_0.update_custom_fields_for_company_tab
 lending.patches.v15_0.create_custom_field_for_interest_day_count_convention
 lending.patches.v15_0.create_custom_field_for_bpi
+lending.patches.v15_0.update_loan_column_break_due_to_bpi
