@@ -104,10 +104,10 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_section_break_2",
 		},
 		{
-			"fieldname": "irac_provisioning_configuraton",
-			"label": "IRAC Provisioning Configuraton",
+			"fieldname": "irac_provisioning_configuration",
+			"label": "IRAC Provisioning Configuration",
 			"fieldtype": "Table",
-			"options": "Loan IRAC Provisioning Configuraton",
+			"options": "Loan IRAC Provisioning Configuration",
 			"insert_after": "loan_classification_ranges",
 		},
 	],

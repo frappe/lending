@@ -10,10 +10,10 @@ def execute():
 		{
 			"Company": [
 				{
-					"fieldname": "irac_provisioning_configuraton",
-					"label": "IRAC Provisioning Configuraton",
+					"fieldname": "irac_provisioning_configuration",
+					"label": "IRAC Provisioning Configuration",
 					"fieldtype": "Table",
-					"options": "Loan IRAC Provisioning Configuraton",
+					"options": "Loan IRAC Provisioning Configuration",
 					"insert_after": "asset_classification_ranges",
 				},
 			]
