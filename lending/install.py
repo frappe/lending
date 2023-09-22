@@ -55,7 +55,7 @@ LOAN_CUSTOM_FIELDS = {
 		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "interest_day_count_convention",
+			"insert_after": "min_bpi_application_days",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",
