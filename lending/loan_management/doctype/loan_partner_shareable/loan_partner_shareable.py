@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class LoanIRACProvisioningConfiguraton(Document):
+class LoanPartnerShareable(Document):
 	pass

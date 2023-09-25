@@ -29,7 +29,7 @@ def execute():
 
 	frappe.db.set_value(
 		"Custom Field",
-		{"name": "Company-irac_provisioning_configuraton"},
+		{"name": "Company-irac_provisioning_configuration"},
 		"insert_after",
 		"loan_classification_ranges",
 	)

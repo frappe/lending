@@ -10,11 +10,10 @@ def execute():
 		{
 			"Company": [
 				{
-					"fieldname": "irac_provisioning_configuraton",
-					"label": "IRAC Provisioning Configuraton",
-					"fieldtype": "Table",
-					"options": "Loan IRAC Provisioning Configuraton",
-					"insert_after": "asset_classification_ranges",
+					"fieldname": "min_bpi_application_days",
+					"label": "Minimum Days for Broken Period Interest Application",
+					"fieldtype": "Int",
+					"insert_after": "interest_day_count_convention",
 				},
 			]
 		},

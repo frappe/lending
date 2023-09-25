@@ -168,8 +168,7 @@
    "depends_on": "is_term_loan",
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
-   "label": "Repayment Start Date",
-   "mandatory_depends_on": "is_term_loan"
+   "label": "Repayment Start Date"
   },
   {
    "fieldname": "column_break_11",
@@ -488,7 +487,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-14 22:35:43.999287",
+ "modified": "2023-09-21 20:41:41.531824",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

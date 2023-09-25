@@ -47,9 +47,15 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "watch_period_post_loan_restructure_in_days",
 		},
 		{
+			"fieldname": "min_bpi_application_days",
+			"label": "Minimum Days for Broken Period Interest Application",
+			"fieldtype": "Int",
+			"insert_after": "interest_day_count_convention",
+		},
+		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "interest_day_count_convention",
+			"insert_after": "min_bpi_application_days",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",
@@ -98,10 +104,10 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_section_break_2",
 		},
 		{
-			"fieldname": "irac_provisioning_configuraton",
-			"label": "IRAC Provisioning Configuraton",
+			"fieldname": "irac_provisioning_configuration",
+			"label": "IRAC Provisioning Configuration",
 			"fieldtype": "Table",
-			"options": "Loan IRAC Provisioning Configuraton",
+			"options": "Loan IRAC Provisioning Configuration",
 			"insert_after": "loan_classification_ranges",
 		},
 	],
