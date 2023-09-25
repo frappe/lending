@@ -47,10 +47,21 @@
   "mode_of_payment",
   "disbursement_account",
   "payment_account",
+  "suspense_interest_receivable",
+  "suspense_interest_income",
+  "suspense_collection_account",
+  "principal_waiver_account",
+  "interest_waiver_account",
+  "charges_waiver_account",
   "column_break_9",
   "loan_account",
   "interest_income_account",
   "penalty_income_account",
+  "interest_receivable_account",
+  "penalty_receivable_account",
+  "charges_receivable_account",
+  "security_deposit_account",
+  "penalty_waiver_account",
   "section_break_17",
   "total_payment",
   "total_principal_paid",
@@ -212,11 +223,11 @@
   },
   {
    "fetch_from": "loan_type.payment_account",
+   "fetch_if_empty": 1,
    "fieldname": "payment_account",
    "fieldtype": "Link",
    "label": "Payment Account",
    "options": "Account",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -225,20 +236,20 @@
   },
   {
    "fetch_from": "loan_type.loan_account",
+   "fetch_if_empty": 1,
    "fieldname": "loan_account",
    "fieldtype": "Link",
    "label": "Loan Account",
    "options": "Account",
-   "read_only": 1,
    "reqd": 1
   },
   {
    "fetch_from": "loan_type.interest_income_account",
+   "fetch_if_empty": 1,
    "fieldname": "interest_income_account",
    "fieldtype": "Link",
    "label": "Interest Income Account",
    "options": "Account",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -303,11 +314,11 @@
   },
   {
    "fetch_from": "loan_type.penalty_income_account",
+   "fetch_if_empty": 1,
    "fieldname": "penalty_income_account",
    "fieldtype": "Link",
    "label": "Penalty Income Account",
    "options": "Account",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -351,11 +362,11 @@
   },
   {
    "fetch_from": "loan_type.disbursement_account",
+   "fetch_if_empty": 1,
    "fieldname": "disbursement_account",
    "fieldtype": "Link",
    "label": "Disbursement Account",
    "options": "Account",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -473,12 +484,100 @@
    "fieldname": "loan_classification_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Classification Details"
+  },
+  {
+   "fetch_from": "loan_type.suspense_interest_receivable",
+   "fetch_if_empty": 1,
+   "fieldname": "suspense_interest_receivable",
+   "fieldtype": "Link",
+   "label": "Suspense Interest Receivable",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.suspense_interest_income",
+   "fetch_if_empty": 1,
+   "fieldname": "suspense_interest_income",
+   "fieldtype": "Link",
+   "label": "Suspense Interest Income",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.suspense_collection_account",
+   "fetch_if_empty": 1,
+   "fieldname": "suspense_collection_account",
+   "fieldtype": "Link",
+   "label": "Suspense Collection Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.interest_receivable_account",
+   "fetch_if_empty": 1,
+   "fieldname": "interest_receivable_account",
+   "fieldtype": "Link",
+   "label": "Interest Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.penalty_receivable_account",
+   "fetch_if_empty": 1,
+   "fieldname": "penalty_receivable_account",
+   "fieldtype": "Link",
+   "label": "Penalty Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.charges_receivable_account",
+   "fetch_if_empty": 1,
+   "fieldname": "charges_receivable_account",
+   "fieldtype": "Link",
+   "label": "Charges Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.principal_waiver_account",
+   "fetch_if_empty": 1,
+   "fieldname": "principal_waiver_account",
+   "fieldtype": "Link",
+   "label": "Principal Waiver Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.security_deposit_account",
+   "fetch_if_empty": 1,
+   "fieldname": "security_deposit_account",
+   "fieldtype": "Link",
+   "label": "Security Deposit Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.penalty_waiver_account",
+   "fetch_if_empty": 1,
+   "fieldname": "penalty_waiver_account",
+   "fieldtype": "Link",
+   "label": "Penalty Waiver Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.interest_waiver_account",
+   "fetch_if_empty": 1,
+   "fieldname": "interest_waiver_account",
+   "fieldtype": "Link",
+   "label": "Interest Waiver Account",
+   "options": "Account"
+  },
+  {
+   "fetch_from": "loan_type.charges_waiver_account",
+   "fetch_if_empty": 1,
+   "fieldname": "charges_waiver_account",
+   "fieldtype": "Link",
+   "label": "Charges Waiver Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-21 20:41:41.531824",
+ "modified": "2023-09-25 11:45:57.509221",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
