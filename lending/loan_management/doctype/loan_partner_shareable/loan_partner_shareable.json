@@ -6,7 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "charge_type",
+  "shareable_type",
   "sharing_parameter",
   "partner_ratio",
   "company_ratio",
@@ -14,13 +14,6 @@
   "minimum_partner_percentage"
  ],
  "fields": [
-  {
-   "fieldname": "charge_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Charge Type",
-   "options": "Item"
-  },
   {
    "fieldname": "sharing_parameter",
    "fieldtype": "Select",
@@ -54,12 +47,19 @@
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Minimum Partner Percentage"
+  },
+  {
+   "fieldname": "shareable_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shareable Type",
+   "options": "Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-09-22 11:28:49.162023",
+ "modified": "2023-09-26 14:49:38.075304",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner Shareable",
