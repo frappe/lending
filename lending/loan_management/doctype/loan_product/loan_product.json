@@ -13,6 +13,7 @@
   "penalty_interest_rate",
   "grace_period_in_days",
   "write_off_amount",
+  "loan_partners",
   "column_break_2",
   "company",
   "is_term_loan",
@@ -311,11 +312,17 @@
    "fieldtype": "Int",
    "label": "Cyclic Day Of the Month",
    "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\""
+  },
+  {
+   "fieldname": "loan_partners",
+   "fieldtype": "Table MultiSelect",
+   "label": "Loan Partners",
+   "options": "Loan Product Loan Partner"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-22 11:51:37.789220",
+ "modified": "2023-10-03 00:33:47.168614",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
