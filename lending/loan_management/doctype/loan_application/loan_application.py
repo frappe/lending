@@ -25,25 +25,23 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 
 class LoanApplication(Document):
 	def validate(self):
-		self.set_pledge_amount()
-		self.set_loan_amount()
+		if self.docstatus.is_draft():
+			self.set_pledge_amount()
+			self.set_loan_amount()
+
+		self.validate_loan_type()
 		self.validate_loan_amount()
 
 		if self.is_term_loan:
 			self.validate_repayment_method()
 
-		self.validate_loan_type()
+		if self.docstatus.is_draft():
+			self.get_repayment_details()
 
-		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
 
 	def validate_repayment_method(self):
-		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
-			frappe.throw(_("Please enter Repayment Periods"))
-
 		if self.repayment_method == "Repay Fixed Amount per Period":
-			if not self.repayment_amount:
-				frappe.throw(_("Please enter repayment Amount"))
 			if self.repayment_amount > self.loan_amount:
 				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
@@ -106,9 +104,10 @@ class LoanApplication(Document):
 
 		if self.is_term_loan:
 			if self.repayment_method == "Repay Over Number of Periods":
-				self.repayment_amount = get_monthly_repayment_amount(
+				amount = get_monthly_repayment_amount(
 					self.loan_amount, self.rate_of_interest, self.repayment_periods
 				)
+				self.repayment_amount = math.ceil(amount) if self.repayment_round_up else amount
 
 			if self.repayment_method == "Repay Fixed Amount per Period":
 				monthly_interest_rate = flt(self.rate_of_interest) / (12 * 100)
@@ -133,8 +132,8 @@ class LoanApplication(Document):
 		self.total_payable_interest = 0
 
 		while balance_amount > 0:
-			interest_amount = rounded(balance_amount * flt(self.rate_of_interest) / (12 * 100))
-			balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
+			interest_amount = rounded(balance_amount * flt(self.rate_of_interest) / (12 * 100), 2)
+			balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount, 2)
 
 			self.total_payable_interest += interest_amount
 

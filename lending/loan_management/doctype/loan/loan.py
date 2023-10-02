@@ -20,9 +20,11 @@ from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpled
 
 class Loan(AccountsController):
 	def validate(self):
-		self.set_loan_amount()
+		if self.docstatus.is_draft():
+			self.set_missing_fields()
+			self.set_loan_amount()
+
 		self.validate_loan_amount()
-		self.set_missing_fields()
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
@@ -31,8 +33,11 @@ class Loan(AccountsController):
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
 
-		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
-			self.calculate_totals()
+		if self.docstatus.is_draft():
+			if self.is_term_loan and not self.is_new():
+				self.update_draft_schedule()
+			if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
+				self.calculate_totals()
 
 	def after_insert(self):
 		if self.is_term_loan:
@@ -129,6 +134,7 @@ class Loan(AccountsController):
 				"repayment_method": self.repayment_method,
 				"repayment_start_date": self.repayment_start_date,
 				"repayment_periods": self.repayment_periods,
+				"repayment_round_up": self.repayment_round_up,
 				"loan_amount": self.loan_amount,
 				"monthly_repayment_amount": self.monthly_repayment_amount,
 				"loan_type": self.loan_type,
@@ -150,6 +156,7 @@ class Loan(AccountsController):
 					"repayment_periods": self.repayment_periods,
 					"repayment_method": self.repayment_method,
 					"repayment_start_date": self.repayment_start_date,
+					"repayment_round_up": self.repayment_round_up,
 					"posting_date": self.posting_date,
 					"loan_amount": self.loan_amount,
 					"monthly_repayment_amount": self.monthly_repayment_amount,
