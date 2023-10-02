@@ -12,12 +12,14 @@
   "details_section",
   "partner_name",
   "effective_date",
-  "partner_loan_share_ratio",
-  "loan_partner_loan_type",
+  "partner_loan_share_percentage",
+  "partner_base_interest_rate",
+  "incremental_interest_applicable",
   "column_break_yfag",
   "repayment_schedule_type",
-  "company_loan_share_ratio",
-  "partner_interest_rate",
+  "company_loan_share_percentage",
+  "company_base_interest_rate",
+  "interest_increment_percentage",
   "section_break_mpap",
   "column_break_gpwj",
   "organization_type",
@@ -25,15 +27,20 @@
   "column_break_iwpj",
   "address_html",
   "section_break_lpnj",
-  "shareables"
+  "shareables",
+  "fldg_section",
+  "fldg_trigger_dpd",
+  "fldg_total_percentage",
+  "fldg_fd_or_cg_applicable",
+  "column_break_szii",
+  "fldg_limit_calculation_component",
+  "fldg_fixed_deposit_percentage",
+  "fldg_corporate_guarantee_percentage",
+  "misc_section",
+  "servicer_fee",
+  "column_break_wujj"
  ],
  "fields": [
-  {
-   "fieldname": "partner_loan_share_ratio",
-   "fieldtype": "Percent",
-   "label": "Partner Loan Share Ratio",
-   "reqd": 1
-  },
   {
    "fieldname": "column_break_yfag",
    "fieldtype": "Column Break"
@@ -45,27 +52,16 @@
    "reqd": 1
   },
   {
-   "fieldname": "partner_interest_rate",
-   "fieldtype": "Percent",
-   "label": "Partner Interest Rate",
-   "reqd": 1
-  },
-  {
    "fieldname": "repayment_schedule_type",
-   "fieldtype": "Link",
+   "fieldtype": "Select",
    "label": "Repayment Schedule Type",
-   "options": "Loan Partner Repayment Schedule Type",
+   "options": "\nEMI (PMT) based\nCollection at partner's percentage\nPOS reduction plus interest at partner ROI",
    "reqd": 1
   },
   {
    "fieldname": "section_break_lpnj",
    "fieldtype": "Section Break",
    "label": "Shareables"
-  },
-  {
-   "fieldname": "company_loan_share_ratio",
-   "fieldtype": "Percent",
-   "label": "Company Loan Share Ratio"
   },
   {
    "fieldname": "organization_type",
@@ -78,13 +74,6 @@
    "fieldname": "section_break_mpap",
    "fieldtype": "Section Break",
    "label": "Organization"
-  },
-  {
-   "fieldname": "loan_partner_loan_type",
-   "fieldtype": "Table MultiSelect",
-   "label": "Loan Types",
-   "options": "Loan Partner Loan Type",
-   "reqd": 1
   },
   {
    "fieldname": "column_break_iwpj",
@@ -125,11 +114,109 @@
    "label": "Partner Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "partner_loan_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Partner Loan Share Percentage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company_loan_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Company Loan Share Percentage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "partner_base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Partner Base Interest Rate",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "incremental_interest_applicable",
+   "fieldtype": "Check",
+   "label": "Incremental Interest Applicable"
+  },
+  {
+   "depends_on": "incremental_interest_applicable",
+   "fieldname": "company_base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Company Base Interest Rate",
+   "mandatory_depends_on": "incremental_interest_applicable"
+  },
+  {
+   "depends_on": "incremental_interest_applicable",
+   "fieldname": "interest_increment_percentage",
+   "fieldtype": "Percent",
+   "label": "Interest Increment Percentage",
+   "mandatory_depends_on": "incremental_interest_applicable"
+  },
+  {
+   "fieldname": "fldg_section",
+   "fieldtype": "Section Break",
+   "label": "FLDG"
+  },
+  {
+   "fieldname": "fldg_trigger_dpd",
+   "fieldtype": "Int",
+   "label": "FLDG Trigger DPD"
+  },
+  {
+   "fieldname": "column_break_szii",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fldg_limit_calculation_component",
+   "fieldtype": "Select",
+   "label": "FLDG Limit Calculation Component",
+   "options": "\nDisbursement\nPOS\nPOS & Interest Accrued"
+  },
+  {
+   "depends_on": "fldg_fd_or_cg_applicable",
+   "fieldname": "fldg_fixed_deposit_percentage",
+   "fieldtype": "Percent",
+   "label": "FLDG Fixed Deposit Percentage",
+   "mandatory_depends_on": "fldg_fd_or_cg_applicable"
+  },
+  {
+   "depends_on": "fldg_fd_or_cg_applicable",
+   "fieldname": "fldg_corporate_guarantee_percentage",
+   "fieldtype": "Percent",
+   "label": "FLDG Corporate Guarantee Percentage",
+   "mandatory_depends_on": "fldg_fd_or_cg_applicable"
+  },
+  {
+   "fieldname": "fldg_total_percentage",
+   "fieldtype": "Percent",
+   "label": "FLDG Total Percentage"
+  },
+  {
+   "default": "0",
+   "fieldname": "fldg_fd_or_cg_applicable",
+   "fieldtype": "Check",
+   "label": "FLDG Fixed Deposit/Corporate Guarantee Applicable"
+  },
+  {
+   "fieldname": "misc_section",
+   "fieldtype": "Section Break",
+   "label": "Misc"
+  },
+  {
+   "default": "0",
+   "fieldname": "servicer_fee",
+   "fieldtype": "Check",
+   "label": "Servicer Fee"
+  },
+  {
+   "fieldname": "column_break_wujj",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-22 19:23:46.967581",
+ "modified": "2023-10-02 14:27:55.348088",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
