@@ -18,12 +18,8 @@
   "posting_date",
   "status",
   "section_break_8",
-<<<<<<< HEAD
-  "loan_type",
-  "loan_category",
-=======
   "loan_product",
->>>>>>> 83b99a0 (refactor: rename loan type to loan product (#67))
+  "loan_category",
   "repayment_schedule_type",
   "loan_amount",
   "rate_of_interest",
