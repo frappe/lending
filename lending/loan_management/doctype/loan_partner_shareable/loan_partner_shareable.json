@@ -7,11 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "charge_type",
-  "sharing_parameter",
-  "partner_ratio",
-  "company_ratio",
-  "partner_percentage",
-  "minimum_partner_percentage"
+  "sharing_type",
+  "partner_collection_percentage",
+  "partner_loan_amount_percentage",
+  "minimum_partner_loan_amount_percentage"
  ],
  "fields": [
   {
@@ -22,44 +21,35 @@
    "options": "Item"
   },
   {
-   "fieldname": "sharing_parameter",
+   "fieldname": "sharing_type",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Sharing Parameter",
-   "options": "\nRatio\nPercentage"
+   "label": "Sharing Type",
+   "options": "\nCollection Percentage\nLoan Amount Percentage"
   },
   {
-   "fieldname": "partner_ratio",
+   "fieldname": "partner_collection_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Partner Ratio",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
+   "label": "Partner Collection Percentage"
   },
   {
-   "fieldname": "partner_percentage",
+   "fieldname": "partner_loan_amount_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Partner Percentage",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Percentage\""
+   "label": "Partner Loan Amount Percentage"
   },
   {
-   "fieldname": "company_ratio",
+   "fieldname": "minimum_partner_loan_amount_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Company Ratio",
-   "mandatory_depends_on": "eval:doc.sharing_parameter === \"Ratio\""
-  },
-  {
-   "fieldname": "minimum_partner_percentage",
-   "fieldtype": "Percent",
-   "in_list_view": 1,
-   "label": "Minimum Partner Percentage"
+   "label": "Minimum Partner Loan Amount Percentage"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-09-22 11:28:49.162023",
+ "modified": "2023-10-02 11:44:17.267094",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner Shareable",
