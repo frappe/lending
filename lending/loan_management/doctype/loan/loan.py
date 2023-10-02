@@ -64,7 +64,7 @@ class Loan(AccountsController):
 
 	def set_cyclic_date(self):
 		if self.repayment_schedule_type == "Monthly as per cycle date":
-			cycle_day = frappe.db.get_value("Loan Type", self.loan_type, "cyclic_day_of_the_month")
+			cycle_day = frappe.db.get_value("Loan Product", self.loan_product, "cyclic_day_of_the_month")
 			last_day_of_month = get_last_day(self.posting_date)
 			cyclic_date = add_days(last_day_of_month, cycle_day)
 
@@ -102,8 +102,10 @@ class Loan(AccountsController):
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
-		if self.loan_type and not self.rate_of_interest:
-			self.rate_of_interest = frappe.db.get_value("Loan Type", self.loan_type, "rate_of_interest")
+		if self.loan_product and not self.rate_of_interest:
+			self.rate_of_interest = frappe.db.get_value(
+				"Loan Product", self.loan_product, "rate_of_interest"
+			)
 
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
@@ -131,7 +133,7 @@ class Loan(AccountsController):
 				"repayment_periods": self.repayment_periods,
 				"loan_amount": self.loan_amount,
 				"monthly_repayment_amount": self.monthly_repayment_amount,
-				"loan_type": self.loan_type,
+				"loan_product": self.loan_product,
 				"rate_of_interest": self.rate_of_interest,
 				"posting_date": self.posting_date,
 			}
@@ -146,7 +148,7 @@ class Loan(AccountsController):
 			schedule.update(
 				{
 					"loan": self.name,
-					"loan_type": self.loan_type,
+					"loan_product": self.loan_product,
 					"repayment_periods": self.repayment_periods,
 					"repayment_method": self.repayment_method,
 					"repayment_start_date": self.repayment_start_date,
@@ -232,7 +234,7 @@ class Loan(AccountsController):
 
 		if getdate(self.repayment_start_date) < getdate() and self.is_term_loan:
 			process_loan_interest_accrual_for_term_loans(
-				posting_date=getdate(), loan_type=self.loan_type, loan=self.name
+				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 
 	def unlink_loan_security_pledge(self):
@@ -331,8 +333,8 @@ def request_loan_closure(loan, posting_date=None):
 		+ amounts["penalty_amount"]
 	)
 
-	loan_type = frappe.get_value("Loan", loan, "loan_type")
-	write_off_limit = frappe.get_value("Loan Type", loan_type, "write_off_amount")
+	loan_product = frappe.get_value("Loan", loan, "loan_product")
+	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
 
 	if pending_amount and abs(pending_amount) < write_off_limit:
 		# Auto create loan write off and update status as loan closure requested
@@ -390,13 +392,13 @@ def make_loan_disbursement(loan, company, applicant_type, applicant, pending_amo
 
 
 @frappe.whitelist()
-def make_repayment_entry(loan, applicant_type, applicant, loan_type, company, as_dict=0):
+def make_repayment_entry(loan, applicant_type, applicant, loan_product, company, as_dict=0):
 	repayment_entry = frappe.new_doc("Loan Repayment")
 	repayment_entry.against_loan = loan
 	repayment_entry.applicant_type = applicant_type
 	repayment_entry.applicant = applicant
 	repayment_entry.company = company
-	repayment_entry.loan_type = loan_type
+	repayment_entry.loan_product = loan_product
 	repayment_entry.posting_date = nowdate()
 
 	if as_dict:
@@ -564,12 +566,12 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	posting_date=None, loan_type=None, loan_name=None, process_loan_classification=None
+	posting_date=None, loan_product=None, loan_name=None, process_loan_classification=None
 ):
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	accruals = get_pending_loan_interest_accruals(loan_type=loan_type, loan_name=loan_name)
+	accruals = get_pending_loan_interest_accruals(loan_product=loan_product, loan_name=loan_name)
 	threshold_map = get_dpd_threshold_map()
 	checked_loans = []
 
@@ -579,7 +581,7 @@ def update_days_past_due_in_loans(
 		if days_past_due < 0:
 			days_past_due = 0
 
-		threshold = threshold_map.get(loan.loan_type, 0)
+		threshold = threshold_map.get(loan.loan_product, 0)
 
 		if days_past_due and threshold and days_past_due > threshold:
 			is_npa = 1
@@ -761,7 +763,7 @@ def get_classification_code_and_name(days_past_due, company):
 
 
 def get_pending_loan_interest_accruals(
-	loan_type=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
+	loan_product=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
 ):
 	"""Get pending loan interest accruals"""
 	loan_interest_accrual = frappe.qb.DocType("Loan Interest Accrual")
@@ -771,9 +773,9 @@ def get_pending_loan_interest_accruals(
 		.select(
 			loan_interest_accrual.name,
 			loan_interest_accrual.loan,
-			loan_interest_accrual.loan_type,
+			loan_interest_accrual.loan_product,
 			loan_interest_accrual.company,
-			loan_interest_accrual.loan_type,
+			loan_interest_accrual.loan_product,
 			loan_interest_accrual.due_date,
 			loan_interest_accrual.applicant_type,
 			loan_interest_accrual.applicant,
@@ -793,8 +795,8 @@ def get_pending_loan_interest_accruals(
 		.orderby(loan_interest_accrual.due_date, order=Order.desc)
 	)
 
-	if loan_type:
-		query = query.where(loan_interest_accrual.loan_type == loan_type)
+	if loan_product:
+		query = query.where(loan_interest_accrual.loan_product == loan_product)
 
 	if loan_name:
 		query = query.where(loan_interest_accrual.loan == loan_name)
@@ -816,7 +818,7 @@ def get_pending_loan_interest_accruals(
 
 def get_dpd_threshold_map():
 	return frappe._dict(
-		frappe.get_all("Loan Type", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
+		frappe.get_all("Loan Product", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
 	)
 
 
@@ -839,8 +841,8 @@ def move_unpaid_interest_to_suspense_ledger(
 			amount = -1 * amount
 
 		account_details = frappe.get_value(
-			"Loan Type",
-			accrual.loan_type,
+			"Loan Product",
+			accrual.loan_product,
 			[
 				"suspense_interest_receivable",
 				"suspense_interest_income",

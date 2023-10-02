@@ -18,7 +18,7 @@
   "posting_date",
   "status",
   "section_break_8",
-  "loan_type",
+  "loan_product",
   "repayment_schedule_type",
   "loan_amount",
   "rate_of_interest",
@@ -96,12 +96,12 @@
    "options": "Loan Application"
   },
   {
-   "fieldname": "loan_type",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Product",
+   "options": "Loan Product",
    "reqd": 1
   },
   {
@@ -149,7 +149,7 @@
    "options": "Company:company:default_currency"
   },
   {
-   "fetch_from": "loan_type.rate_of_interest",
+   "fetch_from": "loan_product.rate_of_interest",
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest (%) / Year",
@@ -202,7 +202,7 @@
    "label": "Account Info"
   },
   {
-   "fetch_from": "loan_type.mode_of_payment",
+   "fetch_from": "loan_product.mode_of_payment",
    "fieldname": "mode_of_payment",
    "fieldtype": "Link",
    "label": "Mode of Payment",
@@ -211,7 +211,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": "loan_type.payment_account",
+   "fetch_from": "loan_product.payment_account",
    "fieldname": "payment_account",
    "fieldtype": "Link",
    "label": "Payment Account",
@@ -224,7 +224,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "loan_type.loan_account",
+   "fetch_from": "loan_product.loan_account",
    "fieldname": "loan_account",
    "fieldtype": "Link",
    "label": "Loan Account",
@@ -233,7 +233,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": "loan_type.interest_income_account",
+   "fetch_from": "loan_product.interest_income_account",
    "fieldname": "interest_income_account",
    "fieldtype": "Link",
    "label": "Interest Income Account",
@@ -295,14 +295,14 @@
   },
   {
    "default": "0",
-   "fetch_from": "loan_type.is_term_loan",
+   "fetch_from": "loan_product.is_term_loan",
    "fieldname": "is_term_loan",
    "fieldtype": "Check",
    "label": "Is Term Loan",
    "read_only": 1
   },
   {
-   "fetch_from": "loan_type.penalty_income_account",
+   "fetch_from": "loan_product.penalty_income_account",
    "fieldname": "penalty_income_account",
    "fieldtype": "Link",
    "label": "Penalty Income Account",
@@ -350,7 +350,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan_type.disbursement_account",
+   "fetch_from": "loan_product.disbursement_account",
    "fieldname": "disbursement_account",
    "fieldtype": "Link",
    "label": "Disbursement Account",
@@ -404,7 +404,7 @@
   },
   {
    "depends_on": "is_term_loan",
-   "fetch_from": "loan_type.repayment_schedule_type",
+   "fetch_from": "loan_product.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
    "label": "Repayment Schedule Type",
@@ -478,7 +478,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-21 20:41:41.531824",
+ "modified": "2023-10-02 22:14:25.249853",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

@@ -9,7 +9,7 @@
   "against_loan",
   "posting_date",
   "applicant_type",
-  "loan_type",
+  "loan_product",
   "monthly_repayment_amount",
   "column_break_4",
   "company",
@@ -206,19 +206,19 @@
    "read_only": 1
   },
   {
-   "fetch_from": "against_loan.loan_type",
-   "fieldname": "loan_type",
+   "fetch_from": "against_loan.loan_product",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
    "hidden": 1,
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Product",
+   "options": "Loan Product",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-16 20:42:49.024069",
+ "modified": "2023-10-02 22:14:24.804546",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
