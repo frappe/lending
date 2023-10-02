@@ -11,16 +11,16 @@
   "classification_name",
   "min_dpd_range",
   "max_dpd_range",
-  "loan_type",
+  "loan_product",
   "provision_rate"
  ],
  "fields": [
   {
    "columns": 1,
-   "fieldname": "loan_type",
+   "fieldname": "loan_product",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Loan Type",
+   "label": "Loan Product",
    "options": "Secured\nUnsecured\nSemi-Secured"
   },
   {

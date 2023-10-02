@@ -21,7 +21,7 @@
   "restructure_date",
   "reason_for_restructure",
   "loan_details_section",
-  "loan_type",
+  "loan_product",
   "old_tenure",
   "completed_tenure",
   "old_rate_of_interest",
@@ -254,12 +254,12 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan.loan_type",
-   "fieldname": "loan_type",
+   "fetch_from": "loan.loan_product",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
    "hidden": 1,
-   "label": "Loan Type",
-   "options": "Loan Type"
+   "label": "Loan Product",
+   "options": "Loan Product"
   },
   {
    "fieldname": "penal_interest_waiver",
@@ -512,7 +512,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-19 23:24:10.776579",
+ "modified": "2023-10-02 22:14:23.789427",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

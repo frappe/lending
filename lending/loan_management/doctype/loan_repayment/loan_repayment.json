@@ -9,7 +9,7 @@
   "against_loan",
   "applicant_type",
   "applicant",
-  "loan_type",
+  "loan_product",
   "repayment_type",
   "loan_restructure",
   "column_break_3",
@@ -105,11 +105,11 @@
    "reqd": 1
   },
   {
-   "fetch_from": "against_loan.loan_type",
-   "fieldname": "loan_type",
+   "fetch_from": "against_loan.loan_product",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Product",
+   "options": "Loan Product",
    "read_only": 1
   },
   {
@@ -241,7 +241,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan_type.rate_of_interest",
+   "fetch_from": "loan_product.rate_of_interest",
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate Of Interest",
@@ -378,7 +378,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-31 13:42:59.005424",
+ "modified": "2023-10-02 22:14:23.377360",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

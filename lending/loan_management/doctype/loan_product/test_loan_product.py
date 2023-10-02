@@ -5,5 +5,5 @@
 import unittest
 
 
-class TestLoanType(unittest.TestCase):
+class TestLoanProduct(unittest.TestCase):
 	pass
