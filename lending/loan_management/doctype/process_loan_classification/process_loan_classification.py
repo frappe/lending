@@ -12,14 +12,14 @@ class ProcessLoanClassification(Document):
 
 		update_days_past_due_in_loans(
 			posting_date=self.posting_date,
-			loan_type=self.loan_type,
+			loan_product=self.loan_product,
 			loan_name=self.loan,
 			process_loan_classification=self.name,
 		)
 
 
 def create_process_loan_classification(
-	posting_date=None, loan_type=None, loan=None, payment_reference=None
+	posting_date=None, loan_product=None, loan=None, payment_reference=None
 ):
 	posting_date = posting_date or getdate()
 
@@ -33,7 +33,7 @@ def create_process_loan_classification(
 
 	process_loan_classification = frappe.new_doc("Process Loan Classification")
 	process_loan_classification.posting_date = posting_date
-	process_loan_classification.loan_type = loan_type
+	process_loan_classification.loan_product = loan_product
 	process_loan_classification.loan = loan
 	process_loan_classification.previous_process = (
 		previous_process[0].name if previous_process else None

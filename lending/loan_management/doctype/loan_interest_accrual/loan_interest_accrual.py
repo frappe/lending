@@ -42,8 +42,8 @@ class LoanInterestAccrual(AccountsController):
 
 		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
 		account_details = frappe.db.get_value(
-			"Loan Type",
-			self.loan_type,
+			"Loan Product",
+			self.loan_product,
 			["interest_receivable_account", "suspense_interest_receivable", "suspense_interest_income"],
 			as_dict=1,
 		)
@@ -155,7 +155,7 @@ def make_accrual_interest_entry_for_demand_loans(
 	posting_date,
 	process_loan_interest=None,
 	open_loans=None,
-	loan_type=None,
+	loan_product=None,
 	accrual_type="Regular",
 	via_restructure=False,
 ):
@@ -167,8 +167,8 @@ def make_accrual_interest_entry_for_demand_loans(
 	if not via_restructure:
 		query_filters.update({"is_term_loan": 0})
 
-	if loan_type:
-		query_filters.update({"loan_type": loan_type})
+	if loan_product:
+		query_filters.update({"loan_product": loan_product})
 
 	if not open_loans:
 		open_loans = frappe.get_all(
@@ -206,11 +206,11 @@ def make_accrual_interest_entry_for_demand_loans(
 
 
 def make_accrual_interest_entry_for_term_loans(
-	posting_date, process_loan_interest, term_loan=None, loan_type=None, accrual_type="Regular"
+	posting_date, process_loan_interest, term_loan=None, loan_product=None, accrual_type="Regular"
 ):
 	curr_date = posting_date or add_days(nowdate(), 1)
 
-	term_loans = get_term_loans(curr_date, term_loan, loan_type)
+	term_loans = get_term_loans(curr_date, term_loan, loan_product)
 
 	accrued_entries = []
 
@@ -244,7 +244,7 @@ def make_accrual_interest_entry_for_term_loans(
 		)
 
 
-def get_term_loans(date, term_loan=None, loan_type=None):
+def get_term_loans(date, term_loan=None, loan_product=None):
 	loan = frappe.qb.DocType("Loan")
 	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
 	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
@@ -290,8 +290,8 @@ def get_term_loans(date, term_loan=None, loan_type=None):
 	if term_loan:
 		query = query.where(loan.name == term_loan)
 
-	if loan_type:
-		query = query.where(loan.loan_type == loan_type)
+	if loan_product:
+		query = query.where(loan.loan_product == loan_product)
 
 	term_loans = query.run(as_dict=1)
 

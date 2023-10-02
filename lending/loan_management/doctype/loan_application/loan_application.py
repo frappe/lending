@@ -32,7 +32,7 @@ class LoanApplication(Document):
 		if self.is_term_loan:
 			self.validate_repayment_method()
 
-		self.validate_loan_type()
+		self.validate_loan_product()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
@@ -47,16 +47,18 @@ class LoanApplication(Document):
 			if self.repayment_amount > self.loan_amount:
 				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
-	def validate_loan_type(self):
-		company = frappe.get_value("Loan Type", self.loan_type, "company")
+	def validate_loan_product(self):
+		company = frappe.get_value("Loan Product", self.loan_product, "company")
 		if company != self.company:
-			frappe.throw(_("Please select Loan Type for company {0}").format(frappe.bold(self.company)))
+			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
 
 	def validate_loan_amount(self):
 		if not self.loan_amount:
 			frappe.throw(_("Loan Amount is mandatory"))
 
-		maximum_loan_limit = frappe.db.get_value("Loan Type", self.loan_type, "maximum_loan_amount")
+		maximum_loan_limit = frappe.db.get_value(
+			"Loan Product", self.loan_product, "maximum_loan_amount"
+		)
 		if maximum_loan_limit and self.loan_amount > maximum_loan_limit:
 			frappe.throw(
 				_("Loan Amount cannot exceed Maximum Loan Amount of {0}").format(maximum_loan_limit)
@@ -157,7 +159,7 @@ class LoanApplication(Document):
 def create_loan(source_name, target_doc=None, submit=0):
 	def update_accounts(source_doc, target_doc, source_parent):
 		account_details = frappe.get_all(
-			"Loan Type",
+			"Loan Product",
 			fields=[
 				"mode_of_payment",
 				"payment_account",
@@ -165,7 +167,7 @@ def create_loan(source_name, target_doc=None, submit=0):
 				"interest_income_account",
 				"penalty_income_account",
 			],
-			filters={"name": source_doc.loan_type},
+			filters={"name": source_doc.loan_product},
 		)[0]
 
 		if source_doc.is_secured_loan:

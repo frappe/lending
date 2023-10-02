@@ -5,5 +5,5 @@ import frappe
 
 
 def execute():
-	lt = frappe.qb.DocType("Loan Type")
+	lt = frappe.qb.DocType("Loan Product")
 	frappe.qb.update(lt).set(lt.docstatus, 0).run()
