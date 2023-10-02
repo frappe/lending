@@ -15,7 +15,7 @@
   "posting_date",
   "adjusted_interest",
   "column_break_n6iy",
-  "loan_type",
+  "loan_product",
   "repayment_schedule_type",
   "repayment_method",
   "repayment_periods",
@@ -36,15 +36,15 @@
    "reqd": 1
   },
   {
-   "fieldname": "loan_type",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Product",
+   "options": "Loan Product",
    "reqd": 1
   },
   {
-   "fetch_from": "loan_type.repayment_schedule_type",
+   "fetch_from": "loan_product.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
    "label": "Repayment Schedule Type"
@@ -148,7 +148,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-21 15:00:31.576439",
+ "modified": "2023-10-02 22:14:24.172876",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

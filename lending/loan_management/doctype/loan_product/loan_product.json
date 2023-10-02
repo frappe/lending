@@ -152,7 +152,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Loan Type",
+   "options": "Loan Product",
    "print_hide": 1,
    "read_only": 1
   },
@@ -311,7 +311,7 @@
  "modified": "2023-09-22 11:51:37.789220",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Type",
+ "name": "Loan Product",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

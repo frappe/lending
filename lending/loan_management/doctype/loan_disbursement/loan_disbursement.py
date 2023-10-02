@@ -214,7 +214,7 @@ class LoanDisbursement(AccountsController):
 
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
-				"Loan Type", self.loan_type, "security_deposit_account"
+				"Loan Product", self.loan_product, "security_deposit_account"
 			)
 			gle_map.append(
 				self.get_gl_dict(

@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "posting_date",
-  "loan_type",
+  "loan_product",
   "loan",
   "process_type",
   "accrual_type",
@@ -31,10 +31,10 @@
    "read_only": 1
   },
   {
-   "fieldname": "loan_type",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
-   "label": "Loan Type",
-   "options": "Loan Type"
+   "label": "Loan Product",
+   "options": "Loan Product"
   },
   {
    "fieldname": "loan",
@@ -61,7 +61,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-06-29 11:19:33.203088",
+ "modified": "2023-10-02 22:14:22.985995",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Interest Accrual",

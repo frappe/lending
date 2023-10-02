@@ -32,7 +32,7 @@ class LoanRepaymentSchedule(Document):
 			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
 
 		schedule_type_details = frappe.db.get_value(
-			"Loan Type", self.loan_type, ["repayment_schedule_type", "repayment_date_on"], as_dict=1
+			"Loan Product", self.loan_product, ["repayment_schedule_type", "repayment_date_on"], as_dict=1
 		)
 
 		self.repayment_schedule = []
