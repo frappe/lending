@@ -4,6 +4,7 @@
 lending.patches.v15_0.generate_loan_repayment_schedule
 lending.patches.v15_0.rename_process_asset_classification_doctype
 lending.patches.v15_0.rename_process_asset_classification_doctype_2
+lending.patches.v15_0.rename_loan_type_to_loan_product
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -23,4 +24,3 @@ lending.patches.v15_0.update_loan_column_break_due_to_bpi
 lending.patches.v15_0.fix_typo_in_irac_provisioning_configuration
 lending.patches.v15_0.rename_loan_partner_charge_type
 lending.patches.v15_0.migrate_loan_type_to_loan_product
-lending.patches.v15_0.rename_loan_type_to_loan_product
