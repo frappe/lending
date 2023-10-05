@@ -10,10 +10,12 @@
   "event",
   "charge_based_on",
   "amount",
-  "percentage"
+  "percentage",
+  "income_account"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "charge_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -21,6 +23,7 @@
    "options": "Item"
   },
   {
+   "columns": 2,
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -28,6 +31,7 @@
    "options": "Disbursement\nRepayment\nRestructure"
   },
   {
+   "columns": 2,
    "fieldname": "charge_based_on",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -35,22 +39,32 @@
    "options": "Percentage\nFixed Amount"
   },
   {
+   "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount"
   },
   {
+   "columns": 1,
    "fieldname": "percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Percentage"
+  },
+  {
+   "columns": 2,
+   "fieldname": "income_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Income Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-05-09 10:27:46.934165",
+ "modified": "2023-10-05 09:56:43.428965",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Charges",

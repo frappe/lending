@@ -340,9 +340,8 @@ class LoanRestructure(AccountsController):
 			for charge in frappe.get_all(
 				"Loan Charges",
 				filters={"parent": self.loan_product, "event": "Restructure"},
-				fields=["charge_type", "charge_based_on", "amount", "percentage"],
+				fields=["charge_type", "charge_based_on", "amount", "percentage", "income_account"],
 			):
-
 				si.append(
 					"items",
 					{
@@ -351,6 +350,7 @@ class LoanRestructure(AccountsController):
 						"rate": charge.amount
 						if charge.charge_based_on == "Fixed Amount"
 						else flt(self.new_loan_amount) * flt(charge.percentage) / 100,
+						"income_account": charge.income_account,
 					},
 				)
 
