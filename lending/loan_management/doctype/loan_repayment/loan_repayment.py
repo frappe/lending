@@ -83,13 +83,24 @@ class LoanRepayment(AccountsController):
 			as_dict=1,
 		)
 
+		charges_waiver_item_income_account = frappe.db.get_value(
+			"Loan Charges",
+			{"charge_type": item_details.charges_waiver_item, "parent": self.loan_product},
+			"income_account",
+		)
+
 		for invoice in self.get("pending_charges"):
 			if invoice.sales_invoice:
 				si = frappe.new_doc("Sales Invoice")
 				si.customer = self.applicant
 				si.append(
 					"items",
-					{"item_code": item_details.charges_waiver_item, "qty": -1, "rate": invoice.allocated_amount},
+					{
+						"item_code": item_details.charges_waiver_item,
+						"qty": -1,
+						"rate": invoice.allocated_amount,
+						"income_account": charges_waiver_item_income_account,
+					},
 				)
 				si.set_missing_values()
 				si.is_return = 1
