@@ -51,6 +51,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Minimum Days for Broken Period Interest Application",
 			"fieldtype": "Int",
 			"insert_after": "interest_day_count_convention",
+			"non_negative": 1,
 		},
 		{
 			"fieldname": "loan_column_break",
@@ -69,6 +70,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Days Past Due Threshold",
 			"fieldtype": "Int",
 			"insert_after": "collection_offset_logic_based_on",
+			"non_negative": 1,
 		},
 		{
 			"fieldname": "collection_offset_sequence_for_sub_standard_asset",
