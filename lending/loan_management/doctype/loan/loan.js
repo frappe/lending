@@ -25,7 +25,7 @@ frappe.ui.form.on('Loan', {
 			};
 		});
 
-		frm.set_query("loan_type", function () {
+		frm.set_query("loan_product", function () {
 			return {
 				"filters": {
 					"company": frm.doc.company
@@ -114,7 +114,7 @@ frappe.ui.form.on('Loan', {
 		}
 	},
 
-	loan_type: function(frm) {
+	loan_product: function(frm) {
 		frm.toggle_reqd("repayment_method", frm.doc.is_term_loan);
 		frm.toggle_display("repayment_method", frm.doc.is_term_loan);
 		frm.toggle_display("repayment_periods", frm.doc.is_term_loan);
@@ -147,7 +147,7 @@ frappe.ui.form.on('Loan', {
 				"loan": frm.doc.name,
 				"applicant_type": frm.doc.applicant_type,
 				"applicant": frm.doc.applicant,
-				"loan_type": frm.doc.loan_type,
+				"loan_product": frm.doc.loan_product,
 				"company": frm.doc.company,
 				"as_dict": 1
 			},
@@ -244,7 +244,7 @@ frappe.ui.form.on('Loan', {
 				callback: function (r) {
 					if (!r.exc && r.message) {
 
-						let loan_fields = ["loan_type", "loan_amount", "repayment_method",
+						let loan_fields = ["loan_product", "loan_amount", "repayment_method",
 							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan"]
 
 						loan_fields.forEach(field => {

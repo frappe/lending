@@ -21,11 +21,11 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan_accounts,
 	create_loan_application,
+	create_loan_product,
 	create_loan_security,
 	create_loan_security_pledge,
 	create_loan_security_price,
 	create_loan_security_type,
-	create_loan_type,
 	create_repayment_entry,
 	make_loan_disbursement_entry,
 )
@@ -44,7 +44,7 @@ class TestLoanDisbursement(unittest.TestCase):
 	def setUp(self):
 		create_loan_accounts()
 
-		create_loan_type(
+		create_loan_product(
 			"Demand Loan",
 			2000000,
 			13.5,

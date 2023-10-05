@@ -1,30 +1,30 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2023-09-19 17:42:23.096614",
+ "creation": "2023-10-03 00:33:27.497599",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "loan_type"
+  "loan_partner"
  ],
  "fields": [
   {
-   "fieldname": "loan_type",
+   "fieldname": "loan_partner",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Partner",
+   "options": "Loan Partner",
    "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-09-19 17:42:23.096614",
+ "modified": "2023-10-03 00:33:27.497599",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Partner Loan Type",
+ "name": "Loan Product Loan Partner",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

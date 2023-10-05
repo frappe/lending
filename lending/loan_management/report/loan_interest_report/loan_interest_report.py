@@ -37,10 +37,10 @@ def get_columns():
 			"width": 150,
 		},
 		{
-			"label": _("Loan Type"),
-			"fieldname": "loan_type",
+			"label": _("Loan Product"),
+			"fieldname": "loan_product",
 			"fieldtype": "Link",
-			"options": "Loan Type",
+			"options": "Loan Product",
 			"width": 100,
 		},
 		{
@@ -161,7 +161,7 @@ def get_active_loan_details(filters):
 			"name as loan",
 			"applicant_type",
 			"applicant as applicant_name",
-			"loan_type",
+			"loan_product",
 			"disbursed_amount",
 			"rate_of_interest",
 			"total_payment",
@@ -199,7 +199,7 @@ def get_active_loan_details(filters):
 				"accrued_principal": flt(accrual_map.get(loan.loan, {}).get("accrued_principal")),
 				"interest_outstanding": flt(accrual_map.get(loan.loan, {}).get("interest_outstanding")),
 				"penalty": flt(accrual_map.get(loan.loan, {}).get("penalty")),
-				"penalty_interest": penal_interest_rate_map.get(loan.loan_type),
+				"penalty_interest": penal_interest_rate_map.get(loan.loan_product),
 				"undue_interest": flt(accrual_map.get(loan.loan, {}).get("undue_interest")),
 				"loan_to_value": 0.0,
 				"currency": currency,
@@ -311,7 +311,7 @@ def get_interest_accruals(loans, filters):
 
 def get_penal_interest_rate_map():
 	return frappe._dict(
-		frappe.get_all("Loan Type", fields=["name", "penalty_interest_rate"], as_list=1)
+		frappe.get_all("Loan Product", fields=["name", "penalty_interest_rate"], as_list=1)
 	)
 
 

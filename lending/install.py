@@ -6,7 +6,7 @@ LOAN_CUSTOM_FIELDS = {
 	"Sales Invoice": [
 		{
 			"fieldname": "loan",
-			"label": "loan",
+			"label": "Loan",
 			"fieldtype": "Link",
 			"options": "Loan",
 			"insert_after": "customer",

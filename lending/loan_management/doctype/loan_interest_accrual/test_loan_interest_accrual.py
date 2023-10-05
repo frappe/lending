@@ -10,10 +10,10 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_loan,
 	create_loan_accounts,
 	create_loan_application,
+	create_loan_product,
 	create_loan_security,
 	create_loan_security_price,
 	create_loan_security_type,
-	create_loan_type,
 	make_loan_disbursement_entry,
 )
 from lending.loan_management.doctype.loan_application.loan_application import create_pledge
@@ -33,7 +33,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 	def setUp(self):
 		create_loan_accounts()
 
-		create_loan_type(
+		create_loan_product(
 			"Demand Loan",
 			2000000,
 			13.5,
@@ -48,7 +48,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			"Penalty Income Account - _TC",
 		)
 
-		create_loan_type(
+		create_loan_product(
 			loan_name="Term Loan With DPD",
 			maximum_loan_amount=2000000,
 			rate_of_interest=10,
@@ -110,7 +110,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			applicant=self.applicant,
-			loan_type="Term Loan With DPD",
+			loan_product="Term Loan With DPD",
 			loan_amount=1200000,
 			repayment_method="Repay Over Number of Periods",
 			repayment_periods=12,
@@ -123,7 +123,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date="2023-02-01")
 		process_loan_interest_accrual_for_term_loans(posting_date="2023-02-01")
 		create_process_loan_classification(
-			posting_date="2023-02-02", loan_type=loan.loan_type, loan=loan.name
+			posting_date="2023-02-02", loan_product=loan.loan_product, loan=loan.name
 		)
 
 		loan_details = frappe.db.get_value(
@@ -138,7 +138,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		self.assertEqual(loan_details.classification_name, "Special Mention Account - 0")
 
 		create_process_loan_classification(
-			posting_date="2023-04-05", loan_type=loan.loan_type, loan=loan.name
+			posting_date="2023-04-05", loan_product=loan.loan_product, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(
 			"Loan",
@@ -152,7 +152,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		self.assertEqual(loan_details.classification_name, "Special Mention Account - 2")
 
 		create_process_loan_classification(
-			posting_date="2023-07-05", loan_type=loan.loan_type, loan=loan.name
+			posting_date="2023-07-05", loan_product=loan.loan_product, loan=loan.name
 		)
 		loan_details = frappe.db.get_value(
 			"Loan",
