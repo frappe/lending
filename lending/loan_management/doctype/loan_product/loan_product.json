@@ -6,13 +6,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-<<<<<<< HEAD
-  "loan_name",
-  "loan_category",
-=======
   "product_code",
   "product_name",
->>>>>>> 684db6a (feat: add loan product code, penalty_interest_method, broken_period_interest_charged, auto-closure fields)
+  "loan_category",
   "maximum_loan_amount",
   "rate_of_interest",
   "penalty_interest_method",
