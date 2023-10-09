@@ -24,3 +24,8 @@ lending.patches.v15_0.update_loan_column_break_due_to_bpi
 lending.patches.v15_0.fix_typo_in_irac_provisioning_configuration
 lending.patches.v15_0.rename_loan_partner_charge_type
 lending.patches.v15_0.migrate_loan_type_to_loan_product
+<<<<<<< HEAD
+=======
+lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
+lending.patches.v15_0.update_penalty_interest_method_in_loan_products
+>>>>>>> 684db6a (feat: add loan product code, penalty_interest_method, broken_period_interest_charged, auto-closure fields)

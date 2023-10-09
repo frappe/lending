@@ -46,6 +46,7 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		create_loan_product(
 			"Demand Loan",
+			"Demand Loan",
 			2000000,
 			13.5,
 			25,

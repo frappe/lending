@@ -58,11 +58,16 @@ class TestLoan(unittest.TestCase):
 
 		for loan_product in simple_terms_loans:
 			create_loan_product(
-				loan_product[0], loan_product[1], loan_product[2], repayment_schedule_type=loan_product[3]
+				loan_product[0],
+				loan_product[0],
+				loan_product[1],
+				loan_product[2],
+				repayment_schedule_type=loan_product[3],
 			)
 
 		for loan_product in pro_rated_term_loans:
 			create_loan_product(
+				loan_product[0],
 				loan_product[0],
 				loan_product[1],
 				loan_product[2],
@@ -71,6 +76,7 @@ class TestLoan(unittest.TestCase):
 			)
 
 		create_loan_product(
+			"Stock Loan",
 			"Stock Loan",
 			2000000,
 			13.5,
@@ -87,6 +93,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		create_loan_product(
+			"Demand Loan",
 			"Demand Loan",
 			2000000,
 			13.5,
@@ -1027,7 +1034,8 @@ def create_account(account_name, parent_account, root_type, account_type, report
 
 
 def create_loan_product(
-	loan_name,
+	product_code,
+	product_name,
 	maximum_loan_amount,
 	rate_of_interest,
 	penalty_interest_rate=None,
@@ -1051,12 +1059,13 @@ def create_loan_product(
 	days_past_due_threshold_for_npa=None,
 ):
 
-	if not frappe.db.exists("Loan Product", loan_name):
+	if not frappe.db.exists("Loan Product", product_code):
 		loan_product = frappe.get_doc(
 			{
 				"doctype": "Loan Product",
 				"company": "_Test Company",
-				"loan_name": loan_name,
+				"product_code": product_code,
+				"product_name": product_name,
 				"is_term_loan": is_term_loan,
 				"repayment_schedule_type": "Monthly as per repayment start date",
 				"maximum_loan_amount": maximum_loan_amount,
