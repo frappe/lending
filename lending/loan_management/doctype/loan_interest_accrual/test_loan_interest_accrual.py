@@ -35,6 +35,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 
 		create_loan_product(
 			"Demand Loan",
+			"Demand Loan",
 			2000000,
 			13.5,
 			25,
@@ -49,7 +50,8 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		)
 
 		create_loan_product(
-			loan_name="Term Loan With DPD",
+			product_code="Term Loan With DPD",
+			product_name="Term Loan With DPD",
 			maximum_loan_amount=2000000,
 			rate_of_interest=10,
 			penalty_interest_rate=25,

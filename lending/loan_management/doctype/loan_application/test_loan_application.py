@@ -18,6 +18,7 @@ class TestLoanApplication(unittest.TestCase):
 		create_loan_accounts()
 		create_loan_product(
 			"Home Loan",
+			"Home Loan",
 			500000,
 			9.2,
 			0,
