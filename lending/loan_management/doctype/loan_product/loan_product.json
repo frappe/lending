@@ -60,6 +60,7 @@
    "fieldname": "maximum_loan_amount",
    "fieldtype": "Currency",
    "label": "Maximum Loan Amount",
+   "non_negative": 1,
    "options": "Company:company:default_currency"
   },
   {
@@ -146,7 +147,8 @@
    "description": "No. of days from due date until which penalty won't be charged in case of delay in loan repayment",
    "fieldname": "grace_period_in_days",
    "fieldtype": "Int",
-   "label": "Grace Period in Days"
+   "label": "Grace Period in Days",
+   "non_negative": 1
   },
   {
    "fieldname": "amended_from",
@@ -170,6 +172,7 @@
    "fieldname": "write_off_amount",
    "fieldtype": "Currency",
    "label": "Auto Write Off Amount ",
+   "non_negative": 1,
    "options": "Company:company:default_currency"
   },
   {
@@ -361,12 +364,13 @@
   {
    "fieldname": "max_auto_closure_tolerance_amount",
    "fieldtype": "Currency",
-   "label": "Max Auto-closure Tolerance Amount"
+   "label": "Max Auto-closure Tolerance Amount",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-09 10:57:20.676936",
+ "modified": "2023-10-09 22:45:45.755880",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
