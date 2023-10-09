@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-09-18 23:55:19.716182",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "shareable_type",
+  "sharing_parameter",
+  "partner_collection_percentage",
+  "partner_loan_amount_percentage",
+  "minimum_partner_loan_amount_percentage"
+ ],
+ "fields": [
+  {
+   "fieldname": "partner_collection_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Partner Collection Percentage"
+  },
+  {
+   "fieldname": "partner_loan_amount_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Partner Loan Amount Percentage"
+  },
+  {
+   "fieldname": "minimum_partner_loan_amount_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Minimum Partner Loan Amount Percentage"
+  },
+  {
+   "fieldname": "shareable_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shareable Type",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sharing_parameter",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Sharing Parameter",
+   "options": "\nCollection Percentage\nLoan Amount Percentage",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-10-02 17:38:34.208157",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Partner Shareable",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

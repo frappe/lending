@@ -7,13 +7,16 @@ import frappe
 
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-from lending.loan_management.doctype.loan.test_loan import create_loan_accounts, create_loan_type
+from lending.loan_management.doctype.loan.test_loan import (
+	create_loan_accounts,
+	create_loan_product,
+)
 
 
 class TestLoanApplication(unittest.TestCase):
 	def setUp(self):
 		create_loan_accounts()
-		create_loan_type(
+		create_loan_product(
 			"Home Loan",
 			500000,
 			9.2,
@@ -36,7 +39,7 @@ class TestLoanApplication(unittest.TestCase):
 		loan_application.update(
 			{
 				"applicant": self.applicant,
-				"loan_type": "Home Loan",
+				"loan_product": "Home Loan",
 				"rate_of_interest": 9.2,
 				"loan_amount": 250000,
 				"repayment_method": "Repay Over Number of Periods",

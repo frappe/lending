@@ -42,8 +42,8 @@ class LoanInterestAccrual(AccountsController):
 
 		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
 		account_details = frappe.db.get_value(
-			"Loan Type",
-			self.loan_type,
+			"Loan Product",
+			self.loan_product,
 			["interest_receivable_account", "suspense_interest_receivable", "suspense_interest_income"],
 			as_dict=1,
 		)
@@ -125,10 +125,9 @@ def calculate_accrual_amount_for_demand_loans(
 	else:
 		pending_amounts = calculate_amounts(loan.name, posting_date, payment_type="Loan Closure")
 
-	interest_per_day = get_per_day_interest(
-		pending_principal_amount, loan.rate_of_interest, posting_date
+	payable_interest = get_interest_amount(
+		no_of_days, pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
 	)
-	payable_interest = interest_per_day * no_of_days
 
 	args = frappe._dict(
 		{
@@ -156,7 +155,7 @@ def make_accrual_interest_entry_for_demand_loans(
 	posting_date,
 	process_loan_interest=None,
 	open_loans=None,
-	loan_type=None,
+	loan_product=None,
 	accrual_type="Regular",
 	via_restructure=False,
 ):
@@ -168,8 +167,8 @@ def make_accrual_interest_entry_for_demand_loans(
 	if not via_restructure:
 		query_filters.update({"is_term_loan": 0})
 
-	if loan_type:
-		query_filters.update({"loan_type": loan_type})
+	if loan_product:
+		query_filters.update({"loan_product": loan_product})
 
 	if not open_loans:
 		open_loans = frappe.get_all(
@@ -195,6 +194,7 @@ def make_accrual_interest_entry_for_demand_loans(
 				"written_off_amount",
 				"total_principal_paid",
 				"repayment_start_date",
+				"company",
 			],
 			filters=query_filters,
 		)
@@ -206,11 +206,11 @@ def make_accrual_interest_entry_for_demand_loans(
 
 
 def make_accrual_interest_entry_for_term_loans(
-	posting_date, process_loan_interest, term_loan=None, loan_type=None, accrual_type="Regular"
+	posting_date, process_loan_interest, term_loan=None, loan_product=None, accrual_type="Regular"
 ):
 	curr_date = posting_date or add_days(nowdate(), 1)
 
-	term_loans = get_term_loans(curr_date, term_loan, loan_type)
+	term_loans = get_term_loans(curr_date, term_loan, loan_product)
 
 	accrued_entries = []
 
@@ -244,7 +244,7 @@ def make_accrual_interest_entry_for_term_loans(
 		)
 
 
-def get_term_loans(date, term_loan=None, loan_type=None):
+def get_term_loans(date, term_loan=None, loan_product=None):
 	loan = frappe.qb.DocType("Loan")
 	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
 	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
@@ -290,8 +290,8 @@ def get_term_loans(date, term_loan=None, loan_type=None):
 	if term_loan:
 		query = query.where(loan.name == term_loan)
 
-	if loan_type:
-		query = query.where(loan.loan_type == loan_type)
+	if loan_product:
+		query = query.where(loan.loan_product == loan_product)
 
 	term_loans = query.run(as_dict=1)
 
@@ -373,10 +373,46 @@ def days_in_year(year):
 	return days
 
 
-def get_per_day_interest(principal_amount, rate_of_interest, posting_date=None):
+def get_per_day_interest(
+	principal_amount, rate_of_interest, company, posting_date=None, interest_day_count_convention=None
+):
 	if not posting_date:
 		posting_date = getdate()
 
-	return flt(
-		(principal_amount * rate_of_interest) / (days_in_year(get_datetime(posting_date).year) * 100)
+	if not interest_day_count_convention:
+		interest_day_count_convention = frappe.get_cached_value(
+			"Company", company, "interest_day_count_convention"
+		)
+
+	if interest_day_count_convention == "Actual/365" or interest_day_count_convention == "30/365":
+		year_divisor = 365
+	elif interest_day_count_convention == "30/360" or interest_day_count_convention == "Actual/360":
+		year_divisor = 360
+	else:
+		# Default is Actual/Actual
+		year_divisor = days_in_year(get_datetime(posting_date).year)
+
+	return flt((principal_amount * rate_of_interest) / (year_divisor * 100))
+
+
+def get_interest_amount(
+	no_of_days,
+	principal_amount=None,
+	rate_of_interest=None,
+	company=None,
+	posting_date=None,
+	interest_per_day=None,
+):
+	interest_day_count_convention = frappe.get_cached_value(
+		"Company", company, "interest_day_count_convention"
 	)
+
+	if not interest_per_day:
+		interest_per_day = get_per_day_interest(
+			principal_amount, rate_of_interest, company, posting_date, interest_day_count_convention
+		)
+
+	if interest_day_count_convention == "30/365" or interest_day_count_convention == "30/360":
+		no_of_days = 30
+
+	return interest_per_day * no_of_days

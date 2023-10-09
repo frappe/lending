@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order
-from frappe.utils import date_diff, flt, getdate, now_datetime, nowdate
+from frappe.utils import add_days, date_diff, flt, get_last_day, getdate, now_datetime, nowdate
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
@@ -26,6 +26,8 @@ class Loan(AccountsController):
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
+		self.set_cyclic_date()
+
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
 
@@ -60,6 +62,19 @@ class Loan(AccountsController):
 			if not self.cost_center:
 				frappe.throw(_("Cost center is mandatory for loans having rate of interest greater than 0"))
 
+	def set_cyclic_date(self):
+		if self.repayment_schedule_type == "Monthly as per cycle date":
+			cycle_day = frappe.db.get_value("Loan Product", self.loan_product, "cyclic_day_of_the_month")
+			last_day_of_month = get_last_day(self.posting_date)
+			cyclic_date = add_days(last_day_of_month, cycle_day)
+
+			broken_period_limit = frappe.db.get_value("Company", self.company, "min_bpi_application_days")
+			broken_period_days = date_diff(cyclic_date, self.posting_date)
+			if broken_period_days < broken_period_limit:
+				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+			self.repayment_start_date = cyclic_date
+
 	def on_submit(self):
 		self.link_loan_security_pledge()
 		# Interest accrual for backdated term loans
@@ -87,8 +102,10 @@ class Loan(AccountsController):
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
-		if self.loan_type and not self.rate_of_interest:
-			self.rate_of_interest = frappe.db.get_value("Loan Type", self.loan_type, "rate_of_interest")
+		if self.loan_product and not self.rate_of_interest:
+			self.rate_of_interest = frappe.db.get_value(
+				"Loan Product", self.loan_product, "rate_of_interest"
+			)
 
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
@@ -116,7 +133,7 @@ class Loan(AccountsController):
 				"repayment_periods": self.repayment_periods,
 				"loan_amount": self.loan_amount,
 				"monthly_repayment_amount": self.monthly_repayment_amount,
-				"loan_type": self.loan_type,
+				"loan_product": self.loan_product,
 				"rate_of_interest": self.rate_of_interest,
 				"posting_date": self.posting_date,
 			}
@@ -131,7 +148,7 @@ class Loan(AccountsController):
 			schedule.update(
 				{
 					"loan": self.name,
-					"loan_type": self.loan_type,
+					"loan_product": self.loan_product,
 					"repayment_periods": self.repayment_periods,
 					"repayment_method": self.repayment_method,
 					"repayment_start_date": self.repayment_start_date,
@@ -217,7 +234,7 @@ class Loan(AccountsController):
 
 		if getdate(self.repayment_start_date) < getdate() and self.is_term_loan:
 			process_loan_interest_accrual_for_term_loans(
-				posting_date=getdate(), loan_type=self.loan_type, loan=self.name
+				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 
 	def unlink_loan_security_pledge(self):
@@ -316,8 +333,8 @@ def request_loan_closure(loan, posting_date=None):
 		+ amounts["penalty_amount"]
 	)
 
-	loan_type = frappe.get_value("Loan", loan, "loan_type")
-	write_off_limit = frappe.get_value("Loan Type", loan_type, "write_off_amount")
+	loan_product = frappe.get_value("Loan", loan, "loan_product")
+	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
 
 	if pending_amount and abs(pending_amount) < write_off_limit:
 		# Auto create loan write off and update status as loan closure requested
@@ -375,13 +392,13 @@ def make_loan_disbursement(loan, company, applicant_type, applicant, pending_amo
 
 
 @frappe.whitelist()
-def make_repayment_entry(loan, applicant_type, applicant, loan_type, company, as_dict=0):
+def make_repayment_entry(loan, applicant_type, applicant, loan_product, company, as_dict=0):
 	repayment_entry = frappe.new_doc("Loan Repayment")
 	repayment_entry.against_loan = loan
 	repayment_entry.applicant_type = applicant_type
 	repayment_entry.applicant = applicant
 	repayment_entry.company = company
-	repayment_entry.loan_type = loan_type
+	repayment_entry.loan_product = loan_product
 	repayment_entry.posting_date = nowdate()
 
 	if as_dict:
@@ -549,12 +566,12 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	posting_date=None, loan_type=None, loan_name=None, process_loan_asset_classification=None
+	posting_date=None, loan_product=None, loan_name=None, process_loan_classification=None
 ):
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	accruals = get_pending_loan_interest_accruals(loan_type=loan_type, loan_name=loan_name)
+	accruals = get_pending_loan_interest_accruals(loan_product=loan_product, loan_name=loan_name)
 	threshold_map = get_dpd_threshold_map()
 	checked_loans = []
 
@@ -564,7 +581,7 @@ def update_days_past_due_in_loans(
 		if days_past_due < 0:
 			days_past_due = 0
 
-		threshold = threshold_map.get(loan.loan_type, 0)
+		threshold = threshold_map.get(loan.loan_product, 0)
 
 		if days_past_due and threshold and days_past_due > threshold:
 			is_npa = 1
@@ -579,7 +596,7 @@ def update_days_past_due_in_loans(
 			posting_date or getdate(),
 		)
 
-		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_asset_classification)
+		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_classification)
 		checked_loans.append(loan.loan)
 
 	open_loans_with_no_overdue = []
@@ -601,19 +618,19 @@ def update_days_past_due_in_loans(
 			d.name, d.company, d.applicant_type, d.applicant, 0, 0, posting_date or getdate()
 		)
 
-		create_dpd_record(d.name, posting_date, 0, process_loan_asset_classification)
+		create_dpd_record(d.name, posting_date, 0, process_loan_classification)
 
 
 def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 	pac = frappe.db.get_value(
-		"Process Loan Asset Classification",
+		"Process Loan Classification",
 		{"payment_reference": repayment_reference},
 		"previous_process",
 	)
 	for d in frappe.db.get_all(
 		"Days Past Due Log",
 		filters={
-			"process_loan_asset_classification": pac,
+			"process_loan_classification": pac,
 			"applicant_type": applicant_type,
 			"applicant": applicant,
 		},
@@ -622,14 +639,14 @@ def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
 
 
-def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_classification=None):
+def create_dpd_record(loan, posting_date, days_past_due, process_loan_classification=None):
 	frappe.get_doc(
 		{
 			"doctype": "Days Past Due Log",
 			"loan": loan,
 			"posting_date": posting_date,
 			"days_past_due": days_past_due,
-			"process_loan_asset_classification": process_loan_asset_classification,
+			"process_loan_classification": process_loan_classification,
 		}
 	).insert(ignore_permissions=True)
 
@@ -637,15 +654,17 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_asset_clas
 def update_loan_and_customer_status(
 	loan, company, applicant_type, applicant, days_past_due, is_npa, posting_date
 ):
-	asset_code, asset_name = get_asset_classification_code_and_name(days_past_due, company)
+	classification_code, classification_name = get_classification_code_and_name(
+		days_past_due, company
+	)
 
 	frappe.db.set_value(
 		"Loan",
 		loan,
 		{
 			"days_past_due": days_past_due,
-			"asset_classification_code": asset_code,
-			"asset_classification_name": asset_name,
+			"classification_code": classification_code,
+			"classification_name": classification_name,
 		},
 	)
 
@@ -720,25 +739,31 @@ def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type
 	).run()
 
 
-def get_asset_classification_code_and_name(days_past_due, company):
-	asset_code = ""
-	asset_name = ""
+def get_classification_code_and_name(days_past_due, company):
+	classification_code = ""
+	classification_name = ""
+
 	ranges = frappe.get_all(
-		"Loan Asset Classification Range",
-		fields=["min_range", "max_range", "asset_classification_code", "asset_classification_name"],
+		"Loan Classification Range",
+		fields=[
+			"min_dpd_range",
+			"max_dpd_range",
+			"classification_code",
+			"classification_name",
+		],
 		filters={"parent": company},
-		order_by="min_range",
+		order_by="min_dpd_range",
 	)
 
 	for range in ranges:
-		if range.min_range <= days_past_due <= range.max_range:
-			return range.asset_classification_code, range.asset_classification_name
+		if range.min_dpd_range <= days_past_due <= range.max_dpd_range:
+			return range.classification_code, range.classification_name
 
-	return asset_code, asset_name
+	return classification_code, classification_name
 
 
 def get_pending_loan_interest_accruals(
-	loan_type=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
+	loan_product=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
 ):
 	"""Get pending loan interest accruals"""
 	loan_interest_accrual = frappe.qb.DocType("Loan Interest Accrual")
@@ -748,9 +773,9 @@ def get_pending_loan_interest_accruals(
 		.select(
 			loan_interest_accrual.name,
 			loan_interest_accrual.loan,
-			loan_interest_accrual.loan_type,
+			loan_interest_accrual.loan_product,
 			loan_interest_accrual.company,
-			loan_interest_accrual.loan_type,
+			loan_interest_accrual.loan_product,
 			loan_interest_accrual.due_date,
 			loan_interest_accrual.applicant_type,
 			loan_interest_accrual.applicant,
@@ -770,8 +795,8 @@ def get_pending_loan_interest_accruals(
 		.orderby(loan_interest_accrual.due_date, order=Order.desc)
 	)
 
-	if loan_type:
-		query = query.where(loan_interest_accrual.loan_type == loan_type)
+	if loan_product:
+		query = query.where(loan_interest_accrual.loan_product == loan_product)
 
 	if loan_name:
 		query = query.where(loan_interest_accrual.loan == loan_name)
@@ -793,7 +818,7 @@ def get_pending_loan_interest_accruals(
 
 def get_dpd_threshold_map():
 	return frappe._dict(
-		frappe.get_all("Loan Type", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
+		frappe.get_all("Loan Product", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
 	)
 
 
@@ -816,8 +841,8 @@ def move_unpaid_interest_to_suspense_ledger(
 			amount = -1 * amount
 
 		account_details = frappe.get_value(
-			"Loan Type",
-			accrual.loan_type,
+			"Loan Product",
+			accrual.loan_product,
 			[
 				"suspense_interest_receivable",
 				"suspense_interest_income",

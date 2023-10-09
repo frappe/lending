@@ -21,18 +21,18 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_demand_loan,
 	create_loan_accounts,
 	create_loan_application,
+	create_loan_product,
 	create_loan_security,
 	create_loan_security_pledge,
 	create_loan_security_price,
 	create_loan_security_type,
-	create_loan_type,
 	create_repayment_entry,
 	make_loan_disbursement_entry,
 )
 from lending.loan_management.doctype.loan_application.loan_application import create_pledge
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
-	get_per_day_interest,
+	get_interest_amount,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -44,7 +44,7 @@ class TestLoanDisbursement(unittest.TestCase):
 	def setUp(self):
 		create_loan_accounts()
 
-		create_loan_type(
+		create_loan_product(
 			"Demand Loan",
 			2000000,
 			13.5,
@@ -157,7 +157,6 @@ class TestLoanDisbursement(unittest.TestCase):
 		process_loan_interest_accrual_for_demand_loans(posting_date=add_days(last_date, 15))
 		amounts = calculate_amounts(loan.name, add_days(last_date, 15))
 
-		per_day_interest = get_per_day_interest(1500000, 13.5, "2019-10-30")
-		interest = per_day_interest * 15
+		interest = get_interest_amount(15, 1500000, 13.5, "_Test Company", "2019-10-30")
 
 		self.assertEqual(amounts["pending_principal_amount"], 1500000)

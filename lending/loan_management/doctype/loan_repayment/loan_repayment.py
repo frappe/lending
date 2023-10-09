@@ -18,8 +18,8 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
-from lending.loan_management.doctype.process_loan_asset_classification.process_loan_asset_classification import (
-	create_process_loan_asset_classification,
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
@@ -41,9 +41,9 @@ class LoanRepayment(AccountsController):
 	def on_submit(self):
 		if self.repayment_type == "Normal Repayment":
 
-			create_process_loan_asset_classification(
+			create_process_loan_classification(
 				posting_date=self.posting_date,
-				loan_type=self.loan_type,
+				loan_product=self.loan_product,
 				loan=self.against_loan,
 				payment_reference=self.name,
 			)
@@ -71,13 +71,22 @@ class LoanRepayment(AccountsController):
 		self.ignore_linked_doctypes = [
 			"GL Entry",
 			"Payment Ledger Entry",
-			"Process Loan Asset Classification",
+			"Process Loan Classification",
 		]
 		self.make_gl_entries(cancel=1)
 
 	def make_credit_note(self):
 		item_details = frappe.db.get_value(
-			"Loan Type", self.loan_type, ["charges_waiver_item", "charges_receivable_account"], as_dict=1
+			"Loan Product",
+			self.loan_product,
+			["charges_waiver_item", "charges_receivable_account"],
+			as_dict=1,
+		)
+
+		charges_waiver_item_income_account = frappe.db.get_value(
+			"Loan Charges",
+			{"charge_type": item_details.charges_waiver_item, "parent": self.loan_product},
+			"income_account",
 		)
 
 		for invoice in self.get("pending_charges"):
@@ -86,7 +95,12 @@ class LoanRepayment(AccountsController):
 				si.customer = self.applicant
 				si.append(
 					"items",
-					{"item_code": item_details.charges_waiver_item, "qty": -1, "rate": invoice.allocated_amount},
+					{
+						"item_code": item_details.charges_waiver_item,
+						"qty": -1,
+						"rate": invoice.allocated_amount,
+						"income_account": charges_waiver_item_income_account,
+					},
 				)
 				si.set_missing_values()
 				si.is_return = 1
@@ -174,7 +188,7 @@ class LoanRepayment(AccountsController):
 
 				# get posting date upto which interest has to be accrued
 				per_day_interest = get_per_day_interest(
-					self.pending_principal_amount, self.rate_of_interest, self.posting_date
+					self.pending_principal_amount, self.rate_of_interest, self.company, self.posting_date
 				)
 
 				no_of_days = (
@@ -592,7 +606,7 @@ class LoanRepayment(AccountsController):
 			else:
 				# get no of days for which interest can be paid
 				per_day_interest = get_per_day_interest(
-					self.pending_principal_amount, self.rate_of_interest, self.posting_date
+					self.pending_principal_amount, self.rate_of_interest, self.company, self.posting_date
 				)
 
 				no_of_days = cint(interest_paid / per_day_interest)
@@ -618,8 +632,8 @@ class LoanRepayment(AccountsController):
 			payment_party = self.applicant
 
 		account_details = frappe.db.get_value(
-			"Loan Type",
-			self.loan_type,
+			"Loan Product",
+			self.loan_product,
 			[
 				"interest_receivable_account",
 				"suspense_interest_receivable",
@@ -632,7 +646,7 @@ class LoanRepayment(AccountsController):
 
 		if self.total_penalty_paid:
 			penalty_receivable_account = frappe.db.get_value(
-				"Loan Type", self.loan_type, "penalty_receivable_account"
+				"Loan Product", self.loan_product, "penalty_receivable_account"
 			)
 			gle_map.append(
 				self.get_gl_dict(
@@ -866,7 +880,7 @@ class LoanRepayment(AccountsController):
 				payment_account = self.payment_account
 		else:
 			payment_account = frappe.db.get_value(
-				"Loan Type", self.loan_type, payment_account_field_map.get(self.repayment_type)
+				"Loan Product", self.loan_product, payment_account_field_map.get(self.repayment_type)
 			)
 
 		return payment_account
@@ -894,7 +908,7 @@ def create_repayment_entry(
 	applicant,
 	company,
 	posting_date,
-	loan_type,
+	loan_product,
 	payment_type,
 	interest_payable,
 	payable_principal_amount,
@@ -916,7 +930,7 @@ def create_repayment_entry(
 			"interest_payable": interest_payable,
 			"payable_principal_amount": payable_principal_amount,
 			"amount_paid": amount_paid,
-			"loan_type": loan_type,
+			"loan_product": loan_product,
 			"payroll_payable_account": payroll_payable_account,
 			"process_payroll_accounting_entry_based_on_employee": process_payroll_accounting_entry_based_on_employee,
 		}
@@ -1079,7 +1093,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	against_loan_doc = frappe.get_doc("Loan", against_loan)
-	loan_type_details = frappe.get_doc("Loan Type", against_loan_doc.loan_type)
+	loan_product_details = frappe.get_doc("Loan Product", against_loan_doc.loan_product)
 	accrued_interest_entries = get_accrued_interest_entries(against_loan_doc.name, posting_date)
 
 	computed_penalty_date, pending_penalty_amount = get_penalty_details(against_loan)
@@ -1100,7 +1114,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 		# no of late days are calculated based on loan repayment posting date
 		# and if no_of_late days are positive then penalty is levied
 
-		due_date_after_grace_period = add_days(entry.due_date, loan_type_details.grace_period_in_days)
+		due_date_after_grace_period = add_days(entry.due_date, loan_product_details.grace_period_in_days)
 
 		if computed_penalty_date and getdate(computed_penalty_date) >= getdate(
 			due_date_after_grace_period
@@ -1118,7 +1132,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 		):
 			penalty_amount += (
 				(entry.interest_amount + entry.payable_principal_amount)
-				* (loan_type_details.penalty_interest_rate / 100)
+				* (loan_product_details.penalty_interest_rate / 100)
 				* no_of_late_days
 			) / 365
 
@@ -1135,7 +1149,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 
 		last_entry_due_date = entry.due_date
 		if entry.due_date and not final_due_date:
-			final_due_date = add_days(entry.due_date, loan_type_details.grace_period_in_days)
+			final_due_date = add_days(entry.due_date, loan_product_details.grace_period_in_days)
 
 	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
 
@@ -1149,7 +1163,10 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 			principal_amount = flt(pending_principal_amount, precision)
 
 		per_day_interest = get_per_day_interest(
-			principal_amount, loan_type_details.rate_of_interest, posting_date
+			principal_amount,
+			loan_product_details.rate_of_interest,
+			loan_product_details.company,
+			posting_date,
 		)
 		unaccrued_interest += pending_days * per_day_interest
 

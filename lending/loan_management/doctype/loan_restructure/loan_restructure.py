@@ -153,7 +153,7 @@ class LoanRestructure(AccountsController):
 
 		for charge in frappe.get_all(
 			"Loan Charges",
-			filters={"parent": self.loan_type, "event": "Restructure"},
+			filters={"parent": self.loan_product, "event": "Restructure"},
 			fields=["charge_type", "charge_based_on", "amount", "percentage"],
 		):
 			if charge.charge_based_on == "Percentage":
@@ -339,10 +339,9 @@ class LoanRestructure(AccountsController):
 
 			for charge in frappe.get_all(
 				"Loan Charges",
-				filters={"parent": self.loan_type, "event": "Restructure"},
-				fields=["charge_type", "charge_based_on", "amount", "percentage"],
+				filters={"parent": self.loan_product, "event": "Restructure"},
+				fields=["charge_type", "charge_based_on", "amount", "percentage", "income_account"],
 			):
-
 				si.append(
 					"items",
 					{
@@ -351,6 +350,7 @@ class LoanRestructure(AccountsController):
 						"rate": charge.amount
 						if charge.charge_based_on == "Fixed Amount"
 						else flt(self.new_loan_amount) * flt(charge.percentage) / 100,
+						"income_account": charge.income_account,
 					},
 				)
 
@@ -555,7 +555,7 @@ class LoanRestructure(AccountsController):
 					"repayment_start_date": self.repayment_start_date,
 					"posting_date": self.restructure_date,
 					"loan_amount": self.new_loan_amount,
-					"loan_type": self.loan_type,
+					"loan_product": self.loan_product,
 					"rate_of_interest": self.new_rate_of_interest,
 					"adjusted_interest": adjusted_interest,
 				}
@@ -569,7 +569,7 @@ class LoanRestructure(AccountsController):
 			schedule.repayment_start_date = self.repayment_start_date
 			schedule.repayment_periods = self.new_repayment_period_in_months
 			schedule.loan_amount = self.new_loan_amount
-			schedule.loan_type = self.loan_type
+			schedule.loan_product = self.loan_product
 			schedule.rate_of_interest = self.new_rate_of_interest
 			schedule.posting_date = self.restructure_date
 			schedule.adjusted_interest = adjusted_interest

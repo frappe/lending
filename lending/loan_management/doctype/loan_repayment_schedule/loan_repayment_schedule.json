@@ -8,13 +8,14 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "company",
   "loan_restructure",
   "loan_amount",
   "rate_of_interest",
   "posting_date",
   "adjusted_interest",
   "column_break_n6iy",
-  "loan_type",
+  "loan_product",
   "repayment_schedule_type",
   "repayment_method",
   "repayment_periods",
@@ -35,15 +36,15 @@
    "reqd": 1
   },
   {
-   "fieldname": "loan_type",
+   "fieldname": "loan_product",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Loan Type",
-   "options": "Loan Type",
+   "label": "Loan Product",
+   "options": "Loan Product",
    "reqd": 1
   },
   {
-   "fetch_from": "loan_type.repayment_schedule_type",
+   "fetch_from": "loan_product.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
    "label": "Repayment Schedule Type"
@@ -135,12 +136,19 @@
    "fieldtype": "Currency",
    "label": "Adjusted Interest",
    "options": "Company:company:default_currency"
+  },
+  {
+   "fetch_from": "loan.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-13 12:45:03.247814",
+ "modified": "2023-10-02 22:14:24.172876",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

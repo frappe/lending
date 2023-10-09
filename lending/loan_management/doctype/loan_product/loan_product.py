@@ -7,7 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 
 
-class LoanType(Document):
+class LoanProduct(Document):
 	def validate(self):
 		self.validate_accounts()
 

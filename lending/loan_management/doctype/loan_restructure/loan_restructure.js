@@ -4,7 +4,7 @@
 frappe.ui.form.on("Loan Restructure", {
 	refresh: function (frm) {
 		frm.trigger("toggle_fields");
-		frm.ignore_doctypes_on_cancel_all = ['Loan Balance Adjustment', 'Loan Repayment', 'Loan Repayment Schedule', 'Process Loan Asset Classification'];
+		frm.ignore_doctypes_on_cancel_all = ['Loan Balance Adjustment', 'Loan Repayment', 'Loan Repayment Schedule', 'Process Loan Classification'];
 	},
 
 	new_repayment_method: function (frm) {

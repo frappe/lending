@@ -48,27 +48,29 @@ class TestLoan(unittest.TestCase):
 		create_loan_accounts()
 		simple_terms_loans = [
 			["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
-			["Term Loan Type 1", 12000, 7.5, "Monthly as per repayment start date"],
+			["Term Loan Product 1", 12000, 7.5, "Monthly as per repayment start date"],
 		]
 
 		pro_rated_term_loans = [
-			["Term Loan Type 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
-			["Term Loan Type 3", 1200, 7.5, "Pro-rated calendar months", "End of the current month"],
+			["Term Loan Product 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
+			["Term Loan Product 3", 1200, 7.5, "Pro-rated calendar months", "End of the current month"],
 		]
 
-		for loan_type in simple_terms_loans:
-			create_loan_type(loan_type[0], loan_type[1], loan_type[2], repayment_schedule_type=loan_type[3])
-
-		for loan_type in pro_rated_term_loans:
-			create_loan_type(
-				loan_type[0],
-				loan_type[1],
-				loan_type[2],
-				repayment_schedule_type=loan_type[3],
-				repayment_date_on=loan_type[4],
+		for loan_product in simple_terms_loans:
+			create_loan_product(
+				loan_product[0], loan_product[1], loan_product[2], repayment_schedule_type=loan_product[3]
 			)
 
-		create_loan_type(
+		for loan_product in pro_rated_term_loans:
+			create_loan_product(
+				loan_product[0],
+				loan_product[1],
+				loan_product[2],
+				repayment_schedule_type=loan_product[3],
+				repayment_date_on=loan_product[4],
+			)
+
+		create_loan_product(
 			"Stock Loan",
 			2000000,
 			13.5,
@@ -84,7 +86,7 @@ class TestLoan(unittest.TestCase):
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
 
-		create_loan_type(
+		create_loan_product(
 			"Demand Loan",
 			2000000,
 			13.5,
@@ -877,7 +879,7 @@ class TestLoan(unittest.TestCase):
 	def test_term_loan_schedule_types(self):
 		loan = create_loan(
 			self.applicant1,
-			"Term Loan Type 1",
+			"Term Loan Product 1",
 			12000,
 			"Repay Over Number of Periods",
 			12,
@@ -894,7 +896,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "17-11-2022")
 		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "17-09-2023")
 
-		loan.loan_type = "Term Loan Type 2"
+		loan.loan_product = "Term Loan Product 2"
 		loan.save()
 
 		loan_repayment_schedule = frappe.get_doc(
@@ -907,7 +909,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "01-12-2022")
 		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "01-10-2023")
 
-		loan.loan_type = "Term Loan Type 3"
+		loan.loan_product = "Term Loan Product 3"
 		loan.save()
 
 		loan_repayment_schedule = frappe.get_doc(
@@ -1024,7 +1026,7 @@ def create_account(account_name, parent_account, root_type, account_type, report
 		).insert(ignore_permissions=True)
 
 
-def create_loan_type(
+def create_loan_product(
 	loan_name,
 	maximum_loan_amount,
 	rate_of_interest,
@@ -1049,10 +1051,10 @@ def create_loan_type(
 	days_past_due_threshold_for_npa=None,
 ):
 
-	if not frappe.db.exists("Loan Type", loan_name):
-		loan_type = frappe.get_doc(
+	if not frappe.db.exists("Loan Product", loan_name):
+		loan_product = frappe.get_doc(
 			{
-				"doctype": "Loan Type",
+				"doctype": "Loan Product",
 				"company": "_Test Company",
 				"loan_name": loan_name,
 				"is_term_loan": is_term_loan,
@@ -1079,13 +1081,12 @@ def create_loan_type(
 			}
 		)
 
-		if loan_type.is_term_loan:
-			loan_type.repayment_schedule_type = repayment_schedule_type
-			if loan_type.repayment_schedule_type != "Monthly as per repayment start date":
-				loan_type.repayment_date_on = repayment_date_on
+		if loan_product.is_term_loan:
+			loan_product.repayment_schedule_type = repayment_schedule_type
+			if loan_product.repayment_schedule_type != "Monthly as per repayment start date":
+				loan_product.repayment_date_on = repayment_date_on
 
-		loan_type.insert()
-		loan_type.submit()
+		loan_product.insert()
 
 
 def create_loan_security_type():
@@ -1195,7 +1196,7 @@ def create_repayment_entry(loan, applicant, posting_date, paid_amount, offset_ba
 			"posting_date": posting_date or nowdate(),
 			"applicant": applicant,
 			"amount_paid": paid_amount,
-			"loan_type": "Stock Loan",
+			"loan_product": "Stock Loan",
 			"offset_based_on_npa": offset_based_on_npa,
 		}
 	).insert(ignore_permissions=True)
@@ -1206,7 +1207,7 @@ def create_repayment_entry(loan, applicant, posting_date, paid_amount, offset_ba
 def create_loan_application(
 	company,
 	applicant,
-	loan_type,
+	loan_product,
 	proposed_pledges,
 	repayment_method=None,
 	repayment_periods=None,
@@ -1217,7 +1218,7 @@ def create_loan_application(
 	loan_application.applicant_type = "Customer"
 	loan_application.company = company
 	loan_application.applicant = applicant
-	loan_application.loan_type = loan_type
+	loan_application.loan_product = loan_product
 	loan_application.posting_date = posting_date or nowdate()
 	loan_application.is_secured_loan = 1
 
@@ -1242,7 +1243,7 @@ def create_loan_application(
 
 def create_loan(
 	applicant,
-	loan_type,
+	loan_product,
 	loan_amount,
 	repayment_method,
 	repayment_periods,
@@ -1257,7 +1258,7 @@ def create_loan(
 			"applicant_type": applicant_type or "Employee",
 			"company": "_Test Company",
 			"applicant": applicant,
-			"loan_type": loan_type,
+			"loan_product": loan_product,
 			"loan_amount": loan_amount,
 			"repayment_method": repayment_method,
 			"repayment_periods": repayment_periods,
@@ -1272,7 +1273,7 @@ def create_loan(
 
 def create_loan_with_security(
 	applicant,
-	loan_type,
+	loan_product,
 	repayment_method,
 	repayment_periods,
 	loan_application,
@@ -1287,7 +1288,7 @@ def create_loan_with_security(
 			"posting_date": posting_date or nowdate(),
 			"loan_application": loan_application,
 			"applicant": applicant,
-			"loan_type": loan_type,
+			"loan_product": loan_product,
 			"is_term_loan": 1,
 			"is_secured_loan": 1,
 			"repayment_method": repayment_method,
@@ -1306,7 +1307,7 @@ def create_loan_with_security(
 	return loan
 
 
-def create_demand_loan(applicant, loan_type, loan_application, posting_date=None):
+def create_demand_loan(applicant, loan_product, loan_application, posting_date=None):
 
 	loan = frappe.get_doc(
 		{
@@ -1316,7 +1317,7 @@ def create_demand_loan(applicant, loan_type, loan_application, posting_date=None
 			"posting_date": posting_date or nowdate(),
 			"loan_application": loan_application,
 			"applicant": applicant,
-			"loan_type": loan_type,
+			"loan_product": loan_product,
 			"is_term_loan": 0,
 			"is_secured_loan": 1,
 			"mode_of_payment": frappe.db.get_value("Mode of Payment", {"type": "Cash"}, "name"),
