@@ -33,5 +33,5 @@ class LoanProduct(Document):
 
 	def validate_rates(self):
 		for field in ["rate_of_interest", "penalty_interest_rate"]:
-			if self.get(field) < 0:
+			if self.get(field) and self.get(field) < 0:
 				frappe.throw(_("{0} cannot be negative").format(frappe.unscrub(field)))
