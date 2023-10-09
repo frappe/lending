@@ -1,14 +1,16 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:loan_category_name",
+ "autoname": "field:loan_category_code",
  "creation": "2023-09-14 22:11:12.105750",
  "default_view": "List",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "loan_category_name"
+  "loan_category_code",
+  "loan_category_name",
+  "disabled"
  ],
  "fields": [
   {
@@ -18,11 +20,24 @@
    "label": "Loan Category Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "loan_category_code",
+   "fieldtype": "Data",
+   "label": "Loan Category Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-14 22:11:12.105750",
+ "modified": "2023-10-09 23:10:02.882586",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Category",
