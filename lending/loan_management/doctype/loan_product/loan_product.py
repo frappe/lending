@@ -10,6 +10,7 @@ from frappe.model.document import Document
 class LoanProduct(Document):
 	def validate(self):
 		self.validate_accounts()
+		self.validate_rates()
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -29,3 +30,8 @@ class LoanProduct(Document):
 
 		if self.get("loan_account") == self.get("payment_account"):
 			frappe.throw(_("Loan Account and Payment Account cannot be same"))
+
+	def validate_rates(self):
+		for field in ["rate_of_interest", "penalty_interest_rate"]:
+			if self.get(field) < 0:
+				frappe.throw(_("{0} cannot be negative").format(frappe.unscrub(field)))
