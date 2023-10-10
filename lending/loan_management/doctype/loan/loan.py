@@ -7,7 +7,16 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order
-from frappe.utils import add_days, date_diff, flt, get_last_day, getdate, now_datetime, nowdate
+from frappe.utils import (
+	add_days,
+	cint,
+	date_diff,
+	flt,
+	get_last_day,
+	getdate,
+	now_datetime,
+	nowdate,
+)
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
@@ -64,7 +73,9 @@ class Loan(AccountsController):
 
 	def set_cyclic_date(self):
 		if self.repayment_schedule_type == "Monthly as per cycle date":
-			cycle_day = frappe.db.get_value("Loan Product", self.loan_product, "cyclic_day_of_the_month")
+			cycle_day = cint(
+				frappe.db.get_value("Loan Product", self.loan_product, "cyclic_day_of_the_month")
+			)
 			last_day_of_month = get_last_day(self.posting_date)
 			cyclic_date = add_days(last_day_of_month, cycle_day)
 
