@@ -1245,7 +1245,7 @@ def get_outstanding_invoices(loan, posting_date):
 		"Sales Invoice",
 		filters={
 			"loan": loan,
-			"outstanding_amount": (">", 0),
+			"outstanding_amount": ("!=", 0),
 			"docstatus": 1,
 			"due_date": ("<=", posting_date),
 		},
