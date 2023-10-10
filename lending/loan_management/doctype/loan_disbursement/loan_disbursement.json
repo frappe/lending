@@ -23,6 +23,8 @@
   "disbursed_amount",
   "accounting_dimensions_section",
   "cost_center",
+  "charges_section",
+  "loan_disbursement_charges",
   "accounting_details",
   "disbursement_account",
   "column_break_16",
@@ -213,12 +215,23 @@
    "label": "Loan Product",
    "options": "Loan Product",
    "read_only": 1
+  },
+  {
+   "fieldname": "charges_section",
+   "fieldtype": "Section Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "loan_disbursement_charges",
+   "fieldtype": "Table",
+   "label": "Loan Disbursement Charges",
+   "options": "Loan Disbursement Charge"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:24.804546",
+ "modified": "2023-10-10 19:19:44.826241",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
