@@ -54,7 +54,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-18 13:54:55.236732",
+ "modified": "2023-10-10 17:12:15.919211",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Deposit",
@@ -70,6 +70,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
@@ -82,6 +83,7 @@
    "report": 1,
    "role": "Loan Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
