@@ -7,15 +7,21 @@
  "engine": "InnoDB",
  "field_order": [
   "charge_type",
-  "event",
   "charge_based_on",
-  "amount",
   "percentage",
-  "income_account"
+  "column_break_gisk",
+  "amount",
+  "event",
+  "charge_accounts_section",
+  "income_account",
+  "waiver_account",
+  "suspense_account",
+  "column_break_yajs",
+  "receivable_account",
+  "write_off_account"
  ],
  "fields": [
   {
-   "columns": 2,
    "fieldname": "charge_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -23,15 +29,13 @@
    "options": "Item"
   },
   {
-   "columns": 2,
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Event",
-   "options": "Disbursement\nRepayment\nRestructure"
+   "options": "\nDisbursement\nRepayment\nRestructure"
   },
   {
-   "columns": 2,
    "fieldname": "charge_based_on",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -39,14 +43,12 @@
    "options": "Percentage\nFixed Amount"
   },
   {
-   "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount"
   },
   {
-   "columns": 1,
    "fieldname": "percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
@@ -56,15 +58,51 @@
    "columns": 2,
    "fieldname": "income_account",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Income Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_gisk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "charge_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Charge Accounts"
+  },
+  {
+   "fieldname": "column_break_yajs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receivable_account",
+   "fieldtype": "Link",
+   "label": "Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "waiver_account",
+   "fieldtype": "Link",
+   "label": "Waiver Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "write_off_account",
+   "fieldtype": "Link",
+   "label": "Write Off Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "suspense_account",
+   "fieldtype": "Link",
+   "label": "Suspense Account",
    "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-05 09:56:43.428965",
+ "modified": "2023-10-10 21:57:17.905327",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Charges",

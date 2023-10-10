@@ -35,3 +35,28 @@ class LoanProduct(Document):
 		for field in ["rate_of_interest", "penalty_interest_rate"]:
 			if self.get(field) and self.get(field) < 0:
 				frappe.throw(_("{0} cannot be negative").format(frappe.unscrub(field)))
+
+
+@frappe.whitelist()
+def get_default_charge_accounts(charge_type, company):
+	default_charge_accounts = frappe.db.get_value(
+		"Item Default",
+		{"parent": charge_type, "company": company},
+		[
+			"income_account",
+			"default_receivable_account",
+			"default_waiver_account",
+			"default_write_off_account",
+			"default_suspense_account",
+		],
+		as_dict=True,
+	)
+	out = {
+		"income_account": default_charge_accounts.income_account,
+		"receivable_account": default_charge_accounts.default_receivable_account,
+		"waiver_account": default_charge_accounts.default_waiver_account,
+		"write_off_account": default_charge_accounts.default_write_off_account,
+		"suspense_account": default_charge_accounts.default_suspense_account,
+	}
+
+	return out
