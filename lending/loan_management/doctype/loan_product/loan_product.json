@@ -64,7 +64,6 @@
    "options": "Company:company:default_currency"
   },
   {
-   "default": "0",
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest (%) Yearly",
@@ -141,7 +140,8 @@
    "description": "Penalty Interest Rate is levied on the pending interest amount on a daily basis in case of delayed repayment ",
    "fieldname": "penalty_interest_rate",
    "fieldtype": "Percent",
-   "label": "Penalty Interest Rate (%)"
+   "label": "Penalty Interest Rate (%)",
+   "mandatory_depends_on": "eval:doc.penalty_interest_method == \"Rate\""
   },
   {
    "description": "No. of days from due date until which penalty won't be charged in case of delay in loan repayment",
@@ -343,7 +343,8 @@
    "description": "Per thousand per day penal amount which will be applied to the loan EMI proportionately to the EMI amount",
    "fieldname": "penalty_interest_value_ptpd",
    "fieldtype": "Currency",
-   "label": "Penalty Interest Value (PTPD)"
+   "label": "Penalty Interest Value (PTPD)",
+   "mandatory_depends_on": "eval:doc.penalty_interest_method == \"PTPD\""
   },
   {
    "default": "0",
@@ -360,18 +361,20 @@
   {
    "fieldname": "min_auto_closure_tolerance_amount",
    "fieldtype": "Currency",
-   "label": "Min Auto-closure Tolerance Amount"
+   "label": "Min Auto-closure Tolerance Amount",
+   "reqd": 1
   },
   {
    "fieldname": "max_auto_closure_tolerance_amount",
    "fieldtype": "Currency",
    "label": "Max Auto-closure Tolerance Amount",
-   "non_negative": 1
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-10 23:14:03.900919",
+ "modified": "2023-10-11 00:01:22.410226",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
