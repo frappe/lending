@@ -126,6 +126,47 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_details_tab",
 		},
 	],
+	"Item Default": [
+		{
+			"fieldname": "loan_defaults_section",
+			"fieldtype": "Section Break",
+			"label": "Loan Defaults",
+			"insert_after": "deferred_revenue_account",
+		},
+		{
+			"fieldname": "default_receivable_account",
+			"fieldtype": "Link",
+			"label": "Default Receivable Account",
+			"options": "Account",
+			"insert_after": "loan_defaults_section",
+		},
+		{
+			"fieldname": "default_waiver_account",
+			"fieldtype": "Link",
+			"label": "Default Waiver Account",
+			"options": "Account",
+			"insert_after": "default_receivable_account",
+		},
+		{
+			"fieldname": "column_break_yajs",
+			"fieldtype": "Column Break",
+			"insert_after": "default_waiver_account",
+		},
+		{
+			"fieldname": "default_write_off_account",
+			"fieldtype": "Link",
+			"label": "Default Write Off Account",
+			"options": "Account",
+			"insert_after": "column_break_yajs",
+		},
+		{
+			"fieldname": "default_suspense_account",
+			"fieldtype": "Link",
+			"label": "Default Suspense Account",
+			"options": "Account",
+			"insert_after": "default_write_off_account",
+		},
+	],
 }
 
 

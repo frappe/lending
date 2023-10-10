@@ -28,3 +28,27 @@ frappe.ui.form.on('Loan Product', {
 		});
 	}
 });
+
+frappe.ui.form.on('Loan Charges', {
+	charge_type: function(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+
+		if (!row.charge_type)
+			return;
+
+		frappe.call({
+			method: "lending.loan_management.doctype.loan_product.loan_product.get_default_charge_accounts",
+			args: {
+				charge_type: row.charge_type,
+				company: frm.doc.company,
+			},
+			callback: function(r) {
+				if(r.message) {
+					for (const account_field in r.message) {
+						frappe.model.set_value(row.doctype, row.name, account_field, r.message[account_field]);
+					}
+				}
+			}
+		});
+	},
+});

@@ -329,7 +329,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Product Name",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "penalty_interest_method",
@@ -370,7 +371,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-09 22:45:45.755880",
+ "modified": "2023-10-10 23:14:03.900919",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
