@@ -11,7 +11,6 @@ LOAN_CUSTOM_FIELDS = {
 			"options": "Loan",
 			"insert_after": "customer",
 			"print_hide": 1,
-			"read_only": 1,
 		}
 	],
 	"Company": [
