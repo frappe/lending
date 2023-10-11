@@ -241,7 +241,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan_product.rate_of_interest",
+   "fetch_from": "against_loan.rate_of_interest",
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate Of Interest",
@@ -378,7 +378,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:23.377360",
+ "modified": "2023-10-11 09:25:15.123899",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
