@@ -250,6 +250,41 @@ class LoanDisbursement(AccountsController):
 				)
 			)
 
+		for charge in self.get("loan_disbursement_charges"):
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": charge.account,
+						"against": self.disbursement_account,
+						"credit": charge.amount,
+						"credit_in_account_currency": charge.amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.against_loan,
+						"remarks": _("Disbursement against loan:") + self.against_loan,
+						"cost_center": self.cost_center,
+						"party_type": self.applicant_type,
+						"party": self.applicant,
+						"posting_date": self.disbursement_date,
+					}
+				)
+			)
+
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": self.disbursement_account,
+						"against": self.loan_account,
+						"credit": -1 * charge.amount,
+						"credit_in_account_currency": -1 * charge.amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.against_loan,
+						"remarks": _("Disbursement against loan:") + self.against_loan,
+						"cost_center": self.cost_center,
+						"posting_date": self.disbursement_date,
+					}
+				)
+			)
+
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
