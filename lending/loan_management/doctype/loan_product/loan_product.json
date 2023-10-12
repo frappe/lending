@@ -15,7 +15,7 @@
   "penalty_interest_value_ptpd",
   "grace_period_in_days",
   "write_off_amount",
-  "min_days_disbursement_first_repayment",
+  "min_days_bw_disbursement_first_repayment",
   "broken_period_interest_charged",
   "auto_close_with_security_deposit",
   "min_auto_closure_tolerance_amount",
@@ -373,9 +373,9 @@
    "reqd": 1
   },
   {
-   "fetch_from": "company.min_days_disbursement_first_repayment",
+   "fetch_from": "company.min_days_bw_disbursement_first_repayment",
    "fetch_if_empty": 1,
-   "fieldname": "min_days_disbursement_first_repayment",
+   "fieldname": "min_days_bw_disbursement_first_repayment",
    "fieldtype": "Int",
    "label": "Minimum days between Disbursement date and first Repayment date",
    "non_negative": 1

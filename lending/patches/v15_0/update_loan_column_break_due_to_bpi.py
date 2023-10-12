@@ -10,5 +10,5 @@ def execute():
 			"Custom Field",
 			"Company-loan_column_break",
 			"insert_after",
-			"min_days_disbursement_first_repayment",
+			"min_days_bw_disbursement_first_repayment",
 		)

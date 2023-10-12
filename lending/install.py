@@ -46,7 +46,7 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "watch_period_post_loan_restructure_in_days",
 		},
 		{
-			"fieldname": "min_days_disbursement_first_repayment",
+			"fieldname": "min_days_bw_disbursement_first_repayment",
 			"label": "Minimum days between Disbursement date and first Repayment date",
 			"fieldtype": "Int",
 			"insert_after": "interest_day_count_convention",
@@ -55,7 +55,7 @@ LOAN_CUSTOM_FIELDS = {
 		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "min_days_disbursement_first_repayment",
+			"insert_after": "min_days_bw_disbursement_first_repayment",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",

@@ -10,7 +10,7 @@ def execute():
 		{
 			"Company": [
 				{
-					"fieldname": "min_days_disbursement_first_repayment",
+					"fieldname": "min_days_bw_disbursement_first_repayment",
 					"label": "Minimum days between Disbursement date and first Repayment date",
 					"fieldtype": "Int",
 					"insert_after": "interest_day_count_convention",
