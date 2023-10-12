@@ -380,17 +380,16 @@
    "reqd": 1
   },
   {
-   "fetch_from": "company.min_days_bw_disbursement_first_repayment",
-   "fetch_if_empty": 1,
    "fieldname": "min_days_bw_disbursement_first_repayment",
    "fieldtype": "Int",
    "label": "Minimum days between Disbursement date and first Repayment date",
-   "non_negative": 1
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-12 12:12:02.553449",
+ "modified": "2023-10-12 13:35:48.346212",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
