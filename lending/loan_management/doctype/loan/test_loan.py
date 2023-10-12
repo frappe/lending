@@ -1353,5 +1353,5 @@ def set_loan_settings_in_company(company=None):
 	if not company:
 		company = "_Test Company"
 	company = frappe.get_doc("Company", company)
-	company.min_days_bw_disbursement_first_repayment = "15"
+	company.min_days_bw_disbursement_first_repayment = 15
 	company.save()
