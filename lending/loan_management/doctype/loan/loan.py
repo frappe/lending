@@ -73,15 +73,18 @@ class Loan(AccountsController):
 
 	def set_cyclic_date(self):
 		if self.repayment_schedule_type == "Monthly as per cycle date":
-			cycle_day = cint(
-				frappe.db.get_value("Loan Product", self.loan_product, "cyclic_day_of_the_month")
+			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+				"Loan Product",
+				self.loan_product,
+				["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
 			)
+			cycle_day = cint(cycle_day)
+
 			last_day_of_month = get_last_day(self.posting_date)
 			cyclic_date = add_days(last_day_of_month, cycle_day)
 
-			broken_period_limit = frappe.db.get_value("Company", self.company, "min_bpi_application_days")
 			broken_period_days = date_diff(cyclic_date, self.posting_date)
-			if broken_period_days < broken_period_limit:
+			if broken_period_days < min_days_bw_disbursement_first_repayment:
 				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
 
 			self.repayment_start_date = cyclic_date
