@@ -15,6 +15,7 @@
   "penalty_interest_value_ptpd",
   "grace_period_in_days",
   "write_off_amount",
+  "min_days_bw_disbursement_first_repayment",
   "broken_period_interest_charged",
   "auto_close_with_security_deposit",
   "min_auto_closure_tolerance_amount",
@@ -370,11 +371,19 @@
    "label": "Max Auto-closure Tolerance Amount",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fetch_from": "company.min_days_bw_disbursement_first_repayment",
+   "fetch_if_empty": 1,
+   "fieldname": "min_days_bw_disbursement_first_repayment",
+   "fieldtype": "Int",
+   "label": "Minimum days between Disbursement date and first Repayment date",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-11 00:01:22.410226",
+ "modified": "2023-10-12 12:12:02.553449",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
