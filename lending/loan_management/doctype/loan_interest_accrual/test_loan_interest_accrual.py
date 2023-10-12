@@ -15,6 +15,7 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_loan_security_price,
 	create_loan_security_type,
 	make_loan_disbursement_entry,
+	set_loan_settings_in_company,
 )
 from lending.loan_management.doctype.loan_application.loan_application import create_pledge
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -31,6 +32,8 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 
 class TestLoanInterestAccrual(unittest.TestCase):
 	def setUp(self):
+		set_loan_settings_in_company()
+
 		create_loan_accounts()
 
 		create_loan_product(
