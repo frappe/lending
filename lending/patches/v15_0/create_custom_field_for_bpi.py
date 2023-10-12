@@ -10,10 +10,11 @@ def execute():
 		{
 			"Company": [
 				{
-					"fieldname": "min_bpi_application_days",
-					"label": "Minimum Days for Broken Period Interest Application",
+					"fieldname": "min_days_bw_disbursement_first_repayment",
+					"label": "Minimum days between Disbursement date and first Repayment date",
 					"fieldtype": "Int",
 					"insert_after": "interest_day_count_convention",
+					"non_negative": 1,
 				},
 			]
 		},
