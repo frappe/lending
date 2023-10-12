@@ -45,6 +45,7 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 
 class TestLoan(unittest.TestCase):
 	def setUp(self):
+		set_loan_settings_in_company()
 		create_loan_accounts()
 		simple_terms_loans = [
 			["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
@@ -1057,6 +1058,7 @@ def create_loan_product(
 	repayment_schedule_type=None,
 	repayment_date_on=None,
 	days_past_due_threshold_for_npa=None,
+	min_days_bw_disbursement_first_repayment=None,
 ):
 
 	if not frappe.db.exists("Loan Product", product_code):
@@ -1087,6 +1089,9 @@ def create_loan_product(
 				"repayment_periods": repayment_periods,
 				"write_off_amount": 100,
 				"days_past_due_threshold_for_npa": days_past_due_threshold_for_npa,
+				"min_days_bw_disbursement_first_repayment": min_days_bw_disbursement_first_repayment,
+				"min_auto_closure_tolerance_amount": -100,
+				"max_auto_closure_tolerance_amount": 100,
 			}
 		)
 
@@ -1096,6 +1101,8 @@ def create_loan_product(
 				loan_product.repayment_date_on = repayment_date_on
 
 		loan_product.insert()
+
+		return loan_product
 
 
 def create_loan_security_type():
@@ -1340,3 +1347,11 @@ def create_demand_loan(applicant, loan_product, loan_application, posting_date=N
 	loan.save()
 
 	return loan
+
+
+def set_loan_settings_in_company(company=None):
+	if not company:
+		company = "_Test Company"
+	company = frappe.get_doc("Company", company)
+	company.min_days_bw_disbursement_first_repayment = "15"
+	company.save()

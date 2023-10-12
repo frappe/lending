@@ -2,6 +2,10 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Product', {
+	setup(frm) {
+		frm.add_fetch("company", "min_days_bw_disbursement_first_repayment", "min_days_bw_disbursement_first_repayment");
+	},
+
 	onload: function(frm) {
 		$.each(["penalty_income_account", "interest_income_account"], function (i, field) {
 			frm.set_query(field, function () {
