@@ -8,9 +8,22 @@ from frappe.model.document import Document
 
 
 class LoanProduct(Document):
+	def before_validate(self):
+		self.set_missing_values()
+
 	def validate(self):
 		self.validate_accounts()
 		self.validate_rates()
+
+	def set_missing_values(self):
+		company_min_days_bw_disbursement_first_repayment = frappe.get_cached_value(
+			"Company", self.company, "min_days_bw_disbursement_first_repayment"
+		)
+		if (
+			self.min_days_bw_disbursement_first_repayment is None
+			and company_min_days_bw_disbursement_first_repayment
+		):
+			self.min_days_bw_disbursement_first_repayment = company_min_days_bw_disbursement_first_repayment
 
 	def validate_accounts(self):
 		for fieldname in [
