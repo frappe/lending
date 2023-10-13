@@ -66,6 +66,9 @@ class LoanDisbursement(AccountsController):
 		if not self.posting_date:
 			self.posting_date = self.disbursement_date or nowdate()
 
+		if not self.disbursement_account and self.bank_account:
+			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
 	def withheld_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc(
