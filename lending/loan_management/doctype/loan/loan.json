@@ -33,6 +33,7 @@
   "repayment_periods",
   "monthly_repayment_amount",
   "repayment_start_date",
+  "repayment_frequency",
   "is_term_loan",
   "loan_classification_details_section",
   "days_past_due",
@@ -44,6 +45,8 @@
   "tenure_post_restructure",
   "accounting_dimensions_section",
   "cost_center",
+  "loan_charges_section",
+  "loan_charges",
   "account_info",
   "mode_of_payment",
   "disbursement_account",
@@ -477,18 +480,36 @@
    "label": "Loan Classification Details"
   },
   {
+<<<<<<< HEAD
    "fetch_from": "loan_type.loan_category",
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category",
    "read_only": 1
+=======
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fieldname": "loan_charges",
+   "fieldtype": "Table",
+   "label": "Loan Charges",
+   "options": "Loan Disbursement Charge"
+  },
+  {
+   "fieldname": "loan_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Charges"
+>>>>>>> 106d2e8 (feat: Loan booking updates)
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 13:26:31.406754",
+ "modified": "2023-10-13 19:15:47.245190",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
