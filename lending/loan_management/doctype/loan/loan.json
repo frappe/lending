@@ -480,14 +480,6 @@
    "label": "Loan Classification Details"
   },
   {
-   "fetch_from": "loan_type.loan_category",
-   "fieldname": "loan_category",
-   "fieldtype": "Link",
-   "label": "Loan Category",
-   "options": "Loan Category",
-   "read_only": 1
-  },
-  {
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
