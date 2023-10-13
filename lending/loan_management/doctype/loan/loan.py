@@ -36,6 +36,7 @@ class Loan(AccountsController):
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
+		self.set_default_charge_account()
 
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
@@ -72,7 +73,10 @@ class Loan(AccountsController):
 				frappe.throw(_("Cost center is mandatory for loans having rate of interest greater than 0"))
 
 	def set_cyclic_date(self):
-		if self.repayment_schedule_type == "Monthly as per cycle date":
+		if (
+			self.repayment_schedule_type == "Monthly as per cycle date"
+			and self.repayment_frequency == "Monthly"
+		):
 			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
 				"Loan Product",
 				self.loan_product,
@@ -88,6 +92,20 @@ class Loan(AccountsController):
 				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
 
 			self.repayment_start_date = cyclic_date
+
+	def set_default_charge_account(self):
+		for charge in self.get("loan_charges"):
+			if not charge.account:
+				account = frappe.get_cached_value(
+					"Loan Charges", {"parent": self.loan_product, "charge_type": charge.charge}, "income_account"
+				)
+
+				if not account:
+					account = frappe.get_cached_value(
+						"Item Default", {"parent": charge.charge, "company": self.company}, "income_account"
+					)
+
+				charge.account = account
 
 	def on_submit(self):
 		self.link_loan_security_pledge()
@@ -150,6 +168,7 @@ class Loan(AccountsController):
 				"loan_product": self.loan_product,
 				"rate_of_interest": self.rate_of_interest,
 				"posting_date": self.posting_date,
+				"repayment_frequency": self.repayment_frequency,
 			}
 		).insert()
 
@@ -169,6 +188,7 @@ class Loan(AccountsController):
 					"posting_date": self.posting_date,
 					"loan_amount": self.loan_amount,
 					"monthly_repayment_amount": self.monthly_repayment_amount,
+					"repayment_frequency": self.repayment_frequency,
 				}
 			)
 			schedule.save()
@@ -389,16 +409,36 @@ def close_loan(loan, total_amount_paid):
 
 
 @frappe.whitelist()
-def make_loan_disbursement(loan, company, applicant_type, applicant, pending_amount=0, as_dict=0):
+def make_loan_disbursement(
+	loan,
+	disbursement_amount=0,
+	as_dict=0,
+	submit=0,
+	posting_date=None,
+	disbursement_date=None,
+	bank_account=None,
+):
+	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
-	disbursement_entry.against_loan = loan
-	disbursement_entry.applicant_type = applicant_type
-	disbursement_entry.applicant = applicant
-	disbursement_entry.company = company
-	disbursement_entry.disbursement_date = nowdate()
-	disbursement_entry.posting_date = nowdate()
+	disbursement_entry.against_loan = loan_doc.name
+	disbursement_entry.applicant_type = loan_doc.applicant_type
+	disbursement_entry.applicant = loan_doc.applicant
+	disbursement_entry.company = loan_doc.company
+	disbursement_entry.disbursement_date = posting_date or nowdate()
+	disbursement_entry.posting_date = disbursement_date or nowdate()
+	disbursement_entry.bank_account = bank_account
 
-	disbursement_entry.disbursed_amount = pending_amount
+	disbursement_entry.disbursed_amount = disbursement_amount
+
+	for charge in loan_doc.get("loan_charges"):
+		disbursement_entry.append(
+			"loan_disbursement_charges",
+			{"charge": charge.charge, "amount": charge.amount, "account": charge.account},
+		)
+
+	if submit:
+		disbursement_entry.submit()
+
 	if as_dict:
 		return disbursement_entry.as_dict()
 	else:
