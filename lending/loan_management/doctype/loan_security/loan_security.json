@@ -1,18 +1,43 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:loan_security_code",
  "creation": "2019-09-02 15:07:08.885593",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "loan_security_name",
-  "haircut",
+  "section_break_xfky",
   "loan_security_code",
+  "loan_security_name",
+  "loan_security_owner_type",
+  "status",
   "column_break_3",
   "loan_security_type",
+  "loan_security_owner",
+  "disabled",
+  "section_break_gvsp",
   "unit_of_measure",
-  "disabled"
+  "haircut",
+  "column_break_aegu",
+  "qty",
+  "loan_to_value_ratio",
+  "section_break_qwjv",
+  "original_security_price",
+  "original_post_haircut_value",
+  "column_break_zkmd",
+  "original_security_value",
+  "utilized_security_value",
+  "section_break_okqj",
+  "loan_security_parent_item_type",
+  "loan_security_parent_item",
+  "column_break_uvfm",
+  "loan_security_item_type",
+  "loan_security_item",
+  "section_break_qhsn",
+  "description",
+  "column_break_mpwb",
+  "released_at"
  ],
  "fields": [
   {
@@ -46,6 +71,7 @@
    "fieldname": "loan_security_code",
    "fieldtype": "Data",
    "label": "Loan Security Code",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -63,14 +89,154 @@
    "options": "UOM",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Quantity",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_gvsp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_aegu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "utilized_security_value",
+   "fieldtype": "Currency",
+   "label": "Utilized Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_security_type.loan_to_value_ratio",
+   "fetch_if_empty": 1,
+   "fieldname": "loan_to_value_ratio",
+   "fieldtype": "Percent",
+   "label": "Loan To Value Ratio"
+  },
+  {
+   "fieldname": "section_break_xfky",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Pending Hypothecation",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending Hypothecation\nHypothecated\nPending Release\nReleased\nPending Repossession\nRepossessed",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_qhsn",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_mpwb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_qwjv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_zkmd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.status == \"Released\"",
+   "fieldname": "released_at",
+   "fieldtype": "Datetime",
+   "label": "Released At",
+   "mandatory_depends_on": "eval:doc.status == \"Released\"",
+   "read_only": 1
+  },
+  {
+   "fieldname": "loan_security_owner_type",
+   "fieldtype": "Select",
+   "label": "Loan Security Owner Type",
+   "options": "\nEmployee\nMember\nCustomer\nCompany",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_security_owner",
+   "fieldtype": "Dynamic Link",
+   "label": "Loan Security Owner",
+   "options": "loan_security_owner_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_okqj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uvfm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loan_security_item_type",
+   "fieldtype": "Link",
+   "label": "Loan Security Item Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "loan_security_item",
+   "fieldtype": "Dynamic Link",
+   "label": "Loan Security Item",
+   "options": "loan_security_item_type"
+  },
+  {
+   "fieldname": "loan_security_parent_item_type",
+   "fieldtype": "Link",
+   "label": "Loan Security Parent Item Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "loan_security_parent_item",
+   "fieldtype": "Dynamic Link",
+   "label": "Loan Security Parent Item",
+   "options": "loan_security_parent_item_type"
+  },
+  {
+   "fieldname": "original_security_price",
+   "fieldtype": "Currency",
+   "label": "Original Security Price",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "original_post_haircut_value",
+   "fieldtype": "Currency",
+   "label": "Original Post Haircut Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "original_security_value",
+   "fieldtype": "Currency",
+   "label": "Original Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-26 07:34:48.601766",
+ "modified": "2023-10-15 22:19:10.220278",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -101,5 +267,6 @@
  "search_fields": "loan_security_code",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

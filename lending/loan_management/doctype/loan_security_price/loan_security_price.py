@@ -5,7 +5,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_datetime
+from frappe.utils import flt, get_datetime
 
 
 class LoanSecurityPrice(Document):
@@ -32,6 +32,31 @@ class LoanSecurityPrice(Document):
 
 		if existing_loan_security:
 			frappe.throw(_("Loan Security Price overlapping with {0}").format(existing_loan_security[0][0]))
+
+	def after_insert(self):
+		self.set_initial_loan_security_details()
+
+	def set_initial_loan_security_details(self):
+		if frappe.db.count("Loan Security Price", {"loan_security": self.loan_security}) > 1:
+			return
+
+		loan_security = frappe.db.get_value(
+			"Loan Security", self.loan_security, ["haircut", "qty"], as_dict=True
+		)
+
+		security_price = self.loan_security_price
+		security_value = loan_security.qty * security_price
+		post_haircut_value = flt(security_value - (security_value * loan_security.haircut / 100))
+
+		frappe.db.set_value(
+			"Loan Security",
+			self.loan_security,
+			{
+				"original_security_price": security_price,
+				"original_security_value": security_value,
+				"original_post_haircut_value": post_haircut_value,
+			},
+		)
 
 
 @frappe.whitelist()

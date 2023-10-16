@@ -15,6 +15,9 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 	get_last_accrual_date,
 	get_per_day_interest,
 )
+from lending.loan_management.doctype.loan_security.loan_security import (
+	update_utilized_loan_securities_value_of_loan,
+)
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
@@ -53,6 +56,8 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
 
+		update_utilized_loan_securities_value_of_loan(self.against_loan, self.amount_paid, decrease=True)
+
 		self.make_gl_entries()
 
 	def on_cancel(self):
@@ -67,6 +72,8 @@ class LoanRepayment(AccountsController):
 				)
 
 			frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
+
+		update_utilized_loan_securities_value_of_loan(self.against_loan, self.amount_paid, increase=True)
 
 		self.ignore_linked_doctypes = [
 			"GL Entry",

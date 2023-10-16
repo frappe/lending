@@ -10,6 +10,9 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_security.loan_security import (
+	update_utilized_loan_securities_value_of_loan,
+)
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -29,6 +32,9 @@ class LoanDisbursement(AccountsController):
 
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
+		update_utilized_loan_securities_value_of_loan(
+			self.against_loan, self.disbursed_amount, increase=True
+		)
 		self.make_gl_entries()
 
 	def update_repayment_schedule_status(self, cancel=0):
@@ -52,6 +58,9 @@ class LoanDisbursement(AccountsController):
 			self.update_repayment_schedule_status(cancel=1)
 
 		self.delete_security_deposit()
+		update_utilized_loan_securities_value_of_loan(
+			self.against_loan, self.disbursed_amount, decrease=True
+		)
 		self.set_status_and_amounts(cancel=1)
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
