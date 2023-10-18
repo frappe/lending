@@ -143,15 +143,17 @@ class LoanApplication(Document):
 		self.total_payable_amount = self.loan_amount + self.total_payable_interest
 
 	def set_loan_amount(self):
-		if self.is_secured_loan and not self.proposed_pledges:
+		if self.loan_security_preference != "Unsecured" and not self.proposed_pledges:
 			frappe.throw(_("Proposed Pledges are mandatory for secured Loans"))
 
-		if self.is_secured_loan and self.proposed_pledges:
+		if self.loan_security_preference != "Unsecured" and self.proposed_pledges:
 			self.maximum_loan_amount = 0
 			for security in self.proposed_pledges:
 				self.maximum_loan_amount += flt(security.post_haircut_amount)
 
-		if not self.loan_amount and self.is_secured_loan and self.proposed_pledges:
+		if (
+			not self.loan_amount and self.loan_security_preference != "Unsecured" and self.proposed_pledges
+		):
 			self.loan_amount = self.maximum_loan_amount
 
 
@@ -170,7 +172,7 @@ def create_loan(source_name, target_doc=None, submit=0):
 			filters={"name": source_doc.loan_product},
 		)[0]
 
-		if source_doc.is_secured_loan:
+		if source_doc.loan_security_preference != "Unsecured":
 			target_doc.maximum_loan_amount = 0
 
 		target_doc.mode_of_payment = account_details.mode_of_payment

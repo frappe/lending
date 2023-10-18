@@ -84,7 +84,10 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 			"disbursed_amount",
 			"status",
 		],
-		filters={"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1},
+		filters={
+			"status": ("in", ["Disbursed", "Partially Disbursed"]),
+			"loan_security_preference": ("in", ["Semi-secured", "Secured"]),
+		},
 	)
 
 	loan_shortfall_map = frappe._dict(

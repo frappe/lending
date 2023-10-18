@@ -17,7 +17,7 @@
   "loan_product",
   "is_term_loan",
   "loan_amount",
-  "is_secured_loan",
+  "loan_security_preference",
   "rate_of_interest",
   "column_break_7",
   "description",
@@ -178,19 +178,13 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_secured_loan",
-   "fieldtype": "Check",
-   "label": "Is Secured Loan"
-  },
-  {
-   "depends_on": "eval:doc.is_secured_loan == 1",
+   "depends_on": "eval:doc.loan_security_preference != \"Unsecured\"",
    "fieldname": "loan_security_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Security Details"
   },
   {
-   "depends_on": "eval:doc.is_secured_loan == 1",
+   "depends_on": "eval:doc.loan_security_preference != \"Unsecured\"",
    "fieldname": "proposed_pledges",
    "fieldtype": "Table",
    "label": "Proposed Pledges",
@@ -210,15 +204,23 @@
    "fieldtype": "Check",
    "label": "Is Term Loan",
    "read_only": 1
+  },
+  {
+   "default": "Unsecured",
+   "fieldname": "loan_security_preference",
+   "fieldtype": "Select",
+   "label": "Loan Security Preference",
+   "options": "Unsecured\nSemi-secured\nSecured"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:22.606618",
+ "modified": "2023-10-18 05:33:57.484668",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

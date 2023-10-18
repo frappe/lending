@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "creation": "2023-10-17 22:28:37.653463",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_security",
+  "trigger_doctype",
+  "trigger_document_docstatus",
+  "column_break_bohv",
+  "posting_date",
+  "trigger_document",
+  "section_break_ilvz",
+  "previous_utilized_security_value",
+  "previous_available_security_value",
+  "column_break_kgfk",
+  "new_utilized_security_value",
+  "new_available_security_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_security",
+   "fieldtype": "Link",
+   "label": "Loan Security",
+   "options": "Loan Security",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_utilized_security_value",
+   "fieldtype": "Currency",
+   "label": "Previous Utilized Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_utilized_security_value",
+   "fieldtype": "Currency",
+   "label": "New Utilized Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_available_security_value",
+   "fieldtype": "Currency",
+   "label": "Previous Available Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_kgfk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_available_security_value",
+   "fieldtype": "Currency",
+   "label": "New Available Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trigger_doctype",
+   "fieldtype": "Link",
+   "label": "Trigger DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trigger_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Trigger Document",
+   "options": "trigger_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trigger_document_docstatus",
+   "fieldtype": "Select",
+   "label": "Trigger Document Docstatus",
+   "options": "\n1\n2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bohv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ilvz",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-10-17 23:20:37.604195",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Security Utilized and Available Value Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

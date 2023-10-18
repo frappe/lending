@@ -7,8 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_security_type",
-  "unit_of_measure",
   "haircut",
+  "quantifiable",
+  "unit_of_measure",
   "column_break_5",
   "loan_to_value_ratio",
   "disabled"
@@ -35,12 +36,14 @@
    "label": "Haircut %"
   },
   {
+   "default": "Nos",
+   "depends_on": "eval:doc.quantifiable",
    "fieldname": "unit_of_measure",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Unit Of Measure",
-   "options": "UOM",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.quantifiable",
+   "options": "UOM"
   },
   {
    "fieldname": "column_break_5",
@@ -51,13 +54,20 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "default": "0",
+   "fieldname": "quantifiable",
+   "fieldtype": "Check",
+   "label": "Quantifiable"
   }
  ],
  "links": [],
- "modified": "2020-05-16 09:38:45.988080",
+ "modified": "2023-10-17 19:23:26.675506",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -88,5 +98,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

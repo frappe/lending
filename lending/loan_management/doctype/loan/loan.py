@@ -222,7 +222,7 @@ class Loan(AccountsController):
 			frappe.throw(_("Loan amount is mandatory"))
 
 	def link_loan_security_pledge(self):
-		if self.is_secured_loan and self.loan_application:
+		if self.loan_security_preference != "Unsecured" and self.loan_application:
 			maximum_loan_value = frappe.db.get_value(
 				"Loan Security Pledge",
 				{"loan_application": self.loan_application, "status": "Requested"},
@@ -370,13 +370,13 @@ def get_loan_application(loan_application):
 @frappe.whitelist()
 def close_unsecured_term_loan(loan):
 	loan_details = frappe.db.get_value(
-		"Loan", {"name": loan}, ["status", "is_term_loan", "is_secured_loan"], as_dict=1
+		"Loan", {"name": loan}, ["status", "is_term_loan", "loan_security_preference"], as_dict=1
 	)
 
 	if (
 		loan_details.status == "Loan Closure Requested"
 		and loan_details.is_term_loan
-		and not loan_details.is_secured_loan
+		and loan_details.loan_security_preference == "Unsecured"
 	):
 		frappe.db.set_value("Loan", loan, "status", "Closed")
 	else:

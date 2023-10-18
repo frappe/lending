@@ -11,7 +11,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_security.loan_security import (
-	update_utilized_loan_securities_value_of_loan,
+	update_utilized_loan_securities_values,
 )
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
@@ -32,9 +32,12 @@ class LoanDisbursement(AccountsController):
 
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
-		update_utilized_loan_securities_value_of_loan(
-			self.against_loan, self.disbursed_amount, increase=True
+
+		update_utilized_loan_securities_values(
+			self.against_loan, self.disbursed_amount, "Loan Disbursement", self.name, disbursement=True
 		)
+		set_status_of_loan_securities(self.against_loan)
+
 		self.make_gl_entries()
 
 	def update_repayment_schedule_status(self, cancel=0):
@@ -58,9 +61,15 @@ class LoanDisbursement(AccountsController):
 			self.update_repayment_schedule_status(cancel=1)
 
 		self.delete_security_deposit()
-		update_utilized_loan_securities_value_of_loan(
-			self.against_loan, self.disbursed_amount, decrease=True
+		update_utilized_loan_securities_values(
+			self.against_loan,
+			self.disbursed_amount,
+			"Loan Disbursement",
+			self.name,
+			disbursement=True,
+			on_trigger_doc_cancel=1,
 		)
+		set_status_of_loan_securities(self.against_loan, cancel=1)
 		self.set_status_and_amounts(cancel=1)
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
@@ -113,7 +122,7 @@ class LoanDisbursement(AccountsController):
 				"total_interest_payable",
 				"status",
 				"is_term_loan",
-				"is_secured_loan",
+				"loan_security_preference",
 			],
 			filters={"name": self.against_loan},
 		)[0]
@@ -346,14 +355,14 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 			"total_interest_payable",
 			"status",
 			"is_term_loan",
-			"is_secured_loan",
+			"loan_security_preference",
 			"maximum_loan_amount",
 			"written_off_amount",
 		],
 		as_dict=1,
 	)
 
-	if loan_details.is_secured_loan and frappe.get_all(
+	if loan_details.loan_security_preference != "Unsecured" and frappe.get_all(
 		"Loan Security Shortfall", filters={"loan": loan, "status": "Pending"}
 	):
 		return 0
@@ -361,13 +370,13 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 	pending_principal_amount = get_pending_principal_amount(loan_details)
 
 	security_value = 0.0
-	if loan_details.is_secured_loan and on_current_security_price:
+	if loan_details.loan_security_preference != "Unsecured" and on_current_security_price:
 		security_value = get_total_pledged_security_value(loan)
 
-	if loan_details.is_secured_loan and not on_current_security_price:
+	if loan_details.loan_security_preference != "Unsecured" and not on_current_security_price:
 		security_value = get_maximum_amount_as_per_pledged_security(loan)
 
-	if not security_value and not loan_details.is_secured_loan:
+	if not security_value and not loan_details.loan_security_preference != "Unsecured":
 		security_value = flt(loan_details.loan_amount)
 
 	disbursal_amount = flt(security_value) - flt(pending_principal_amount)
@@ -383,3 +392,24 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 def get_maximum_amount_as_per_pledged_security(loan):
 	return flt(frappe.db.get_value("Loan Security Pledge", {"loan": loan}, "sum(maximum_loan_value)"))
+
+
+def set_status_of_loan_securities(loan, cancel=0):
+	if not cancel:
+		new_status = "Hypothecated"
+		old_status = "Pending Hypothecation"
+	else:
+		new_status = "Pending Hypothecation"
+		old_status = "Hypothecated"
+
+	frappe.db.sql(
+		"""
+		UPDATE `tabLoan Security`
+		JOIN `tabPledge` ON `tabPledge`.`loan_security`=`tabLoan Security`.`name`
+		JOIN `tabLoan Security Pledge` ON `tabLoan Security Pledge`.`name`=`tabPledge`.`parent`
+		JOIN `tabLoan` ON `tabLoan`.`name`=`tabLoan Security Pledge`.`loan`
+		SET `tabLoan Security`.`status`=%s
+		WHERE `tabLoan`.`name`=%s AND `tabLoan Security`.`status`=%s
+	""",
+		(new_status, loan, old_status),
+	)

@@ -20,13 +20,13 @@ class LoanSecurityPledge(Document):
 		self.set_pledge_amount()
 		self.validate_duplicate_securities()
 		self.validate_loan_security_type()
+		self.validate_loan_security_quantities()
 		self.validate_utilized_loan_securities_values()
 
 	def on_submit(self):
 		if self.loan:
 			self.db_set("status", "Pledged")
 			self.db_set("pledge_time", now_datetime())
-			self.update_loan_securities_status()
 			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
 
@@ -34,7 +34,6 @@ class LoanSecurityPledge(Document):
 		if self.loan:
 			self.db_set("status", "Cancelled")
 			self.db_set("pledge_time", None)
-			self.update_loan_securities_status(cancel=1)
 			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
 	def validate_duplicate_securities(self):
@@ -71,6 +70,16 @@ class LoanSecurityPledge(Document):
 		for security in self.securities:
 			if ltv_ratio_map.get(security.loan_security_type) != ltv_ratio:
 				frappe.throw(_("Loan Securities with different LTV ratio cannot be pledged against one loan"))
+
+	def validate_loan_security_quantities(self):
+		for security in self.securities:
+			if not security.quantifiable and security.qty != 1:
+				frappe.throw(
+					_("Row {0}: {1}'s quantity needs to be set to 1").format(
+						security.idx,
+						frappe.bold(security.loan_security),
+					)
+				)
 
 	def validate_utilized_loan_securities_values(self):
 		if not self.loan:
@@ -119,14 +128,6 @@ class LoanSecurityPledge(Document):
 		self.total_security_value = total_security_value
 		self.maximum_loan_value = maximum_loan_value
 
-	def update_loan_securities_status(self, cancel=0):
-		if not cancel:
-			for pledge in self.securities:
-				frappe.db.set_value("Loan Security", pledge.loan_security, "status", "Hypothecated")
-		else:
-			for pledge in self.securities:
-				frappe.db.set_value("Loan Security", pledge.loan_security, "status", "Pending Hypothecation")
-
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):
 	maximum_loan_value = frappe.db.get_value("Loan", {"name": loan}, ["maximum_loan_amount"])
@@ -139,7 +140,7 @@ def update_loan(loan, maximum_value_against_pledge, cancel=0):
 		)
 	else:
 		frappe.db.sql(
-			""" UPDATE `tabLoan` SET maximum_loan_amount=%s, is_secured_loan=1
+			""" UPDATE `tabLoan` SET maximum_loan_amount=%s, loan_security_preference="Secured"
 			WHERE name=%s""",
 			(maximum_loan_value + maximum_value_against_pledge, loan),
 		)

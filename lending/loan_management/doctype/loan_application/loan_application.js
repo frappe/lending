@@ -38,7 +38,7 @@ frappe.ui.form.on('Loan Application', {
 	add_toolbar_buttons: function(frm) {
 		if (frm.doc.status == "Approved") {
 
-			if (frm.doc.is_secured_loan) {
+			if (frm.doc.loan_security_preference !== "Unsecured") {
 				frappe.db.get_value("Loan Security Pledge", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
 					if (Object.keys(r).length === 0) {
 						frm.add_custom_button(__('Loan Security Pledge'), function() {
@@ -71,7 +71,7 @@ frappe.ui.form.on('Loan Application', {
 	},
 	create_loan_security_pledge: function(frm) {
 
-		if(!frm.doc.is_secured_loan) {
+		if(frm.doc.loan_security_preference === "Unsecured") {
 			frappe.throw(__("Loan Security Pledge can only be created for secured loans"));
 		}
 
@@ -89,8 +89,12 @@ frappe.ui.form.on('Loan Application', {
 		frm.set_df_property('repayment_method', 'hidden', 1 - frm.doc.is_term_loan);
 		frm.set_df_property('repayment_method', 'reqd', frm.doc.is_term_loan);
 	},
-	is_secured_loan: function(frm) {
-		frm.set_df_property('proposed_pledges', 'reqd', frm.doc.is_secured_loan);
+	loan_security_preference: function(frm) {
+		if (frm.doc.loan_security_preference === "Unsecured") {
+			frm.set_df_property('proposed_pledges', 'reqd', 0);
+		} else {
+			frm.set_df_property('proposed_pledges', 'reqd', 1);
+		}
 	},
 
 	calculate_amounts: function(frm, cdt, cdn) {

@@ -16,7 +16,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 	get_per_day_interest,
 )
 from lending.loan_management.doctype.loan_security.loan_security import (
-	update_utilized_loan_securities_value_of_loan,
+	update_utilized_loan_securities_values,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
@@ -56,7 +56,9 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
 
-		update_utilized_loan_securities_value_of_loan(self.against_loan, self.amount_paid, decrease=True)
+		update_utilized_loan_securities_values(
+			self.against_loan, self.amount_paid, "Loan Repayment", self.name, repayment=True
+		)
 
 		self.make_gl_entries()
 
@@ -73,8 +75,14 @@ class LoanRepayment(AccountsController):
 
 			frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
-		update_utilized_loan_securities_value_of_loan(self.against_loan, self.amount_paid, increase=True)
-
+		update_utilized_loan_securities_values(
+			self.against_loan,
+			self.amount_paid,
+			"Loan Repayment",
+			self.name,
+			repayment=True,
+			on_trigger_doc_cancel=1,
+		)
 		self.ignore_linked_doctypes = [
 			"GL Entry",
 			"Payment Ledger Entry",
@@ -249,7 +257,7 @@ class LoanRepayment(AccountsController):
 				"total_amount_paid",
 				"total_principal_paid",
 				"status",
-				"is_secured_loan",
+				"loan_security_preference",
 				"total_payment",
 				"debit_adjustment_amount",
 				"credit_adjustment_amount",
@@ -270,7 +278,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		pending_principal_amount = get_pending_principal_amount(loan)
-		if not loan.is_secured_loan and pending_principal_amount <= 0:
+		if loan.loan_security_preference == "Unsecured" and pending_principal_amount <= 0:
 			loan.update({"status": "Loan Closure Requested"})
 
 		for payment in self.repayment_details:
@@ -304,7 +312,7 @@ class LoanRepayment(AccountsController):
 				"total_amount_paid",
 				"total_principal_paid",
 				"status",
-				"is_secured_loan",
+				"loan_security_preference",
 				"total_payment",
 				"loan_amount",
 				"disbursed_amount",

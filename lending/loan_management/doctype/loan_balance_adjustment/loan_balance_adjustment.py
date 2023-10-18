@@ -66,7 +66,7 @@ class LoanBalanceAdjustment(AccountsController):
 				"total_interest_payable",
 				"status",
 				"is_term_loan",
-				"is_secured_loan",
+				"loan_security_preference",
 			],
 			as_dict=1,
 		)

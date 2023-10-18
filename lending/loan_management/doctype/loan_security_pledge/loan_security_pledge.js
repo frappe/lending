@@ -5,13 +5,16 @@ frappe.ui.form.on('Loan Security Pledge', {
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
-		frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut/100)));
+
+		if (row.quantifiable) {
+			frappe.model.set_value(cdt, cdn, 'available_security_value', cint(row.qty);
+		}
 
 		let amount = 0;
 		let maximum_amount = 0;
 		$.each(frm.doc.securities || [], function(i, item){
 			amount += item.amount;
-			maximum_amount += item.post_haircut_amount;
+			maximum_amount += item.available_security_value;
 		});
 
 		frm.set_value('total_security_value', amount);

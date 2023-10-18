@@ -8,14 +8,14 @@
   "loan_security",
   "loan_security_name",
   "loan_security_type",
-  "loan_security_code",
   "uom",
-  "column_break_5",
   "qty",
+  "quantifiable",
+  "column_break_5",
   "haircut",
   "loan_security_price",
   "amount",
-  "post_haircut_amount"
+  "available_security_value"
  ],
  "fields": [
   {
@@ -35,26 +35,21 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan_security.loan_security_code",
-   "fieldname": "loan_security_code",
-   "fieldtype": "Data",
-   "label": "Loan Security Code"
-  },
-  {
    "fetch_from": "loan_security.unit_of_measure",
    "fieldname": "uom",
    "fieldtype": "Link",
    "label": "UOM",
-   "options": "UOM"
+   "options": "UOM",
+   "read_only": 1
   },
   {
-   "fetch_from": "loan_security.qty",
+   "fetch_from": "loan_security.quantity",
+   "fetch_if_empty": 1,
    "fieldname": "qty",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Quantity",
-   "non_negative": 1,
-   "read_only": 1
+   "non_negative": 1
   },
   {
    "fieldname": "loan_security_price",
@@ -84,23 +79,33 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "post_haircut_amount",
-   "fieldtype": "Currency",
-   "label": "Post Haircut Amount",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
    "fetch_from": "loan_security.loan_security_name",
    "fieldname": "loan_security_name",
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_security.quantifiable",
+   "fieldname": "quantifiable",
+   "fieldtype": "Check",
+   "label": "Quantifiable",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_security.available_security_value",
+   "fetch_if_empty": 1,
+   "fieldname": "available_security_value",
+   "fieldtype": "Currency",
+   "label": "Available Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-10-15 21:44:42.119464",
+ "modified": "2023-10-18 19:23:32.236784",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Pledge",

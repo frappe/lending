@@ -109,8 +109,18 @@ class TestLoan(unittest.TestCase):
 			"Penalty Income Account - _TC",
 		)
 
+		if not frappe.db.exists("Customer", "_Test Loan Customer"):
+			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
+			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
+
+		self.applicant1 = make_employee("robert_loan@loan.com")
+		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
+
 		create_loan_security_type()
-		create_loan_security()
+		create_loan_security(self.applicant2)
 
 		create_loan_security_price(
 			"Test Security 1", 500, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
@@ -118,16 +128,6 @@ class TestLoan(unittest.TestCase):
 		create_loan_security_price(
 			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
 		)
-
-		self.applicant1 = make_employee("robert_loan@loan.com")
-		if not frappe.db.exists("Customer", "_Test Loan Customer"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
-
-		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
-
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
-		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
 
 	def test_loan(self):
 		loan = create_loan(self.applicant1, "Personal Loan", 280000, "Repay Over Number of Periods", 20)
@@ -1114,11 +1114,12 @@ def create_loan_security_type():
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
 				"loan_to_value_ratio": 50,
+				"quantifiable": 1,
 			}
 		).insert(ignore_permissions=True)
 
 
-def create_loan_security():
+def create_loan_security(applicant):
 	if not frappe.db.exists("Loan Security", "Test Security 1"):
 		frappe.get_doc(
 			{
@@ -1128,6 +1129,10 @@ def create_loan_security():
 				"loan_security_name": "Test Security 1",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_security_owner_type": "Customer",
+				"loan_security_owner": applicant,
+				"quantity": 5,
+				"original_security_price": 100,
 			}
 		).insert(ignore_permissions=True)
 
@@ -1140,6 +1145,10 @@ def create_loan_security():
 				"loan_security_name": "Test Security 2",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_security_owner_type": "Customer",
+				"loan_security_owner": applicant,
+				"quantity": 5,
+				"original_security_price": 100,
 			}
 		).insert(ignore_permissions=True)
 
@@ -1236,7 +1245,7 @@ def create_loan_application(
 	loan_application.applicant = applicant
 	loan_application.loan_product = loan_product
 	loan_application.posting_date = posting_date or nowdate()
-	loan_application.is_secured_loan = 1
+	loan_application.loan_security_preference = "Secured"
 
 	if repayment_method:
 		loan_application.repayment_method = repayment_method
@@ -1306,7 +1315,7 @@ def create_loan_with_security(
 			"applicant": applicant,
 			"loan_product": loan_product,
 			"is_term_loan": 1,
-			"is_secured_loan": 1,
+			"loan_security_preference": "Secured",
 			"repayment_method": repayment_method,
 			"repayment_periods": repayment_periods,
 			"repayment_start_date": repayment_start_date or nowdate(),
@@ -1335,7 +1344,7 @@ def create_demand_loan(applicant, loan_product, loan_application, posting_date=N
 			"applicant": applicant,
 			"loan_product": loan_product,
 			"is_term_loan": 0,
-			"is_secured_loan": 1,
+			"loan_security_preference": "Secured",
 			"mode_of_payment": frappe.db.get_value("Mode of Payment", {"type": "Cash"}, "name"),
 			"payment_account": "Payment Account - _TC",
 			"loan_account": "Loan Account - _TC",
