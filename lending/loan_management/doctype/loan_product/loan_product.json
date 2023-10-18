@@ -286,21 +286,12 @@
    "options": "Account"
   },
   {
-<<<<<<< HEAD
-   "fieldname": "charges_waiver_item",
-   "fieldtype": "Link",
-   "label": "Charges Waiver Item",
-   "options": "Item"
-  },
-  {
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
   },
   {
-=======
->>>>>>> 2249c9a (feat: Add missing account types to loan product)
    "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
    "description": "Day of every month on which the repayment date is considered",
    "fieldname": "cyclic_day_of_the_month",
