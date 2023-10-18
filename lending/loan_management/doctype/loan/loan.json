@@ -480,14 +480,14 @@
    "label": "Loan Classification Details"
   },
   {
-<<<<<<< HEAD
    "fetch_from": "loan_type.loan_category",
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category",
    "read_only": 1
-=======
+  },
+  {
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
@@ -503,7 +503,6 @@
    "fieldname": "loan_charges_section",
    "fieldtype": "Section Break",
    "label": "Loan Charges"
->>>>>>> 106d2e8 (feat: Loan booking updates)
   }
  ],
  "index_web_pages_for_search": 1,
