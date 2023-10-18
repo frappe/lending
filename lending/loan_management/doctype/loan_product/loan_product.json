@@ -35,25 +35,39 @@
   "mode_of_payment",
   "disbursement_account",
   "payment_account",
-  "suspense_interest_receivable",
-  "suspense_interest_income",
-  "suspense_collection_account",
   "column_break_12",
   "loan_account",
-  "interest_income_account",
-  "interest_receivable_account",
-  "penalty_receivable_account",
-  "charges_receivable_account",
-  "penalty_income_account",
   "security_deposit_account",
-  "loan_waiver_accounts_section",
-  "principal_waiver_account",
+  "suspense_collection_account",
+  "interest_accounts_section",
+  "interest_income_account",
+  "interest_accrued_account",
   "interest_waiver_account",
-  "column_break_amrb",
+  "broken_period_interest_recovery_account",
+  "column_break_nuqr",
+  "interest_receivable_account",
+  "suspense_interest_income",
+  "suspense_interest_receivable",
+  "additional_interest_accounts_section",
+  "same_as_regular_interest_accounts",
+  "additional_interest_income",
+  "additional_interest_accrued",
+  "column_break_tszr",
+  "additional_interest_receivable",
+  "additional_interest_suspense",
+  "additional_interest_waiver",
+  "penalty_charges_accounts_section",
+  "penalty_income_account",
+  "penalty_accrued_account",
   "penalty_waiver_account",
-  "charges_waiver_account",
+  "column_break_zslc",
+  "penalty_receivable_account",
+  "penalty_suspense_account",
+  "write_off_accounts_section",
+  "write_off_account",
+  "column_break_ehnt",
+  "write_off_recovery_account",
   "section_break_ia6s",
-  "charges_waiver_item",
   "loan_charges",
   "amended_from"
  ],
@@ -88,9 +102,10 @@
    "label": "Description"
   },
   {
+   "collapsible": 1,
    "fieldname": "account_details_section",
    "fieldtype": "Section Break",
-   "label": "Loan Account Details"
+   "label": "Loan Accounts"
   },
   {
    "fieldname": "mode_of_payment",
@@ -210,36 +225,15 @@
    "non_negative": 1
   },
   {
-   "fieldname": "loan_waiver_accounts_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Waiver Accounts"
-  },
-  {
-   "fieldname": "principal_waiver_account",
-   "fieldtype": "Link",
-   "label": "Principal Waiver Account",
-   "options": "Account"
-  },
-  {
    "fieldname": "interest_waiver_account",
    "fieldtype": "Link",
    "label": "Interest Waiver Account",
    "options": "Account"
   },
   {
-   "fieldname": "column_break_amrb",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "penalty_waiver_account",
    "fieldtype": "Link",
    "label": "Penalty Waiver Account",
-   "options": "Account"
-  },
-  {
-   "fieldname": "charges_waiver_account",
-   "fieldtype": "Link",
-   "label": "Charges Waiver Account",
    "options": "Account"
   },
   {
@@ -275,13 +269,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "charges_receivable_account",
-   "fieldtype": "Link",
-   "label": "Charges Receivable Account",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
    "fieldname": "section_break_ia6s",
    "fieldtype": "Section Break"
   },
@@ -297,12 +284,6 @@
    "fieldtype": "Link",
    "label": "Security Deposit Account",
    "options": "Account"
-  },
-  {
-   "fieldname": "charges_waiver_item",
-   "fieldtype": "Link",
-   "label": "Charges Waiver Item",
-   "options": "Item"
   },
   {
    "fieldname": "loan_category",
@@ -385,11 +366,124 @@
    "label": "Minimum days between Disbursement date and first Repayment date",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "interest_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Interest Accounts"
+  },
+  {
+   "fieldname": "interest_accrued_account",
+   "fieldtype": "Link",
+   "label": "Interest Accrued Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "broken_period_interest_recovery_account",
+   "fieldtype": "Link",
+   "label": "Broken Period Interest Recovery Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_nuqr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "additional_interest_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Interest Accounts "
+  },
+  {
+   "default": "0",
+   "fieldname": "same_as_regular_interest_accounts",
+   "fieldtype": "Check",
+   "label": "Same as regular interest accounts"
+  },
+  {
+   "fieldname": "additional_interest_income",
+   "fieldtype": "Link",
+   "label": "Additional Interest Income",
+   "options": "Account"
+  },
+  {
+   "fieldname": "additional_interest_accrued",
+   "fieldtype": "Link",
+   "label": "Additional Interest Accrued",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_tszr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "additional_interest_receivable",
+   "fieldtype": "Link",
+   "label": "Additional Interest Receivable",
+   "options": "Account"
+  },
+  {
+   "fieldname": "additional_interest_suspense",
+   "fieldtype": "Link",
+   "label": "Additional Interest Suspense",
+   "options": "Account"
+  },
+  {
+   "fieldname": "additional_interest_waiver",
+   "fieldtype": "Link",
+   "label": "Additional Interest Waiver",
+   "options": "Account"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "penalty_charges_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Penalty Charges Accounts"
+  },
+  {
+   "fieldname": "penalty_accrued_account",
+   "fieldtype": "Link",
+   "label": "Penalty Accrued Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_zslc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "penalty_suspense_account",
+   "fieldtype": "Link",
+   "label": "Penalty Suspense Account",
+   "options": "Account"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "write_off_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Write Off Accounts"
+  },
+  {
+   "fieldname": "write_off_account",
+   "fieldtype": "Link",
+   "label": "Write Off Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_ehnt",
+   "fieldtype": "Column Break",
+   "options": "Account"
+  },
+  {
+   "fieldname": "write_off_recovery_account",
+   "fieldtype": "Link",
+   "label": "Write Off Recovery Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-12 13:35:48.346212",
+ "modified": "2023-10-18 18:32:08.421781",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
