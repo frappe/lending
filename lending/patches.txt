@@ -28,7 +28,12 @@ lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
 lending.patches.v15_0.update_penalty_interest_method_in_loan_products
 lending.patches.v15_0.update_min_bpi_application_days
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
 #execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 >>>>>>> ea3c9d7 (feat: Assign multiple securities to one loan)
+=======
+execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
+execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
+>>>>>>> 0a5ca09 (chore: Uncomment patch)
