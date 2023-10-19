@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "creation": "2023-10-19 01:20:27.384150",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_collateral",
+  "trigger_doctype",
+  "trigger_document_docstatus",
+  "column_break_hime",
+  "posting_date",
+  "trigger_document",
+  "section_break_roay",
+  "previous_utilized_collateral_value",
+  "previous_available_collateral_value",
+  "column_break_nkjt",
+  "new_utilized_collateral_value",
+  "new_available_collateral_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_collateral",
+   "fieldtype": "Link",
+   "label": "Loan Collateral",
+   "options": "Loan Collateral"
+  },
+  {
+   "fieldname": "trigger_doctype",
+   "fieldtype": "Link",
+   "label": "Trigger DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "trigger_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Trigger Document",
+   "options": "trigger_doctype"
+  },
+  {
+   "fieldname": "trigger_document_docstatus",
+   "fieldtype": "Int",
+   "label": "Trigger Document Docstatus"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "column_break_hime",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_roay",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_nkjt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_utilized_collateral_value",
+   "fieldtype": "Currency",
+   "label": "Previous Utilized Collateral Value",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "previous_available_collateral_value",
+   "fieldtype": "Currency",
+   "label": "Previous Available Collateral Value",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "new_utilized_collateral_value",
+   "fieldtype": "Currency",
+   "label": "New Utilized Collateral Value",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "new_available_collateral_value",
+   "fieldtype": "Currency",
+   "label": "New Available Collateral Value",
+   "options": "Company:company:default_currency"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-10-19 01:27:42.731347",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Collateral Values Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

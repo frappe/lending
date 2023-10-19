@@ -89,9 +89,6 @@ frappe.ui.form.on('Loan Application', {
 		frm.set_df_property('repayment_method', 'hidden', 1 - frm.doc.is_term_loan);
 		frm.set_df_property('repayment_method', 'reqd', frm.doc.is_term_loan);
 	},
-	is_secured_loan: function(frm) {
-		frm.set_df_property('proposed_pledges', 'reqd', frm.doc.is_secured_loan);
-	},
 
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];

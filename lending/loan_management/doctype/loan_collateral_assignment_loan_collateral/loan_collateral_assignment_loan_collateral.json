@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-10-19 00:40:53.780767",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_collateral",
+  "loan_collateral_name",
+  "available_collateral_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_collateral",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Collateral",
+   "options": "Loan Collateral",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "loan_collateral.collateral_name",
+   "fieldname": "loan_collateral_name",
+   "fieldtype": "Data",
+   "label": "Loan Collateral Name"
+  },
+  {
+   "fetch_from": "loan_collateral.available_collateral_value",
+   "fieldname": "available_collateral_value",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Available Collateral Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-10-19 00:46:05.909347",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Collateral Assignment Loan Collateral",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

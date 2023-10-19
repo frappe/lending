@@ -10,23 +10,31 @@ from frappe.utils import flt, get_datetime, getdate
 
 class LoanSecurityUnpledge(Document):
 	def validate(self):
-		self.validate_duplicate_securities()
+		self.validate_duplicate_securities_and_collaterals()
 		self.validate_unpledge_qty()
+		self.validate_unpledge_loan_collaterals()
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
 		self.db_set("status", "Requested")
 
-	def validate_duplicate_securities(self):
+	def validate_duplicate_securities_and_collaterals(self):
 		security_list = []
-		for d in self.securities:
-			if d.loan_security not in security_list:
-				security_list.append(d.loan_security)
+		for security in self.securities:
+			if security.loan_security not in security_list:
+				security_list.append(security.loan_security)
 			else:
 				frappe.throw(
-					_("Row {0}: Loan Security {1} added multiple times").format(
-						d.idx, frappe.bold(d.loan_security)
-					)
+					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
+				)
+
+		collateral_list = []
+		for collateral in self.collaterals:
+			if collateral.loan_collateral not in collateral_list:
+				collateral_list.append(collateral.loan_collateral)
+			else:
+				frappe.throw(
+					_("Loan Collateral {0} added multiple times").format(frappe.bold(collateral.loan_collateral))
 				)
 
 	def validate_unpledge_qty(self):
@@ -36,6 +44,9 @@ class LoanSecurityUnpledge(Document):
 		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 			get_ltv_ratio,
 		)
+
+		if self.collateral_type != "Loan Security":
+			return
 
 		pledge_qty_map = get_pledged_security_qty(self.loan)
 
@@ -114,6 +125,37 @@ class LoanSecurityUnpledge(Document):
 		msg += "<br>"
 		msg += _("Loan To Security Value ratio must always be {0}").format(frappe.bold(ltv_ratio))
 		frappe.throw(msg, title=_("Loan To Value ratio breach"))
+
+	def validate_unpledge_loan_collaterals(self):
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+			get_pending_principal_amount,
+		)
+
+		if self.collateral_type != "Loan Collateral":
+			return
+
+		loan_details = frappe.get_value(
+			"Loan",
+			self.loan,
+			[
+				"total_payment",
+				"debit_adjustment_amount",
+				"credit_adjustment_amount",
+				"refund_amount",
+				"total_principal_paid",
+				"loan_amount",
+				"total_interest_payable",
+				"written_off_amount",
+				"disbursed_amount",
+				"status",
+			],
+			as_dict=1,
+		)
+
+		pending_principal_amount = get_pending_principal_amount(loan_details)
+
+		if flt(pending_principal_amount, 2) > 0:
+			frappe.throw(_("Loan Collaterals cannot be unpledged since there is pending principal amount."))
 
 	def on_update_after_submit(self):
 		self.approve()

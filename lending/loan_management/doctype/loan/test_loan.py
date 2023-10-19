@@ -1237,6 +1237,7 @@ def create_loan_application(
 	loan_application.loan_product = loan_product
 	loan_application.posting_date = posting_date or nowdate()
 	loan_application.is_secured_loan = 1
+	loan_application.collateral_type = "Loan Security"
 
 	if repayment_method:
 		loan_application.repayment_method = repayment_method
@@ -1307,6 +1308,7 @@ def create_loan_with_security(
 			"loan_product": loan_product,
 			"is_term_loan": 1,
 			"is_secured_loan": 1,
+			"collateral_type": "Loan Security",
 			"repayment_method": repayment_method,
 			"repayment_periods": repayment_periods,
 			"repayment_start_date": repayment_start_date or nowdate(),
@@ -1336,6 +1338,7 @@ def create_demand_loan(applicant, loan_product, loan_application, posting_date=N
 			"loan_product": loan_product,
 			"is_term_loan": 0,
 			"is_secured_loan": 1,
+			"collateral_type": "Loan Security",
 			"mode_of_payment": frappe.db.get_value("Mode of Payment", {"type": "Cash"}, "name"),
 			"payment_account": "Payment Account - _TC",
 			"loan_account": "Loan Account - _TC",

@@ -17,9 +17,18 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 class LoanSecurityPledge(Document):
 	def validate(self):
+		self.set_missing_values()
 		self.set_pledge_amount()
-		self.validate_duplicate_securities()
+		self.validate_duplicate_securities_and_collaterals()
+		self.validate_loan_collaterals()
 		self.validate_loan_security_type()
+
+	def set_missing_values(self):
+		if not self.collateral_type:
+			if self.loan:
+				self.collateral_type = frappe.db.get_value("Loan", self.loan, "collateral_type")
+			elif self.loan_application:
+				self.collateral_type = frappe.db.get_value("Loan", self.loan_application, "collateral_type")
 
 	def on_submit(self):
 		if self.loan:
@@ -34,7 +43,21 @@ class LoanSecurityPledge(Document):
 			self.db_set("pledge_time", None)
 			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
-	def validate_duplicate_securities(self):
+	def validate_loan_collaterals(self):
+		for collateral in self.collaterals:
+			status, loan_applicant = frappe.db.get_value(
+				"Loan Collateral", collateral, ["status", "loan_applicant"]
+			)
+			if status in ["Released", "Repossessed"]:
+				frappe.throw(
+					_("Row {0}: released or repossessed collateral cannot be hypothecated").format(collateral.idx)
+				)
+			if loan_applicant != self.applicant:
+				frappe.throw(
+					_("Row {0}: collateral applicant does not match loan applicant").format(collateral.idx)
+				)
+
+	def validate_duplicate_securities_and_collaterals(self):
 		security_list = []
 		for security in self.securities:
 			if security.loan_security not in security_list:
@@ -44,7 +67,19 @@ class LoanSecurityPledge(Document):
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
 
+		collateral_list = []
+		for collateral in self.collaterals:
+			if collateral.loan_collateral not in collateral_list:
+				collateral_list.append(collateral.loan_collateral)
+			else:
+				frappe.throw(
+					_("Loan Collateral {0} added multiple times").format(frappe.bold(collateral.loan_collateral))
+				)
+
 	def validate_loan_security_type(self):
+		if not self.collateral_type == "Loan Security":
+			return
+
 		existing_pledge = ""
 
 		if self.loan:
@@ -73,22 +108,26 @@ class LoanSecurityPledge(Document):
 		total_security_value = 0
 		maximum_loan_value = 0
 
-		for pledge in self.securities:
+		if self.collateral_type == "Loan Security":
+			for pledge in self.securities:
+				if not pledge.qty and not pledge.amount:
+					frappe.throw(_("Qty or Amount is mandatory for loan security!"))
 
-			if not pledge.qty and not pledge.amount:
-				frappe.throw(_("Qty or Amount is mandatory for loan security!"))
+				if not (self.loan_application and pledge.loan_security_price):
+					pledge.loan_security_price = get_loan_security_price(pledge.loan_security)
 
-			if not (self.loan_application and pledge.loan_security_price):
-				pledge.loan_security_price = get_loan_security_price(pledge.loan_security)
+				if not pledge.qty:
+					pledge.qty = cint(pledge.amount / pledge.loan_security_price)
 
-			if not pledge.qty:
-				pledge.qty = cint(pledge.amount / pledge.loan_security_price)
+				pledge.amount = pledge.qty * pledge.loan_security_price
+				pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * pledge.haircut / 100))
 
-			pledge.amount = pledge.qty * pledge.loan_security_price
-			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * pledge.haircut / 100))
-
-			total_security_value += pledge.amount
-			maximum_loan_value += pledge.post_haircut_amount
+				total_security_value += pledge.amount
+				maximum_loan_value += pledge.post_haircut_amount
+		else:
+			for collateral in self.collaterals:
+				total_security_value += collateral.available_collateral_value
+			maximum_loan_value = total_security_value
 
 		self.total_security_value = total_security_value
 		self.maximum_loan_value = maximum_loan_value

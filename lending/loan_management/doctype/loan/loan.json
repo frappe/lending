@@ -23,6 +23,7 @@
   "loan_amount",
   "rate_of_interest",
   "is_secured_loan",
+  "collateral_type",
   "disbursement_date",
   "closure_date",
   "disbursed_amount",
@@ -474,12 +475,20 @@
    "fieldname": "loan_classification_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Classification Details"
+  },
+  {
+   "depends_on": "eval:doc.is_secured_loan",
+   "fieldname": "collateral_type",
+   "fieldtype": "Select",
+   "label": "Collateral Type",
+   "mandatory_depends_on": "eval:doc.is_secured_loan",
+   "options": "\nLoan Security\nLoan Collateral"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 13:26:31.406754",
+ "modified": "2023-10-19 05:37:08.804432",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

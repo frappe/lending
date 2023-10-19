@@ -11,6 +11,9 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan.loan import update_all_linked_loan_customer_npa_status
+from lending.loan_management.doctype.loan_collateral.loan_collateral import (
+	update_loan_collaterals_values,
+)
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_last_accrual_date,
 	get_per_day_interest,
@@ -53,6 +56,10 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
 
+		update_loan_collaterals_values(
+			self.against_loan, self.amount_paid, "Loan Repayment", self.name, repayment=True
+		)
+
 		self.make_gl_entries()
 
 	def on_cancel(self):
@@ -67,6 +74,15 @@ class LoanRepayment(AccountsController):
 				)
 
 			frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
+
+		update_loan_collaterals_values(
+			self.against_loan,
+			self.amount_paid,
+			"Loan Repayment",
+			self.name,
+			repayment=True,
+			on_trigger_doc_cancel=1,
+		)
 
 		self.ignore_linked_doctypes = [
 			"GL Entry",

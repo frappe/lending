@@ -10,12 +10,15 @@
   "loan",
   "applicant_type",
   "applicant",
+  "collateral_type",
   "column_break_3",
   "company",
   "unpledge_time",
   "status",
   "loan_security_details_section",
   "securities",
+  "loan_collateral_details_section",
+  "collaterals",
   "more_information_section",
   "reference_no",
   "column_break_13",
@@ -65,6 +68,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
    "fieldname": "loan_security_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Security Details"
@@ -79,11 +83,12 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
    "fieldname": "securities",
    "fieldtype": "Table",
    "label": "Securities",
-   "options": "Unpledge",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Security\"",
+   "options": "Unpledge"
   },
   {
    "fieldname": "company",
@@ -121,15 +126,39 @@
    "fieldname": "description",
    "fieldtype": "Text",
    "label": "Description"
+  },
+  {
+   "fetch_from": "loan.collateral_type",
+   "fieldname": "collateral_type",
+   "fieldtype": "Select",
+   "label": "Collateral Type",
+   "options": "\nLoan Security\nLoan Collateral",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "fieldname": "loan_collateral_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Collateral Details"
+  },
+  {
+   "depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "fieldname": "collaterals",
+   "fieldtype": "Table",
+   "label": "Collaterals",
+   "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "options": "Loan Collateral Deassignment Loan Collateral"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-19 18:12:01.401744",
+ "modified": "2023-10-19 05:41:14.454180",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Unpledge",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -179,5 +208,6 @@
  "search_fields": "applicant",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -27,3 +27,4 @@ lending.patches.v15_0.migrate_loan_type_to_loan_product
 lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
 lending.patches.v15_0.update_penalty_interest_method_in_loan_products
 lending.patches.v15_0.update_min_bpi_application_days
+lending.patches.v15_0.set_collateral_type

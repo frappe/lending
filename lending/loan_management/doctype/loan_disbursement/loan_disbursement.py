@@ -10,6 +10,10 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_collateral.loan_collateral import (
+	check_loan_collaterals_availability,
+	update_loan_collaterals_values,
+)
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -22,6 +26,7 @@ class LoanDisbursement(AccountsController):
 	def validate(self):
 		self.set_missing_values()
 		self.validate_disbursal_amount()
+		check_loan_collaterals_availability(self.against_loan, self.disbursed_amount)
 
 	def on_submit(self):
 		if self.is_term_loan:
@@ -29,7 +34,33 @@ class LoanDisbursement(AccountsController):
 
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
+
+		update_loan_collaterals_values(
+			self.against_loan, self.disbursed_amount, "Loan Disbursement", self.name, disbursement=True
+		)
+		self.set_status_of_loan_collaterals()
+
 		self.make_gl_entries()
+
+	def on_cancel(self):
+		if self.is_term_loan:
+			self.update_repayment_schedule_status(cancel=1)
+
+		self.delete_security_deposit()
+		self.set_status_and_amounts(cancel=1)
+
+		update_loan_collaterals_values(
+			self.against_loan,
+			self.disbursed_amount,
+			"Loan Disbursement",
+			self.name,
+			disbursement=True,
+			on_trigger_doc_cancel=1,
+		)
+		self.set_status_of_loan_collaterals(cancel=1)
+
+		self.make_gl_entries(cancel=1)
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def update_repayment_schedule_status(self, cancel=0):
 		if cancel:
@@ -46,15 +77,6 @@ class LoanDisbursement(AccountsController):
 		)
 
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
-
-	def on_cancel(self):
-		if self.is_term_loan:
-			self.update_repayment_schedule_status(cancel=1)
-
-		self.delete_security_deposit()
-		self.set_status_and_amounts(cancel=1)
-		self.make_gl_entries(cancel=1)
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def set_missing_values(self):
 		if not self.disbursement_date:
@@ -92,6 +114,29 @@ class LoanDisbursement(AccountsController):
 
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
+
+	def set_status_of_loan_collaterals(self, cancel=0):
+		if not frappe.db.get_value("Loan", self.against_loan, "is_secured_loan"):
+			return
+
+		if not cancel:
+			new_status = "Hypothecated"
+			old_status = "Pending Hypothecation"
+		else:
+			new_status = "Pending Hypothecation"
+			old_status = "Hypothecated"
+
+		frappe.db.sql(
+			"""
+			UPDATE `tabLoan Collateral`
+			JOIN `tabLoan Collateral Assignment Loan Collateral` ON `tabLoan Collateral Assignment Loan Collateral`.`loan_collateral`=`tabLoan Collateral`.`name`
+			JOIN `tabLoan Security Pledge` ON `tabLoan Security Pledge`.`name`=`tabLoan Collateral Assignment Loan Collateral`.`parent`
+			JOIN `tabLoan` ON `tabLoan`.`name`=`tabLoan Security Pledge`.`loan`
+			SET `tabLoan Collateral`.`status`=%s
+			WHERE `tabLoan`.`name`=%s AND `tabLoan Collateral`.`status`=%s
+		""",
+			(new_status, self.against_loan, old_status),
+		)
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
