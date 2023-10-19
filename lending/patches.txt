@@ -5,6 +5,8 @@ lending.patches.v15_0.generate_loan_repayment_schedule
 lending.patches.v15_0.rename_process_asset_classification_doctype
 lending.patches.v15_0.rename_process_asset_classification_doctype_2
 lending.patches.v15_0.rename_loan_type_to_loan_product
+execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
+execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -26,6 +28,7 @@ lending.patches.v15_0.rename_loan_partner_charge_type
 lending.patches.v15_0.migrate_loan_type_to_loan_product
 lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
 lending.patches.v15_0.update_penalty_interest_method_in_loan_products
+<<<<<<< HEAD
 lending.patches.v15_0.update_min_bpi_application_days
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -37,3 +40,6 @@ lending.patches.v15_0.update_min_bpi_application_days
 execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
 execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 >>>>>>> 0a5ca09 (chore: Uncomment patch)
+=======
+lending.patches.v15_0.update_min_bpi_application_days
+>>>>>>> 8dfe196 (chore: Move rename to pre sync)
