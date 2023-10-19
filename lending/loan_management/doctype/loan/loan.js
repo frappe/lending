@@ -245,23 +245,34 @@ frappe.ui.form.on('Loan', {
 					if (!r.exc && r.message) {
 
 						let loan_fields = ["loan_product", "loan_amount", "repayment_method",
-							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan"]
+							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan", "collateral_type"]
 
 						loan_fields.forEach(field => {
 							frm.set_value(field, r.message[field]);
 						});
 
 						if (frm.doc.is_secured_loan) {
-							$.each(r.message.proposed_pledges, function(i, d) {
-								let row = frm.add_child("securities");
-								row.loan_security = d.loan_security;
-								row.qty = d.qty;
-								row.loan_security_price = d.loan_security_price;
-								row.amount = d.amount;
-								row.haircut = d.haircut;
-							});
+							if (frm.doc.collateral_type === "Loan Security") {
+								$.each(r.message.proposed_pledges, function(i, d) {
+									let row = frm.add_child("securities");
+									row.loan_security = d.loan_security;
+									row.qty = d.qty;
+									row.loan_security_price = d.loan_security_price;
+									row.amount = d.amount;
+									row.haircut = d.haircut;
+								});
 
-							frm.refresh_fields("securities");
+								frm.refresh_fields("securities");
+							} else if (frm.doc.collateral_type === "Loan Collateral") {
+								$.each(r.message.proposed_collaterals, function(i, d) {
+									let row = frm.add_child("collaterals");
+									row.loan_collateral = d.loan_collateral;
+									row.loan_collateral_name = d.loan_collateral_name;
+									row.available_collateral_value = d.available_collateral_value;
+								});
+
+								frm.refresh_fields("collaterals");
+							}
 						}
 					}
 				}

@@ -143,15 +143,27 @@ class LoanApplication(Document):
 		self.total_payable_amount = self.loan_amount + self.total_payable_interest
 
 	def set_loan_amount(self):
-		if self.is_secured_loan and not self.proposed_pledges:
-			frappe.throw(_("Proposed Pledges are mandatory for secured Loans"))
+		if self.is_secured_loan:
+			if self.collateral_type == "Loan Security" and not self.proposed_pledges:
+				frappe.throw(_("Proposed Pledges are mandatory for secured Loans"))
+			if self.collateral_type == "Loan Collateral" and not self.proposed_collaterals:
+				frappe.throw(_("Proposed Collaterals are mandatory for secured Loans"))
 
-		if self.is_secured_loan and self.proposed_pledges:
-			self.maximum_loan_amount = 0
-			for security in self.proposed_pledges:
-				self.maximum_loan_amount += flt(security.post_haircut_amount)
+		if self.is_secured_loan:
+			if self.proposed_pledges:
+				self.maximum_loan_amount = 0
+				for security in self.proposed_pledges:
+					self.maximum_loan_amount += flt(security.post_haircut_amount)
+			else:
+				self.maximum_loan_amount = 0
+				for collateral in self.proposed_collaterals:
+					self.maximum_loan_amount += flt(collateral.available_collateral_value)
 
-		if not self.loan_amount and self.is_secured_loan and self.proposed_pledges:
+		if (
+			not self.loan_amount
+			and self.is_secured_loan
+			and (self.proposed_pledges or self.proposed_collaterals)
+		):
 			self.loan_amount = self.maximum_loan_amount
 
 
@@ -208,21 +220,32 @@ def create_pledge(loan_application, loan=None):
 	lsp.applicant = loan_application_doc.applicant
 	lsp.loan_application = loan_application_doc.name
 	lsp.company = loan_application_doc.company
+	lsp.collateral_type = loan_application_doc.collateral_type
 
 	if loan:
 		lsp.loan = loan
 
-	for pledge in loan_application_doc.proposed_pledges:
-
-		lsp.append(
-			"securities",
-			{
-				"loan_security": pledge.loan_security,
-				"qty": pledge.qty,
-				"loan_security_price": pledge.loan_security_price,
-				"haircut": pledge.haircut,
-			},
-		)
+	if lsp.collateral_type == "Loan Security":
+		for security in loan_application_doc.proposed_pledges:
+			lsp.append(
+				"securities",
+				{
+					"loan_security": security.loan_security,
+					"qty": security.qty,
+					"loan_security_price": security.loan_security_price,
+					"haircut": security.haircut,
+				},
+			)
+	else:
+		for collateral in loan_application_doc.proposed_collaterals:
+			lsp.append(
+				"collaterals",
+				{
+					"loan_security": collateral.loan_collateral,
+					"loan_collateral_name": collateral.loan_collateral_name,
+					"available_collateral_value": collateral.available_collateral_value,
+				},
+			)
 
 	lsp.save()
 	lsp.submit()

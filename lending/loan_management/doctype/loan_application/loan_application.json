@@ -17,12 +17,16 @@
   "loan_product",
   "is_term_loan",
   "loan_amount",
-  "is_secured_loan",
   "rate_of_interest",
+  "is_secured_loan",
+  "collateral_type",
   "column_break_7",
   "description",
   "loan_security_details_section",
   "proposed_pledges",
+  "loan_collateral_details_section",
+  "proposed_collaterals",
+  "section_break_rutm",
   "maximum_loan_amount",
   "repayment_info",
   "repayment_method",
@@ -184,16 +188,17 @@
    "label": "Is Secured Loan"
   },
   {
-   "depends_on": "eval:doc.is_secured_loan == 1",
+   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
    "fieldname": "loan_security_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Security Details"
   },
   {
-   "depends_on": "eval:doc.is_secured_loan == 1",
+   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
    "fieldname": "proposed_pledges",
    "fieldtype": "Table",
    "label": "Proposed Pledges",
+   "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Security\"",
    "options": "Proposed Pledge"
   },
   {
@@ -210,15 +215,42 @@
    "fieldtype": "Check",
    "label": "Is Term Loan",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.is_secured_loan",
+   "fieldname": "collateral_type",
+   "fieldtype": "Select",
+   "label": "Collateral Type",
+   "mandatory_depends_on": "eval:doc.is_secured_loan",
+   "options": "\nLoan Security\nLoan Collateral"
+  },
+  {
+   "depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "fieldname": "loan_collateral_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Collateral Details"
+  },
+  {
+   "fieldname": "section_break_rutm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "fieldname": "proposed_collaterals",
+   "fieldtype": "Table",
+   "label": "Proposed Collaterals",
+   "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
+   "options": "Loan Collateral Assignment Loan Collateral"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:22.606618",
+ "modified": "2023-10-19 04:46:39.891046",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

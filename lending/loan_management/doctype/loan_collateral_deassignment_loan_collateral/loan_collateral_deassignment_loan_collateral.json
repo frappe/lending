@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-10-19 03:33:30.702413",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_collateral",
+  "loan_collateral_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_collateral",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Collateral",
+   "options": "Loan Collateral",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "loan_collateral.collateral_name",
+   "fieldname": "loan_collateral_name",
+   "fieldtype": "Data",
+   "label": "Loan Collateral Name"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-10-19 03:33:49.442060",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Collateral Deassignment Loan Collateral",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

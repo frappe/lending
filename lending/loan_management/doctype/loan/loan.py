@@ -22,6 +22,9 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_collateral.loan_collateral import (
+	get_pending_deassignment_collaterals,
+)
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -498,31 +501,55 @@ def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict
 
 @frappe.whitelist()
 def unpledge_security(
-	loan=None, loan_security_pledge=None, security_map=None, as_dict=0, save=0, submit=0, approve=0
+	loan=None,
+	loan_security_pledge=None,
+	security_map=None,
+	collaterals=None,
+	collateral_type=None,
+	as_dict=0,
+	save=0,
+	submit=0,
+	approve=0,
 ):
 	# if no security_map is passed it will be considered as full unpledge
 	if security_map and isinstance(security_map, str):
 		security_map = json.loads(security_map)
 
 	if loan:
-		pledge_qty_map = security_map or get_pledged_security_qty(loan)
-		loan_doc = frappe.get_doc("Loan", loan)
+		loan_company, loan_applicant_type, loan_applicant, loan_collateral_type = frappe.db.get_value(
+			"Loan", loan, ["company", "applicant_type", "applicant", "collateral_type"]
+		)
+
+		unpledge_map = None
+		deassignment_collaterals = None
+
+		if loan_collateral_type == "Loan Security":
+			unpledge_map = security_map or get_pledged_security_qty(loan)
+		else:
+			deassignment_collaterals = collaterals or get_pending_deassignment_collaterals(loan)
 		unpledge_request = create_loan_security_unpledge(
-			pledge_qty_map, loan_doc.name, loan_doc.company, loan_doc.applicant_type, loan_doc.applicant
+			loan,
+			loan_company,
+			loan_applicant_type,
+			loan_applicant,
+			loan_collateral_type,
+			unpledge_map,
+			deassignment_collaterals,
 		)
 	# will unpledge qty based on loan security pledge
 	elif loan_security_pledge:
-		security_map = {}
+		unpledge_map = {}
 		pledge_doc = frappe.get_doc("Loan Security Pledge", loan_security_pledge)
 		for security in pledge_doc.securities:
-			security_map.setdefault(security.loan_security, security.qty)
+			unpledge_map.setdefault(security.loan_security, security.qty)
 
 		unpledge_request = create_loan_security_unpledge(
-			security_map,
 			pledge_doc.loan,
 			pledge_doc.company,
 			pledge_doc.applicant_type,
 			pledge_doc.applicant,
+			collateral_type,
+			unpledge_map,
 		)
 
 	if save:
@@ -544,16 +571,29 @@ def unpledge_security(
 		return unpledge_request
 
 
-def create_loan_security_unpledge(unpledge_map, loan, company, applicant_type, applicant):
+def create_loan_security_unpledge(
+	loan,
+	company,
+	applicant_type,
+	applicant,
+	collateral_type,
+	unpledge_map=None,
+	deassignment_collaterals=None,
+):
 	unpledge_request = frappe.new_doc("Loan Security Unpledge")
 	unpledge_request.applicant_type = applicant_type
 	unpledge_request.applicant = applicant
 	unpledge_request.loan = loan
 	unpledge_request.company = company
+	unpledge_request.collateral_type = collateral_type
 
-	for security, qty in unpledge_map.items():
-		if qty:
-			unpledge_request.append("securities", {"loan_security": security, "qty": qty})
+	if collateral_type == "Loan Security":
+		for security, qty in unpledge_map.items():
+			if qty:
+				unpledge_request.append("securities", {"loan_security": security, "qty": qty})
+	else:
+		for loan_collateral in deassignment_collaterals:
+			unpledge_request.append("collaterals", {"loan_collateral": loan_collateral})
 
 	return unpledge_request
 

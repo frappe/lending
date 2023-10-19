@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "autoname": "field:collateral_code",
+ "creation": "2023-10-18 22:17:56.180433",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "collateral_code",
+  "collateral_name",
+  "status",
+  "collateral_value",
+  "available_collateral_value",
+  "utilized_collateral_value",
+  "column_break_njyy",
+  "loan_applicant_type",
+  "loan_applicant",
+  "collateral_owner_type",
+  "collateral_owner",
+  "amended_from",
+  "released_date",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "collateral_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Collateral Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Collateral",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "collateral_name",
+   "fieldtype": "Data",
+   "label": "Collateral Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_njyy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending Hypothecation",
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending Hypothecation\nHypothecated\nReleased\nRepossessed",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "collateral_value",
+   "fieldtype": "Currency",
+   "label": "Collateral Value",
+   "options": "Company:company:default_currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "available_collateral_value",
+   "fieldtype": "Currency",
+   "label": "Available Collateral Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "utilized_collateral_value",
+   "fieldtype": "Currency",
+   "label": "Utilized Collateral Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "loan_applicant_type",
+   "fieldtype": "Select",
+   "label": "Loan Applicant Type",
+   "options": "Employee\nMember\nCustomer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_applicant",
+   "fieldtype": "Dynamic Link",
+   "label": "Loan Applicant",
+   "options": "loan_applicant_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "collateral_owner_type",
+   "fieldtype": "Select",
+   "label": "Collateral Owner Type",
+   "options": "Employee\nMember\nCustomer\nLoan Collateral Third Party Owner\nCompany",
+   "reqd": 1
+  },
+  {
+   "fieldname": "collateral_owner",
+   "fieldtype": "Dynamic Link",
+   "label": "Collateral Owner",
+   "options": "collateral_owner_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "released_date",
+   "fieldtype": "Date",
+   "label": "Released Date",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2023-10-18 22:48:08.914757",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Collateral",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
