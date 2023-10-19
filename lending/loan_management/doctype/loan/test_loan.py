@@ -31,7 +31,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 	days_in_year,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -1146,7 +1146,7 @@ def create_loan_security():
 
 def create_loan_security_pledge(applicant, pledges, loan_application=None, loan=None):
 
-	lsp = frappe.new_doc("Loan Security Pledge")
+	lsp = frappe.new_doc("Loan Security Assignment")
 	lsp.applicant_type = "Customer"
 	lsp.applicant = applicant
 	lsp.company = "_Test Company"
