@@ -14,7 +14,7 @@ from lending.loan_management.doctype.loan_collateral.loan_collateral import (
 	check_loan_collaterals_availability,
 	update_loan_collaterals_values,
 )
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_collateral_deassignment.loan_collateral_deassignment import (
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -130,8 +130,8 @@ class LoanDisbursement(AccountsController):
 			"""
 			UPDATE `tabLoan Collateral`
 			JOIN `tabLoan Collateral Assignment Loan Collateral` ON `tabLoan Collateral Assignment Loan Collateral`.`loan_collateral`=`tabLoan Collateral`.`name`
-			JOIN `tabLoan Security Pledge` ON `tabLoan Security Pledge`.`name`=`tabLoan Collateral Assignment Loan Collateral`.`parent`
-			JOIN `tabLoan` ON `tabLoan`.`name`=`tabLoan Security Pledge`.`loan`
+			JOIN `tabLoan Collateral Assignment` ON `tabLoan Collateral Assignment`.`name`=`tabLoan Collateral Assignment Loan Collateral`.`parent`
+			JOIN `tabLoan` ON `tabLoan`.`name`=`tabLoan Collateral Assignment`.`loan`
 			SET `tabLoan Collateral`.`status`=%s
 			WHERE `tabLoan`.`name`=%s AND `tabLoan Collateral`.`status`=%s
 		""",
@@ -418,4 +418,6 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
-	return flt(frappe.db.get_value("Loan Security Pledge", {"loan": loan}, "sum(maximum_loan_value)"))
+	return flt(
+		frappe.db.get_value("Loan Collateral Assignment", {"loan": loan}, "sum(maximum_loan_value)")
+	)

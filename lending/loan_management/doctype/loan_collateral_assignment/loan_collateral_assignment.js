@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Loan Security Pledge', {
+frappe.ui.form.on('Loan Collateral Assignment', {
 	loan: function(frm, cdt, cdn) {
 		frappe.db.get_value("Loan", frm.doc.loan, "collateral_type", (r) => {
 			frm.set_value('collateral_type', r.collateral_type);

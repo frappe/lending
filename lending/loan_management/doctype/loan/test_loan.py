@@ -24,6 +24,9 @@ from lending.loan_management.doctype.loan.loan import (
 	unpledge_security,
 )
 from lending.loan_management.doctype.loan_application.loan_application import create_pledge
+from lending.loan_management.doctype.loan_collateral_deassignment.loan_collateral_deassignment import (
+	get_pledged_security_qty,
+)
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
@@ -31,9 +34,6 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 	days_in_year,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
-	get_pledged_security_qty,
-)
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_demand_loans,
 	process_loan_interest_accrual_for_term_loans,
@@ -222,7 +222,9 @@ class TestLoan(unittest.TestCase):
 		# Clear loan docs before checking
 		frappe.db.sql("DELETE FROM `tabLoan` where applicant = '_Test Loan Customer 1'")
 		frappe.db.sql("DELETE FROM `tabLoan Application` where applicant = '_Test Loan Customer 1'")
-		frappe.db.sql("DELETE FROM `tabLoan Security Pledge` where applicant = '_Test Loan Customer 1'")
+		frappe.db.sql(
+			"DELETE FROM `tabLoan Collateral Assignment` where applicant = '_Test Loan Customer 1'"
+		)
 
 		if not frappe.db.get_value(
 			"Sanctioned Loan Amount",
@@ -458,7 +460,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
-	def test_loan_security_unpledge(self):
+	def test_loan_collateral_deassignment(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
@@ -515,7 +517,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(amounts["payable_principal_amount"], 0.0)
 		self.assertEqual(amounts["interest_amount"], 0)
 
-	def test_partial_loan_security_unpledge(self):
+	def test_partial_loan_collateral_deassignment(self):
 		pledge = [
 			{"loan_security": "Test Security 1", "qty": 2000.00},
 			{"loan_security": "Test Security 2", "qty": 4000.00},
@@ -554,7 +556,7 @@ class TestLoan(unittest.TestCase):
 		unpledge_request.load_from_db()
 		self.assertEqual(unpledge_request.docstatus, 1)
 
-	def test_sanctioned_loan_security_unpledge(self):
+	def test_sanctioned_loan_collateral_deassignment(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
@@ -1144,9 +1146,9 @@ def create_loan_security():
 		).insert(ignore_permissions=True)
 
 
-def create_loan_security_pledge(applicant, pledges, loan_application=None, loan=None):
+def create_loan_collateral_assignment(applicant, pledges, loan_application=None, loan=None):
 
-	lsp = frappe.new_doc("Loan Security Pledge")
+	lsp = frappe.new_doc("Loan Collateral Assignment")
 	lsp.applicant_type = "Customer"
 	lsp.applicant = applicant
 	lsp.company = "_Test Company"

@@ -47,7 +47,7 @@ def get_data(
 		frappe.db.sql(
 			"""
 		SELECT u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Unpledge` up, `tabUnpledge` u
+		FROM `tabLoan Collateral Deassignment` up, `tabUnpledge` u
 		WHERE u.parent = up.name
 		AND up.status = 'Approved'
 		{conditions}
@@ -64,9 +64,9 @@ def get_data(
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Pledge` lp, `tabPledge`p
+		FROM `tabLoan Collateral Assignment` lp, `tabPledge`p
 		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		{conditions}
 		GROUP BY p.loan_security
 	""".format(

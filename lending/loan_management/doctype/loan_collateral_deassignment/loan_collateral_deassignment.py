@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, getdate
 
 
-class LoanSecurityUnpledge(Document):
+class LoanCollateralDeassignment(Document):
 	def validate(self):
 		self.validate_duplicate_securities_and_collaterals()
 		self.validate_unpledge_qty()
@@ -99,7 +99,7 @@ class LoanSecurityUnpledge(Document):
 				)
 				msg += "<br>"
 				msg += _("You are trying to unpledge more.")
-				frappe.throw(msg, title=_("Loan Security Unpledge Error"))
+				frappe.throw(msg, title=_("Loan Collateral Deassignment Error"))
 
 			unpledge_qty_map.setdefault(security.loan_security, 0)
 			unpledge_qty_map[security.loan_security] += security.qty
@@ -190,7 +190,7 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Unpledge` up, `tabUnpledge` u
+		FROM `tabLoan Collateral Deassignment` up, `tabUnpledge` u
 		WHERE up.loan = %s
 		AND u.parent = up.name
 		AND up.status = 'Approved'
@@ -204,10 +204,10 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Pledge` lp, `tabPledge`p
+		FROM `tabLoan Collateral Assignment` lp, `tabPledge`p
 		WHERE lp.loan = %s
 		AND p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		GROUP BY p.loan_security
 	""",
 			(loan),

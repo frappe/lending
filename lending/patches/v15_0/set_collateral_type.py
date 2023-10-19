@@ -5,9 +5,14 @@ import frappe
 
 
 def execute():
-	lsp = frappe.qb.DocType("Loan Security Pledge")
-	frappe.qb.update(lsp).set(lsp.collateral_type, "Loan Security").where(
-		lsp.collateral_type.isnull()
+	lca = frappe.qb.DocType("Loan Collateral Assignment")
+	frappe.qb.update(lca).set(lca.collateral_type, "Loan Security").where(
+		lca.collateral_type.isnull()
+	).run()
+
+	lcd = frappe.qb.DocType("Loan Collateral Deassignment")
+	frappe.qb.update(lcd).set(lcd.collateral_type, "Loan Security").where(
+		lcd.collateral_type.isnull()
 	).run()
 
 	la = frappe.qb.DocType("Loan Application")
