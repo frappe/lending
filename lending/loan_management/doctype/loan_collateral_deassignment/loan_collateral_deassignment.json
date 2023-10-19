@@ -1,60 +1,44 @@
 {
  "actions": [],
- "autoname": "LS-.{applicant}.-.#####",
- "creation": "2019-08-29 18:48:51.371674",
+ "autoname": "LSU-.{applicant}.-.#####",
+ "creation": "2019-09-21 13:23:16.117028",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "loan_details_section",
+  "loan",
   "applicant_type",
   "applicant",
-  "loan",
-  "loan_application",
   "collateral_type",
   "column_break_3",
   "company",
-  "pledge_time",
+  "unpledge_time",
   "status",
   "loan_security_details_section",
   "securities",
   "loan_collateral_details_section",
   "collaterals",
-  "section_break_10",
-  "total_security_value",
-  "column_break_11",
-  "maximum_loan_value",
   "more_information_section",
   "reference_no",
-  "column_break_18",
+  "column_break_13",
   "description",
   "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Loan Security Pledge",
-   "print_hide": 1,
-   "read_only": 1
+   "fieldname": "loan_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan  Details"
   },
   {
    "fetch_from": "loan_application.applicant",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type",
    "reqd": 1
-  },
-  {
-   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
-   "fieldname": "loan_security_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Security Details"
   },
   {
    "fieldname": "column_break_3",
@@ -64,47 +48,38 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "reqd": 1
   },
   {
-   "fieldname": "loan_application",
-   "fieldtype": "Link",
-   "label": "Loan Application",
-   "options": "Loan Application"
-  },
-  {
-   "fieldname": "total_security_value",
-   "fieldtype": "Currency",
-   "label": "Total Security Value",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "maximum_loan_value",
-   "fieldtype": "Currency",
-   "label": "Maximum Loan Value",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "loan_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan  Details"
-  },
-  {
+   "allow_on_submit": 1,
    "default": "Requested",
+   "depends_on": "eval:doc.docstatus == 1",
    "fieldname": "status",
    "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Status",
-   "options": "Requested\nUnpledged\nPledged\nPartially Pledged\nCancelled",
+   "options": "Requested\nApproved",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "unpledge_time",
+   "fieldtype": "Datetime",
+   "label": "Unpledge Time",
    "read_only": 1
   },
   {
-   "fieldname": "pledge_time",
-   "fieldtype": "Datetime",
-   "label": "Pledge Time",
+   "depends_on": "eval:doc.collateral_type == \"Loan Security\"",
+   "fieldname": "loan_security_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Security Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Collateral Deassignment",
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -113,16 +88,7 @@
    "fieldtype": "Table",
    "label": "Securities",
    "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Security\"",
-   "options": "Pledge"
-  },
-  {
-   "fieldname": "column_break_11",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_10",
-   "fieldtype": "Section Break",
-   "label": "Totals"
+   "options": "Unpledge"
   },
   {
    "fieldname": "company",
@@ -152,7 +118,7 @@
    "label": "Reference No"
   },
   {
-   "fieldname": "column_break_18",
+   "fieldname": "column_break_13",
    "fieldtype": "Column Break"
   },
   {
@@ -162,11 +128,13 @@
    "label": "Description"
   },
   {
+   "fetch_from": "loan.collateral_type",
    "fieldname": "collateral_type",
    "fieldtype": "Select",
    "label": "Collateral Type",
    "options": "\nLoan Security\nLoan Collateral",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
@@ -180,16 +148,16 @@
    "fieldtype": "Table",
    "label": "Collaterals",
    "mandatory_depends_on": "eval:doc.collateral_type == \"Loan Collateral\"",
-   "options": "Loan Collateral Assignment Loan Collateral"
+   "options": "Loan Collateral Deassignment Loan Collateral"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-19 05:41:35.477481",
+ "modified": "2023-10-19 07:44:49.615145",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Security Pledge",
+ "name": "Loan Collateral Deassignment",
  "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
@@ -221,6 +189,18 @@
    "role": "Loan Manager",
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
    "write": 1
   }
  ],

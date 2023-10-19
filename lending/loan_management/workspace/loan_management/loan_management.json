@@ -178,9 +178,9 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Loan Security Pledge",
+   "label": "Loan Collateral Assignment",
    "link_count": 0,
-   "link_to": "Loan Security Pledge",
+   "link_to": "Loan Collateral Assignment",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -189,9 +189,9 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Loan Security Unpledge",
+   "label": "Loan Collateral Deassignment",
    "link_count": 0,
-   "link_to": "Loan Security Unpledge",
+   "link_to": "Loan Collateral Deassignment",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"

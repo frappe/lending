@@ -15,10 +15,10 @@ def execute(filters=None):
 def get_columns(filters):
 	columns = [
 		{
-			"label": _("Loan Security Pledge"),
+			"label": _("Loan Collateral Assignment"),
 			"fieldtype": "Link",
-			"fieldname": "loan_security_pledge",
-			"options": "Loan Security Pledge",
+			"fieldname": "loan_collateral_assignment",
+			"options": "Loan Collateral Assignment",
 			"width": 200,
 		},
 		{"label": _("Loan"), "fieldtype": "Link", "fieldname": "loan", "options": "Loan", "width": 200},
@@ -65,13 +65,13 @@ def get_data(filters):
 	data = []
 	conditions = get_conditions(filters)
 
-	loan_security_pledges = frappe.db.sql(
+	loan_collateral_assignments = frappe.db.sql(
 		"""
 		SELECT
 			p.name, p.applicant, p.loan, p.status, p.pledge_time,
 			c.loan_security, c.qty, c.loan_security_price, c.amount
 		FROM
-			`tabLoan Security Pledge` p, `tabPledge` c
+			`tabLoan Collateral Assignment` p, `tabPledge` c
 		WHERE
 			p.docstatus = 1
 			AND c.parent = p.name
@@ -86,9 +86,9 @@ def get_data(filters):
 
 	default_currency = frappe.get_cached_value("Company", filters.get("company"), "default_currency")
 
-	for pledge in loan_security_pledges:
+	for pledge in loan_collateral_assignments:
 		row = {}
-		row["loan_security_pledge"] = pledge.name
+		row["loan_collateral_assignment"] = pledge.name
 		row["loan"] = pledge.loan
 		row["applicant"] = pledge.applicant
 		row["status"] = pledge.status

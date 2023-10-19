@@ -59,12 +59,12 @@ def update_loan_collaterals_values(
 def _get_sorted_loan_collaterals_to_update_values(loan, utilized_value_increased):
 	loan_collaterals_w_ratio = []
 
-	for loan_security_pledge in frappe.db.get_all(
-		"Loan Security Pledge", {"loan": loan}, pluck="name"
+	for loan_collateral_assignment in frappe.db.get_all(
+		"Loan Collateral Assignment", {"loan": loan}, pluck="name"
 	):
 		loan_collaterals = frappe.db.get_all(
 			"Loan Collateral Assignment Loan Collateral",
-			{"parent": loan_security_pledge},
+			{"parent": loan_collateral_assignment},
 			pluck="loan_collateral",
 		)
 
@@ -166,7 +166,7 @@ def release_loan_collateral(loan_collateral):
 		msg = _("Loan Collateral {0} is linked with active loans:").format(frappe.bold(loan_collateral))
 		for loan_and_pledge in active_loan_collaterals:
 			msg += "<br><br>"
-			msg += _("Loan {0} through Loan Security Pledge {1}").format(
+			msg += _("Loan {0} through Loan Collateral Assignment {1}").format(
 				frappe.bold(loan_and_pledge.loan), frappe.bold(loan_and_pledge.pledge)
 			)
 		frappe.throw(msg, title=_("Loan Collateral cannot be released"))
@@ -182,10 +182,10 @@ def get_active_loan_collaterals(loan_collateral):
 	lcalcs = frappe.db.sql(
 		"""
 		SELECT lp.loan, lp.name as pledge
-		FROM `tabLoan Security Pledge` lp, `tabLoan Collateral Assignment Loan Collateral` p
+		FROM `tabLoan Collateral Assignment` lp, `tabLoan Collateral Assignment Loan Collateral` p
 		WHERE p.loan_collateral = %s
 		AND p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		""",
 		(loan_collateral),
 		as_dict=True,
@@ -194,7 +194,7 @@ def get_active_loan_collaterals(loan_collateral):
 	lcdcs = frappe.db.sql(
 		"""
 		SELECT up.loan
-		FROM `tabLoan Security Unpledge` up, `tabLoan Collateral Deassignment Loan Collateral` u
+		FROM `tabLoan Collateral Deassignment` up, `tabLoan Collateral Deassignment Loan Collateral` u
 		WHERE u.loan_collateral = %s
 		AND u.parent = up.name
 		AND up.status = 'Approved'
@@ -223,17 +223,17 @@ def check_loan_collaterals_availability(loan, amount=None):
 
 	total_available_collateral_value = 0
 
-	loan_security_pledges = frappe.db.get_all(
-		"Loan Security Pledge", {"loan": loan, "collateral_type": "Loan Collateral"}, pluck="name"
+	loan_collateral_assignments = frappe.db.get_all(
+		"Loan Collateral Assignment", {"loan": loan, "collateral_type": "Loan Collateral"}, pluck="name"
 	)
 
-	if not loan_security_pledges:
+	if not loan_collateral_assignments:
 		return
 
-	for loan_security_pledge in loan_security_pledges:
+	for loan_collateral_assignment in loan_collateral_assignments:
 		loan_collaterals = frappe.db.get_all(
 			"Loan Collateral Assignment Loan Collateral",
-			{"parent": loan_security_pledge},
+			{"parent": loan_collateral_assignment},
 			pluck="loan_collateral",
 		)
 		for loan_collateral in loan_collaterals:
@@ -254,7 +254,7 @@ def get_pending_deassignment_collaterals(loan):
 	assignment_collaterals = frappe.db.sql(
 		"""
 		SELECT lcalc.loan_collateral
-		FROM `tabLoan Security Pledge` lsp, `tabLoan Collateral Assignment Loan Collateral` lcalc
+		FROM `tabLoan Collateral Assignment` lsp, `tabLoan Collateral Assignment Loan Collateral` lcalc
 		WHERE lsp.loan = %s
 		AND lcalc.parent = lsp.name
 		""",
@@ -266,7 +266,7 @@ def get_pending_deassignment_collaterals(loan):
 	deassignment_collaterals = frappe.db.sql(
 		"""
 		SELECT lcdlc.loan_collateral
-		FROM `tabLoan Security Unpledge` lsu, `tabLoan Collateral Deassignment Loan Collateral` lcdlc
+		FROM `tabLoan Collateral Deassignment` lsu, `tabLoan Collateral Deassignment Loan Collateral` lcdlc
 		WHERE lsu.loan = %s
 		AND lcdlc.parent = lsu.name
 		""",

@@ -8,7 +8,7 @@ frappe.ui.form.on('Loan Application', {
 	setup: function(frm) {
 		frm.make_methods = {
 			'Loan': function() { frm.trigger('create_loan') },
-			'Loan Security Pledge': function() { frm.trigger('create_loan_security_pledge') },
+			'Loan Collateral Assignment': function() { frm.trigger('create_loan_collateral_assignment') },
 		}
 	},
 	refresh: function(frm) {
@@ -39,10 +39,10 @@ frappe.ui.form.on('Loan Application', {
 		if (frm.doc.status == "Approved") {
 
 			if (frm.doc.is_secured_loan) {
-				frappe.db.get_value("Loan Security Pledge", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
+				frappe.db.get_value("Loan Collateral Assignment", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
 					if (Object.keys(r).length === 0) {
-						frm.add_custom_button(__('Loan Security Pledge'), function() {
-							frm.trigger('create_loan_security_pledge');
+						frm.add_custom_button(__('Loan Collateral Assignment'), function() {
+							frm.trigger('create_loan_collateral_assignment');
 						},__('Create'))
 					}
 				});
@@ -69,10 +69,10 @@ frappe.ui.form.on('Loan Application', {
 			frm: frm
 		});
 	},
-	create_loan_security_pledge: function(frm) {
+	create_loan_collateral_assignment: function(frm) {
 
 		if(!frm.doc.is_secured_loan) {
-			frappe.throw(__("Loan Security Pledge can only be created for secured loans"));
+			frappe.throw(__("Loan Collateral Assignment can only be created for secured loans"));
 		}
 
 		frappe.call({
@@ -81,7 +81,7 @@ frappe.ui.form.on('Loan Application', {
 				loan_application: frm.doc.name
 			},
 			callback: function(r) {
-				frappe.set_route("Form", "Loan Security Pledge", r.message);
+				frappe.set_route("Form", "Loan Collateral Assignment", r.message);
 			}
 		})
 	},

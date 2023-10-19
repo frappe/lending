@@ -15,7 +15,7 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 )
 
 
-class LoanSecurityPledge(Document):
+class LoanCollateralAssignment(Document):
 	def validate(self):
 		self.set_missing_values()
 		self.set_pledge_amount()
@@ -32,7 +32,7 @@ class LoanSecurityPledge(Document):
 
 	def on_submit(self):
 		if self.loan:
-			self.db_set("status", "Pledged")
+			self.db_set("status", "Assigned")
 			self.db_set("pledge_time", now_datetime())
 			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
@@ -84,7 +84,7 @@ class LoanSecurityPledge(Document):
 
 		if self.loan:
 			existing_pledge = frappe.db.get_value(
-				"Loan Security Pledge", {"loan": self.loan, "docstatus": 1}, ["name"]
+				"Loan Collateral Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
 			)
 
 		if existing_pledge:

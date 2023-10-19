@@ -25,7 +25,7 @@ from erpnext.controllers.accounts_controller import AccountsController
 from lending.loan_management.doctype.loan_collateral.loan_collateral import (
 	get_pending_deassignment_collaterals,
 )
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_collateral_deassignment.loan_collateral_deassignment import (
 	get_pledged_security_qty,
 )
 
@@ -111,13 +111,13 @@ class Loan(AccountsController):
 				charge.account = account
 
 	def on_submit(self):
-		self.link_loan_security_pledge()
+		self.link_loan_collateral_assignment()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 		self.submit_draft_schedule()
 
 	def on_cancel(self):
-		self.unlink_loan_security_pledge()
+		self.unlink_loan_collateral_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
@@ -244,10 +244,10 @@ class Loan(AccountsController):
 		if not self.loan_amount:
 			frappe.throw(_("Loan amount is mandatory"))
 
-	def link_loan_security_pledge(self):
+	def link_loan_collateral_assignment(self):
 		if self.is_secured_loan and self.loan_application:
 			maximum_loan_value = frappe.db.get_value(
-				"Loan Security Pledge",
+				"Loan Collateral Assignment",
 				{"loan_application": self.loan_application, "status": "Requested"},
 				"sum(maximum_loan_value)",
 			)
@@ -255,8 +255,8 @@ class Loan(AccountsController):
 			if maximum_loan_value:
 				frappe.db.sql(
 					"""
-					UPDATE `tabLoan Security Pledge`
-					SET loan = %s, pledge_time = %s, status = 'Pledged'
+					UPDATE `tabLoan Collateral Assignment`
+					SET loan = %s, pledge_time = %s, status = 'Assigned'
 					WHERE status = 'Requested' and loan_application = %s
 				""",
 					(self.name, now_datetime(), self.loan_application),
@@ -274,13 +274,15 @@ class Loan(AccountsController):
 				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 
-	def unlink_loan_security_pledge(self):
-		pledges = frappe.get_all("Loan Security Pledge", fields=["name"], filters={"loan": self.name})
+	def unlink_loan_collateral_assignment(self):
+		pledges = frappe.get_all(
+			"Loan Collateral Assignment", fields=["name"], filters={"loan": self.name}
+		)
 		pledge_list = [d.name for d in pledges]
 		if pledge_list:
 			frappe.db.sql(
-				"""UPDATE `tabLoan Security Pledge` SET
-				loan = '', status = 'Unpledged'
+				"""UPDATE `tabLoan Collateral Assignment` SET
+				loan = '', status = 'Unassigned'
 				where name in (%s) """
 				% (", ".join(["%s"] * len(pledge_list))),
 				tuple(pledge_list),
@@ -502,7 +504,7 @@ def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict
 @frappe.whitelist()
 def unpledge_security(
 	loan=None,
-	loan_security_pledge=None,
+	loan_collateral_assignment=None,
 	security_map=None,
 	collaterals=None,
 	collateral_type=None,
@@ -527,7 +529,7 @@ def unpledge_security(
 			unpledge_map = security_map or get_pledged_security_qty(loan)
 		else:
 			deassignment_collaterals = collaterals or get_pending_deassignment_collaterals(loan)
-		unpledge_request = create_loan_security_unpledge(
+		unpledge_request = create_loan_collateral_deassignment(
 			loan,
 			loan_company,
 			loan_applicant_type,
@@ -536,14 +538,14 @@ def unpledge_security(
 			unpledge_map,
 			deassignment_collaterals,
 		)
-	# will unpledge qty based on loan security pledge
-	elif loan_security_pledge:
+	# will unpledge qty based on Loan Collateral Assignment
+	elif loan_collateral_assignment:
 		unpledge_map = {}
-		pledge_doc = frappe.get_doc("Loan Security Pledge", loan_security_pledge)
+		pledge_doc = frappe.get_doc("Loan Collateral Assignment", loan_collateral_assignment)
 		for security in pledge_doc.securities:
 			unpledge_map.setdefault(security.loan_security, security.qty)
 
-		unpledge_request = create_loan_security_unpledge(
+		unpledge_request = create_loan_collateral_deassignment(
 			pledge_doc.loan,
 			pledge_doc.company,
 			pledge_doc.applicant_type,
@@ -571,7 +573,7 @@ def unpledge_security(
 		return unpledge_request
 
 
-def create_loan_security_unpledge(
+def create_loan_collateral_deassignment(
 	loan,
 	company,
 	applicant_type,
@@ -580,7 +582,7 @@ def create_loan_security_unpledge(
 	unpledge_map=None,
 	deassignment_collaterals=None,
 ):
-	unpledge_request = frappe.new_doc("Loan Security Unpledge")
+	unpledge_request = frappe.new_doc("Loan Collateral Deassignment")
 	unpledge_request.applicant_type = applicant_type
 	unpledge_request.applicant = applicant
 	unpledge_request.loan = loan

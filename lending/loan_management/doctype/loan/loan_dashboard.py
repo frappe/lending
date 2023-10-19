@@ -10,12 +10,19 @@ def get_data():
 			{
 				"items": [
 					"Loan Repayment Schedule",
-					"Loan Security Pledge",
+					"Loan Collateral Assignment",
 					"Loan Security Shortfall",
 					"Loan Disbursement",
 				]
 			},
 			{"items": ["Loan Repayment", "Loan Interest Accrual", "Loan Write Off", "Loan Restructure"]},
-			{"items": ["Loan Security Unpledge", "Days Past Due Log", "Journal Entry", "Sales Invoice"]},
+			{
+				"items": [
+					"Loan Collateral Deassignment",
+					"Days Past Due Log",
+					"Journal Entry",
+					"Sales Invoice",
+				]
+			},
 		],
 	}

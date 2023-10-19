@@ -5,6 +5,7 @@ lending.patches.v15_0.generate_loan_repayment_schedule
 lending.patches.v15_0.rename_process_asset_classification_doctype
 lending.patches.v15_0.rename_process_asset_classification_doctype_2
 lending.patches.v15_0.rename_loan_type_to_loan_product
+lending.patches.v15_0.rename_loan_security_pledge_and_unpledge
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -28,6 +29,11 @@ lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
 lending.patches.v15_0.update_penalty_interest_method_in_loan_products
 lending.patches.v15_0.update_min_bpi_application_days
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 lending.patches.v15_0.set_collateral_type
 >>>>>>> de301bc (feat: loan collateral)
+=======
+lending.patches.v15_0.set_collateral_type
+lending.patches.v15_0.change_status_of_loan_security_pledges
+>>>>>>> dc62bd8 (chore: rename_loan_security_pledge_and_unpledge)
