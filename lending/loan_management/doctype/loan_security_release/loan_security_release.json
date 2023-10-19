@@ -74,7 +74,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Loan Security Unpledge",
+   "options": "Loan Security Release",
    "print_hide": 1,
    "read_only": 1
   },
@@ -129,7 +129,7 @@
  "modified": "2021-04-19 18:12:01.401744",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Security Unpledge",
+ "name": "Loan Security Release",
  "owner": "Administrator",
  "permissions": [
   {

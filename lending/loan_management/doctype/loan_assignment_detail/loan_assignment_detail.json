@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-10-19 16:26:54.924575",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan",
+  "loan_application",
+  "loan_amount",
+  "pending_principal_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan",
+   "options": "Loan"
+  },
+  {
+   "fieldname": "loan_application",
+   "fieldtype": "Link",
+   "label": "Loan Application",
+   "options": "Loan Application"
+  },
+  {
+   "fetch_from": "loan.loan_amount",
+   "fieldname": "loan_amount",
+   "fieldtype": "Currency",
+   "label": "Loan Amount"
+  },
+  {
+   "fieldname": "pending_principal_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Pending Principal Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-10-19 17:24:13.961740",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Assignment Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -22,7 +22,7 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
 
@@ -244,7 +244,7 @@ class Loan(AccountsController):
 	def link_loan_security_pledge(self):
 		if self.is_secured_loan and self.loan_application:
 			maximum_loan_value = frappe.db.get_value(
-				"Loan Security Pledge",
+				"Loan Security Assignment",
 				{"loan_application": self.loan_application, "status": "Requested"},
 				"sum(maximum_loan_value)",
 			)
@@ -272,7 +272,9 @@ class Loan(AccountsController):
 			)
 
 	def unlink_loan_security_pledge(self):
-		pledges = frappe.get_all("Loan Security Pledge", fields=["name"], filters={"loan": self.name})
+		pledges = frappe.get_all(
+			"Loan Security Assignment", fields=["name"], filters={"loan": self.name}
+		)
 		pledge_list = [d.name for d in pledges]
 		if pledge_list:
 			frappe.db.sql(
@@ -513,7 +515,7 @@ def unpledge_security(
 	# will unpledge qty based on loan security pledge
 	elif loan_security_pledge:
 		security_map = {}
-		pledge_doc = frappe.get_doc("Loan Security Pledge", loan_security_pledge)
+		pledge_doc = frappe.get_doc("Loan Security Assignment", loan_security_pledge)
 		for security in pledge_doc.securities:
 			security_map.setdefault(security.loan_security, security.qty)
 
@@ -545,7 +547,7 @@ def unpledge_security(
 
 
 def create_loan_security_unpledge(unpledge_map, loan, company, applicant_type, applicant):
-	unpledge_request = frappe.new_doc("Loan Security Unpledge")
+	unpledge_request = frappe.new_doc("Loan Security Release")
 	unpledge_request.applicant_type = applicant_type
 	unpledge_request.applicant = applicant
 	unpledge_request.loan = loan

@@ -10,7 +10,7 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -376,4 +376,6 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
-	return flt(frappe.db.get_value("Loan Security Pledge", {"loan": loan}, "sum(maximum_loan_value)"))
+	return flt(
+		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, "sum(maximum_loan_value)")
+	)
