@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, getdate
 
 
-class LoanSecurityUnpledge(Document):
+class LoanSecurityRelease(Document):
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
@@ -88,7 +88,7 @@ class LoanSecurityUnpledge(Document):
 				)
 				msg += "<br>"
 				msg += _("You are trying to unpledge more.")
-				frappe.throw(msg, title=_("Loan Security Unpledge Error"))
+				frappe.throw(msg, title=_("Loan Security Release Error"))
 
 			unpledge_qty_map.setdefault(security.loan_security, 0)
 			unpledge_qty_map[security.loan_security] += security.qty

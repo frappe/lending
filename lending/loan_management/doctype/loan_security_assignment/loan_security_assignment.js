@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Loan Security Pledge', {
+frappe.ui.form.on('Loan Security Assignment', {
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);

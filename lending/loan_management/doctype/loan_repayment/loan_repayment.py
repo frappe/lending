@@ -1073,7 +1073,7 @@ def get_pending_principal_amount(loan):
 		)
 	else:
 		pending_principal_amount = (
-			flt(loan.disbursed_amount)
+			flt(loan.disbursed_amount or loan.loan_amount)
 			+ flt(loan.debit_adjustment_amount)
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)

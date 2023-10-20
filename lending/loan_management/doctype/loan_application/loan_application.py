@@ -203,7 +203,7 @@ def create_loan(source_name, target_doc=None, submit=0):
 def create_pledge(loan_application, loan=None):
 	loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 
-	lsp = frappe.new_doc("Loan Security Pledge")
+	lsp = frappe.new_doc("Loan Security Assignment")
 	lsp.applicant_type = loan_application_doc.applicant_type
 	lsp.applicant = loan_application_doc.applicant
 	lsp.loan_application = loan_application_doc.name
@@ -227,7 +227,7 @@ def create_pledge(loan_application, loan=None):
 	lsp.save()
 	lsp.submit()
 
-	message = _("Loan Security Pledge Created : {0}").format(lsp.name)
+	message = _("Loan Security Assignment Created : {0}").format(lsp.name)
 	frappe.msgprint(message)
 
 	return lsp.name

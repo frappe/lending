@@ -5,19 +5,24 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, now_datetime
+from frappe.utils import cint, flt, now_datetime
 
-from lending.loan_management.doctype.loan_security_price.loan_security_price import (
-	get_loan_security_price,
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	get_pending_principal_amount,
 )
+
+# from lending.loan_management.doctype.loan_security_price.loan_security_price import (
+# 	get_loan_security_price,
+# )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
 
 
-class LoanSecurityPledge(Document):
+class LoanSecurityAssignment(Document):
 	def validate(self):
 		self.set_pledge_amount()
+		self.set_loan_and_pending_amounts()
 		self.validate_duplicate_securities()
 		self.validate_loan_security_type()
 
@@ -47,10 +52,11 @@ class LoanSecurityPledge(Document):
 	def validate_loan_security_type(self):
 		existing_pledge = ""
 
-		if self.loan:
-			existing_pledge = frappe.db.get_value(
-				"Loan Security Pledge", {"loan": self.loan, "docstatus": 1}, ["name"]
-			)
+		for d in self.get("allocated_loans"):
+			if d.loan:
+				existing_pledge = frappe.db.get_value(
+					"Loan Security Assignment", {"loan": d.loan, "docstatus": 1}, ["name"]
+				)
 
 		if existing_pledge:
 			loan_security_type = frappe.db.get_value(
@@ -74,17 +80,19 @@ class LoanSecurityPledge(Document):
 		maximum_loan_value = 0
 
 		for pledge in self.securities:
-
 			if not pledge.qty and not pledge.amount:
 				frappe.throw(_("Qty or Amount is mandatory for loan security!"))
 
-			if not (self.loan_application and pledge.loan_security_price):
-				pledge.loan_security_price = get_loan_security_price(pledge.loan_security)
-
-			if not pledge.qty:
+			if not pledge.qty and pledge.loan_security_price:
 				pledge.qty = cint(pledge.amount / pledge.loan_security_price)
+			elif not pledge.loan_security_price:
+				pledge.qty = 1
 
-			pledge.amount = pledge.qty * pledge.loan_security_price
+			if pledge.loan_security_price:
+				pledge.amount = pledge.qty * pledge.loan_security_price
+			else:
+				pledge.loan_security_price = flt(pledge.amount / pledge.qty)
+
 			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * pledge.haircut / 100))
 
 			total_security_value += pledge.amount
@@ -92,6 +100,19 @@ class LoanSecurityPledge(Document):
 
 		self.total_security_value = total_security_value
 		self.maximum_loan_value = maximum_loan_value
+
+	def set_loan_and_pending_amounts(self):
+		total_pending_principal = 0
+		total_loan_amount = 0
+		for loan in self.get("allocated_loans"):
+			loan.pending_principal_amount = get_pending_principal_amount(frappe.get_doc("Loan", loan.loan))
+			total_pending_principal += loan.pending_principal_amount
+			total_loan_amount += loan.loan_amount
+
+		self.total_loan_amount = total_loan_amount
+		self.total_pending_principal = total_pending_principal
+		self.utilized_security_value = min(self.total_pending_principal, self.total_security_value)
+		self.pending_security_value = self.total_security_value - self.utilized_security_value
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):

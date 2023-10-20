@@ -15,10 +15,10 @@ def execute(filters=None):
 def get_columns(filters):
 	columns = [
 		{
-			"label": _("Loan Security Pledge"),
+			"label": _("Loan Security Assignment"),
 			"fieldtype": "Link",
 			"fieldname": "loan_security_pledge",
-			"options": "Loan Security Pledge",
+			"options": "Loan Security Assignment",
 			"width": 200,
 		},
 		{"label": _("Loan"), "fieldtype": "Link", "fieldname": "loan", "options": "Loan", "width": 200},

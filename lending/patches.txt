@@ -5,6 +5,8 @@ lending.patches.v15_0.generate_loan_repayment_schedule
 lending.patches.v15_0.rename_process_asset_classification_doctype
 lending.patches.v15_0.rename_process_asset_classification_doctype_2
 lending.patches.v15_0.rename_loan_type_to_loan_product
+execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
+execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
