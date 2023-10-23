@@ -1170,8 +1170,12 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 		)
 		unaccrued_interest += pending_days * per_day_interest
 
+	written_off_amount = flt(against_loan_doc.written_off_amount, precision)
+
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
-	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
+	amounts["payable_principal_amount"] = flt(
+		max(payable_principal_amount - written_off_amount, 0), precision
+	)
 	amounts["interest_amount"] = flt(total_pending_interest, precision)
 	amounts["penalty_amount"] = flt(penalty_amount + pending_penalty_amount, precision)
 	amounts["payable_amount"] = flt(
@@ -1179,7 +1183,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	)
 	amounts["pending_accrual_entries"] = pending_accrual_entries
 	amounts["unaccrued_interest"] = flt(unaccrued_interest, precision)
-	amounts["written_off_amount"] = flt(against_loan_doc.written_off_amount, precision)
+	amounts["written_off_amount"] = written_off_amount
 
 	if final_due_date:
 		amounts["due_date"] = final_due_date
