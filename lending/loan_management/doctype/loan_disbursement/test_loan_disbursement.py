@@ -23,7 +23,7 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_loan_application,
 	create_loan_product,
 	create_loan_security,
-	create_loan_security_pledge,
+	create_loan_security_assignment,
 	create_loan_security_price,
 	create_loan_security_type,
 	create_repayment_entry,
@@ -154,7 +154,7 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		pledge1 = [{"loan_security": "Test Security 1", "qty": 2000.00}]
 
-		create_loan_security_pledge(self.applicant, pledge1, loan=loan.name)
+		create_loan_security_assignment(self.applicant, pledge1, loan=loan.name)
 
 		# Topup 500000
 		make_loan_disbursement_entry(loan.name, 500000, disbursement_date=add_days(last_date, 1))

@@ -51,13 +51,13 @@ def add_security(loan):
 		"Loan", loan, ["applicant", "company", "applicant_type"], as_dict=1
 	)
 
-	loan_security_pledge = frappe.new_doc("Loan Security Assignment")
-	loan_security_pledge.loan = loan
-	loan_security_pledge.company = loan_details.company
-	loan_security_pledge.applicant_type = loan_details.applicant_type
-	loan_security_pledge.applicant = loan_details.applicant
+	loan_security_assignment = frappe.new_doc("Loan Security Assignment")
+	loan_security_assignment.loan = loan
+	loan_security_assignment.company = loan_details.company
+	loan_security_assignment.applicant_type = loan_details.applicant_type
+	loan_security_assignment.applicant = loan_details.applicant
 
-	return loan_security_pledge.as_dict()
+	return loan_security_assignment.as_dict()
 
 
 def check_for_ltv_shortfall(process_loan_security_shortfall):

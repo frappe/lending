@@ -8,7 +8,7 @@ frappe.ui.form.on('Loan Application', {
 	setup: function(frm) {
 		frm.make_methods = {
 			'Loan': function() { frm.trigger('create_loan') },
-			'Loan Security Assignment': function() { frm.trigger('create_loan_security_pledge') },
+			'Loan Security Assignment': function() { frm.trigger('create_loan_security_assignment') },
 		}
 	},
 	refresh: function(frm) {
@@ -42,7 +42,7 @@ frappe.ui.form.on('Loan Application', {
 				frappe.db.get_value("Loan Security Assignment", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
 					if (Object.keys(r).length === 0) {
 						frm.add_custom_button(__('Loan Security Assignment'), function() {
-							frm.trigger('create_loan_security_pledge');
+							frm.trigger('create_loan_security_assignment');
 						},__('Create'))
 					}
 				});
@@ -69,7 +69,7 @@ frappe.ui.form.on('Loan Application', {
 			frm: frm
 		});
 	},
-	create_loan_security_pledge: function(frm) {
+	create_loan_security_assignment: function(frm) {
 
 		if(!frm.doc.is_secured_loan) {
 			frappe.throw(__("Loan Security Assignment can only be created for secured loans"));

@@ -148,7 +148,7 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Unpledge` up, `tabUnpledge` u
+		FROM `tabLoan Security Release` up, `tabUnpledge` u
 		WHERE up.loan = %s
 		AND u.parent = up.name
 		AND up.status = 'Approved'
@@ -162,7 +162,7 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Pledge` lp, `tabPledge`p
+		FROM `tabLoan Security Assignment` lp, `tabPledge`p
 		WHERE lp.loan = %s
 		AND p.parent = lp.name
 		AND lp.status = 'Pledged'
