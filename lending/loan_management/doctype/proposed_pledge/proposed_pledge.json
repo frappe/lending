@@ -37,7 +37,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan_security_pledge.qty",
+   "fetch_from": "loan_security_assignment.qty",
    "fieldname": "qty",
    "fieldtype": "Float",
    "in_list_view": 1,

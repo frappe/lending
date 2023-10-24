@@ -222,7 +222,9 @@ class TestLoan(unittest.TestCase):
 		# Clear loan docs before checking
 		frappe.db.sql("DELETE FROM `tabLoan` where applicant = '_Test Loan Customer 1'")
 		frappe.db.sql("DELETE FROM `tabLoan Application` where applicant = '_Test Loan Customer 1'")
-		frappe.db.sql("DELETE FROM `tabLoan Security Pledge` where applicant = '_Test Loan Customer 1'")
+		frappe.db.sql(
+			"DELETE FROM `tabLoan Security Assignment` where applicant = '_Test Loan Customer 1'"
+		)
 
 		if not frappe.db.get_value(
 			"Sanctioned Loan Amount",
@@ -458,7 +460,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
-	def test_loan_security_unpledge(self):
+	def test_loan_security_release(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
@@ -515,7 +517,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(amounts["payable_principal_amount"], 0.0)
 		self.assertEqual(amounts["interest_amount"], 0)
 
-	def test_partial_loan_security_unpledge(self):
+	def test_partial_loan_security_release(self):
 		pledge = [
 			{"loan_security": "Test Security 1", "qty": 2000.00},
 			{"loan_security": "Test Security 2", "qty": 4000.00},
@@ -554,7 +556,7 @@ class TestLoan(unittest.TestCase):
 		unpledge_request.load_from_db()
 		self.assertEqual(unpledge_request.docstatus, 1)
 
-	def test_sanctioned_loan_security_unpledge(self):
+	def test_sanctioned_loan_security_release(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
@@ -1144,7 +1146,7 @@ def create_loan_security():
 		).insert(ignore_permissions=True)
 
 
-def create_loan_security_pledge(applicant, pledges, loan_application=None, loan=None):
+def create_loan_security_assignment(applicant, pledges, loan_application=None, loan=None):
 
 	lsp = frappe.new_doc("Loan Security Assignment")
 	lsp.applicant_type = "Customer"
