@@ -1,18 +1,25 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:loan_security_code",
  "creation": "2019-09-02 15:07:08.885593",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "loan_security_code",
   "loan_security_name",
   "haircut",
-  "loan_security_code",
+  "status",
   "column_break_3",
   "loan_security_type",
   "unit_of_measure",
-  "disabled"
+  "released_date",
+  "disabled",
+  "section_break_iwsf",
+  "security_owner_type",
+  "column_break_uigr",
+  "security_owner"
  ],
  "fields": [
   {
@@ -25,7 +32,6 @@
   },
   {
    "fetch_from": "loan_security_type.haircut",
-   "fetch_if_empty": 1,
    "fieldname": "haircut",
    "fieldtype": "Percent",
    "label": "Haircut %"
@@ -46,6 +52,7 @@
    "fieldname": "loan_security_code",
    "fieldtype": "Data",
    "label": "Loan Security Code",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -63,14 +70,49 @@
    "options": "UOM",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "default": "Pending Hypothecation",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending Hypothecation\nHypothecated\nReleased\nRepossessed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_iwsf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uigr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "security_owner_type",
+   "fieldtype": "Select",
+   "label": "Security Owner Type",
+   "options": "Employee\nMember\nCustomer\nCompany"
+  },
+  {
+   "fieldname": "security_owner",
+   "fieldtype": "Dynamic Link",
+   "label": "Security Owner",
+   "options": "security_owner_type"
+  },
+  {
+   "fieldname": "released_date",
+   "fieldtype": "Date",
+   "label": "Released Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-26 07:34:48.601766",
+ "modified": "2023-10-25 06:15:57.151737",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -101,5 +143,6 @@
  "search_fields": "loan_security_code",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

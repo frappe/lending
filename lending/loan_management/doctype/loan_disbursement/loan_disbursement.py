@@ -4,12 +4,16 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, flt, get_datetime, nowdate
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+	update_loan_securities_values,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -28,6 +32,10 @@ class LoanDisbursement(AccountsController):
 			self.update_repayment_schedule_status()
 
 		self.set_status_and_amounts()
+
+		update_loan_securities_values(self.against_loan, self.disbursed_amount, self.doctype)
+		self.set_status_of_loan_securities()
+
 		self.withheld_security_deposit()
 		self.make_gl_entries()
 
@@ -53,6 +61,15 @@ class LoanDisbursement(AccountsController):
 
 		self.delete_security_deposit()
 		self.set_status_and_amounts(cancel=1)
+
+		update_loan_securities_values(
+			self.against_loan,
+			self.disbursed_amount,
+			self.doctype,
+			on_trigger_doc_cancel=1,
+		)
+		self.set_status_of_loan_securities(cancel=1)
+
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
@@ -89,9 +106,31 @@ class LoanDisbursement(AccountsController):
 
 		if not self.disbursed_amount:
 			frappe.throw(_("Disbursed amount cannot be zero"))
-
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
+
+	def set_status_of_loan_securities(self, cancel=0):
+		if not frappe.db.get_value("Loan", self.against_loan, "is_secured_loan"):
+			return
+
+		if not cancel:
+			new_status = "Hypothecated"
+			old_status = "Pending Hypothecation"
+		else:
+			new_status = "Pending Hypothecation"
+			old_status = "Hypothecated"
+
+		frappe.db.sql(
+			"""
+			UPDATE `tabLoan Security` ls
+			JOIN `tabPledge` p ON p.loan_security=ls.name
+			JOIN `tabLoan Security Assignment` lsa ON lsa.name=p.parent
+			JOIN `tabLoan Security Assignment Loan Detail` lsald ON lsald.parent=lsa.name
+			SET ls.status=%s
+			WHERE lsald.loan=%s AND ls.status=%s
+		""",
+			(new_status, self.against_loan, old_status),
+		)
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
@@ -373,6 +412,16 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
-	return flt(
-		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, "sum(maximum_loan_value)")
-	)
+	lsa = frappe.qb.DocType("Loan Security Assignment")
+	lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
+
+	maximum_loan_value = (
+		frappe.qb.from_(lsa)
+		.inner_join(lsald)
+		.on(lsald.parent == lsa.name)
+		.select(Sum(lsa.maximum_loan_value))
+		.where(lsa.status == "Pledged")
+		.where(lsald.loan == loan)
+	).run()
+
+	return maximum_loan_value[0][0] if maximum_loan_value else 0

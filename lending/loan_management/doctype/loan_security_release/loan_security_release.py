@@ -99,6 +99,12 @@ class LoanSecurityRelease(Document):
 
 			qty_after_unpledge = pledge_qty_map.get(security, 0) - unpledge_qty_map.get(security, 0)
 			current_price = loan_security_price_map.get(security)
+
+			if not current_price:
+				current_price = frappe.db.get_value(
+					"Pledge", {"loan_security": security}, "loan_security_price"
+				)
+
 			security_value += qty_after_unpledge * current_price
 
 		if not security_value and flt(pending_principal_amount, 2) > 0:
@@ -162,10 +168,11 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Assignment` lp, `tabPledge`p
-		WHERE lp.loan = %s
-		AND p.parent = lp.name
-		AND lp.status = 'Pledged'
+		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Security Assignment Loan Detail` lsald
+		WHERE lsald.loan = %s
+		AND p.parent = lsa.name
+		AND lsald.parent = lsa.name
+		AND lsa.status = 'Pledged'
 		GROUP BY p.loan_security
 	""",
 			(loan),

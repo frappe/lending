@@ -4,11 +4,20 @@
 lending.common.setup_filters("Loan Application");
 
 frappe.ui.form.on('Loan Application', {
+	onload: function(frm) {
+		frm.set_query("loan_security", "proposed_pledges", function() {
+			return {
+				"filters": {
+					"status": "Pending Hypothecation",
+				}
+			};
+		});
+	},
 
 	setup: function(frm) {
 		frm.make_methods = {
 			'Loan': function() { frm.trigger('create_loan') },
-			'Loan Security Assignment': function() { frm.trigger('create_loan_security_assignment') },
+			'Loan Security Assignment': function() { frm.trigger('create_loan_security_assignment_from_loan_application') },
 		}
 	},
 	refresh: function(frm) {
@@ -39,13 +48,9 @@ frappe.ui.form.on('Loan Application', {
 		if (frm.doc.status == "Approved") {
 
 			if (frm.doc.is_secured_loan) {
-				frappe.db.get_value("Loan Security Assignment", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
-					if (Object.keys(r).length === 0) {
-						frm.add_custom_button(__('Loan Security Assignment'), function() {
-							frm.trigger('create_loan_security_assignment');
-						},__('Create'))
-					}
-				});
+				frm.add_custom_button(__('Loan Security Assignment'), function() {
+					frm.trigger('create_loan_security_assignment_from_loan_application');
+				},__('Create'))
 			}
 
 			frappe.db.get_value("Loan", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
@@ -69,14 +74,14 @@ frappe.ui.form.on('Loan Application', {
 			frm: frm
 		});
 	},
-	create_loan_security_assignment: function(frm) {
+	create_loan_security_assignment_from_loan_application: function(frm) {
 
 		if(!frm.doc.is_secured_loan) {
 			frappe.throw(__("Loan Security Assignment can only be created for secured loans"));
 		}
 
 		frappe.call({
-			method: "lending.loan_management.doctype.loan_application.loan_application.create_pledge",
+			method: "lending.loan_management.doctype.loan_application.loan_application.create_loan_security_assignment_from_loan_application",
 			args: {
 				loan_application: frm.doc.name
 			},
@@ -95,14 +100,8 @@ frappe.ui.form.on('Loan Application', {
 
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
-		if (row.qty) {
-			frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
-			frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut/100)));
-		} else if (row.amount) {
-			frappe.model.set_value(cdt, cdn, 'qty', cint(row.amount / row.loan_security_price));
-			frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
-			frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut/100)));
-		}
+		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
+		frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut/100)));
 
 		let maximum_amount = 0;
 
@@ -134,11 +133,11 @@ frappe.ui.form.on("Proposed Pledge", {
 		}
 	},
 
-	amount: function(frm, cdt, cdn) {
+	qty: function(frm, cdt, cdn) {
 		frm.events.calculate_amounts(frm, cdt, cdn);
 	},
 
-	qty: function(frm, cdt, cdn) {
+	loan_security_price: function(frm, cdt, cdn) {
 		frm.events.calculate_amounts(frm, cdt, cdn);
 	},
 })

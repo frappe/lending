@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order
+from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	cint,
@@ -223,23 +224,31 @@ class Loan(AccountsController):
 
 	def link_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
-			maximum_loan_value = frappe.db.get_value(
-				"Loan Security Assignment",
-				{"loan_application": self.loan_application, "status": "Requested"},
-				"sum(maximum_loan_value)",
-			)
+			lsa = frappe.qb.DocType("Loan Security Assignment")
+			lsalad = frappe.qb.DocType("Loan Security Assignment Loan Application Detail")
 
-			if maximum_loan_value:
-				frappe.db.sql(
-					"""
-					UPDATE `tabLoan Security Assignment`
-					SET loan = %s, pledge_time = %s, status = 'Pledged'
-					WHERE status = 'Requested' and loan_application = %s
-				""",
-					(self.name, now_datetime(), self.loan_application),
+			lsa_and_maximum_loan_value = (
+				frappe.qb.from_(lsa)
+				.inner_join(lsalad)
+				.on(lsalad.parent == lsa.name)
+				.select(lsa.name, Sum(lsa.maximum_loan_value))
+				.where(lsa.status == "Requested")
+				.where(lsalad.loan_application == self.loan_application)
+			).run()
+
+			if lsa_and_maximum_loan_value:
+				lsa = frappe.get_doc("Loan Security Assignment", lsa_and_maximum_loan_value[0][0])
+				lsa.append(
+					"allocated_loans",
+					{
+						"loan": self.name,
+					},
 				)
+				lsa.pledge_time = now_datetime()
+				lsa.status = "Pledged"
+				lsa.save()
 
-				self.db_set("maximum_loan_amount", maximum_loan_value)
+				self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
