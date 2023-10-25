@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class LoanAssignmentDetail(Document):
+class LoanSecurityAssignmentLoanDetail(Document):
 	pass

@@ -8,7 +8,6 @@ frappe.listview_settings['Loan Security Assignment'] = {
 		var status_color = {
 			"Unpledged": "orange",
 			"Pledged": "green",
-			"Partially Pledged": "green"
 		};
 		return [__(doc.status), status_color[doc.status], "status,=,"+doc.status];
 	}

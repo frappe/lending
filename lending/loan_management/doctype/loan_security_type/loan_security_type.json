@@ -29,6 +29,7 @@
    "unique": 1
   },
   {
+   "default": "0",
    "description": "Haircut percentage is the percentage difference between market value of the Loan Security and the value ascribed to that Loan Security when used as collateral for that loan.",
    "fieldname": "haircut",
    "fieldtype": "Percent",
@@ -54,10 +55,11 @@
   }
  ],
  "links": [],
- "modified": "2020-05-16 09:38:45.988080",
+ "modified": "2023-10-25 05:42:28.605465",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -88,5 +90,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

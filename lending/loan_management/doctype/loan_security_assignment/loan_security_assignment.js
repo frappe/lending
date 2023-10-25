@@ -2,6 +2,16 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Assignment', {
+	onload: function(frm) {
+		frm.set_query("loan_security", "securities", function() {
+			return {
+				"filters": {
+					"status": "Pending Hypothecation",
+				}
+			};
+		});
+	},
+
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
@@ -38,6 +48,10 @@ frappe.ui.form.on("Pledge", {
 	},
 
 	qty: function(frm, cdt, cdn) {
+		frm.events.calculate_amounts(frm, cdt, cdn);
+	},
+
+	loan_security_price: function(frm, cdt, cdn) {
 		frm.events.calculate_amounts(frm, cdt, cdn);
 	},
 });
