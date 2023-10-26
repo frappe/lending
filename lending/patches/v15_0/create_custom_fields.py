@@ -1,5 +1,5 @@
-from lending.install import after_install
+from lending.install import create_custom_fields
 
 
 def execute():
-	after_install()
+	create_custom_fields()

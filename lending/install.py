@@ -53,6 +53,13 @@ LOAN_CUSTOM_FIELDS = {
 			"non_negative": 1,
 		},
 		{
+			"fieldname": "Begin Interest Accrual From",
+			"label": "begin_interest_accrual_from",
+			"fieldtype": "Select",
+			"options": "Disbursement Initiated\nPayment Debited From Bank",
+			"insert_after": "min_days_bw_disbursement_first_repayment",
+		},
+		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
 			"insert_after": "min_days_bw_disbursement_first_repayment",
