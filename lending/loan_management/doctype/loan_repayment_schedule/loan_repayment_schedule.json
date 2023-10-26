@@ -18,10 +18,13 @@
   "loan_product",
   "repayment_frequency",
   "repayment_schedule_type",
+  "repayment_date_on",
   "repayment_method",
   "repayment_periods",
   "monthly_repayment_amount",
   "repayment_start_date",
+  "moratorium_tenure",
+  "treatment_of_interest",
   "section_break_6rpg",
   "repayment_schedule",
   "status",
@@ -150,12 +153,31 @@
    "fieldtype": "Select",
    "label": "Repayment Frequency",
    "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment Of Interest",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "depends_on": "eval:doc.repayment_schedule_type==\"Pro-rated calendar months\"",
+   "fetch_from": "loan_product.repayment_date_on",
+   "fieldname": "repayment_date_on",
+   "fieldtype": "Select",
+   "label": "Repayment Date On",
+   "options": "Start of the next month\nEnd of the current month"
+  },
+  {
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-13 16:55:43.615976",
+ "modified": "2023-10-25 10:08:14.519533",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

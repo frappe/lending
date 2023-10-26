@@ -169,6 +169,8 @@ class Loan(AccountsController):
 				"rate_of_interest": self.rate_of_interest,
 				"posting_date": self.posting_date,
 				"repayment_frequency": self.repayment_frequency,
+				"moratorium_tenure": self.moratorium_tenure,
+				"treatment_of_interest": self.treatment_of_interest,
 			}
 		).insert()
 
@@ -189,6 +191,8 @@ class Loan(AccountsController):
 					"loan_amount": self.loan_amount,
 					"monthly_repayment_amount": self.monthly_repayment_amount,
 					"repayment_frequency": self.repayment_frequency,
+					"moratorium_tenure": self.moratorium_tenure,
+					"treatment_of_interest": self.treatment_of_interest,
 				}
 			)
 			schedule.save()
