@@ -276,3 +276,12 @@ def _update_loan_securities_values(
 				"available_security_value": new_available_security_value,
 			},
 		)
+
+
+@frappe.whitelist()
+def release_loan_security_assignment(loan_security_assignment):
+	frappe.db.set_value(
+		"Loan Security Assignment",
+		loan_security_assignment,
+		{"status": "Released", "release_time": now_datetime()},
+	)

@@ -40,7 +40,7 @@ frappe.query_reports["Loan Security Status"] = {
 			"fieldname":"pledge_status",
 			"label": __("Pledge Status"),
 			"fieldtype": "Select",
-			"options": ["", "Requested", "Pledged", "Unpledged"],
+			"options": ["", "Pledge Requested", "Pledged", "Unpledged"],
 		},
 	]
 };
