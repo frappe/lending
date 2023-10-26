@@ -56,6 +56,8 @@ def add_security(loan):
 	loan_security_assignment.company = loan_details.company
 	loan_security_assignment.applicant_type = loan_details.applicant_type
 	loan_security_assignment.applicant = loan_details.applicant
+	loan_security_assignment.security_owner_type = loan_details.applicant_type
+	loan_security_assignment.security_owner = loan_details.applicant
 
 	return loan_security_assignment.as_dict()
 

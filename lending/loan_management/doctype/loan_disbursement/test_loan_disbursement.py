@@ -175,6 +175,8 @@ def create_loan_security_assignment_with_applicant_and_pledge(
 	lsa = frappe.new_doc("Loan Security Assignment")
 	lsa.applicant_type = "Customer"
 	lsa.applicant = applicant
+	lsa.security_owner_type = "Customer"
+	lsa.security_owner = applicant
 	lsa.company = "_Test Company"
 
 	if loan_application:

@@ -213,6 +213,8 @@ def create_loan_security_assignment_from_loan_application(loan_application, loan
 	lsa = frappe.new_doc("Loan Security Assignment")
 	lsa.applicant_type = loan_application_doc.applicant_type
 	lsa.applicant = loan_application_doc.applicant
+	lsa.security_owner_type = loan_application_doc.applicant_type
+	lsa.security_owner = loan_application_doc.applicant
 	lsa.company = loan_application_doc.company
 
 	lsa.append(

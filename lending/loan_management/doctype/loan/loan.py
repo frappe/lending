@@ -252,7 +252,7 @@ class Loan(AccountsController):
 				.inner_join(lsalad)
 				.on(lsalad.parent == lsa.name)
 				.select(lsa.name, Sum(lsa.maximum_loan_value))
-				.where(lsa.status == "Requested")
+				.where(lsa.status == "Pledge Requested")
 				.where(lsalad.loan_application == self.loan_application)
 			).run()
 

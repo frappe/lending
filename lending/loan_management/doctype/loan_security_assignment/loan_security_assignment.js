@@ -12,6 +12,14 @@ frappe.ui.form.on('Loan Security Assignment', {
 		});
 	},
 
+	refresh: function(frm) {
+		if (frm.doc.status === "Release Requested") {
+			frm.add_custom_button(__("Release"), function() {
+				frm.trigger("release_loan_security_assignment");
+			})
+		}
+	},
+
 	calculate_amounts: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
@@ -26,7 +34,21 @@ frappe.ui.form.on('Loan Security Assignment', {
 
 		frm.set_value('total_security_value', amount);
 		frm.set_value('maximum_loan_value', maximum_amount);
-	}
+	},
+
+	release_loan_security_assignment: function(frm) {
+		frappe.confirm(__("Do you really want to release this loan security assignment?"), function () {
+			frappe.call({
+				args: {
+					"loan_security_assignment": frm.doc.name,
+				},
+				method: "lending.loan_management.doctype.loan_security_assignment.loan_security_assignment.release_loan_security_assignment",
+				callback: function(r) {
+					cur_frm.reload_doc();
+				}
+			})
+		})
+	},
 });
 
 frappe.ui.form.on("Pledge", {
