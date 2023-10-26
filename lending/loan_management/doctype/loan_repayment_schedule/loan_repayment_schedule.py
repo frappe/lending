@@ -31,30 +31,43 @@ class LoanRepaymentSchedule(Document):
 		if not self.repayment_start_date:
 			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
 
-		schedule_type_details = frappe.db.get_value(
-			"Loan Product", self.loan_product, ["repayment_schedule_type", "repayment_date_on"], as_dict=1
-		)
-
 		self.repayment_schedule = []
 		payment_date = self.repayment_start_date
 		balance_amount = self.loan_amount
 		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 		carry_forward_interest = self.adjusted_interest
+		moratorium_interest = 0
 
 		while balance_amount > 0:
+			if self.is_moratorium_applicable and getdate(payment_date) > getdate(self.moratorium_end_date):
+				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
+					balance_amount = self.loan_amount + moratorium_interest
+					self.monthly_repayment_amount = get_monthly_repayment_amount(
+						balance_amount, self.rate_of_interest, self.repayment_periods
+					)
+					moratorium_interest = 0
+
 			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
 				payment_date,
 				balance_amount,
-				self.repayment_frequency,
-				schedule_type_details.repayment_schedule_type,
-				schedule_type_details.repayment_date_on,
 				broken_period_interest_days,
 				carry_forward_interest,
 			)
 
-			if schedule_type_details.repayment_schedule_type == "Pro-rated calendar months":
+			if self.is_moratorium_applicable:
+				if getdate(payment_date) <= getdate(self.moratorium_end_date):
+					total_payment = 0
+					moratorium_interest += interest_amount
+				elif self.treatment_of_interest == "Add to first repayment" and moratorium_interest:
+					if moratorium_interest + interest_amount <= total_payment:
+						interest_amount += moratorium_interest
+						principal_amount = total_payment - interest_amount
+						balance_amount = self.loan_amount - principal_amount
+						moratorium_interest = 0
+
+			if self.repayment_schedule_type == "Pro-rated calendar months":
 				next_payment_date = get_last_day(payment_date)
-				if schedule_type_details.repayment_date_on == "Start of the next month":
+				if self.repayment_date_on == "Start of the next month":
 					next_payment_date = add_days(next_payment_date, 1)
 
 				payment_date = next_payment_date
@@ -66,6 +79,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
 				and len(self.get("repayment_schedule")) >= self.repayment_periods
+				and not self.is_moratorium_applicable
 			):
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
@@ -76,9 +90,9 @@ class LoanRepaymentSchedule(Document):
 				balance_amount = 0
 
 			if (
-				schedule_type_details.repayment_schedule_type
+				self.repayment_schedule_type
 				in ["Monthly as per repayment start date", "Monthly as per cycle date"]
-				or schedule_type_details.repayment_date_on == "End of the current month"
+				or self.repayment_date_on == "End of the current month"
 			) and self.repayment_frequency == "Monthly":
 				next_payment_date = add_single_month(payment_date)
 				payment_date = next_payment_date
@@ -86,10 +100,11 @@ class LoanRepaymentSchedule(Document):
 				payment_date = add_days(payment_date, 7)
 			elif self.repayment_frequency == "Daily":
 				payment_date = add_days(payment_date, 1)
-			elif self.repayment_type == "Quarterly":
+			elif self.repayment_frequency == "Quarterly":
 				payment_date = add_months(payment_date, 3)
 
 			carry_forward_interest = 0
+			broken_period_interest_days = 0
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
@@ -105,51 +120,10 @@ class LoanRepaymentSchedule(Document):
 		self,
 		payment_date,
 		balance_amount,
-		repayment_frequency,
-		schedule_type,
-		repayment_date_on,
 		additional_days,
 		carry_forward_interest=0,
 	):
-		if repayment_frequency == "Monthly":
-			if schedule_type == "Monthly as per repayment start date":
-				days = 1
-				months = 12
-			else:
-				expected_payment_date = get_last_day(payment_date)
-				if repayment_date_on == "Start of the next month":
-					expected_payment_date = add_days(expected_payment_date, 1)
-
-				if schedule_type == "Monthly as per cycle date":
-					days = date_diff(payment_date, add_months(payment_date, -1))
-					if additional_days < 0:
-						days = date_diff(self.repayment_start_date, self.posting_date)
-						additional_days = 0
-
-					months = 365
-					if additional_days:
-						days += additional_days
-						additional_days = 0
-				elif expected_payment_date == payment_date:
-					# using 30 days for calculating interest for all full months
-					days = 30
-					months = 365
-				else:
-					days = date_diff(get_last_day(payment_date), payment_date)
-					months = 365
-		elif repayment_frequency == "Weekly":
-			days = 7
-			months = 52
-		elif repayment_frequency == "Daily":
-			days = 1
-			months = 365
-		elif repayment_frequency == "Quarterly":
-			days = 3
-			months = 12
-		elif repayment_frequency == "One Time":
-			days = date_diff(self.repayment_start_date, self.posting_date)
-			months = 365
-
+		days, months = self.get_days_and_months(payment_date, additional_days)
 		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
 		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
@@ -163,6 +137,47 @@ class LoanRepaymentSchedule(Document):
 		total_payment = principal_amount + interest_amount
 
 		return interest_amount, principal_amount, balance_amount, total_payment, days
+
+	def get_days_and_months(self, payment_date, additional_days):
+		if self.repayment_frequency == "Monthly":
+			if self.repayment_schedule_type == "Monthly as per repayment start date":
+				days = 1
+				months = 12
+			else:
+				months = 365
+				expected_payment_date = get_last_day(payment_date)
+				if self.repayment_date_on == "Start of the next month":
+					expected_payment_date = add_days(expected_payment_date, 1)
+
+				if self.repayment_schedule_type == "Monthly as per cycle date":
+					days = date_diff(payment_date, add_months(payment_date, -1)) + 1
+					if additional_days < 0:
+						days = date_diff(self.repayment_start_date, self.posting_date)
+						additional_days = 0
+
+					if additional_days:
+						days += additional_days
+						additional_days = 0
+				elif expected_payment_date == payment_date:
+					# using 30 days for calculating interest for all full months
+					days = 30
+				else:
+					days = date_diff(get_last_day(payment_date), payment_date)
+
+		elif self.repayment_frequency == "Weekly":
+			days = 7
+			months = 52
+		elif self.repayment_frequency == "Daily":
+			days = 1
+			months = 365
+		elif self.repayment_frequency == "Quarterly":
+			days = 3
+			months = 12
+		elif self.repayment_frequency == "One Time":
+			days = date_diff(self.repayment_start_date, self.posting_date)
+			months = 365
+
+		return days, months
 
 	def add_repayment_schedule_row(
 		self, payment_date, principal_amount, interest_amount, total_payment, balance_loan_amount, days

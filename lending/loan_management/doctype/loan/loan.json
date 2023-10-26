@@ -33,6 +33,8 @@
   "monthly_repayment_amount",
   "repayment_start_date",
   "repayment_frequency",
+  "moratorium_tenure",
+  "treatment_of_interest",
   "is_term_loan",
   "loan_classification_details_section",
   "days_past_due",
@@ -157,7 +159,6 @@
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest (%) / Year",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -494,6 +495,19 @@
    "fieldname": "loan_charges_section",
    "fieldtype": "Section Break",
    "label": "Loan Charges"
+  },
+  {
+   "depends_on": "moratorium_tenure",
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment of Interest",
+   "mandatory_depends_on": "moratorium_tenure",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure"
   }
  ],
  "index_web_pages_for_search": 1,
