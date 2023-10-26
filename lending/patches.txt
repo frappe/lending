@@ -29,8 +29,5 @@ lending.patches.v15_0.migrate_loan_type_to_loan_product
 lending.patches.v15_0.add_loan_product_code_and_rename_loan_name
 lending.patches.v15_0.update_penalty_interest_method_in_loan_products
 lending.patches.v15_0.update_min_bpi_application_days
-<<<<<<< HEAD
-=======
 lending.patches.v15_0.create_custom_field_for_collection_offset_sequence_for_settlement_collection
 lending.patches.v15_0.rename_irac_provisioning_configuration_loan_product
->>>>>>> 05ab366 (chore: validations for tables in company loan section and add collection_offset_sequence_for_settlement_collection (#112))
