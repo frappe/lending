@@ -10,6 +10,7 @@ from frappe.query_builder import Order
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
+	add_months,
 	cint,
 	date_diff,
 	flt,
@@ -93,6 +94,9 @@ class Loan(AccountsController):
 				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
 
 			self.repayment_start_date = cyclic_date
+
+			if self.moratorium_tenure:
+				self.repayment_start_date = add_months(self.repayment_start_date, self.moratorium_tenure)
 
 	def set_default_charge_account(self):
 		for charge in self.get("loan_charges"):
