@@ -34,6 +34,8 @@
   "monthly_repayment_amount",
   "repayment_start_date",
   "repayment_frequency",
+  "moratorium_tenure",
+  "treatment_of_interest",
   "is_term_loan",
   "loan_classification_details_section",
   "days_past_due",
@@ -158,7 +160,6 @@
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest (%) / Year",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -480,14 +481,6 @@
    "label": "Loan Classification Details"
   },
   {
-   "fetch_from": "loan_type.loan_category",
-   "fieldname": "loan_category",
-   "fieldtype": "Link",
-   "label": "Loan Category",
-   "options": "Loan Category",
-   "read_only": 1
-  },
-  {
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
@@ -503,12 +496,25 @@
    "fieldname": "loan_charges_section",
    "fieldtype": "Section Break",
    "label": "Loan Charges"
+  },
+  {
+   "depends_on": "moratorium_tenure",
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment of Interest",
+   "mandatory_depends_on": "moratorium_tenure",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-13 19:15:47.245190",
+ "modified": "2023-10-27 10:03:51.322866",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

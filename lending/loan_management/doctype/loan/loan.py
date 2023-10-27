@@ -10,6 +10,7 @@ from frappe.query_builder import Order
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
+	add_months,
 	cint,
 	date_diff,
 	flt,
@@ -94,6 +95,9 @@ class Loan(AccountsController):
 
 			self.repayment_start_date = cyclic_date
 
+			if self.moratorium_tenure:
+				self.repayment_start_date = add_months(self.repayment_start_date, self.moratorium_tenure)
+
 	def set_default_charge_account(self):
 		for charge in self.get("loan_charges"):
 			if not charge.account:
@@ -170,6 +174,8 @@ class Loan(AccountsController):
 				"rate_of_interest": self.rate_of_interest,
 				"posting_date": self.posting_date,
 				"repayment_frequency": self.repayment_frequency,
+				"moratorium_tenure": self.moratorium_tenure,
+				"treatment_of_interest": self.treatment_of_interest,
 			}
 		).insert()
 
@@ -190,6 +196,8 @@ class Loan(AccountsController):
 					"loan_amount": self.loan_amount,
 					"monthly_repayment_amount": self.monthly_repayment_amount,
 					"repayment_frequency": self.repayment_frequency,
+					"moratorium_tenure": self.moratorium_tenure,
+					"treatment_of_interest": self.treatment_of_interest,
 				}
 			)
 			schedule.save()
@@ -412,11 +420,6 @@ def close_unsecured_term_loan(loan):
 		frappe.db.set_value("Loan", loan, "status", "Closed")
 	else:
 		frappe.throw(_("Cannot close this loan until full repayment"))
-
-
-def close_loan(loan, total_amount_paid):
-	frappe.db.set_value("Loan", loan, "total_amount_paid", total_amount_paid)
-	frappe.db.set_value("Loan", loan, "status", "Closed")
 
 
 @frappe.whitelist()
