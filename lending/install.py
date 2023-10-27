@@ -18,7 +18,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "loan_tab",
 			"fieldtype": "Tab Break",
 			"label": "Loan",
-			"insert_after": "expenses_included_in_valuation",
+			"insert_after": "default_in_transit_warehouse",
 		},
 		{
 			"fieldname": "loan_settings",
