@@ -5,7 +5,7 @@ import math
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_months, date_diff, flt, get_last_day, getdate
+from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_day, getdate
 
 
 class LoanRepaymentSchedule(Document):
@@ -38,8 +38,13 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
+		if self.moratorium_tenure:
+			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
+			moratorium_end_date = add_months(self.repayment_start_date, -1)
+			broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date) + 1
+
 		while balance_amount > 0:
-			if self.is_moratorium_applicable and getdate(payment_date) > getdate(self.moratorium_end_date):
+			if self.moratorium_tenure and getdate(payment_date) > getdate(moratorium_end_date):
 				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
 					balance_amount = self.loan_amount + moratorium_interest
 					self.monthly_repayment_amount = get_monthly_repayment_amount(
@@ -54,9 +59,10 @@ class LoanRepaymentSchedule(Document):
 				carry_forward_interest,
 			)
 
-			if self.is_moratorium_applicable:
-				if getdate(payment_date) <= getdate(self.moratorium_end_date):
+			if self.moratorium_tenure:
+				if getdate(payment_date) <= getdate(moratorium_end_date):
 					total_payment = 0
+					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
 				elif self.treatment_of_interest == "Add to first repayment" and moratorium_interest:
 					if moratorium_interest + interest_amount <= total_payment:
@@ -76,11 +82,9 @@ class LoanRepaymentSchedule(Document):
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
 			)
 
-			if (
-				self.repayment_method == "Repay Over Number of Periods"
-				and len(self.get("repayment_schedule")) >= self.repayment_periods
-				and not self.is_moratorium_applicable
-			):
+			if self.repayment_method == "Repay Over Number of Periods" and len(
+				self.get("repayment_schedule")
+			) >= self.repayment_periods + cint(self.moratorium_tenure):
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
 				self.get("repayment_schedule")[-1].total_payment = (
@@ -150,9 +154,9 @@ class LoanRepaymentSchedule(Document):
 					expected_payment_date = add_days(expected_payment_date, 1)
 
 				if self.repayment_schedule_type == "Monthly as per cycle date":
-					days = date_diff(payment_date, add_months(payment_date, -1)) + 1
+					days = date_diff(payment_date, add_months(payment_date, -1))
 					if additional_days < 0:
-						days = date_diff(self.repayment_start_date, self.posting_date)
+						days = date_diff(payment_date, self.posting_date)
 						additional_days = 0
 
 					if additional_days:
@@ -163,7 +167,6 @@ class LoanRepaymentSchedule(Document):
 					days = 30
 				else:
 					days = date_diff(get_last_day(payment_date), payment_date)
-
 		elif self.repayment_frequency == "Weekly":
 			days = 7
 			months = 52
