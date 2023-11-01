@@ -20,4 +20,12 @@ frappe.ui.form.on("Loan Partner", {
 			frappe.contacts.clear_address_and_contact(frm);
         }
     },
+
+	partner_loan_share_percentage: function(frm) {
+		frm.set_value("company_loan_share_percentage", 100 - frm.doc.partner_loan_share_percentage);
+	},
+
+	company_loan_share_percentage: function(frm) {
+		frm.set_value("partner_loan_share_percentage", 100 - frm.doc.company_loan_share_percentage);
+	},
 });

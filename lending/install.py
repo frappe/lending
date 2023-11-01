@@ -124,7 +124,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "loan_details_tab",
 			"label": "Loan Details",
 			"fieldtype": "Tab Break",
-			"insert_after": "primary_address",
+			"insert_after": "email_id",
 		},
 		{
 			"fieldname": "is_npa",
