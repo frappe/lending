@@ -10,39 +10,23 @@
   "classification_code",
   "classification_name",
   "security_type",
-  "min_dpd_range",
-  "max_dpd_range",
   "provision_rate"
  ],
  "fields": [
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "provision_rate",
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Provision Rate"
   },
   {
-   "columns": 2,
+   "columns": 3,
    "fieldname": "classification_code",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Classification Code",
    "options": "Loan Classification"
-  },
-  {
-   "columns": 1,
-   "fieldname": "min_dpd_range",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Min DPD Range"
-  },
-  {
-   "columns": 1,
-   "fieldname": "max_dpd_range",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Max DPD Range"
   },
   {
    "columns": 3,
@@ -65,7 +49,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-26 11:44:17.642540",
+ "modified": "2023-11-01 23:33:15.840425",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan IRAC Provisioning Configuration",
