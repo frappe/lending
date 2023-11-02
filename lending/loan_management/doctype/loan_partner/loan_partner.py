@@ -25,7 +25,7 @@ class LoanPartner(Document):
 
 		for field in fields:
 			if not self.get(field) or self.get(field) < 1 or self.get(field) > 99:
-				frappe.throw(_("{0} should be between 0 and 100").format(frappe.bold(frappe.unscrub(field))))
+				frappe.throw(_("{0} should be between 1 and 99").format(frappe.bold(frappe.unscrub(field))))
 
 		fldg_fields_to_validate = []
 
@@ -42,14 +42,14 @@ class LoanPartner(Document):
 
 		for field in fldg_fields_to_validate:
 			if not self.get(field) or self.get(field) < 1 or self.get(field) > 99:
-				frappe.throw(_("{0} should be between 0 and 100").format(frappe.bold(frappe.unscrub(field))))
+				frappe.throw(_("{0} should be between 1 and 99").format(frappe.bold(frappe.unscrub(field))))
 
 		for shareable in self.shareables:
 			if shareable.sharing_parameter == "Collection Percentage":
 				for field in ["partner_collection_percentage", "company_collection_percentage"]:
 					if not shareable.get(field) or shareable.get(field) < 1 or shareable.get(field) > 99:
 						frappe.throw(
-							_("Row {0}: {1} should be between 0 and 100").format(
+							_("Row {0}: {1} should be between 1 and 99").format(
 								shareable.idx, frappe.bold(frappe.unscrub(field))
 							)
 						)
@@ -57,7 +57,7 @@ class LoanPartner(Document):
 				for field in ["partner_loan_amount_percentage", "minimum_partner_loan_amount_percentage"]:
 					if not shareable.get(field) or shareable.get(field) < 1 or shareable.get(field) > 99:
 						frappe.throw(
-							_("Row {0}: {1} should be between 0 and 100").format(
+							_("Row {0}: {1} should be between 1 and 99").format(
 								shareable.idx, frappe.bold(frappe.unscrub(field))
 							)
 						)
