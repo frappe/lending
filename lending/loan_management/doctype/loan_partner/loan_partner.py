@@ -27,8 +27,8 @@ class LoanPartner(Document):
 		]
 
 		for field in fields:
-			if self.get(field) and (self.get(field) < 0 or self.get(field) > 100):
-				frappe.throw(_("{0} should be between 0 and 100").format(frappe.bold(frappe.unscrub(field))))
+			if self.get(field) and (self.get(field) < 1 or self.get(field) > 99):
+				frappe.throw(_("{0} should be between 1 and 99").format(frappe.bold(frappe.unscrub(field))))
 
 		shareables_fields = [
 			"partner_collection_percentage",
@@ -39,9 +39,9 @@ class LoanPartner(Document):
 
 		for shareable in self.shareables:
 			for field in shareables_fields:
-				if shareable.get(field) and (shareable.get(field) < 0 or shareable.get(field) > 100):
+				if shareable.get(field) and (shareable.get(field) < 1 or shareable.get(field) > 99):
 					frappe.throw(
-						_("Row {0}: {1} should be between 0 and 100").format(
+						_("Row {0}: {1} should be between 1 and 99").format(
 							shareable.idx, frappe.bold(frappe.unscrub(field))
 						)
 					)
