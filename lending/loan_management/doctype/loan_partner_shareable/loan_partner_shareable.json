@@ -9,6 +9,7 @@
   "shareable_type",
   "sharing_parameter",
   "partner_collection_percentage",
+  "company_collection_percentage",
   "partner_loan_amount_percentage",
   "minimum_partner_loan_amount_percentage"
  ],
@@ -28,7 +29,6 @@
   {
    "fieldname": "minimum_partner_loan_amount_percentage",
    "fieldtype": "Percent",
-   "in_list_view": 1,
    "label": "Minimum Partner Loan Amount Percentage"
   },
   {
@@ -45,13 +45,20 @@
    "in_list_view": 1,
    "label": "Sharing Parameter",
    "options": "\nCollection Percentage\nLoan Amount Percentage",
-   "reqd": 1
+   "reqd": 1,
+   "translatable": 1
+  },
+  {
+   "fieldname": "company_collection_percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Company Collection Percentage"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-02 17:38:34.208157",
+ "modified": "2023-11-02 11:48:00.797758",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner Shareable",
