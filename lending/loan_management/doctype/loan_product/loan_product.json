@@ -190,7 +190,7 @@
    "fieldtype": "Select",
    "label": "Repayment Schedule Type",
    "mandatory_depends_on": "is_term_loan",
-   "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date"
+   "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date\nLine of Credit"
   },
   {
    "depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
@@ -382,7 +382,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-12 13:35:48.346212",
+ "modified": "2023-10-29 16:00:12.844726",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
