@@ -18,7 +18,10 @@ class LoanRepaymentSchedule(Document):
 	def set_missing_fields(self):
 		if self.repayment_method == "Repay Over Number of Periods":
 			self.monthly_repayment_amount = get_monthly_repayment_amount(
-				self.loan_amount, self.rate_of_interest, self.repayment_periods
+				self.disbursed_amount or self.loan_amount,
+				self.rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
 			)
 
 	def set_repayment_period(self):
@@ -33,22 +36,26 @@ class LoanRepaymentSchedule(Document):
 
 		self.repayment_schedule = []
 		payment_date = self.repayment_start_date
-		balance_amount = self.loan_amount
+		balance_amount = self.disbursed_amount or self.loan_amount
 		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
-		if self.moratorium_tenure:
+		if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
 			moratorium_end_date = add_months(self.repayment_start_date, -1)
 			broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date) + 1
 
 		while balance_amount > 0:
-			if self.moratorium_tenure and getdate(payment_date) > getdate(moratorium_end_date):
+			if (
+				self.moratorium_tenure
+				and self.repayment_frequency == "Monthly"
+				and getdate(payment_date) > getdate(moratorium_end_date)
+			):
 				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
 					balance_amount = self.loan_amount + moratorium_interest
 					self.monthly_repayment_amount = get_monthly_repayment_amount(
-						balance_amount, self.rate_of_interest, self.repayment_periods
+						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
 					)
 					moratorium_interest = 0
 
@@ -59,7 +66,7 @@ class LoanRepaymentSchedule(Document):
 				carry_forward_interest,
 			)
 
-			if self.moratorium_tenure:
+			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				if getdate(payment_date) <= getdate(moratorium_end_date):
 					total_payment = 0
 					balance_amount = self.loan_amount
@@ -82,9 +89,15 @@ class LoanRepaymentSchedule(Document):
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
 			)
 
-			if self.repayment_method == "Repay Over Number of Periods" and len(
-				self.get("repayment_schedule")
-			) >= self.repayment_periods + cint(self.moratorium_tenure):
+			tenure = self.repayment_periods
+			if self.repayment_frequency == "Monthly":
+				tenure += cint(self.moratorium_tenure)
+
+			if (
+				self.repayment_method == "Repay Over Number of Periods"
+				and self.repayment_frequency != "One Time"
+				and len(self.get("repayment_schedule")) >= tenure
+			):
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
 				self.get("repayment_schedule")[-1].total_payment = (
@@ -205,9 +218,12 @@ def add_single_month(date):
 		return add_months(date, 1)
 
 
-def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods):
+def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
+	if frequency == "One Time":
+		repayment_periods = 1
+
 	if rate_of_interest:
-		monthly_interest_rate = flt(rate_of_interest) / (12 * 100)
+		monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
 		monthly_repayment_amount = math.ceil(
 			(loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods)
 			/ ((1 + monthly_interest_rate) ** repayment_periods - 1)
@@ -215,3 +231,7 @@ def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_period
 	else:
 		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
 	return monthly_repayment_amount
+
+
+def get_frequency(frequency):
+	return {"Monthly": 12, "Weekly": 52, "Daily": 365, "Quarterly": 4, "One Time": 1}.get(frequency)

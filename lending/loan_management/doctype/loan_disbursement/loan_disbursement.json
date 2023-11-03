@@ -11,9 +11,14 @@
   "applicant_type",
   "loan_product",
   "monthly_repayment_amount",
+  "tenure",
   "column_break_4",
   "company",
   "applicant",
+  "repayment_schedule_type",
+  "repayment_frequency",
+  "repayment_method",
+  "repayment_start_date",
   "is_term_loan",
   "withhold_security_deposit",
   "section_break_7",
@@ -226,12 +231,41 @@
    "fieldtype": "Table",
    "label": "Loan Disbursement Charges",
    "options": "Loan Disbursement Charge"
+  },
+  {
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fetch_from": "against_loan.repayment_schedule_type",
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Data",
+   "label": "Repayment Schedule Type"
+  },
+  {
+   "fieldname": "repayment_start_date",
+   "fieldtype": "Date",
+   "label": "Repayment Start Date"
+  },
+  {
+   "fieldname": "tenure",
+   "fieldtype": "Int",
+   "label": "Tenure",
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type==\"Line of Credit\""
+  },
+  {
+   "fieldname": "repayment_method",
+   "fieldtype": "Select",
+   "label": "Repayment Method",
+   "options": "Repay Over Number of Periods\nRepay Fixed Amount per Period"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-10 19:19:44.826241",
+ "modified": "2023-11-02 15:16:01.606208",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
