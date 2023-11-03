@@ -3,7 +3,7 @@ def get_data():
 		"fieldname": "loan_disbursement",
 		"transactions": [
 			{
-				"items": ["Loan Security Deposit"],
+				"items": ["Loan Security Deposit", "Loan Repayment Schedule"],
 			},
 		],
 	}
