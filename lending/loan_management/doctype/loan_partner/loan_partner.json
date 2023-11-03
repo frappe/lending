@@ -44,8 +44,7 @@
   "column_break_xyxj",
   "waiving_of_charges_applicable",
   "section_break_scge",
-  "partial_payment_mechanism",
-  "column_break_xlvh"
+  "partial_payment_mechanism"
  ],
  "fields": [
   {
@@ -250,15 +249,11 @@
   {
    "fieldname": "section_break_scge",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_xlvh",
-   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-02 15:18:05.609033",
+ "modified": "2023-11-03 11:30:01.230498",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
