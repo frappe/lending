@@ -36,6 +36,12 @@
   "moratorium_tenure",
   "treatment_of_interest",
   "is_term_loan",
+  "loan_credit_limits_section",
+  "limit_applicable_start",
+  "minimum_limit_amount",
+  "column_break_foeo",
+  "limit_applicable_end",
+  "maximum_limit_amount",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -138,7 +144,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Sanctioned\nPartially Disbursed\nDisbursed\nLoan Closure Requested\nClosed",
+   "options": "Sanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed",
    "read_only": 1
   },
   {
@@ -198,6 +204,7 @@
    "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
+   "no_copy": 1,
    "options": "Company:company:default_currency"
   },
   {
@@ -508,6 +515,35 @@
    "fieldname": "moratorium_tenure",
    "fieldtype": "Int",
    "label": "Moratorium Tenure"
+  },
+  {
+   "fieldname": "loan_credit_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Credit Limits"
+  },
+  {
+   "fieldname": "limit_applicable_start",
+   "fieldtype": "Date",
+   "label": "Limit Applicable Start"
+  },
+  {
+   "fieldname": "minimum_limit_amount",
+   "fieldtype": "Currency",
+   "label": "Minimum Limit Amount"
+  },
+  {
+   "fieldname": "column_break_foeo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "limit_applicable_end",
+   "fieldtype": "Date",
+   "label": "Limit Applicable End"
+  },
+  {
+   "fieldname": "maximum_limit_amount",
+   "fieldtype": "Currency",
+   "label": "Maximum Limit Amount"
   }
  ],
  "index_web_pages_for_search": 1,

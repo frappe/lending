@@ -8,9 +8,11 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_disbursement",
   "company",
   "loan_restructure",
   "loan_amount",
+  "disbursed_amount",
   "rate_of_interest",
   "posting_date",
   "adjusted_interest",
@@ -40,6 +42,7 @@
    "reqd": 1
   },
   {
+   "fetch_from": "loan.loan_product",
    "fieldname": "loan_product",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -63,6 +66,7 @@
    "read_only": 1
   },
   {
+   "fetch_from": "loan.loan_amount",
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
    "label": "Loan Amount",
@@ -172,12 +176,23 @@
    "fieldname": "moratorium_tenure",
    "fieldtype": "Int",
    "label": "Moratorium Tenure"
+  },
+  {
+   "fieldname": "disbursed_amount",
+   "fieldtype": "Currency",
+   "label": "Disbursed Amount"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-25 10:08:14.519533",
+ "modified": "2023-11-02 11:23:35.469042",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

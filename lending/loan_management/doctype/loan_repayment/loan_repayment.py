@@ -1061,7 +1061,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 
 
 def get_pending_principal_amount(loan):
-	if loan.status in ("Disbursed", "Closed") or loan.disbursed_amount >= loan.loan_amount:
+	if loan.status in ("Disbursed", "Closed"):
 		pending_principal_amount = (
 			flt(loan.total_payment)
 			+ flt(loan.debit_adjustment_amount)

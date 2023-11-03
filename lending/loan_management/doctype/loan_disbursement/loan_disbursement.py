@@ -4,12 +4,22 @@
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, flt, get_datetime, nowdate
+from frappe.utils import (
+	add_days,
+	cint,
+	date_diff,
+	flt,
+	get_datetime,
+	get_last_day,
+	getdate,
+	nowdate,
+)
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan.loan import make_draft_schedule, update_draft_schedule
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -22,14 +32,66 @@ class LoanDisbursement(AccountsController):
 	def validate(self):
 		self.set_missing_values()
 		self.validate_disbursal_amount()
+		if self.repayment_schedule_type == "Line of Credit":
+			self.set_cyclic_date()
+
+		if self.is_term_loan and not self.is_new() and self.repayment_schedule_type == "Line of Credit":
+			update_draft_schedule(
+				self.against_loan,
+				self.repayment_method,
+				self.repayment_start_date,
+				self.tenure,
+				self.monthly_repayment_amount,
+				self.posting_date,
+				self.repayment_frequency,
+				disbursed_amount=self.disbursed_amount,
+				loan_disbursement=self.name,
+			)
+
+	def after_insert(self):
+		if self.is_term_loan and self.repayment_schedule_type == "Line of Credit":
+			make_draft_schedule(
+				self.against_loan,
+				self.repayment_method,
+				self.repayment_start_date,
+				self.tenure,
+				self.monthly_repayment_amount,
+				self.posting_date,
+				self.repayment_frequency,
+				disbursed_amount=self.disbursed_amount,
+				loan_disbursement=self.name,
+			)
 
 	def on_submit(self):
 		if self.is_term_loan:
+			self.submit_repayment_schedule()
 			self.update_repayment_schedule_status()
 
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
 		self.make_gl_entries()
+
+	def submit_repayment_schedule(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			filters = {
+				"loan": self.against_loan,
+				"docstatus": 0,
+				"status": "Initiated",
+				"loan_disbursement": self.name,
+			}
+			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+			schedule.submit()
+
+	def cancel_and_delete_repayment_schedule(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			filters = {
+				"loan": self.against_loan,
+				"docstatus": 1,
+				"status": "Active",
+				"loan_disbursement": self.name,
+			}
+			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+			schedule.cancel()
 
 	def update_repayment_schedule_status(self, cancel=0):
 		if cancel:
@@ -39,16 +101,17 @@ class LoanDisbursement(AccountsController):
 			status = "Active"
 			current_status = "Initiated"
 
+		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
 		schedule = frappe.db.get_value(
 			"Loan Repayment Schedule",
-			{"loan": self.against_loan, "docstatus": 1, "status": current_status},
+			filters,
 			"name",
 		)
-
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
 
 	def on_cancel(self):
 		if self.is_term_loan:
+			self.cancel_and_delete_repayment_schedule()
 			self.update_repayment_schedule_status(cancel=1)
 
 		self.delete_security_deposit()
@@ -81,6 +144,24 @@ class LoanDisbursement(AccountsController):
 			).insert()
 			sd.submit()
 
+	def set_cyclic_date(self):
+		if self.repayment_frequency == "Monthly":
+			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+				"Loan Product",
+				self.loan_product,
+				["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
+			)
+			cycle_day = cint(cycle_day)
+
+			last_day_of_month = get_last_day(self.posting_date)
+			cyclic_date = add_days(last_day_of_month, cycle_day)
+
+			broken_period_days = date_diff(cyclic_date, self.posting_date)
+			if broken_period_days < min_days_bw_disbursement_first_repayment:
+				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+			self.repayment_start_date = cyclic_date
+
 	def delete_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
@@ -88,13 +169,43 @@ class LoanDisbursement(AccountsController):
 			sd.delete()
 
 	def validate_disbursal_amount(self):
-		possible_disbursal_amount = get_disbursal_amount(self.against_loan)
+		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
+		limit_details = frappe.db.get_value(
+			"Loan",
+			self.against_loan,
+			[
+				"limit_applicable_start",
+				"limit_applicable_end",
+				"minimum_limit_amount",
+				"maximum_limit_amount",
+			],
+			as_dict=1,
+		)
 
 		if not self.disbursed_amount:
 			frappe.throw(_("Disbursed amount cannot be zero"))
 
+		elif self.repayment_schedule_type == "Line of Credit":
+			if (
+				getdate(limit_details.limit_applicable_end)
+				< getdate(self.disbursement_date)
+				< getdate(limit_details.limit_applicable_start)
+			):
+				frappe.throw("Disbursement date is out of approved limit dates")
+
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
+
+		if limit_details.minimum_limit_amount and self.disbursed_amount < flt(
+			limit_details.minimum_limit_amount
+		):
+			frappe.throw(_("Disbursement amount cannot be less than minimum credit limit amount"))
+
+		if (
+			limit_details.maximum_limit_amount
+			and pending_principal_amount + self.disbursed_amount > flt(limit_details.maximum_limit_amount)
+		):
+			frappe.throw(_("Disbursement amount cannot be greater than maximum limit amount"))
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
@@ -139,9 +250,8 @@ class LoanDisbursement(AccountsController):
 
 			total_payment = total_payment - topup_amount
 
-		if disbursed_amount == 0:
+		if disbursed_amount <= 0:
 			status = "Sanctioned"
-
 		elif disbursed_amount >= loan_details.loan_amount:
 			status = "Disbursed"
 		else:
@@ -171,7 +281,9 @@ class LoanDisbursement(AccountsController):
 
 			total_payment = total_payment + topup_amount
 
-		if flt(disbursed_amount) >= loan_details.loan_amount:
+		if self.repayment_schedule_type == "Line of Credit":
+			status = "Active"
+		elif flt(disbursed_amount) >= loan_details.loan_amount:
 			status = "Disbursed"
 		else:
 			status = "Partially Disbursed"
@@ -372,7 +484,7 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 	):
 		disbursal_amount = loan_details.loan_amount - loan_details.disbursed_amount
 
-	return disbursal_amount
+	return disbursal_amount, pending_principal_amount
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
