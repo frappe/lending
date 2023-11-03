@@ -391,11 +391,6 @@ def close_unsecured_term_loan(loan):
 		frappe.throw(_("Cannot close this loan until full repayment"))
 
 
-def close_loan(loan, total_amount_paid):
-	frappe.db.set_value("Loan", loan, "total_amount_paid", total_amount_paid)
-	frappe.db.set_value("Loan", loan, "status", "Closed")
-
-
 @frappe.whitelist()
 def make_loan_disbursement(
 	loan,

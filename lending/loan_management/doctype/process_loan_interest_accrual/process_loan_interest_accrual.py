@@ -75,7 +75,10 @@ def term_loan_accrual_pending(date, loan=None):
 	filters = {"payment_date": ("<=", date), "is_accrued": 0}
 
 	if loan:
-		filters.update({"parent": loan})
+		loan_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan, "status": "Active"}
+		)
+		filters.update({"parent": loan_repayment_schedule})
 
 	pending_accrual = frappe.db.get_value("Repayment Schedule", filters)
 
