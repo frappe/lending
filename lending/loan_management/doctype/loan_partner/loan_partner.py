@@ -56,13 +56,20 @@ class LoanPartner(Document):
 					if shareable.get(field):
 						shareable.set(field, 0)
 			elif shareable.sharing_parameter == "Loan Amount Percentage":
-				if not shareable.get("partner_loan_amount_percentage") or shareable.get("partner_loan_amount_percentage") < 1 or shareable.get("partner_loan_amount_percentage") > 99:
+				if (
+					not shareable.get("partner_loan_amount_percentage")
+					or shareable.get("partner_loan_amount_percentage") < 1
+					or shareable.get("partner_loan_amount_percentage") > 99
+				):
 					frappe.throw(
 						_("Row {0}: {1} should be between 1 and 99").format(
 							shareable.idx, frappe.bold(frappe.unscrub("partner_loan_amount_percentage"))
 						)
 					)
-				if shareable.get("minimum_partner_loan_amount_percentage") and (shareable.get("minimum_partner_loan_amount_percentage") < 1 or shareable.get("minimum_partner_loan_amount_percentage") > 99):
+				if shareable.get("minimum_partner_loan_amount_percentage") and (
+					shareable.get("minimum_partner_loan_amount_percentage") < 1
+					or shareable.get("minimum_partner_loan_amount_percentage") > 99
+				):
 					frappe.throw(
 						_("Row {0}: {1} should be between 1 and 99").format(
 							shareable.idx, frappe.bold(frappe.unscrub("minimum_partner_loan_amount_percentage"))
