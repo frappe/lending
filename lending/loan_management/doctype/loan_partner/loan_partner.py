@@ -30,12 +30,11 @@ class LoanPartner(Document):
 		fldg_fields_to_validate = []
 
 		if self.type_of_fldg_applicable == "Fixed Deposit only":
-			fldg_fields_to_validate = ["fldg_total_percentage", "fldg_fixed_deposit_percentage"]
+			fldg_fields_to_validate = ["fldg_fixed_deposit_percentage"]
 		elif self.type_of_fldg_applicable == "Corporate Guarantee only":
-			fldg_fields_to_validate = ["fldg_total_percentage", "fldg_corporate_guarantee_percentage"]
+			fldg_fields_to_validate = ["fldg_corporate_guarantee_percentage"]
 		elif self.type_of_fldg_applicable == "Both Fixed Deposit and Corporate Guarantee":
 			fldg_fields_to_validate = [
-				"fldg_total_percentage",
 				"fldg_fixed_deposit_percentage",
 				"fldg_corporate_guarantee_percentage",
 			]
@@ -53,11 +52,29 @@ class LoanPartner(Document):
 								shareable.idx, frappe.bold(frappe.unscrub(field))
 							)
 						)
-			elif shareable.sharing_parameter == "Loan Amount Percentage":
 				for field in ["partner_loan_amount_percentage", "minimum_partner_loan_amount_percentage"]:
-					if not shareable.get(field) or shareable.get(field) < 1 or shareable.get(field) > 99:
-						frappe.throw(
-							_("Row {0}: {1} should be between 1 and 99").format(
-								shareable.idx, frappe.bold(frappe.unscrub(field))
-							)
+					if shareable.get(field):
+						shareable.set(field, 0)
+			elif shareable.sharing_parameter == "Loan Amount Percentage":
+				if (
+					not shareable.get("partner_loan_amount_percentage")
+					or shareable.get("partner_loan_amount_percentage") < 1
+					or shareable.get("partner_loan_amount_percentage") > 99
+				):
+					frappe.throw(
+						_("Row {0}: {1} should be between 1 and 99").format(
+							shareable.idx, frappe.bold(frappe.unscrub("partner_loan_amount_percentage"))
 						)
+					)
+				if shareable.get("minimum_partner_loan_amount_percentage") and (
+					shareable.get("minimum_partner_loan_amount_percentage") < 1
+					or shareable.get("minimum_partner_loan_amount_percentage") > 99
+				):
+					frappe.throw(
+						_("Row {0}: {1} should be between 1 and 99").format(
+							shareable.idx, frappe.bold(frappe.unscrub("minimum_partner_loan_amount_percentage"))
+						)
+					)
+				for field in ["partner_collection_percentage", "company_collection_percentage"]:
+					if shareable.get(field):
+						shareable.set(field, 0)
