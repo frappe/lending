@@ -14,6 +14,7 @@ class LoanPartner(Document):
 
 	def validate(self):
 		self.validate_percentage_and_interest_fields()
+		self.validate_shareables()
 
 	def validate_percentage_and_interest_fields(self):
 		fields = [
@@ -42,8 +43,18 @@ class LoanPartner(Document):
 		for field in fldg_fields_to_validate:
 			if not self.get(field) or self.get(field) < 1 or self.get(field) > 99:
 				frappe.throw(_("{0} should be between 1 and 99").format(frappe.bold(frappe.unscrub(field))))
+	
+	def validate_shareables(self):
+		shareables = []
 
 		for shareable in self.shareables:
+			if shareable.shareable_type not in shareables:
+				shareables.append(shareable.shareable_type)
+			else:
+				frappe.throw(
+					_("Shareable Type {0} added multiple times").format(frappe.bold(shareable.shareable_type))
+				)
+
 			if shareable.sharing_parameter == "Collection Percentage":
 				for field in ["partner_collection_percentage", "company_collection_percentage"]:
 					if not shareable.get(field) or shareable.get(field) < 1 or shareable.get(field) > 99:
