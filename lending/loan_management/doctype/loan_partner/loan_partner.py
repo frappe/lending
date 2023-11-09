@@ -43,7 +43,7 @@ class LoanPartner(Document):
 		for field in fldg_fields_to_validate:
 			if not self.get(field) or self.get(field) < 1 or self.get(field) > 99:
 				frappe.throw(_("{0} should be between 1 and 99").format(frappe.bold(frappe.unscrub(field))))
-	
+
 	def validate_shareables(self):
 		shareables = []
 
