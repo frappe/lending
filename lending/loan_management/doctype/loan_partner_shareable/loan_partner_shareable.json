@@ -18,15 +18,13 @@
    "fieldname": "partner_collection_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Partner Collection Percentage",
-   "mandatory_depends_on": "eval:doc.sharing_parameter == \"Collection Percentage\""
+   "label": "Partner Collection Percentage"
   },
   {
    "fieldname": "partner_loan_amount_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Partner Loan Amount Percentage",
-   "mandatory_depends_on": "eval:doc.sharing_parameter == \"Loan Amount Percentage\""
+   "label": "Partner Loan Amount Percentage"
   },
   {
    "fieldname": "minimum_partner_loan_amount_percentage",
@@ -54,14 +52,13 @@
   {
    "fieldname": "company_collection_percentage",
    "fieldtype": "Percent",
-   "label": "Company Collection Percentage",
-   "mandatory_depends_on": "eval:doc.sharing_parameter == \"Collection Percentage\""
+   "label": "Company Collection Percentage"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-09 17:13:25.366680",
+ "modified": "2023-11-10 11:22:29.539972",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner Shareable",
