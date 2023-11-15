@@ -91,7 +91,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Initiated\nRejected\nActive\nRestructured\nDraft\nCancelled"
+   "options": "Initiated\nRejected\nActive\nRestructured\nOutdated\nDraft\nCancelled"
   },
   {
    "fetch_if_empty": 1,
@@ -159,6 +159,7 @@
    "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
   },
   {
+   "fetch_from": "loan.treatment_of_interest",
    "fieldname": "treatment_of_interest",
    "fieldtype": "Select",
    "label": "Treatment Of Interest",
@@ -173,6 +174,7 @@
    "options": "Start of the next month\nEnd of the current month"
   },
   {
+   "fetch_from": "loan.moratorium_tenure",
    "fieldname": "moratorium_tenure",
    "fieldtype": "Int",
    "label": "Moratorium Tenure"
@@ -192,7 +194,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-03 11:23:35.469042",
+ "modified": "2023-11-15 09:47:25.739442",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

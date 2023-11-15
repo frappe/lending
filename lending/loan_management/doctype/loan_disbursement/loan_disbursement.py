@@ -20,7 +20,7 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan.loan import make_draft_schedule, update_draft_schedule
+from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
 	update_loan_securities_values,
 )
@@ -39,35 +39,95 @@ class LoanDisbursement(AccountsController):
 		if self.repayment_schedule_type == "Line of Credit":
 			self.set_cyclic_date()
 
-		if self.is_term_loan and not self.is_new() and self.repayment_schedule_type == "Line of Credit":
-			update_draft_schedule(
-				self.against_loan,
-				self.repayment_method,
-				self.repayment_start_date,
-				self.tenure,
-				self.monthly_repayment_amount,
-				self.posting_date,
-				self.repayment_frequency,
-				disbursed_amount=self.disbursed_amount,
-				loan_disbursement=self.name,
-			)
+		if self.is_term_loan and not self.is_new():
+			self.update_draft_schedule()
 
 	def after_insert(self):
-		if self.is_term_loan and self.repayment_schedule_type == "Line of Credit":
-			make_draft_schedule(
-				self.against_loan,
-				self.repayment_method,
-				self.repayment_start_date,
-				self.tenure,
-				self.monthly_repayment_amount,
-				self.posting_date,
-				self.repayment_frequency,
-				disbursed_amount=self.disbursed_amount,
-				loan_disbursement=self.name,
+		self.make_draft_schedule()
+
+	def make_draft_schedule(self):
+		disbursed_amount = self.get_disbursed_amount()
+
+		if self.repayment_frequency == "Monthly":
+			loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
+
+			if self.repayment_schedule_type != "Line of Credit":
+				tenure = frappe.db.get_value("Loan", self.against_loan, "repayment_periods")
+				self.posting_date = self.disbursement_date
+				self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
+				already_accrued_months = self.get_already_accrued_months()
+				self.tenure = tenure - already_accrued_months
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Schedule",
+				"loan": self.against_loan,
+				"repayment_method": self.repayment_method,
+				"repayment_start_date": self.repayment_start_date,
+				"repayment_periods": self.tenure,
+				"monthly_repayment_amount": self.monthly_repayment_amount,
+				"posting_date": self.disbursement_date,
+				"repayment_frequency": self.repayment_frequency,
+				"disbursed_amount": disbursed_amount,
+				"loan_disbursement": self.name,
+			}
+		).insert()
+
+	def get_already_accrued_months(self):
+		already_accrued_months = 0
+		existing_schedule = frappe.db.get_all(
+			"Loan Repayment Schedule",
+			{"loan": self.against_loan, "docstatus": 1, "status": ("in", ["Active", "Outdated"])},
+			pluck="name",
+		)
+
+		if existing_schedule:
+			already_accrued_months = frappe.db.count(
+				"Repayment Schedule", {"parent": ("in", existing_schedule), "is_accrued": 1}
 			)
+
+		return already_accrued_months
+
+	def get_disbursed_amount(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			disbursed_amount = self.disbursed_amount
+		else:
+			current_disbursed_amount = frappe.db.get_value("Loan", self.against_loan, "disbursed_amount")
+			disbursed_amount = self.disbursed_amount + current_disbursed_amount
+
+		return disbursed_amount
+
+	def update_draft_schedule(self):
+		draft_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 0}, "name"
+		)
+
+		if self.repayment_frequency == "Monthly":
+			loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
+			self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
+
+		if draft_schedule:
+			disbursed_amount = self.get_disbursed_amount()
+
+			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.update(
+				{
+					"loan": self.against_loan,
+					"repayment_periods": self.tenure,
+					"repayment_method": self.repayment_method,
+					"repayment_start_date": self.repayment_start_date,
+					"posting_date": self.disbursement_date,
+					"monthly_repayment_amount": self.monthly_repayment_amount,
+					"repayment_frequency": self.repayment_frequency,
+					"disbursed_amount": disbursed_amount,
+					"loan_disbursement": self.name,
+				}
+			)
+			schedule.save()
 
 	def on_submit(self):
 		if self.is_term_loan:
+			self.update_current_repayment_schedule()
 			self.submit_repayment_schedule()
 			self.update_repayment_schedule_status()
 
@@ -80,15 +140,14 @@ class LoanDisbursement(AccountsController):
 		self.make_gl_entries()
 
 	def submit_repayment_schedule(self):
-		if self.repayment_schedule_type == "Line of Credit":
-			filters = {
-				"loan": self.against_loan,
-				"docstatus": 0,
-				"status": "Initiated",
-				"loan_disbursement": self.name,
-			}
-			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
-			schedule.submit()
+		filters = {
+			"loan": self.against_loan,
+			"docstatus": 0,
+			"status": "Initiated",
+			"loan_disbursement": self.name,
+		}
+		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+		schedule.submit()
 
 	def cancel_and_delete_repayment_schedule(self):
 		if self.repayment_schedule_type == "Line of Credit":
@@ -100,6 +159,24 @@ class LoanDisbursement(AccountsController):
 			}
 			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 			schedule.cancel()
+
+	def update_current_repayment_schedule(self, cancel=0):
+		# Update status of existing schedule on topup
+		if cancel:
+			status = "Active"
+			current_status = "Outdated"
+		else:
+			status = "Outdated"
+			current_status = "Active"
+
+		if self.repayment_schedule_type != "Line of Credit":
+			existing_schedule = frappe.db.get_value(
+				"Loan Repayment Schedule",
+				{"loan": self.against_loan, "docstatus": 1, "status": current_status},
+			)
+
+			if existing_schedule:
+				frappe.db.set_value("Loan Repayment Schedule", existing_schedule, "status", status)
 
 	def update_repayment_schedule_status(self, cancel=0):
 		if cancel:
@@ -121,6 +198,7 @@ class LoanDisbursement(AccountsController):
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
 			self.update_repayment_schedule_status(cancel=1)
+			self.update_current_repayment_schedule(cancel=1)
 
 		self.delete_security_deposit()
 		self.set_status_and_amounts(cancel=1)
@@ -193,7 +271,6 @@ class LoanDisbursement(AccountsController):
 			[
 				"limit_applicable_start",
 				"limit_applicable_end",
-				"minimum_limit_amount",
 				"maximum_limit_amount",
 			],
 			as_dict=1,
@@ -213,11 +290,6 @@ class LoanDisbursement(AccountsController):
 
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
-
-		if limit_details.minimum_limit_amount and self.disbursed_amount < flt(
-			limit_details.minimum_limit_amount
-		):
-			frappe.throw(_("Disbursement amount cannot be less than minimum credit limit amount"))
 
 		if (
 			limit_details.maximum_limit_amount

@@ -40,36 +40,36 @@ class Loan(AccountsController):
 		self.set_cyclic_date()
 		self.set_default_charge_account()
 
-		if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
-			update_draft_schedule(
-				self.name,
-				self.repayment_method,
-				self.repayment_start_date,
-				self.repayment_periods,
-				self.monthly_repayment_amount,
-				self.posting_date,
-				self.repayment_frequency,
-				moratorium_tenure=self.moratorium_tenure,
-				treatment_of_interest=self.treatment_of_interest,
-			)
+		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
+		# 	update_draft_schedule(
+		# 		self.name,
+		# 		self.repayment_method,
+		# 		self.repayment_start_date,
+		# 		self.repayment_periods,
+		# 		self.monthly_repayment_amount,
+		# 		self.posting_date,
+		# 		self.repayment_frequency,
+		# 		moratorium_tenure=self.moratorium_tenure,
+		# 		treatment_of_interest=self.treatment_of_interest,
+		# 	)
 
 		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
 			self.calculate_totals()
 
-	def after_insert(self):
-		if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
-			make_draft_schedule(
-				self.name,
-				self.repayment_method,
-				self.repayment_start_date,
-				self.repayment_periods,
-				self.monthly_repayment_amount,
-				self.posting_date,
-				self.repayment_frequency,
-				moratorium_tenure=self.moratorium_tenure,
-				treatment_of_interest=self.treatment_of_interest,
-			)
-			self.calculate_totals(on_insert=True)
+	# def after_insert(self):
+	# 	if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+	# 		make_draft_schedule(
+	# 			self.name,
+	# 			self.repayment_method,
+	# 			self.repayment_start_date,
+	# 			self.repayment_periods,
+	# 			self.monthly_repayment_amount,
+	# 			self.posting_date,
+	# 			self.repayment_frequency,
+	# 			moratorium_tenure=self.moratorium_tenure,
+	# 			treatment_of_interest=self.treatment_of_interest,
+	# 		)
+	# 		self.calculate_totals(on_insert=True)
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -99,20 +99,7 @@ class Loan(AccountsController):
 			self.repayment_schedule_type == "Monthly as per cycle date"
 			and self.repayment_frequency == "Monthly"
 		):
-			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
-				"Loan Product",
-				self.loan_product,
-				["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
-			)
-			cycle_day = cint(cycle_day)
-
-			last_day_of_month = get_last_day(self.posting_date)
-			cyclic_date = add_days(last_day_of_month, cycle_day)
-
-			broken_period_days = date_diff(cyclic_date, self.posting_date)
-			if broken_period_days < min_days_bw_disbursement_first_repayment:
-				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
-
+			cyclic_date = get_cyclic_date(self.loan_product, self.posting_date)
 			self.repayment_start_date = cyclic_date
 
 			if self.moratorium_tenure:
@@ -137,8 +124,8 @@ class Loan(AccountsController):
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 
-		if self.repayment_schedule_type != "Line of Credit":
-			self.submit_draft_schedule()
+		# if self.repayment_schedule_type != "Line of Credit":
+		# 	self.submit_draft_schedule()
 
 	def on_cancel(self):
 		self.unlink_loan_security_assignment()
@@ -203,14 +190,15 @@ class Loan(AccountsController):
 		self.total_interest_payable = 0
 		self.total_amount_paid = 0
 
-		if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
-			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
-			for data in schedule.repayment_schedule:
-				self.total_payment += data.total_payment
-				self.total_interest_payable += data.interest_amount
+		# if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+		# 	schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
+		# 	for data in schedule.repayment_schedule:
+		# 		self.total_payment += data.total_payment
+		# 		self.total_interest_payable += data.interest_amount
 
-			self.monthly_repayment_amount = schedule.monthly_repayment_amount
-		else:
+		# 	self.monthly_repayment_amount = schedule.monthly_repayment_amount
+
+		if not self.is_term_loan:
 			self.total_payment = self.loan_amount
 
 		if on_insert:
@@ -956,68 +944,20 @@ def move_unpaid_interest_to_suspense_ledger(
 		jv.submit()
 
 
-def make_draft_schedule(
-	loan,
-	repayment_method,
-	start_date,
-	repayment_periods,
-	frequency_repayment_amount,
-	posting_date,
-	repayment_frequency,
-	disbursed_amount=None,
-	moratorium_tenure=None,
-	treatment_of_interest=None,
-	loan_disbursement=None,
-):
-	frappe.get_doc(
-		{
-			"doctype": "Loan Repayment Schedule",
-			"loan": loan,
-			"repayment_method": repayment_method,
-			"repayment_start_date": start_date,
-			"repayment_periods": repayment_periods,
-			"monthly_repayment_amount": frequency_repayment_amount,
-			"posting_date": posting_date,
-			"repayment_frequency": repayment_frequency,
-			"disbursed_amount": disbursed_amount,
-			"moratorium_tenure": moratorium_tenure,
-			"treatment_of_interest": treatment_of_interest,
-			"loan_disbursement": loan_disbursement,
-		}
-	).insert()
-
-
-def update_draft_schedule(
-	loan,
-	repayment_method,
-	start_date,
-	repayment_periods,
-	frequency_repayment_amount,
-	posting_date,
-	repayment_frequency,
-	disbursed_amount=None,
-	moratorium_tenure=None,
-	treatment_of_interest=None,
-	loan_disbursement=None,
-):
-	draft_schedule = frappe.db.get_value(
-		"Loan Repayment Schedule", {"loan": loan, "docstatus": 0}, "name"
+@frappe.whitelist()
+def get_cyclic_date(loan_product, posting_date):
+	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+		"Loan Product",
+		loan_product,
+		["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
 	)
-	if draft_schedule:
-		schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
-		schedule.update(
-			{
-				"loan": loan,
-				"repayment_periods": repayment_periods,
-				"repayment_method": repayment_method,
-				"repayment_start_date": start_date,
-				"posting_date": posting_date,
-				"monthly_repayment_amount": frequency_repayment_amount,
-				"repayment_frequency": repayment_frequency,
-				"disbursed_amount": disbursed_amount,
-				"moratorium_tenure": moratorium_tenure,
-				"treatment_of_interest": treatment_of_interest,
-				"loan_disbursement": loan_disbursement,
-			}
-		)
-		schedule.save()
+	cycle_day = cint(cycle_day)
+
+	last_day_of_month = get_last_day(posting_date)
+	cyclic_date = add_days(last_day_of_month, cycle_day)
+
+	broken_period_days = date_diff(cyclic_date, posting_date)
+	if broken_period_days < min_days_bw_disbursement_first_repayment:
+		cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+	return cyclic_date

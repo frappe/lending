@@ -39,10 +39,9 @@
   "is_term_loan",
   "loan_credit_limits_section",
   "limit_applicable_start",
-  "minimum_limit_amount",
+  "maximum_limit_amount",
   "column_break_foeo",
   "limit_applicable_end",
-  "maximum_limit_amount",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -528,11 +527,6 @@
    "label": "Limit Applicable Start"
   },
   {
-   "fieldname": "minimum_limit_amount",
-   "fieldtype": "Currency",
-   "label": "Minimum Limit Amount"
-  },
-  {
    "fieldname": "column_break_foeo",
    "fieldtype": "Column Break"
   },
@@ -550,7 +544,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-02 20:30:24.141977",
+ "modified": "2023-11-14 19:09:32.629112",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
