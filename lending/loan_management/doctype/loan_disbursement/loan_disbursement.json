@@ -7,6 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "against_loan",
+  "sanctioned_loan_amount",
+  "current_disbursed_amount",
   "posting_date",
   "applicant_type",
   "loan_product",
@@ -245,6 +247,8 @@
    "label": "Repayment Schedule Type"
   },
   {
+   "fetch_from": "against_loan.repayment_start_date",
+   "fetch_if_empty": 1,
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -260,12 +264,26 @@
    "fieldtype": "Select",
    "label": "Repayment Method",
    "options": "Repay Over Number of Periods\nRepay Fixed Amount per Period"
+  },
+  {
+   "fetch_from": "against_loan.loan_amount",
+   "fieldname": "sanctioned_loan_amount",
+   "fieldtype": "Currency",
+   "label": "Sanctioned Loan Amount",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "against_loan.disbursed_amount",
+   "fieldname": "current_disbursed_amount",
+   "fieldtype": "Currency",
+   "label": "Current Disbursed Amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-02 15:16:01.606208",
+ "modified": "2023-11-14 20:23:09.798987",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

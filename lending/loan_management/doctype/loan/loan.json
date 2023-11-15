@@ -38,10 +38,9 @@
   "is_term_loan",
   "loan_credit_limits_section",
   "limit_applicable_start",
-  "minimum_limit_amount",
+  "maximum_limit_amount",
   "column_break_foeo",
   "limit_applicable_end",
-  "maximum_limit_amount",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -525,11 +524,6 @@
    "fieldname": "limit_applicable_start",
    "fieldtype": "Date",
    "label": "Limit Applicable Start"
-  },
-  {
-   "fieldname": "minimum_limit_amount",
-   "fieldtype": "Currency",
-   "label": "Minimum Limit Amount"
   },
   {
    "fieldname": "column_break_foeo",
