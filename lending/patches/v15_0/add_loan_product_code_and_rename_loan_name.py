@@ -7,7 +7,7 @@ from frappe.model.utils.rename_field import rename_field
 
 def execute():
 	try:
-		rename_field("Loan Product", "loan_name", "product_name")
+		rename_field("Loan Product", "loan_name", "product_name", validate=False)
 
 	except Exception as e:
 		if e.args[0] != 1054:
