@@ -3,7 +3,6 @@
 
 
 import frappe
-
 from frappe.model.rename_doc import rename_doc
 
 

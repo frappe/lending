@@ -5,7 +5,9 @@ import frappe
 
 
 def execute():
-	accounts_already_updated = frappe.db.get_value('Loan Product', {'disabled': 0}, "interest_receivable_account")
+	accounts_already_updated = frappe.db.get_value(
+		"Loan Product", {"disabled": 0}, "interest_receivable_account"
+	)
 
 	if accounts_already_updated:
 		return

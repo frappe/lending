@@ -5,7 +5,7 @@ import frappe
 
 
 def execute():
-	loan_repayment_schedules_already_created = frappe.db.count('Loan Repayment Schedule')
+	loan_repayment_schedules_already_created = frappe.db.count("Loan Repayment Schedule")
 
 	if loan_repayment_schedules_already_created:
 		return
@@ -21,7 +21,9 @@ def execute():
 		loan_repayment_schedule.posting_date = loan.posting_date
 		loan_repayment_schedule.status = get_status(loan.status)
 
-		repayment_schedules = frappe.db.get_all("Repayment Schedule", {"parent": loan.name}, "*", order_by='idx')
+		repayment_schedules = frappe.db.get_all(
+			"Repayment Schedule", {"parent": loan.name}, "*", order_by="idx"
+		)
 
 		for rs in repayment_schedules:
 			rs.parent = loan_repayment_schedule.name
