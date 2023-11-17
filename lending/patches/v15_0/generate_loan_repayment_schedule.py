@@ -5,6 +5,11 @@ import frappe
 
 
 def execute():
+	loans_created = frappe.db.count("Loan")
+
+	if not loans_created:
+		return
+
 	loan_repayment_schedules_already_created = frappe.db.count("Loan Repayment Schedule")
 
 	if loan_repayment_schedules_already_created:

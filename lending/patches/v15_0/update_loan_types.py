@@ -5,6 +5,11 @@ import frappe
 
 
 def execute():
+	loan_products_created = frappe.db.count("Loan Product")
+
+	if not loan_products_created:
+		return
+
 	accounts_already_updated = frappe.db.get_value(
 		"Loan Product", {"disabled": 0}, "interest_receivable_account"
 	)
