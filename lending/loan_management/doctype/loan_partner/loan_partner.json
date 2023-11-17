@@ -32,7 +32,6 @@
   "fldg_section",
   "fldg_trigger_dpd",
   "fldg_limit_calculation_component",
-  "fldg_total_percentage",
   "column_break_szii",
   "type_of_fldg_applicable",
   "fldg_fixed_deposit_percentage",
@@ -73,10 +72,10 @@
    "fieldname": "organization_type",
    "fieldtype": "Select",
    "label": "Organization Type",
-   "options": "\nCentralized\nDecentralized"
+   "options": "\nCentralized\nDecentralized",
+   "reqd": 1
   },
   {
-   "depends_on": "eval:!doc.__islocal",
    "fieldname": "section_break_mpap",
    "fieldtype": "Section Break",
    "label": "Organization"
@@ -97,6 +96,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:!doc.__islocal",
    "fieldname": "primary_address",
    "fieldtype": "Link",
    "label": "Primary Address",
@@ -192,11 +192,6 @@
    "mandatory_depends_on": "eval:doc.type_of_fldg_applicable == \"Corporate Guarantee only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\""
   },
   {
-   "fieldname": "fldg_total_percentage",
-   "fieldtype": "Percent",
-   "label": "FLDG Total Percentage"
-  },
-  {
    "fieldname": "misc_section",
    "fieldtype": "Section Break",
    "label": "Misc"
@@ -240,7 +235,8 @@
    "fieldname": "partial_payment_mechanism",
    "fieldtype": "Select",
    "label": "Partial Payment Mechanism",
-   "options": "\nEMI Percentage wise sharing\nComponent wise sharing"
+   "options": "\nEMI Percentage wise sharing\nComponent wise sharing",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_xyxj",
@@ -253,7 +249,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-03 11:30:01.230498",
+ "modified": "2023-11-09 14:55:36.675654",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
