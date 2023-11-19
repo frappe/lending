@@ -229,3 +229,13 @@ global_search_doctypes = {
 # auth_hooks = [
 # 	"lending.auth.validate"
 # ]
+
+fixtures = [
+    {"dt": "Property Setter", "filters": [
+        [
+            "name", "in", [
+                "Customer-customer_type-options",
+            ]
+        ]
+    ]}
+]

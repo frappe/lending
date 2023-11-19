@@ -1,0 +1,18 @@
+[
+ {
+  "default_value": null,
+  "doc_type": "Customer",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "customer_type",
+  "is_system_generated": 0,
+  "modified": "2023-11-19 23:04:12.810886",
+  "module": null,
+  "name": "Customer-customer_type-options",
+  "property": "options",
+  "property_type": "Text",
+  "row_name": null,
+  "value": "Company\nIndividual"
+ }
+]
