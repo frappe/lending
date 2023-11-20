@@ -7,7 +7,7 @@
   "doctype_or_field": "DocField",
   "field_name": "customer_type",
   "is_system_generated": 0,
-  "modified": "2023-11-19 23:04:12.810886",
+  "modified": "2023-11-20 10:04:12.810886",
   "module": null,
   "name": "Customer-customer_type-options",
   "property": "options",
