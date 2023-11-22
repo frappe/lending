@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-11-22 17:03:33.314004",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_demand_details_section",
+  "demand_date",
+  "demand_type",
+  "demand_sub_type",
+  "demand_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_demand_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Demand Details"
+  },
+  {
+   "fieldname": "demand_date",
+   "fieldtype": "Date",
+   "label": "Demand Date"
+  },
+  {
+   "fieldname": "demand_type",
+   "fieldtype": "Select",
+   "label": "Demand Type",
+   "options": "EMI\nPenalty"
+  },
+  {
+   "fieldname": "demand_sub_type",
+   "fieldtype": "Select",
+   "label": "Demand Sub Type",
+   "options": "Principal\nInterest\nPenal"
+  },
+  {
+   "fieldname": "demand_amount",
+   "fieldtype": "Currency",
+   "label": "Demand Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-11-22 17:07:24.843146",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Demand",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
