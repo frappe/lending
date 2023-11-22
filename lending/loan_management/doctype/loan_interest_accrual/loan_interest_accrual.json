@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "rate_of_interest",
   "loan_product",
   "applicant_type",
   "applicant",
@@ -14,15 +15,18 @@
   "loan_account",
   "column_break_4",
   "company",
+  "start_date",
   "posting_date",
   "due_date",
   "accrual_type",
+  "interest_type",
   "is_term_loan",
   "is_npa",
   "section_break_7",
   "pending_principal_amount",
   "payable_principal_amount",
   "paid_principal_amount",
+  "additional_interest_amount",
   "column_break_14",
   "interest_amount",
   "total_pending_interest_amount",
@@ -47,7 +51,7 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Posting Date"
+   "label": "Posting Date (End Date)"
   },
   {
    "fieldname": "pending_principal_amount",
@@ -213,13 +217,35 @@
    "fieldname": "is_npa",
    "fieldtype": "Check",
    "label": "Is NPA"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "interest_type",
+   "fieldtype": "Select",
+   "label": "Interest Type",
+   "options": "Normal Interest\nPenal Interest"
+  },
+  {
+   "fetch_from": "loan.rate_of_interest",
+   "fieldname": "rate_of_interest",
+   "fieldtype": "Float",
+   "label": "Rate Of Interest"
+  },
+  {
+   "fieldname": "additional_interest_amount",
+   "fieldtype": "Currency",
+   "label": "Additional Interest Amount"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:24.469965",
+ "modified": "2023-11-22 16:57:11.982248",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
