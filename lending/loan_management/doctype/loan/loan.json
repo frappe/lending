@@ -539,12 +539,19 @@
    "fieldname": "maximum_limit_amount",
    "fieldtype": "Currency",
    "label": "Maximum Limit Amount"
+  },
+  {
+   "fetch_from": "loan_product.loan_category",
+   "fieldname": "loan_category",
+   "fieldtype": "Link",
+   "label": "Loan Category",
+   "options": "Loan Category"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-14 19:09:32.629112",
+ "modified": "2023-11-27 15:38:47.272327",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

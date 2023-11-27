@@ -479,11 +479,17 @@
    "fieldtype": "Link",
    "label": "Write Off Recovery Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "loan_category",
+   "fieldtype": "Link",
+   "label": "Loan Category",
+   "options": "Loan Category"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-30 16:00:12.844726",
+ "modified": "2023-11-27 15:37:23.059616",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

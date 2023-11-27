@@ -2,10 +2,8 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:loan_category_code",
- "creation": "2023-09-14 22:11:12.105750",
- "default_view": "List",
+ "creation": "2023-11-27 15:32:04.478796",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "loan_category_code",
@@ -24,6 +22,7 @@
   {
    "fieldname": "loan_category_code",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Loan Category Code",
    "reqd": 1,
    "unique": 1
@@ -37,7 +36,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-09 23:10:02.882586",
+ "modified": "2023-11-27 15:35:27.175566",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Category",
