@@ -19,6 +19,7 @@
   "status",
   "section_break_8",
   "loan_product",
+  "loan_category",
   "repayment_schedule_type",
   "loan_amount",
   "rate_of_interest",
@@ -474,12 +475,19 @@
    "fieldname": "loan_classification_details_section",
    "fieldtype": "Section Break",
    "label": "Loan Classification Details"
+  },
+  {
+   "fetch_from": "loan_product.loan_category",
+   "fieldname": "loan_category",
+   "fieldtype": "Link",
+   "label": "Loan Category",
+   "options": "Loan Category"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 13:26:31.406754",
+ "modified": "2023-11-27 15:38:47.272327",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
