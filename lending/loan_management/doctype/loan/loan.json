@@ -15,6 +15,7 @@
   "branch",
   "column_break_3",
   "company",
+  "co_lending_partner",
   "posting_date",
   "status",
   "section_break_8",
@@ -482,12 +483,18 @@
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
+  },
+  {
+   "fieldname": "co_lending_partner",
+   "fieldtype": "Link",
+   "label": "Co lending Partner",
+   "options": "Loan Partner"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-27 15:38:47.272327",
+ "modified": "2023-11-28 11:53:39.891091",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
