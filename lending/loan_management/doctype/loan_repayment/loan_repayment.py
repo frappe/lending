@@ -25,7 +25,7 @@ from lending.loan_management.doctype.process_loan_classification.process_loan_cl
 	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 )
 
 
@@ -211,7 +211,7 @@ class LoanRepayment(AccountsController):
 				posting_date = add_days(last_accrual_date, no_of_days)
 
 				# book excess interest paid
-				process = process_loan_interest_accrual_for_demand_loans(
+				process = process_loan_interest_accrual_for_loans(
 					posting_date=posting_date, loan=self.against_loan, accrual_type="Repayment"
 				)
 

@@ -29,7 +29,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 )
 
 
@@ -423,7 +423,7 @@ class LoanDisbursement(AccountsController):
 		total_payment = loan_details.total_payment
 
 		if loan_details.status in ("Disbursed", "Partially Disbursed") and not loan_details.is_term_loan:
-			process_loan_interest_accrual_for_demand_loans(
+			process_loan_interest_accrual_for_loans(
 				posting_date=add_days(self.disbursement_date, -1),
 				loan=self.against_loan,
 				accrual_type="Disbursement",

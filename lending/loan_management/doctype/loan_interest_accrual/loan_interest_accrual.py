@@ -109,7 +109,7 @@ def calculate_accrual_amount_for_demand_loans(
 		get_pending_principal_amount,
 	)
 
-	no_of_days = get_no_of_days_for_interest_accural(loan, posting_date)
+	no_of_days = get_no_of_days_for_interest_accrual(loan, posting_date)
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if no_of_days <= 0:
@@ -151,7 +151,7 @@ def calculate_accrual_amount_for_demand_loans(
 		make_loan_interest_accrual_entry(args)
 
 
-def make_accrual_interest_entry_for_demand_loans(
+def make_accrual_interest_entry_for_loans(
 	posting_date,
 	process_loan_interest=None,
 	open_loans=None,
@@ -324,7 +324,7 @@ def make_loan_interest_accrual_entry(args):
 	loan_interest_accrual.submit()
 
 
-def get_no_of_days_for_interest_accural(loan, posting_date):
+def get_no_of_days_for_interest_accrual(loan, posting_date):
 	last_interest_accrual_date = get_last_accrual_date(loan.name, posting_date)
 
 	no_of_days = date_diff(posting_date or nowdate(), last_interest_accrual_date) + 1

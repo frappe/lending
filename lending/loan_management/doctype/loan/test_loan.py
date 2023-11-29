@@ -37,7 +37,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 	process_loan_interest_accrual_for_term_loans,
 )
 from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
@@ -292,7 +292,7 @@ class TestLoan(unittest.TestCase):
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
 
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, self.applicant2, add_days(last_date, 10), 111119
@@ -353,7 +353,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		repayment_entry = create_repayment_entry(
 			loan.name,
@@ -488,7 +488,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		repayment_entry = create_repayment_entry(
 			loan.name,
@@ -540,7 +540,7 @@ class TestLoan(unittest.TestCase):
 		last_date = "2019-10-30"
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, self.applicant2, add_days(last_date, 5), 600000
@@ -670,7 +670,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
 
@@ -721,7 +721,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
 
@@ -745,7 +745,7 @@ class TestLoan(unittest.TestCase):
 		penalty_days = 30 - 4
 		penalty_applicable_amount = flt(amounts["interest_amount"] / 2)
 		penalty_amount = flt((((penalty_applicable_amount * 25) / (100 * 365)) * penalty_days), 2)
-		process = process_loan_interest_accrual_for_demand_loans(posting_date="2019-11-30")
+		process = process_loan_interest_accrual_for_loans(posting_date="2019-11-30")
 
 		calculated_penalty_amount = frappe.db.get_value(
 			"Loan Interest Accrual",
@@ -782,7 +782,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		# repay 50 less so that it can be automatically written off
 		repayment_entry = create_repayment_entry(
@@ -859,7 +859,7 @@ class TestLoan(unittest.TestCase):
 		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 		# repay 100 less so that it can be automatically written off
 		repayment_entry = create_repayment_entry(
@@ -961,7 +961,7 @@ def create_loan_scenario_for_penalty(doc):
 	last_date = "2019-10-30"
 
 	make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-	process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+	process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 	amounts = calculate_amounts(loan.name, add_days(last_date, 1))
 	paid_amount = amounts["interest_amount"] / 2
