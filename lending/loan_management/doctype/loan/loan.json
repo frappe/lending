@@ -45,7 +45,6 @@
   "accounting_dimensions_section",
   "cost_center",
   "account_info",
-  "mode_of_payment",
   "disbursement_account",
   "payment_account",
   "column_break_9",
@@ -202,15 +201,6 @@
    "fieldname": "account_info",
    "fieldtype": "Section Break",
    "label": "Account Info"
-  },
-  {
-   "fetch_from": "loan_product.mode_of_payment",
-   "fieldname": "mode_of_payment",
-   "fieldtype": "Link",
-   "label": "Mode of Payment",
-   "options": "Mode of Payment",
-   "read_only": 1,
-   "reqd": 1
   },
   {
    "fetch_from": "loan_product.payment_account",
@@ -487,7 +477,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-27 15:38:47.272327",
+ "modified": "2023-11-29 19:34:09.691251",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
