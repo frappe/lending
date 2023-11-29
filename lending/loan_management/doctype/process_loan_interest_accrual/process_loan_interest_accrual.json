@@ -9,7 +9,6 @@
   "posting_date",
   "loan_product",
   "loan",
-  "process_type",
   "accrual_type",
   "amended_from"
  ],
@@ -43,13 +42,6 @@
    "options": "Loan"
   },
   {
-   "fieldname": "process_type",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Process Type",
-   "read_only": 1
-  },
-  {
    "fieldname": "accrual_type",
    "fieldtype": "Select",
    "hidden": 1,
@@ -61,7 +53,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:22.985995",
+ "modified": "2023-11-27 19:40:47.451857",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Interest Accrual",

@@ -10,7 +10,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 )
 
 
@@ -98,7 +98,7 @@ class LoanBalanceAdjustment(AccountsController):
 			adjustment_amount = loan_details.debit_adjustment_amount + self.amount
 
 		if loan_details.status in ("Disbursed", "Partially Disbursed") and not loan_details.is_term_loan:
-			process_loan_interest_accrual_for_demand_loans(
+			process_loan_interest_accrual_for_loans(
 				posting_date=add_days(self.posting_date, -1),
 				loan=self.loan,
 				accrual_type=self.adjustment_type,

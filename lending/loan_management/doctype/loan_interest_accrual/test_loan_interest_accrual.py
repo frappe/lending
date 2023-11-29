@@ -25,7 +25,7 @@ from lending.loan_management.doctype.process_loan_classification.process_loan_cl
 	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 	process_loan_interest_accrual_for_term_loans,
 )
 
@@ -107,7 +107,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			days_in_year(get_datetime(first_date).year) * 100
 		)
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 		loan_interest_accural = frappe.get_doc("Loan Interest Accrual", {"loan": loan.name})
 
 		self.assertEqual(flt(loan_interest_accural.interest_amount, 0), flt(accrued_interest_amount, 0))
@@ -201,7 +201,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			days_in_year(get_datetime(first_date).year) * 100
 		)
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 		loan_interest_accrual = frappe.get_doc("Loan Interest Accrual", {"loan": loan.name})
 
 		self.assertEqual(flt(loan_interest_accrual.interest_amount, 0), flt(accrued_interest_amount, 0))
@@ -210,7 +210,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		next_end_date = "2019-11-29"
 
 		no_of_days = date_diff(next_end_date, next_start_date) + 1
-		process = process_loan_interest_accrual_for_demand_loans(posting_date=next_end_date)
+		process = process_loan_interest_accrual_for_loans(posting_date=next_end_date)
 		new_accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * no_of_days) / (
 			days_in_year(get_datetime(first_date).year) * 100
 		)

@@ -37,7 +37,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_demand_loans,
+	process_loan_interest_accrual_for_loans,
 )
 
 
@@ -103,7 +103,7 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
 
-		process_loan_interest_accrual_for_demand_loans(posting_date=add_days(last_date, 1))
+		process_loan_interest_accrual_for_loans(posting_date=add_days(last_date, 1))
 
 		# Should not be able to create loan disbursement entry before repayment
 		self.assertRaises(
@@ -147,7 +147,7 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		# Disbursed 10,00,000 amount
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_demand_loans(posting_date=last_date)
+		process_loan_interest_accrual_for_loans(posting_date=last_date)
 		amounts = calculate_amounts(loan.name, add_days(last_date, 1))
 
 		previous_interest = amounts["interest_amount"]
@@ -158,7 +158,7 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		# Topup 500000
 		make_loan_disbursement_entry(loan.name, 500000, disbursement_date=add_days(last_date, 1))
-		process_loan_interest_accrual_for_demand_loans(posting_date=add_days(last_date, 15))
+		process_loan_interest_accrual_for_loans(posting_date=add_days(last_date, 15))
 		amounts = calculate_amounts(loan.name, add_days(last_date, 15))
 
 		interest = get_interest_amount(15, 1500000, 13.5, "_Test Company", "2019-10-30")
