@@ -11,7 +11,7 @@
   "interest_amount",
   "total_payment",
   "balance_loan_amount",
-  "is_accrued"
+  "demand_generated"
  ],
  "fields": [
   {
@@ -61,22 +61,22 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "is_accrued",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Is Accrued",
-   "read_only": 1
-  },
-  {
    "fieldname": "number_of_days",
    "fieldtype": "Int",
    "label": "Number Of Days"
+  },
+  {
+   "default": "0",
+   "fieldname": "demand_generated",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Demand Generated",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-04-27 19:24:05.440274",
+ "modified": "2023-11-29 18:40:28.281344",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Repayment Schedule",

@@ -101,16 +101,13 @@ class LoanInterestAccrual(AccountsController):
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
 # rate of interest is 13.5 then first loan interest accrual will be on '01-10-2019'
 # which means interest will be accrued for 30 days which should be equal to 11095.89
-def calculate_accrual_amount_for_demand_loans(
-	loan, posting_date, process_loan_interest, accrual_type
-):
+def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		calculate_amounts,
 		get_pending_principal_amount,
 	)
 
-	no_of_days = get_no_of_days_for_interest_accrual(loan, posting_date)
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	no_of_days, last_accrual_date = get_no_of_days_for_interest_accrual(loan, posting_date)
 
 	if no_of_days <= 0:
 		return
@@ -141,14 +138,16 @@ def calculate_accrual_amount_for_demand_loans(
 			"total_pending_interest_amount": pending_amounts["interest_amount"],
 			"penalty_amount": pending_amounts["penalty_amount"],
 			"process_loan_interest": process_loan_interest,
+			"start_date": add_days(last_accrual_date, 1),
 			"posting_date": posting_date,
 			"due_date": posting_date,
 			"accrual_type": accrual_type,
 		}
 	)
 
-	if flt(payable_interest, precision) > 0.0:
+	if no_of_days > 0:
 		make_loan_interest_accrual_entry(args)
+		generate_loan_demand(loan, posting_date, payable_interest)
 
 
 def make_accrual_interest_entry_for_loans(
@@ -157,15 +156,12 @@ def make_accrual_interest_entry_for_loans(
 	open_loans=None,
 	loan_product=None,
 	accrual_type="Regular",
-	via_restructure=False,
 ):
 	query_filters = {
 		"status": ("in", ["Disbursed", "Partially Disbursed"]),
 		"docstatus": 1,
+		"is_term_loan": 0,
 	}
-
-	if not via_restructure:
-		query_filters.update({"is_term_loan": 0})
 
 	if loan_product:
 		query_filters.update({"loan_product": loan_product})
@@ -199,10 +195,34 @@ def make_accrual_interest_entry_for_loans(
 			filters=query_filters,
 		)
 
+	open_loans += get_term_loans(posting_date or add_days(nowdate(), 1), loan_product=loan_product)
+
 	for loan in open_loans:
-		calculate_accrual_amount_for_demand_loans(
-			loan, posting_date, process_loan_interest, accrual_type
-		)
+		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+
+
+def generate_loan_demand(loan, posting_date, payable_interest):
+	if not loan.is_term_loan:
+		create_loan_demand(loan.name, posting_date, "Interest", payable_interest)
+	elif loan.is_term_loan and loan.payment_date <= posting_date:
+		create_loan_demand(loan, posting_date, "Interest", loan.interest_amount)
+		create_loan_demand(loan, posting_date, "Principal", loan.principal_amount)
+		update_repayment_schedule(loan)
+
+
+def create_loan_demand(loan, posting_date, demand_type, amount):
+	demand = frappe.new_doc("Loan Demand")
+	demand.loan = loan
+	demand.demand_date = posting_date
+	demand.demand_type = "EMI"
+	demand.demand_subtype = demand_type
+	demand.amount = amount
+	demand.save()
+	demand.submit()
+
+
+def update_repayment_schedule(repayment_entry):
+	frappe.db.set_value("Repayment Schedule", repayment_entry, "demand_generated", 1)
 
 
 def make_accrual_interest_entry_for_term_loans(
@@ -282,7 +302,7 @@ def get_term_loans(date, term_loan=None, loan_product=None):
 			& (loan_schedule.status == "Active")
 			& (loan_repayment_schedule.principal_amount > 0)
 			& (loan_repayment_schedule.payment_date <= date)
-			& (loan_repayment_schedule.is_accrued == 0)
+			& (loan_repayment_schedule.demand_generated == 0)
 			& (loan_repayment_schedule.docstatus == 1)
 		)
 	)
@@ -314,6 +334,7 @@ def make_loan_interest_accrual_entry(args):
 	)
 	loan_interest_accrual.penalty_amount = flt(args.penalty_amount, precision)
 	loan_interest_accrual.posting_date = args.posting_date or nowdate()
+	loan_interest_accrual.start_date = args.start_date
 	loan_interest_accrual.process_loan_interest_accrual = args.process_loan_interest
 	loan_interest_accrual.repayment_schedule_name = args.repayment_schedule_name
 	loan_interest_accrual.payable_principal_amount = args.payable_principal
@@ -329,7 +350,7 @@ def get_no_of_days_for_interest_accrual(loan, posting_date):
 
 	no_of_days = date_diff(posting_date or nowdate(), last_interest_accrual_date) + 1
 
-	return no_of_days
+	return no_of_days, last_interest_accrual_date
 
 
 def get_last_accrual_date(loan, posting_date):
