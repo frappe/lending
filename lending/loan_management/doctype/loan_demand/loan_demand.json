@@ -6,10 +6,16 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_demand_details_section",
-  "demand_date",
+  "loan",
   "demand_type",
   "demand_sub_type",
-  "demand_amount"
+  "amended_from",
+  "column_break_qrjm",
+  "demand_date",
+  "demand_amount",
+  "paid_amount",
+  "waived_amount",
+  "outstanding_amount"
  ],
  "fields": [
   {
@@ -38,11 +44,47 @@
    "fieldname": "demand_amount",
    "fieldtype": "Currency",
    "label": "Demand Amount"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Demand",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "label": "Loan",
+   "options": "Loan"
+  },
+  {
+   "fieldname": "column_break_qrjm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount"
+  },
+  {
+   "fieldname": "waived_amount",
+   "fieldtype": "Currency",
+   "label": "Waived Amount"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount"
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2023-11-22 17:07:24.843146",
+ "modified": "2023-11-29 21:32:56.052619",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

@@ -12,7 +12,7 @@ from lending.loan_management.doctype.loan.loan import (
 	update_watch_period_date_for_all_loans,
 )
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-	make_accrual_interest_entry_for_demand_loans,
+	make_accrual_interest_entry_for_loans,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
@@ -204,7 +204,7 @@ class LoanRestructure(AccountsController):
 		if self.status == "Approved":
 			if self.unaccrued_interest:
 				loan_doc = frappe.get_doc("Loan", self.loan)
-				make_accrual_interest_entry_for_demand_loans(
+				make_accrual_interest_entry_for_loans(
 					posting_date=self.restructure_date, open_loans=[loan_doc], via_restructure=True
 				)
 

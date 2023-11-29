@@ -185,7 +185,7 @@
    "depends_on": "is_term_loan",
    "fieldname": "repayment_periods",
    "fieldtype": "Int",
-   "label": "Repayment Period in Months"
+   "label": "Repayment Periods"
   },
   {
    "depends_on": "is_term_loan",
@@ -479,7 +479,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 13:26:31.406754",
+ "modified": "2023-11-29 22:14:16.693558",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
