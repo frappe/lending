@@ -35,7 +35,7 @@ class LoanInterestAccrual(AccountsController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def update_is_accrued(self):
-		frappe.db.set_value("Repayment Schedule", self.repayment_schedule_name, "is_accrued", 0)
+		frappe.db.set_value("Repayment Schedule", self.repayment_schedule_name, "demand_generated", 0)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
@@ -116,9 +116,6 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 
 	if loan.is_term_loan:
 		pending_amounts = calculate_amounts(loan.name, posting_date)
-		pending_principal_amount = pending_principal_amount - flt(
-			pending_amounts["payable_principal_amount"]
-		)
 	else:
 		pending_amounts = calculate_amounts(loan.name, posting_date, payment_type="Loan Closure")
 
@@ -145,7 +142,7 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 		}
 	)
 
-	if no_of_days > 0:
+	if payable_interest > 0:
 		make_loan_interest_accrual_entry(args)
 		generate_loan_demand(loan, posting_date, payable_interest)
 
@@ -153,7 +150,7 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 def make_accrual_interest_entry_for_loans(
 	posting_date,
 	process_loan_interest=None,
-	open_loans=None,
+	loan=None,
 	loan_product=None,
 	accrual_type="Regular",
 ):
@@ -163,51 +160,58 @@ def make_accrual_interest_entry_for_loans(
 		"is_term_loan": 0,
 	}
 
+	if loan:
+		query_filters.update({"name": loan})
+
 	if loan_product:
 		query_filters.update({"loan_product": loan_product})
 
-	if not open_loans:
-		open_loans = frappe.get_all(
-			"Loan",
-			fields=[
-				"name",
-				"total_payment",
-				"total_amount_paid",
-				"debit_adjustment_amount",
-				"credit_adjustment_amount",
-				"refund_amount",
-				"loan_account",
-				"interest_income_account",
-				"loan_amount",
-				"is_term_loan",
-				"status",
-				"disbursement_date",
-				"disbursed_amount",
-				"applicant_type",
-				"applicant",
-				"rate_of_interest",
-				"total_interest_payable",
-				"written_off_amount",
-				"total_principal_paid",
-				"repayment_start_date",
-				"company",
-			],
-			filters=query_filters,
-		)
+	open_loans = frappe.get_all(
+		"Loan",
+		fields=[
+			"name",
+			"total_payment",
+			"total_amount_paid",
+			"debit_adjustment_amount",
+			"credit_adjustment_amount",
+			"refund_amount",
+			"loan_account",
+			"interest_income_account",
+			"loan_amount",
+			"is_term_loan",
+			"status",
+			"disbursement_date",
+			"disbursed_amount",
+			"applicant_type",
+			"applicant",
+			"rate_of_interest",
+			"total_interest_payable",
+			"written_off_amount",
+			"total_principal_paid",
+			"repayment_start_date",
+			"company",
+		],
+		filters=query_filters,
+	)
 
-	open_loans += get_term_loans(posting_date or add_days(nowdate(), 1), loan_product=loan_product)
+	open_loans += get_term_loans(term_loan=loan, loan_product=loan_product)
 
 	for loan in open_loans:
 		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
 
 
 def generate_loan_demand(loan, posting_date, payable_interest):
+	print(loan.is_term_loan, loan.payment_date, getdate(loan.payment_date), getdate(posting_date))
 	if not loan.is_term_loan:
 		create_loan_demand(loan.name, posting_date, "Interest", payable_interest)
-	elif loan.is_term_loan and loan.payment_date <= posting_date:
-		create_loan_demand(loan, posting_date, "Interest", loan.interest_amount)
-		create_loan_demand(loan, posting_date, "Principal", loan.principal_amount)
-		update_repayment_schedule(loan)
+	elif (
+		loan.is_term_loan
+		and loan.get("payment_date")
+		and getdate(loan.get("payment_date")) <= getdate(posting_date)
+	):
+		create_loan_demand(loan.name, posting_date, "Interest", loan.interest_amount)
+		create_loan_demand(loan.name, posting_date, "Principal", loan.principal_amount)
+		update_repayment_schedule(loan.payment_entry)
 
 
 def create_loan_demand(loan, posting_date, demand_type, amount):
@@ -216,7 +220,7 @@ def create_loan_demand(loan, posting_date, demand_type, amount):
 	demand.demand_date = posting_date
 	demand.demand_type = "EMI"
 	demand.demand_subtype = demand_type
-	demand.amount = amount
+	demand.demand_amount = amount
 	demand.save()
 	demand.submit()
 
@@ -225,46 +229,46 @@ def update_repayment_schedule(repayment_entry):
 	frappe.db.set_value("Repayment Schedule", repayment_entry, "demand_generated", 1)
 
 
-def make_accrual_interest_entry_for_term_loans(
-	posting_date, process_loan_interest, term_loan=None, loan_product=None, accrual_type="Regular"
-):
-	curr_date = posting_date or add_days(nowdate(), 1)
+# def make_accrual_interest_entry_for_term_loans(
+# 	posting_date, process_loan_interest, term_loan=None, loan_product=None, accrual_type="Regular"
+# ):
+# 	curr_date = posting_date or add_days(nowdate(), 1)
 
-	term_loans = get_term_loans(curr_date, term_loan, loan_product)
+# 	term_loans = get_term_loans(curr_date, term_loan, loan_product)
 
-	accrued_entries = []
+# 	accrued_entries = []
 
-	for loan in term_loans:
-		accrued_entries.append(loan.payment_entry)
-		args = frappe._dict(
-			{
-				"loan": loan.name,
-				"applicant_type": loan.applicant_type,
-				"applicant": loan.applicant,
-				"interest_income_account": loan.interest_income_account,
-				"loan_account": loan.loan_account,
-				"interest_amount": loan.interest_amount,
-				"payable_principal": loan.principal_amount,
-				"process_loan_interest": process_loan_interest,
-				"repayment_schedule_name": loan.payment_entry,
-				"posting_date": posting_date,
-				"accrual_type": accrual_type,
-				"due_date": loan.payment_date,
-			}
-		)
+# 	for loan in term_loans:
+# 		accrued_entries.append(loan.payment_entry)
+# 		args = frappe._dict(
+# 			{
+# 				"loan": loan.name,
+# 				"applicant_type": loan.applicant_type,
+# 				"applicant": loan.applicant,
+# 				"interest_income_account": loan.interest_income_account,
+# 				"loan_account": loan.loan_account,
+# 				"interest_amount": loan.interest_amount,
+# 				"payable_principal": loan.principal_amount,
+# 				"process_loan_interest": process_loan_interest,
+# 				"repayment_schedule_name": loan.payment_entry,
+# 				"posting_date": posting_date,
+# 				"accrual_type": accrual_type,
+# 				"due_date": loan.payment_date,
+# 			}
+# 		)
 
-		make_loan_interest_accrual_entry(args)
+# 		make_loan_interest_accrual_entry(args)
 
-	if accrued_entries:
-		frappe.db.sql(
-			"""UPDATE `tabRepayment Schedule`
-			SET is_accrued = 1 where name in (%s)"""  # nosec
-			% ", ".join(["%s"] * len(accrued_entries)),
-			tuple(accrued_entries),
-		)
+# 	if accrued_entries:
+# 		frappe.db.sql(
+# 			"""UPDATE `tabRepayment Schedule`
+# 			SET is_accrued = 1 where name in (%s)"""  # nosec
+# 			% ", ".join(["%s"] * len(accrued_entries)),
+# 			tuple(accrued_entries),
+# 		)
 
 
-def get_term_loans(date, term_loan=None, loan_product=None):
+def get_term_loans(term_loan=None, loan_product=None):
 	loan = frappe.qb.DocType("Loan")
 	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
 	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
@@ -277,6 +281,7 @@ def get_term_loans(date, term_loan=None, loan_product=None):
 		.on(loan_repayment_schedule.parent == loan_schedule.name)
 		.select(
 			loan.name,
+			loan.status,
 			loan.total_payment,
 			loan.total_amount_paid,
 			loan.loan_account,
@@ -292,19 +297,20 @@ def get_term_loans(date, term_loan=None, loan_product=None):
 			loan_repayment_schedule.payment_date,
 			loan_repayment_schedule.principal_amount,
 			loan_repayment_schedule.interest_amount,
-			loan_repayment_schedule.is_accrued,
+			loan_repayment_schedule.demand_generated,
 			loan_repayment_schedule.balance_loan_amount,
 		)
+		.distinct()
 		.where(
 			(loan.docstatus == 1)
 			& (loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (loan.is_term_loan == 1)
 			& (loan_schedule.status == "Active")
 			& (loan_repayment_schedule.principal_amount > 0)
-			& (loan_repayment_schedule.payment_date <= date)
 			& (loan_repayment_schedule.demand_generated == 0)
 			& (loan_repayment_schedule.docstatus == 1)
 		)
+		.orderby(loan_repayment_schedule.payment_date)
 	)
 
 	if term_loan:

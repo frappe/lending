@@ -13,20 +13,13 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 
 class ProcessLoanInterestAccrual(Document):
 	def on_submit(self):
-		open_loans = []
-
-		if self.loan:
-			loan_doc = frappe.get_doc("Loan", self.loan)
-			if loan_doc:
-				open_loans.append(loan_doc)
-
-			make_accrual_interest_entry_for_loans(
-				self.posting_date,
-				self.name,
-				open_loans=open_loans,
-				loan_product=self.loan_product,
-				accrual_type=self.accrual_type,
-			)
+		make_accrual_interest_entry_for_loans(
+			self.posting_date,
+			self.name,
+			loan=self.loan,
+			loan_product=self.loan_product,
+			accrual_type=self.accrual_type,
+		)
 
 
 def process_loan_interest_accrual_for_loans(
