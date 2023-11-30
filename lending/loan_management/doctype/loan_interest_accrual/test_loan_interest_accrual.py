@@ -60,7 +60,6 @@ class TestLoanInterestAccrual(unittest.TestCase):
 			penalty_interest_rate=25,
 			is_term_loan=1,
 			grace_period_in_days=5,
-			mode_of_payment="Cash",
 			disbursement_account="Disbursement Account - _TC",
 			payment_account="Payment Account - _TC",
 			loan_account="Loan Account - _TC",

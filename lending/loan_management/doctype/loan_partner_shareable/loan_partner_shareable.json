@@ -29,6 +29,7 @@
   {
    "fieldname": "minimum_partner_loan_amount_percentage",
    "fieldtype": "Percent",
+   "in_list_view": 1,
    "label": "Minimum Partner Loan Amount Percentage"
   },
   {
@@ -51,14 +52,13 @@
   {
    "fieldname": "company_collection_percentage",
    "fieldtype": "Percent",
-   "in_list_view": 1,
    "label": "Company Collection Percentage"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-02 11:48:00.797758",
+ "modified": "2023-11-10 11:22:29.539972",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner Shareable",
