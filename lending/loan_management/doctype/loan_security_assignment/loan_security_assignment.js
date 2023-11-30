@@ -57,12 +57,13 @@ frappe.ui.form.on("Pledge", {
 
 		if (row.loan_security) {
 			frappe.call({
-				method: "lending.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
+				method: "lending.loan_management.doctype.loan_security.loan_security.get_loan_security_price_or_value",
 				args: {
 					loan_security: row.loan_security
 				},
 				callback: function(r) {
-					frappe.model.set_value(cdt, cdn, 'loan_security_price', r.message);
+					frappe.model.set_value(cdt, cdn, 'qty', r.message['qty']);
+					frappe.model.set_value(cdt, cdn, 'loan_security_price', r.message['value']);
 					frm.events.calculate_amounts(frm, cdt, cdn);
 				}
 			});

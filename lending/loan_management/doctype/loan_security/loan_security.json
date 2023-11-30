@@ -10,8 +10,11 @@
   "loan_security_code",
   "loan_security_name",
   "haircut",
+  "original_security_value",
+  "utilized_security_value",
   "column_break_3",
   "loan_security_type",
+  "available_security_value",
   "disabled"
  ],
  "fields": [
@@ -53,11 +56,33 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "depends_on": "eval:doc.original_security_value",
+   "fieldname": "utilized_security_value",
+   "fieldtype": "Currency",
+   "label": "Utilized Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.original_security_value",
+   "fieldname": "available_security_value",
+   "fieldtype": "Currency",
+   "label": "Available Security Value",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "original_security_value",
+   "fieldtype": "Currency",
+   "label": "Original Security Value",
+   "options": "Company:company:default_currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-30 15:37:00.788174",
+ "modified": "2023-11-30 23:46:49.038702",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
