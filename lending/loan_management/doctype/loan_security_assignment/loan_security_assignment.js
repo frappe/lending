@@ -62,7 +62,10 @@ frappe.ui.form.on("Pledge", {
 					loan_security: row.loan_security
 				},
 				callback: function(r) {
-					frappe.model.set_value(cdt, cdn, 'qty', r.message['qty']);
+					if (r.message['qty']) {
+						frappe.model.set_value(cdt, cdn, 'qty', r.message['qty']);
+					}
+
 					frappe.model.set_value(cdt, cdn, 'loan_security_price', r.message['value']);
 					frm.events.calculate_amounts(frm, cdt, cdn);
 				}
