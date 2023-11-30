@@ -3,9 +3,19 @@
 
 
 import frappe
+from frappe.model.rename_doc import rename_doc
 
 
 def execute():
-	if frappe.db.table_exists("Loan Type") and not frappe.db.table_exists("Loan Product"):
-		frappe.rename_doc("DocType", "Loan Type", "Loan Product", force=True)
-		frappe.reload_doc("loan_management", "doctype", "loan_product")
+	if frappe.db.table_exists("Loan Type"):
+		frappe.db.sql_ddl("DROP TABLE `tabLoan Product`")
+
+		rename_doc(
+			doctype="DocType",
+			old="Loan Type",
+			new="Loan Product",
+			force=True,
+			validate=False,
+		)
+
+		frappe.reload_doc("loan_management", "doctype", "loan_product", force=True)

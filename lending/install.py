@@ -18,7 +18,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "loan_tab",
 			"fieldtype": "Tab Break",
 			"label": "Loan",
-			"insert_after": "expenses_included_in_valuation",
+			"insert_after": "default_in_transit_warehouse",
 		},
 		{
 			"fieldname": "loan_settings",
@@ -93,9 +93,16 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "collection_offset_sequence_for_standard_asset",
 		},
 		{
+			"fieldname": "collection_offset_sequence_for_settlement_collection",
+			"label": "Collection Offset Sequence for Settlement Collection",
+			"fieldtype": "Select",
+			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"insert_after": "collection_offset_sequence_for_written_off_asset",
+		},
+		{
 			"fieldname": "loan_section_break_2",
 			"fieldtype": "Section Break",
-			"insert_after": "collection_offset_sequence_for_written_off_asset",
+			"insert_after": "collection_offset_sequence_for_settlement_collection",
 		},
 		{
 			"fieldname": "loan_classification_ranges",
@@ -117,7 +124,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "loan_details_tab",
 			"label": "Loan Details",
 			"fieldtype": "Tab Break",
-			"insert_after": "primary_address",
+			"insert_after": "email_id",
 		},
 		{
 			"fieldname": "is_npa",
@@ -200,9 +207,33 @@ def make_property_setter_for_journal_entry():
 		)
 
 
+def get_post_install_patches():
+	return (
+		"rename_loan_type_to_loan_product",
+		"generate_loan_repayment_schedule",
+		"update_loan_types",
+		"make_loan_type_non_submittable",
+		"migrate_loan_type_to_loan_product",
+		"add_loan_product_code_and_rename_loan_name",
+		"update_penalty_interest_method_in_loan_products",
+	)
+
+
+def run_patches(patches):
+	frappe.flags.in_patch = True
+
+	try:
+		for patch in patches:
+			frappe.get_attr(f"lending.patches.v15_0.{patch}.execute")()
+	finally:
+		frappe.flags.in_patch = False
+
+
 def after_install():
 	create_custom_fields(LOAN_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter_for_journal_entry()
+	print("\nRunning post-install patches to patch existing data...\n")
+	run_patches(get_post_install_patches())
 
 
 def before_uninstall():
