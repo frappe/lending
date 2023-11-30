@@ -256,7 +256,7 @@ class LoanDisbursement(AccountsController):
 			[
 				"limit_applicable_start",
 				"limit_applicable_end",
-				"maximum_limit_amount",
+				"available_limit_amount",
 			],
 			as_dict=1,
 		)
@@ -276,10 +276,10 @@ class LoanDisbursement(AccountsController):
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
 
 		if (
-			limit_details.maximum_limit_amount
-			and pending_principal_amount + self.disbursed_amount > flt(limit_details.maximum_limit_amount)
+			limit_details.available_limit_amount
+			and self.disbursed_amount > flt(limit_details.available_limit_amount)
 		):
-			frappe.throw(_("Disbursement amount cannot be greater than maximum limit amount"))
+			frappe.throw(_("Disbursement amount cannot be greater than available limit amount"))
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
@@ -293,12 +293,15 @@ class LoanDisbursement(AccountsController):
 				"status",
 				"is_term_loan",
 				"is_secured_loan",
+				"maximum_limit_amount",
+				"available_limit_amount",
+				"utilized_limit_amount"
 			],
 			filters={"name": self.against_loan},
 		)[0]
 
 		if cancel:
-			disbursed_amount, status, total_payment = self.get_values_on_cancel(loan_details)
+			disbursed_amount, status, total_payment, new_available_limit_amount, new_utilized_limit_amount = self.get_values_on_cancel(loan_details)
 		else:
 			(
 				disbursed_amount,
@@ -306,6 +309,8 @@ class LoanDisbursement(AccountsController):
 				total_payment,
 				total_interest_payable,
 				monthly_repayment_amount,
+				new_available_limit_amount,
+				new_utilized_limit_amount
 			) = self.get_values_on_submit(loan_details)
 
 		frappe.db.set_value(
@@ -318,6 +323,8 @@ class LoanDisbursement(AccountsController):
 				"total_payment": total_payment,
 				"total_interest_payable": total_interest_payable,
 				"monthly_repayment_amount": monthly_repayment_amount,
+				"available_limit_amount": new_available_limit_amount,
+				"utilized_limit_amount": new_utilized_limit_amount,
 			},
 		)
 
@@ -338,11 +345,15 @@ class LoanDisbursement(AccountsController):
 			status = "Disbursed"
 		else:
 			status = "Partially Disbursed"
+		
+		new_available_limit_amount = loan_details.available_limit_amount + self.disbursed_amount if loan_details.available_limit_amount else 0.0
+		new_utilized_limit_amount = loan_details.utilized_limit_amount - self.disbursed_amount if loan_details.utilized_limit_amount else 0.0
 
-		return disbursed_amount, status, total_payment
+		return disbursed_amount, status, total_payment, new_available_limit_amount, new_utilized_limit_amount
 
 	def get_values_on_submit(self, loan_details):
 		disbursed_amount = self.disbursed_amount + loan_details.disbursed_amount
+		
 		total_payment = loan_details.total_payment
 		total_interest_payable = loan_details.total_interest_payable
 		monthly_repayment_amount = 0
@@ -379,8 +390,11 @@ class LoanDisbursement(AccountsController):
 			status = "Disbursed"
 		else:
 			status = "Partially Disbursed"
+		
+		new_available_limit_amount = loan_details.available_limit_amount - self.disbursed_amount if loan_details.maximum_limit_amount else 0.0
+		new_utilized_limit_amount = loan_details.utilized_limit_amount + self.disbursed_amount if loan_details.maximum_limit_amount else 0.0
 
-		return disbursed_amount, status, total_payment, total_interest_payable, monthly_repayment_amount
+		return disbursed_amount, status, total_payment, total_interest_payable, monthly_repayment_amount, new_available_limit_amount, new_utilized_limit_amount
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
