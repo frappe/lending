@@ -128,7 +128,8 @@ frappe.ui.form.on('Loan', {
 				"company": frm.doc.company,
 				"applicant_type": frm.doc.applicant_type,
 				"applicant": frm.doc.applicant,
-				"pending_amount": frm.doc.loan_amount - frm.doc.disbursed_amount > 0 ?
+				"posting_date": frm.doc.posting_date,
+				"disbursement_amount": frm.doc.loan_amount - frm.doc.disbursed_amount > 0 ?
 					frm.doc.loan_amount - frm.doc.disbursed_amount : 0,
 				"as_dict": 1
 			},

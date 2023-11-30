@@ -239,11 +239,11 @@ class Loan(AccountsController):
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_term_loans,
+			process_loan_interest_accrual_for_loans,
 		)
 
 		if getdate(self.repayment_start_date) < getdate() and self.is_term_loan:
-			process_loan_interest_accrual_for_term_loans(
+			process_loan_interest_accrual_for_loans(
 				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 

@@ -187,6 +187,8 @@ class LoanDisbursement(AccountsController):
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
 
 	def on_cancel(self):
+		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule"]
+
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
 			self.update_repayment_schedule_status(cancel=1)
@@ -298,7 +300,13 @@ class LoanDisbursement(AccountsController):
 		if cancel:
 			disbursed_amount, status, total_payment = self.get_values_on_cancel(loan_details)
 		else:
-			disbursed_amount, status, total_payment = self.get_values_on_submit(loan_details)
+			(
+				disbursed_amount,
+				status,
+				total_payment,
+				total_interest_payable,
+				monthly_repayment_amount,
+			) = self.get_values_on_submit(loan_details)
 
 		frappe.db.set_value(
 			"Loan",
@@ -308,6 +316,8 @@ class LoanDisbursement(AccountsController):
 				"disbursed_amount": disbursed_amount,
 				"status": status,
 				"total_payment": total_payment,
+				"total_interest_payable": total_interest_payable,
+				"monthly_repayment_amount": monthly_repayment_amount,
 			},
 		)
 
@@ -334,6 +344,8 @@ class LoanDisbursement(AccountsController):
 	def get_values_on_submit(self, loan_details):
 		disbursed_amount = self.disbursed_amount + loan_details.disbursed_amount
 		total_payment = loan_details.total_payment
+		total_interest_payable = loan_details.total_interest_payable
+		monthly_repayment_amount = 0
 
 		if loan_details.status in ("Disbursed", "Partially Disbursed") and not loan_details.is_term_loan:
 			process_loan_interest_accrual_for_loans(
@@ -341,6 +353,16 @@ class LoanDisbursement(AccountsController):
 				loan=self.against_loan,
 				accrual_type="Disbursement",
 			)
+
+		if self.is_term_loan:
+			schedule = frappe.get_doc(
+				"Loan Repayment Schedule", {"loan_disbursement": self.name, "docstatus": 1}
+			)
+			for data in schedule.repayment_schedule:
+				total_payment += data.total_payment
+				total_interest_payable += data.interest_amount
+
+			monthly_repayment_amount = schedule.monthly_repayment_amount
 
 		if disbursed_amount > loan_details.loan_amount:
 			topup_amount = disbursed_amount - loan_details.loan_amount
@@ -351,8 +373,6 @@ class LoanDisbursement(AccountsController):
 			if topup_amount > self.disbursed_amount:
 				topup_amount = self.disbursed_amount
 
-			total_payment = total_payment + topup_amount
-
 		if self.repayment_schedule_type == "Line of Credit":
 			status = "Active"
 		elif flt(disbursed_amount) >= loan_details.loan_amount:
@@ -360,7 +380,7 @@ class LoanDisbursement(AccountsController):
 		else:
 			status = "Partially Disbursed"
 
-		return disbursed_amount, status, total_payment
+		return disbursed_amount, status, total_payment, total_interest_payable, monthly_repayment_amount
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
