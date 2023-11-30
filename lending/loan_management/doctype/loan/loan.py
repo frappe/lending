@@ -39,6 +39,7 @@ class Loan(AccountsController):
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
 		self.set_default_charge_account()
+		self.set_available_limit_amount()
 
 		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
 		# 	update_draft_schedule(
@@ -118,6 +119,9 @@ class Loan(AccountsController):
 					)
 
 				charge.account = account
+
+	def set_available_limit_amount(self):
+		self.available_limit_amount = self.maximum_limit_amount
 
 	def on_submit(self):
 		self.link_loan_security_assignment()
