@@ -118,7 +118,7 @@ class Loan(AccountsController):
 					)
 
 				charge.account = account
-	
+
 	def set_available_limit_amount(self):
 		self.available_limit_amount = self.maximum_limit_amount
 

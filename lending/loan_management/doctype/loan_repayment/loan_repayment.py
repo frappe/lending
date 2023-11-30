@@ -253,13 +253,17 @@ class LoanRepayment(AccountsController):
 				"written_off_amount",
 				"maximum_limit_amount",
 				"available_limit_amount",
-				"utilized_limit_amount"
+				"utilized_limit_amount",
 			],
 			as_dict=1,
 		)
 
-		new_available_limit_amount = loan.available_limit_amount + self.principal_amount_paid if loan.maximum_limit_amount else 0.0
-		new_utilized_limit_amount = loan.utilized_limit_amount - self.principal_amount_paid if loan.maximum_limit_amount else 0.0
+		new_available_limit_amount = (
+			loan.available_limit_amount + self.principal_amount_paid if loan.maximum_limit_amount else 0.0
+		)
+		new_utilized_limit_amount = (
+			loan.utilized_limit_amount - self.principal_amount_paid if loan.maximum_limit_amount else 0.0
+		)
 
 		loan.update(
 			{
