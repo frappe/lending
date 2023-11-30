@@ -7,7 +7,6 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_security_type",
-  "unit_of_measure",
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
@@ -36,14 +35,6 @@
    "label": "Haircut %"
   },
   {
-   "fieldname": "unit_of_measure",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Unit Of Measure",
-   "options": "UOM",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_5",
    "fieldtype": "Column Break"
   },
@@ -55,7 +46,7 @@
   }
  ],
  "links": [],
- "modified": "2023-10-25 05:42:28.605465",
+ "modified": "2023-11-30 15:48:30.025175",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
