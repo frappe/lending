@@ -12,7 +12,6 @@
   "haircut",
   "column_break_3",
   "loan_security_type",
-  "unit_of_measure",
   "disabled"
  ],
  "fields": [
@@ -54,21 +53,11 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
-  },
-  {
-   "fetch_from": "loan_security_type.unit_of_measure",
-   "fieldname": "unit_of_measure",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Unit Of Measure",
-   "options": "UOM",
-   "read_only": 1,
-   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-26 16:25:19.660619",
+ "modified": "2023-11-30 15:37:00.788174",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
