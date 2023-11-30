@@ -24,10 +24,8 @@
   "allocated_loan_applications",
   "section_break_10",
   "total_security_value",
-  "utilized_security_value",
   "column_break_11",
   "maximum_loan_value",
-  "available_security_value",
   "more_information_section",
   "reference_no",
   "column_break_18",
@@ -166,20 +164,6 @@
    "label": "Applicant Details"
   },
   {
-   "fieldname": "utilized_security_value",
-   "fieldtype": "Currency",
-   "label": "Utilized Security Value",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "available_security_value",
-   "fieldtype": "Currency",
-   "label": "Available Security Value",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
    "fieldname": "loan_applications_section",
    "fieldtype": "Section Break",
    "label": "Loan Applications"
@@ -216,7 +200,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-26 16:39:55.670214",
+ "modified": "2023-11-30 23:47:18.667979",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

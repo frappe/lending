@@ -112,11 +112,8 @@ class LoanSecurityAssignment(Document):
 		self.total_security_value = total_security_value
 		self.maximum_loan_value = maximum_loan_value
 
-		self.available_security_value = self.total_security_value
-
 	def check_loan_securities_capability_to_book_additional_loans(self):
 		total_security_value_needed = 0
-
 		for d in self.get("allocated_loans"):
 			loan_amount, status = frappe.db.get_value("Loan", d.loan, ["loan_amount", "status"])
 
@@ -125,15 +122,21 @@ class LoanSecurityAssignment(Document):
 
 			total_security_value_needed += loan_amount
 
-		if total_security_value_needed > self.available_security_value:
+		total_available_security_value = 0
+		for d in self.get("securities"):
+			total_available_security_value += frappe.db.get_value(
+				"Loan Security", d.loan_security, "available_security_value"
+			)
+
+		if total_security_value_needed > total_available_security_value:
 			frappe.throw(
 				_("Loan Securities worth {0} needed more to book the loan").format(
-					frappe.bold(flt(total_security_value_needed - self.available_security_value, 2)),
+					frappe.bold(flt(total_security_value_needed - total_available_security_value, 2)),
 				)
 			)
 
 		for d in self.get("allocated_loans"):
-			update_loan(d.loan, self.available_security_value)
+			update_loan(d.loan, total_available_security_value)
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):
@@ -169,108 +172,57 @@ def update_loan_securities_values(
 		else False
 	)
 
-	sorted_loan_security_assignments = _get_sorted_loan_security_assignments(
-		loan, utilized_value_increased
-	)
-
-	_update_loan_securities_values(
-		sorted_loan_security_assignments,
-		amount,
-		utilized_value_increased,
-	)
-
-
-def _get_sorted_loan_security_assignments(loan, utilized_value_increased):
-	loan_security_assignments_w_ratio = []
-
+	ls = frappe.qb.DocType("Loan Security")
 	lsa = frappe.qb.DocType("Loan Security Assignment")
 	lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
+	pledge = frappe.qb.DocType("Pledge")
 
-	loan_security_assignments = (
+	loan_securities = (
 		frappe.qb.from_(lsa)
 		.inner_join(lsald)
 		.on(lsald.parent == lsa.name)
+		.inner_join(pledge)
+		.on(pledge.parent == lsa.name)
+		.inner_join(ls)
+		.on(pledge.loan_security == ls.name)
 		.select(
-			lsa.name,
-			lsa.total_security_value,
-			lsa.utilized_security_value,
-			lsa.available_security_value,
+			ls.name,
+			ls.available_security_value,
+			ls.utilized_security_value,
+			ls.original_security_value,
 		)
 		.where(lsa.status == "Pledged")
 		.where(lsald.loan == loan)
 	).run(as_dict=True)
 
-	for loan_security_assignment in loan_security_assignments:
-		utilized_to_original_value_ratio = flt(
-			loan_security_assignment.utilized_security_value / loan_security_assignment.total_security_value
-		)
-
-		loan_security_assignments_w_ratio.append(
-			frappe._dict(
-				{
-					"name": loan_security_assignment.name,
-					"total_security_value": loan_security_assignment.total_security_value,
-					"utilized_security_value": loan_security_assignment.utilized_security_value,
-					"available_security_value": loan_security_assignment.available_security_value,
-					"ratio": utilized_to_original_value_ratio,
-				}
-			)
-		)
-
-	sorted_loan_security_assignments = sorted(
-		loan_security_assignments_w_ratio,
-		key=lambda k: k["ratio"],
-		reverse=utilized_value_increased,
-	)
-
-	return sorted_loan_security_assignments
-
-
-def _update_loan_securities_values(
-	sorted_loan_security_assignments,
-	amount,
-	utilized_value_increased,
-):
-	for loan_security_assignment in sorted_loan_security_assignments:
+	for loan_security in loan_securities:
 		if amount <= 0:
 			break
 
 		if utilized_value_increased:
-			if (
-				loan_security_assignment.utilized_security_value + amount
-				> loan_security_assignment.total_security_value
-			):
-				new_utilized_security_value = loan_security_assignment.total_security_value
+			if loan_security.utilized_security_value + amount > loan_security.original_security_value:
+				new_utilized_security_value = loan_security.original_security_value
 				new_available_security_value = 0
-				amount = (
-					amount
-					+ loan_security_assignment.utilized_security_value
-					- loan_security_assignment.total_security_value
-				)
+				amount = amount + loan_security.utilized_security_value - loan_security.original_security_value
 			else:
-				new_utilized_security_value = loan_security_assignment.utilized_security_value + amount
-				new_available_security_value = loan_security_assignment.available_security_value - amount
+				new_utilized_security_value = loan_security.utilized_security_value + amount
+				new_available_security_value = loan_security.available_security_value - amount
 				amount = 0
 		else:
-			if (
-				loan_security_assignment.available_security_value + amount
-				> loan_security_assignment.total_security_value
-			):
-				new_available_security_value = loan_security_assignment.total_security_value
+			if loan_security.available_security_value + amount > loan_security.original_security_value:
+				new_available_security_value = loan_security.original_security_value
 				new_utilized_security_value = 0
 				amount = (
-					amount
-					+ loan_security_assignment.available_security_value
-					- loan_security_assignment.total_security_value
+					amount + loan_security.available_security_value - loan_security.original_security_value
 				)
 			else:
-				new_utilized_security_value = loan_security_assignment.utilized_security_value - amount
-				new_available_security_value = loan_security_assignment.available_security_value + amount
+				new_utilized_security_value = loan_security.utilized_security_value - amount
+				new_available_security_value = loan_security.available_security_value + amount
 				amount = 0
 
 		frappe.db.set_value(
-			"Loan Security Assignment",
-			loan_security_assignment.name,
+			"Loan Security",
+			loan_security.name,
 			{
 				"utilized_security_value": new_utilized_security_value,
 				"available_security_value": new_available_security_value,
