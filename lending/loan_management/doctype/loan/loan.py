@@ -145,6 +145,17 @@ class Loan(AccountsController):
 			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
 		)
 
+	def before_update_after_submit(self):
+		self.update_available_limit_amount()
+
+	def update_available_limit_amount(self):
+		if self.maximum_limit_amount < self.utilized_limit_amount:
+			frappe.throw(_("New maximum limit amount cannot be lesser than the utilized limit amount"))
+
+		self.available_limit_amount += self.maximum_limit_amount - frappe.db.get_value(
+			"Loan", self.name, "maximum_limit_amount"
+		)
+
 	def set_missing_fields(self):
 		if not self.company:
 			self.company = erpnext.get_default_company()
