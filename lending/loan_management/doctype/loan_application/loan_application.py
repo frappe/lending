@@ -205,7 +205,7 @@ def create_loan(source_name, target_doc=None, submit=0):
 
 
 @frappe.whitelist()
-def create_loan_security_assignment_from_loan_application(loan_application, loan=None):
+def create_loan_security_assignment_from_loan_application(loan_application):
 	loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 
 	lsa = frappe.new_doc("Loan Security Assignment")
@@ -216,19 +216,11 @@ def create_loan_security_assignment_from_loan_application(loan_application, loan
 	lsa.company = loan_application_doc.company
 
 	lsa.append(
-		"allocated_loan_applications",
+		"allocated_loans",
 		{
 			"loan_application": loan_application_doc.name,
 		},
 	)
-
-	if loan:
-		lsa.append(
-			"allocated_loans",
-			{
-				"loan": loan,
-			},
-		)
 
 	for pledge in loan_application_doc.proposed_pledges:
 		lsa.append(

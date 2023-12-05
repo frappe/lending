@@ -223,32 +223,34 @@ class Loan(AccountsController):
 			frappe.throw(_("Loan amount is mandatory"))
 
 	def link_loan_security_assignment(self):
-		if self.is_secured_loan and self.loan_application:
-			lsa = frappe.qb.DocType("Loan Security Assignment")
-			lsalad = frappe.qb.DocType("Loan Security Assignment Loan Application Detail")
+		if not self.is_secured_loan or not self.loan_application:
+			return
 
-			lsa_and_maximum_loan_value = (
-				frappe.qb.from_(lsa)
-				.inner_join(lsalad)
-				.on(lsalad.parent == lsa.name)
-				.select(lsa.name, Sum(lsa.maximum_loan_value))
-				.where(lsa.status == "Pledge Requested")
-				.where(lsalad.loan_application == self.loan_application)
-			).run()
+		lsa = frappe.qb.DocType("Loan Security Assignment")
+		lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
 
-			if lsa_and_maximum_loan_value:
-				lsa = frappe.get_doc("Loan Security Assignment", lsa_and_maximum_loan_value[0][0])
-				lsa.append(
-					"allocated_loans",
-					{
-						"loan": self.name,
-					},
-				)
-				lsa.pledge_time = now_datetime()
-				lsa.status = "Pledged"
-				lsa.save()
+		lsa_and_maximum_loan_value = (
+			frappe.qb.from_(lsa)
+			.inner_join(lsald)
+			.on(lsald.parent == lsa.name)
+			.select(lsa.name, Sum(lsa.maximum_loan_value))
+			.where(lsa.status == "Pledge Requested")
+			.where(lsald.loan_application == self.loan_application)
+		).run()
 
-				self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
+		if not lsa_and_maximum_loan_value:
+			return
+
+		lsa = frappe.get_doc("Loan Security Assignment", lsa_and_maximum_loan_value[0][0])
+		for row in lsa.allocated_loans:
+			if row.loan_application == self.loan_application:
+				row.loan = self.name
+				break
+		lsa.pledge_time = now_datetime()
+		lsa.status = "Pledged"
+		lsa.save()
+
+		self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (

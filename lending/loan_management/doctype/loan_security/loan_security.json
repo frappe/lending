@@ -9,12 +9,12 @@
  "field_order": [
   "loan_security_code",
   "loan_security_name",
-  "haircut",
   "original_security_value",
-  "utilized_security_value",
+  "available_security_value",
   "column_break_3",
   "loan_security_type",
-  "available_security_value",
+  "haircut",
+  "utilized_security_value",
   "disabled"
  ],
  "fields": [
@@ -82,7 +82,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-30 23:46:49.038702",
+ "modified": "2023-12-05 15:01:59.268735",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",

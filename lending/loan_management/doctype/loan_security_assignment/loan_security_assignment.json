@@ -9,8 +9,6 @@
   "applicant_details",
   "applicant_type",
   "applicant",
-  "security_owner_type",
-  "security_owner",
   "column_break_3",
   "company",
   "pledge_time",
@@ -20,8 +18,6 @@
   "securities",
   "loan_details_section",
   "allocated_loans",
-  "loan_applications_section",
-  "allocated_loan_applications",
   "section_break_10",
   "total_security_value",
   "column_break_11",
@@ -164,32 +160,6 @@
    "label": "Applicant Details"
   },
   {
-   "fieldname": "loan_applications_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Applications"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "allocated_loan_applications",
-   "fieldtype": "Table",
-   "label": "Allocated Loan Applications",
-   "options": "Loan Security Assignment Loan Application Detail"
-  },
-  {
-   "fieldname": "security_owner_type",
-   "fieldtype": "Select",
-   "label": "Security Owner Type",
-   "options": "Employee\nMember\nCustomer\nCompany",
-   "reqd": 1
-  },
-  {
-   "fieldname": "security_owner",
-   "fieldtype": "Dynamic Link",
-   "label": "Security Owner",
-   "options": "security_owner_type",
-   "reqd": 1
-  },
-  {
    "allow_on_submit": 1,
    "fieldname": "release_time",
    "fieldtype": "Datetime",
@@ -200,7 +170,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-30 23:47:18.667979",
+ "modified": "2023-12-05 15:03:24.617466",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",
