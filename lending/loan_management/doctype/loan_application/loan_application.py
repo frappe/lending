@@ -161,7 +161,6 @@ def create_loan(source_name, target_doc=None, submit=0):
 		account_details = frappe.get_all(
 			"Loan Product",
 			fields=[
-				"mode_of_payment",
 				"payment_account",
 				"loan_account",
 				"interest_income_account",
@@ -173,7 +172,6 @@ def create_loan(source_name, target_doc=None, submit=0):
 		if source_doc.is_secured_loan:
 			target_doc.maximum_loan_amount = 0
 
-		target_doc.mode_of_payment = account_details.mode_of_payment
 		target_doc.payment_account = account_details.payment_account
 		target_doc.loan_account = account_details.loan_account
 		target_doc.interest_income_account = account_details.interest_income_account

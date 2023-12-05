@@ -11,7 +11,6 @@
   "percentage",
   "column_break_gisk",
   "amount",
-  "event",
   "charge_accounts_section",
   "income_account",
   "waiver_account",
@@ -27,13 +26,6 @@
    "in_list_view": 1,
    "label": "Charge Type",
    "options": "Item"
-  },
-  {
-   "fieldname": "event",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Event",
-   "options": "\nDisbursement\nRepayment\nRestructure"
   },
   {
    "fieldname": "charge_based_on",
@@ -102,7 +94,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-10 21:57:17.905327",
+ "modified": "2023-11-29 20:33:10.270293",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Charges",
