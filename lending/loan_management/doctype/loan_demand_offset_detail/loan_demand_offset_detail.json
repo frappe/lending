@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-12-03 10:35:39.100674",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "demand_type_section",
+  "demand_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "demand_type_section",
+   "fieldtype": "Section Break",
+   "label": "Demand Type"
+  },
+  {
+   "fieldname": "demand_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Demand Type",
+   "options": "EMI (Principal + Interest)\nPrincipal\nInterest\nPenalty\nCharges"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-12-04 19:20:49.209590",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Demand Offset Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

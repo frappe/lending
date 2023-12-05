@@ -203,30 +203,32 @@ def make_accrual_interest_entry_for_loans(
 def generate_loan_demand(loan, posting_date, payable_interest):
 	print(loan.is_term_loan, loan.payment_date, getdate(loan.payment_date), getdate(posting_date))
 	if not loan.is_term_loan:
-		create_loan_demand(loan.name, posting_date, "Interest", payable_interest)
+		create_loan_demand(loan.name, posting_date, "Normal", "Interest", payable_interest)
 	elif (
 		loan.is_term_loan
 		and loan.get("payment_date")
 		and getdate(loan.get("payment_date")) <= getdate(posting_date)
 	):
-		create_loan_demand(loan.name, posting_date, "Interest", loan.interest_amount)
-		create_loan_demand(loan.name, posting_date, "Principal", loan.principal_amount)
-		update_repayment_schedule(loan.payment_entry)
+		create_loan_demand(
+			loan.name, posting_date, "EMI", "Interest", loan.interest_amount, loan.payment_entry
+		)
+		create_loan_demand(
+			loan.name, posting_date, "EMI", "Principal", loan.principal_amount, loan.payment_entry
+		)
 
 
-def create_loan_demand(loan, posting_date, demand_type, amount):
+def create_loan_demand(
+	loan, posting_date, demand_type, demand_subtype, amount, repayment_schedule_detail=None
+):
 	demand = frappe.new_doc("Loan Demand")
 	demand.loan = loan
+	demand.repayment_schedule_detail = repayment_schedule_detail
 	demand.demand_date = posting_date
-	demand.demand_type = "EMI"
-	demand.demand_subtype = demand_type
+	demand.demand_type = demand_type
+	demand.demand_subtype = demand_subtype
 	demand.demand_amount = amount
 	demand.save()
 	demand.submit()
-
-
-def update_repayment_schedule(repayment_entry):
-	frappe.db.set_value("Repayment Schedule", repayment_entry, "demand_generated", 1)
 
 
 # def make_accrual_interest_entry_for_term_loans(

@@ -5,7 +5,7 @@
     setup_filters: function(doctype) {
       frappe.ui.form.on(doctype, {
         refresh: function(frm) {
-          if (["Loan Disbursement", "Loan Repayment", "Loan Interest Accrual", "Loan Write Off"].includes(frm.doc.doctype) && frm.doc.docstatus > 0) {
+          if (["Loan Disbursement", "Loan Repayment", "Loan Interest Accrual", "Loan Write Off", "Loan Demand"].includes(frm.doc.doctype) && frm.doc.docstatus > 0) {
             cur_frm.add_custom_button(__("Accounting Ledger"), function() {
               frappe.route_options = {
                 voucher_no: frm.doc.name,
@@ -40,4 +40,4 @@
     }
   };
 })();
-//# sourceMappingURL=lending.bundle.2O3MYYF2.js.map
+//# sourceMappingURL=lending.bundle.RA4FMG3G.js.map

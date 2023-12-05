@@ -20,7 +20,6 @@
   "rate_of_interest",
   "days_past_due",
   "is_term_loan",
-  "offset_based_on_npa",
   "is_npa",
   "manual_npa",
   "payment_details_section",
@@ -302,12 +301,6 @@
    "hidden": 1,
    "label": "Penalty Income Account",
    "options": "Account"
-  },
-  {
-   "default": "0",
-   "fieldname": "offset_based_on_npa",
-   "fieldtype": "Check",
-   "label": "Offset Based On Asset Classification"
   },
   {
    "default": "0",

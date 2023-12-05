@@ -11,7 +11,7 @@ execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Re
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 lending.patches.v15_0.update_loan_types
-lending.patches.v15_0.create_custom_fields #11
+lending.patches.v15_0.create_custom_fields #13
 lending.patches.v15_0.create_custom_field_for_irac_provisioning_configuration
 lending.patches.v15_0.update_loan_asset_classification_ranges
 lending.patches.v15_0.generate_loan_classifications_from_loan_asset_classification_ranges
@@ -32,4 +32,4 @@ lending.patches.v15_0.update_min_bpi_application_days
 lending.patches.v15_0.update_loan_security_assignment_pledge_status
 lending.patches.v15_0.create_custom_field_for_collection_offset_sequence_for_settlement_collection
 lending.patches.v15_0.rename_irac_provisioning_configuration_loan_product
-lending.patches.v15_0.loan_interest_accrual_changes
+#lending.patches.v15_0.loan_interest_accrual_changes

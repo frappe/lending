@@ -5,47 +5,33 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "loan_interest_accrual",
-  "paid_principal_amount",
-  "paid_interest_amount",
-  "accrual_type"
+  "loan_demand",
+  "paid_amount",
+  "demand_type"
  ],
  "fields": [
   {
-   "fieldname": "loan_interest_accrual",
+   "fieldname": "loan_demand",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Loan Interest Accrual",
-   "options": "Loan Interest Accrual"
+   "label": "Loan Demand",
+   "options": "Loan Demand"
   },
   {
-   "fieldname": "paid_principal_amount",
+   "fieldname": "paid_amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Paid Principal Amount",
+   "label": "Paid Amount",
    "options": "Company:company:default_currency"
   },
   {
-   "fieldname": "paid_interest_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Paid Interest Amount",
-   "options": "Company:company:default_currency"
-  },
-  {
-   "fetch_from": "loan_interest_accrual.accrual_type",
-   "fetch_if_empty": 1,
-   "fieldname": "accrual_type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Accrual Type",
-   "options": "Regular\nRepayment\nDisbursement"
+   "fieldname": "demand_type",
+   "fieldtype": "Data",
+   "label": "Demand Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-25 00:04:58.101292",
+ "modified": "2023-12-04 17:57:58.214779",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Detail",
