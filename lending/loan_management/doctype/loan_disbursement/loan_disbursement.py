@@ -420,7 +420,7 @@ def get_maximum_amount_as_per_pledged_security(loan):
 		.inner_join(lsald)
 		.on(lsald.parent == lsa.name)
 		.select(Sum(lsa.maximum_loan_value))
-		.where(lsa.status == "Pledged")
+		.where(lsa.status == "Assigned")
 		.where(lsald.loan == loan)
 	).run()
 

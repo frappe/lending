@@ -6,9 +6,9 @@ frappe.listview_settings['Loan Security Assignment'] = {
 	add_fields: ["status"],
 	get_indicator: function(doc) {
 		var status_color = {
-			"Unpledged": "orange",
-			"Pledged": "blue",
-			"Pledge Requested": "grey",
+			"Unassigned": "orange",
+			"Assigned": "blue",
+			"Assignment Requested": "grey",
 			"Release Requested": "grey",
 			"Released": "green",
 			"Repossessed": "red"

@@ -347,7 +347,7 @@ def get_loan_wise_pledges(filters):
 		SELECT lp.loan, p.loan_security, sum(p.qty) as qty
 		FROM `tabLoan Security Assignment` lp, `tabPledge`p
 		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		{conditions}
 		GROUP BY lp.loan, p.loan_security
 	""".format(

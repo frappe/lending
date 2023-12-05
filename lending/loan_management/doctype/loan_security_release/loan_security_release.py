@@ -176,7 +176,7 @@ def get_pledged_security_qty(loan):
 		WHERE lsald.loan = %s
 		AND p.parent = lsa.name
 		AND lsald.parent = lsa.name
-		AND lsa.status = 'Pledged'
+		AND lsa.status = 'Assigned'
 		GROUP BY p.loan_security
 	""",
 			(loan),
@@ -200,7 +200,7 @@ def check_and_request_loan_security_assignment_release(loan_security):
 		WHERE p.loan_security = %s
 		AND p.parent = lsa.name
 		AND lsald.parent = lsa.name
-		AND lsa.status = 'Pledged'
+		AND lsa.status = 'Assigned'
 		""",
 		(loan_security),
 		as_dict=True,

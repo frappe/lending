@@ -210,7 +210,7 @@ def get_applicant_wise_total_loan_security_qty(filters, loan_security_details):
 		SELECT lp.applicant_type, lp.applicant, p.loan_security, sum(p.qty) as qty
 		FROM `tabLoan Security Assignment` lp, `tabPledge`p
 		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		{conditions}
 		GROUP BY lp.applicant, p.loan_security
 	""".format(

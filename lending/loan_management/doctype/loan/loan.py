@@ -234,7 +234,7 @@ class Loan(AccountsController):
 			.inner_join(lsald)
 			.on(lsald.parent == lsa.name)
 			.select(lsa.name, Sum(lsa.maximum_loan_value))
-			.where(lsa.status == "Pledge Requested")
+			.where(lsa.status == "Assignment Requested")
 			.where(lsald.loan_application == self.loan_application)
 		).run()
 
@@ -247,7 +247,7 @@ class Loan(AccountsController):
 				row.loan = self.name
 				break
 		lsa.pledge_time = now_datetime()
-		lsa.status = "Pledged"
+		lsa.status = "Assigned"
 		lsa.save()
 
 		self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
@@ -270,7 +270,7 @@ class Loan(AccountsController):
 		if pledge_list:
 			frappe.db.sql(
 				"""UPDATE `tabLoan Security Assignment` SET
-				loan = '', status = 'Unpledged'
+				loan = '', status = 'Unassigned'
 				where name in (%s) """
 				% (", ".join(["%s"] * len(pledge_list))),
 				tuple(pledge_list),

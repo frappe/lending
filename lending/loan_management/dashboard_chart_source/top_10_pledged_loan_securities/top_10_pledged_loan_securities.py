@@ -66,7 +66,7 @@ def get_data(
 		SELECT p.loan_security, sum(p.qty) as qty
 		FROM `tabLoan Security Assignment` lp, `tabPledge`p
 		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
+		AND lp.status = 'Assigned'
 		{conditions}
 		GROUP BY p.loan_security
 	""".format(

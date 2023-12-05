@@ -78,13 +78,13 @@
   },
   {
    "allow_on_submit": 1,
-   "default": "Pledge Requested",
+   "default": "Assignment Requested",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pledge Requested\nUnpledged\nPledged\nRelease Requested\nReleased\nRepossessed\nCancelled",
+   "options": "Assignment Requested\nUnassigned\nAssigned\nRelease Requested\nReleased\nRepossessed\nCancelled",
    "read_only": 1
   },
   {

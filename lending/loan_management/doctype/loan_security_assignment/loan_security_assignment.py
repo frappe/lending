@@ -23,7 +23,7 @@ class LoanSecurityAssignment(Document):
 
 	def on_submit(self):
 		if self.get("allocated_loans"):
-			self.db_set("status", "Pledged")
+			self.db_set("status", "Assigned")
 			self.db_set("pledge_time", now_datetime())
 			for d in self.get("allocated_loans"):
 				update_shortfall_status(d.loan, self.total_security_value)
@@ -191,7 +191,7 @@ def update_loan_securities_values(
 			ls.utilized_security_value,
 			ls.original_security_value,
 		)
-		.where(lsa.status == "Pledged")
+		.where(lsa.status == "Assigned")
 		.where(lsald.loan == loan)
 	).run(as_dict=True)
 
