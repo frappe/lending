@@ -20,7 +20,6 @@
   "rate_of_interest",
   "days_past_due",
   "is_term_loan",
-  "offset_based_on_npa",
   "is_npa",
   "manual_npa",
   "payment_details_section",
@@ -305,12 +304,6 @@
   },
   {
    "default": "0",
-   "fieldname": "offset_based_on_npa",
-   "fieldtype": "Check",
-   "label": "Offset Based On Asset Classification"
-  },
-  {
-   "default": "0",
    "fetch_from": "against_loan.is_npa",
    "fieldname": "is_npa",
    "fieldtype": "Check",
@@ -386,7 +379,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 17:45:09.856637",
+ "modified": "2023-12-04 17:12:44.088838",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

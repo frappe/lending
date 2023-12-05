@@ -7,10 +7,15 @@
  "field_order": [
   "loan_demand_details_section",
   "loan",
+  "repayment_schedule_detail",
+  "applicant_type",
+  "applicant",
+  "loan_product",
   "demand_type",
-  "demand_sub_type",
+  "demand_subtype",
   "amended_from",
   "column_break_qrjm",
+  "company",
   "demand_date",
   "demand_amount",
   "paid_amount",
@@ -32,13 +37,7 @@
    "fieldname": "demand_type",
    "fieldtype": "Select",
    "label": "Demand Type",
-   "options": "EMI\nPenalty"
-  },
-  {
-   "fieldname": "demand_sub_type",
-   "fieldtype": "Select",
-   "label": "Demand Sub Type",
-   "options": "Principal\nInterest\nPenal"
+   "options": "EMI\nPenalty\nNormal\nCharges"
   },
   {
    "fieldname": "demand_amount",
@@ -79,12 +78,52 @@
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "Outstanding Amount"
+  },
+  {
+   "fetch_from": "loan.loan_product",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fetch_from": "loan.applicant_type",
+   "fieldname": "applicant_type",
+   "fieldtype": "Link",
+   "label": "Applicant Type",
+   "options": "DocType"
+  },
+  {
+   "fetch_from": "loan.applicant",
+   "fieldname": "applicant",
+   "fieldtype": "Dynamic Link",
+   "label": "Applicant",
+   "options": "applicant_type"
+  },
+  {
+   "fieldname": "repayment_schedule_detail",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Repayment Schedule Detail"
+  },
+  {
+   "fieldname": "demand_subtype",
+   "fieldtype": "Select",
+   "label": "Demand Subtype",
+   "options": "Principal\nInterest\nPenalty\nCharges"
+  },
+  {
+   "fetch_from": "loan.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-29 21:32:56.052619",
+ "modified": "2023-12-04 13:07:44.221871",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

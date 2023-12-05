@@ -116,7 +116,11 @@ after_install = "lending.install.after_install"
 doc_events = {
 	"Company": {
 		"validate": "lending.overrides.company.validate_loan_tables",
-	}
+	},
+	"Sales Invoice": {
+		"on_submit": "lending.overrides.sales_invoice.generate_demand",
+		"on_cancel": "lending.overrides.sales_invoice.cancel_demand",
+	},
 }
 
 # Scheduled Tasks
