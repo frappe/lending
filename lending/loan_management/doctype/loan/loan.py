@@ -38,6 +38,7 @@ class Loan(AccountsController):
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
 		self.set_default_charge_account()
+		self.set_available_limit_amount()
 
 		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
 		# 	update_draft_schedule(
@@ -118,6 +119,9 @@ class Loan(AccountsController):
 
 				charge.account = account
 
+	def set_available_limit_amount(self):
+		self.available_limit_amount = self.maximum_limit_amount
+
 	def on_submit(self):
 		self.link_loan_security_pledge()
 		# Interest accrual for backdated term loans
@@ -138,6 +142,17 @@ class Loan(AccountsController):
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
 		move_unpaid_interest_to_suspense_ledger(
 			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
+		)
+
+	def before_update_after_submit(self):
+		self.update_available_limit_amount()
+
+	def update_available_limit_amount(self):
+		if self.maximum_limit_amount < self.utilized_limit_amount:
+			frappe.throw(_("New maximum limit amount cannot be lesser than the utilized limit amount"))
+
+		self.available_limit_amount += self.maximum_limit_amount - frappe.db.get_value(
+			"Loan", self.name, "maximum_limit_amount"
 		)
 
 	def set_missing_fields(self):

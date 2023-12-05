@@ -40,8 +40,10 @@
   "loan_credit_limits_section",
   "limit_applicable_start",
   "maximum_limit_amount",
+  "available_limit_amount",
   "column_break_foeo",
   "limit_applicable_end",
+  "utilized_limit_amount",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -526,6 +528,7 @@
    "label": "Limit Applicable End"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "maximum_limit_amount",
    "fieldtype": "Currency",
    "label": "Maximum Limit Amount"
@@ -536,12 +539,25 @@
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "available_limit_amount",
+   "fieldtype": "Currency",
+   "label": "Available Limit Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "utilized_limit_amount",
+   "fieldtype": "Currency",
+   "label": "Utilized Limit Amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-29 19:34:09.691251",
+ "modified": "2023-12-01 15:51:08.809933",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
