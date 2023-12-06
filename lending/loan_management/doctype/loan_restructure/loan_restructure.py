@@ -725,7 +725,9 @@ class LoanRestructure(AccountsController):
 			)
 
 
-def create_loan_repayment(loan, posting_date, repayment_type, waiver_amount, restructure_name):
+def create_loan_repayment(
+	loan, posting_date, repayment_type, waiver_amount, restructure_name=None
+):
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.offset_based_on_npa = 1
 	repayment.against_loan = loan
