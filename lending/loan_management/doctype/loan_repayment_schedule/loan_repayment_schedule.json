@@ -94,7 +94,6 @@
    "options": "Initiated\nRejected\nActive\nRestructured\nOutdated\nDraft\nCancelled"
   },
   {
-   "fetch_if_empty": 1,
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -194,7 +193,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-15 09:47:25.739442",
+ "modified": "2023-12-05 22:50:03.030846",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
