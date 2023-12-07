@@ -156,12 +156,12 @@ class LoanRepaymentSchedule(Document):
 		return interest_amount, principal_amount, balance_amount, total_payment, days
 
 	def get_days_and_months(self, payment_date, additional_days):
+		months = 365
 		if self.repayment_frequency == "Monthly":
 			if self.repayment_schedule_type == "Monthly as per repayment start date":
 				days = 1
 				months = 12
 			else:
-				months = 365
 				expected_payment_date = get_last_day(payment_date)
 				if self.repayment_date_on == "Start of the next month":
 					expected_payment_date = add_days(expected_payment_date, 1)
@@ -180,18 +180,17 @@ class LoanRepaymentSchedule(Document):
 					days = 30
 				else:
 					days = date_diff(get_last_day(payment_date), payment_date)
-		elif self.repayment_frequency == "Weekly":
-			days = 7
-			months = 52
-		elif self.repayment_frequency == "Daily":
-			days = 1
-			months = 365
-		elif self.repayment_frequency == "Quarterly":
-			days = 3
-			months = 12
-		elif self.repayment_frequency == "One Time":
-			days = date_diff(self.repayment_start_date, self.posting_date)
-			months = 365
+		else:
+			if payment_date == self.repayment_start_date:
+				days = date_diff(payment_date, self.posting_date) + 1
+			elif self.repayment_frequency == "Weekly":
+				days = 7
+			elif self.repayment_frequency == "Daily":
+				days = 1
+			elif self.repayment_frequency == "Quarterly":
+				days = 3
+			elif self.repayment_frequency == "One Time":
+				days = date_diff(self.repayment_start_date, self.posting_date)
 
 		return days, months
 

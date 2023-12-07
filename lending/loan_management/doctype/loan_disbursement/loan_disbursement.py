@@ -47,39 +47,39 @@ class LoanDisbursement(AccountsController):
 			draft_schedule = self.get_draft_schedule()
 			frappe.delete_doc("Loan Repayment Schedule", draft_schedule)
 
-	def make_draft_schedule(self):
+	def get_schedule_details(self):
 		disbursed_amount = self.get_disbursed_amount()
 
-		if self.repayment_frequency == "Monthly":
-			loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
-			if self.repayment_schedule_type != "Line of Credit" and not self.repayment_start_date:
-				loan_details = frappe.db.get_value(
-					"Loan", self.against_loan, ["repayment_periods", "moratorium_tenure", "status"], as_dict=1
-				)
+		return {
+			"doctype": "Loan Repayment Schedule",
+			"loan": self.against_loan,
+			"repayment_method": self.repayment_method,
+			"repayment_start_date": self.repayment_start_date,
+			"repayment_periods": self.tenure,
+			"monthly_repayment_amount": self.monthly_repayment_amount,
+			"posting_date": self.disbursement_date,
+			"repayment_frequency": self.repayment_frequency,
+			"disbursed_amount": disbursed_amount,
+			"loan_disbursement": self.name,
+		}
+
+	def make_draft_schedule(self):
+		loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
+		loan_details = frappe.db.get_value(
+			"Loan", self.against_loan, ["repayment_periods", "moratorium_tenure", "status"], as_dict=1
+		)
+		if self.repayment_schedule_type != "Line of Credit":
+			if not self.repayment_start_date:
 				self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
 
 				if loan_details.status == "Sanctioned" and loan_details.moratorium_tenure:
 					self.repayment_start_date = add_months(
 						self.repayment_start_date, loan_details.moratorium_tenure
 					)
+		already_accrued_months = self.get_already_accrued_months()
+		self.tenure = loan_details.repayment_periods - already_accrued_months
 
-				already_accrued_months = self.get_already_accrued_months()
-				self.tenure = loan_details.repayment_periods - already_accrued_months
-
-		frappe.get_doc(
-			{
-				"doctype": "Loan Repayment Schedule",
-				"loan": self.against_loan,
-				"repayment_method": self.repayment_method,
-				"repayment_start_date": self.repayment_start_date,
-				"repayment_periods": self.tenure,
-				"monthly_repayment_amount": self.monthly_repayment_amount,
-				"posting_date": self.disbursement_date,
-				"repayment_frequency": self.repayment_frequency,
-				"disbursed_amount": disbursed_amount,
-				"loan_disbursement": self.name,
-			}
-		).insert()
+		frappe.get_doc(self.get_schedule_details()).insert()
 
 	def get_already_accrued_months(self):
 		already_accrued_months = 0
@@ -125,21 +125,8 @@ class LoanDisbursement(AccountsController):
 				)
 
 		if draft_schedule:
-			disbursed_amount = self.get_disbursed_amount()
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
-			schedule.update(
-				{
-					"loan": self.against_loan,
-					"repayment_periods": self.tenure,
-					"repayment_method": self.repayment_method,
-					"repayment_start_date": self.repayment_start_date,
-					"posting_date": self.disbursement_date,
-					"monthly_repayment_amount": self.monthly_repayment_amount,
-					"repayment_frequency": self.repayment_frequency,
-					"disbursed_amount": disbursed_amount,
-					"loan_disbursement": self.name,
-				}
-			)
+			schedule.update(self.get_schedule_details())
 			schedule.save()
 
 	def on_submit(self):
