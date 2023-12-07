@@ -411,6 +411,8 @@ def make_loan_disbursement(
 	disbursement_amount=0,
 	as_dict=0,
 	submit=0,
+	repayment_start_date=None,
+	repayment_frequency=None,
 	posting_date=None,
 	disbursement_date=None,
 	bank_account=None,
@@ -424,7 +426,8 @@ def make_loan_disbursement(
 	disbursement_entry.disbursement_date = posting_date or nowdate()
 	disbursement_entry.posting_date = disbursement_date or nowdate()
 	disbursement_entry.bank_account = bank_account
-
+	disbursement_entry.repayment_start_date = repayment_start_date
+	disbursement_entry.repayment_frequency = repayment_frequency
 	disbursement_entry.disbursed_amount = disbursement_amount
 
 	for charge in loan_doc.get("loan_charges"):
@@ -539,7 +542,7 @@ def unpledge_security(
 			unpledge_request.status = "Approved"
 			unpledge_request.save()
 		else:
-			frappe.throw(_("Only submittted unpledge requests can be approved"))
+			frappe.throw(_("Only submitted unpledge requests can be approved"))
 
 	if as_dict:
 		return unpledge_request

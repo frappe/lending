@@ -12,7 +12,6 @@
   "applicant",
   "applicant_name",
   "loan_application",
-  "branch",
   "column_break_3",
   "company",
   "posting_date",
@@ -30,11 +29,12 @@
   "column_break_11",
   "maximum_loan_amount",
   "repayment_method",
+  "repayment_frequency",
   "repayment_periods",
   "monthly_repayment_amount",
   "repayment_start_date",
-  "repayment_frequency",
   "moratorium_tenure",
+  "moratorium_type",
   "treatment_of_interest",
   "is_term_loan",
   "loan_credit_limits_section",
@@ -176,7 +176,7 @@
    "no_copy": 1
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -186,20 +186,20 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_method",
    "fieldtype": "Select",
    "label": "Repayment Method",
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_periods",
    "fieldtype": "Int",
-   "label": "Repayment Period in Months"
+   "label": "Repayment Periods"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fetch_from": "loan_application.repayment_amount",
    "fetch_if_empty": 1,
    "fieldname": "monthly_repayment_amount",
@@ -430,12 +430,6 @@
    "label": "Manual NPA"
   },
   {
-   "fieldname": "branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch"
-  },
-  {
    "fieldname": "loan_restructure_count",
    "fieldtype": "Int",
    "label": "Loan Restructure Count",
@@ -479,6 +473,7 @@
    "label": "Loan Classification Details"
   },
   {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
@@ -504,6 +499,7 @@
    "options": "Capitalize\nAdd to first repayment"
   },
   {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "moratorium_tenure",
    "fieldtype": "Int",
    "label": "Moratorium Tenure"
@@ -552,12 +548,18 @@
    "fieldtype": "Currency",
    "label": "Utilized Limit Amount",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "fieldname": "moratorium_type",
+   "fieldtype": "Select",
+   "label": "Moratorium Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-01 15:51:08.809933",
+ "modified": "2023-12-06 20:36:53.297695",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
