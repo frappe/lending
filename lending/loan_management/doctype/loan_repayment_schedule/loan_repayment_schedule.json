@@ -16,6 +16,7 @@
   "rate_of_interest",
   "posting_date",
   "adjusted_interest",
+  "broken_period_interest",
   "column_break_n6iy",
   "loan_product",
   "repayment_frequency",
@@ -189,12 +190,18 @@
    "fieldtype": "Link",
    "label": "Loan Disbursement",
    "options": "Loan Disbursement"
+  },
+  {
+   "fieldname": "broken_period_interest",
+   "fieldtype": "Currency",
+   "label": "Broken Period Interest",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-15 09:47:25.739442",
+ "modified": "2023-12-10 18:53:50.681242",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
