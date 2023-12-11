@@ -37,7 +37,7 @@ class LoanRepaymentSchedule(Document):
 		self.repayment_schedule = []
 		payment_date = self.repayment_start_date
 		balance_amount = self.disbursed_amount or self.loan_amount
-		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
+		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date) + 1
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
@@ -140,7 +140,7 @@ class LoanRepaymentSchedule(Document):
 		additional_days,
 		carry_forward_interest=0,
 	):
-		days, months = self.get_days_and_months(payment_date, additional_days)
+		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
 		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
 		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
@@ -155,7 +155,7 @@ class LoanRepaymentSchedule(Document):
 
 		return interest_amount, principal_amount, balance_amount, total_payment, days
 
-	def get_days_and_months(self, payment_date, additional_days):
+	def get_days_and_months(self, payment_date, additional_days, balance_amount):
 		months = 365
 		if self.repayment_frequency == "Monthly":
 			if self.repayment_schedule_type == "Monthly as per repayment start date":
@@ -173,7 +173,7 @@ class LoanRepaymentSchedule(Document):
 						additional_days = 0
 
 					if additional_days:
-						days += additional_days
+						self.add_broken_period_interest(balance_amount, additional_days, payment_date)
 						additional_days = 0
 				elif expected_payment_date == payment_date:
 					# using 30 days for calculating interest for all full months
@@ -182,7 +182,7 @@ class LoanRepaymentSchedule(Document):
 					days = date_diff(get_last_day(payment_date), payment_date)
 		else:
 			if payment_date == self.repayment_start_date:
-				days = date_diff(payment_date, self.posting_date) + 1
+				days = date_diff(payment_date, self.posting_date)
 			elif self.repayment_frequency == "Weekly":
 				days = 7
 			elif self.repayment_frequency == "Daily":
@@ -193,6 +193,17 @@ class LoanRepaymentSchedule(Document):
 				days = date_diff(self.repayment_start_date, self.posting_date)
 
 		return days, months
+
+	def add_broken_period_interest(self, balance_amount, additional_days, payment_date):
+		interest_amount = flt(
+			balance_amount * flt(self.rate_of_interest) * additional_days / (365 * 100)
+		)
+		payment_date = add_months(payment_date, -1)
+		self.add_repayment_schedule_row(
+			payment_date, 0, interest_amount, interest_amount, balance_amount, additional_days
+		)
+
+		self.broken_period_interest = interest_amount
 
 	def add_repayment_schedule_row(
 		self, payment_date, principal_amount, interest_amount, total_payment, balance_loan_amount, days

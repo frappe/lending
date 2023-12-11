@@ -28,6 +28,7 @@
   "clearance_date",
   "column_break_8",
   "disbursed_amount",
+  "broken_period_interest",
   "accounting_dimensions_section",
   "cost_center",
   "charges_section",
@@ -279,12 +280,18 @@
    "fieldtype": "Currency",
    "label": "Current Disbursed Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "broken_period_interest",
+   "fieldtype": "Currency",
+   "label": "Broken Period Interest",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-07 10:43:07.860874",
+ "modified": "2023-12-10 18:58:36.390130",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
