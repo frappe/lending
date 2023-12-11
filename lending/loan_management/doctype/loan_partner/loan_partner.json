@@ -1,0 +1,288 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:partner_code",
+ "beta": 1,
+ "creation": "2023-09-18 19:55:37.996068",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "partner_code",
+  "partner_name",
+  "partner_loan_share_percentage",
+  "partner_base_interest_rate",
+  "effective_date",
+  "column_break_yfag",
+  "repayment_schedule_type",
+  "company_loan_share_percentage",
+  "company_base_interest_rate",
+  "interest_increment_percentage",
+  "incremental_interest_applicable",
+  "section_break_mpap",
+  "column_break_gpwj",
+  "organization_type",
+  "primary_address",
+  "column_break_iwpj",
+  "address_html",
+  "section_break_lpnj",
+  "shareables",
+  "fldg_section",
+  "fldg_trigger_dpd",
+  "fldg_limit_calculation_component",
+  "column_break_szii",
+  "type_of_fldg_applicable",
+  "fldg_fixed_deposit_percentage",
+  "fldg_corporate_guarantee_percentage",
+  "misc_section",
+  "servicer_fee",
+  "column_break_wujj",
+  "restructure_of_loans_applicable",
+  "column_break_xyxj",
+  "waiving_of_charges_applicable",
+  "section_break_scge",
+  "partial_payment_mechanism"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_yfag",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Select",
+   "label": "Repayment Schedule Type",
+   "options": "\nEMI (PMT) based\nCollection at partner's percentage\nPOS reduction plus interest at partner ROI",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_lpnj",
+   "fieldtype": "Section Break",
+   "label": "Shareables"
+  },
+  {
+   "fieldname": "organization_type",
+   "fieldtype": "Select",
+   "label": "Organization Type",
+   "options": "\nCentralized\nDecentralized",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_mpap",
+   "fieldtype": "Section Break",
+   "label": "Organization"
+  },
+  {
+   "fieldname": "column_break_iwpj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_gpwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "address_html",
+   "fieldtype": "HTML",
+   "label": "Address HTML",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "primary_address",
+   "fieldtype": "Link",
+   "label": "Primary Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "shareables",
+   "fieldtype": "Table",
+   "label": "Shareables",
+   "options": "Loan Partner Shareable"
+  },
+  {
+   "fieldname": "partner_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Partner Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "partner_loan_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Partner Loan Share Percentage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company_loan_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Company Loan Share Percentage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "partner_base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Partner Base Interest Rate",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "incremental_interest_applicable",
+   "fieldtype": "Check",
+   "label": "Incremental Interest Applicable"
+  },
+  {
+   "fieldname": "company_base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Company Base Interest Rate"
+  },
+  {
+   "depends_on": "incremental_interest_applicable",
+   "fieldname": "interest_increment_percentage",
+   "fieldtype": "Percent",
+   "label": "Interest Increment Percentage",
+   "mandatory_depends_on": "incremental_interest_applicable"
+  },
+  {
+   "fieldname": "fldg_section",
+   "fieldtype": "Section Break",
+   "label": "FLDG"
+  },
+  {
+   "fieldname": "fldg_trigger_dpd",
+   "fieldtype": "Int",
+   "label": "FLDG Trigger DPD"
+  },
+  {
+   "fieldname": "column_break_szii",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fldg_limit_calculation_component",
+   "fieldtype": "Select",
+   "label": "FLDG Limit Calculation Component",
+   "options": "\nDisbursement\nPOS\nPOS & Interest Accrued"
+  },
+  {
+   "depends_on": "eval:doc.type_of_fldg_applicable == \"Fixed Deposit only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
+   "fieldname": "fldg_fixed_deposit_percentage",
+   "fieldtype": "Percent",
+   "label": "FLDG Fixed Deposit Percentage",
+   "mandatory_depends_on": "eval:doc.type_of_fldg_applicable == \"Fixed Deposit only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\""
+  },
+  {
+   "depends_on": "eval:doc.type_of_fldg_applicable == \"Corporate Guarantee only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
+   "fieldname": "fldg_corporate_guarantee_percentage",
+   "fieldtype": "Percent",
+   "label": "FLDG Corporate Guarantee Percentage",
+   "mandatory_depends_on": "eval:doc.type_of_fldg_applicable == \"Corporate Guarantee only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\""
+  },
+  {
+   "fieldname": "misc_section",
+   "fieldtype": "Section Break",
+   "label": "Misc"
+  },
+  {
+   "default": "0",
+   "fieldname": "servicer_fee",
+   "fieldtype": "Check",
+   "label": "Servicer Fee"
+  },
+  {
+   "fieldname": "column_break_wujj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "partner_code",
+   "fieldtype": "Data",
+   "label": "Partner Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "type_of_fldg_applicable",
+   "fieldtype": "Select",
+   "label": "Type of FLDG Applicable",
+   "options": "\nFixed Deposit only\nCorporate Guarantee only\nBoth Fixed Deposit and Corporate Guarantee"
+  },
+  {
+   "default": "0",
+   "fieldname": "waiving_of_charges_applicable",
+   "fieldtype": "Check",
+   "label": "Waiving of Charges applicable"
+  },
+  {
+   "default": "0",
+   "fieldname": "restructure_of_loans_applicable",
+   "fieldtype": "Check",
+   "label": "Restructure of Loans applicable"
+  },
+  {
+   "fieldname": "partial_payment_mechanism",
+   "fieldtype": "Select",
+   "label": "Partial Payment Mechanism",
+   "options": "\nEMI Percentage wise sharing\nComponent wise sharing",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xyxj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_scge",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-11-09 14:55:36.675654",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Partner",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
