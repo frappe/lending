@@ -56,7 +56,6 @@ class LoanDisbursement(AccountsController):
 			"repayment_method": self.repayment_method,
 			"repayment_start_date": self.repayment_start_date,
 			"repayment_periods": self.tenure,
-			"monthly_repayment_amount": self.monthly_repayment_amount,
 			"posting_date": self.disbursement_date,
 			"repayment_frequency": self.repayment_frequency,
 			"disbursed_amount": disbursed_amount,
@@ -79,7 +78,9 @@ class LoanDisbursement(AccountsController):
 		already_accrued_months = self.get_already_accrued_months()
 		self.tenure = loan_details.repayment_periods - already_accrued_months
 
-		frappe.get_doc(self.get_schedule_details()).insert()
+		schedule = frappe.get_doc(self.get_schedule_details()).insert()
+		self.monthly_repayment_amount = schedule.monthly_repayment_amount
+		self.broken_period_interest = schedule.broken_period_interest
 
 	def get_already_accrued_months(self):
 		already_accrued_months = 0
@@ -128,6 +129,9 @@ class LoanDisbursement(AccountsController):
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
 			schedule.update(self.get_schedule_details())
 			schedule.save()
+
+			self.broken_period_interest = schedule.broken_period_interest
+			self.monthly_repayment_amount = schedule.monthly_repayment_amount
 
 	def on_submit(self):
 		if self.is_term_loan:
@@ -370,19 +374,17 @@ class LoanDisbursement(AccountsController):
 
 		return disbursed_amount, status, total_payment
 
-	def make_gl_entries(self, cancel=0, adv_adj=0):
-		gle_map = []
-
-		gle_map.append(
+	def add_gl_entry(self, gl_entries, account, against_account, amount, remarks=None):
+		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.loan_account,
-					"against": self.disbursement_account,
-					"debit": self.disbursed_amount,
-					"debit_in_account_currency": self.disbursed_amount,
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
-					"remarks": _("Disbursement against loan:") + self.against_loan,
+					"remarks": remarks,
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type,
 					"party": self.applicant,
@@ -391,94 +393,57 @@ class LoanDisbursement(AccountsController):
 			)
 		)
 
-		gle_map.append(
+		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.disbursement_account,
-					"against": self.loan_account,
-					"credit": self.disbursed_amount,
-					"credit_in_account_currency": self.disbursed_amount,
+					"account": against_account,
+					"against": account,
+					"debit": -1 * amount,
+					"debit_in_account_currency": amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
-					"remarks": _("Disbursement against loan:") + self.against_loan,
+					"remarks": remarks,
 					"cost_center": self.cost_center,
 					"posting_date": self.disbursement_date,
 				}
 			)
 		)
 
+	def make_gl_entries(self, cancel=0, adv_adj=0):
+		gle_map = []
+		remarks = _("Disbursement against loan:") + self.against_loan
+
+		self.add_gl_entry(
+			gle_map, self.loan_account, self.disbursement_account, self.disbursed_amount, remarks
+		)
+
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "security_deposit_account"
 			)
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": security_deposit_account,
-						"against": self.disbursement_account,
-						"credit": self.monthly_repayment_amount,
-						"credit_in_account_currency": self.monthly_repayment_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"posting_date": self.disbursement_date,
-					}
-				)
+
+			self.add_gl_entry(
+				gle_map,
+				security_deposit_account,
+				self.disbursement_account,
+				-1 * self.monthly_repayment_amount,
+				remarks,
 			)
 
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": self.disbursement_account,
-						"against": self.loan_account,
-						"credit": -1 * self.monthly_repayment_amount,
-						"credit_in_account_currency": -1 * self.monthly_repayment_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"posting_date": self.disbursement_date,
-					}
-				)
+		if self.broken_period_interest:
+			broken_period_interest_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
+			)
+			self.add_gl_entry(
+				gle_map,
+				broken_period_interest_account,
+				self.disbursement_account,
+				-1 * self.broken_period_interest,
+				remarks,
 			)
 
 		for charge in self.get("loan_disbursement_charges"):
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": charge.account,
-						"against": self.disbursement_account,
-						"credit": charge.amount,
-						"credit_in_account_currency": charge.amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"posting_date": self.disbursement_date,
-					}
-				)
-			)
-
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": self.disbursement_account,
-						"against": self.loan_account,
-						"credit": -1 * charge.amount,
-						"credit_in_account_currency": -1 * charge.amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"posting_date": self.disbursement_date,
-					}
-				)
-			)
+			self.add_gl_entry(gle_map, charge.account, self.disbursement_account, charge.amount, remarks)
 
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
