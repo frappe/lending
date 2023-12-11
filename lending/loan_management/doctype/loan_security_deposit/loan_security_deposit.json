@@ -11,6 +11,11 @@
   "loan_disbursement",
   "deposit_amount",
   "allocated_amount",
+  "available_amount",
+  "deposit_date",
+  "allocated_date",
+  "refund_amount",
+  "refund_date",
   "amended_from"
  ],
  "fields": [
@@ -48,13 +53,38 @@
    "options": "Loan Security Deposit",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "deposit_date",
+   "fieldtype": "Date",
+   "label": "Deposit Date"
+  },
+  {
+   "fieldname": "allocated_date",
+   "fieldtype": "Date",
+   "label": "Allocated Date"
+  },
+  {
+   "fieldname": "refund_amount",
+   "fieldtype": "Currency",
+   "label": "Refund Amount"
+  },
+  {
+   "fieldname": "refund_date",
+   "fieldtype": "Date",
+   "label": "Refund Date"
+  },
+  {
+   "fieldname": "available_amount",
+   "fieldtype": "Currency",
+   "label": "Available Amount"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-10 17:12:15.919211",
+ "modified": "2023-11-30 17:14:55.499085",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Deposit",

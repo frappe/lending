@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-11-30 16:18:22.239329",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "loan",
+  "npa",
+  "manual_npa",
+  "event",
+  "npa_date",
+  "manual_npa_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "label": "Loan",
+   "options": "Loan"
+  },
+  {
+   "default": "0",
+   "fieldname": "npa",
+   "fieldtype": "Check",
+   "label": "NPA"
+  },
+  {
+   "default": "0",
+   "fieldname": "manual_npa",
+   "fieldtype": "Check",
+   "label": "Manual NPA"
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Data",
+   "label": "Event"
+  },
+  {
+   "fieldname": "npa_date",
+   "fieldtype": "Date",
+   "label": "NPA Date"
+  },
+  {
+   "fieldname": "manual_npa_date",
+   "fieldtype": "Date",
+   "label": "Manual NPA Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-11-30 17:06:30.647956",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan NPA Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
