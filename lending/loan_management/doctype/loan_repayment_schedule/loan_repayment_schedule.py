@@ -41,6 +41,13 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
+		tenure = self.repayment_periods
+		if self.repayment_frequency == "Monthly":
+			tenure += cint(self.moratorium_tenure)
+
+		if broken_period_interest_days > 0:
+			tenure += 1
+
 		if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
 			moratorium_end_date = add_months(self.repayment_start_date, -1)
@@ -88,10 +95,6 @@ class LoanRepaymentSchedule(Document):
 			self.add_repayment_schedule_row(
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
 			)
-
-			tenure = self.repayment_periods
-			if self.repayment_frequency == "Monthly":
-				tenure += cint(self.moratorium_tenure)
 
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
