@@ -175,7 +175,7 @@ class LoanRepaymentSchedule(Document):
 						days = date_diff(payment_date, self.posting_date)
 						additional_days = 0
 
-					if additional_days:
+					if additional_days and not self.moratorium_tenure:
 						self.add_broken_period_interest(balance_amount, additional_days, payment_date)
 						additional_days = 0
 				elif expected_payment_date == payment_date:

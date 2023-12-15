@@ -553,13 +553,14 @@
    "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "moratorium_type",
    "fieldtype": "Select",
-   "label": "Moratorium Type"
+   "label": "Moratorium Type",
+   "options": "EMI\nInterest"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-06 20:36:53.297695",
+ "modified": "2023-12-12 15:28:10.241845",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

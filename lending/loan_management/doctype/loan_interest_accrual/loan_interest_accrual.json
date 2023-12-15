@@ -45,7 +45,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "reqd": 1
   },
   {
    "fieldname": "posting_date",
@@ -245,7 +246,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-22 16:57:11.982248",
+ "modified": "2023-12-11 15:08:17.332488",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

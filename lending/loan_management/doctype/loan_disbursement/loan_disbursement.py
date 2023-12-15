@@ -106,12 +106,16 @@ class LoanDisbursement(AccountsController):
 
 		return disbursed_amount
 
-	def update_draft_schedule(self):
+	def get_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 0}, "name"
 		)
+		return draft_schedule
 
-		if self.repayment_frequency == "Monthly":
+	def update_draft_schedule(self):
+		draft_schedule = self.get_draft_schedule()
+
+		if self.repayment_frequency == "Monthly" and not self.repayment_start_date:
 			loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
 			self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
 
@@ -306,6 +310,8 @@ class LoanDisbursement(AccountsController):
 				disbursed_amount,
 				status,
 				total_payment,
+				total_interest_payable,
+				monthly_repayment_amount,
 				new_available_limit_amount,
 				new_utilized_limit_amount,
 			) = self.get_values_on_cancel(loan_details)
@@ -368,6 +374,8 @@ class LoanDisbursement(AccountsController):
 			disbursed_amount,
 			status,
 			total_payment,
+			0,
+			0,
 			new_available_limit_amount,
 			new_utilized_limit_amount,
 		)

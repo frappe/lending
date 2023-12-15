@@ -13,8 +13,11 @@ class LoanDemand(AccountsController):
 		pass
 
 	def on_submit(self):
-		self.make_gl_entries()
-		self.update_repayment_schedule()
+		if self.demand_subtype in ("Principal", "Interest", "Penalty"):
+			self.make_gl_entries()
+
+		if self.demand_type == "EMI":
+			self.update_repayment_schedule()
 
 	def update_repayment_schedule(self, cancel=0):
 		if self.repayment_schedule_detail:
@@ -23,13 +26,14 @@ class LoanDemand(AccountsController):
 			)
 
 	def on_cancel(self):
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.update_repayment_schedule(cancel=1)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
 
-		if self.demand_subtype == "Principal":
+		if self.demand_subtype in ("Principal", "Charges"):
 			return
 
 		if self.demand_subtype == "Interest":
