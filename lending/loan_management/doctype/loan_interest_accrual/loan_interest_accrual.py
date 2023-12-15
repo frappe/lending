@@ -12,9 +12,6 @@ from erpnext.controllers.accounts_controller import AccountsController
 
 class LoanInterestAccrual(AccountsController):
 	def validate(self):
-		if not self.loan:
-			frappe.throw(_("Loan is mandatory"))
-
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
@@ -139,12 +136,52 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 			"posting_date": posting_date,
 			"due_date": posting_date,
 			"accrual_type": accrual_type,
+			"interest_type": "Normal Interest",
 		}
 	)
 
 	if payable_interest > 0:
 		make_loan_interest_accrual_entry(args)
 		generate_loan_demand(loan, posting_date, payable_interest)
+
+
+def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+
+	demands = get_unpaid_demands(loan.name, posting_date)
+
+	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
+	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+	penal_interest_amount = 0
+
+	for demand in demands:
+		if demand.demand_subtype in ("Principal", "Interest"):
+			if getdate(demand.demand_date) < getdate(posting_date):
+				penal_interest_amount += (
+					demand.demand_amount
+					* penal_interest_rate
+					* date_diff(posting_date, demand.last_repayment_date or demand.demand_date)
+					/ 36500
+				)
+
+	args = frappe._dict(
+		{
+			"loan": loan.name,
+			"applicant_type": loan.applicant_type,
+			"applicant": loan.applicant,
+			"interest_income_account": loan.penalty_income_account,
+			"loan_account": loan.loan_account,
+			"interest_amount": penal_interest_amount,
+			"process_loan_interest": process_loan_interest,
+			"posting_date": posting_date,
+			"accrual_type": accrual_type,
+			"interest_type": "Penal Interest",
+		}
+	)
+
+	if penal_interest_amount > 0:
+		make_loan_interest_accrual_entry(args)
+		create_loan_demand(loan.name, posting_date, "Penalty", "Penalty", penal_interest_amount)
 
 
 def make_accrual_interest_entry_for_loans(
@@ -177,6 +214,7 @@ def make_accrual_interest_entry_for_loans(
 			"refund_amount",
 			"loan_account",
 			"interest_income_account",
+			"penalty_income_account",
 			"loan_amount",
 			"is_term_loan",
 			"status",
@@ -194,31 +232,48 @@ def make_accrual_interest_entry_for_loans(
 		filters=query_filters,
 	)
 
-	open_loans += get_term_loans(term_loan=loan, loan_product=loan_product)
+	open_loans += get_term_loans(term_loan=loan, loan_product=loan_product, posting_date=posting_date)
 
 	for loan in open_loans:
 		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+		calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type)
 
 
-def generate_loan_demand(loan, posting_date, payable_interest):
-	print(loan.is_term_loan, loan.payment_date, getdate(loan.payment_date), getdate(posting_date))
+def generate_loan_demand(
+	loan, posting_date, payable_interest, demand_subtype=None, demand_type=None
+):
 	if not loan.is_term_loan:
 		create_loan_demand(loan.name, posting_date, "Normal", "Interest", payable_interest)
-	elif (
-		loan.is_term_loan
-		and loan.get("payment_date")
-		and getdate(loan.get("payment_date")) <= getdate(posting_date)
+	elif loan.is_term_loan and (
+		(loan.get("payment_date") and getdate(loan.get("payment_date")) <= getdate(posting_date))
+		or demand_type == "Penalty"
 	):
 		create_loan_demand(
-			loan.name, posting_date, "EMI", "Interest", loan.interest_amount, loan.payment_entry
+			loan.name,
+			posting_date,
+			demand_type or "EMI",
+			demand_subtype or "Interest",
+			loan.interest_amount,
+			loan.payment_entry,
 		)
 		create_loan_demand(
-			loan.name, posting_date, "EMI", "Principal", loan.principal_amount, loan.payment_entry
+			loan.name,
+			posting_date,
+			demand_type or "EMI",
+			demand_subtype or "Principal",
+			loan.principal_amount,
+			loan.payment_entry,
 		)
 
 
 def create_loan_demand(
-	loan, posting_date, demand_type, demand_subtype, amount, repayment_schedule_detail=None
+	loan,
+	posting_date,
+	demand_type,
+	demand_subtype,
+	amount,
+	repayment_schedule_detail=None,
+	sales_invoice=None,
 ):
 	demand = frappe.new_doc("Loan Demand")
 	demand.loan = loan
@@ -227,6 +282,7 @@ def create_loan_demand(
 	demand.demand_type = demand_type
 	demand.demand_subtype = demand_subtype
 	demand.demand_amount = amount
+	demand.sales_invoice = sales_invoice
 	demand.save()
 	demand.submit()
 
@@ -270,7 +326,7 @@ def create_loan_demand(
 # 		)
 
 
-def get_term_loans(term_loan=None, loan_product=None):
+def get_term_loans(term_loan=None, loan_product=None, posting_date=None):
 	loan = frappe.qb.DocType("Loan")
 	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
 	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
@@ -308,7 +364,7 @@ def get_term_loans(term_loan=None, loan_product=None):
 			& (loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (loan.is_term_loan == 1)
 			& (loan_schedule.status == "Active")
-			& (loan_repayment_schedule.principal_amount > 0)
+			& (loan_repayment_schedule.total_payment > 0)
 			& (loan_repayment_schedule.demand_generated == 0)
 			& (loan_repayment_schedule.docstatus == 1)
 		)
@@ -323,7 +379,16 @@ def get_term_loans(term_loan=None, loan_product=None):
 
 	term_loans = query.run(as_dict=1)
 
-	return term_loans
+	considered_loans = []
+	filtered_loans = []
+
+	for loan in term_loans:
+		if loan.name not in considered_loans:
+			filtered_loans.append(loan)
+			considered_loans.append(loan.name)
+
+	print(filtered_loans)
+	return filtered_loans
 
 
 def make_loan_interest_accrual_entry(args):
@@ -348,6 +413,7 @@ def make_loan_interest_accrual_entry(args):
 	loan_interest_accrual.payable_principal_amount = args.payable_principal
 	loan_interest_accrual.accrual_type = args.accrual_type
 	loan_interest_accrual.due_date = args.due_date
+	loan_interest_accrual.interest_type = args.interest_type
 
 	loan_interest_accrual.save()
 	loan_interest_accrual.submit()

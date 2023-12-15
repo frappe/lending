@@ -20,7 +20,9 @@
   "demand_amount",
   "paid_amount",
   "waived_amount",
-  "outstanding_amount"
+  "outstanding_amount",
+  "sales_invoice",
+  "last_repayment_date"
  ],
  "fields": [
   {
@@ -31,17 +33,20 @@
   {
    "fieldname": "demand_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Demand Date"
   },
   {
    "fieldname": "demand_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Demand Type",
    "options": "EMI\nPenalty\nNormal\nCharges"
   },
   {
    "fieldname": "demand_amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Demand Amount"
   },
   {
@@ -67,6 +72,7 @@
   {
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Paid Amount"
   },
   {
@@ -109,6 +115,7 @@
   {
    "fieldname": "demand_subtype",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Demand Subtype",
    "options": "Principal\nInterest\nPenalty\nCharges"
   },
@@ -118,18 +125,30 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "last_repayment_date",
+   "fieldtype": "Date",
+   "label": "Last Repayment Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-04 13:07:44.221871",
+ "modified": "2023-12-13 22:28:15.756117",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -139,6 +158,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

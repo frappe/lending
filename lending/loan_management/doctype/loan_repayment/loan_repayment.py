@@ -261,7 +261,9 @@ class LoanRepayment(AccountsController):
 			loan_demand = frappe.qb.DocType("Loan Demand")
 			frappe.qb.update(loan_demand).set(
 				loan_demand.paid_amount, loan_demand.paid_amount + payment.paid_amount
-			).where(loan_demand.name == payment.loan_demand).run()
+			).set(loan_demand.last_repayment_date, self.posting_date).where(
+				loan_demand.name == payment.loan_demand
+			).run()
 
 		if self.repayment_type == "Normal Repayment":
 			loan = frappe.qb.DocType("Loan")
@@ -293,15 +295,6 @@ class LoanRepayment(AccountsController):
 			as_dict=1,
 		)
 
-		# no_of_repayments = len(self.repayment_details)
-
-		# loan.update(
-		# 	{
-		# 		"total_amount_paid": loan.total_amount_paid - self.amount_paid,
-		# 		"total_principal_paid": loan.total_principal_paid - self.principal_amount_paid,
-		# 	}
-		# )
-
 		if loan.disbursed_amount >= loan.loan_amount:
 			loan["status"] = "Disbursed"
 		else:
@@ -318,12 +311,6 @@ class LoanRepayment(AccountsController):
 			frappe.qb.update(loan_demand).set(
 				loan_demand.paid_amount, loan_demand.paid_amount - payment.paid_amount
 			).where(loan_demand.name == payment.loan_demand).run()
-
-			# Cancel repayment interest accrual
-			# checking idx as a preventive measure, repayment accrual will always be the last entry
-			# if payment.accrual_type == "Repayment" and payment.idx == no_of_repayments:
-			# 	lia_doc = frappe.get_doc("Loan Interest Accrual", payment.loan_interest_accrual)
-			# 	lia_doc.cancel()
 
 		loan = frappe.qb.DocType("Loan")
 		frappe.qb.update(loan).set(
@@ -427,17 +414,13 @@ class LoanRepayment(AccountsController):
 					pending_amount, "EMI", ["Interest", "Principal"], demands
 				)
 			if d.demand_type == "Principal" and pending_amount > 0:
-				pending_amount = self.allocate_principal_amount(
-					pending_amount, "Normal", ["Principal"], demands
-				)
+				pending_amount = self.adjust_component(pending_amount, "Normal", ["Principal"], demands)
 			if d.demand_type == "Interest" and pending_amount > 0:
-				pending_amount = self.allocate_principal_amount(
-					pending_amount, "Normal", ["Interest"], demands
-				)
+				pending_amount = self.adjust_component(pending_amount, "Normal", ["Interest"], demands)
 			if d.demand_type == "Penalty" and pending_amount > 0:
-				pending_amount = self.allocate_principal_amount(pending_amount, "Normal", ["Penalty"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Normal", ["Penalty"], demands)
 			if d.demand_type == "Charges" and pending_amount > 0:
-				pending_amount = self.allocate_principal_amount(pending_amount, "Normal", ["Charges"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Normal", ["Charges"], demands)
 
 		return pending_amount
 
@@ -968,6 +951,7 @@ def get_unpaid_demands(against_loan, posting_date=None):
 		.select(
 			loan_demand.name,
 			loan_demand.demand_date,
+			loan_demand.last_repayment_date,
 			(loan_demand.demand_amount - loan_demand.paid_amount).as_("demand_amount"),
 			loan_demand.demand_subtype,
 			loan_demand.demand_type,
@@ -983,33 +967,6 @@ def get_unpaid_demands(against_loan, posting_date=None):
 		.orderby(loan_demand.repayment_schedule_detail)
 		.run(as_dict=1)
 	)
-
-	# unpaid_accrued_entries = frappe.db.sql(
-	# 	"""
-	# 		SELECT name, due_date, interest_amount - paid_interest_amount as interest_amount,
-	# 			payable_principal_amount - paid_principal_amount as payable_principal_amount,
-	# 			accrual_type
-	# 		FROM
-	# 			`tabLoan Interest Accrual`
-	# 		WHERE
-	# 			loan = %s
-	# 		AND due_date <= %s
-	# 		AND (interest_amount - paid_interest_amount > 0 OR
-	# 			payable_principal_amount - paid_principal_amount > 0)
-	# 		AND
-	# 			docstatus = 1
-	# 		ORDER BY due_date
-	# 	""",
-	# 	(against_loan, posting_date),
-	# 	as_dict=1,
-	# )
-
-	# Skip entries with zero interest amount & payable principal amount
-	# unpaid_accrued_entries = [
-	# 	d
-	# 	for d in unpaid_accrued_entries
-	# 	if flt(d.interest_amount, precision) > 0 or flt(d.payable_principal_amount, precision) > 0
-	# ]
 
 	return loan_demands
 
@@ -1186,6 +1143,9 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 		elif demand.demand_subtype == "Principal":
 			payable_principal_amount += demand.demand_amount
 			interest_demands.append(demand)
+		elif demand.demand_subtype == "Penalty":
+			penalty_amount += demand.demand_amount
+			penal_demands.append(demand)
 
 		# pending_demands.setdefault(
 		# 	demand.name,
@@ -1221,7 +1181,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
 	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
 	amounts["interest_amount"] = flt(total_pending_interest, precision)
-	# amounts["penalty_amount"] = flt(penalty_amount + pending_penalty_amount, precision)
+	amounts["penalty_amount"] = flt(penalty_amount, precision)
 	amounts["payable_amount"] = flt(
 		payable_principal_amount + total_pending_interest + penalty_amount, precision
 	)
