@@ -1057,26 +1057,15 @@ def get_penalty_details(against_loan):
 
 
 def get_pending_principal_amount(loan):
-	if loan.status in ("Disbursed", "Closed"):
-		pending_principal_amount = (
-			flt(loan.total_payment)
-			+ flt(loan.debit_adjustment_amount)
-			- flt(loan.credit_adjustment_amount)
-			- flt(loan.total_principal_paid)
-			- flt(loan.total_interest_payable)
-			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount)
-		)
-	else:
-		pending_principal_amount = (
-			flt(loan.disbursed_amount)
-			+ flt(loan.debit_adjustment_amount)
-			- flt(loan.credit_adjustment_amount)
-			- flt(loan.total_principal_paid)
-			- flt(loan.total_interest_payable)
-			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount)
-		)
+	pending_principal_amount = (
+		flt(loan.total_payment)
+		+ flt(loan.debit_adjustment_amount)
+		- flt(loan.credit_adjustment_amount)
+		- flt(loan.total_principal_paid)
+		- flt(loan.total_interest_payable)
+		- flt(loan.written_off_amount)
+		+ flt(loan.refund_amount)
+	)
 
 	return pending_principal_amount
 
