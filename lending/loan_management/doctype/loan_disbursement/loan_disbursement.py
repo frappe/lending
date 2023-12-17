@@ -21,6 +21,9 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	get_pending_principal_amount,
+)
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -75,34 +78,19 @@ class LoanDisbursement(AccountsController):
 					self.repayment_start_date = add_months(
 						self.repayment_start_date, loan_details.moratorium_tenure
 					)
-		already_accrued_months = self.get_already_accrued_months()
-		self.tenure = loan_details.repayment_periods - already_accrued_months
 
 		schedule = frappe.get_doc(self.get_schedule_details()).insert()
 		self.monthly_repayment_amount = schedule.monthly_repayment_amount
 		self.broken_period_interest = schedule.broken_period_interest
 
-	def get_already_accrued_months(self):
-		already_accrued_months = 0
-		existing_schedule = frappe.db.get_all(
-			"Loan Repayment Schedule",
-			{"loan": self.against_loan, "docstatus": 1, "status": ("in", ["Active", "Outdated"])},
-			pluck="name",
-		)
-
-		if existing_schedule:
-			already_accrued_months = frappe.db.count(
-				"Repayment Schedule", {"parent": ("in", existing_schedule), "is_accrued": 1}
-			)
-
-		return already_accrued_months
-
 	def get_disbursed_amount(self):
 		if self.repayment_schedule_type == "Line of Credit":
 			disbursed_amount = self.disbursed_amount
 		else:
-			current_disbursed_amount = frappe.db.get_value("Loan", self.against_loan, "disbursed_amount")
-			disbursed_amount = self.disbursed_amount + current_disbursed_amount
+			current_principal_amount = get_pending_principal_amount(
+				frappe.get_doc("Loan", self.against_loan)
+			)
+			disbursed_amount = self.disbursed_amount + current_principal_amount
 
 		return disbursed_amount
 
@@ -546,10 +534,6 @@ def get_total_pledged_security_value(loan):
 
 @frappe.whitelist()
 def get_disbursal_amount(loan, on_current_security_price=0):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-		get_pending_principal_amount,
-	)
-
 	loan_details = frappe.get_value(
 		"Loan",
 		loan,
