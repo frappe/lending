@@ -117,10 +117,9 @@ class LoanDisbursement(AccountsController):
 
 	def on_submit(self):
 		if self.is_term_loan:
-			self.update_current_repayment_schedule()
 			self.submit_repayment_schedule()
+			self.update_current_repayment_schedule()
 			self.update_repayment_schedule_status()
-
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
 		self.make_gl_entries()
@@ -147,7 +146,7 @@ class LoanDisbursement(AccountsController):
 			schedule.cancel()
 
 	def update_current_repayment_schedule(self, cancel=0):
-		# Update status of existing schedule on topup
+		# Update status of existing schedule on top up
 		if cancel:
 			status = "Active"
 			current_status = "Outdated"
