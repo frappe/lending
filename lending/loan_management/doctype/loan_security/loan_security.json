@@ -20,8 +20,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Loan Security Name",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fetch_from": "loan_security_type.haircut",
@@ -67,7 +66,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-10-26 07:34:48.601766",
+ "modified": "2023-12-18 18:03:45.581085",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
