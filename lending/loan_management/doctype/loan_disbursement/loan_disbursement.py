@@ -323,6 +323,7 @@ class LoanDisbursement(AccountsController):
 				"total_payment",
 				"total_principal_paid",
 				"total_interest_payable",
+				"repayment_schedule_type",
 				"status",
 				"is_term_loan",
 				"is_secured_loan",
@@ -339,7 +340,6 @@ class LoanDisbursement(AccountsController):
 				status,
 				total_payment,
 				total_interest_payable,
-				monthly_repayment_amount,
 				new_available_limit_amount,
 				new_utilized_limit_amount,
 			) = self.get_values_on_cancel(loan_details)
@@ -348,6 +348,7 @@ class LoanDisbursement(AccountsController):
 				disbursed_amount,
 				status,
 				total_payment,
+				total_interest_payable,
 				new_available_limit_amount,
 				new_utilized_limit_amount,
 			) = self.get_values_on_submit(loan_details)
@@ -360,6 +361,7 @@ class LoanDisbursement(AccountsController):
 				"disbursed_amount": disbursed_amount,
 				"status": status,
 				"total_payment": total_payment,
+				"total_interest_payable": total_interest_payable,
 				"available_limit_amount": new_available_limit_amount,
 				"utilized_limit_amount": new_utilized_limit_amount,
 			},
@@ -368,8 +370,20 @@ class LoanDisbursement(AccountsController):
 	def get_values_on_cancel(self, loan_details):
 		disbursed_amount = loan_details.disbursed_amount - self.disbursed_amount
 		total_payment = loan_details.total_payment
+		total_interest_payable = loan_details.total_interest_payable
 
-		if loan_details.disbursed_amount > loan_details.loan_amount:
+		if self.is_term_loan:
+			schedule = frappe.get_doc(
+				"Loan Repayment Schedule", {"loan_disbursement": self.name, "docstatus": 1}
+			)
+			for data in schedule.repayment_schedule:
+				total_payment -= data.total_payment
+				total_interest_payable -= data.interest_amount
+
+		if (
+			loan_details.disbursed_amount > loan_details.loan_amount
+			and loan_details.repayment_schedule_type != "Line of Credit"
+		):
 			topup_amount = loan_details.disbursed_amount - loan_details.loan_amount
 			if topup_amount > self.disbursed_amount:
 				topup_amount = self.disbursed_amount
@@ -398,8 +412,7 @@ class LoanDisbursement(AccountsController):
 			disbursed_amount,
 			status,
 			total_payment,
-			0,
-			0,
+			total_interest_payable,
 			new_available_limit_amount,
 			new_utilized_limit_amount,
 		)
@@ -407,9 +420,12 @@ class LoanDisbursement(AccountsController):
 	def get_values_on_submit(self, loan_details):
 		disbursed_amount = self.disbursed_amount + loan_details.disbursed_amount
 
-		total_payment = loan_details.total_payment
-		total_interest_payable = loan_details.total_interest_payable
-		monthly_repayment_amount = 0
+		if loan_details.repayment_schedule_type == "Line of Credit":
+			total_payment = loan_details.total_payment
+			total_interest_payable = loan_details.total_interest_payable
+		else:
+			total_payment = 0
+			total_interest_payable = 0
 
 		if loan_details.status in ("Disbursed", "Partially Disbursed") and not loan_details.is_term_loan:
 			process_loan_interest_accrual_for_loans(
@@ -419,14 +435,11 @@ class LoanDisbursement(AccountsController):
 			)
 
 		if self.is_term_loan:
-			schedule = frappe.get_doc(
-				"Loan Repayment Schedule", {"loan_disbursement": self.name, "docstatus": 1}
-			)
+			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan_disbursement": self.name})
 			for data in schedule.repayment_schedule:
-				total_payment += data.total_payment
-				total_interest_payable += data.interest_amount
-
-			monthly_repayment_amount = schedule.monthly_repayment_amount
+				if getdate(data.payment_date) >= getdate(self.repayment_start_date):
+					total_payment += data.total_payment
+					total_interest_payable += data.interest_amount
 
 		if disbursed_amount > loan_details.loan_amount:
 			topup_amount = disbursed_amount - loan_details.loan_amount
@@ -459,6 +472,7 @@ class LoanDisbursement(AccountsController):
 			disbursed_amount,
 			status,
 			total_payment,
+			total_interest_payable,
 			new_available_limit_amount,
 			new_utilized_limit_amount,
 		)

@@ -137,7 +137,7 @@ class LoanRepaymentSchedule(Document):
 			)
 			if prev_schedule:
 				for row in prev_schedule.get("repayment_schedule"):
-					if row.demand_generated == 1:
+					if getdate(row.payment_date) < getdate(self.repayment_start_date):
 						self.add_repayment_schedule_row(
 							row.payment_date,
 							row.principal_amount,
