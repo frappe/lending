@@ -436,7 +436,16 @@ class LoanDisbursement(AccountsController):
 			new_utilized_limit_amount,
 		)
 
-	def add_gl_entry(self, gl_entries, account, against_account, amount, remarks=None):
+	def add_gl_entry(
+		self,
+		gl_entries,
+		account,
+		against_account,
+		amount,
+		remarks=None,
+		against_voucher_type=None,
+		against_voucher=None,
+	):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
@@ -444,8 +453,8 @@ class LoanDisbursement(AccountsController):
 					"against": against_account,
 					"debit": amount,
 					"debit_in_account_currency": amount,
-					"against_voucher_type": "Loan",
-					"against_voucher": self.against_loan,
+					"against_voucher_type": against_voucher_type or "Loan",
+					"against_voucher": against_voucher or self.against_loan,
 					"remarks": remarks,
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type,
@@ -505,10 +514,63 @@ class LoanDisbursement(AccountsController):
 			)
 
 		for charge in self.get("loan_disbursement_charges"):
-			self.add_gl_entry(gle_map, charge.account, self.disbursement_account, charge.amount, remarks)
+			sales_invoice = make_sales_invoice_for_charge(
+				self.against_loan,
+				self.name,
+				self.disbursement_date,
+				self.company,
+				charge.charge,
+				charge.amount,
+			)
+
+			self.add_gl_entry(
+				gle_map,
+				charge.account,
+				self.disbursement_account,
+				-1 * sales_invoice.grand_total,
+				remarks,
+				"Sales Invoice",
+				sales_invoice.name,
+			)
 
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+
+
+def make_sales_invoice_for_charge(
+	loan, loan_disbursement, disbursement_date, company, charge, amount
+):
+	si = frappe.get_doc(
+		{
+			"doctype": "Sales Invoice",
+			"loan": loan,
+			"loan_disbursement": loan_disbursement,
+			"posting_date": disbursement_date,
+			"company": company,
+			"conversion_rate": 1,
+		}
+	)
+
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+	account = frappe.db.get_value(
+		"Loan Charges", {"parent": loan_product, "charge_type": charge}, "income_account"
+	)
+	receivable_account = frappe.db.get_value(
+		"Loan Charges", {"parent": loan_product, "charge_type": charge}, "receivable_account"
+	)
+
+	if not account:
+		account = frappe.db.get_value(
+			"Item Default", {"parent": charge, "company": company}, "income_account"
+		)
+
+	si.append("items", {"item_code": charge, "rate": amount, "qty": 1, "income_account": account})
+
+	si.debit_to = receivable_account
+	si.save()
+	si.submit()
+
+	return si
 
 
 def get_total_pledged_security_value(loan):
