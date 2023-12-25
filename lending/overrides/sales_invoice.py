@@ -6,7 +6,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 
 
 def generate_demand(self, method=None):
-	if self.get("loan"):
+	if self.get("loan") and not self.get("loan_disbursement"):
 		create_loan_demand(
 			self.loan, self.posting_date, "Charges", "Charges", self.grand_total, sales_invoice=self.name
 		)

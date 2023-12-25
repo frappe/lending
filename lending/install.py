@@ -11,7 +11,16 @@ LOAN_CUSTOM_FIELDS = {
 			"options": "Loan",
 			"insert_after": "customer",
 			"print_hide": 1,
-		}
+		},
+		{
+			"fieldname": "loan_disbursement",
+			"label": "Loan Disbursement",
+			"fieldtype": "Link",
+			"options": "Loan Disbursement",
+			"insert_after": "Loan",
+			"read_only": 1,
+			"print_hide": 1,
+		},
 	],
 	"Company": [
 		{
