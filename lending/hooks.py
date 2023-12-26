@@ -80,7 +80,7 @@ after_install = "lending.install.after_install"
 # Uninstallation
 # ------------
 
-# before_uninstall = "lending.uninstall.before_uninstall"
+before_uninstall = "lending.uninstall.before_uninstall"
 # after_uninstall = "lending.uninstall.after_uninstall"
 
 # Desk Notifications
