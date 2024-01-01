@@ -62,6 +62,7 @@ class LoanDemand(AccountsController):
 					"against_voucher": self.loan,
 					"party_type": self.applicant_type,
 					"party": self.applicant,
+					"cost_center": self.cost_center,
 				}
 			)
 		)
@@ -75,6 +76,7 @@ class LoanDemand(AccountsController):
 					"credit": self.demand_amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.loan,
+					"cost_center": self.cost_center,
 				}
 			)
 		)

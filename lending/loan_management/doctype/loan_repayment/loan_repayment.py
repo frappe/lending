@@ -237,13 +237,12 @@ class LoanRepayment(AccountsController):
 
 	def update_paid_amounts(self):
 		total_interest_paid = 0
-		total_principal_paid = 0
 
 		for payment in self.repayment_details:
 			if payment.demand_type == "Interest":
 				total_interest_paid += payment.paid_amount
 			elif payment.demand_type == "Principal":
-				total_principal_paid += payment.paid_amount
+				self.principal_amount += payment.paid_amount
 
 			loan_demand = frappe.qb.DocType("Loan Demand")
 			frappe.qb.update(loan_demand).set(
@@ -257,7 +256,7 @@ class LoanRepayment(AccountsController):
 			query = (
 				frappe.qb.update(loan)
 				.set(loan.total_amount_paid, loan.total_amount_paid + self.amount_paid)
-				.set(loan.total_principal_paid, loan.total_principal_paid + total_principal_paid)
+				.set(loan.total_principal_paid, loan.total_principal_paid + self.principal_amount_paid)
 				.where(loan.name == self.against_loan)
 			)
 
@@ -266,32 +265,14 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Loan Closure Requested")
 			query.run()
 
-			update_shortfall_status(self.against_loan, total_principal_paid)
+			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def mark_as_unpaid(self):
 		total_interest_paid = 0
-		total_principal_paid = 0
-
-		loan = frappe.get_value(
-			"Loan",
-			self.against_loan,
-			[
-				"loan_amount",
-				"disbursed_amount",
-			],
-			as_dict=1,
-		)
-
-		if loan.disbursed_amount >= loan.loan_amount:
-			loan["status"] = "Disbursed"
-		else:
-			loan["status"] = "Partially Disbursed"
 
 		for payment in self.repayment_details:
 			if payment.demand_type == "Interest":
-				total_interest_paid += payment.paid_amount
-			elif payment.demand_type == "Principal":
-				total_principal_paid += payment.paid_amount
+				total_interest_paid -= payment.paid_amount
 
 			loan_demand = frappe.qb.DocType("Loan Demand")
 
@@ -300,11 +281,14 @@ class LoanRepayment(AccountsController):
 			).where(loan_demand.name == payment.loan_demand).run()
 
 		loan = frappe.qb.DocType("Loan")
+
 		frappe.qb.update(loan).set(
 			loan.total_amount_paid, loan.total_amount_paid - self.amount_paid
-		).set(loan.total_principal_paid, loan.total_principal_paid - total_principal_paid).where(
+		).set(
+			loan.total_principal_paid, loan.total_principal_paid - self.principal_amount_paid
+		).where(
 			loan.name == self.against_loan
-		)
+		).run()
 
 	def check_future_accruals(self):
 		if self.is_term_loan:
@@ -352,7 +336,10 @@ class LoanRepayment(AccountsController):
 		amount_paid = self.apply_allocation_order(
 			allocation_order, amount_paid, amounts.get("unpaid_demands")
 		)
-		# self.allocate_excess_payment_to_principal(amount_paid)
+
+		if amount_paid > 0:
+			self.principal_amount_paid = amount_paid
+			amount_paid = 0
 
 		# if interest_paid > 0 and not self.is_term_loan:
 		# 	if self.penalty_amount and interest_paid > self.penalty_amount:
@@ -405,7 +392,7 @@ class LoanRepayment(AccountsController):
 			if d.demand_type == "Interest" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Normal", ["Interest"], demands)
 			if d.demand_type == "Penalty" and pending_amount > 0:
-				pending_amount = self.adjust_component(pending_amount, "Normal", ["Penalty"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Penalty", ["Penalty"], demands)
 			if d.demand_type == "Charges" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Normal", ["Charges"], demands)
 
@@ -656,6 +643,7 @@ class LoanRepayment(AccountsController):
 			self.loan_product,
 			[
 				"interest_receivable_account",
+				"penalty_receivable_account",
 				"suspense_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
@@ -708,6 +696,8 @@ class LoanRepayment(AccountsController):
 				against_account = account_details.interest_receivable_account
 			elif repayment.demand_type == "Principal":
 				against_account = self.loan_account
+			elif repayment.demand_type == "Penalty":
+				against_account = account_details.penalty_receivable_account
 
 			gle_map.append(
 				self.get_gl_dict(
@@ -1005,15 +995,26 @@ def get_penalty_details(against_loan):
 
 
 def get_pending_principal_amount(loan):
-	pending_principal_amount = (
-		flt(loan.total_payment)
-		+ flt(loan.debit_adjustment_amount)
-		- flt(loan.credit_adjustment_amount)
-		- flt(loan.total_principal_paid)
-		- flt(loan.total_interest_payable)
-		- flt(loan.written_off_amount)
-		+ flt(loan.refund_amount)
-	)
+	if loan.status in ("Disbursed", "Closed"):
+		pending_principal_amount = (
+			flt(loan.total_payment)
+			+ flt(loan.debit_adjustment_amount)
+			- flt(loan.credit_adjustment_amount)
+			- flt(loan.total_principal_paid)
+			- flt(loan.total_interest_payable)
+			- flt(loan.written_off_amount)
+			+ flt(loan.refund_amount)
+		)
+	else:
+		pending_principal_amount = (
+			flt(loan.disbursed_amount)
+			+ flt(loan.debit_adjustment_amount)
+			- flt(loan.credit_adjustment_amount)
+			- flt(loan.total_principal_paid)
+			- flt(loan.total_interest_payable)
+			- flt(loan.written_off_amount)
+			+ flt(loan.refund_amount)
+		)
 
 	return pending_principal_amount
 

@@ -82,6 +82,8 @@
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
   },
   {
+   "fetch_from": "loan.monthly_repayment_amount",
+   "fetch_if_empty": 1,
    "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
@@ -201,7 +203,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-10 18:53:50.681242",
+ "modified": "2023-12-29 19:10:13.242300",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

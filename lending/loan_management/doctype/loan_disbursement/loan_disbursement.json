@@ -236,6 +236,7 @@
    "options": "Loan Disbursement Charge"
   },
   {
+   "depends_on": "is_term_loan",
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
@@ -262,10 +263,12 @@
    "mandatory_depends_on": "eval:doc.repayment_schedule_type==\"Line of Credit\""
   },
   {
+   "fetch_from": "against_loan.repayment_method",
+   "fetch_if_empty": 1,
    "fieldname": "repayment_method",
    "fieldtype": "Select",
    "label": "Repayment Method",
-   "options": "Repay Over Number of Periods\nRepay Fixed Amount per Period"
+   "options": "\nRepay Over Number of Periods\nRepay Fixed Amount per Period"
   },
   {
    "fetch_from": "against_loan.loan_amount",
@@ -291,7 +294,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-10 18:58:36.390130",
+ "modified": "2023-12-29 20:32:10.687328",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

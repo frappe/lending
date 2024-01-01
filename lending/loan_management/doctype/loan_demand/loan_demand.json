@@ -22,7 +22,8 @@
   "waived_amount",
   "outstanding_amount",
   "sales_invoice",
-  "last_repayment_date"
+  "last_repayment_date",
+  "cost_center"
  ],
  "fields": [
   {
@@ -136,12 +137,19 @@
    "fieldname": "last_repayment_date",
    "fieldtype": "Date",
    "label": "Last Repayment Date"
+  },
+  {
+   "fetch_from": "loan.cost_center",
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-13 22:28:15.756117",
+ "modified": "2023-12-29 23:38:56.536380",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
