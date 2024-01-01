@@ -152,15 +152,17 @@ def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest
 
 	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
 	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+	grace_period_days = cint(frappe.get_value("Loan Product", loan_product, "grace_period_in_days"))
 	penal_interest_amount = 0
 
 	for demand in demands:
 		if demand.demand_subtype in ("Principal", "Interest"):
 			if getdate(demand.demand_date) < getdate(posting_date):
+				due_date = add_days(demand.demand_date, grace_period_days)
 				penal_interest_amount += (
 					demand.demand_amount
 					* penal_interest_rate
-					* date_diff(posting_date, demand.last_repayment_date or demand.demand_date)
+					* date_diff(posting_date, demand.last_repayment_date or due_date)
 					/ 36500
 				)
 
@@ -235,8 +237,8 @@ def make_accrual_interest_entry_for_loans(
 	open_loans += get_term_loans(term_loan=loan, loan_product=loan_product, posting_date=posting_date)
 
 	for loan in open_loans:
-		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
 		calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
 
 
 def generate_loan_demand(

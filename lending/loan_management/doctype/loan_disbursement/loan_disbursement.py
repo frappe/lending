@@ -47,10 +47,11 @@ class LoanDisbursement(AccountsController):
 			self.update_draft_schedule()
 
 	def after_insert(self):
-		self.make_draft_schedule()
+		if self.is_term_loan:
+			self.make_draft_schedule()
 
 	def on_trash(self):
-		if self.docstatus == 0:
+		if self.docstatus == 0 and self.is_term_loan:
 			draft_schedule = self.get_draft_schedule()
 			frappe.delete_doc("Loan Repayment Schedule", draft_schedule)
 
@@ -379,6 +380,8 @@ class LoanDisbursement(AccountsController):
 			for data in schedule.repayment_schedule:
 				total_payment -= data.total_payment
 				total_interest_payable -= data.interest_amount
+		else:
+			total_payment -= self.disbursed_amount
 
 		if (
 			loan_details.disbursed_amount > loan_details.loan_amount
@@ -440,6 +443,8 @@ class LoanDisbursement(AccountsController):
 				if getdate(data.payment_date) >= getdate(self.repayment_start_date):
 					total_payment += data.total_payment
 					total_interest_payable += data.interest_amount
+		else:
+			total_payment = self.disbursed_amount
 
 		if disbursed_amount > loan_details.loan_amount:
 			topup_amount = disbursed_amount - loan_details.loan_amount
