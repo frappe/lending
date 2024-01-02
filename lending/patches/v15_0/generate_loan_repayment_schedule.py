@@ -15,7 +15,7 @@ def execute():
 	if loan_repayment_schedules_already_created:
 		return
 
-	for loan in frappe.get_all("Loan", filters={"is_term_loan": 1}):
+	for loan in frappe.get_all("Loan", filters={"is_term_loan": 1, "docstatus": ["!=", 2]}):
 		loan = frappe.get_cached_doc("Loan", loan.name)
 		loan_repayment_schedule = frappe.new_doc("Loan Repayment Schedule")
 		loan_repayment_schedule.flags.ignore_validate = True
