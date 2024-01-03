@@ -597,6 +597,9 @@ def make_sales_invoice_for_charge(
 		}
 	)
 
+	si.against_voucher_type = "Loan"
+	si.against_voucher = loan
+
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 	account = frappe.db.get_value(
 		"Loan Charges", {"parent": loan_product, "charge_type": charge}, "income_account"
