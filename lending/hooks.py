@@ -131,6 +131,7 @@ scheduler_events = {
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_loans",
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
+		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",

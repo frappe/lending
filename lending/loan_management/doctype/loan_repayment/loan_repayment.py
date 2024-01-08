@@ -22,9 +22,10 @@ from lending.loan_management.doctype.loan_security_assignment.loan_security_assi
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
-from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-	create_process_loan_classification,
-)
+
+# from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+# 	create_process_loan_classification,
+# )
 
 # from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 # 	process_loan_interest_accrual_for_loans,
@@ -44,13 +45,13 @@ class LoanRepayment(AccountsController):
 	# 	self.book_unaccrued_interest()
 
 	def on_submit(self):
-		if self.repayment_type == "Normal Repayment":
-			create_process_loan_classification(
-				posting_date=self.posting_date,
-				loan_product=self.loan_product,
-				loan=self.against_loan,
-				payment_reference=self.name,
-			)
+		# if self.repayment_type == "Normal Repayment":
+		# 	create_process_loan_classification(
+		# 		posting_date=self.posting_date,
+		# 		loan_product=self.loan_product,
+		# 		loan=self.against_loan,
+		# 		payment_reference=self.name,
+		# 	)
 
 		# self.update_repayment_schedule()
 		self.update_paid_amounts()
@@ -255,13 +256,15 @@ class LoanRepayment(AccountsController):
 			if payment.demand_type == "Interest":
 				total_interest_paid += payment.paid_amount
 			elif payment.demand_type == "Principal":
-				self.principal_amount += payment.paid_amount
+				self.principal_amount_paid += payment.paid_amount
 
 			loan_demand = frappe.qb.DocType("Loan Demand")
 			frappe.qb.update(loan_demand).set(
 				loan_demand.paid_amount, loan_demand.paid_amount + payment.paid_amount
 			).set(loan_demand.last_repayment_date, self.posting_date).where(
 				loan_demand.name == payment.loan_demand
+			).set(
+				loan_demand.outstanding_amount, loan_demand.outstanding_amount - payment.paid_amount
 			).run()
 
 		if self.repayment_type == "Normal Repayment":
@@ -291,7 +294,11 @@ class LoanRepayment(AccountsController):
 
 			frappe.qb.update(loan_demand).set(
 				loan_demand.paid_amount, loan_demand.paid_amount - payment.paid_amount
-			).where(loan_demand.name == payment.loan_demand).run()
+			).set(
+				loan_demand.outstanding_amount, loan_demand.outstanding_amount + payment.paid_amount
+			).where(
+				loan_demand.name == payment.loan_demand
+			).run()
 
 		loan = frappe.qb.DocType("Loan")
 
@@ -1046,26 +1053,30 @@ def get_penalty_details(against_loan):
 # 	loan_doc.save()
 
 
-def get_pending_principal_amount(loan):
+def get_pending_principal_amount(loan, posting_date=None):
+	precision = cint(frappe.db.get_default("currency_precision"))
+
 	if loan.status in ("Disbursed", "Closed"):
-		pending_principal_amount = (
+		pending_principal_amount = flt(
 			flt(loan.total_payment)
 			+ flt(loan.debit_adjustment_amount)
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)
 			- flt(loan.total_interest_payable)
 			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount)
+			+ flt(loan.refund_amount),
+			precision,
 		)
 	else:
-		pending_principal_amount = (
+		pending_principal_amount = flt(
 			flt(loan.disbursed_amount)
 			+ flt(loan.debit_adjustment_amount)
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)
 			- flt(loan.total_interest_payable)
 			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount)
+			+ flt(loan.refund_amount),
+			precision,
 		)
 
 	return pending_principal_amount

@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, flt
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
@@ -10,7 +10,7 @@ from erpnext.controllers.accounts_controller import AccountsController
 
 class LoanDemand(AccountsController):
 	def validate(self):
-		pass
+		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 
 	def on_submit(self):
 		if self.demand_subtype in ("Principal", "Interest", "Penalty"):
@@ -82,3 +82,86 @@ class LoanDemand(AccountsController):
 		)
 
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
+
+
+def make_loan_demand_for_term_loans(
+	posting_date, loan_product=None, loan=None, process_loan_demand=None
+):
+	filters = {
+		"docstatus": 1,
+		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
+		"is_term_loan": 1,
+	}
+
+	if loan_product:
+		filters["loan_product"] = loan_product
+
+	if loan:
+		filters["name"] = loan
+
+	open_loans = frappe.db.get_all("Loan", filters=filters, pluck="name")
+
+	loan_repayment_schedule_map = frappe._dict(
+		frappe.db.get_all(
+			"Loan Repayment Schedule",
+			filters={"docstatus": 1, "status": "Active", "loan": ("in", open_loans)},
+			fields=["name", "loan"],
+			as_list=1,
+		)
+	)
+
+	repayment_schedules = loan_repayment_schedule_map.keys()
+
+	emi_rows = frappe.db.get_all(
+		"Repayment Schedule",
+		filters={
+			"parent": ("in", repayment_schedules),
+			"payment_date": ("<=", posting_date),
+			"demand_generated": 0,
+		},
+		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
+	)
+
+	for row in emi_rows:
+		create_loan_demand(
+			loan_repayment_schedule_map.get(row.parent),
+			row.payment_date,
+			"EMI",
+			"Interest",
+			row.interest_amount,
+			repayment_schedule_detail=row.name,
+			process_loan_demand=process_loan_demand,
+		)
+		create_loan_demand(
+			loan_repayment_schedule_map.get(row.parent),
+			row.payment_date,
+			"EMI",
+			"Principal",
+			row.principal_amount,
+			repayment_schedule_detail=row.name,
+			process_loan_demand=process_loan_demand,
+		)
+
+
+def create_loan_demand(
+	loan,
+	posting_date,
+	demand_type,
+	demand_subtype,
+	amount,
+	repayment_schedule_detail=None,
+	sales_invoice=None,
+	process_loan_demand=None,
+):
+	if amount:
+		demand = frappe.new_doc("Loan Demand")
+		demand.loan = loan
+		demand.repayment_schedule_detail = repayment_schedule_detail
+		demand.demand_date = posting_date
+		demand.demand_type = demand_type
+		demand.demand_subtype = demand_subtype
+		demand.demand_amount = amount
+		demand.sales_invoice = sales_invoice
+		demand.process_loan_demand = process_loan_demand
+		demand.save()
+		demand.submit()
