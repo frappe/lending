@@ -197,11 +197,10 @@ class LoanDisbursement(AccountsController):
 		if not self.disbursement_date:
 			self.disbursement_date = nowdate()
 
+		self.posting_date = self.disbursement_date or nowdate()
+
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
-
-		if not self.posting_date:
-			self.posting_date = self.disbursement_date or nowdate()
 
 		if not self.disbursement_account and self.bank_account:
 			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")

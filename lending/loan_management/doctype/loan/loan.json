@@ -418,6 +418,7 @@
    "fieldname": "days_past_due",
    "fieldtype": "Int",
    "label": "Days Past Due",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -560,7 +561,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-12 15:28:10.241845",
+ "modified": "2024-01-07 21:43:54.755239",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

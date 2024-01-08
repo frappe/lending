@@ -14,6 +14,7 @@
   "demand_type",
   "demand_subtype",
   "amended_from",
+  "process_loan_demand",
   "column_break_qrjm",
   "company",
   "demand_date",
@@ -144,12 +145,18 @@
    "fieldtype": "Link",
    "label": "Cost Center",
    "options": "Cost Center"
+  },
+  {
+   "fieldname": "process_loan_demand",
+   "fieldtype": "Link",
+   "label": "Process Loan Demand",
+   "options": "Process Loan Demand"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-29 23:38:56.536380",
+ "modified": "2024-01-06 16:22:37.771957",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

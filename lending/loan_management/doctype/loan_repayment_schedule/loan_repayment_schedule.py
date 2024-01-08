@@ -42,14 +42,15 @@ class LoanRepaymentSchedule(Document):
 
 		if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
-			moratorium_end_date = add_months(self.repayment_start_date, -1)
+			self.moratorium_end_date = add_months(self.repayment_start_date, -1)
 
 		tenure = self.repayment_periods
 		if self.repayment_frequency == "Monthly":
 			tenure += cint(self.moratorium_tenure)
 
 		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
-		if broken_period_interest_days > 0:
+
+		if broken_period_interest_days > 0 and not self.moratorium_tenure:
 			tenure += 1
 
 		self.add_rows_from_prev_disbursement()
@@ -57,18 +58,6 @@ class LoanRepaymentSchedule(Document):
 			broken_period_interest_days = 0
 
 		while balance_amount > 0:
-			if (
-				self.moratorium_tenure
-				and self.repayment_frequency == "Monthly"
-				and getdate(payment_date) > getdate(moratorium_end_date)
-			):
-				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
-					balance_amount = self.loan_amount + moratorium_interest
-					self.monthly_repayment_amount = get_monthly_repayment_amount(
-						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
-					)
-					moratorium_interest = 0
-
 			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
 				payment_date,
 				balance_amount,
@@ -77,7 +66,7 @@ class LoanRepaymentSchedule(Document):
 			)
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
-				if getdate(payment_date) <= getdate(moratorium_end_date):
+				if getdate(payment_date) <= getdate(self.moratorium_end_date):
 					total_payment = 0
 					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
@@ -94,6 +83,18 @@ class LoanRepaymentSchedule(Document):
 					next_payment_date = add_days(next_payment_date, 1)
 
 				payment_date = next_payment_date
+
+			if (
+				self.moratorium_tenure
+				and self.repayment_frequency == "Monthly"
+				and getdate(payment_date) >= getdate(self.moratorium_end_date)
+			):
+				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
+					balance_amount = balance_amount + moratorium_interest
+					self.monthly_repayment_amount = get_monthly_repayment_amount(
+						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
+					)
+					moratorium_interest = 0
 
 			self.add_repayment_schedule_row(
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
@@ -200,7 +201,7 @@ class LoanRepaymentSchedule(Document):
 
 				if self.repayment_schedule_type == "Monthly as per cycle date":
 					days = date_diff(payment_date, add_months(payment_date, -1))
-					if additional_days < 0:
+					if additional_days < 0 or (additional_days > 0 and self.moratorium_tenure):
 						days = date_diff(payment_date, self.posting_date)
 						additional_days = 0
 
@@ -256,7 +257,7 @@ class LoanRepaymentSchedule(Document):
 				"interest_amount": interest_amount,
 				"total_payment": total_payment,
 				"balance_loan_amount": balance_loan_amount,
-				"demand_generated": demand_generated,
+				"demand_generated": 1 if not total_payment else demand_generated,
 			},
 		)
 
