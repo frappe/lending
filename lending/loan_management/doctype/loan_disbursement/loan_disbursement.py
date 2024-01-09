@@ -52,8 +52,6 @@ class LoanDisbursement(AccountsController):
 			frappe.delete_doc("Loan Repayment Schedule", draft_schedule)
 
 	def get_schedule_details(self):
-		disbursed_amount = self.get_disbursed_amount()
-
 		return {
 			"doctype": "Loan Repayment Schedule",
 			"loan": self.against_loan,
@@ -62,7 +60,8 @@ class LoanDisbursement(AccountsController):
 			"repayment_periods": self.tenure,
 			"posting_date": self.disbursement_date,
 			"repayment_frequency": self.repayment_frequency,
-			"disbursed_amount": disbursed_amount,
+			"disbursed_amount": self.disbursed_amount,
+			"current_principal_amount": self.disbursed_amount,
 			"loan_disbursement": self.name,
 		}
 
@@ -83,17 +82,6 @@ class LoanDisbursement(AccountsController):
 		schedule = frappe.get_doc(self.get_schedule_details()).insert()
 		self.monthly_repayment_amount = schedule.monthly_repayment_amount
 		self.broken_period_interest = schedule.broken_period_interest
-
-	def get_disbursed_amount(self):
-		if self.repayment_schedule_type == "Line of Credit":
-			disbursed_amount = self.disbursed_amount
-		else:
-			current_principal_amount = get_pending_principal_amount(
-				frappe.get_doc("Loan", self.against_loan)
-			)
-			disbursed_amount = self.disbursed_amount + current_principal_amount
-
-		return disbursed_amount
 
 	def get_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
