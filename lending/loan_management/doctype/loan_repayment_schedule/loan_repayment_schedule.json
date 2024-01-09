@@ -13,10 +13,12 @@
   "loan_restructure",
   "loan_amount",
   "disbursed_amount",
+  "current_principal_amount",
   "rate_of_interest",
   "posting_date",
   "adjusted_interest",
   "broken_period_interest",
+  "broken_period_interest_days",
   "column_break_n6iy",
   "loan_product",
   "repayment_frequency",
@@ -203,12 +205,22 @@
    "fieldname": "moratorium_end_date",
    "fieldtype": "Date",
    "label": "Moratorium End Date"
+  },
+  {
+   "fieldname": "current_principal_amount",
+   "fieldtype": "Currency",
+   "label": "Current Principal Amount"
+  },
+  {
+   "fieldname": "broken_period_interest_days",
+   "fieldtype": "Int",
+   "label": "Broken Period Interest Days"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-04 21:03:01.758060",
+ "modified": "2024-01-09 21:49:44.127172",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

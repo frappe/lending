@@ -18,7 +18,7 @@ class LoanRepaymentSchedule(Document):
 	def set_missing_fields(self):
 		if self.repayment_method == "Repay Over Number of Periods":
 			self.monthly_repayment_amount = get_monthly_repayment_amount(
-				self.disbursed_amount or self.loan_amount,
+				self.current_principal_amount,
 				self.rate_of_interest,
 				self.repayment_periods,
 				self.repayment_frequency,
@@ -35,8 +35,10 @@ class LoanRepaymentSchedule(Document):
 			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
 
 		self.repayment_schedule = []
+		previous_interest_amount = self.add_rows_from_prev_disbursement()
+
 		payment_date = self.repayment_start_date
-		balance_amount = self.disbursed_amount or self.loan_amount
+		balance_amount = self.current_principal_amount
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
@@ -44,25 +46,18 @@ class LoanRepaymentSchedule(Document):
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
 			self.moratorium_end_date = add_months(self.repayment_start_date, -1)
 
-		tenure = self.repayment_periods
-		if self.repayment_frequency == "Monthly":
-			tenure += cint(self.moratorium_tenure)
+		tenure = self.get_applicable_tenure(payment_date)
 
-		broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
-
-		if broken_period_interest_days > 0 and not self.moratorium_tenure:
-			tenure += 1
-
-		self.add_rows_from_prev_disbursement()
 		if len(self.get("repayment_schedule")) > 0:
-			broken_period_interest_days = 0
+			self.broken_period_interest_days = 0
+
+		additional_days = self.broken_period_interest_days
+		if additional_days < 0:
+			self.broken_period_interest_days = 0
 
 		while balance_amount > 0:
 			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
-				payment_date,
-				balance_amount,
-				broken_period_interest_days,
-				carry_forward_interest,
+				payment_date, balance_amount, additional_days, carry_forward_interest, previous_interest_amount
 			)
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
@@ -128,9 +123,35 @@ class LoanRepaymentSchedule(Document):
 				payment_date = add_months(payment_date, 3)
 
 			carry_forward_interest = 0
-			broken_period_interest_days = 0
+			additional_days = 0
+
+	def get_applicable_tenure(self, payment_date):
+		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+
+		if self.repayment_frequency == "Monthly" and (
+			loan_status == "Sanctioned" or self.repayment_schedule_type == "Line of Credit"
+		):
+			tenure = self.repayment_periods
+			if self.repayment_frequency == "Monthly" and self.moratorium_tenure:
+				tenure += cint(self.moratorium_tenure)
+
+			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
+
+			if self.broken_period_interest_days > 0 and not self.moratorium_tenure:
+				tenure += 1
+
+		elif loan_status == "Partially Disbursed":
+			prev_schedule = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
+			)
+			tenure = frappe.db.count("Repayment Schedule", {"parent": prev_schedule})
+
+		return tenure
 
 	def add_rows_from_prev_disbursement(self):
+		previous_interest_amount = 0
+		completed_tenure = 0
+
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if loan_status == "Partially Disbursed" and self.repayment_schedule_type != "Line of Credit":
 			prev_schedule = frappe.get_doc(
@@ -138,7 +159,7 @@ class LoanRepaymentSchedule(Document):
 			)
 			if prev_schedule:
 				for row in prev_schedule.get("repayment_schedule"):
-					if getdate(row.payment_date) < getdate(self.repayment_start_date):
+					if getdate(row.payment_date) < getdate(self.posting_date):
 						self.add_repayment_schedule_row(
 							row.payment_date,
 							row.principal_amount,
@@ -148,13 +169,29 @@ class LoanRepaymentSchedule(Document):
 							row.number_of_days,
 							demand_generated=row.demand_generated,
 						)
+						prev_repayment_date = row.payment_date
+						prev_balance_amount = row.balance_loan_amount
+						if row.principal_amount:
+							completed_tenure += 1
+					else:
+						self.repayment_start_date = row.payment_date
+						break
 
+				pending_prev_days = date_diff(self.posting_date, add_days(prev_repayment_date, 1))
+				if pending_prev_days > 0:
+					previous_interest_amount = flt(
+						prev_balance_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
+					)
+
+				self.current_principal_amount = self.disbursed_amount + prev_balance_amount
 				self.monthly_repayment_amount = get_monthly_repayment_amount(
-					self.disbursed_amount or self.loan_amount,
+					self.current_principal_amount,
 					self.rate_of_interest,
-					self.repayment_periods - len(self.repayment_schedule),
+					self.repayment_periods - completed_tenure,
 					self.repayment_frequency,
 				)
+
+		return previous_interest_amount
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
@@ -172,17 +209,24 @@ class LoanRepaymentSchedule(Document):
 		balance_amount,
 		additional_days,
 		carry_forward_interest=0,
+		previous_interest_amount=0,
 	):
 		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
 		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
 		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
+
 		if balance_amount < 0:
 			principal_amount += balance_amount
 			balance_amount = 0.0
 
 		if carry_forward_interest:
 			interest_amount += carry_forward_interest
+
+		if previous_interest_amount > 0:
+			interest_amount += previous_interest_amount
+			principal_amount -= previous_interest_amount
+			previous_interest_amount = 0
 
 		total_payment = principal_amount + interest_amount
 
@@ -205,9 +249,11 @@ class LoanRepaymentSchedule(Document):
 						days = date_diff(payment_date, self.posting_date)
 						additional_days = 0
 
-					if additional_days and not self.moratorium_tenure:
+					loan_status = frappe.db.get_value("Loan", self.loan, "status")
+					if additional_days and not self.moratorium_tenure and loan_status != "Partially Disbursed":
 						self.add_broken_period_interest(balance_amount, additional_days, payment_date)
 						additional_days = 0
+
 				elif expected_payment_date == payment_date:
 					# using 30 days for calculating interest for all full months
 					days = 30
