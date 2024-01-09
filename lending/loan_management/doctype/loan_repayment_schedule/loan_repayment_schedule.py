@@ -303,7 +303,7 @@ class LoanRepaymentSchedule(Document):
 				"interest_amount": interest_amount,
 				"total_payment": total_payment,
 				"balance_loan_amount": balance_loan_amount,
-				"demand_generated": 1 if not total_payment else demand_generated,
+				"demand_generated": demand_generated,
 			},
 		)
 
