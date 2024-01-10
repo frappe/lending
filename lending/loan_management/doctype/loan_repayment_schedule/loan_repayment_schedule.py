@@ -126,7 +126,7 @@ class LoanRepaymentSchedule(Document):
 			additional_days = 0
 
 	def get_applicable_tenure(self, payment_date):
-		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+		loan_status = frappe.db.get_value("Loan", self.loan, "status") or "Sanctioned"
 
 		if self.repayment_frequency == "Monthly" and (
 			loan_status == "Sanctioned" or self.repayment_schedule_type == "Line of Credit"
