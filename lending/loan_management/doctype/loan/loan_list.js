@@ -7,6 +7,7 @@ frappe.listview_settings['Loan'] = {
 			"Draft": "red",
 			"Sanctioned": "blue",
 			"Disbursed": "orange",
+			"Active": "orange",
 			"Partially Disbursed": "yellow",
 			"Loan Closure Requested": "green",
 			"Closed": "green"

@@ -12,7 +12,7 @@ frappe.ui.form.on('Loan Disbursement', {
 			return {
 				'filters': {
 					'docstatus': 1,
-					"status": ["in",["Sanctioned","Active"]],
+					"status": ["in",["Sanctioned","Active", "Partially Disbursed"]],
 				}
 			}
 		})

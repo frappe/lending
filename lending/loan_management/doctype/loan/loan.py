@@ -39,6 +39,7 @@ class Loan(AccountsController):
 		self.set_cyclic_date()
 		self.set_default_charge_account()
 		self.set_available_limit_amount()
+		self.validate_repayment_terms()
 
 		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
 		# 	update_draft_schedule(
@@ -121,6 +122,11 @@ class Loan(AccountsController):
 
 	def set_available_limit_amount(self):
 		self.available_limit_amount = self.maximum_limit_amount
+
+	def validate_repayment_terms(self):
+		if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+			if not self.repayment_periods:
+				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
 	def on_submit(self):
 		self.link_loan_security_pledge()
@@ -221,15 +227,18 @@ class Loan(AccountsController):
 			self.db_set("total_payment", self.total_payment)
 
 	def set_loan_amount(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			self.loan_amount = self.maximum_limit_amount
+
 		if self.loan_application and not self.loan_amount:
 			self.loan_amount = frappe.db.get_value("Loan Application", self.loan_application, "loan_amount")
 
 	def validate_loan_amount(self):
-		if self.maximum_loan_amount and self.loan_amount > self.maximum_loan_amount:
-			msg = _("Loan amount cannot be greater than {0}").format(self.maximum_loan_amount)
+		if self.maximum_limit_amount and self.loan_amount > self.maximum_limit_amount:
+			msg = _("Loan amount cannot be greater than {0}").format(self.maximum_limit_amount)
 			frappe.throw(msg)
 
-		if not self.loan_amount and self.repayment_schedule_type != "Line of Credit":
+		if not self.loan_amount:
 			frappe.throw(_("Loan amount is mandatory"))
 
 	def link_loan_security_pledge(self):
@@ -405,6 +414,7 @@ def make_loan_disbursement(
 	posting_date=None,
 	disbursement_date=None,
 	bank_account=None,
+	is_term_loan=None,
 ):
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
@@ -418,6 +428,7 @@ def make_loan_disbursement(
 	disbursement_entry.repayment_start_date = repayment_start_date
 	disbursement_entry.repayment_frequency = repayment_frequency
 	disbursement_entry.disbursed_amount = disbursement_amount
+	disbursement_entry.is_term_loan = is_term_loan
 
 	for charge in loan_doc.get("loan_charges"):
 		disbursement_entry.append(

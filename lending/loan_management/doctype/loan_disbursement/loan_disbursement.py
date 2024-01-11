@@ -124,15 +124,14 @@ class LoanDisbursement(AccountsController):
 		schedule.submit()
 
 	def cancel_and_delete_repayment_schedule(self):
-		if self.repayment_schedule_type == "Line of Credit":
-			filters = {
-				"loan": self.against_loan,
-				"docstatus": 1,
-				"status": "Active",
-				"loan_disbursement": self.name,
-			}
-			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
-			schedule.cancel()
+		filters = {
+			"loan": self.against_loan,
+			"docstatus": 1,
+			"status": "Active",
+			"loan_disbursement": self.name,
+		}
+		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+		schedule.cancel()
 
 	def update_current_repayment_schedule(self, cancel=0):
 		# Update status of existing schedule on top up
@@ -171,13 +170,13 @@ class LoanDisbursement(AccountsController):
 	def on_cancel(self):
 		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule"]
 
+		self.set_status_and_amounts(cancel=1)
+
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
-			self.update_repayment_schedule_status(cancel=1)
-			self.update_current_repayment_schedule(cancel=1)
 
 		self.delete_security_deposit()
-		self.set_status_and_amounts(cancel=1)
+
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
@@ -346,16 +345,9 @@ class LoanDisbursement(AccountsController):
 		else:
 			status = "Partially Disbursed"
 
-		new_available_limit_amount = (
-			loan_details.available_limit_amount + self.disbursed_amount
-			if loan_details.available_limit_amount
-			else 0.0
-		)
-		new_utilized_limit_amount = (
-			loan_details.utilized_limit_amount - self.disbursed_amount
-			if loan_details.utilized_limit_amount
-			else 0.0
-		)
+		new_available_limit_amount = loan_details.available_limit_amount + self.disbursed_amount
+
+		new_utilized_limit_amount = loan_details.utilized_limit_amount - self.disbursed_amount
 
 		return (
 			disbursed_amount,

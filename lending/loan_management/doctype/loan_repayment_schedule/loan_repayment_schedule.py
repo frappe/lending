@@ -110,7 +110,7 @@ class LoanRepaymentSchedule(Document):
 
 			if (
 				self.repayment_schedule_type
-				in ["Monthly as per repayment start date", "Monthly as per cycle date"]
+				in ["Monthly as per repayment start date", "Monthly as per cycle date", "Line of Credit"]
 				or self.repayment_date_on == "End of the current month"
 			) and self.repayment_frequency == "Monthly":
 				next_payment_date = add_single_month(payment_date)

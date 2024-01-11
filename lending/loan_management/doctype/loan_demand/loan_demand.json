@@ -7,6 +7,8 @@
  "field_order": [
   "loan_demand_details_section",
   "loan",
+  "loan_repayment_schedule",
+  "loan_disbursement",
   "repayment_schedule_detail",
   "applicant_type",
   "applicant",
@@ -18,6 +20,7 @@
   "column_break_qrjm",
   "company",
   "demand_date",
+  "disbursement_date",
   "demand_amount",
   "paid_amount",
   "waived_amount",
@@ -116,10 +119,9 @@
   },
   {
    "fieldname": "demand_subtype",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Demand Subtype",
-   "options": "Principal\nInterest\nPenalty\nCharges"
+   "label": "Demand Subtype"
   },
   {
    "fetch_from": "loan.company",
@@ -151,12 +153,31 @@
    "fieldtype": "Link",
    "label": "Process Loan Demand",
    "options": "Process Loan Demand"
+  },
+  {
+   "fieldname": "loan_repayment_schedule",
+   "fieldtype": "Link",
+   "label": "Loan Repayment Schedule",
+   "options": "Loan Repayment Schedule"
+  },
+  {
+   "fetch_from": ".",
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  },
+  {
+   "fetch_from": "loan_repayment_schedule.posting_date",
+   "fieldname": "disbursement_date",
+   "fieldtype": "Date",
+   "label": "Disbursement Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-06 16:22:37.771957",
+ "modified": "2024-01-11 13:43:39.861311",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

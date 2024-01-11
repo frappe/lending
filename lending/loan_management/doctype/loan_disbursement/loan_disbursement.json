@@ -13,13 +13,13 @@
   "applicant_type",
   "loan_product",
   "monthly_repayment_amount",
-  "tenure",
   "column_break_4",
   "company",
   "applicant",
   "repayment_schedule_type",
   "repayment_frequency",
   "repayment_method",
+  "tenure",
   "repayment_start_date",
   "is_term_loan",
   "withhold_security_deposit",
@@ -247,7 +247,8 @@
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Repayment Schedule Type"
+   "label": "Repayment Schedule Type",
+   "read_only": 1
   },
   {
    "fetch_from": "against_loan.repayment_start_date",
@@ -294,7 +295,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-29 20:32:10.687328",
+ "modified": "2024-01-10 20:01:44.186607",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

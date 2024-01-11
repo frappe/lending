@@ -154,6 +154,7 @@
    "label": "Loan Details"
   },
   {
+   "depends_on": "eval:doc.repayment_schedule_type!=\"Line of Credit\"",
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
    "label": "Loan Amount",
@@ -404,6 +405,7 @@
    "fieldname": "is_npa",
    "fieldtype": "Check",
    "label": "Is NPA",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -411,6 +413,7 @@
    "fetch_from": "loan_product.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Repayment Schedule Type",
    "read_only": 1
   },
@@ -428,12 +431,14 @@
    "description": "Manually marked as NPA",
    "fieldname": "manual_npa",
    "fieldtype": "Check",
-   "label": "Manual NPA"
+   "label": "Manual NPA",
+   "no_copy": 1
   },
   {
    "fieldname": "loan_restructure_count",
    "fieldtype": "Int",
    "label": "Loan Restructure Count",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -444,12 +449,14 @@
    "fieldname": "watch_period_end_date",
    "fieldtype": "Date",
    "label": "Watch Period End Date",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "tenure_post_restructure",
    "fieldtype": "Int",
    "label": "Tenure Post Restructure",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -506,6 +513,7 @@
    "label": "Moratorium Tenure"
   },
   {
+   "depends_on": "eval:doc.repayment_schedule_type == \"Line of Credit\"",
    "fieldname": "loan_credit_limits_section",
    "fieldtype": "Section Break",
    "label": "Loan Credit Limits"
@@ -513,7 +521,9 @@
   {
    "fieldname": "limit_applicable_start",
    "fieldtype": "Date",
-   "label": "Limit Applicable Start"
+   "label": "Limit Applicable Start",
+   "mandatory_depends_on": "eval: doc.repayment_schedule_type == \"Line of Credit\"",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_foeo",
@@ -522,13 +532,17 @@
   {
    "fieldname": "limit_applicable_end",
    "fieldtype": "Date",
-   "label": "Limit Applicable End"
+   "label": "Limit Applicable End",
+   "mandatory_depends_on": "eval: doc.repayment_schedule_type == \"Line of Credit\"",
+   "no_copy": 1
   },
   {
    "allow_on_submit": 1,
    "fieldname": "maximum_limit_amount",
    "fieldtype": "Currency",
-   "label": "Maximum Limit Amount"
+   "label": "Maximum Limit Amount",
+   "mandatory_depends_on": "eval: doc.repayment_schedule_type == \"Line of Credit\"",
+   "no_copy": 1
   },
   {
    "fetch_from": "loan_product.loan_category",
@@ -542,12 +556,14 @@
    "fieldname": "available_limit_amount",
    "fieldtype": "Currency",
    "label": "Available Limit Amount",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "utilized_limit_amount",
    "fieldtype": "Currency",
    "label": "Utilized Limit Amount",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -561,7 +577,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-07 21:43:54.755239",
+ "modified": "2024-01-11 16:49:57.074283",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
