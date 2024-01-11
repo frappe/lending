@@ -101,14 +101,18 @@ def make_loan_demand_for_term_loans(
 
 	open_loans = frappe.db.get_all("Loan", filters=filters, pluck="name")
 
-	loan_repayment_schedule_map = frappe._dict(
-		frappe.db.get_all(
-			"Loan Repayment Schedule",
-			filters={"docstatus": 1, "status": "Active", "loan": ("in", open_loans)},
-			fields=["name", "loan"],
-			as_list=1,
-		)
+	loan_repayment_schedules = frappe.db.get_all(
+		"Loan Repayment Schedule",
+		filters={"docstatus": 1, "status": "Active", "loan": ("in", open_loans)},
+		fields=["name", "loan", "loan_disbursement"],
 	)
+
+	loan_repayment_schedule_map = frappe._dict()
+	disbursement_map = frappe._dict()
+
+	for schedule in loan_repayment_schedules:
+		loan_repayment_schedule_map[schedule.name] = schedule.loan
+		disbursement_map[schedule.name] = schedule.loan_disbursement
 
 	repayment_schedules = loan_repayment_schedule_map.keys()
 
@@ -125,6 +129,8 @@ def make_loan_demand_for_term_loans(
 	for row in emi_rows:
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
+			row.parent,
+			disbursement_map.get(row.parent),
 			row.payment_date,
 			"EMI",
 			"Interest",
@@ -134,6 +140,8 @@ def make_loan_demand_for_term_loans(
 		)
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
+			row.parent,
+			disbursement_map.get(row.parent),
 			row.payment_date,
 			"EMI",
 			"Principal",
@@ -145,6 +153,8 @@ def make_loan_demand_for_term_loans(
 
 def create_loan_demand(
 	loan,
+	loan_repayment_schedule,
+	loan_disbursement,
 	posting_date,
 	demand_type,
 	demand_subtype,
@@ -156,6 +166,8 @@ def create_loan_demand(
 	if amount:
 		demand = frappe.new_doc("Loan Demand")
 		demand.loan = loan
+		demand.loan_repayment_schedule = loan_repayment_schedule
+		demand.loan_disbursement = loan_disbursement
 		demand.repayment_schedule_detail = repayment_schedule_detail
 		demand.demand_date = posting_date
 		demand.demand_type = demand_type

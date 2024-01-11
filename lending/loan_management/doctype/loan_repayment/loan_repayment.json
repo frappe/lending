@@ -7,6 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "against_loan",
+  "loan_disbursement",
+  "repayment_schedule_type",
   "applicant_type",
   "applicant",
   "loan_product",
@@ -41,11 +43,12 @@
   "total_paid_charges",
   "references_section",
   "reference_number",
+  "total_interest_paid",
+  "total_penalty_paid",
   "column_break_21",
   "reference_date",
   "principal_amount_paid",
-  "total_penalty_paid",
-  "total_interest_paid",
+  "total_charges_paid",
   "section_break_55wc",
   "repayment_details",
   "amended_from",
@@ -374,12 +377,29 @@
    "fieldname": "select_charge_manually",
    "fieldtype": "Check",
    "label": "Select Charge Manually"
+  },
+  {
+   "fetch_from": "against_loan.repayment_schedule_type",
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Data",
+   "label": "Repayment Schedule Type"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  },
+  {
+   "fieldname": "total_charges_paid",
+   "fieldtype": "Currency",
+   "label": "Total Charges Paid"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-08 14:52:37.305970",
+ "modified": "2024-01-11 20:00:41.004851",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

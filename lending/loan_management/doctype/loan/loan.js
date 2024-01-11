@@ -75,7 +75,7 @@ frappe.ui.form.on('Loan', {
 				},__('Create'));
 			}
 
-			if (["Sanctioned", "Partially Disbursed"].includes(frm.doc.status)) {
+			if (["Sanctioned", "Partially Disbursed", "Active"].includes(frm.doc.status)) {
 				frm.add_custom_button(__('Loan Disbursement'), function() {
 					frm.trigger("make_loan_disbursement");
 				},__('Create'));
@@ -134,6 +134,7 @@ frappe.ui.form.on('Loan', {
 					frm.doc.loan_amount - frm.doc.disbursed_amount : 0,
 				"as_dict": 1,
 				"repayment_frequency": frm.doc.repayment_frequency,
+				"is_term_loan": frm.doc.is_term_loan
 			},
 			method: "lending.loan_management.doctype.loan.loan.make_loan_disbursement",
 			callback: function (r) {

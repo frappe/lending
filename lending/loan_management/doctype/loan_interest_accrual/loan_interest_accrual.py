@@ -281,7 +281,15 @@ def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest
 						loan_demand=demand.name,
 					)
 
-					create_loan_demand(loan.name, posting_date, "Penalty", "Penalty", penal_interest_amount)
+					create_loan_demand(
+						loan.name,
+						demand.loan_repayment_schedule,
+						loan.loan_disbursement,
+						posting_date,
+						"Penalty",
+						"Penalty",
+						penal_interest_amount,
+					)
 
 
 def make_accrual_interest_entry_for_loans(
