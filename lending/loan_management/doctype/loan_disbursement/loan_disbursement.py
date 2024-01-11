@@ -497,19 +497,18 @@ class LoanDisbursement(AccountsController):
 				remarks,
 			)
 
-		for charge in self.get("loan_disbursement_charges"):
+		if self.get("loan_disbursement_charges"):
 			sales_invoice = make_sales_invoice_for_charge(
 				self.against_loan,
 				self.name,
 				self.disbursement_date,
 				self.company,
-				charge.charge,
-				charge.amount,
+				self.get("loan_disbursement_charges"),
 			)
 
 			self.add_gl_entry(
 				gle_map,
-				charge.account,
+				sales_invoice.debit_to,
 				self.disbursement_account,
 				-1 * sales_invoice.grand_total,
 				remarks,
@@ -521,9 +520,7 @@ class LoanDisbursement(AccountsController):
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 
-def make_sales_invoice_for_charge(
-	loan, loan_disbursement, disbursement_date, company, charge, amount
-):
+def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, company, charges):
 	si = frappe.get_doc(
 		{
 			"doctype": "Sales Invoice",
@@ -539,21 +536,24 @@ def make_sales_invoice_for_charge(
 	si.against_voucher = loan
 
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-	account = frappe.db.get_value(
-		"Loan Charges", {"parent": loan_product, "charge_type": charge}, "income_account"
-	)
-	receivable_account = frappe.db.get_value(
-		"Loan Charges", {"parent": loan_product, "charge_type": charge}, "receivable_account"
-	)
 
-	if not account:
+	for charge in charges:
 		account = frappe.db.get_value(
-			"Item Default", {"parent": charge, "company": company}, "income_account"
+			"Loan Charges", {"parent": loan_product, "charge_type": charge.charge}, "income_account"
+		)
+		receivable_account = charge.account
+		if not account:
+			account = frappe.db.get_value(
+				"Item Default", {"parent": charge.charge, "company": company}, "income_account"
+			)
+
+		si.append(
+			"items",
+			{"item_code": charge.charge, "rate": charge.amount, "qty": 1, "income_account": account},
 		)
 
-	si.append("items", {"item_code": charge, "rate": amount, "qty": 1, "income_account": account})
-
 	si.debit_to = receivable_account
+
 	si.save()
 	si.submit()
 
