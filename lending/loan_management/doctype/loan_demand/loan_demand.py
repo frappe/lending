@@ -140,12 +140,12 @@ def make_loan_demand_for_term_loans(
 		)
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
-			row.parent,
-			disbursement_map.get(row.parent),
 			row.payment_date,
 			"EMI",
 			"Principal",
 			row.principal_amount,
+			loan_repayment_schedule=row.parent,
+			loan_disbursement=disbursement_map.get(row.parent),
 			repayment_schedule_detail=row.name,
 			process_loan_demand=process_loan_demand,
 		)
@@ -153,12 +153,12 @@ def make_loan_demand_for_term_loans(
 
 def create_loan_demand(
 	loan,
-	loan_repayment_schedule,
-	loan_disbursement,
 	posting_date,
 	demand_type,
 	demand_subtype,
 	amount,
+	loan_repayment_schedule=None,
+	loan_disbursement=None,
 	repayment_schedule_detail=None,
 	sales_invoice=None,
 	process_loan_demand=None,
