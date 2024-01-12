@@ -129,12 +129,12 @@ def make_loan_demand_for_term_loans(
 	for row in emi_rows:
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
-			row.parent,
-			disbursement_map.get(row.parent),
 			row.payment_date,
 			"EMI",
 			"Interest",
 			row.interest_amount,
+			loan_repayment_schedule=row.parent,
+			loan_disbursement=disbursement_map.get(row.parent),
 			repayment_schedule_detail=row.name,
 			process_loan_demand=process_loan_demand,
 		)
