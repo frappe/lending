@@ -7,6 +7,8 @@ from frappe.utils import cint, flt
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
+
 
 class LoanDemand(AccountsController):
 	def validate(self):
@@ -149,6 +151,8 @@ def make_loan_demand_for_term_loans(
 			repayment_schedule_detail=row.name,
 			process_loan_demand=process_loan_demand,
 		)
+
+	update_installment_counts(loan_repayment_schedule_map.get(row.parent))
 
 
 def create_loan_demand(

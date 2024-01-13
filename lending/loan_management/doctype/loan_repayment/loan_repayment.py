@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import cint, flt, get_datetime, getdate
 
 import erpnext
@@ -46,6 +47,9 @@ class LoanRepayment(AccountsController):
 		# 	)
 
 		self.update_paid_amounts()
+		self.update_demands()
+		self.update_limits()
+		update_installment_counts(self.against_loan)
 
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
@@ -59,6 +63,8 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Normal Repayment":
 			self.mark_as_unpaid()
+			self.update_demands(cancel=1)
+			self.update_limits(cancel=1)
 			if self.is_npa or self.manual_npa:
 				# Mark back all loans as NPA
 				update_all_linked_loan_customer_npa_status(
@@ -80,6 +86,7 @@ class LoanRepayment(AccountsController):
 			"Process Loan Classification",
 		]
 		self.make_gl_entries(cancel=1)
+		update_installment_counts(self.against_loan)
 
 	def make_credit_note(self):
 		item_details = frappe.db.get_value(
@@ -175,16 +182,6 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be zero"))
 
 	def update_paid_amounts(self):
-		for payment in self.repayment_details:
-			loan_demand = frappe.qb.DocType("Loan Demand")
-			frappe.qb.update(loan_demand).set(
-				loan_demand.paid_amount, loan_demand.paid_amount + payment.paid_amount
-			).set(loan_demand.last_repayment_date, self.posting_date).where(
-				loan_demand.name == payment.loan_demand
-			).set(
-				loan_demand.outstanding_amount, loan_demand.outstanding_amount - payment.paid_amount
-			).run()
-
 		if self.repayment_type == "Normal Repayment":
 			loan = frappe.qb.DocType("Loan")
 			query = (
@@ -201,27 +198,7 @@ class LoanRepayment(AccountsController):
 
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
-		if self.repayment_schedule_type == "Line of Credit":
-			frappe.qb.update(loan).set(
-				loan.available_limit_amount, loan.available_limit_amount + self.principal_amount_paid
-			).set(
-				loan.utilized_limit_amount, loan.utilized_limit_amount - self.principal_amount_paid
-			).where(
-				loan.name == self.against_loan
-			).run()
-
 	def mark_as_unpaid(self):
-		for payment in self.repayment_details:
-			loan_demand = frappe.qb.DocType("Loan Demand")
-
-			frappe.qb.update(loan_demand).set(
-				loan_demand.paid_amount, loan_demand.paid_amount - payment.paid_amount
-			).set(
-				loan_demand.outstanding_amount, loan_demand.outstanding_amount + payment.paid_amount
-			).where(
-				loan_demand.name == payment.loan_demand
-			).run()
-
 		loan = frappe.qb.DocType("Loan")
 
 		frappe.qb.update(loan).set(
@@ -232,11 +209,32 @@ class LoanRepayment(AccountsController):
 			loan.name == self.against_loan
 		).run()
 
+	def update_demands(self, cancel=0):
+		loan_demand = frappe.qb.DocType("Loan Demand")
+		for payment in self.repayment_details:
+			paid_amount = payment.paid_amount
+			if cancel:
+				paid_amount = -1 * flt(payment.paid_amount)
+			frappe.qb.update(loan_demand).set(
+				loan_demand.paid_amount, loan_demand.paid_amount + paid_amount
+			).set(
+				loan_demand.outstanding_amount, loan_demand.outstanding_amount - paid_amount
+			).where(
+				loan_demand.name == payment.loan_demand
+			).run()
+
+	def update_limits(self, cancel=0):
+		principal_amount_paid = self.principal_amount_paid
+		if cancel:
+			principal_amount_paid = -1 * flt(self.principal_amount_paid)
+
+		loan = frappe.qb.DocType("Loan")
+
 		if self.repayment_schedule_type == "Line of Credit":
 			frappe.qb.update(loan).set(
-				loan.available_limit_amount, loan.available_limit_amount - self.principal_amount_paid
+				loan.available_limit_amount, loan.available_limit_amount + principal_amount_paid
 			).set(
-				loan.utilized_limit_amount, loan.utilized_limit_amount + self.principal_amount_paid
+				loan.utilized_limit_amount, loan.utilized_limit_amount - principal_amount_paid
 			).where(
 				loan.name == self.against_loan
 			).run()
@@ -674,22 +672,6 @@ def get_unpaid_demands(against_loan, posting_date=None):
 	return loan_demands
 
 
-def get_penalty_details(against_loan):
-	penalty_details = frappe.db.sql(
-		"""
-		SELECT posting_date, sum(penalty_amount - total_penalty_paid) as pending_penalty_amount
-		FROM `tabLoan Repayment` where posting_date >= (SELECT MAX(posting_date) from `tabLoan Repayment`
-		where against_loan = %s) and docstatus = 1 and against_loan = %s
-	""",
-		(against_loan, against_loan),
-	)
-
-	if penalty_details:
-		return penalty_details[0][0], flt(penalty_details[0][1])
-	else:
-		return None, 0
-
-
 def get_pending_principal_amount(loan, posting_date=None):
 	precision = cint(frappe.db.get_default("currency_precision"))
 
@@ -805,3 +787,46 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 		return {"amounts": amounts, "loan_details": loan_details}
 	else:
 		return amounts
+
+
+def update_installment_counts(against_loan):
+	loan_demand = frappe.qb.DocType("Loan Demand")
+	loan_demands = (
+		frappe.qb.from_(loan_demand)
+		.select(
+			loan_demand.loan_repayment_schedule,
+			loan_demand.repayment_schedule_detail,
+			Sum(loan_demand.outstanding_amount).as_("total_outstanding_amount"),
+		)
+		.where(
+			(loan_demand.loan == against_loan)
+			& (loan_demand.docstatus == 1)
+			& (loan_demand.demand_type == "EMI")
+		)
+		.groupby(loan_demand.loan_repayment_schedule, loan_demand.repayment_schedule_detail)
+		.run(as_dict=1)
+	)
+
+	count_details = {}
+	for demand in loan_demands:
+		count_details.setdefault(
+			demand.loan_repayment_schedule,
+			{"total_installments_raised": 0, "total_installments_paid": 0, "total_installments_overdue": 0},
+		)
+
+		count_details[demand.loan_repayment_schedule]["total_installments_raised"] += 1
+		if demand.total_outstanding_amount <= 0:
+			count_details[demand.loan_repayment_schedule]["total_installments_paid"] += 1
+		else:
+			count_details[demand.loan_repayment_schedule]["total_installments_overdue"] += 1
+
+	for schedule, details in count_details.items():
+		frappe.db.set_value(
+			"Loan Repayment Schedule",
+			schedule,
+			{
+				"total_installments_raised": details["total_installments_raised"],
+				"total_installments_paid": details["total_installments_paid"],
+				"total_installments_overdue": details["total_installments_overdue"],
+			},
+		)
