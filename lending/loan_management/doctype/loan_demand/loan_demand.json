@@ -16,7 +16,6 @@
   "demand_type",
   "demand_subtype",
   "amended_from",
-  "process_loan_demand",
   "column_break_qrjm",
   "company",
   "demand_date",
@@ -26,8 +25,8 @@
   "waived_amount",
   "outstanding_amount",
   "sales_invoice",
-  "last_repayment_date",
-  "cost_center"
+  "cost_center",
+  "process_loan_demand"
  ],
  "fields": [
   {
@@ -137,11 +136,6 @@
    "options": "Sales Invoice"
   },
   {
-   "fieldname": "last_repayment_date",
-   "fieldtype": "Date",
-   "label": "Last Repayment Date"
-  },
-  {
    "fetch_from": "loan.cost_center",
    "fieldname": "cost_center",
    "fieldtype": "Link",
@@ -174,10 +168,11 @@
    "label": "Disbursement Date"
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-11 13:43:39.861311",
+ "modified": "2024-01-13 17:45:21.918364",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

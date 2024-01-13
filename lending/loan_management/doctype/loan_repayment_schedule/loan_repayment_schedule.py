@@ -10,10 +10,10 @@ from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_da
 
 class LoanRepaymentSchedule(Document):
 	def validate(self):
-		self.validate_repayment_method()
-		self.set_missing_fields()
-		self.make_repayment_schedule()
 		self.set_repayment_period()
+		self.set_missing_fields()
+		self.validate_repayment_method()
+		self.make_repayment_schedule()
 
 	def set_missing_fields(self):
 		if self.repayment_method == "Repay Over Number of Periods":
@@ -29,6 +29,9 @@ class LoanRepaymentSchedule(Document):
 			repayment_periods = len(self.repayment_schedule)
 
 			self.repayment_periods = repayment_periods
+		elif self.repayment_frequency == "One Time":
+			self.repayment_method = "Repay Over Number of Periods"
+			self.repayment_periods = 1
 
 	def make_repayment_schedule(self):
 		if not self.repayment_start_date:
@@ -51,7 +54,7 @@ class LoanRepaymentSchedule(Document):
 		if len(self.get("repayment_schedule")) > 0:
 			self.broken_period_interest_days = 0
 
-		additional_days = self.broken_period_interest_days
+		additional_days = cint(self.broken_period_interest_days)
 		if additional_days < 0:
 			self.broken_period_interest_days = 0
 
@@ -145,6 +148,8 @@ class LoanRepaymentSchedule(Document):
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
 			tenure = frappe.db.count("Repayment Schedule", {"parent": prev_schedule})
+		else:
+			tenure = self.repayment_periods
 
 		return tenure
 
