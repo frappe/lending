@@ -35,7 +35,10 @@ class LoanDemand(AccountsController):
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
 
-		if self.demand_subtype in ("Principal", "Charges"):
+		if self.demand_subtype == "Principal":
+			return
+
+		if self.demand_type == "Charges":
 			return
 
 		if self.demand_subtype == "Interest":
