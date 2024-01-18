@@ -262,15 +262,12 @@ class LoanDisbursement(AccountsController):
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
 		elif self.repayment_schedule_type == "Line of Credit":
-			if (
-				getdate(limit_details.limit_applicable_end)
-				< getdate(self.disbursement_date)
-				< getdate(limit_details.limit_applicable_start)
+			if not (
+				getdate(limit_details.limit_applicable_start)
+				<= getdate(self.disbursement_date)
+				<= getdate(limit_details.limit_applicable_end)
 			):
 				frappe.throw("Disbursement date is out of approved limit dates")
-
-		elif self.disbursed_amount > possible_disbursal_amount:
-			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
 
 		if limit_details.available_limit_amount and self.disbursed_amount > flt(
 			limit_details.available_limit_amount

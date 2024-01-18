@@ -37,6 +37,7 @@
   "status",
   "amended_from",
   "column_break_cplx",
+  "moratorium_type",
   "moratorium_tenure",
   "treatment_of_interest",
   "moratorium_end_date",
@@ -268,12 +269,18 @@
    "fieldname": "repayment_schedule_section",
    "fieldtype": "Section Break",
    "label": "Repayment Schedule"
+  },
+  {
+   "fetch_from": "loan.moratorium_type",
+   "fieldname": "moratorium_type",
+   "fieldtype": "Data",
+   "label": "Moratorium Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-13 17:44:02.151526",
+ "modified": "2024-01-18 18:23:13.448330",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

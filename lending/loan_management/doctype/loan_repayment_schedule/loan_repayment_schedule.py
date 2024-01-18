@@ -51,10 +51,11 @@ class LoanRepaymentSchedule(Document):
 
 		tenure = self.get_applicable_tenure(payment_date)
 
+		additional_days = cint(self.broken_period_interest_days)
+
 		if len(self.get("repayment_schedule")) > 0:
 			self.broken_period_interest_days = 0
 
-		additional_days = cint(self.broken_period_interest_days)
 		if additional_days < 0:
 			self.broken_period_interest_days = 0
 
@@ -65,15 +66,34 @@ class LoanRepaymentSchedule(Document):
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				if getdate(payment_date) <= getdate(self.moratorium_end_date):
-					total_payment = 0
+					if self.moratorium_type == "EMI":
+						total_payment = 0
+					else:
+						total_payment = interest_amount
+
+					principal_amount = 0
 					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
-				elif self.treatment_of_interest == "Add to first repayment" and moratorium_interest:
+				elif (
+					self.moratorium_type == "EMI"
+					and self.treatment_of_interest == "Add to first repayment"
+					and moratorium_interest
+				):
 					if moratorium_interest + interest_amount <= total_payment:
 						interest_amount += moratorium_interest
 						principal_amount = total_payment - interest_amount
 						balance_amount = self.loan_amount - principal_amount
 						moratorium_interest = 0
+				if (
+					self.moratorium_type == "EMI"
+					and self.treatment_of_interest == "Capitalize"
+					and moratorium_interest
+				):
+					balance_amount = balance_amount + moratorium_interest
+					self.monthly_repayment_amount = get_monthly_repayment_amount(
+						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
+					)
+					moratorium_interest = 0
 
 			if self.repayment_schedule_type == "Pro-rated calendar months":
 				next_payment_date = get_last_day(payment_date)
@@ -81,18 +101,6 @@ class LoanRepaymentSchedule(Document):
 					next_payment_date = add_days(next_payment_date, 1)
 
 				payment_date = next_payment_date
-
-			if (
-				self.moratorium_tenure
-				and self.repayment_frequency == "Monthly"
-				and getdate(payment_date) >= getdate(self.moratorium_end_date)
-			):
-				if self.treatment_of_interest == "Capitalize" and moratorium_interest:
-					balance_amount = balance_amount + moratorium_interest
-					self.monthly_repayment_amount = get_monthly_repayment_amount(
-						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
-					)
-					moratorium_interest = 0
 
 			self.add_repayment_schedule_row(
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
@@ -127,6 +135,7 @@ class LoanRepaymentSchedule(Document):
 
 			carry_forward_interest = 0
 			additional_days = 0
+			previous_interest_amount = 0
 
 	def get_applicable_tenure(self, payment_date):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status") or "Sanctioned"
@@ -137,12 +146,6 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 			if self.repayment_frequency == "Monthly" and self.moratorium_tenure:
 				tenure += cint(self.moratorium_tenure)
-
-			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
-
-			if self.broken_period_interest_days > 0 and not self.moratorium_tenure:
-				tenure += 1
-
 		elif loan_status == "Partially Disbursed":
 			prev_schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
@@ -150,6 +153,11 @@ class LoanRepaymentSchedule(Document):
 			tenure = frappe.db.count("Repayment Schedule", {"parent": prev_schedule})
 		else:
 			tenure = self.repayment_periods
+
+		if self.repayment_frequency == "Monthly":
+			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
+			if self.broken_period_interest_days > 0 and not self.moratorium_tenure:
+				tenure += 1
 
 		return tenure
 
@@ -182,7 +190,8 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_start_date = row.payment_date
 						break
 
-				pending_prev_days = date_diff(self.posting_date, add_days(prev_repayment_date, 1))
+				pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
+
 				if pending_prev_days > 0:
 					previous_interest_amount = flt(
 						prev_balance_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
@@ -219,11 +228,6 @@ class LoanRepaymentSchedule(Document):
 		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
 		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
-		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
-
-		if balance_amount < 0:
-			principal_amount += balance_amount
-			balance_amount = 0.0
 
 		if carry_forward_interest:
 			interest_amount += carry_forward_interest
@@ -231,7 +235,12 @@ class LoanRepaymentSchedule(Document):
 		if previous_interest_amount > 0:
 			interest_amount += previous_interest_amount
 			principal_amount -= previous_interest_amount
-			previous_interest_amount = 0
+
+		balance_amount = flt(balance_amount + interest_amount - self.monthly_repayment_amount)
+
+		if balance_amount < 0:
+			principal_amount += balance_amount
+			balance_amount = 0.0
 
 		total_payment = principal_amount + interest_amount
 
@@ -299,6 +308,13 @@ class LoanRepaymentSchedule(Document):
 		days,
 		demand_generated=0,
 	):
+		if (
+			self.moratorium_type == "EMI"
+			and self.moratorium_end_date
+			and getdate(payment_date) <= getdate(self.moratorium_end_date)
+		):
+			demand_generated = 1
+
 		self.append(
 			"repayment_schedule",
 			{

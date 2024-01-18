@@ -499,7 +499,7 @@
    "label": "Loan Charges"
   },
   {
-   "depends_on": "moratorium_tenure",
+   "depends_on": "eval:doc.moratorium_tenure && doc.moratorium_type == \"EMI\"",
    "fieldname": "treatment_of_interest",
    "fieldtype": "Select",
    "label": "Treatment of Interest",
@@ -577,7 +577,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-11 16:49:57.074283",
+ "modified": "2024-01-18 19:20:36.308545",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
