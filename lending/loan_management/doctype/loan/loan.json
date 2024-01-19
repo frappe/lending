@@ -567,7 +567,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\" && doc.moratorium_tenure",
    "fieldname": "moratorium_type",
    "fieldtype": "Select",
    "label": "Moratorium Type",
@@ -577,7 +577,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-18 19:20:36.308545",
+ "modified": "2024-01-19 12:52:09.326624",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

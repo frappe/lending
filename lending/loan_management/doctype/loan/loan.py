@@ -6,7 +6,6 @@ import json
 
 import frappe
 from frappe import _
-from frappe.query_builder import Order
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
@@ -639,16 +638,21 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 def update_days_past_due_in_loans(
 	posting_date=None, loan_product=None, loan_name=None, process_loan_classification=None
 ):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	accruals = get_pending_loan_interest_accruals(loan_product=loan_product, loan_name=loan_name)
+	demands = get_unpaid_demands(loan_name, posting_date=posting_date, loan_product=loan_product)
 	threshold_map = get_dpd_threshold_map()
 	checked_loans = []
 
-	for loan in accruals:
+	applicant_type = frappe.db.get_value("Loan", loan_name, "applicant_type")
+	applicant = frappe.db.get_value("Loan", loan_name, "applicant")
+
+	for loan in demands:
 		is_npa = 0
-		days_past_due = date_diff(getdate(posting_date), getdate(loan.due_date))
+		days_past_due = date_diff(getdate(posting_date), getdate(loan.demand_date))
 		if days_past_due < 0:
 			days_past_due = 0
 
@@ -660,8 +664,8 @@ def update_days_past_due_in_loans(
 		update_loan_and_customer_status(
 			loan.loan,
 			loan.company,
-			loan.applicant_type,
-			loan.applicant,
+			applicant_type,
+			applicant,
 			days_past_due,
 			is_npa,
 			posting_date or getdate(),
@@ -671,7 +675,7 @@ def update_days_past_due_in_loans(
 		checked_loans.append(loan.loan)
 
 	open_loans_with_no_overdue = []
-	if loan_name and not accruals:
+	if loan_name and not demands:
 		open_loans_with_no_overdue = [
 			frappe.db.get_value(
 				"Loan", loan_name, ["name", "company", "applicant_type", "applicant"], as_dict=1
@@ -749,7 +753,9 @@ def update_loan_and_customer_status(
 			},
 			pluck="name",
 		):
-			move_unpaid_interest_to_suspense_ledger(loan, posting_date)
+			move_unpaid_interest_to_suspense_ledger(
+				loan, posting_date, applicant_type=applicant_type, applicant=applicant
+			)
 
 		update_all_linked_loan_customer_npa_status(
 			is_npa, is_npa, applicant_type, applicant, posting_date
@@ -833,60 +839,6 @@ def get_classification_code_and_name(days_past_due, company):
 	return classification_code, classification_name
 
 
-def get_pending_loan_interest_accruals(
-	loan_product=None, loan_name=None, applicant_type=None, applicant=None, filter_entries=True
-):
-	"""Get pending loan interest accruals"""
-	loan_interest_accrual = frappe.qb.DocType("Loan Interest Accrual")
-
-	query = (
-		frappe.qb.from_(loan_interest_accrual)
-		.select(
-			loan_interest_accrual.name,
-			loan_interest_accrual.loan,
-			loan_interest_accrual.loan_product,
-			loan_interest_accrual.company,
-			loan_interest_accrual.loan_product,
-			loan_interest_accrual.due_date,
-			loan_interest_accrual.applicant_type,
-			loan_interest_accrual.applicant,
-			loan_interest_accrual.interest_amount,
-			loan_interest_accrual.paid_interest_amount,
-		)
-		.where(
-			(loan_interest_accrual.docstatus == 1)
-			& (
-				(loan_interest_accrual.interest_amount - loan_interest_accrual.paid_interest_amount > 0.01)
-				| (
-					loan_interest_accrual.payable_principal_amount - loan_interest_accrual.paid_principal_amount
-					> 0.01
-				)
-			)
-		)
-		.orderby(loan_interest_accrual.due_date, order=Order.desc)
-	)
-
-	if loan_product:
-		query = query.where(loan_interest_accrual.loan_product == loan_product)
-
-	if loan_name:
-		query = query.where(loan_interest_accrual.loan == loan_name)
-
-	if applicant_type:
-		query = query.where(loan_interest_accrual.applicant_type == applicant_type)
-
-	if applicant:
-		query = query.where(loan_interest_accrual.applicant == applicant)
-
-	loans = query.run(as_dict=1)
-
-	if filter_entries:
-		# filter not required accruals:
-		loans = list({loan["loan"]: loan for loan in loans}.values())
-
-	return loans
-
-
 def get_dpd_threshold_map():
 	return frappe._dict(
 		frappe.get_all("Loan Product", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
@@ -896,24 +848,26 @@ def get_dpd_threshold_map():
 def move_unpaid_interest_to_suspense_ledger(
 	loan=None, posting_date=None, applicant_type=None, applicant=None, reverse=0
 ):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+
 	posting_date = posting_date or getdate()
 	previous_npa = frappe.db.get_value("Loan", loan, "is_npa")
 	if previous_npa:
 		return
 
-	pending_loan_interest_accruals = get_pending_loan_interest_accruals(
-		loan_name=loan, applicant_type=applicant_type, applicant=applicant, filter_entries=False
-	)
+	unpaid_demands = get_unpaid_demands(loan, posting_date=posting_date)
 
-	for accrual in pending_loan_interest_accruals:
-		amount = accrual.interest_amount - accrual.paid_interest_amount
+	for demand in unpaid_demands:
+		amount = demand.demand_amount
 
 		if reverse:
 			amount = -1 * amount
 
+		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+
 		account_details = frappe.get_value(
 			"Loan Product",
-			accrual.loan_product,
+			loan_product,
 			[
 				"suspense_interest_receivable",
 				"suspense_interest_income",
@@ -927,49 +881,44 @@ def move_unpaid_interest_to_suspense_ledger(
 				"doctype": "Journal Entry",
 				"voucher_type": "Journal Entry",
 				"posting_date": posting_date,
-				"company": accrual.company,
+				"company": demand.company,
 				"accounts": [
 					{
 						"account": account_details.suspense_interest_receivable,
-						"party": accrual.applicant,
-						"party_type": accrual.applicant_type,
+						"party": applicant,
+						"party_type": applicant_type,
 						"debit_in_account_currency": amount,
 						"debit": amount,
 						"reference_type": "Loan",
-						"reference_name": accrual.loan,
-						"cost_center": erpnext.get_default_cost_center(accrual.company),
+						"reference_name": loan,
+						"cost_center": erpnext.get_default_cost_center(demand.company),
 					},
 					{
 						"account": account_details.interest_receivable_account,
-						"party": accrual.applicant,
-						"party_type": accrual.applicant_type,
+						"party": applicant,
+						"party_type": applicant_type,
 						"credit_in_account_currency": amount,
 						"credit": amount,
 						"reference_type": "Loan",
-						"reference_name": accrual.loan,
-						"cost_center": erpnext.get_default_cost_center(accrual.company),
+						"reference_name": loan,
+						"cost_center": erpnext.get_default_cost_center(demand.company),
 					},
 					{
 						"account": account_details.suspense_interest_income,
 						"credit_in_account_currency": amount,
 						"credit": amount,
-						"reference_type": "Loan Interest Accrual",
-						"reference_name": accrual.name,
-						"cost_center": erpnext.get_default_cost_center(accrual.company),
+						"cost_center": erpnext.get_default_cost_center(demand.company),
 					},
 					{
 						"account": account_details.interest_income_account,
 						"debit": amount,
 						"debit_in_account_currency": amount,
-						"reference_type": "Loan Interest Accrual",
-						"reference_name": accrual.name,
-						"cost_center": erpnext.get_default_cost_center(accrual.company),
+						"cost_center": erpnext.get_default_cost_center(demand.company),
 					},
 				],
 			}
 		)
 
-		jv.flags.ignore_mandatory = True
 		jv.submit()
 
 

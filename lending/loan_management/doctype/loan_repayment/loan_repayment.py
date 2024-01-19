@@ -637,21 +637,24 @@ def create_repayment_entry(
 	return lr
 
 
-def get_unpaid_demands(against_loan, posting_date=None):
+def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 	if not posting_date:
 		posting_date = getdate()
 
 	# precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	loan_demand = frappe.qb.DocType("Loan Demand")
-	loan_demands = (
+	query = (
 		frappe.qb.from_(loan_demand)
 		.select(
 			loan_demand.name,
+			loan_demand.loan,
 			loan_demand.loan_repayment_schedule,
 			loan_demand.loan_disbursement,
 			loan_demand.demand_date,
 			loan_demand.last_repayment_date,
+			loan_demand.loan_product,
+			loan_demand.company,
 			(loan_demand.demand_amount - loan_demand.paid_amount).as_("demand_amount"),
 			loan_demand.demand_subtype,
 			loan_demand.demand_type,
@@ -666,13 +669,17 @@ def get_unpaid_demands(against_loan, posting_date=None):
 		.orderby(loan_demand.repayment_schedule_detail)
 		.orderby(loan_demand.demand_type)
 		.orderby(loan_demand.demand_subtype)
-		.run(as_dict=1)
 	)
+
+	if loan_product:
+		query = query.where(loan_demand.loan_product == loan_product)
+
+	loan_demands = query.run(as_dict=1)
 
 	return loan_demands
 
 
-def get_pending_principal_amount(loan, posting_date=None):
+def get_pending_principal_amount(loan):
 	precision = cint(frappe.db.get_default("currency_precision"))
 
 	if loan.status in ("Disbursed", "Closed"):
