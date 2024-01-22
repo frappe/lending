@@ -30,6 +30,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 
 class Loan(AccountsController):
 	def validate(self):
+		print("ininini validate")
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
@@ -41,36 +42,8 @@ class Loan(AccountsController):
 		self.set_available_limit_amount()
 		self.validate_repayment_terms()
 
-		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
-		# 	update_draft_schedule(
-		# 		self.name,
-		# 		self.repayment_method,
-		# 		self.repayment_start_date,
-		# 		self.repayment_periods,
-		# 		self.monthly_repayment_amount,
-		# 		self.posting_date,
-		# 		self.repayment_frequency,
-		# 		moratorium_tenure=self.moratorium_tenure,
-		# 		treatment_of_interest=self.treatment_of_interest,
-		# 	)
-
 		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
 			self.calculate_totals()
-
-	# def after_insert(self):
-	# 	if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
-	# 		make_draft_schedule(
-	# 			self.name,
-	# 			self.repayment_method,
-	# 			self.repayment_start_date,
-	# 			self.repayment_periods,
-	# 			self.monthly_repayment_amount,
-	# 			self.posting_date,
-	# 			self.repayment_frequency,
-	# 			moratorium_tenure=self.moratorium_tenure,
-	# 			treatment_of_interest=self.treatment_of_interest,
-	# 		)
-	# 		self.calculate_totals(on_insert=True)
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -133,22 +106,29 @@ class Loan(AccountsController):
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 
-		# if self.repayment_schedule_type != "Line of Credit":
-		# 	self.submit_draft_schedule()
-
 	def on_cancel(self):
 		self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def on_update_after_submit(self):
-		if getdate() < getdate(self.watch_period_end_date):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
+
+		if self.watch_period_end_date and getdate() < getdate(self.watch_period_end_date):
 			frappe.throw(_("Cannot un mark as NPA before watch period end date"))
 
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
 		move_unpaid_interest_to_suspense_ledger(
 			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
 		)
+
+		if self.has_value_changed("freeze_account") and self.freeze_account:
+			create_loan_feeze_log(self.name, self.freeze_date, self.freeze_reason)
+			reverse_demands(self.name, self.freeze_date)
+			reverse_loan_interest_accruals(self.name, self.freeze_date)
 
 	def before_update_after_submit(self):
 		self.update_available_limit_amount()
@@ -209,14 +189,6 @@ class Loan(AccountsController):
 		self.total_payment = 0
 		self.total_interest_payable = 0
 		self.total_amount_paid = 0
-
-		# if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
-		# 	schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
-		# 	for data in schedule.repayment_schedule:
-		# 		self.total_payment += data.total_payment
-		# 		self.total_interest_payable += data.interest_amount
-
-		# 	self.monthly_repayment_amount = schedule.monthly_repayment_amount
 
 		if not self.is_term_loan:
 			self.total_payment = self.loan_amount
@@ -939,3 +911,14 @@ def get_cyclic_date(loan_product, posting_date):
 		cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
 
 	return cyclic_date
+
+
+def create_loan_feeze_log(loan, freeze_date, reason):
+	frappe.get_doc(
+		{
+			"doctype": "Loan Freeze Log",
+			"loan": loan,
+			"freeze_date": freeze_date,
+			"reason_for_freezing": reason,
+		}
+	).insert(ignore_permissions=True)

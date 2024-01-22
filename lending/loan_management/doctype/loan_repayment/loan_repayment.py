@@ -649,6 +649,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 		.select(
 			loan_demand.name,
 			loan_demand.loan,
+			loan_demand.sales_invoice,
 			loan_demand.loan_repayment_schedule,
 			loan_demand.loan_disbursement,
 			loan_demand.demand_date,
@@ -743,7 +744,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	amounts["interest_amount"] = flt(total_pending_interest, precision)
 	amounts["penalty_amount"] = flt(penalty_amount, precision)
 	amounts["payable_amount"] = flt(
-		payable_principal_amount + total_pending_interest + penalty_amount, precision
+		payable_principal_amount + total_pending_interest + penalty_amount + charges, precision
 	)
 	amounts["unbooked_interest"] = flt(unbooked_interest, precision)
 	amounts["written_off_amount"] = flt(against_loan_doc.written_off_amount, precision)
@@ -777,7 +778,6 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 	else:
 		amounts = get_amounts(amounts, against_loan, posting_date)
 
-	amounts["payable_amount"] += amounts["total_charges_payable"]
 	amounts["available_security_deposit"] = frappe.db.get_value(
 		"Loan Security Deposit", {"loan": against_loan}, "sum(deposit_amount - allocated_amount)"
 	)
@@ -785,7 +785,7 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 	# update values for closure
 	if payment_type == "Loan Closure":
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
-		amounts["interest_amount"] += amounts["unaccrued_interest"]
+		amounts["interest_amount"] += amounts["unbooked_interest"]
 		amounts["payable_amount"] = (
 			amounts["payable_principal_amount"] + amounts["interest_amount"] + amounts["penalty_amount"]
 		)

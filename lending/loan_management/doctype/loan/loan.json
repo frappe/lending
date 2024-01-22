@@ -75,6 +75,8 @@
   "total_amount_paid",
   "is_npa",
   "manual_npa",
+  "freeze_account",
+  "freeze_date",
   "amended_from"
  ],
  "fields": [
@@ -572,12 +574,26 @@
    "fieldtype": "Select",
    "label": "Moratorium Type",
    "options": "EMI\nInterest"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "freeze_account",
+   "fieldtype": "Check",
+   "label": "Freeze Account"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "freeze_account",
+   "fieldname": "freeze_date",
+   "fieldtype": "Date",
+   "label": "Freeze Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-19 12:52:09.326624",
+ "modified": "2024-01-22 19:13:27.166050",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

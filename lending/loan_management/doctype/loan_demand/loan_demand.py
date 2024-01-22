@@ -96,6 +96,7 @@ def make_loan_demand_for_term_loans(
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
 		"is_term_loan": 1,
+		"freeze_account": 0,
 	}
 
 	if loan_product:
@@ -184,3 +185,8 @@ def create_loan_demand(
 		demand.process_loan_demand = process_loan_demand
 		demand.save()
 		demand.submit()
+
+
+def reverse_demands(loan, posting_date):
+	for demand in frappe.get_all("Loan Demand", {"loan": loan, "demand_date": (">", posting_date)}):
+		frappe.get_doc("Loan Demand", demand.name).cancel()

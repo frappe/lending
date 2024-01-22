@@ -444,3 +444,10 @@ def get_interest_amount(
 		no_of_days = 30
 
 	return interest_per_day * no_of_days
+
+
+def reverse_loan_interest_accruals(loan, posting_date):
+	for accrual in frappe.get_all(
+		"Loan Interest Accrual", {"loan": loan, "posting_date": (">", posting_date)}
+	):
+		frappe.get_doc("Loan Interest Accrual", accrual.name).cancel()

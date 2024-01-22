@@ -12,7 +12,6 @@
   "applicant",
   "repayment_method",
   "restructure_type",
-  "branch",
   "status",
   "total_amount_paid",
   "total_principal_paid",
@@ -274,14 +273,6 @@
    "options": "Normal Restructure\nPre Payment"
   },
   {
-   "fetch_from": "loan.branch",
-   "fieldname": "branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch",
-   "read_only": 1
-  },
-  {
    "fieldname": "penalty_overdue",
    "fieldtype": "Currency",
    "label": "Penalty Overdue",
@@ -512,7 +503,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:23.789427",
+ "modified": "2024-01-22 12:57:39.466225",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

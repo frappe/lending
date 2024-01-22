@@ -16,7 +16,15 @@ def get_data():
 					"Loan Demand",
 				]
 			},
-			{"items": ["Loan Repayment", "Loan Interest Accrual", "Loan Write Off", "Loan Restructure"]},
+			{
+				"items": [
+					"Loan Repayment",
+					"Loan Interest Accrual",
+					"Loan Write Off",
+					"Loan Restructure",
+					"Loan Freeze Log",
+				]
+			},
 			{"items": ["Loan Security Release", "Days Past Due Log", "Journal Entry", "Sales Invoice"]},
 		],
 	}

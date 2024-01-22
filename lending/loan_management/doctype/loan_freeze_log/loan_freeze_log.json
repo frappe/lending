@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-20 19:15:20.923474",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "loan",
+  "freeze_date",
+  "reason_for_freezing"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "label": "Loan",
+   "options": "Loan"
+  },
+  {
+   "fieldname": "freeze_date",
+   "fieldtype": "Date",
+   "label": "Freeze Date"
+  },
+  {
+   "fieldname": "reason_for_freezing",
+   "fieldtype": "Small Text",
+   "label": "Reason For Freezing"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-20 19:16:06.600028",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Freeze Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

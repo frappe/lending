@@ -27,7 +27,6 @@ class LoanRestructure(AccountsController):
 		self.validate_restructure_date()
 		self.set_completed_tenure()
 		self.update_overdue_amounts()
-		self.validate_branch_limit()
 		self.allocate_security_deposit()
 		self.validate_waiver_amount()
 		self.calculate_balance_amounts()
@@ -217,12 +216,9 @@ class LoanRestructure(AccountsController):
 			self.update_totals()
 			self.update_repayment_schedule_status(status="Active")
 			self.update_security_deposit_amount()
-			self.update_branch_limit()
 			self.update_restructure_count()
-			self.make_restructure_charges_invoice()
 		elif self.status == "Rejected":
 			self.update_repayment_schedule_status(status="Rejected")
-			self.update_branch_limit(cancel=1)
 
 	def update_security_deposit_amount(self, cancel=0):
 		allocated_amount_details = frappe.db.get_value(
@@ -254,74 +250,6 @@ class LoanRestructure(AccountsController):
 				final_allocated_amount,
 			)
 
-	def update_branch_limit(self, cancel=0):
-		if self.branch:
-			# Get Latest Limit Log
-			available_limit = frappe.db.get_all(
-				"Loan Restructure Limit Log",
-				{
-					"branch": self.branch,
-					"company": self.company,
-				},
-				[
-					"name",
-					"available_limit",
-					"in_process_limit",
-					"delinquent_in_process_limit",
-					"delinquent_available_limit",
-					"utilized_limit",
-					"delinquent_utilized_limit",
-				],
-				order_by="date desc",
-				limit=1,
-			)[0]
-
-			loan_amount = self.pending_principal_amount
-			if cancel:
-				loan_amount = -1 * loan_amount
-
-			# Update Limit Log
-			if self.status in ("Initiated", "Rejected"):
-				if cancel:
-					target_limit_field = "available_limit"
-					target_delinquent_limit_field = "delinquent_available_limit"
-					source_limit_field = "in_process_limit"
-					source_delinquent_limit_field = "delinquent_in_process_limit"
-				else:
-					target_limit_field = "in_process_limit"
-					target_delinquent_limit_field = "delinquent_in_process_limit"
-					source_limit_field = "available_limit"
-					source_delinquent_limit_field = "delinquent_available_limit"
-			elif self.status == "Approved":
-				if cancel:
-					target_limit_field = "available_limit"
-					target_delinquent_limit_field = "delinquent_available_limit"
-					source_limit_field = "utilized_limit"
-					source_delinquent_limit_field = "delinquent_utilized_limit"
-				else:
-					target_limit_field = "utilized_limit"
-					target_delinquent_limit_field = "delinquent_utilized_limit"
-					source_limit_field = "in_process_limit"
-					source_delinquent_limit_field = "delinquent_in_process_limit"
-
-			if self.pre_restructure_dpd > 0:
-				updated_target_field = flt(available_limit.get(target_delinquent_limit_field)) + loan_amount
-				updated_source_field = flt(available_limit.get(source_delinquent_limit_field)) - loan_amount
-			else:
-				updated_target_field = flt(available_limit.get(target_delinquent_limit_field))
-				updated_source_field = flt(available_limit.get(source_delinquent_limit_field))
-
-			frappe.db.set_value(
-				"Loan Restructure Limit Log",
-				available_limit.name,
-				{
-					target_limit_field: flt(available_limit.get(target_limit_field)) + loan_amount,
-					source_limit_field: flt(available_limit.get(source_limit_field)) - loan_amount,
-					target_delinquent_limit_field: updated_target_field,
-					source_delinquent_limit_field: updated_source_field,
-				},
-			)
-
 	def update_restructure_count(self, cancel=0):
 		increment_count = 1
 		if cancel:
@@ -330,34 +258,6 @@ class LoanRestructure(AccountsController):
 		frappe.db.set_value(
 			"Loan", self.loan, "loan_restructure_count", self.current_restructure_count + increment_count
 		)
-
-	def make_restructure_charges_invoice(self):
-		if self.applicant_type == "Customer":
-
-			si = frappe.new_doc("Sales Invoice")
-			si.customer = self.applicant
-
-			for charge in frappe.get_all(
-				"Loan Charges",
-				filters={"parent": self.loan_product, "event": "Restructure"},
-				fields=["charge_type", "charge_based_on", "amount", "percentage", "income_account"],
-			):
-				si.append(
-					"items",
-					{
-						"item_code": charge.charge_type,
-						"qty": 1,
-						"rate": charge.amount
-						if charge.charge_based_on == "Fixed Amount"
-						else flt(self.new_loan_amount) * flt(charge.percentage) / 100,
-						"income_account": charge.income_account,
-					},
-				)
-
-			si.loan = self.loan
-			self.due_date = self.restructure_date
-			si.save()
-			si.submit()
 
 	def update_repayment_schedule_status(self, status):
 		if status == "Initiated":
@@ -377,14 +277,12 @@ class LoanRestructure(AccountsController):
 		self.validate_new_loan_amount()
 		self.set_status()
 		self.update_repayment_schedule_status(status="Initiated")
-		self.update_branch_limit()
 
 	def on_cancel(self):
 		self.cancel_repayment_schedule()
 		if self.status == "Approved":
 			self.update_totals_and_status()
 		self.cancel_loan_adjustments()
-		self.update_branch_limit(cancel=1)
 		self.update_restructure_count(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
 
@@ -421,50 +319,6 @@ class LoanRestructure(AccountsController):
 		frappe.db.set_value("Loan Repayment Schedule", schedule.name, "status", "Active")
 		# self.update_totals(cancel=1)
 
-	def validate_branch_limit(self):
-		if self.branch:
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
-			# Get Latest Limit Log
-			limit_details = frappe.db.get_all(
-				"Loan Restructure Limit Log",
-				{
-					"branch": self.branch,
-					"company": self.company,
-				},
-				["available_limit", "delinquent_available_limit"],
-				order_by="date desc",
-				limit=1,
-			)
-
-			available_limit = 0
-			delinquent_available_limit = 0
-
-			if limit_details:
-				available_limit = limit_details[0].get("available_limit")
-				delinquent_available_limit = limit_details[0].get("delinquent_available_limit")
-
-			if available_limit and flt(self.pending_principal_amount, precision) > flt(
-				available_limit, precision
-			):
-				frappe.throw(
-					_("Normal branch limit for branch {0} exceeded by {1}").format(
-						frappe.bold(self.branch),
-						frappe.bold(flt(self.pending_principal_amount - available_limit, 2)),
-					)
-				)
-
-			if (
-				delinquent_available_limit
-				and self.pre_restructure_dpd > 0
-				and flt(self.pending_principal_amount, precision) > flt(delinquent_available_limit, precision)
-			):
-				frappe.throw(
-					_("Delinquent branch limit for branch {0} exceeded by {1}").format(
-						frappe.bold(self.branch),
-						frappe.bold(flt(self.pending_principal_amount - delinquent_available_limit, 2)),
-					)
-				)
-
 	def validate_waiver_amount(self):
 		if flt(self.interest_waiver_amount) > flt(self.interest_overdue) - flt(
 			self.adjusted_interest_amount
@@ -496,7 +350,7 @@ class LoanRestructure(AccountsController):
 
 		if self.new_repayment_method == "Repay Over Number of Periods":
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
-				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months
+				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months, "Monthly"
 			)
 
 	def validate_new_loan_amount(self):
@@ -547,33 +401,28 @@ class LoanRestructure(AccountsController):
 		)
 		if draft_schedule:
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
-			schedule.update(
-				{
-					"loan": self.loan,
-					"repayment_periods": self.new_repayment_period_in_months,
-					"repayment_method": self.new_repayment_method,
-					"repayment_start_date": self.repayment_start_date,
-					"posting_date": self.restructure_date,
-					"loan_amount": self.new_loan_amount,
-					"loan_product": self.loan_product,
-					"rate_of_interest": self.new_rate_of_interest,
-					"adjusted_interest": adjusted_interest,
-				}
-			)
+			schedule.update(self.get_schedule_details(adjusted_interest))
 			schedule.save()
 		else:
 			schedule = frappe.new_doc("Loan Repayment Schedule")
-			schedule.loan = self.loan
-			schedule.loan_restructure = self.name
-			schedule.repayment_method = self.new_repayment_method
-			schedule.repayment_start_date = self.repayment_start_date
-			schedule.repayment_periods = self.new_repayment_period_in_months
-			schedule.loan_amount = self.new_loan_amount
-			schedule.loan_product = self.loan_product
-			schedule.rate_of_interest = self.new_rate_of_interest
-			schedule.posting_date = self.restructure_date
-			schedule.adjusted_interest = adjusted_interest
+			schedule_details = self.get_schedule_details(adjusted_interest)
+			schedule.update(schedule_details)
 			schedule.insert()
+
+	def get_schedule_details(self, adjusted_interest=0):
+		return {
+			"loan": self.loan,
+			"loan_restructure": self.name,
+			"repayment_method": self.new_repayment_method,
+			"repayment_start_date": self.repayment_start_date,
+			"repayment_periods": self.new_repayment_period_in_months,
+			"rate_of_interest": self.new_rate_of_interest,
+			"loan_amount": self.new_loan_amount,
+			"current_principal_amount": self.new_loan_amount,
+			"posting_date": self.restructure_date,
+			"repayment_frequency": "Monthly",
+			"adjusted_interest": adjusted_interest,
+		}
 
 	def update_totals(self, cancel=0):
 		total_payment = 0
