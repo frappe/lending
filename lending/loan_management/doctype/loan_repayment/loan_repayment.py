@@ -4,7 +4,7 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Sum
+from frappe.query_builder.functions import Round, Sum
 from frappe.utils import cint, flt, get_datetime, getdate
 
 import erpnext
@@ -641,7 +641,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 	if not posting_date:
 		posting_date = getdate()
 
-	# precision = cint(frappe.db.get_default("currency_precision")) or 2
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	loan_demand = frappe.qb.DocType("Loan Demand")
 	query = (
@@ -664,7 +664,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 			(loan_demand.loan == against_loan)
 			& (loan_demand.docstatus == 1)
 			& (loan_demand.demand_date <= posting_date)
-			& (loan_demand.demand_amount - loan_demand.paid_amount > 0)
+			& (Round(loan_demand.demand_amount - loan_demand.paid_amount, precision) > 0)
 		)
 		.orderby(loan_demand.disbursement_date)
 		.orderby(loan_demand.repayment_schedule_detail)
