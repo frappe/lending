@@ -20,8 +20,6 @@
   "securities",
   "loan_details_section",
   "allocated_loans",
-  "loan_applications_section",
-  "allocated_loan_applications",
   "section_break_10",
   "total_security_value",
   "column_break_11",
@@ -156,24 +154,12 @@
    "fieldname": "allocated_loans",
    "fieldtype": "Table",
    "label": "Allocated Loans",
-   "options": "Loan Security Assignment Loan Detail"
+   "options": "Loan Allocation Detail"
   },
   {
    "fieldname": "applicant_details",
    "fieldtype": "Section Break",
    "label": "Applicant Details"
-  },
-  {
-   "fieldname": "loan_applications_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Applications"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "allocated_loan_applications",
-   "fieldtype": "Table",
-   "label": "Allocated Loan Applications",
-   "options": "Loan Security Assignment Loan Application Detail"
   },
   {
    "fieldname": "security_owner_type",
@@ -200,7 +186,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-30 23:47:18.667979",
+ "modified": "2024-01-22 17:04:06.664858",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

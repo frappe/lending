@@ -1,29 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2023-10-24 18:54:22.875354",
+ "creation": "2023-10-19 16:26:54.924575",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "loan_application"
+  "loan"
  ],
  "fields": [
   {
-   "fieldname": "loan_application",
+   "fieldname": "loan",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Loan Application",
-   "options": "Loan Application"
+   "label": "Loan",
+   "options": "Loan"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-24 18:55:43.914701",
+ "modified": "2023-10-25 01:05:56.049682",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Security Assignment Loan Application Detail",
+ "name": "Loan Allocation Detail",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

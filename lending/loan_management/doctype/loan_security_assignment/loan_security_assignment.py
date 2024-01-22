@@ -55,7 +55,7 @@ class LoanSecurityAssignment(Document):
 		for d in self.get("allocated_loans"):
 			if d.loan:
 				lsa = frappe.qb.DocType("Loan Security Assignment")
-				lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
+				lsald = frappe.qb.DocType("Loan Allocation Detail")
 
 				existing_lsa = (
 					frappe.qb.from_(lsa)
@@ -174,7 +174,7 @@ def update_loan_securities_values(
 
 	ls = frappe.qb.DocType("Loan Security")
 	lsa = frappe.qb.DocType("Loan Security Assignment")
-	lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
+	lsald = frappe.qb.DocType("Loan Allocation Detail")
 	pledge = frappe.qb.DocType("Pledge")
 
 	loan_securities = (

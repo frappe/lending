@@ -172,7 +172,7 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Security Assignment Loan Detail` lsald
+		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Allocation Detail` lsald
 		WHERE lsald.loan = %s
 		AND p.parent = lsa.name
 		AND lsald.parent = lsa.name
@@ -196,7 +196,7 @@ def check_and_request_loan_security_assignment_release(loan_security):
 	all_loans_and_lsa = frappe.db.sql(
 		"""
 		SELECT lsald.loan, lsa.name as lsa
-		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Security Assignment Loan Detail` lsald
+		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Allocation Detail` lsald
 		WHERE p.loan_security = %s
 		AND p.parent = lsa.name
 		AND lsald.parent = lsa.name
