@@ -7,6 +7,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_day, getdate
 
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+
 
 class LoanRepaymentSchedule(Document):
 	def validate(self):
@@ -23,6 +25,29 @@ class LoanRepaymentSchedule(Document):
 				self.repayment_periods,
 				self.repayment_frequency,
 			)
+
+	def on_submit(self):
+		if self.broken_period_interest and self.broken_period_interest > 0:
+			bpi_row = self.repayment_schedule[0]
+			frappe.db.set_value("Repayment Schedule", bpi_row.name, "demand_generated", 1)
+			create_loan_demand(
+				self.loan,
+				bpi_row.payment_date,
+				"Normal",
+				"Interest",
+				bpi_row.interest_amount,
+				loan_repayment_schedule=self.name,
+				loan_disbursement=self.loan_disbursement,
+				repayment_schedule_detail=bpi_row.name,
+				paid_amount=bpi_row.interest_amount,
+			)
+
+	def on_cancel(self):
+		if self.broken_period_interest and self.broken_period_interest > 0:
+			bpi_row = self.repayment_schedule[0]
+			frappe.db.set_value("Repayment Schedule", bpi_row.name, "demand_generated", 0)
+			loan_demand = frappe.get_doc("Loan Demand", {"repayment_schedule_detail": bpi_row.name})
+			loan_demand.cancel()
 
 	def set_repayment_period(self):
 		if self.repayment_method == "Repay Fixed Amount per Period":

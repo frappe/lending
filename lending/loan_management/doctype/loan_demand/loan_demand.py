@@ -133,10 +133,11 @@ def make_loan_demand_for_term_loans(
 	)
 
 	for row in emi_rows:
+		demand_type = "EMI"
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
 			row.payment_date,
-			"EMI",
+			demand_type,
 			"Interest",
 			row.interest_amount,
 			loan_repayment_schedule=row.parent,
@@ -147,7 +148,7 @@ def make_loan_demand_for_term_loans(
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
 			row.payment_date,
-			"EMI",
+			demand_type,
 			"Principal",
 			row.principal_amount,
 			loan_repayment_schedule=row.parent,
@@ -170,6 +171,7 @@ def create_loan_demand(
 	repayment_schedule_detail=None,
 	sales_invoice=None,
 	process_loan_demand=None,
+	paid_amount=0,
 ):
 	if amount:
 		demand = frappe.new_doc("Loan Demand")
@@ -183,6 +185,7 @@ def create_loan_demand(
 		demand.demand_amount = amount
 		demand.sales_invoice = sales_invoice
 		demand.process_loan_demand = process_loan_demand
+		demand.paid_amount = paid_amount
 		demand.save()
 		demand.submit()
 
