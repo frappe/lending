@@ -521,6 +521,7 @@
    "label": "Loan Credit Limits"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "limit_applicable_start",
    "fieldtype": "Date",
    "label": "Limit Applicable Start",
@@ -532,6 +533,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "limit_applicable_end",
    "fieldtype": "Date",
    "label": "Limit Applicable End",
@@ -593,7 +595,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-22 19:13:27.166050",
+ "modified": "2024-01-24 15:36:36.429252",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
