@@ -373,24 +373,23 @@ class LoanRepayment(AccountsController):
 			as_dict=1,
 		)
 
-		if self.total_penalty_paid:
-			penalty_receivable_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "penalty_receivable_account"
-			)
+		if self.principal_amount_paid:
+			against_account = self.loan_account
+
 			gle_map.append(
 				self.get_gl_dict(
 					{
 						"account": payment_account,
-						"against": penalty_receivable_account,
-						"debit": self.total_penalty_paid,
-						"debit_in_account_currency": self.total_penalty_paid,
+						"against": account_details.interest_receivable_account + ", " + self.penalty_income_account,
+						"debit": self.principal_amount_paid,
+						"debit_in_account_currency": self.principal_amount_paid,
 						"against_voucher_type": "Loan",
 						"against_voucher": self.against_loan,
-						"remarks": _("Penalty against loan:") + self.against_loan,
+						"remarks": _(remarks),
 						"cost_center": self.cost_center,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
 						"posting_date": getdate(self.posting_date),
+						"party_type": payment_party_type,
+						"party": payment_party,
 					}
 				)
 			)
@@ -398,64 +397,27 @@ class LoanRepayment(AccountsController):
 			gle_map.append(
 				self.get_gl_dict(
 					{
-						"account": penalty_receivable_account,
-						"against": payment_account,
+						"account": against_account,
 						"party_type": self.applicant_type,
 						"party": self.applicant,
-						"credit": self.total_penalty_paid,
-						"credit_in_account_currency": self.total_penalty_paid,
+						"against": payment_account,
+						"credit": self.principal_amount_paid,
+						"credit_in_account_currency": self.principal_amount_paid,
 						"against_voucher_type": "Loan",
 						"against_voucher": self.against_loan,
-						"remarks": _("Penalty against loan:") + self.against_loan,
+						"remarks": _(remarks),
 						"cost_center": self.cost_center,
 						"posting_date": getdate(self.posting_date),
 					}
 				)
 			)
 
-		if self.total_paid_charges and self.repayment_type != "Charges Waiver":
-			for charges in self.get("pending_charges"):
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": account_details.charges_receivable_account,
-							"party_type": self.applicant_type,
-							"party": self.applicant,
-							"against": payment_account,
-							"credit": charges.allocated_amount,
-							"credit_in_account_currency": charges.allocated_amount,
-							"against_voucher_type": "Sales Invoice",
-							"against_voucher": charges.sales_invoice,
-							"remarks": _(remarks),
-							"cost_center": self.cost_center,
-							"posting_date": getdate(self.posting_date),
-						}
-					)
-				)
-
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": payment_account,
-							"against": account_details.charges_receivable_account,
-							"debit": charges.allocated_amount,
-							"debit_in_account_currency": charges.allocated_amount,
-							"against_voucher_type": "Loan",
-							"against_voucher": self.against_loan,
-							"remarks": _(remarks),
-							"cost_center": self.cost_center,
-							"posting_date": getdate(self.posting_date),
-							"party_type": payment_party_type,
-							"party": payment_party,
-						}
-					)
-				)
-
 		for repayment in self.get("repayment_details"):
+			if repayment.demand_type == "Principal":
+				continue
+
 			if repayment.demand_type == "Interest":
 				against_account = account_details.interest_receivable_account
-			elif repayment.demand_type == "Principal":
-				against_account = self.loan_account
 			elif repayment.demand_type == "Penalty":
 				against_account = account_details.penalty_receivable_account
 
