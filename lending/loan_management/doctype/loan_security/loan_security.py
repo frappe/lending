@@ -4,6 +4,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
 
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
@@ -15,7 +16,9 @@ class LoanSecurity(Document):
 		self.update_available_security_value()
 
 	def update_available_security_value(self):
-		self.available_security_value = self.original_security_value - self.utilized_security_value
+		self.available_security_value = flt(self.original_security_value) - flt(
+			self.utilized_security_value
+		)
 
 
 @frappe.whitelist()
