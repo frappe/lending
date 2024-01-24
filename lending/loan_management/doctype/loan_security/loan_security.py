@@ -11,8 +11,11 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 
 
 class LoanSecurity(Document):
-	def before_insert(self):
-		self.available_security_value = self.original_security_value
+	def validate(self):
+		self.update_available_security_value()
+
+	def update_available_security_value(self):
+		self.available_security_value = self.original_security_value - self.utilized_security_value
 
 
 @frappe.whitelist()
