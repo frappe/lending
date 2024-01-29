@@ -80,10 +80,9 @@ class LoanSecurityRelease(Document):
 		for security in self.securities:
 			pledged_qty = pledge_qty_map.get(security.loan_security, 0)
 			if security.qty > pledged_qty:
-				msg = _("Row {0}: {1} {2} of {3} is pledged against Loan {4}.").format(
+				msg = _("Row {0}: {1} of {2} is pledged against Loan {3}.").format(
 					security.idx,
 					pledged_qty,
-					security.uom,
 					frappe.bold(security.loan_security),
 					frappe.bold(self.loan),
 				)
