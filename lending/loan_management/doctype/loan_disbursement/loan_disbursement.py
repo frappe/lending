@@ -22,6 +22,9 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
+from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
+	create_loan_limit_change_log,
+)
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	get_pending_principal_amount,
 )
@@ -117,7 +120,7 @@ class LoanDisbursement(AccountsController):
 
 		update_loan_securities_values(self.against_loan, self.disbursed_amount, self.doctype)
 		self.set_status_of_loan_securities()
-
+		self.create_loan_limit_change_log()
 		self.withheld_security_deposit()
 		self.make_gl_entries()
 
@@ -273,6 +276,16 @@ class LoanDisbursement(AccountsController):
 			limit_details.available_limit_amount
 		):
 			frappe.throw(_("Disbursement amount cannot be greater than available limit amount"))
+
+	def create_loan_limit_change_log(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			create_loan_limit_change_log(
+				loan=self.against_loan,
+				event="Disbursement",
+				change_date=self.disbursement_date,
+				value_type="Utilized Limit Amount",
+				value_change=self.disbursed_amount,
+			)
 
 	def set_status_of_loan_securities(self, cancel=0):
 		if not frappe.db.get_value("Loan", self.against_loan, "is_secured_loan"):

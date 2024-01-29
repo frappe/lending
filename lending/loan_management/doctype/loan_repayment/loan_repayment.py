@@ -12,14 +12,12 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan.loan import update_all_linked_loan_customer_npa_status
+from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
+	create_loan_limit_change_log,
+)
 from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
 	update_loan_securities_values,
 )
-
-# from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-# 	get_last_accrual_date,
-# 	get_per_day_interest,
-# )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
@@ -55,8 +53,17 @@ class LoanRepayment(AccountsController):
 			self.make_credit_note()
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
-
+		self.create_loan_limit_change_log()
 		self.make_gl_entries()
+
+	def create_loan_limit_change_log(self):
+		create_loan_limit_change_log(
+			loan=self.against_loan,
+			event="Repayment",
+			change_date=self.posting_date,
+			value_type="Available Limit Amount",
+			value_change=self.principal_amount_paid,
+		)
 
 	def on_cancel(self):
 		self.check_future_accruals()

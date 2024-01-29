@@ -23,6 +23,9 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
+	create_loan_limit_change_log,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -105,6 +108,7 @@ class Loan(AccountsController):
 		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
+		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
 
 	def on_cancel(self):
 		self.unlink_loan_security_assignment()
@@ -129,6 +133,22 @@ class Loan(AccountsController):
 			create_loan_feeze_log(self.name, self.freeze_date, self.freeze_reason)
 			reverse_demands(self.name, self.freeze_date)
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
+
+		self.create_loan_limit_change_log("Limit Renewal", nowdate())
+
+	def create_loan_limit_change_log(self, event, date):
+		doc_before_save = self.get_doc_before_save()
+
+		if self.repayment_schedule_type == "Line of Credit":
+			create_loan_limit_change_log(
+				loan=self.name,
+				event=event,
+				change_date=date,
+				value_type="Maximum Limit Amount",
+				value_change=self.maximum_limit_amount
+				if event == "Loan Booking"
+				else self.maximum_limit_amount - doc_before_save.maximum_limit_amount,
+			)
 
 	def before_update_after_submit(self):
 		self.update_available_limit_amount()

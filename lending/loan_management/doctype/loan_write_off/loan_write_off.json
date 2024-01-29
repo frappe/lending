@@ -9,6 +9,7 @@
   "loan",
   "applicant_type",
   "applicant",
+  "loan_product",
   "column_break_3",
   "company",
   "posting_date",
@@ -89,8 +90,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Write Off Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "write_off_amount",
@@ -111,15 +111,24 @@
    "options": "Loan Write Off",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fetch_from": "loan.loan_product",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Loan Product",
+   "options": "Loan Product"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-19 18:11:27.759862",
+ "modified": "2024-01-25 15:00:25.725095",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Write Off",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -155,5 +164,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

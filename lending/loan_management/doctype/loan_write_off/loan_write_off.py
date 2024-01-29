@@ -24,6 +24,11 @@ class LoanWriteOff(AccountsController):
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
+		if not self.write_off_account:
+			self.write_off_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "write_off_account"
+			)
+
 	def validate_write_off_amount(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
