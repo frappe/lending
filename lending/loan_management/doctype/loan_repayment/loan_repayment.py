@@ -28,6 +28,10 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 
 class LoanRepayment(AccountsController):
+	def before_validate(self):
+		if not self.payment_account and self.bank_account:
+			self.payment_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
 	def validate(self):
 		amounts = calculate_amounts(self.against_loan, self.posting_date)
 		self.set_missing_values(amounts)
