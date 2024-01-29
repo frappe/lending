@@ -99,6 +99,7 @@ class LoanRepaymentSchedule(Document):
 					principal_amount = 0
 					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
+					interest_amount = 0
 				elif (
 					self.moratorium_type == "EMI"
 					and self.treatment_of_interest == "Add to first repayment"
@@ -109,7 +110,7 @@ class LoanRepaymentSchedule(Document):
 						principal_amount = total_payment - interest_amount
 						balance_amount = self.loan_amount - principal_amount
 						moratorium_interest = 0
-				if (
+				elif (
 					self.moratorium_type == "EMI"
 					and self.treatment_of_interest == "Capitalize"
 					and moratorium_interest

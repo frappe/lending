@@ -258,7 +258,7 @@
    "label": "Repayment Start Date"
   },
   {
-   "depends_on": "eval:doc.is_term_loan && doc.repayment_frequency != \"One Time\"",
+   "depends_on": "eval:doc.is_term_loan && doc.repayment_frequency != \"One Time\" && doc.repayment_schedule_type == \"Line of Credit\"",
    "fieldname": "tenure",
    "fieldtype": "Int",
    "label": "Tenure",
@@ -297,7 +297,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-13 13:03:20.374235",
+ "modified": "2024-01-29 18:31:36.297386",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

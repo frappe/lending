@@ -21,6 +21,7 @@
   "clearance_date",
   "rate_of_interest",
   "days_past_due",
+  "mode_of_payment",
   "is_term_loan",
   "is_npa",
   "manual_npa",
@@ -56,7 +57,8 @@
   "payment_account",
   "penalty_income_account",
   "column_break_36",
-  "loan_account"
+  "loan_account",
+  "bank_account"
  ],
  "fields": [
   {
@@ -278,8 +280,7 @@
    "label": "Accounting Details"
   },
   {
-   "fetch_from": "against_loan.payment_account",
-   "fetch_if_empty": 1,
+   "fetch_from": ".payment_account",
    "fieldname": "payment_account",
    "fieldtype": "Link",
    "label": "Repayment Account",
@@ -394,12 +395,24 @@
    "fieldname": "total_charges_paid",
    "fieldtype": "Currency",
    "label": "Total Charges Paid"
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode Of Payment",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-11 20:00:41.004851",
+ "modified": "2024-01-29 19:04:34.867828",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

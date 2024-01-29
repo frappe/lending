@@ -157,7 +157,7 @@ def make_loan_demand_for_term_loans(
 			process_loan_demand=process_loan_demand,
 		)
 
-	update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+		update_installment_counts(loan_repayment_schedule_map.get(row.parent))
 
 
 def create_loan_demand(

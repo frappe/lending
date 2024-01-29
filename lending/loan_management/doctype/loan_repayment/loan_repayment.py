@@ -29,8 +29,7 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 class LoanRepayment(AccountsController):
 	def before_validate(self):
-		if not self.payment_account and self.bank_account:
-			self.payment_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+		self.set_repayment_account()
 
 	def validate(self):
 		amounts = calculate_amounts(self.against_loan, self.posting_date)
@@ -59,6 +58,20 @@ class LoanRepayment(AccountsController):
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
+
+	def set_repayment_account(self):
+		if not self.payment_account and self.mode_of_payment:
+			self.payment_account = frappe.db.get_value(
+				"Mode of Payment Account",
+				{"parent": self.mode_of_payment, "company": self.company},
+				"default_account",
+			)
+
+		if not self.payment_account and self.bank_account:
+			self.payment_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
+		if not self.payment_account:
+			self.payment_account = frappe.db.get_value("Loan Product", self.loan_product, "payment_account")
 
 	def create_loan_limit_change_log(self):
 		create_loan_limit_change_log(
