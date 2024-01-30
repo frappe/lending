@@ -25,6 +25,14 @@ def get_data():
 					"Loan Freeze Log",
 				]
 			},
-			{"items": ["Loan Security Release", "Days Past Due Log", "Journal Entry", "Sales Invoice"]},
+			{
+				"items": [
+					"Loan Security Release",
+					"Days Past Due Log",
+					"Journal Entry",
+					"Sales Invoice",
+					"Loan Limit Change Log",
+				]
+			},
 		],
 	}
