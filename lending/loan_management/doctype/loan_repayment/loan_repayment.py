@@ -552,9 +552,10 @@ class LoanRepayment(AccountsController):
 			"Interest Capitalization": "loan_account",
 			"Charges Capitalization": "loan_account",
 			"Penalty Capitalization": "loan_account",
-			"Principal Adjustment": "security_deposit_account",
+			"Principal Adjustment": "loan_account",
 			"Interest Adjustment": "security_deposit_account",
 			"Interest Carry Forward": "interest_income_account",
+			"Security Deposit Adjustment": "security_deposit_account",
 		}
 
 		if self.repayment_type == "Normal Repayment":
