@@ -431,6 +431,7 @@ def make_loan_disbursement(
 	disbursement_entry.repayment_frequency = repayment_frequency
 	disbursement_entry.disbursed_amount = disbursement_amount
 	disbursement_entry.is_term_loan = is_term_loan
+	disbursement_entry.repayment_schedule_type = loan_doc.repayment_schedule_type
 
 	for charge in loan_doc.get("loan_charges"):
 		disbursement_entry.append(
