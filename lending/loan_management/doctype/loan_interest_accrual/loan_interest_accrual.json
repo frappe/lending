@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_repayment_schedule",
   "rate_of_interest",
   "loan_product",
   "applicant_type",
@@ -203,13 +204,19 @@
    "fieldtype": "Link",
    "label": "Loan Demand",
    "options": "Loan Demand"
+  },
+  {
+   "fieldname": "loan_repayment_schedule",
+   "fieldtype": "Link",
+   "label": "Loan Repayment Schedule",
+   "options": "Loan Repayment Schedule"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-07 23:50:21.887193",
+ "modified": "2024-02-01 16:49:49.271283",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

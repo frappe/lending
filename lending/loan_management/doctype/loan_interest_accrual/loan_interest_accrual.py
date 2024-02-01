@@ -100,27 +100,36 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 	)
 
 	last_accrual_date = get_last_accrual_date(loan.name, posting_date, "Normal Interest")
-
 	if loan.is_term_loan:
 		overlapping_dates = get_overlapping_dates(loan.name, last_accrual_date, posting_date)
-		for date in overlapping_dates:
-			pending_principal_amount = get_principal_amount_for_term_loan(loan, last_accrual_date)
-			payable_interest = get_interest_for_term(
-				loan, pending_principal_amount, last_accrual_date, date
+
+		for schedule in overlapping_dates:
+			last_accrual_date_for_schedule = (
+				get_last_accrual_date(
+					loan.name, posting_date, "Normal Interest", loan_repayment_schedule=schedule.parent
+				)
+				or last_accrual_date
 			)
+			pending_principal_amount = get_principal_amount_for_term_loan(
+				schedule.parent, schedule.payment_date
+			)
+			payable_interest = get_interest_for_term(
+				loan, pending_principal_amount, last_accrual_date_for_schedule, schedule.payment_date
+			)
+
 			if payable_interest > 0:
 				make_loan_interest_accrual_entry(
 					loan.name,
 					pending_principal_amount,
 					payable_interest,
 					process_loan_interest,
-					last_accrual_date,
-					date,
+					last_accrual_date_for_schedule,
+					schedule.payment_date,
 					accrual_type,
 					"Normal Interest",
 					loan.rate_of_interest,
+					loan_repayment_schedule=schedule.parent,
 				)
-			last_accrual_date = add_days(date, 1)
 	else:
 		no_of_days = date_diff(posting_date or nowdate(), last_accrual_date)
 		if no_of_days <= 0:
@@ -151,7 +160,7 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 
 
 def get_interest_for_term(loan, pending_principal_amount, from_date, to_date):
-	no_of_days = date_diff(to_date, from_date)
+	no_of_days = date_diff(to_date, from_date) + 1
 	payable_interest = get_interest_amount(
 		no_of_days,
 		principal_amount=pending_principal_amount,
@@ -174,6 +183,7 @@ def make_loan_interest_accrual_entry(
 	interest_type,
 	rate_of_interest,
 	loan_demand=None,
+	loan_repayment_schedule=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -188,36 +198,39 @@ def make_loan_interest_accrual_entry(
 	loan_interest_accrual.interest_type = interest_type
 	loan_interest_accrual.rate_of_interest = rate_of_interest
 	loan_interest_accrual.loan_demand = loan_demand
+	loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
 
 	loan_interest_accrual.save()
 	loan_interest_accrual.submit()
 
 
 def get_overlapping_dates(loan, last_accrual_date, posting_date):
-	loan_repayment_schedules = frappe.db.get_all(
-		"Loan Repayment Schedule", filters={"loan": loan, "status": "Active"}, pluck="name"
-	)
-	overlapping_dates = []
-
-	if loan_repayment_schedules and last_accrual_date:
-		for schedule in loan_repayment_schedules:
-			overlapping_dates = frappe.db.get_all(
-				"Repayment Schedule",
-				filters={"parent": schedule, "payment_date": ("between", [last_accrual_date, posting_date])},
-				pluck="payment_date",
-				order_by="payment_date",
-			)
-
-	overlapping_dates.append(posting_date)
-
-	return overlapping_dates
-
-
-def get_principal_amount_for_term_loan(loan, date):
-	repayment_schedule = frappe.db.get_value(
-		"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
+	schedules = frappe.db.get_all(
+		"Loan Repayment Schedule",
+		filters={"loan": loan, "status": "Active", "posting_date": ("<", posting_date)},
+		pluck="name",
 	)
 
+	schedule_dates = (
+		frappe.db.get_all(
+			"Repayment Schedule",
+			filters={
+				"parent": ("in", schedules),
+				"payment_date": ("between", [last_accrual_date, posting_date]),
+			},
+			fields=["payment_date", "parent"],
+			order_by="payment_date",
+		)
+		or []
+	)
+
+	for schedule in schedules:
+		schedule_dates.append(frappe._dict({"payment_date": posting_date, "parent": schedule}))
+
+	return schedule_dates
+
+
+def get_principal_amount_for_term_loan(repayment_schedule, date):
 	principal_amount = frappe.db.get_value(
 		"Repayment Schedule",
 		{"parent": repayment_schedule, "payment_date": ("<", date)},
@@ -226,7 +239,9 @@ def get_principal_amount_for_term_loan(loan, date):
 	)
 
 	if not principal_amount:
-		principal_amount = loan.disbursed_amount
+		principal_amount = frappe.db.get_value(
+			"Loan Repayment Schedule", repayment_schedule, "current_principal_amount"
+		)
 
 	return principal_amount
 
@@ -344,15 +359,24 @@ def make_accrual_interest_entry_for_loans(
 		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
 
 
-def get_last_accrual_date(loan, posting_date, interest_type, demand=None):
+def get_last_accrual_date(
+	loan, posting_date, interest_type, demand=None, loan_repayment_schedule=None
+):
 	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
 
 	if demand:
 		filters["loan_demand"] = demand
 
+	if loan_repayment_schedule:
+		filters["loan_repayment_schedule"] = loan_repayment_schedule
+
 	last_interest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual", filters, "MAX(posting_date)"
 	)
+
+	if loan_repayment_schedule:
+		return add_days(last_interest_accrual_date, 1)
+
 	last_disbursement_date = get_last_disbursement_date(loan, posting_date)
 
 	if interest_type == "Penal Interest":
@@ -372,8 +396,7 @@ def get_last_accrual_date(loan, posting_date, interest_type, demand=None):
 			{"loan": loan, "docstatus": 1, "status": "Active"},
 			"moratorium_end_date",
 		)
-		print("moratorium_end_date", moratorium_end_date)
-		print("last_disbursement_date", last_disbursement_date)
+
 		if moratorium_end_date and getdate(moratorium_end_date) > getdate(last_disbursement_date):
 			last_interest_accrual_date = add_days(moratorium_end_date, 1)
 		else:
@@ -383,10 +406,17 @@ def get_last_accrual_date(loan, posting_date, interest_type, demand=None):
 
 
 def get_last_disbursement_date(loan, posting_date):
+	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
+
+	if schedule_type == "Line of Credit":
+		field = "MIN(posting_date)"
+	else:
+		field = "MAX(disbursement_date)"
+
 	last_disbursement_date = frappe.db.get_value(
 		"Loan Disbursement",
 		{"docstatus": 1, "against_loan": loan, "posting_date": ("<", posting_date)},
-		"MAX(posting_date)",
+		field,
 	)
 
 	return last_disbursement_date
