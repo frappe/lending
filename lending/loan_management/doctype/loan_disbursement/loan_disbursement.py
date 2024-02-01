@@ -46,6 +46,7 @@ class LoanDisbursement(AccountsController):
 		if self.repayment_schedule_type == "Line of Credit":
 			self.set_cyclic_date()
 
+		self.validate_repayment_start_date()
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
 
@@ -246,6 +247,10 @@ class LoanDisbursement(AccountsController):
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
 			sd.cancel()
 			sd.delete()
+
+	def validate_repayment_start_date(self):
+		if getdate(self.repayment_start_date) < getdate(self.disbursement_date):
+			frappe.throw(_("Repayment Start Date cannot be before Disbursement Date"))
 
 	def validate_disbursal_amount(self):
 		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)

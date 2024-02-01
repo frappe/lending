@@ -33,7 +33,6 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 
 class Loan(AccountsController):
 	def validate(self):
-		print("ininini validate")
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
