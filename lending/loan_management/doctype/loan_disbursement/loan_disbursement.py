@@ -308,9 +308,8 @@ class LoanDisbursement(AccountsController):
 			UPDATE `tabLoan Security` ls
 			JOIN `tabPledge` p ON p.loan_security=ls.name
 			JOIN `tabLoan Security Assignment` lsa ON lsa.name=p.parent
-			JOIN `tabLoan Allocation Detail` lsald ON lsald.parent=lsa.name
 			SET ls.status=%s
-			WHERE lsald.loan=%s AND ls.status=%s
+			WHERE lsa.loan=%s AND ls.status=%s
 		""",
 			(new_status, self.against_loan, old_status),
 		)
@@ -696,15 +695,12 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 def get_maximum_amount_as_per_pledged_security(loan):
 	lsa = frappe.qb.DocType("Loan Security Assignment")
-	lsald = frappe.qb.DocType("Loan Allocation Detail")
 
 	maximum_loan_value = (
 		frappe.qb.from_(lsa)
-		.inner_join(lsald)
-		.on(lsald.parent == lsa.name)
 		.select(Sum(lsa.maximum_loan_value))
 		.where(lsa.status == "Pledged")
-		.where(lsald.loan == loan)
+		.where(lsa.loan == loan)
 	).run()
 
 	return maximum_loan_value[0][0] if maximum_loan_value else 0

@@ -22,22 +22,19 @@ class LoanSecurityAssignment(Document):
 		self.set_loan_and_security_values()
 
 	def on_submit(self):
-		if self.get("allocated_loans"):
+		if self.loan:
 			self.db_set("status", "Pledged")
 			self.db_set("pledge_time", now_datetime())
-			for d in self.get("allocated_loans"):
-				update_shortfall_status(d.loan, self.total_security_value)
-				update_loan(d.loan, self.maximum_loan_value)
+			update_shortfall_status(self.loan, self.total_security_value)
+			update_loan(self.loan, self.maximum_loan_value)
 
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
 
 	def on_cancel(self):
-		if self.get("allocated_loans"):
-			self.db_set("status", "Cancelled")
-			self.db_set("pledge_time", None)
-			for d in self.get("allocated_loans"):
-				update_loan(d.loan, self.maximum_loan_value, cancel=1)
+		self.db_set("status", "Cancelled")
+		self.db_set("pledge_time", None)
+		update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
 	def validate_securities(self):
 		security_list = []
@@ -50,27 +47,13 @@ class LoanSecurityAssignment(Document):
 				)
 
 	def validate_loan_security_type(self):
-		existing_lsa = ""
-
-		for d in self.get("allocated_loans"):
-			if d.loan:
-				lsa = frappe.qb.DocType("Loan Security Assignment")
-				lsald = frappe.qb.DocType("Loan Allocation Detail")
-
-				existing_lsa = (
-					frappe.qb.from_(lsa)
-					.inner_join(lsald)
-					.on(lsald.parent == lsa.name)
-					.select(lsa.name)
-					.where(lsa.docstatus == 1)
-					.where(lsald.loan == d.loan)
-				).run()
-
-				break
+		existing_lsa = frappe.db.get_value(
+			"Loan Security Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
+		)
 
 		if existing_lsa:
 			loan_security_type = frappe.db.get_value(
-				"Pledge", {"parent": existing_lsa[0][0]}, ["loan_security_type"]
+				"Pledge", {"parent": existing_lsa}, ["loan_security_type"]
 			)
 		else:
 			loan_security_type = self.securities[0].loan_security_type
@@ -113,14 +96,12 @@ class LoanSecurityAssignment(Document):
 		self.maximum_loan_value = maximum_loan_value
 
 	def check_loan_securities_capability_to_book_additional_loans(self):
-		total_security_value_needed = 0
-		for d in self.get("allocated_loans"):
-			loan_amount, status = frappe.db.get_value("Loan", d.loan, ["loan_amount", "status"])
+		loan_amount, status = frappe.db.get_value("Loan", self.loan, ["loan_amount", "status"])
 
-			if status != "Sanctioned":
-				continue
+		if status != "Sanctioned":
+			return
 
-			total_security_value_needed += loan_amount
+		total_security_value_needed = loan_amount
 
 		total_available_security_value = 0
 		for d in self.get("securities"):
@@ -135,8 +116,7 @@ class LoanSecurityAssignment(Document):
 				)
 			)
 
-		for d in self.get("allocated_loans"):
-			update_loan(d.loan, total_available_security_value)
+		update_loan(self.loan, total_available_security_value)
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):
@@ -174,13 +154,10 @@ def update_loan_securities_values(
 
 	ls = frappe.qb.DocType("Loan Security")
 	lsa = frappe.qb.DocType("Loan Security Assignment")
-	lsald = frappe.qb.DocType("Loan Allocation Detail")
 	pledge = frappe.qb.DocType("Pledge")
 
 	loan_securities = (
 		frappe.qb.from_(lsa)
-		.inner_join(lsald)
-		.on(lsald.parent == lsa.name)
 		.inner_join(pledge)
 		.on(pledge.parent == lsa.name)
 		.inner_join(ls)
@@ -192,7 +169,7 @@ def update_loan_securities_values(
 			ls.original_security_value,
 		)
 		.where(lsa.status == "Pledged")
-		.where(lsald.loan == loan)
+		.where(lsa.loan == loan)
 	).run(as_dict=True)
 
 	for loan_security in loan_securities:

@@ -104,13 +104,13 @@ class Loan(AccountsController):
 				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
 	def on_submit(self):
-		self.link_loan_security_assignment()
+		# self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
 
 	def on_cancel(self):
-		self.unlink_loan_security_assignment()
+		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 

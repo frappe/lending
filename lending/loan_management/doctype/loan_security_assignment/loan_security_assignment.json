@@ -7,10 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "applicant_details",
+  "loan",
+  "loan_application",
   "applicant_type",
   "applicant",
-  "security_owner_type",
-  "security_owner",
   "column_break_3",
   "company",
   "pledge_time",
@@ -18,8 +18,6 @@
   "status",
   "loan_security_details_section",
   "securities",
-  "loan_details_section",
-  "allocated_loans",
   "section_break_10",
   "total_security_value",
   "column_break_11",
@@ -41,7 +39,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": ".applicant",
+   "fetch_from": "loan.custom_individual_applicant",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -72,11 +70,6 @@
    "label": "Maximum Loan Value",
    "options": "Company:company:default_currency",
    "read_only": 1
-  },
-  {
-   "fieldname": "loan_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Details"
   },
   {
    "allow_on_submit": 1,
@@ -120,7 +113,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": ".",
+   "fetch_from": "loan.applicant_type",
    "fieldname": "applicant_type",
    "fieldtype": "Select",
    "label": "Applicant Type",
@@ -150,30 +143,9 @@
    "label": "Description"
   },
   {
-   "allow_on_submit": 1,
-   "fieldname": "allocated_loans",
-   "fieldtype": "Table",
-   "label": "Allocated Loans",
-   "options": "Loan Allocation Detail"
-  },
-  {
    "fieldname": "applicant_details",
    "fieldtype": "Section Break",
    "label": "Applicant Details"
-  },
-  {
-   "fieldname": "security_owner_type",
-   "fieldtype": "Select",
-   "label": "Security Owner Type",
-   "options": "Employee\nMember\nCustomer\nCompany",
-   "reqd": 1
-  },
-  {
-   "fieldname": "security_owner",
-   "fieldtype": "Dynamic Link",
-   "label": "Security Owner",
-   "options": "security_owner_type",
-   "reqd": 1
   },
   {
    "allow_on_submit": 1,
@@ -181,12 +153,25 @@
    "fieldtype": "Datetime",
    "label": "Release Time",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "label": "Loan",
+   "options": "Loan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_application",
+   "fieldtype": "Link",
+   "label": "Loan Application",
+   "options": "Loan Application"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-22 17:04:06.664858",
+ "modified": "2024-02-03 19:06:42.573725",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",
