@@ -281,7 +281,8 @@ class LoanRepayment(AccountsController):
 			)
 
 	def allocate_amount_against_demands(self, amounts):
-		# precision = cint(frappe.db.get_default("currency_precision")) or 2
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		self.set("repayment_details", [])
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
@@ -304,20 +305,19 @@ class LoanRepayment(AccountsController):
 		elif self.shortfall_amount:
 			self.principal_amount_paid = self.amount_paid
 
-		# interest_paid -= self.principal_amount_paid
 		amount_paid = self.apply_allocation_order(
 			allocation_order, amount_paid, amounts.get("unpaid_demands")
 		)
 
 		for payment in self.repayment_details:
 			if payment.demand_type == "Interest":
-				self.total_interest_paid += payment.paid_amount
+				self.total_interest_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Principal":
-				self.principal_amount_paid += payment.paid_amount
+				self.principal_amount_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Penalty":
-				self.total_penalty_paid += payment.paid_amount
+				self.total_penalty_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Charges":
-				self.total_charges_paid += payment.paid_amount
+				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if amount_paid > 0:
 			self.principal_amount_paid += amount_paid
