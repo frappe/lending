@@ -328,30 +328,30 @@ class LoanRepayment(AccountsController):
 		allocation_order_doc = frappe.get_doc("Loan Demand Offset Order", allocation_order)
 		for d in allocation_order_doc.get("components"):
 			if d.demand_type == "EMI (Principal + Interest)" and pending_amount > 0:
-				pending_amount = self.adjust_component(
-					pending_amount, "EMI", ["Interest", "Principal"], demands
-				)
+				pending_amount = self.adjust_component(pending_amount, "EMI", demands)
 			if d.demand_type == "Principal" and pending_amount > 0:
-				pending_amount = self.adjust_component(pending_amount, "Normal", ["Principal"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
 			if d.demand_type == "Interest" and pending_amount > 0:
-				pending_amount = self.adjust_component(pending_amount, "Normal", ["Interest"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
 			if d.demand_type == "Penalty" and pending_amount > 0:
-				pending_amount = self.adjust_component(pending_amount, "Penalty", ["Penalty"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Penalty", demands)
 			if d.demand_type == "Charges" and pending_amount > 0:
-				pending_amount = self.adjust_component(pending_amount, "Normal", ["Charges"], demands)
+				pending_amount = self.adjust_component(pending_amount, "Charges", demands)
 
 		return pending_amount
 
-	def adjust_component(self, amount_to_adjust, demand_type, demand_subtypes, demands):
+	def adjust_component(self, amount_to_adjust, demand_type, demands):
 		for demand in demands:
-			if demand.demand_type == demand_type and demand.demand_subtype in demand_subtypes:
+			if demand.demand_type == demand_type:
 				if amount_to_adjust >= demand.demand_amount:
 					self.append(
 						"repayment_details",
 						{
 							"loan_demand": demand.name,
 							"paid_amount": demand.demand_amount,
-							"demand_type": demand.demand_subtype,
+							"demand_type": demand.demand_type,
+							"demand_subtype": demand.demand_subtype,
+							"sales_invoice": demand.sales_invoice,
 						},
 					)
 					amount_to_adjust -= flt(demand.demand_amount)
@@ -361,7 +361,9 @@ class LoanRepayment(AccountsController):
 						{
 							"loan_demand": demand.name,
 							"paid_amount": amount_to_adjust,
-							"demand_type": demand.demand_subtype,
+							"demand_type": demand.demand_type,
+							"demand_subtype": demand.demand_subtype,
+							"demand_amount": demand.demand_amount,
 						},
 					)
 					amount_to_adjust = 0
@@ -437,13 +439,15 @@ class LoanRepayment(AccountsController):
 			)
 
 		for repayment in self.get("repayment_details"):
-			if repayment.demand_type == "Principal":
+			if repayment.demand_subtype == "Principal":
 				continue
 
-			if repayment.demand_type == "Interest":
+			if repayment.demand_subtype == "Interest":
 				against_account = account_details.interest_receivable_account
-			elif repayment.demand_type == "Penalty":
+			elif repayment.demand_subtype == "Penalty":
 				against_account = account_details.penalty_receivable_account
+			elif repayment.demand_type == "Charges":
+				against_account = account_details.charges_receivable_account
 
 			gle_map.append(
 				self.get_gl_dict(
@@ -472,8 +476,8 @@ class LoanRepayment(AccountsController):
 						"against": payment_account,
 						"credit": repayment.paid_amount,
 						"credit_in_account_currency": repayment.paid_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
+						"against_voucher_type": "Sales Invoice" if repayment.sales_invoice else "Loan",
+						"against_voucher": repayment.sales_invoice or self.against_loan,
 						"remarks": _(remarks),
 						"cost_center": self.cost_center,
 						"posting_date": getdate(self.posting_date),
@@ -636,6 +640,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 		.select(
 			loan_demand.name,
 			loan_demand.loan,
+			loan_demand.demand_date,
 			loan_demand.sales_invoice,
 			loan_demand.loan_repayment_schedule,
 			loan_demand.loan_disbursement,

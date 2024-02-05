@@ -580,7 +580,9 @@ def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, co
 			"doctype": "Sales Invoice",
 			"loan": loan,
 			"loan_disbursement": loan_disbursement,
+			"set_posting_time": 1,
 			"posting_date": disbursement_date,
+			"due_date": disbursement_date,
 			"company": company,
 			"conversion_rate": 1,
 		}
@@ -607,6 +609,7 @@ def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, co
 		)
 
 	si.debit_to = receivable_account
+	si.ignore_default_payment_terms_template = 1
 
 	si.save()
 	si.submit()

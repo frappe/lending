@@ -7,7 +7,9 @@
  "field_order": [
   "loan_demand",
   "paid_amount",
-  "demand_type"
+  "demand_type",
+  "demand_subtype",
+  "sales_invoice"
  ],
  "fields": [
   {
@@ -29,12 +31,24 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Demand Type"
+  },
+  {
+   "fetch_from": "loan_demand.sales_invoice",
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "demand_subtype",
+   "fieldtype": "Data",
+   "label": "Demand Subtype"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-12-13 22:28:26.927893",
+ "modified": "2024-02-05 17:32:20.380304",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Detail",
