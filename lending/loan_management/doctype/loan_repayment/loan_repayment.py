@@ -371,6 +371,7 @@ class LoanRepayment(AccountsController):
 		return amount_to_adjust
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		gle_map = []
 		remarks = self.get_remarks()
 		payment_account = self.get_payment_account()
@@ -399,7 +400,7 @@ class LoanRepayment(AccountsController):
 			as_dict=1,
 		)
 
-		if self.principal_amount_paid:
+		if flt(self.principal_amount_paid, precision) > 0:
 			against_account = self.loan_account
 
 			gle_map.append(
