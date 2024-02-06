@@ -488,7 +488,11 @@ def get_interest_amount(
 
 
 def reverse_loan_interest_accruals(loan, posting_date):
-	for accrual in frappe.get_all(
+	accruals = frappe.get_all(
 		"Loan Interest Accrual", {"loan": loan, "posting_date": (">", posting_date)}
-	):
+	)
+
+	for accrual in accruals:
 		frappe.get_doc("Loan Interest Accrual", accrual.name).cancel()
+
+	return accruals

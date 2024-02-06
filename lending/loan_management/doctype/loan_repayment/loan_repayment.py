@@ -39,6 +39,12 @@ class LoanRepayment(AccountsController):
 		self.allocate_amount_against_demands(amounts)
 
 	def on_submit(self):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import reschedule_loan
+
+		# from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import reverse_loan_interest_accruals
+		# from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		# 	process_loan_interest_accrual_for_loans
+		# )
 		# if self.repayment_type == "Normal Repayment":
 		# 	create_process_loan_classification(
 		# 		posting_date=self.posting_date,
@@ -52,12 +58,16 @@ class LoanRepayment(AccountsController):
 		self.update_limits()
 		update_installment_counts(self.against_loan)
 
+		# reverse_loan_interest_accruals(self.against_loan, self.posting_date)
+
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
+		if self.amount_paid > self.payable_amount:
+			reschedule_loan(self.against_loan, self.posting_date)
 
 	def set_repayment_account(self):
 		if not self.payment_account and self.mode_of_payment:
@@ -206,7 +216,7 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be zero"))
 
 	def update_paid_amounts(self):
-		if self.repayment_type == "Normal Repayment":
+		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
 			loan = frappe.qb.DocType("Loan")
 			query = (
 				frappe.qb.update(loan)
@@ -320,6 +330,28 @@ class LoanRepayment(AccountsController):
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if amount_paid > 0:
+			monthly_repayment_amount = frappe.db.get_value(
+				"Loan Repayment Schedule",
+				{"loan": self.against_loan, "status": "Active"},
+				"monthly_repayment_amount",
+			)
+
+			if self.get("repayment_type") == "Normal Repayment":
+				frappe.throw(_("Amount paid cannot be greater than payable amount for normal repayment"))
+			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") != "Pre Payment":
+				frappe.throw(_("Only pre payment type allowed for this scenario"))
+
+			last_demand_date = get_last_demand_date(self.payable_amount, self.posting_date)
+			accrued_interest = get_accrued_interest(self.against_loan, last_demand_date)
+
+			if accrued_interest > 0:
+				if accrued_interest > amount_paid:
+					self.total_interest_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_interest_paid += accrued_interest
+					amount_paid -= accrued_interest
+
 			self.principal_amount_paid += amount_paid
 			amount_paid = 0
 
@@ -557,13 +589,14 @@ class LoanRepayment(AccountsController):
 			"Interest Capitalization": "loan_account",
 			"Charges Capitalization": "loan_account",
 			"Penalty Capitalization": "loan_account",
+			"Write Off Recovery": "write_off_recovery_account",
 			"Principal Adjustment": "loan_account",
 			"Interest Adjustment": "security_deposit_account",
 			"Interest Carry Forward": "interest_income_account",
 			"Security Deposit Adjustment": "security_deposit_account",
 		}
 
-		if self.repayment_type == "Normal Repayment":
+		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
 			if hasattr(self, "repay_from_salary") and self.repay_from_salary:
 				payment_account = self.payroll_payable_account
 			else:
@@ -830,3 +863,28 @@ def update_installment_counts(against_loan):
 				"total_installments_overdue": details["total_installments_overdue"],
 			},
 		)
+
+
+def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
+	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+		get_last_disbursement_date,
+	)
+
+	last_demand_date = frappe.db.get_value(
+		"Loan Demand", {"loan": loan, "docstatus": 1, "demand_subtype": "Interest"}, "MAX(demand_date)"
+	)
+
+	if not last_demand_date:
+		last_demand_date = get_last_disbursement_date(loan, posting_date)
+
+	return last_demand_date
+
+
+def get_accrued_interest(loan, last_demand_date, interest_type="Normal Interest"):
+	accrued_interest = frappe.db.get_value(
+		"Loan Interest Accrual",
+		{"loan": loan, "posting_date": (">=", last_demand_date), "interest_type": "Interest Type"},
+		"SUM(interest_amount)",
+	)
+
+	return flt(accrued_interest)

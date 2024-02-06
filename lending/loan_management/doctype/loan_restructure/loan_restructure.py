@@ -586,3 +586,31 @@ def create_loan_repayment(
 	repayment.loan_restructure = restructure_name
 	repayment.save()
 	repayment.submit()
+
+
+def reschedule_loan(loan, posting_date):
+	pending_tenure, repayment_start_date = get_pending_tenure_and_start_date(loan, posting_date)
+
+	loan_restructure = frappe.new_doc("Loan Restructure")
+	loan_restructure.loan = loan
+	loan_restructure.restructure_type = "Pre Payment"
+	loan_restructure.status = "Approved"
+	loan_restructure.restructure_date = posting_date
+	loan_restructure.repayment_start_date = repayment_start_date
+	loan_restructure.new_repayment_method = "Repay Over Number of Periods"
+	loan_restructure.new_repayment_period_in_months = pending_tenure
+
+	loan_restructure.save()
+	loan_restructure.submit()
+
+
+def get_pending_tenure_and_start_date(loan, posting_date):
+	repayment_schedule = frappe.db.get_value(
+		"Loan Repayment Schedule", {"loan": loan, "status": "Active", "docstatus": 1}, "name"
+	)
+
+	schedule_details = frappe.db.get_all(
+		"Repayment Schedule", filters={"parent": repayment_schedule, "payment_date": (">", posting_date)}
+	)
+
+	return len(schedule_details), schedule_details[0].payment_date

@@ -20,7 +20,7 @@ frappe.ui.form.on('Loan Repayment', {
 			};
 		});
 
-		if (frm.doc.against_loan && frm.doc.posting_date && frm.doc.docstatus == 0) {
+		if (frm.doc.against_loan && frm.doc.posting_date && frm.is_new()) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
