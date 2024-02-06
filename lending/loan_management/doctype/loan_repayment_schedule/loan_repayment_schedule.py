@@ -85,6 +85,19 @@ class LoanRepaymentSchedule(Document):
 			self.broken_period_interest_days = 0
 
 		while balance_amount > 0:
+			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
+				if getdate(payment_date) > getdate(self.moratorium_end_date):
+					if (
+						self.moratorium_type == "EMI"
+						and self.treatment_of_interest == "Capitalize"
+						and moratorium_interest
+					):
+						balance_amount = self.loan_amount + moratorium_interest
+						self.monthly_repayment_amount = get_monthly_repayment_amount(
+							balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
+						)
+						moratorium_interest = 0
+
 			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
 				payment_date, balance_amount, additional_days, carry_forward_interest, previous_interest_amount
 			)
@@ -105,20 +118,9 @@ class LoanRepaymentSchedule(Document):
 					and self.treatment_of_interest == "Add to first repayment"
 					and moratorium_interest
 				):
-					if moratorium_interest + interest_amount <= total_payment:
-						interest_amount += moratorium_interest
-						principal_amount = total_payment - interest_amount
-						balance_amount = self.loan_amount - principal_amount
-						moratorium_interest = 0
-				elif (
-					self.moratorium_type == "EMI"
-					and self.treatment_of_interest == "Capitalize"
-					and moratorium_interest
-				):
-					balance_amount = balance_amount + moratorium_interest
-					self.monthly_repayment_amount = get_monthly_repayment_amount(
-						balance_amount, self.rate_of_interest, self.repayment_periods, self.repayment_frequency
-					)
+					principal_amount += moratorium_interest
+					total_payment = principal_amount + interest_amount
+					balance_amount -= moratorium_interest
 					moratorium_interest = 0
 
 			if self.repayment_schedule_type == "Pro-rated calendar months":
