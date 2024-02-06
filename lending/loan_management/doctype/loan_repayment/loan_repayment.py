@@ -310,9 +310,9 @@ class LoanRepayment(AccountsController):
 		)
 
 		for payment in self.repayment_details:
-			if payment.demand_type == "Interest":
+			if payment.demand_subtype == "Interest":
 				self.total_interest_paid += flt(payment.paid_amount, precision)
-			elif payment.demand_type == "Principal":
+			elif payment.demand_subtype == "Principal":
 				self.principal_amount_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Penalty":
 				self.total_penalty_paid += flt(payment.paid_amount, precision)
