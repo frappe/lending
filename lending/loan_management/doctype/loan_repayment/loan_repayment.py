@@ -32,10 +32,12 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
-		amounts = calculate_amounts(self.against_loan, self.posting_date)
+		amounts = calculate_amounts(
+			self.against_loan, self.posting_date, payment_type=self.repayment_type
+		)
 		self.set_missing_values(amounts)
 		self.check_future_entries()
-		self.validate_amount()
+		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
 	def on_submit(self):
@@ -211,9 +213,12 @@ class LoanRepayment(AccountsController):
 		if future_repayment_date:
 			frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
 
-	def validate_amount(self):
+	def validate_amount(self, payable_amount):
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
+
+		if self.repayment_type == "Loan Closure" and flt(self.amount_paid) < flt(payable_amount):
+			frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 	def update_paid_amounts(self):
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
@@ -329,7 +334,7 @@ class LoanRepayment(AccountsController):
 			elif payment.demand_type == "Charges":
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
-		if amount_paid > 0:
+		if flt(amount_paid, precision) > 0:
 			monthly_repayment_amount = frappe.db.get_value(
 				"Loan Repayment Schedule",
 				{"loan": self.against_loan, "status": "Active"},

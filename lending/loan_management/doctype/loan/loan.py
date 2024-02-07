@@ -354,7 +354,7 @@ def get_sanctioned_amount_limit(applicant_type, applicant, company):
 
 
 @frappe.whitelist()
-def request_loan_closure(loan, posting_date=None):
+def request_loan_closure(loan, posting_date=None, auto_close=0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	if not posting_date:
@@ -362,10 +362,7 @@ def request_loan_closure(loan, posting_date=None):
 
 	amounts = calculate_amounts(loan, posting_date)
 	pending_amount = (
-		amounts["pending_principal_amount"]
-		+ amounts["unaccrued_interest"]
-		+ amounts["interest_amount"]
-		+ amounts["penalty_amount"]
+		amounts["pending_principal_amount"] + amounts["interest_amount"] + amounts["penalty_amount"]
 	)
 
 	loan_product = frappe.get_value("Loan", loan, "loan_product")
@@ -378,7 +375,18 @@ def request_loan_closure(loan, posting_date=None):
 	elif pending_amount > 0:
 		frappe.throw(_("Cannot close loan as there is an outstanding of {0}").format(pending_amount))
 
-	frappe.db.set_value("Loan", loan, "status", "Loan Closure Requested")
+	if auto_close:
+		status = "Closed"
+		response = "Loan Closed Successfully"
+	else:
+		status = "Loan Closure Requested"
+		response = "Loan Closure Requested Successfully"
+
+	frappe.db.set_value("Loan", loan, "status", status)
+
+	return {
+		"message": response,
+	}
 
 
 @frappe.whitelist()

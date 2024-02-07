@@ -135,7 +135,7 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 		if no_of_days <= 0:
 			return
 
-		pending_principal_amount = get_pending_principal_amount(loan, posting_date)
+		pending_principal_amount = get_pending_principal_amount(loan)
 
 		payable_interest = get_interest_amount(
 			no_of_days,

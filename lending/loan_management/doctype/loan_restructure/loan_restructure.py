@@ -46,7 +46,7 @@ class LoanRestructure(AccountsController):
 
 	def validate_against_charge_date(self):
 		last_charge_date = frappe.db.get_value("Sales Invoice", {"loan": self.loan}, "max(due_date)")
-		if getdate(self.restructure_date) < getdate(last_charge_date):
+		if last_charge_date and getdate(self.restructure_date) < getdate(last_charge_date):
 			frappe.throw(
 				_("Restructure Date cannot be before last charge date {0}").format(last_charge_date)
 			)
