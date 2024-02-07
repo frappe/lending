@@ -207,7 +207,7 @@ def make_loan_interest_accrual_entry(
 def get_overlapping_dates(loan, last_accrual_date, posting_date):
 	schedules = frappe.db.get_all(
 		"Loan Repayment Schedule",
-		filters={"loan": loan, "status": "Active", "posting_date": ("<", posting_date)},
+		filters={"loan": loan, "docstatus": 1, "status": "Active", "posting_date": ("<", posting_date)},
 		pluck="name",
 	)
 
