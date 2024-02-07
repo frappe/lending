@@ -17,8 +17,8 @@ class LoanInterestAccrual(AccountsController):
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
-		if not self.interest_amount and not self.payable_principal_amount:
-			frappe.throw(_("Interest Amount or Principal Amount is mandatory"))
+		if not self.interest_amount:
+			frappe.throw(_("Interest Amount is mandatory"))
 
 		if not self.last_accrual_date:
 			self.last_accrual_date = get_last_accrual_date(self.loan, self.posting_date, self.interest_type)
@@ -185,23 +185,24 @@ def make_loan_interest_accrual_entry(
 	loan_demand=None,
 	loan_repayment_schedule=None,
 ):
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	if interest_amount:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	loan_interest_accrual = frappe.new_doc("Loan Interest Accrual")
-	loan_interest_accrual.loan = loan
-	loan_interest_accrual.interest_amount = flt(interest_amount, precision)
-	loan_interest_accrual.base_amount = flt(base_amount, precision)
-	loan_interest_accrual.posting_date = posting_date or nowdate()
-	loan_interest_accrual.start_date = start_date
-	loan_interest_accrual.process_loan_interest_accrual = process_loan_interest
-	loan_interest_accrual.accrual_type = accrual_type
-	loan_interest_accrual.interest_type = interest_type
-	loan_interest_accrual.rate_of_interest = rate_of_interest
-	loan_interest_accrual.loan_demand = loan_demand
-	loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
+		loan_interest_accrual = frappe.new_doc("Loan Interest Accrual")
+		loan_interest_accrual.loan = loan
+		loan_interest_accrual.interest_amount = flt(interest_amount, precision)
+		loan_interest_accrual.base_amount = flt(base_amount, precision)
+		loan_interest_accrual.posting_date = posting_date or nowdate()
+		loan_interest_accrual.start_date = start_date
+		loan_interest_accrual.process_loan_interest_accrual = process_loan_interest
+		loan_interest_accrual.accrual_type = accrual_type
+		loan_interest_accrual.interest_type = interest_type
+		loan_interest_accrual.rate_of_interest = rate_of_interest
+		loan_interest_accrual.loan_demand = loan_demand
+		loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
 
-	loan_interest_accrual.save()
-	loan_interest_accrual.submit()
+		loan_interest_accrual.save()
+		loan_interest_accrual.submit()
 
 
 def get_overlapping_dates(loan, last_accrual_date, posting_date):
