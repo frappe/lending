@@ -185,9 +185,8 @@ def make_loan_interest_accrual_entry(
 	loan_demand=None,
 	loan_repayment_schedule=None,
 ):
-	if interest_amount:
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
-
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	if flt(interest_amount, precision) > 0:
 		loan_interest_accrual = frappe.new_doc("Loan Interest Accrual")
 		loan_interest_accrual.loan = loan
 		loan_interest_accrual.interest_amount = flt(interest_amount, precision)

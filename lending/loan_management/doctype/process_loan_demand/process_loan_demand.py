@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import nowdate
+from frappe.utils import getdate, nowdate
 
 from lending.loan_management.doctype.loan_demand.loan_demand import make_loan_demand_for_term_loans
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -27,7 +27,7 @@ class ProcessLoanDemand(Document):
 			"Process Loan Interest Accrual", filters, "MAX(posting_date)"
 		)
 
-		if last_accrual_job_date < self.posting_date:
+		if getdate(last_accrual_job_date) < getdate(self.posting_date):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan_product=self.loan_product, loan=self.loan
 			)
