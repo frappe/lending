@@ -60,8 +60,9 @@ class LoanRestructure(AccountsController):
 		self.make_update_draft_loan_repayment_schedule()
 
 	def set_status(self, status=None):
+		if self.restructure_type == "Pre Payment":
+			self.db_set("status", "Approved")
 		if self.docstatus == 1 and not status:
-			self.status = "Initiated"
 			self.db_set("status", "Initiated")
 		else:
 			self.status = status
@@ -251,13 +252,14 @@ class LoanRestructure(AccountsController):
 			)
 
 	def update_restructure_count(self, cancel=0):
-		increment_count = 1
-		if cancel:
-			increment_count = 0
+		if self.restructure_type == "Normal Restructure":
+			increment_count = 1
+			if cancel:
+				increment_count = 0
 
-		frappe.db.set_value(
-			"Loan", self.loan, "loan_restructure_count", self.current_restructure_count + increment_count
-		)
+			frappe.db.set_value(
+				"Loan", self.loan, "loan_restructure_count", self.current_restructure_count + increment_count
+			)
 
 	def update_repayment_schedule_status(self, status):
 		if status == "Initiated":
@@ -594,7 +596,6 @@ def reschedule_loan(loan, posting_date):
 	loan_restructure = frappe.new_doc("Loan Restructure")
 	loan_restructure.loan = loan
 	loan_restructure.restructure_type = "Pre Payment"
-	loan_restructure.status = "Approved"
 	loan_restructure.restructure_date = posting_date
 	loan_restructure.repayment_start_date = repayment_start_date
 	loan_restructure.new_repayment_method = "Repay Over Number of Periods"

@@ -13,9 +13,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 
 class ProcessLoanDemand(Document):
 	def on_submit(self):
-		filters = {
-			"posting_date": self.posting_date,
-		}
+		filters = {}
 
 		if self.loan_product:
 			filters["loan_product"] = self.loan_product
@@ -27,7 +25,7 @@ class ProcessLoanDemand(Document):
 			"Process Loan Interest Accrual", filters, "MAX(posting_date)"
 		)
 
-		if getdate(last_accrual_job_date) < getdate(self.posting_date):
+		if last_accrual_job_date and getdate(last_accrual_job_date) < getdate(self.posting_date):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan_product=self.loan_product, loan=self.loan
 			)

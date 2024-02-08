@@ -41,9 +41,12 @@ class LoanRepayment(AccountsController):
 		self.allocate_amount_against_demands(amounts)
 
 	def on_submit(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import reschedule_loan
 
-		# from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import reverse_loan_interest_accruals
 		# from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 		# 	process_loan_interest_accrual_for_loans
 		# )
@@ -60,15 +63,15 @@ class LoanRepayment(AccountsController):
 		self.update_limits()
 		update_installment_counts(self.against_loan)
 
-		# reverse_loan_interest_accruals(self.against_loan, self.posting_date)
-
 		if self.repayment_type == "Charges Waiver":
 			self.make_credit_note()
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
-		if self.amount_paid > self.payable_amount:
+
+		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+			reverse_loan_interest_accruals(self.against_loan, self.posting_date)
 			reschedule_loan(self.against_loan, self.posting_date)
 
 	def set_repayment_account(self):
@@ -357,7 +360,8 @@ class LoanRepayment(AccountsController):
 					self.total_interest_paid += accrued_interest
 					amount_paid -= accrued_interest
 
-			self.principal_amount_paid += amount_paid
+			self.principal_amount_paid += flt(amount_paid, precision)
+			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 			amount_paid = 0
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands):
