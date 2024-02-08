@@ -278,7 +278,7 @@ def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest
 				else:
 					from_date = add_days(last_accrual_date, 1)
 
-				no_of_days = date_diff(posting_date, from_date)
+				no_of_days = date_diff(posting_date, from_date) + 1
 
 				penal_interest_amount = demand.demand_amount * penal_interest_rate * no_of_days / 36500
 
