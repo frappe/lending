@@ -94,10 +94,14 @@ class LoanInterestAccrual(AccountsController):
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
 # rate of interest is 13.5 then first loan interest accrual will be on '01-10-2019'
 # which means interest will be accrued for 30 days which should be equal to 11095.89
-def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type):
+def calculate_accrual_amount_for_loans(
+	loan, posting_date, process_loan_interest=None, accrual_type=None, is_future_accrual=0
+):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_pending_principal_amount,
 	)
+
+	total_payable_interest = 0
 
 	last_accrual_date = get_last_accrual_date(loan.name, posting_date, "Normal Interest")
 	if loan.is_term_loan:
@@ -117,7 +121,8 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 				loan, pending_principal_amount, last_accrual_date_for_schedule, schedule.payment_date
 			)
 
-			if payable_interest > 0:
+			total_payable_interest += payable_interest
+			if payable_interest > 0 and not is_future_accrual:
 				make_loan_interest_accrual_entry(
 					loan.name,
 					pending_principal_amount,
@@ -157,6 +162,8 @@ def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest
 				"Normal Interest",
 				loan.rate_of_interest,
 			)
+	if is_future_accrual:
+		return total_payable_interest
 
 
 def get_interest_for_term(loan, pending_principal_amount, from_date, to_date):
@@ -256,7 +263,9 @@ def get_term_loan_payment_date(loan_repayment_schedule, date):
 	return payment_date
 
 
-def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type):
+def calculate_penal_interest_for_loans(
+	loan, posting_date, process_loan_interest=None, accrual_type=None
+):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	demands = get_unpaid_demands(loan.name, posting_date)
@@ -355,8 +364,12 @@ def make_accrual_interest_entry_for_loans(
 	)
 
 	for loan in open_loans:
-		calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type)
-		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+		calculate_penal_interest_for_loans(
+			loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+		)
+		calculate_accrual_amount_for_loans(
+			loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+		)
 
 
 def get_last_accrual_date(

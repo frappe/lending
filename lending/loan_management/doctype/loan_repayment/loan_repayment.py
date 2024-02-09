@@ -687,7 +687,6 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 			loan_demand.sales_invoice,
 			loan_demand.loan_repayment_schedule,
 			loan_demand.loan_disbursement,
-			loan_demand.demand_date,
 			loan_demand.last_repayment_date,
 			loan_demand.loan_product,
 			loan_demand.company,
@@ -749,6 +748,10 @@ def get_pending_principal_amount(loan):
 
 
 def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
+	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+		calculate_accrual_amount_for_loans,
+	)
+
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	against_loan_doc = frappe.get_doc("Loan", against_loan)
@@ -757,7 +760,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
-	final_due_date = ""
+	last_demand_date = get_last_demand_date(against_loan_doc.name, posting_date)
 
 	for demand in unpaid_demands:
 		if demand.demand_subtype == "Interest":
@@ -771,7 +774,12 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 
 	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
 
-	unbooked_interest = 0
+	unbooked_interest = get_accrued_interest(against_loan, last_demand_date)
+
+	if getdate(posting_date) > getdate(last_demand_date):
+		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
+			against_loan_doc, posting_date=posting_date, accrual_type="Normal Interest", is_future_accrual=1
+		)
 
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
@@ -784,9 +792,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	amounts["unbooked_interest"] = flt(unbooked_interest, precision)
 	amounts["written_off_amount"] = flt(against_loan_doc.written_off_amount, precision)
 	amounts["unpaid_demands"] = unpaid_demands
-
-	if final_due_date:
-		amounts["due_date"] = final_due_date
+	amounts["due_date"] = last_demand_date
 
 	if with_loan_details:
 		return amounts, against_loan_doc.as_dict()
@@ -803,6 +809,7 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 		"payable_principal_amount": 0.0,
 		"payable_amount": 0.0,
 		"unaccrued_interest": 0.0,
+		"unbooked_interest": 0.0,
 		"due_date": "",
 		"total_charges_payable": 0.0,
 		"available_security_deposit": 0.0,
@@ -820,7 +827,9 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 	# update values for closure
 	if payment_type == "Loan Closure":
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
-		amounts["interest_amount"] += amounts["unbooked_interest"]
+		amounts["interest_amount"] = (
+			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
+		)
 		amounts["payable_amount"] = (
 			amounts["payable_principal_amount"] + amounts["interest_amount"] + amounts["penalty_amount"]
 		)
@@ -880,7 +889,14 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 	)
 
 	last_demand_date = frappe.db.get_value(
-		"Loan Demand", {"loan": loan, "docstatus": 1, "demand_subtype": "Interest"}, "MAX(demand_date)"
+		"Loan Demand",
+		{
+			"loan": loan,
+			"docstatus": 1,
+			"demand_subtype": demand_subtype,
+			"demand_date": ("<=", posting_date),
+		},
+		"MAX(demand_date)",
 	)
 
 	if not last_demand_date:
@@ -892,7 +908,7 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 def get_accrued_interest(loan, last_demand_date, interest_type="Normal Interest"):
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
-		{"loan": loan, "posting_date": (">=", last_demand_date), "interest_type": "Interest Type"},
+		{"loan": loan, "start_date": (">", last_demand_date), "interest_type": interest_type},
 		"SUM(interest_amount)",
 	)
 

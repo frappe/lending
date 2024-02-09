@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
@@ -15,11 +15,22 @@ class LoanDemand(AccountsController):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 
 	def on_submit(self):
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+			process_loan_interest_accrual_for_loans,
+		)
+
 		if self.demand_subtype in ("Principal", "Interest", "Penalty"):
 			self.make_gl_entries()
 
 		if self.demand_type == "EMI":
 			self.update_repayment_schedule()
+
+		last_accrual_job_date = frappe.db.get_value(
+			"Process Loan Interest Accrual", {"loan": self.loan}, "MAX(posting_date)"
+		)
+
+		if last_accrual_job_date and getdate(last_accrual_job_date) < getdate(self.posting_date):
+			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
 		if self.repayment_schedule_detail:
