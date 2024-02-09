@@ -29,7 +29,7 @@ class LoanDemand(AccountsController):
 			"Process Loan Interest Accrual", {"loan": self.loan}, "MAX(posting_date)"
 		)
 
-		if last_accrual_job_date and getdate(last_accrual_job_date) < getdate(self.posting_date):
+		if last_accrual_job_date and getdate(last_accrual_job_date) < getdate(self.demand_date):
 			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
