@@ -199,6 +199,8 @@ class LoanRepaymentSchedule(Document):
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
 			if prev_schedule:
+				prev_repayment_date = prev_schedule.posting_date
+				prev_balance_amount = prev_schedule.current_principal_amount
 				for row in prev_schedule.get("repayment_schedule"):
 					if getdate(row.payment_date) < getdate(self.posting_date):
 						self.add_repayment_schedule_row(
