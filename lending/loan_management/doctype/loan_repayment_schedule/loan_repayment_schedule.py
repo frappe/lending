@@ -118,9 +118,8 @@ class LoanRepaymentSchedule(Document):
 					and self.treatment_of_interest == "Add to first repayment"
 					and moratorium_interest
 				):
-					principal_amount += moratorium_interest
+					interest_amount += moratorium_interest
 					total_payment = principal_amount + interest_amount
-					balance_amount -= moratorium_interest
 					moratorium_interest = 0
 
 			if self.repayment_schedule_type == "Pro-rated calendar months":
