@@ -191,6 +191,7 @@ def make_loan_interest_accrual_entry(
 	rate_of_interest,
 	loan_demand=None,
 	loan_repayment_schedule=None,
+	additional_interest=0,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -206,6 +207,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.rate_of_interest = rate_of_interest
 		loan_interest_accrual.loan_demand = loan_demand
 		loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
+		loan_interest_accrual.additional_interest = additional_interest
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -266,7 +268,10 @@ def get_term_loan_payment_date(loan_repayment_schedule, date):
 def calculate_penal_interest_for_loans(
 	loan, posting_date, process_loan_interest=None, accrual_type=None
 ):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_pending_principal_amount,
+		get_unpaid_demands,
+	)
 
 	demands = get_unpaid_demands(loan.name, posting_date)
 
@@ -276,6 +281,7 @@ def calculate_penal_interest_for_loans(
 	penal_interest_amount = 0
 
 	for demand in demands:
+		additional_interest = 0
 		if demand.demand_subtype in ("Principal", "Interest"):
 			if getdate(posting_date) > add_days(demand.demand_date, grace_period_days):
 				last_accrual_date = get_last_accrual_date(
@@ -292,6 +298,14 @@ def calculate_penal_interest_for_loans(
 				penal_interest_amount = demand.demand_amount * penal_interest_rate * no_of_days / 36500
 
 				if penal_interest_amount > 0:
+					if demand.subtype == "Interest":
+						pending_principal_amount = get_pending_principal_amount(loan)
+						per_day_interest = get_per_day_interest(
+							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
+						)
+						total_interest = per_day_interest * no_of_days
+						additional_interest = total_interest - demand.demand_amount
+
 					make_loan_interest_accrual_entry(
 						loan.name,
 						demand.demand_amount,
@@ -303,6 +317,7 @@ def calculate_penal_interest_for_loans(
 						"Penal Interest",
 						penal_interest_rate,
 						loan_demand=demand.name,
+						additional_interest=additional_interest,
 					)
 
 					create_loan_demand(

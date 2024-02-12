@@ -15,6 +15,9 @@ class LoanDemand(AccountsController):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 
 	def on_submit(self):
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			get_last_accrual_date,
+		)
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
 		)
@@ -25,11 +28,9 @@ class LoanDemand(AccountsController):
 		if self.demand_type == "EMI":
 			self.update_repayment_schedule()
 
-		last_accrual_job_date = frappe.db.get_value(
-			"Process Loan Interest Accrual", {"loan": self.loan}, "MAX(posting_date)"
-		)
+		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
 
-		if last_accrual_job_date and getdate(last_accrual_job_date) < getdate(self.demand_date):
+		if getdate(last_accrual_job_date) < getdate(self.demand_date):
 			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
