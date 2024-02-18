@@ -117,7 +117,7 @@ def get_ld_matching_query(bank_account, exact_match, transaction):
 	query = (
 		frappe.qb.from_(loan_disbursement)
 		.select(
-			ref_rank + party_rank + 1,
+			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Disbursement").as_("doctype"),
 			loan_disbursement.name,
 			loan_disbursement.disbursed_amount,
@@ -155,7 +155,7 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 	query = (
 		frappe.qb.from_(loan_repayment)
 		.select(
-			ref_rank + party_rank + 1,
+			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Repayment").as_("doctype"),
 			loan_repayment.name,
 			loan_repayment.amount_paid,
