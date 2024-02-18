@@ -102,7 +102,7 @@ class LoanDemand(AccountsController):
 
 
 def make_loan_demand_for_term_loans(
-	posting_date, loan_product=None, loan=None, process_loan_demand=None
+	posting_date, loan_product=None, loan=None, process_loan_demand=None, is_future_demand=0
 ):
 	filters = {
 		"docstatus": 1,
@@ -134,6 +134,7 @@ def make_loan_demand_for_term_loans(
 
 	repayment_schedules = loan_repayment_schedule_map.keys()
 
+	demands = []
 	emi_rows = frappe.db.get_all(
 		"Repayment Schedule",
 		filters={
@@ -146,30 +147,38 @@ def make_loan_demand_for_term_loans(
 
 	for row in emi_rows:
 		demand_type = "EMI"
-		create_loan_demand(
-			loan_repayment_schedule_map.get(row.parent),
-			row.payment_date,
-			demand_type,
-			"Interest",
-			row.interest_amount,
-			loan_repayment_schedule=row.parent,
-			loan_disbursement=disbursement_map.get(row.parent),
-			repayment_schedule_detail=row.name,
-			process_loan_demand=process_loan_demand,
+		demands.append(
+			create_loan_demand(
+				loan_repayment_schedule_map.get(row.parent),
+				row.payment_date,
+				demand_type,
+				"Interest",
+				row.interest_amount,
+				loan_repayment_schedule=row.parent,
+				loan_disbursement=disbursement_map.get(row.parent),
+				repayment_schedule_detail=row.name,
+				process_loan_demand=process_loan_demand,
+				is_future_demand=is_future_demand,
+			)
 		)
-		create_loan_demand(
-			loan_repayment_schedule_map.get(row.parent),
-			row.payment_date,
-			demand_type,
-			"Principal",
-			row.principal_amount,
-			loan_repayment_schedule=row.parent,
-			loan_disbursement=disbursement_map.get(row.parent),
-			repayment_schedule_detail=row.name,
-			process_loan_demand=process_loan_demand,
+		demands.append(
+			create_loan_demand(
+				loan_repayment_schedule_map.get(row.parent),
+				row.payment_date,
+				demand_type,
+				"Principal",
+				row.principal_amount,
+				loan_repayment_schedule=row.parent,
+				loan_disbursement=disbursement_map.get(row.parent),
+				repayment_schedule_detail=row.name,
+				process_loan_demand=process_loan_demand,
+				is_future_demand=is_future_demand,
+			)
 		)
 
 		update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+
+	return demands
 
 
 def create_loan_demand(
@@ -184,6 +193,7 @@ def create_loan_demand(
 	sales_invoice=None,
 	process_loan_demand=None,
 	paid_amount=0,
+	is_future_demand=0,
 ):
 	if amount:
 		demand = frappe.new_doc("Loan Demand")
@@ -198,8 +208,12 @@ def create_loan_demand(
 		demand.sales_invoice = sales_invoice
 		demand.process_loan_demand = process_loan_demand
 		demand.paid_amount = paid_amount
-		demand.save()
-		demand.submit()
+
+		if not is_future_demand:
+			demand.save()
+			demand.submit()
+
+		return demand.as_dict()
 
 
 def reverse_demands(loan, posting_date):
