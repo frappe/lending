@@ -37,7 +37,13 @@ class LoanInterestAccrual(AccountsController):
 		account_details = frappe.db.get_value(
 			"Loan Product",
 			self.loan_product,
-			["interest_accrued_account", "suspense_interest_receivable", "suspense_interest_income"],
+			[
+				"interest_accrued_account",
+				"suspense_interest_receivable",
+				"suspense_interest_income",
+				"penalty_accrued_account",
+				"penalty_income_account",
+			],
 			as_dict=1,
 		)
 
@@ -45,8 +51,12 @@ class LoanInterestAccrual(AccountsController):
 			receivable_account = account_details.suspense_interest_receivable
 			income_account = account_details.suspense_interest_income
 		else:
-			receivable_account = account_details.interest_accrued_account
-			income_account = self.interest_income_account
+			if self.interest_type == "Normal Interest":
+				receivable_account = account_details.interest_accrued_account
+				income_account = self.interest_income_account
+			else:
+				receivable_account = account_details.penalty_accrued_account
+				income_account = account_details.penalty_income_account
 
 		if self.interest_amount:
 			gle_map.append(
