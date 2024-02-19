@@ -106,7 +106,6 @@ def calculate_accrual_amount_for_loans(
 	last_accrual_date = get_last_accrual_date(loan.name, posting_date, "Normal Interest")
 	if loan.is_term_loan:
 		overlapping_dates = get_overlapping_dates(loan.name, last_accrual_date, posting_date)
-
 		for schedule in overlapping_dates:
 			last_accrual_date_for_schedule = (
 				get_last_accrual_date(
@@ -114,9 +113,14 @@ def calculate_accrual_amount_for_loans(
 				)
 				or last_accrual_date
 			)
+
+			if is_future_accrual:
+				last_accrual_date_for_schedule = add_days(last_accrual_date, 1)
+
 			pending_principal_amount = get_principal_amount_for_term_loan(
 				schedule.parent, schedule.payment_date
 			)
+
 			payable_interest = get_interest_for_term(
 				loan, pending_principal_amount, last_accrual_date_for_schedule, schedule.payment_date
 			)
@@ -135,6 +139,8 @@ def calculate_accrual_amount_for_loans(
 					loan.rate_of_interest,
 					loan_repayment_schedule=schedule.parent,
 				)
+			elif is_future_accrual:
+				last_accrual_date = schedule.payment_date
 	else:
 		no_of_days = date_diff(posting_date or nowdate(), last_accrual_date)
 		if no_of_days <= 0:
@@ -296,7 +302,7 @@ def calculate_penal_interest_for_loans(
 				)
 
 				if not last_accrual_date:
-					from_date = demand.demand_date
+					from_date = add_days(demand.demand_date, 1)
 				else:
 					from_date = add_days(last_accrual_date, 1)
 
@@ -401,7 +407,11 @@ def make_accrual_interest_entry_for_loans(
 
 
 def get_last_accrual_date(
-	loan, posting_date, interest_type, demand=None, loan_repayment_schedule=None
+	loan,
+	posting_date,
+	interest_type,
+	demand=None,
+	loan_repayment_schedule=None,
 ):
 	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
 

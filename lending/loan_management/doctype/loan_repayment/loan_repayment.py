@@ -748,9 +748,6 @@ def get_pending_principal_amount(loan):
 
 
 def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
-	from lending.loan_management.doctype.loan_demand.loan_demand import (
-		make_loan_demand_for_term_loans,
-	)
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		calculate_accrual_amount_for_loans,
 		calculate_penal_interest_for_loans,
@@ -785,13 +782,9 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 			against_loan_doc, posting_date=posting_date, accrual_type="Normal Interest", is_future_accrual=1
 		)
 
-		demands = make_loan_demand_for_term_loans(
-			posting_date=posting_date, loan=against_loan_doc.name, is_future_demand=1
+		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
+			loan=against_loan_doc, posting_date=posting_date, is_future_accrual=1
 		)
-		if demands:
-			penalty_amount += calculate_penal_interest_for_loans(
-				loan=against_loan_doc, posting_date=posting_date, demands=demands, is_future_accrual=1
-			)
 
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
@@ -822,6 +815,7 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 		"payable_amount": 0.0,
 		"unaccrued_interest": 0.0,
 		"unbooked_interest": 0.0,
+		"unbooked_penalty": 0.0,
 		"due_date": "",
 		"total_charges_payable": 0.0,
 		"available_security_deposit": 0.0,
