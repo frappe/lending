@@ -39,7 +39,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "loan.custom_individual_applicant",
+   "fetch_from": "loan.applicant",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,

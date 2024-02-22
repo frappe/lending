@@ -33,6 +33,7 @@
   "disbursed_amount",
   "monthly_repayment_amount",
   "loan_restructure",
+  "restructure_type",
   "broken_period_interest",
   "status",
   "amended_from",
@@ -107,7 +108,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Initiated\nRejected\nActive\nRestructured\nOutdated\nDraft\nCancelled"
+   "options": "Initiated\nRejected\nActive\nRestructured\nRescheduled\nOutdated\nDraft\nCancelled"
   },
   {
    "fieldname": "repayment_start_date",
@@ -203,7 +204,8 @@
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
    "label": "Loan Disbursement",
-   "options": "Loan Disbursement"
+   "options": "Loan Disbursement",
+   "read_only": 1
   },
   {
    "fieldname": "broken_period_interest",
@@ -275,12 +277,18 @@
    "fieldname": "moratorium_type",
    "fieldtype": "Data",
    "label": "Moratorium Type"
+  },
+  {
+   "fieldname": "restructure_type",
+   "fieldtype": "Select",
+   "label": "Restructure Type",
+   "options": "\nRestructure\nReschedule"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-18 18:23:13.448330",
+ "modified": "2024-02-20 21:28:28.701665",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

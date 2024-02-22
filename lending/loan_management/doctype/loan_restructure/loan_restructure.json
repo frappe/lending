@@ -69,6 +69,7 @@
   "loan_restructure_details_section",
   "new_rate_of_interest",
   "repayment_start_date",
+  "loan_repayment",
   "column_break_mqcp",
   "new_repayment_method",
   "new_repayment_period_in_months",
@@ -270,7 +271,7 @@
    "fieldname": "restructure_type",
    "fieldtype": "Select",
    "label": "Restructure Type",
-   "options": "Normal Restructure\nPre Payment"
+   "options": "Normal Restructure\nPre Payment\nAdvance Payment"
   },
   {
    "fieldname": "penalty_overdue",
@@ -498,12 +499,19 @@
    "fieldname": "old_loan_amount",
    "fieldtype": "Currency",
    "label": "Old Loan Amount"
+  },
+  {
+   "fieldname": "loan_repayment",
+   "fieldtype": "Link",
+   "label": "Loan Repayment",
+   "options": "Loan Repayment",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-22 12:57:39.466225",
+ "modified": "2024-02-20 15:48:08.319583",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

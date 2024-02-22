@@ -32,6 +32,11 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_update_loan_reschedule,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		amounts = calculate_amounts(
 			self.against_loan, self.posting_date, payment_type=self.repayment_type
 		)
@@ -40,12 +45,20 @@ class LoanRepayment(AccountsController):
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
+		if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+
+	def after_insert(self):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_update_loan_reschedule,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+
 	def on_submit(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-			reverse_loan_interest_accruals,
-		)
-		from lending.loan_management.doctype.loan_restructure.loan_restructure import reschedule_loan
 
 		# from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 		# 	process_loan_interest_accrual_for_loans
@@ -71,8 +84,18 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries()
 
 		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-			reverse_loan_interest_accruals(self.against_loan, self.posting_date)
-			reschedule_loan(self.against_loan, self.posting_date)
+			self.process_reschedule()
+
+	def process_reschedule(self):
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
+
+		reverse_loan_interest_accruals(self.against_loan, self.posting_date)
+		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
+		loan_restructure.submit()
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
 
 	def set_repayment_account(self):
 		if not self.payment_account and self.mode_of_payment:
@@ -914,7 +937,12 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 def get_accrued_interest(loan, last_demand_date, interest_type="Normal Interest"):
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
-		{"loan": loan, "start_date": (">", last_demand_date), "interest_type": interest_type},
+		{
+			"loan": loan,
+			"docstatus": 1,
+			"start_date": (">", last_demand_date),
+			"interest_type": interest_type,
+		},
 		"SUM(interest_amount)",
 	)
 
