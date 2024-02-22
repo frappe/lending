@@ -250,9 +250,23 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date):
 	)
 
 	for schedule in schedules:
+		maturity_date = get_maturity_date(schedule)
+		if maturity_date and getdate(maturity_date) < getdate(posting_date):
+			posting_date = maturity_date
+
 		schedule_dates.append(frappe._dict({"payment_date": posting_date, "parent": schedule}))
 
 	return schedule_dates
+
+
+def get_maturity_date(schedule):
+	maturity_date = frappe.db.get_value(
+		"Repayment Schedule",
+		{"parent": schedule},
+		"MAX(payment_date)",
+	)
+
+	return maturity_date
 
 
 def get_principal_amount_for_term_loan(repayment_schedule, date):
@@ -286,7 +300,6 @@ def calculate_penal_interest_for_loans(
 	posting_date,
 	process_loan_interest=None,
 	accrual_type=None,
-	demands=None,
 	is_future_accrual=0,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -294,8 +307,7 @@ def calculate_penal_interest_for_loans(
 		get_unpaid_demands,
 	)
 
-	if not demands:
-		demands = get_unpaid_demands(loan.name, posting_date)
+	demands = get_unpaid_demands(loan.name, posting_date)
 
 	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
 	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
