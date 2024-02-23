@@ -5,7 +5,7 @@ lending.common.setup_filters("Loan Disbursement");
 
 frappe.ui.form.on('Loan Disbursement', {
 	setup(frm) {
-		frm.ignore_doctypes_on_cancel_all = ["Loan Security Deposit"];
+		frm.ignore_doctypes_on_cancel_all = ["Loan Security Deposit", "Loan Repayment Schedule"];
 	},
 	refresh: function(frm) {
 		frm.set_query('against_loan', function() {

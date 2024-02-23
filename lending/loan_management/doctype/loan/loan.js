@@ -128,9 +128,12 @@ frappe.ui.form.on('Loan', {
 				"company": frm.doc.company,
 				"applicant_type": frm.doc.applicant_type,
 				"applicant": frm.doc.applicant,
-				"pending_amount": frm.doc.loan_amount - frm.doc.disbursed_amount > 0 ?
+				"posting_date": frm.doc.posting_date,
+				"repayment_start_date": frm.doc.repayment_start_date,
+				"disbursement_amount": frm.doc.loan_amount - frm.doc.disbursed_amount > 0 ?
 					frm.doc.loan_amount - frm.doc.disbursed_amount : 0,
-				"as_dict": 1
+				"as_dict": 1,
+				"repayment_frequency": frm.doc.repayment_frequency,
 			},
 			method: "lending.loan_management.doctype.loan.loan.make_loan_disbursement",
 			callback: function (r) {

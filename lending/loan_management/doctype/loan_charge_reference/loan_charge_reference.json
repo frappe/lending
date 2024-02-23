@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "sales_invoice",
+  "charge",
   "pending_charge_amount",
   "allocated_amount"
  ],
@@ -29,12 +30,19 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Allocated Amount"
+  },
+  {
+   "fieldname": "charge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Charge",
+   "options": "Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-05-16 09:14:13.972294",
+ "modified": "2023-10-11 16:50:15.722251",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Charge Reference",

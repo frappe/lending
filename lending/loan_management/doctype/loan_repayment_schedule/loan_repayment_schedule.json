@@ -8,19 +8,26 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_disbursement",
   "company",
   "loan_restructure",
   "loan_amount",
+  "disbursed_amount",
   "rate_of_interest",
   "posting_date",
   "adjusted_interest",
+  "broken_period_interest",
   "column_break_n6iy",
   "loan_product",
+  "repayment_frequency",
   "repayment_schedule_type",
+  "repayment_date_on",
   "repayment_method",
   "repayment_periods",
   "monthly_repayment_amount",
   "repayment_start_date",
+  "moratorium_tenure",
+  "treatment_of_interest",
   "section_break_6rpg",
   "repayment_schedule",
   "status",
@@ -36,6 +43,7 @@
    "reqd": 1
   },
   {
+   "fetch_from": "loan.loan_product",
    "fieldname": "loan_product",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -59,6 +67,7 @@
    "read_only": 1
   },
   {
+   "fetch_from": "loan.loan_amount",
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
    "label": "Loan Amount",
@@ -83,10 +92,9 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Initiated\nRejected\nActive\nRestructured\nDraft\nCancelled"
+   "options": "Initiated\nRejected\nActive\nRestructured\nOutdated\nDraft\nCancelled"
   },
   {
-   "fetch_if_empty": 1,
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -143,12 +151,56 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fetch_from": "loan.treatment_of_interest",
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment Of Interest",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "depends_on": "eval:doc.repayment_schedule_type==\"Pro-rated calendar months\"",
+   "fetch_from": "loan_product.repayment_date_on",
+   "fieldname": "repayment_date_on",
+   "fieldtype": "Select",
+   "label": "Repayment Date On",
+   "options": "Start of the next month\nEnd of the current month"
+  },
+  {
+   "fetch_from": "loan.moratorium_tenure",
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure"
+  },
+  {
+   "fieldname": "disbursed_amount",
+   "fieldtype": "Currency",
+   "label": "Disbursed Amount"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  },
+  {
+   "fieldname": "broken_period_interest",
+   "fieldtype": "Currency",
+   "label": "Broken Period Interest",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:24.172876",
+ "modified": "2023-12-10 18:53:50.681242",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
