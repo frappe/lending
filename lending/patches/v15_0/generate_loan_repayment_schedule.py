@@ -16,18 +16,18 @@ def execute():
 		return
 
 	for loan in frappe.get_all("Loan", filters={"is_term_loan": 1, "docstatus": ["!=", 2]}):
-		loan = frappe.get_cached_doc("Loan", loan.name)
+		loan_doc = frappe.get_cached_doc("Loan", loan.name)
 		loan_repayment_schedule = frappe.new_doc("Loan Repayment Schedule")
 		loan_repayment_schedule.flags.ignore_validate = True
-		loan_repayment_schedule.loan = loan.name
-		loan_repayment_schedule.loan_product = loan.loan_type
-		loan_repayment_schedule.loan_amount = loan.loan_amount
-		loan_repayment_schedule.monthly_repayment_amount = loan.monthly_repayment_amount
-		loan_repayment_schedule.posting_date = loan.posting_date
-		loan_repayment_schedule.status = get_status(loan.status)
+		loan_repayment_schedule.loan = loan_doc.name
+		loan_repayment_schedule.loan_product = frappe.db.get_value("Loan", loan_doc.name, "loan_type")
+		loan_repayment_schedule.loan_amount = loan_doc.loan_amount
+		loan_repayment_schedule.monthly_repayment_amount = loan_doc.monthly_repayment_amount
+		loan_repayment_schedule.posting_date = loan_doc.posting_date
+		loan_repayment_schedule.status = get_status(loan_doc.status)
 
 		repayment_schedules = frappe.db.get_all(
-			"Repayment Schedule", {"parent": loan.name}, "*", order_by="idx"
+			"Repayment Schedule", {"parent": loan_doc.name}, "*", order_by="idx"
 		)
 
 		for rs in repayment_schedules:
