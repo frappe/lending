@@ -120,10 +120,11 @@ def get_ld_matching_query(bank_account, exact_match, transaction):
 			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Disbursement").as_("doctype"),
 			loan_disbursement.name,
-			loan_disbursement.disbursed_amount,
-			loan_disbursement.reference_number,
+			(loan_disbursement.disbursed_amount).as_("paid_amount"),
+			(loan_disbursement.reference_number).as_("reference_no"),
 			loan_disbursement.reference_date,
-			loan_disbursement.applicant_type,
+			(loan_disbursement.applicant_type).as_("party_type"),
+			(loan_disbursement.applicant).as_("party"),
 			loan_disbursement.disbursement_date,
 		)
 		.where(loan_disbursement.docstatus == 1)
@@ -158,10 +159,11 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Repayment").as_("doctype"),
 			loan_repayment.name,
-			loan_repayment.amount_paid,
-			loan_repayment.reference_number,
+			(loan_repayment.amount_paid).as_("paid_amount"),
+			(loan_repayment.reference_number).as_("reference_no"),
 			loan_repayment.reference_date,
-			loan_repayment.applicant_type,
+			(loan_repayment.applicant_type).as_("party_type"),
+			(loan_repayment.applicant).as_("party"),
 			loan_repayment.posting_date,
 		)
 		.where(loan_repayment.docstatus == 1)
