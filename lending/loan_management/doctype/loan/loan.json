@@ -575,7 +575,7 @@
    "fieldname": "moratorium_type",
    "fieldtype": "Select",
    "label": "Moratorium Type",
-   "options": "EMI\nInterest"
+   "options": "EMI\nPrincipal"
   },
   {
    "allow_on_submit": 1,
@@ -595,7 +595,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-24 15:36:36.429252",
+ "modified": "2024-02-23 13:16:06.584468",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

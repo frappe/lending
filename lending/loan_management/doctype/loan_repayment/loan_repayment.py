@@ -740,7 +740,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 def get_pending_principal_amount(loan):
 	precision = cint(frappe.db.get_default("currency_precision"))
 
-	if loan.status in ("Disbursed", "Closed"):
+	if loan.status in ("Disbursed", "Closed", "Active"):
 		pending_principal_amount = flt(
 			flt(loan.total_payment)
 			+ flt(loan.debit_adjustment_amount)
