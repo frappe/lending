@@ -57,9 +57,11 @@ class LoanRepayment(AccountsController):
 		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
 
-	def on_submit(self):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
+	def before_submit(self):
+		if self.repayment_type == "Advance Payment":
+			self.process_reschedule()
 
+	def on_submit(self):
 		# from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 		# 	process_loan_interest_accrual_for_loans
 		# )
@@ -70,6 +72,12 @@ class LoanRepayment(AccountsController):
 		# 		loan=self.against_loan,
 		# 		payment_reference=self.name,
 		# 	)
+		if self.repayment_type == "Advance Payment":
+			amounts = calculate_amounts(
+				self.against_loan, self.posting_date, payment_type=self.repayment_type
+			)
+			self.allocate_amount_against_demands(amounts)
+			self.db_update_all()
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -82,9 +90,6 @@ class LoanRepayment(AccountsController):
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
-
-		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-			self.process_reschedule()
 
 	def process_reschedule(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (

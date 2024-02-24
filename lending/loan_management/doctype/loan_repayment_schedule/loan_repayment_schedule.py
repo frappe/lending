@@ -52,26 +52,24 @@ class LoanRepaymentSchedule(Document):
 			frappe.db.set_value("Repayment Schedule", advance_payment.name, "demand_generated", 1)
 			create_loan_demand(
 				self.loan,
-				advance_payment.payment_date,
+				self.posting_date,
 				"EMI",
 				"Interest",
 				advance_payment.interest_amount,
 				loan_repayment_schedule=self.name,
 				loan_disbursement=self.loan_disbursement,
 				repayment_schedule_detail=advance_payment.name,
-				paid_amount=advance_payment.interest_amount,
 			)
 
 			create_loan_demand(
 				self.loan,
-				advance_payment.payment_date,
+				self.posting_date,
 				"EMI",
 				"Principal",
 				advance_payment.principal_amount,
 				loan_repayment_schedule=self.name,
 				loan_disbursement=self.loan_disbursement,
 				repayment_schedule_detail=advance_payment.name,
-				paid_amount=advance_payment.principal_amount,
 			)
 
 	def on_cancel(self):
@@ -95,10 +93,9 @@ class LoanRepaymentSchedule(Document):
 			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
 
 		self.repayment_schedule = []
-		previous_interest_amount = self.add_rows_from_prev_disbursement()
+		previous_interest_amount, balance_amount = self.add_rows_from_prev_disbursement()
 
 		payment_date = self.repayment_start_date
-		balance_amount = self.current_principal_amount
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
@@ -227,6 +224,7 @@ class LoanRepaymentSchedule(Document):
 	def add_rows_from_prev_disbursement(self):
 		previous_interest_amount = 0
 		completed_tenure = 0
+		balance_principal_amount = self.current_principal_amount
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
@@ -267,13 +265,14 @@ class LoanRepaymentSchedule(Document):
 
 				if self.restructure_type == "Reschedule":
 					paid_principal_amount = prev_monthly_repayment_amount - previous_interest_amount
-					self.current_principal_amount -= paid_principal_amount
+					balance_principal_amount = self.current_principal_amount - paid_principal_amount
+
 					self.add_repayment_schedule_row(
 						self.repayment_start_date,
 						paid_principal_amount,
 						previous_interest_amount,
 						prev_monthly_repayment_amount,
-						self.current_principal_amount,
+						balance_principal_amount,
 						date_diff(self.repayment_start_date, self.posting_date),
 						0,
 					)
@@ -282,15 +281,16 @@ class LoanRepaymentSchedule(Document):
 					self.repayment_start_date = self.get_next_payment_date(self.repayment_start_date)
 				else:
 					self.current_principal_amount = self.disbursed_amount + prev_balance_amount
+					balance_principal_amount = self.current_principal_amount
 
 				self.monthly_repayment_amount = get_monthly_repayment_amount(
-					self.current_principal_amount,
+					balance_principal_amount,
 					self.rate_of_interest,
 					self.repayment_periods - completed_tenure,
 					self.repayment_frequency,
 				)
 
-		return previous_interest_amount
+		return previous_interest_amount, balance_principal_amount
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:

@@ -288,23 +288,22 @@ class LoanRestructure(AccountsController):
 		self.cancel_repayment_schedule()
 		if self.status == "Approved":
 			self.update_totals_and_status()
-		self.cancel_loan_adjustments()
-		self.update_restructure_count(cancel=1)
-		self.update_security_deposit_amount(cancel=1)
+			self.cancel_loan_adjustments()
+			self.update_restructure_count(cancel=1)
+			self.update_security_deposit_amount(cancel=1)
 
 	def update_overdue_amounts(self):
-		if self.restructure_type == "Normal Restructure":
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
-			amounts = calculate_amounts(self.loan, self.restructure_date)
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		amounts = calculate_amounts(self.loan, self.restructure_date)
 
-			self.pending_principal_amount = flt(amounts.get("pending_principal_amount"), precision)
-			self.total_overdue_amount = flt(amounts.get("payable_amount"), precision)
-			self.principal_overdue = flt(amounts.get("payable_principal_amount"), precision)
-			self.interest_overdue = flt(amounts.get("interest_amount"), precision)
-			self.penalty_overdue = flt(amounts.get("penalty_amount"), precision)
-			self.charges_overdue = flt(amounts.get("total_charges_payable"), precision)
-			self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision)
-			self.available_security_deposit = flt(amounts.get("available_security_deposit"), precision)
+		self.pending_principal_amount = flt(amounts.get("pending_principal_amount"), precision)
+		self.total_overdue_amount = flt(amounts.get("payable_amount"), precision)
+		self.principal_overdue = flt(amounts.get("payable_principal_amount"), precision)
+		self.interest_overdue = flt(amounts.get("interest_amount"), precision)
+		self.penalty_overdue = flt(amounts.get("penalty_amount"), precision)
+		self.charges_overdue = flt(amounts.get("total_charges_payable"), precision)
+		self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision)
+		self.available_security_deposit = flt(amounts.get("available_security_deposit"), precision)
 
 	def cancel_repayment_schedule(self):
 
