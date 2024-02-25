@@ -377,16 +377,16 @@ class LoanRepayment(AccountsController):
 			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") != "Pre Payment":
 				frappe.throw(_("Only pre payment type allowed for this scenario"))
 
-			last_demand_date = get_last_demand_date(self.payable_amount, self.posting_date)
-			accrued_interest = get_accrued_interest(self.against_loan, last_demand_date)
+			# last_demand_date = get_last_demand_date(self.payable_amount, self.posting_date)
+			# accrued_interest = get_accrued_interest(self.against_loan, last_demand_date)
 
-			if accrued_interest > 0:
-				if accrued_interest > amount_paid:
-					self.total_interest_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_interest_paid += accrued_interest
-					amount_paid -= accrued_interest
+			# if accrued_interest > 0:
+			# 	if accrued_interest > amount_paid:
+			# 		self.total_interest_paid += amount_paid
+			# 		amount_paid = 0
+			# 	else:
+			# 		self.total_interest_paid += accrued_interest
+			# 		amount_paid -= accrued_interest
 
 			self.principal_amount_paid += flt(amount_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
@@ -718,7 +718,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 			loan_demand.last_repayment_date,
 			loan_demand.loan_product,
 			loan_demand.company,
-			(loan_demand.demand_amount - loan_demand.paid_amount).as_("demand_amount"),
+			(loan_demand.demand_amount - loan_demand.paid_amount).as_("outstanding_amount"),
 			loan_demand.demand_subtype,
 			loan_demand.demand_type,
 		)
@@ -789,21 +789,24 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
+
 	last_demand_date = get_last_demand_date(against_loan_doc.name, posting_date)
 
 	for demand in unpaid_demands:
 		if demand.demand_subtype == "Interest":
-			total_pending_interest += demand.demand_amount
+			total_pending_interest += demand.outstanding_amount
 		elif demand.demand_subtype == "Principal":
-			payable_principal_amount += demand.demand_amount
+			payable_principal_amount += demand.outstanding_amount
 		elif demand.demand_subtype == "Penalty":
-			penalty_amount += demand.demand_amount
+			penalty_amount += demand.outstanding_amount
 		elif demand.demand_type == "Charges":
-			charges += demand.demand_amount
+			charges += demand.outstanding_amount
 
 	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
 
-	unbooked_interest = get_accrued_interest(against_loan, last_demand_date)
+	accrued_interest = get_accrued_interest(against_loan, posting_date)
+	total_demand_interest = get_demanded_interest(against_loan, posting_date)
+	unbooked_interest = accrued_interest - total_demand_interest
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
@@ -939,16 +942,31 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 	return last_demand_date
 
 
-def get_accrued_interest(loan, last_demand_date, interest_type="Normal Interest"):
+def get_accrued_interest(loan, posting_date, interest_type="Normal Interest"):
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
 		{
 			"loan": loan,
 			"docstatus": 1,
-			"start_date": (">", last_demand_date),
+			"posting_date": ("<=", posting_date),
 			"interest_type": interest_type,
 		},
 		"SUM(interest_amount)",
 	)
 
 	return flt(accrued_interest)
+
+
+def get_demanded_interest(loan, posting_date, demand_subtype="Interest"):
+	demand_interest = frappe.db.get_value(
+		"Loan Demand",
+		{
+			"loan": loan,
+			"docstatus": 1,
+			"demand_date": ("<=", posting_date),
+			"demand_subtype": demand_subtype,
+		},
+		"SUM(demand_amount)",
+	)
+
+	return flt(demand_interest)

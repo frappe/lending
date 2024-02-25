@@ -222,4 +222,4 @@ def check_and_request_loan_security_assignment_release(loan_security):
 
 	if not active_loans_and_lsa:
 		for d in all_loans_and_lsa:
-			frappe.db.set_value("Loan Security Assignment", d.lsa, "status", "Release Requested")
+			frappe.db.set_value("Loan Security Assignment", d.lsa, "status", "Released")

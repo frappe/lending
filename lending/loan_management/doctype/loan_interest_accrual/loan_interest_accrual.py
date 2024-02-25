@@ -135,20 +135,21 @@ def calculate_accrual_amount_for_loans(
 				loan, pending_principal_amount, last_accrual_date_for_schedule, schedule.payment_date
 			)
 
-			total_payable_interest += payable_interest
-			if payable_interest > 0 and not is_future_accrual:
-				make_loan_interest_accrual_entry(
-					loan.name,
-					pending_principal_amount,
-					payable_interest,
-					process_loan_interest,
-					last_accrual_date_for_schedule,
-					schedule.payment_date,
-					accrual_type,
-					"Normal Interest",
-					loan.rate_of_interest,
-					loan_repayment_schedule=schedule.parent,
-				)
+			if payable_interest > 0:
+				total_payable_interest += payable_interest
+				if not is_future_accrual:
+					make_loan_interest_accrual_entry(
+						loan.name,
+						pending_principal_amount,
+						payable_interest,
+						process_loan_interest,
+						last_accrual_date_for_schedule,
+						schedule.payment_date,
+						accrual_type,
+						"Normal Interest",
+						loan.rate_of_interest,
+						loan_repayment_schedule=schedule.parent,
+					)
 			elif is_future_accrual:
 				last_accrual_date = schedule.payment_date
 	else:
@@ -330,7 +331,7 @@ def calculate_penal_interest_for_loans(
 
 				no_of_days = date_diff(posting_date, from_date) + 1
 
-				penal_interest_amount = demand.demand_amount * penal_interest_rate * no_of_days / 36500
+				penal_interest_amount = demand.outstanding_amount * penal_interest_rate * no_of_days / 36500
 
 				if penal_interest_amount > 0:
 					total_penal_interest += penal_interest_amount
@@ -341,12 +342,12 @@ def calculate_penal_interest_for_loans(
 							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
 						)
 						total_interest = per_day_interest * no_of_days
-						additional_interest = total_interest - demand.demand_amount
+						additional_interest = total_interest - demand.outstanding_amount
 
 					if not is_future_accrual:
 						make_loan_interest_accrual_entry(
 							loan.name,
-							demand.demand_amount,
+							demand.outstanding_amount,
 							penal_interest_amount,
 							process_loan_interest,
 							from_date,
