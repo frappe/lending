@@ -646,6 +646,7 @@ def update_days_past_due_in_loans(
 
 	demands = get_unpaid_demands(loan_name, posting_date=posting_date, loan_product=loan_product)
 	threshold_map = get_dpd_threshold_map()
+	threshold_write_off_map = get_dpd_threshold_write_off_map()
 	checked_loans = []
 
 	applicant_type = frappe.db.get_value("Loan", loan_name, "applicant_type")
@@ -673,6 +674,12 @@ def update_days_past_due_in_loans(
 		)
 
 		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_classification)
+
+		write_off_threshold = threshold_write_off_map.get(loan.company, 0)
+
+		if write_off_threshold and days_past_due > write_off_threshold:
+			create_loan_write_off(loan.loan, posting_date)
+
 		checked_loans.append(loan.loan)
 
 	open_loans_with_no_overdue = []
@@ -695,6 +702,14 @@ def update_days_past_due_in_loans(
 		)
 
 		create_dpd_record(d.name, posting_date, 0, process_loan_classification)
+
+
+def create_loan_write_off(loan, posting_date):
+	if frappe.db.get_value("Loan", loan, "status") != "Written Off":
+		loan_write_off = frappe.new_doc("Loan Write Off")
+		loan_write_off.loan = loan
+		loan_write_off.posting_date = posting_date
+		loan_write_off.submit()
 
 
 def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
@@ -846,6 +861,14 @@ def get_dpd_threshold_map():
 	)
 
 
+def get_dpd_threshold_write_off_map():
+	return frappe._dict(
+		frappe.get_all(
+			"Company", fields=["name", "days_past_due_threshold_for_auto_write_off"], as_list=1
+		)
+	)
+
+
 def move_unpaid_interest_to_suspense_ledger(
 	loan=None, posting_date=None, applicant_type=None, applicant=None, reverse=0
 ):
@@ -877,50 +900,52 @@ def move_unpaid_interest_to_suspense_ledger(
 			],
 			as_dict=1,
 		)
-		jv = frappe.get_doc(
-			{
-				"doctype": "Journal Entry",
-				"voucher_type": "Journal Entry",
-				"posting_date": posting_date,
-				"company": demand.company,
-				"accounts": [
-					{
-						"account": account_details.suspense_interest_receivable,
-						"party": applicant,
-						"party_type": applicant_type,
-						"debit_in_account_currency": amount,
-						"debit": amount,
-						"reference_type": "Loan",
-						"reference_name": loan,
-						"cost_center": erpnext.get_default_cost_center(demand.company),
-					},
-					{
-						"account": account_details.interest_receivable_account,
-						"party": applicant,
-						"party_type": applicant_type,
-						"credit_in_account_currency": amount,
-						"credit": amount,
-						"reference_type": "Loan",
-						"reference_name": loan,
-						"cost_center": erpnext.get_default_cost_center(demand.company),
-					},
-					{
-						"account": account_details.suspense_interest_income,
-						"credit_in_account_currency": amount,
-						"credit": amount,
-						"cost_center": erpnext.get_default_cost_center(demand.company),
-					},
-					{
-						"account": account_details.interest_income_account,
-						"debit": amount,
-						"debit_in_account_currency": amount,
-						"cost_center": erpnext.get_default_cost_center(demand.company),
-					},
-				],
-			}
-		)
 
-		jv.submit()
+		if amount:
+			jv = frappe.get_doc(
+				{
+					"doctype": "Journal Entry",
+					"voucher_type": "Journal Entry",
+					"posting_date": posting_date,
+					"company": demand.company,
+					"accounts": [
+						{
+							"account": account_details.suspense_interest_receivable,
+							"party": applicant,
+							"party_type": applicant_type,
+							"debit_in_account_currency": amount,
+							"debit": amount,
+							"reference_type": "Loan",
+							"reference_name": loan,
+							"cost_center": erpnext.get_default_cost_center(demand.company),
+						},
+						{
+							"account": account_details.interest_receivable_account,
+							"party": applicant,
+							"party_type": applicant_type,
+							"credit_in_account_currency": amount,
+							"credit": amount,
+							"reference_type": "Loan",
+							"reference_name": loan,
+							"cost_center": erpnext.get_default_cost_center(demand.company),
+						},
+						{
+							"account": account_details.suspense_interest_income,
+							"credit_in_account_currency": amount,
+							"credit": amount,
+							"cost_center": erpnext.get_default_cost_center(demand.company),
+						},
+						{
+							"account": account_details.interest_income_account,
+							"debit": amount,
+							"debit_in_account_currency": amount,
+							"cost_center": erpnext.get_default_cost_center(demand.company),
+						},
+					],
+				}
+			)
+
+			jv.submit()
 
 
 @frappe.whitelist()

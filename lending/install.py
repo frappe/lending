@@ -81,6 +81,13 @@ LOAN_CUSTOM_FIELDS = {
 			"non_negative": 1,
 		},
 		{
+			"fieldname": "days_past_due_threshold_for_auto_write_off",
+			"label": "Days Past Due Threshold For Auto Write Off",
+			"fieldtype": "Int",
+			"insert_after": "days_past_due_threshold",
+			"non_negative": 1,
+		},
+		{
 			"fieldname": "collection_offset_sequence_for_sub_standard_asset",
 			"label": "Collection Offset Sequence for Sub Standard Asset",
 			"fieldtype": "Link",

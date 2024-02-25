@@ -52,21 +52,24 @@ class LoanWriteOff(AccountsController):
 
 		pending_principal_amount = flt(get_pending_principal_amount(loan_details), precision)
 
-		if self.write_off_amount > pending_principal_amount:
-			frappe.throw(_("Write off amount cannot be greater than pending principal amount"))
+		if not self.write_off_amount:
+			self.write_off_amount = pending_principal_amount
+
+		if self.write_off_amount != pending_principal_amount:
+			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
-		self.update_outstanding_amount()
+		self.update_outstanding_amount_and_status()
 		self.make_gl_entries()
 		self.close_employee_loan()
 
 	def on_cancel(self):
-		self.update_outstanding_amount(cancel=1)
+		self.update_outstanding_amount_and_status(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.close_employee_loan(cancel=1)
 
-	def update_outstanding_amount(self, cancel=0):
+	def update_outstanding_amount_and_status(self, cancel=0):
 		written_off_amount = frappe.db.get_value("Loan", self.loan, "written_off_amount")
 
 		if cancel:
@@ -74,7 +77,9 @@ class LoanWriteOff(AccountsController):
 		else:
 			written_off_amount += self.write_off_amount
 
-		frappe.db.set_value("Loan", self.loan, "written_off_amount", written_off_amount)
+		frappe.db.set_value(
+			"Loan", self.loan, {"written_off_amount": written_off_amount, "status": "Written Off"}
+		)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
