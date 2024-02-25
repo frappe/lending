@@ -412,18 +412,18 @@ class LoanRepayment(AccountsController):
 	def adjust_component(self, amount_to_adjust, demand_type, demands):
 		for demand in demands:
 			if demand.demand_type == demand_type:
-				if amount_to_adjust >= demand.demand_amount:
+				if amount_to_adjust >= demand.outstanding_amount:
 					self.append(
 						"repayment_details",
 						{
 							"loan_demand": demand.name,
-							"paid_amount": demand.demand_amount,
+							"paid_amount": demand.outstanding_amount,
 							"demand_type": demand.demand_type,
 							"demand_subtype": demand.demand_subtype,
 							"sales_invoice": demand.sales_invoice,
 						},
 					)
-					amount_to_adjust -= flt(demand.demand_amount)
+					amount_to_adjust -= flt(demand.outstanding_amount)
 				elif amount_to_adjust > 0:
 					self.append(
 						"repayment_details",
@@ -432,7 +432,7 @@ class LoanRepayment(AccountsController):
 							"paid_amount": amount_to_adjust,
 							"demand_type": demand.demand_type,
 							"demand_subtype": demand.demand_subtype,
-							"demand_amount": demand.demand_amount,
+							"sales_invoice": demand.sales_invoice,
 						},
 					)
 					amount_to_adjust = 0
