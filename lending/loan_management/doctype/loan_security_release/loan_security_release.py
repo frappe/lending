@@ -130,7 +130,7 @@ class LoanSecurityRelease(Document):
 			self.db_set("unpledge_time", get_datetime())
 
 			for security in self.securities:
-				check_and_request_loan_security_assignment_release(security.loan_security)
+				check_and_request_loan_security_assignment_release(security.loan_security, self.loan)
 
 	def update_loan_status(self, cancel=0):
 		if cancel:
@@ -188,7 +188,7 @@ def get_pledged_security_qty(loan):
 	return current_pledges
 
 
-def check_and_request_loan_security_assignment_release(loan_security):
+def check_and_request_loan_security_assignment_release(loan_security, loan):
 	active_loans_and_lsa = []
 
 	all_loans_and_lsa = frappe.db.sql(
@@ -196,10 +196,11 @@ def check_and_request_loan_security_assignment_release(loan_security):
 		SELECT lsa.loan, lsa.name as lsa
 		FROM `tabLoan Security Assignment` lsa, `tabPledge` p
 		WHERE p.loan_security = %s
+		and p.loan = %s
 		AND p.parent = lsa.name
 		AND lsa.status = 'Pledged'
 		""",
-		(loan_security),
+		(loan_security, loan),
 		as_dict=True,
 	)
 
@@ -208,10 +209,11 @@ def check_and_request_loan_security_assignment_release(loan_security):
 		SELECT lsr.loan
 		FROM `tabLoan Security Release` lsr, `tabUnpledge` u
 		WHERE u.loan_security = %s
+		and u.loan = %s
 		AND u.parent = lsr.name
 		AND lsr.status = 'Approved'
 		""",
-		(loan_security),
+		(loan_security, loan),
 		as_list=True,
 	)
 	loans_with_security_unpledged = list(itertools.chain(*loans_with_security_unpledged))
