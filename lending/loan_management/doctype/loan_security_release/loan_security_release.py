@@ -196,7 +196,7 @@ def check_and_request_loan_security_assignment_release(loan_security, loan):
 		SELECT lsa.loan, lsa.name as lsa
 		FROM `tabLoan Security Assignment` lsa, `tabPledge` p
 		WHERE p.loan_security = %s
-		and p.loan = %s
+		and lsa.loan = %s
 		AND p.parent = lsa.name
 		AND lsa.status = 'Pledged'
 		""",
@@ -209,7 +209,7 @@ def check_and_request_loan_security_assignment_release(loan_security, loan):
 		SELECT lsr.loan
 		FROM `tabLoan Security Release` lsr, `tabUnpledge` u
 		WHERE u.loan_security = %s
-		and u.loan = %s
+		and lsr.loan = %s
 		AND u.parent = lsr.name
 		AND lsr.status = 'Approved'
 		""",
