@@ -806,7 +806,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
 
 	accrued_interest = get_accrued_interest(against_loan, posting_date)
 	total_demand_interest = get_demanded_interest(against_loan, posting_date)
-	unbooked_interest = accrued_interest - total_demand_interest
+	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(

@@ -63,8 +63,6 @@ class LoanInterestAccrual(AccountsController):
 				self.get_gl_dict(
 					{
 						"account": receivable_account,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
 						"against": income_account,
 						"debit": self.interest_amount,
 						"debit_in_account_currency": self.interest_amount,
