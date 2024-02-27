@@ -104,6 +104,7 @@ class LoanDemand(AccountsController):
 def make_loan_demand_for_term_loans(
 	posting_date, loan_product=None, loan=None, process_loan_demand=None
 ):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	filters = {
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
@@ -151,7 +152,7 @@ def make_loan_demand_for_term_loans(
 			row.payment_date,
 			demand_type,
 			"Interest",
-			row.interest_amount,
+			flt(row.interest_amount, precision),
 			loan_repayment_schedule=row.parent,
 			loan_disbursement=disbursement_map.get(row.parent),
 			repayment_schedule_detail=row.name,
@@ -163,7 +164,7 @@ def make_loan_demand_for_term_loans(
 			row.payment_date,
 			demand_type,
 			"Principal",
-			row.principal_amount,
+			flt(row.principal_amount, precision),
 			loan_repayment_schedule=row.parent,
 			loan_disbursement=disbursement_map.get(row.parent),
 			repayment_schedule_detail=row.name,

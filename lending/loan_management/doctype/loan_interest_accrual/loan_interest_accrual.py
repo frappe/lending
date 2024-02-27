@@ -109,6 +109,7 @@ def calculate_accrual_amount_for_loans(
 		get_pending_principal_amount,
 	)
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	total_payable_interest = 0
 
 	last_accrual_date = get_last_accrual_date(loan.name, posting_date, "Normal Interest")
@@ -139,7 +140,7 @@ def calculate_accrual_amount_for_loans(
 					make_loan_interest_accrual_entry(
 						loan.name,
 						pending_principal_amount,
-						payable_interest,
+						flt(payable_interest, precision),
 						process_loan_interest,
 						last_accrual_date_for_schedule,
 						schedule.payment_date,
