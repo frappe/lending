@@ -116,7 +116,9 @@ class LoanSecurityRelease(Document):
 	def _throw(self, security_value, pending_principal_amount, ltv_ratio):
 		msg = _("Loan Security Value after unpledge is {0}").format(frappe.bold(security_value))
 		msg += "<br>"
-		msg += _("Pending principal amount is {0}").format(frappe.bold(flt(pending_principal_amount, 2)))
+		msg += _("Pending principal amount for loan {0} is {1}").format(
+			frappe.bold(self.loan), frappe.bold(flt(pending_principal_amount, 2))
+		)
 		msg += "<br>"
 		msg += _("Loan To Security Value ratio must always be {0}").format(frappe.bold(ltv_ratio))
 		frappe.throw(msg, title=_("Loan To Value ratio breach"))
