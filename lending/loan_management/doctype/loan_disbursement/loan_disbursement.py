@@ -220,6 +220,7 @@ class LoanDisbursement(AccountsController):
 					"loan": self.against_loan,
 					"loan_disbursement": self.name,
 					"deposit_amount": self.monthly_repayment_amount,
+					"available_amount": self.monthly_repayment_amount,
 				}
 			).insert()
 			sd.submit()
