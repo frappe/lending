@@ -544,6 +544,14 @@ class LoanDisbursement(AccountsController):
 			broken_period_interest_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
 			)
+
+			if not broken_period_interest_account:
+				frappe.throw(
+					_("Please set Broken Period Interest Recovery Account for the Loan Product {0}").format(
+						frappe.bold(self.loan_product)
+					)
+				)
+
 			self.add_gl_entry(
 				gle_map,
 				broken_period_interest_account,

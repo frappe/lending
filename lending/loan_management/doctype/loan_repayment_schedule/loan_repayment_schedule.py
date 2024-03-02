@@ -355,7 +355,7 @@ class LoanRepaymentSchedule(Document):
 				if self.repayment_date_on == "Start of the next month":
 					expected_payment_date = add_days(expected_payment_date, 1)
 
-				if self.repayment_schedule_type == "Monthly as per cycle date":
+				if self.repayment_schedule_type in ("Monthly as per cycle date", "Line of Credit"):
 					days = date_diff(payment_date, add_months(payment_date, -1))
 					if additional_days < 0 or (additional_days > 0 and self.moratorium_tenure):
 						days = date_diff(payment_date, self.posting_date)
