@@ -23,19 +23,28 @@ lending.common = {
 				erpnext.hide_company();
 				frm.trigger("set_company_filter");
 			},
-
+			applicant_type: function(frm) {
+				frm.trigger("set_company_filter");
+			},
 			set_company_filter: function(frm) {
-				if (
-					["Loan Application", "Loan"].includes(frm.doc.doctype) &&
-					frm.doc.applicant_type === "Employee"
-				) {
-					frm.set_query("applicant", function() {
-						return {
-							"filters": {
-								"company": frm.doc.company
-							}
-						};
-					});
+				if (["Loan Application", "Loan"].includes(frm.doc.doctype)) {
+					if (frm.doc.applicant_type === "Employee") {
+						frm.set_query("applicant", function() {
+							return {
+								"filters": {
+									"company": frm.doc.company
+								}
+							};
+						});
+					} else {
+						frm.set_query("applicant", function() {
+							return {
+								"filters": {
+									"docstatus": 0
+								}
+							};
+						});
+					}
 				}
 			},
 
