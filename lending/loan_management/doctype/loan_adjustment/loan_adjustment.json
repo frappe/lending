@@ -6,11 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_md4g",
-  "amended_from",
-  "posting_date",
   "loan",
-  "is_foreclosure",
-  "adjustments"
+  "foreclosure_type",
+  "column_break_lgju",
+  "posting_date",
+  "section_break_eauk",
+  "adjustments",
+  "amended_from"
  ],
  "fields": [
   {
@@ -34,12 +36,6 @@
    "options": "Loan"
   },
   {
-   "default": "0",
-   "fieldname": "is_foreclosure",
-   "fieldtype": "Check",
-   "label": "Is Foreclosure"
-  },
-  {
    "fieldname": "adjustments",
    "fieldtype": "Table",
    "label": "Adjustments",
@@ -49,12 +45,26 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "label": "Posting Date"
+  },
+  {
+   "fieldname": "foreclosure_type",
+   "fieldtype": "Select",
+   "label": "Foreclosure Type",
+   "options": "Manual Foreclosure\nInternal Foreclosure"
+  },
+  {
+   "fieldname": "column_break_lgju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_eauk",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-29 13:08:15.075604",
+ "modified": "2024-03-04 13:22:59.964685",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",
