@@ -964,6 +964,7 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest"):
 			"loan": loan,
 			"docstatus": 1,
 			"demand_date": ("<=", posting_date),
+			"demand_type": "EMI",
 			"demand_subtype": demand_subtype,
 		},
 		"SUM(demand_amount)",
