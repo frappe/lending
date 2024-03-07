@@ -35,7 +35,7 @@ frappe.ui.form.on('Loan Repayment', {
 		}
 	},
 
-	payment_type: function(frm) {
+	repayment_type: function(frm) {
 		if (frm.doc.posting_date) {
 			frm.trigger('calculate_repayment_amounts');
 		}
@@ -47,7 +47,7 @@ frappe.ui.form.on('Loan Repayment', {
 			args: {
 				'against_loan': frm.doc.against_loan,
 				'posting_date': frm.doc.posting_date,
-				'payment_type': frm.doc.payment_type
+				'payment_type': frm.doc.repayment_type
 			},
 			callback: function(r) {
 				let amounts = r.message;

@@ -283,10 +283,17 @@ class LoanRepayment(AccountsController):
 		loan_demand = frappe.qb.DocType("Loan Demand")
 		for payment in self.repayment_details:
 			paid_amount = payment.paid_amount
+
 			if cancel:
 				paid_amount = -1 * flt(payment.paid_amount)
+
+			if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+				paid_amount_field = "waived_amount"
+			else:
+				paid_amount_field = "paid_amount"
+
 			frappe.qb.update(loan_demand).set(
-				loan_demand.paid_amount, loan_demand.paid_amount + paid_amount
+				loan_demand[paid_amount_field], loan_demand[paid_amount_field] + paid_amount
 			).set(
 				loan_demand.outstanding_amount, loan_demand.outstanding_amount - paid_amount
 			).where(
@@ -372,8 +379,8 @@ class LoanRepayment(AccountsController):
 				"monthly_repayment_amount",
 			)
 
-			if self.get("repayment_type") == "Normal Repayment":
-				frappe.throw(_("Amount paid cannot be greater than payable amount for normal repayment"))
+			if self.get("repayment_type") not in ("Advance Repayment", "Normal Repayment"):
+				frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") != "Pre Payment":
 				frappe.throw(_("Only pre payment type allowed for this scenario"))
 
@@ -699,7 +706,9 @@ def create_repayment_entry(
 	return lr
 
 
-def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
+def get_unpaid_demands(
+	against_loan, posting_date=None, loan_product=None, demand_type=None, demand_subtype=None
+):
 	if not posting_date:
 		posting_date = getdate()
 
@@ -718,7 +727,7 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 			loan_demand.last_repayment_date,
 			loan_demand.loan_product,
 			loan_demand.company,
-			(loan_demand.demand_amount - loan_demand.paid_amount).as_("outstanding_amount"),
+			(loan_demand.outstanding_amount).as_("outstanding_amount"),
 			loan_demand.demand_subtype,
 			loan_demand.demand_type,
 		)
@@ -737,13 +746,19 @@ def get_unpaid_demands(against_loan, posting_date=None, loan_product=None):
 	if loan_product:
 		query = query.where(loan_demand.loan_product == loan_product)
 
+	if demand_type:
+		query = query.where(loan_demand.demand_type == demand_type)
+
+	if demand_subtype:
+		query = query.where(loan_demand.demand_subtype == demand_subtype)
+
 	loan_demands = query.run(as_dict=1)
 
 	return loan_demands
 
 
 def get_pending_principal_amount(loan):
-	precision = cint(frappe.db.get_default("currency_precision"))
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if loan.status in ("Disbursed", "Closed", "Active"):
 		pending_principal_amount = flt(
@@ -775,16 +790,37 @@ def get_pending_principal_amount(loan):
 # So it pulls all the unpaid Loan Interest Accrual Entries and calculates the penalty if applicable
 
 
-def get_amounts(amounts, against_loan, posting_date, with_loan_details=False):
+def get_demand_type(payment_type):
+	demand_type = None
+	demand_subtype = None
+
+	if payment_type == "Interest Waiver":
+		demand_type = "EMI"
+		demand_subtype = "Interest"
+	elif payment_type == "Penalty Waiver":
+		demand_type = "Penalty"
+		demand_subtype = "Penalty"
+	elif payment_type == "Charges Waiver":
+		demand_type = "Charges"
+		demand_subtype = "Charges"
+
+	return demand_type, demand_subtype
+
+
+def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, payment_type=None):
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		calculate_accrual_amount_for_loans,
 		calculate_penal_interest_for_loans,
 	)
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	demand_type, demand_subtype = get_demand_type(payment_type)
 
 	against_loan_doc = frappe.get_doc("Loan", against_loan)
-	unpaid_demands = get_unpaid_demands(against_loan_doc.name, posting_date)
+	unpaid_demands = get_unpaid_demands(
+		against_loan_doc.name, posting_date, demand_type=demand_type, demand_subtype=demand_subtype
+	)
+
 	total_pending_interest = 0
 	charges = 0
 	penalty_amount = 0
@@ -853,9 +889,11 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 	}
 
 	if with_loan_details:
-		amounts, loan_details = get_amounts(amounts, against_loan, posting_date, with_loan_details)
+		amounts, loan_details = get_amounts(
+			amounts, against_loan, posting_date, with_loan_details, payment_type=payment_type
+		)
 	else:
-		amounts = get_amounts(amounts, against_loan, posting_date)
+		amounts = get_amounts(amounts, against_loan, posting_date, payment_type=payment_type)
 
 	amounts["available_security_deposit"] = frappe.db.get_value(
 		"Loan Security Deposit", {"loan": against_loan}, "sum(deposit_amount - allocated_amount)"
