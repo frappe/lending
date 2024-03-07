@@ -251,8 +251,6 @@
    "read_only": 1
   },
   {
-   "fetch_from": "against_loan.repayment_start_date",
-   "fetch_if_empty": 1,
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -297,7 +295,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-29 18:31:36.297386",
+ "modified": "2024-03-07 18:31:36.297386",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

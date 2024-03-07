@@ -250,7 +250,9 @@ class LoanDisbursement(AccountsController):
 			sd.delete()
 
 	def validate_repayment_start_date(self):
-		if getdate(self.repayment_start_date) < getdate(self.disbursement_date):
+		if self.repayment_start_date and getdate(self.repayment_start_date) < getdate(
+			self.disbursement_date
+		):
 			frappe.throw(_("Repayment Start Date cannot be before Disbursement Date"))
 
 	def validate_disbursal_amount(self):
@@ -414,6 +416,7 @@ class LoanDisbursement(AccountsController):
 		)
 
 	def get_values_on_submit(self, loan_details):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		disbursed_amount = self.disbursed_amount + loan_details.disbursed_amount
 
 		if loan_details.repayment_schedule_type == "Line of Credit":
@@ -434,8 +437,8 @@ class LoanDisbursement(AccountsController):
 			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan_disbursement": self.name})
 			for data in schedule.repayment_schedule:
 				if getdate(data.payment_date) >= getdate(self.repayment_start_date):
-					total_payment += data.total_payment
-					total_interest_payable += data.interest_amount
+					total_payment += flt(data.total_payment, precision)
+					total_interest_payable += flt(data.interest_amount, precision)
 		else:
 			total_payment = self.disbursed_amount
 

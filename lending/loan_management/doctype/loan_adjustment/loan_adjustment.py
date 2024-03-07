@@ -10,6 +10,7 @@ from lending.loan_management.doctype.loan_restructure.loan_restructure import cr
 class LoanAdjustment(Document):
 	def on_submit(self):
 		for repayment in self.get("adjustments"):
-			create_loan_repayment(
-				self.loan, self.posting_date, repayment.loan_repayment_type, repayment.amount
-			)
+			if repayment.amount:
+				create_loan_repayment(
+					self.loan, self.posting_date, repayment.loan_repayment_type, repayment.amount
+				)
