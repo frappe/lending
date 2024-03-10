@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-03-04 15:20:56.922926",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "applicant",
+  "column_break_raqx",
+  "company",
+  "transfer_date",
+  "branch_details_section",
+  "from_branch",
+  "column_break_phys",
+  "to_branch",
+  "loans_section",
+  "loans",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_phys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loans_section",
+   "fieldtype": "Section Break",
+   "label": "Loans"
+  },
+  {
+   "fieldname": "loans",
+   "fieldtype": "Table",
+   "label": "Loans",
+   "options": "Loan Transfer Detail"
+  },
+  {
+   "fieldname": "column_break_raqx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Transfer",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "applicant",
+   "fieldtype": "Link",
+   "label": "Applicant",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "transfer_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Transfer Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "branch_details_section",
+   "fieldtype": "Section Break",
+   "label": "Branch Details"
+  },
+  {
+   "fieldname": "from_branch",
+   "fieldtype": "Link",
+   "label": "From Branch",
+   "options": "Branch",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_branch",
+   "fieldtype": "Link",
+   "label": "To Branch",
+   "options": "Branch",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-03-05 17:11:57.134602",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Transfer",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

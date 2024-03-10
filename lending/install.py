@@ -190,6 +190,22 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "default_write_off_account",
 		},
 	],
+	"Journal Entry": [
+		{
+			"fieldname": "loan_transfer",
+			"fieldtype": "Link",
+			"label": "Loan Transfer",
+			"insert_after": "naming_series",
+			"options": "Loan Transfer",
+		},
+		{
+			"fieldname": "loan",
+			"fieldtype": "Link",
+			"label": "Loan",
+			"insert_after": "loan_transfer",
+			"options": "Loan",
+		},
+	],
 }
 
 
