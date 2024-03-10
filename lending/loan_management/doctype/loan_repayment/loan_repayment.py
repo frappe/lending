@@ -317,20 +317,15 @@ class LoanRepayment(AccountsController):
 			).run()
 
 	def check_future_accruals(self):
-		if self.is_term_loan:
-			return
-
-		future_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"due_date": (">", self.posting_date), "docstatus": 1, "loan": self.against_loan},
-			"due_date",
+		future_repayment = frappe.db.get_value(
+			"Loan Repayment",
+			{"posting_date": (">", self.posting_date), "docstatus": 1, "loan": self.against_loan},
+			"posting_date",
 		)
 
-		if future_accrual_date:
+		if future_repayment:
 			frappe.throw(
-				"Cannot cancel. Interest accruals already processed till {0}".format(
-					get_datetime(future_accrual_date)
-				)
+				"Cannot cancel. Repayments made till date {0}".format(get_datetime(future_repayment))
 			)
 
 	def allocate_amount_against_demands(self, amounts):
