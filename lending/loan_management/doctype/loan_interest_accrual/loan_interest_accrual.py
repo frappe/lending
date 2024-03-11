@@ -241,7 +241,7 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date):
 			"Repayment Schedule",
 			filters={
 				"parent": ("in", schedules),
-				"payment_date": (">", last_accrual_date),
+				"payment_date": ("between", [last_accrual_date, posting_date]),
 			},
 			fields=["payment_date", "parent"],
 			order_by="payment_date",
