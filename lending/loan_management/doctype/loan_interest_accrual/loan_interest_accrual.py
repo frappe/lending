@@ -250,11 +250,12 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date):
 	)
 
 	for schedule in schedules:
+		to_accrual_date = posting_date
 		maturity_date = get_maturity_date(schedule)
 		if maturity_date and getdate(maturity_date) < getdate(posting_date):
-			posting_date = maturity_date
+			to_accrual_date = maturity_date
 
-		schedule_dates.append(frappe._dict({"payment_date": posting_date, "parent": schedule}))
+		schedule_dates.append(frappe._dict({"payment_date": to_accrual_date, "parent": schedule}))
 
 	return schedule_dates
 
