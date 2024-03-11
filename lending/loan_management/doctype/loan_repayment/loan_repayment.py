@@ -319,7 +319,7 @@ class LoanRepayment(AccountsController):
 	def check_future_accruals(self):
 		future_repayment = frappe.db.get_value(
 			"Loan Repayment",
-			{"posting_date": (">", self.posting_date), "docstatus": 1, "loan": self.against_loan},
+			{"posting_date": (">", self.posting_date), "docstatus": 1, "against_loan": self.against_loan},
 			"posting_date",
 		)
 
