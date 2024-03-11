@@ -374,7 +374,7 @@ class LoanRepayment(AccountsController):
 				"monthly_repayment_amount",
 			)
 
-			if self.get("repayment_type") not in ("Advance Repayment", "Normal Repayment"):
+			if self.get("repayment_type") not in ("Advance Repayment", "Pre Payment"):
 				frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") != "Pre Payment":
 				frappe.throw(_("Only pre payment type allowed for this scenario"))

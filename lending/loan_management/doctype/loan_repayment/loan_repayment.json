@@ -41,7 +41,6 @@
   "pending_charges",
   "column_break_g9f3",
   "total_charges_payable",
-  "total_paid_charges",
   "references_section",
   "reference_number",
   "total_interest_paid",
@@ -349,12 +348,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "total_paid_charges",
-   "fieldtype": "Currency",
-   "label": "Total Paid Charges",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_g9f3",
    "fieldtype": "Column Break"
   },
@@ -394,7 +387,8 @@
   {
    "fieldname": "total_charges_paid",
    "fieldtype": "Currency",
-   "label": "Total Charges Paid"
+   "label": "Total Charges Paid",
+   "read_only": 1
   },
   {
    "fieldname": "mode_of_payment",
@@ -412,7 +406,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-02-07 15:50:13.485624",
+ "modified": "2024-03-11 15:50:13.485624",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
