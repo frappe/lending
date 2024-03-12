@@ -223,7 +223,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.rate_of_interest = rate_of_interest
 		loan_interest_accrual.loan_demand = loan_demand
 		loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
-		loan_interest_accrual.additional_interest = additional_interest
+		loan_interest_accrual.additional_interest_amount = additional_interest
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -308,6 +308,7 @@ def calculate_penal_interest_for_loans(
 		get_unpaid_demands,
 	)
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	demands = get_unpaid_demands(loan.name, posting_date)
 
 	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
@@ -336,14 +337,19 @@ def calculate_penal_interest_for_loans(
 				if penal_interest_amount > 0:
 					total_penal_interest += penal_interest_amount
 
-					if demand.subtype == "Interest":
-						pending_principal_amount = get_pending_principal_amount(loan)
+					if demand.demand_subtype == "Interest":
+						day_end_balance = get_pending_principal_amount(loan)
+						schedule_balance = get_principal_amount_for_term_loan(
+							demand.loan_repayment_schedule, posting_date
+						)
+
+						pending_principal_amount = day_end_balance - schedule_balance
+
 						per_day_interest = get_per_day_interest(
 							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
 						)
-						total_interest = per_day_interest * no_of_days
-						additional_interest = total_interest - demand.outstanding_amount
 
+						additional_interest = flt(per_day_interest * no_of_days, precision)
 					if not is_future_accrual:
 						make_loan_interest_accrual_entry(
 							loan.name,
