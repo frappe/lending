@@ -365,7 +365,7 @@ class LoanRestructure(AccountsController):
 			)
 
 	def validate_new_loan_amount(self):
-		if self.new_loan_amount > self.disbursed_amount:
+		if self.restructure_type != "Advance Payment" and self.new_loan_amount > self.disbursed_amount:
 			frappe.throw(frappe._("New Loan Amount cannot be greater than original disbursed amount"))
 
 	def restructure_loan(self):
@@ -608,12 +608,12 @@ def create_loan_repayment(
 
 def create_update_loan_reschedule(loan, posting_date, loan_repayment):
 	pending_tenure, repayment_start_date = get_pending_tenure_and_start_date(loan, posting_date)
-
 	if frappe.db.get_value("Loan Restructure", {"loan_repayment": loan_repayment}):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": loan_repayment})
 		loan_restructure.restructure_date = posting_date
 		loan_restructure.repayment_start_date = repayment_start_date
 		loan_restructure.new_repayment_period_in_months = pending_tenure
+		loan_restructure.flags.ignore_links = True
 		loan_restructure.save()
 	else:
 		loan_restructure = frappe.new_doc("Loan Restructure")
@@ -624,6 +624,7 @@ def create_update_loan_reschedule(loan, posting_date, loan_repayment):
 		loan_restructure.new_repayment_method = "Repay Over Number of Periods"
 		loan_restructure.new_repayment_period_in_months = pending_tenure
 		loan_restructure.loan_repayment = loan_repayment
+		loan_restructure.flags.ignore_links = True
 		loan_restructure.save()
 
 

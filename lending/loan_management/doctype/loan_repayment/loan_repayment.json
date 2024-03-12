@@ -131,6 +131,7 @@
    "bold": 1,
    "fieldname": "amount_paid",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Amount Paid",
    "non_negative": 1,
    "options": "Company:company:default_currency",
@@ -352,9 +353,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
    "default": "Normal Repayment",
    "fieldname": "repayment_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Repayment Type",
    "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nInterest Capitalization\nCharges Capitalization\nPenalty Capitalization\nPrincipal Adjustment\nInterest Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments\nLoan Closure"
   },
@@ -406,7 +409,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-11 15:50:13.485624",
+ "modified": "2024-03-12 13:15:42.086497",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

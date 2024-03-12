@@ -48,7 +48,7 @@ class LoanRepayment(AccountsController):
 		if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
 
-	def after_insert(self):
+	def before_submit(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
 		)
@@ -57,8 +57,7 @@ class LoanRepayment(AccountsController):
 		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
 
-	def before_submit(self):
-		if self.repayment_type == "Advance Payment":
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			self.process_reschedule()
 
 	def on_submit(self):
@@ -72,6 +71,7 @@ class LoanRepayment(AccountsController):
 		# 		loan=self.against_loan,
 		# 		payment_reference=self.name,
 		# 	)
+
 		if self.repayment_type == "Advance Payment":
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
@@ -98,6 +98,7 @@ class LoanRepayment(AccountsController):
 
 		reverse_loan_interest_accruals(self.against_loan, self.posting_date)
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
+		loan_restructure.flags.ignore_links = True
 		loan_restructure.submit()
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
