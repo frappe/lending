@@ -30,7 +30,7 @@ class LoanDemand(AccountsController):
 
 		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
 
-		if getdate(last_accrual_job_date) < getdate(self.demand_date):
+		if getdate(last_accrual_job_date) < getdate(self.demand_date) and self.demand_type == "EMI":
 			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
@@ -204,6 +204,13 @@ def create_loan_demand(
 		demand.submit()
 
 
-def reverse_demands(loan, posting_date):
-	for demand in frappe.get_all("Loan Demand", {"loan": loan, "demand_date": (">", posting_date)}):
-		frappe.get_doc("Loan Demand", demand.name).cancel()
+def reverse_demands(loan, posting_date, demand_type=None):
+	filters = {"loan": loan, "demand_date": (">", posting_date), "docstatus": 1}
+
+	if demand_type:
+		filters["demand_type"] = demand_type
+
+	for demand in frappe.get_all("Loan Demand", filters=filters):
+		doc = frappe.get_doc("Loan Demand", demand.name)
+		doc.flags.ignore_links = True
+		doc.cancel()

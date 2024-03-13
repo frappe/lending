@@ -72,6 +72,11 @@ class LoanRepayment(AccountsController):
 		# 		payment_reference=self.name,
 		# 	)
 
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
+
 		if self.repayment_type == "Advance Payment":
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
@@ -90,6 +95,10 @@ class LoanRepayment(AccountsController):
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
+		reverse_loan_interest_accruals(
+			self.against_loan, self.posting_date, interest_type="Penal Interest"
+		)
+		reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
 
 	def process_reschedule(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
