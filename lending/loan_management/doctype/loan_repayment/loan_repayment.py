@@ -45,8 +45,9 @@ class LoanRepayment(AccountsController):
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
-		if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+				create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
 
 	def before_submit(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -54,10 +55,10 @@ class LoanRepayment(AccountsController):
 		)
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-			create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
-
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+				create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+
 			self.process_reschedule()
 
 	def on_submit(self):
@@ -262,7 +263,7 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 	def update_paid_amounts(self):
-		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
+		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment", "Loan Closure"):
 			loan = frappe.qb.DocType("Loan")
 			query = (
 				frappe.qb.update(loan)
@@ -272,10 +273,12 @@ class LoanRepayment(AccountsController):
 			)
 
 			pending_principal_amount = get_pending_principal_amount(loan)
-			if not loan.is_secured_loan and pending_principal_amount <= 0:
-				query = query.set(loan.status, "Loan Closure Requested")
-			query.run()
+			is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
+			if not is_secured_loan and pending_principal_amount <= 0:
+				query = query.set(loan.status, "Closed")
+
+			query.run()
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def mark_as_unpaid(self):
@@ -384,9 +387,12 @@ class LoanRepayment(AccountsController):
 				"monthly_repayment_amount",
 			)
 
-			if self.get("repayment_type") not in ("Advance Payment", "Pre Payment"):
+			if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
 				frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
-			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") != "Pre Payment":
+			elif amount_paid > monthly_repayment_amount and self.get("repayment_type") not in (
+				"Pre Payment",
+				"Loan Closure",
+			):
 				frappe.throw(_("Only pre payment type allowed for this scenario"))
 
 			# last_demand_date = get_last_demand_date(self.payable_amount, self.posting_date)
@@ -483,7 +489,6 @@ class LoanRepayment(AccountsController):
 
 		if flt(self.principal_amount_paid, precision) > 0:
 			against_account = self.loan_account
-
 			gle_map.append(
 				self.get_gl_dict(
 					{
@@ -638,6 +643,7 @@ class LoanRepayment(AccountsController):
 			"Interest Capitalization": "loan_account",
 			"Charges Capitalization": "loan_account",
 			"Penalty Capitalization": "loan_account",
+			"Loan Closure": "payment_account",
 			"Write Off Recovery": "write_off_recovery_account",
 			"Principal Adjustment": "loan_account",
 			"Interest Adjustment": "security_deposit_account",
