@@ -92,9 +92,13 @@ class LoanRepaymentSchedule(Document):
 		if not self.repayment_start_date:
 			frappe.throw(_("Repayment Start Date is mandatory for term loans"))
 
-		self.repayment_schedule = []
+		self.set("repayment_schedule", [])
 		self.broken_period_interest = 0
-		previous_interest_amount, balance_amount = self.add_rows_from_prev_disbursement()
+		(
+			previous_interest_amount,
+			balance_amount,
+			additional_principal_amount,
+		) = self.add_rows_from_prev_disbursement()
 
 		payment_date = self.repayment_start_date
 		carry_forward_interest = self.adjusted_interest
@@ -128,7 +132,12 @@ class LoanRepaymentSchedule(Document):
 						moratorium_interest = 0
 
 			interest_amount, principal_amount, balance_amount, total_payment, days = self.get_amounts(
-				payment_date, balance_amount, additional_days, carry_forward_interest, previous_interest_amount
+				payment_date,
+				balance_amount,
+				additional_days,
+				carry_forward_interest,
+				previous_interest_amount,
+				additional_principal_amount,
 			)
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
@@ -180,6 +189,7 @@ class LoanRepaymentSchedule(Document):
 			carry_forward_interest = 0
 			additional_days = 0
 			previous_interest_amount = 0
+			additional_principal_amount = 0
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -230,6 +240,7 @@ class LoanRepaymentSchedule(Document):
 		previous_interest_amount = 0
 		completed_tenure = 0
 		balance_principal_amount = self.current_principal_amount
+		additional_principal_amount = 0
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
@@ -242,39 +253,44 @@ class LoanRepaymentSchedule(Document):
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
 				prev_monthly_repayment_amount = prev_schedule.monthly_repayment_amount
-				for row in prev_schedule.get("repayment_schedule"):
-					if getdate(row.payment_date) < getdate(self.posting_date):
-						self.add_repayment_schedule_row(
-							row.payment_date,
-							row.principal_amount,
-							row.interest_amount,
-							row.total_payment,
-							row.balance_loan_amount,
-							row.number_of_days,
-							demand_generated=row.demand_generated,
-						)
-						prev_repayment_date = row.payment_date
-						prev_balance_amount = row.balance_loan_amount
-						if row.principal_amount:
-							completed_tenure += 1
-					else:
-						self.repayment_start_date = row.payment_date
-						prev_repayment_date = row.payment_date
-						prev_balance_amount = row.balance_loan_amount
-						break
 
-				if self.repayment_start_date < prev_schedule.repayment_start_date:
+				if getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date):
+					for row in prev_schedule.get("repayment_schedule"):
+						if getdate(row.payment_date) < getdate(self.posting_date):
+							self.add_repayment_schedule_row(
+								row.payment_date,
+								row.principal_amount,
+								row.interest_amount,
+								row.total_payment,
+								row.balance_loan_amount,
+								row.number_of_days,
+								demand_generated=row.demand_generated,
+							)
+							prev_repayment_date = row.payment_date
+							prev_balance_amount = row.balance_loan_amount
+							if row.principal_amount:
+								completed_tenure += 1
+						else:
+							self.repayment_start_date = row.payment_date
+							prev_repayment_date = row.payment_date
+							prev_balance_amount = row.balance_loan_amount
+							break
+
+					pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
+
+					if pending_prev_days > 0:
+						previous_interest_amount += flt(
+							prev_balance_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
+						)
+				elif date_diff(add_months(self.repayment_start_date, -1), self.posting_date) > 0:
 					self.repayment_start_date = prev_schedule.repayment_start_date
 					prev_days = date_diff(self.posting_date, prev_schedule.posting_date)
 					interest_amount = flt(prev_balance_amount * flt(self.rate_of_interest) * prev_days / (36500))
 					self.broken_period_interest += interest_amount
-
-				pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
-
-				if pending_prev_days > 0:
-					previous_interest_amount = flt(
-						prev_balance_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
-					)
+				else:
+					prev_balance_amount = prev_schedule.current_principal_amount
+					previous_interest_amount = prev_schedule.get("repayment_schedule")[0].interest_amount
+					additional_principal_amount = self.disbursed_amount
 
 				if self.restructure_type == "Reschedule":
 					paid_principal_amount = prev_monthly_repayment_amount - previous_interest_amount
@@ -303,7 +319,7 @@ class LoanRepaymentSchedule(Document):
 					self.repayment_frequency,
 				)
 
-		return previous_interest_amount, balance_principal_amount
+		return previous_interest_amount, balance_principal_amount, additional_principal_amount
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
@@ -322,9 +338,18 @@ class LoanRepaymentSchedule(Document):
 		additional_days,
 		carry_forward_interest=0,
 		previous_interest_amount=0,
+		additional_principal_amount=0,
 	):
 		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
-		interest_amount = flt(balance_amount * flt(self.rate_of_interest) * days / (months * 100))
+		if additional_principal_amount:
+			current_balance_amount = additional_principal_amount
+			additional_principal_amount = 0
+		else:
+			current_balance_amount = balance_amount
+
+		interest_amount = flt(
+			current_balance_amount * flt(self.rate_of_interest) * days / (months * 100)
+		)
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
 
 		if carry_forward_interest:
