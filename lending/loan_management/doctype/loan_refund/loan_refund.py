@@ -9,9 +9,9 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-	get_pending_principal_amount,
-)
+# from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+# 	get_pending_principal_amount,
+# )
 
 
 class LoanRefund(AccountsController):
@@ -21,22 +21,22 @@ class LoanRefund(AccountsController):
 
 	def validate(self):
 		self.set_missing_values()
-		self.validate_refund_amount()
+		# self.validate_refund_amount()
 
 	def set_missing_values(self):
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
-	def validate_refund_amount(self):
-		loan = frappe.get_doc("Loan", self.loan)
-		pending_amount = get_pending_principal_amount(loan)
-		if pending_amount >= 0:
-			frappe.throw(_("No excess amount to refund."))
-		else:
-			excess_amount = pending_amount * -1
+	# def validate_refund_amount(self):
+	# 	loan = frappe.get_doc("Loan", self.loan)
+	# 	pending_amount = get_pending_principal_amount(loan)
+	# 	if pending_amount >= 0:
+	# 		frappe.throw(_("No excess amount to refund."))
+	# 	else:
+	# 		excess_amount = pending_amount * -1
 
-		if self.refund_amount > excess_amount:
-			frappe.throw(_("Refund amount cannot be greater than excess amount {0}").format(excess_amount))
+	# 	if self.refund_amount > excess_amount:
+	# 		frappe.throw(_("Refund amount cannot be greater than excess amount {0}").format(excess_amount))
 
 	def on_submit(self):
 		self.update_outstanding_amount()
