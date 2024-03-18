@@ -746,7 +746,7 @@ def get_unpaid_demands(
 			(loan_demand.loan == against_loan)
 			& (loan_demand.docstatus == 1)
 			& (loan_demand.demand_date <= posting_date)
-			& (Round(loan_demand.demand_amount - loan_demand.paid_amount, precision) > 0)
+			& (Round(loan_demand.outstanding_amount, precision) > 0)
 		)
 		.orderby(loan_demand.disbursement_date)
 		.orderby(loan_demand.repayment_schedule_detail)
@@ -813,7 +813,6 @@ def get_demand_type(payment_type):
 		demand_subtype = "Penalty"
 	elif payment_type == "Charges Waiver":
 		demand_type = "Charges"
-		demand_subtype = "Charges"
 
 	return demand_type, demand_subtype
 
