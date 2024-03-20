@@ -144,7 +144,7 @@ class LoanDisbursement(AccountsController):
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.cancel()
 
-	def cancel_and_delete_sales_invoice(self):
+	def cancel_sales_invoice(self):
 		filters = {
 			"loan": self.against_loan,
 			"loan_disbursement": self.name,
@@ -154,7 +154,6 @@ class LoanDisbursement(AccountsController):
 		for si in frappe.get_all("Sales Invoice", filters, pluck="name"):
 			si_doc = frappe.get_doc("Sales Invoice", si)
 			si_doc.cancel()
-			si_doc.delete()
 
 	def update_current_repayment_schedule(self, cancel=0):
 		# Update status of existing schedule on top up
@@ -198,7 +197,7 @@ class LoanDisbursement(AccountsController):
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
 
-		self.cancel_and_delete_sales_invoice()
+		self.cancel_sales_invoice()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
