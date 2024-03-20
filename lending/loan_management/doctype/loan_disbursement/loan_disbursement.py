@@ -120,7 +120,6 @@ class LoanDisbursement(AccountsController):
 		self.set_status_and_amounts()
 
 		update_loan_securities_values(self.against_loan, self.disbursed_amount, self.doctype)
-		self.set_status_of_loan_securities()
 		self.create_loan_limit_change_log()
 		self.withheld_security_deposit()
 		self.make_gl_entries()
@@ -144,6 +143,18 @@ class LoanDisbursement(AccountsController):
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.cancel()
+
+	def cancel_and_delete_sales_invoice(self):
+		filters = {
+			"loan": self.against_loan,
+			"loan_disbursement": self.name,
+			"docstatus": 1,
+		}
+
+		for si in frappe.get_all("Sales Invoice", filters, pluck="name"):
+			si_doc = frappe.get_doc("Sales Invoice", si)
+			si_doc.cancel()
+			si_doc.delete()
 
 	def update_current_repayment_schedule(self, cancel=0):
 		# Update status of existing schedule on top up
@@ -187,6 +198,7 @@ class LoanDisbursement(AccountsController):
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
 
+		self.cancel_and_delete_sales_invoice()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
@@ -294,28 +306,6 @@ class LoanDisbursement(AccountsController):
 				value_type="Utilized Limit Amount",
 				value_change=self.disbursed_amount,
 			)
-
-	def set_status_of_loan_securities(self, cancel=0):
-		if not frappe.db.get_value("Loan", self.against_loan, "is_secured_loan"):
-			return
-
-		if not cancel:
-			new_status = "Hypothecated"
-			old_status = "Pending Hypothecation"
-		else:
-			new_status = "Pending Hypothecation"
-			old_status = "Hypothecated"
-
-		frappe.db.sql(
-			"""
-			UPDATE `tabLoan Security` ls
-			JOIN `tabPledge` p ON p.loan_security=ls.name
-			JOIN `tabLoan Security Assignment` lsa ON lsa.name=p.parent
-			SET ls.status=%s
-			WHERE lsa.loan=%s AND ls.status=%s
-		""",
-			(new_status, self.against_loan, old_status),
-		)
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
@@ -563,7 +553,7 @@ class LoanDisbursement(AccountsController):
 				remarks,
 			)
 
-		if self.get("loan_disbursement_charges"):
+		if self.get("loan_disbursement_charges") and not cancel:
 			sales_invoice = make_sales_invoice_for_charge(
 				self.against_loan,
 				self.name,
