@@ -206,7 +206,6 @@ class LoanDisbursement(AccountsController):
 			self.doctype,
 			on_trigger_doc_cancel=1,
 		)
-		self.set_status_of_loan_securities(cancel=1)
 
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
