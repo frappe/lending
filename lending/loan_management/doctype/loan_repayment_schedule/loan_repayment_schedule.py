@@ -42,7 +42,7 @@ class LoanRepaymentSchedule(Document):
 				paid_amount=bpi_row.interest_amount,
 			)
 
-		if self.restructure_type == "Reschedule":
+		if self.restructure_type == "Advance Payment":
 			advance_payment = ""
 			for row in self.repayment_schedule:
 				if not row.demand_generated:
@@ -81,10 +81,13 @@ class LoanRepaymentSchedule(Document):
 
 	def set_repayment_period(self):
 		if self.repayment_method == "Repay Fixed Amount per Period":
-			repayment_periods = len(self.repayment_schedule)
-
-			self.repayment_periods = repayment_periods
-		elif self.repayment_frequency == "One Time":
+			if self.restructure_type == "Pre Payment":
+				self.repayment_periods = math.ceil(
+					self.current_principal_amount / self.monthly_repayment_amount
+				)
+			else:
+				self.repayment_periods = len(self.repayment_schedule)
+		if self.repayment_frequency == "One Time":
 			self.repayment_method = "Repay Over Number of Periods"
 			self.repayment_periods = 1
 
@@ -171,11 +174,7 @@ class LoanRepaymentSchedule(Document):
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
 			)
 
-			if (
-				self.repayment_method == "Repay Over Number of Periods"
-				and self.repayment_frequency != "One Time"
-				and len(self.get("repayment_schedule")) >= tenure
-			):
+			if self.repayment_frequency != "One Time" and len(self.get("repayment_schedule")) >= tenure:
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
 				self.get("repayment_schedule")[-1].total_payment = (
@@ -225,7 +224,7 @@ class LoanRepaymentSchedule(Document):
 		else:
 			tenure = self.repayment_periods
 
-		if self.repayment_frequency == "Monthly" and not self.restructure_type:
+		if self.repayment_frequency == "Monthly" or self.restructure_type == "Pre Payment":
 			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 			if (
 				self.broken_period_interest_days > 0
@@ -245,7 +244,7 @@ class LoanRepaymentSchedule(Document):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
 			loan_status == "Partially Disbursed" and self.repayment_schedule_type != "Line of Credit"
-		) or self.restructure_type == "Reschedule":
+		) or self.restructure_type == "Advance Payment":
 			prev_schedule = frappe.get_doc(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
@@ -292,7 +291,7 @@ class LoanRepaymentSchedule(Document):
 					previous_interest_amount = prev_schedule.get("repayment_schedule")[0].interest_amount
 					additional_principal_amount = self.disbursed_amount
 
-				if self.restructure_type == "Reschedule":
+				if self.restructure_type == "Advance Payment":
 					paid_principal_amount = prev_monthly_repayment_amount - previous_interest_amount
 					balance_principal_amount = self.current_principal_amount - paid_principal_amount
 
@@ -307,17 +306,17 @@ class LoanRepaymentSchedule(Document):
 					)
 					completed_tenure += 1
 					previous_interest_amount = 0
-					self.repayment_start_date = self.get_next_payment_date(self.repayment_start_date)
-				else:
+				elif not self.restructure_type:
 					self.current_principal_amount = self.disbursed_amount + prev_balance_amount
 					balance_principal_amount = self.current_principal_amount
 
-				self.monthly_repayment_amount = get_monthly_repayment_amount(
-					balance_principal_amount,
-					self.rate_of_interest,
-					self.repayment_periods - completed_tenure,
-					self.repayment_frequency,
-				)
+				if self.repayment_method == "Repay Over Number of Periods":
+					self.monthly_repayment_amount = get_monthly_repayment_amount(
+						balance_principal_amount,
+						self.rate_of_interest,
+						self.repayment_periods - completed_tenure,
+						self.repayment_frequency,
+					)
 
 		return previous_interest_amount, balance_principal_amount, additional_principal_amount
 

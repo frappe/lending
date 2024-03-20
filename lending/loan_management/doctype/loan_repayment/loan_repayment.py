@@ -47,7 +47,30 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+				create_update_loan_reschedule(
+					self.against_loan,
+					self.posting_date,
+					self.name,
+					self.repayment_type,
+					self.principal_amount_paid,
+				)
+
+	def after_insert(self):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_update_loan_reschedule,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+				create_update_loan_reschedule(
+					self.against_loan,
+					self.posting_date,
+					self.name,
+					self.repayment_type,
+					self.principal_amount_paid,
+				)
 
 	def before_submit(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -57,7 +80,13 @@ class LoanRepayment(AccountsController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				create_update_loan_reschedule(self.against_loan, self.posting_date, self.name)
+				create_update_loan_reschedule(
+					self.against_loan,
+					self.posting_date,
+					self.name,
+					self.repayment_type,
+					self.principal_amount_paid,
+				)
 
 			self.process_reschedule()
 
@@ -272,8 +301,9 @@ class LoanRepayment(AccountsController):
 				.where(loan.name == self.against_loan)
 			)
 
-			pending_principal_amount = get_pending_principal_amount(loan)
-			is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
+			loan_doc = frappe.get_doc("Loan", self.against_loan)
+			pending_principal_amount = get_pending_principal_amount(loan_doc)
+			is_secured_loan = loan_doc.is_secured_loan
 
 			if not is_secured_loan and pending_principal_amount <= 0:
 				query = query.set(loan.status, "Closed")
@@ -395,18 +425,18 @@ class LoanRepayment(AccountsController):
 			):
 				frappe.throw(_("Only pre payment type allowed for this scenario"))
 
-			# last_demand_date = get_last_demand_date(self.payable_amount, self.posting_date)
-			# accrued_interest = get_accrued_interest(self.against_loan, last_demand_date)
+			pending_interest = amounts.get("unaccrued_interest") + amounts.get("unbooked_interest")
 
-			# if accrued_interest > 0:
-			# 	if accrued_interest > amount_paid:
-			# 		self.total_interest_paid += amount_paid
-			# 		amount_paid = 0
-			# 	else:
-			# 		self.total_interest_paid += accrued_interest
-			# 		amount_paid -= accrued_interest
+			if pending_interest > 0:
+				if pending_interest > amount_paid:
+					self.total_interest_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_interest_paid += pending_interest
+					amount_paid -= pending_interest
 
 			self.principal_amount_paid += flt(amount_paid, precision)
+			self.total_interest_paid += flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 			amount_paid = 0
 

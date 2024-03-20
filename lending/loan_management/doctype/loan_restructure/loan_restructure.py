@@ -53,7 +53,7 @@ class LoanRestructure(AccountsController):
 
 	def validate_restructure_date(self):
 		max_due_date = frappe.db.get_value("Loan Interest Accrual", {"loan": self.loan}, "max(due_date)")
-		if getdate(self.restructure_date) < getdate(max_due_date):
+		if max_due_date and getdate(self.restructure_date) < getdate(max_due_date):
 			frappe.throw(_("Restructure Date cannot be before last due date {0}").format(max_due_date))
 
 	def after_insert(self):
@@ -69,29 +69,30 @@ class LoanRestructure(AccountsController):
 			self.db_set("status", status)
 
 	def allocate_security_deposit(self):
-		deposit_amount = flt(self.available_security_deposit)
-		self.principal_adjusted = 0
-		self.adjusted_interest_amount = 0
-		self.adjusted_other_charges = 0
-		self.adjusted_unaccrued_interest = 0
+		if self.restructure_type == "Normal Restructure":
+			deposit_amount = flt(self.available_security_deposit)
+			self.principal_adjusted = 0
+			self.adjusted_interest_amount = 0
+			self.adjusted_other_charges = 0
+			self.adjusted_unaccrued_interest = 0
 
-		if deposit_amount > 0:
-			# Adjust Principal
-			deposit_amount = self.adjust_component(
-				deposit_amount, "principal_overdue", "principal_adjusted"
-			)
+			if deposit_amount > 0:
+				# Adjust Principal
+				deposit_amount = self.adjust_component(
+					deposit_amount, "principal_overdue", "principal_adjusted"
+				)
 
-		if deposit_amount > 0:
-			# Adjust Interest
-			deposit_amount = self.adjust_component(
-				deposit_amount, "interest_overdue", "adjusted_interest_amount"
-			)
+			if deposit_amount > 0:
+				# Adjust Interest
+				deposit_amount = self.adjust_component(
+					deposit_amount, "interest_overdue", "adjusted_interest_amount"
+				)
 
-		if deposit_amount > 0:
-			# Adjust Penalty
-			deposit_amount = self.adjust_component(
-				deposit_amount, "penalty_overdue", "adjusted_penalty_amount"
-			)
+			if deposit_amount > 0:
+				# Adjust Penalty
+				deposit_amount = self.adjust_component(
+					deposit_amount, "penalty_overdue", "adjusted_penalty_amount"
+				)
 
 	def calculate_balance_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -336,7 +337,7 @@ class LoanRestructure(AccountsController):
 		):
 			frappe.throw(_("Interest Waiver Amount cannot be greater than overdue interest"))
 
-		if flt(self.other_charges_waiver) > flt(self.charges_overdue) - flt(self.adjusted_other_charges):
+		if flt(self.other_charges_waiver) > flt(self.charges_overdue):
 			frappe.throw(_("Other Charges Waiver cannot be greater than overdue charges"))
 
 		if flt(self.penal_interest_waiver) > flt(self.penalty_overdue):
@@ -430,15 +431,14 @@ class LoanRestructure(AccountsController):
 			"repayment_method": self.new_repayment_method,
 			"repayment_start_date": self.repayment_start_date,
 			"repayment_periods": self.new_repayment_period_in_months,
+			"monthly_repayment_amount": self.new_monthly_repayment_amount,
 			"rate_of_interest": self.new_rate_of_interest,
 			"loan_amount": self.new_loan_amount,
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
 			"repayment_frequency": "Monthly",
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
-			"restructure_type": "Reschedule"
-			if self.restructure_type == "Advance Payment"
-			else "Restructure",
+			"restructure_type": self.restructure_type,
 		}
 
 	def update_totals(self, cancel=0):
@@ -606,39 +606,59 @@ def create_loan_repayment(
 	repayment.submit()
 
 
-def create_update_loan_reschedule(loan, posting_date, loan_repayment):
-	pending_tenure, repayment_start_date = get_pending_tenure_and_start_date(loan, posting_date)
+def create_update_loan_reschedule(
+	loan, posting_date, loan_repayment, repayment_type, principal_adjusted
+):
 	if frappe.db.get_value("Loan Restructure", {"loan_repayment": loan_repayment}):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": loan_repayment})
-		loan_restructure.restructure_date = posting_date
-		loan_restructure.repayment_start_date = repayment_start_date
-		loan_restructure.new_repayment_period_in_months = pending_tenure
-		loan_restructure.flags.ignore_links = True
-		loan_restructure.save()
 	else:
 		loan_restructure = frappe.new_doc("Loan Restructure")
-		loan_restructure.loan = loan
-		loan_restructure.restructure_type = "Advance Payment"
-		loan_restructure.restructure_date = posting_date
-		loan_restructure.repayment_start_date = repayment_start_date
-		loan_restructure.new_repayment_method = "Repay Over Number of Periods"
-		loan_restructure.new_repayment_period_in_months = pending_tenure
 		loan_restructure.loan_repayment = loan_repayment
-		loan_restructure.flags.ignore_links = True
-		loan_restructure.save()
+
+	loan_restructure.update(
+		get_restructure_details(loan, posting_date, repayment_type, principal_adjusted)
+	)
+
+	loan_restructure.save()
+
+
+def get_restructure_details(loan, posting_date, repayment_type, principal_adjusted):
+	(
+		pending_tenure,
+		monthly_repayment_amount,
+		repayment_start_date,
+	) = get_pending_tenure_and_start_date(loan, posting_date)
+	loan_restructure = {
+		"loan": loan,
+		"restructure_type": repayment_type,
+		"restructure_date": posting_date,
+		"repayment_start_date": repayment_start_date,
+		"principal_adjusted": principal_adjusted,
+	}
+
+	if repayment_type == "Advance Payment":
+		loan_restructure["new_repayment_method"] = "Repay Over Number of Periods"
+		loan_restructure["new_repayment_period_in_months"] = pending_tenure
+	else:
+		loan_restructure["new_repayment_method"] = "Repay Fixed Amount per Period"
+		loan_restructure["new_monthly_repayment_amount"] = monthly_repayment_amount
+
+	return loan_restructure
 
 
 def get_pending_tenure_and_start_date(loan, posting_date):
-	repayment_schedule = frappe.db.get_value(
-		"Loan Repayment Schedule", {"loan": loan, "status": "Active", "docstatus": 1}, "name"
+	repayment_schedule, prev_tenure, monthly_repayment_amount = frappe.db.get_value(
+		"Loan Repayment Schedule",
+		{"loan": loan, "status": "Active", "docstatus": 1},
+		["name", "repayment_periods", "monthly_repayment_amount"],
 	)
 
 	schedule_details = frappe.db.get_all(
-		"Repayment Schedule", filters={"parent": repayment_schedule, "payment_date": (">", posting_date)}
+		"Repayment Schedule",
+		filters={"parent": repayment_schedule, "payment_date": (">", getdate(posting_date))},
+		fields=["payment_date"],
+		order_by="payment_date",
+		limit=1,
 	)
 
-	prev_tenure = frappe.db.get_value(
-		"Loan Repayment Schedule", repayment_schedule, "repayment_periods"
-	)
-
-	return prev_tenure, schedule_details[0].payment_date
+	return prev_tenure, monthly_repayment_amount, schedule_details[0].payment_date
