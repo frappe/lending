@@ -434,7 +434,7 @@ class LoanRepayment(AccountsController):
 					amount_paid -= pending_interest
 
 			self.principal_amount_paid += flt(amount_paid, precision)
-			self.total_interest_paid += flt(self.total_interest_paid, precision)
+			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 			amount_paid = 0
 
@@ -1040,7 +1040,6 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest"):
 			"loan": loan,
 			"docstatus": 1,
 			"demand_date": ("<=", posting_date),
-			"demand_type": "EMI",
 			"demand_subtype": demand_subtype,
 		},
 		"SUM(demand_amount)",
