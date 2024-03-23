@@ -116,7 +116,11 @@ before_uninstall = "lending.uninstall.before_uninstall"
 doc_events = {
 	"Company": {
 		"validate": "lending.overrides.company.validate_loan_tables",
-	}
+	},
+	"Sales Invoice": {
+		"on_submit": "lending.overrides.sales_invoice.generate_demand",
+		"on_cancel": "lending.overrides.sales_invoice.cancel_demand",
+	},
 }
 
 # Scheduled Tasks
@@ -124,12 +128,12 @@ doc_events = {
 
 scheduler_events = {
 	"daily_long": [
+		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_loans",
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
-		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_term_loans",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
+		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 	],
 	"monthly_long": [
-		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_demand_loans",
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",
 	],
 }

@@ -11,7 +11,16 @@ LOAN_CUSTOM_FIELDS = {
 			"options": "Loan",
 			"insert_after": "customer",
 			"print_hide": 1,
-		}
+		},
+		{
+			"fieldname": "loan_disbursement",
+			"label": "Loan Disbursement",
+			"fieldtype": "Link",
+			"options": "Loan Disbursement",
+			"insert_after": "Loan",
+			"read_only": 1,
+			"print_hide": 1,
+		},
 	],
 	"Company": [
 		{
@@ -74,29 +83,29 @@ LOAN_CUSTOM_FIELDS = {
 		{
 			"fieldname": "collection_offset_sequence_for_sub_standard_asset",
 			"label": "Collection Offset Sequence for Sub Standard Asset",
-			"fieldtype": "Select",
-			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"fieldtype": "Link",
+			"options": "Loan Demand Offset Order",
 			"insert_after": "days_past_due_threshold",
 		},
 		{
 			"fieldname": "collection_offset_sequence_for_standard_asset",
 			"label": "Collection Offset Sequence for Standard Asset",
-			"fieldtype": "Select",
-			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"fieldtype": "Link",
+			"options": "Loan Demand Offset Order",
 			"insert_after": "collection_offset_sequence_for_sub_standard_asset",
 		},
 		{
 			"fieldname": "collection_offset_sequence_for_written_off_asset",
 			"label": "Collection Offset Sequence for Written Off Asset",
-			"fieldtype": "Select",
-			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"fieldtype": "Link",
+			"options": "Loan Demand Offset Order",
 			"insert_after": "collection_offset_sequence_for_standard_asset",
 		},
 		{
 			"fieldname": "collection_offset_sequence_for_settlement_collection",
 			"label": "Collection Offset Sequence for Settlement Collection",
-			"fieldtype": "Select",
-			"options": "IP...IP...IP...CCC\nPPP...III...CCC",
+			"fieldtype": "Link",
+			"options": "Loan Demand Offset Order",
 			"insert_after": "collection_offset_sequence_for_written_off_asset",
 		},
 		{

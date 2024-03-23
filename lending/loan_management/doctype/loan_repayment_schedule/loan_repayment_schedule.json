@@ -8,23 +8,40 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_disbursement",
   "company",
-  "loan_restructure",
   "loan_amount",
+  "current_principal_amount",
   "rate_of_interest",
-  "posting_date",
-  "adjusted_interest",
   "column_break_n6iy",
-  "loan_product",
-  "repayment_schedule_type",
+  "posting_date",
+  "repayment_frequency",
+  "repayment_date_on",
   "repayment_method",
   "repayment_periods",
-  "monthly_repayment_amount",
   "repayment_start_date",
-  "section_break_6rpg",
+  "repayment_schedule_section",
   "repayment_schedule",
+  "term_details_section",
+  "total_installments_paid",
+  "total_installments_raised",
+  "loan_product",
+  "column_break_xkbd",
+  "total_installments_overdue",
+  "repayment_schedule_type",
+  "other_details_section",
+  "disbursed_amount",
+  "monthly_repayment_amount",
+  "loan_restructure",
+  "broken_period_interest",
   "status",
-  "amended_from"
+  "amended_from",
+  "column_break_cplx",
+  "moratorium_tenure",
+  "treatment_of_interest",
+  "moratorium_end_date",
+  "adjusted_interest",
+  "broken_period_interest_days"
  ],
  "fields": [
   {
@@ -36,18 +53,21 @@
    "reqd": 1
   },
   {
+   "fetch_from": "loan.loan_product",
    "fieldname": "loan_product",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Loan Product",
-   "options": "Loan Product",
-   "reqd": 1
+   "options": "Loan Product"
   },
   {
    "fetch_from": "loan_product.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
-   "label": "Repayment Schedule Type"
+   "hidden": 1,
+   "label": "Repayment Schedule Type",
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -59,6 +79,7 @@
    "read_only": 1
   },
   {
+   "fetch_from": "loan.loan_amount",
    "fieldname": "loan_amount",
    "fieldtype": "Currency",
    "label": "Loan Amount",
@@ -73,6 +94,8 @@
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
   },
   {
+   "fetch_from": "loan.monthly_repayment_amount",
+   "fetch_if_empty": 1,
    "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
@@ -83,7 +106,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Initiated\nRejected\nActive\nRestructured\nDraft\nCancelled"
+   "options": "Initiated\nRejected\nActive\nRestructured\nOutdated\nDraft\nCancelled"
   },
   {
    "fetch_if_empty": 1,
@@ -101,10 +124,6 @@
   {
    "fieldname": "column_break_n6iy",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_6rpg",
-   "fieldtype": "Section Break"
   },
   {
    "fetch_from": "loan.repayment_periods",
@@ -129,13 +148,15 @@
    "fieldname": "loan_restructure",
    "fieldtype": "Link",
    "label": "Loan Restructure",
-   "options": "Loan Restructure"
+   "options": "Loan Restructure",
+   "read_only": 1
   },
   {
    "fieldname": "adjusted_interest",
    "fieldtype": "Currency",
    "label": "Adjusted Interest",
-   "options": "Company:company:default_currency"
+   "options": "Company:company:default_currency",
+   "read_only": 1
   },
   {
    "fetch_from": "loan.company",
@@ -143,12 +164,117 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "depends_on": "eval:doc.moratorium_tenure > 0",
+   "fetch_from": "loan.treatment_of_interest",
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment Of Interest",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "depends_on": "eval:doc.repayment_schedule_type==\"Pro-rated calendar months\"",
+   "fetch_from": "loan_product.repayment_date_on",
+   "fieldname": "repayment_date_on",
+   "fieldtype": "Select",
+   "label": "Repayment Date On",
+   "options": "Start of the next month\nEnd of the current month"
+  },
+  {
+   "fetch_from": "loan.moratorium_tenure",
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "disbursed_amount",
+   "fieldtype": "Currency",
+   "label": "Disbursed Amount"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  },
+  {
+   "fieldname": "broken_period_interest",
+   "fieldtype": "Currency",
+   "label": "Broken Period Interest",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.moratorium_tenure > 0",
+   "fieldname": "moratorium_end_date",
+   "fieldtype": "Date",
+   "label": "Moratorium End Date"
+  },
+  {
+   "fieldname": "current_principal_amount",
+   "fieldtype": "Currency",
+   "label": "Current Principal Amount"
+  },
+  {
+   "fieldname": "broken_period_interest_days",
+   "fieldtype": "Int",
+   "label": "Broken Period Interest Days",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "other_details_section",
+   "fieldtype": "Section Break",
+   "label": "Other Details"
+  },
+  {
+   "fieldname": "column_break_cplx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "term_details_section",
+   "fieldtype": "Section Break",
+   "label": "Term Details"
+  },
+  {
+   "fieldname": "total_installments_paid",
+   "fieldtype": "Int",
+   "label": "Total Installments Paid",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xkbd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_installments_overdue",
+   "fieldtype": "Int",
+   "label": "Total Installments Overdue ",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_installments_raised",
+   "fieldtype": "Int",
+   "label": "Total Installments Raised",
+   "read_only": 1
+  },
+  {
+   "fieldname": "repayment_schedule_section",
+   "fieldtype": "Section Break",
+   "label": "Repayment Schedule"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:24.172876",
+ "modified": "2024-01-13 17:44:02.151526",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "rate_of_interest",
   "loan_product",
   "applicant_type",
   "applicant",
@@ -14,23 +15,21 @@
   "loan_account",
   "column_break_4",
   "company",
+  "start_date",
   "posting_date",
   "due_date",
   "accrual_type",
+  "interest_type",
   "is_term_loan",
   "is_npa",
   "section_break_7",
-  "pending_principal_amount",
-  "payable_principal_amount",
-  "paid_principal_amount",
+  "base_amount",
+  "additional_interest_amount",
   "column_break_14",
   "interest_amount",
-  "total_pending_interest_amount",
-  "paid_interest_amount",
-  "penalty_amount",
+  "loan_demand",
   "section_break_15",
   "process_loan_interest_accrual",
-  "repayment_schedule_name",
   "last_accrual_date",
   "amended_from"
  ],
@@ -41,19 +40,14 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "reqd": 1
   },
   {
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Posting Date"
-  },
-  {
-   "fieldname": "pending_principal_amount",
-   "fieldtype": "Currency",
-   "label": "Pending Principal Amount",
-   "options": "Company:company:default_currency"
+   "label": "Posting Date (End Date)"
   },
   {
    "fieldname": "interest_amount",
@@ -125,13 +119,6 @@
    "read_only": 1
   },
   {
-   "depends_on": "is_term_loan",
-   "fieldname": "payable_principal_amount",
-   "fieldtype": "Currency",
-   "label": "Payable Principal Amount",
-   "options": "Company:company:default_currency"
-  },
-  {
    "fieldname": "section_break_15",
    "fieldtype": "Section Break"
   },
@@ -146,26 +133,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "repayment_schedule_name",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Repayment Schedule Name",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.is_term_loan",
-   "fieldname": "paid_principal_amount",
-   "fieldtype": "Currency",
-   "label": "Paid Principal Amount",
-   "options": "Company:company:default_currency"
-  },
-  {
-   "fieldname": "paid_interest_amount",
-   "fieldtype": "Currency",
-   "label": "Paid Interest Amount",
-   "options": "Company:company:default_currency"
-  },
-  {
    "fieldname": "accrual_type",
    "fieldtype": "Select",
    "in_filter": 1,
@@ -175,23 +142,11 @@
    "options": "Regular\nRepayment\nDisbursement\nCredit Adjustment\nDebit Adjustment\nRefund"
   },
   {
-   "fieldname": "penalty_amount",
-   "fieldtype": "Currency",
-   "label": "Penalty Amount",
-   "options": "Company:company:default_currency"
-  },
-  {
    "fieldname": "last_accrual_date",
    "fieldtype": "Date",
    "hidden": 1,
    "label": "Last Accrual Date",
    "read_only": 1
-  },
-  {
-   "fieldname": "total_pending_interest_amount",
-   "fieldtype": "Currency",
-   "label": "Total Pending Interest Amount",
-   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "due_date",
@@ -213,13 +168,48 @@
    "fieldname": "is_npa",
    "fieldtype": "Check",
    "label": "Is NPA"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "interest_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Interest Type",
+   "options": "Normal Interest\nPenal Interest"
+  },
+  {
+   "fetch_from": ".rate_of_interest",
+   "fieldname": "rate_of_interest",
+   "fieldtype": "Float",
+   "label": "Rate Of Interest"
+  },
+  {
+   "fieldname": "additional_interest_amount",
+   "fieldtype": "Currency",
+   "label": "Additional Interest Amount"
+  },
+  {
+   "description": "Amount on which interest is calculated",
+   "fieldname": "base_amount",
+   "fieldtype": "Currency",
+   "label": "Base Amount"
+  },
+  {
+   "fieldname": "loan_demand",
+   "fieldtype": "Link",
+   "label": "Loan Demand",
+   "options": "Loan Demand"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-02 22:14:24.469965",
+ "modified": "2024-01-07 23:50:21.887193",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

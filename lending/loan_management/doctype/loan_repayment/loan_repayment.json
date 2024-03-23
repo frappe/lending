@@ -7,10 +7,13 @@
  "engine": "InnoDB",
  "field_order": [
   "against_loan",
+  "loan_disbursement",
+  "repayment_schedule_type",
   "applicant_type",
   "applicant",
   "loan_product",
   "repayment_type",
+  "select_charge_manually",
   "loan_restructure",
   "column_break_3",
   "company",
@@ -19,7 +22,6 @@
   "rate_of_interest",
   "days_past_due",
   "is_term_loan",
-  "offset_based_on_npa",
   "is_npa",
   "manual_npa",
   "payment_details_section",
@@ -41,11 +43,12 @@
   "total_paid_charges",
   "references_section",
   "reference_number",
+  "total_interest_paid",
+  "total_penalty_paid",
   "column_break_21",
   "reference_date",
   "principal_amount_paid",
-  "total_penalty_paid",
-  "total_interest_paid",
+  "total_charges_paid",
   "section_break_55wc",
   "repayment_details",
   "amended_from",
@@ -304,12 +307,6 @@
   },
   {
    "default": "0",
-   "fieldname": "offset_based_on_npa",
-   "fieldtype": "Check",
-   "label": "Offset Based On Asset Classification"
-  },
-  {
-   "default": "0",
    "fetch_from": "against_loan.is_npa",
    "fieldname": "is_npa",
    "fieldtype": "Check",
@@ -365,7 +362,7 @@
    "fieldname": "repayment_type",
    "fieldtype": "Select",
    "label": "Repayment Type",
-   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nInterest Capitalization\nCharges Capitalization\nPenalty Capitalization\nPrincipal Adjustment\nInterest Adjustment\nInterest Carry Forward"
+   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nInterest Capitalization\nCharges Capitalization\nPenalty Capitalization\nPrincipal Adjustment\nInterest Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments"
   },
   {
    "fieldname": "loan_restructure",
@@ -373,12 +370,36 @@
    "label": "Loan Restructure",
    "options": "Loan Restructure",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.repayment_type == \"Charges Waiver\"",
+   "fieldname": "select_charge_manually",
+   "fieldtype": "Check",
+   "label": "Select Charge Manually"
+  },
+  {
+   "fetch_from": "against_loan.repayment_schedule_type",
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Data",
+   "label": "Repayment Schedule Type"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  },
+  {
+   "fieldname": "total_charges_paid",
+   "fieldtype": "Currency",
+   "label": "Total Charges Paid"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 09:25:15.123899",
+ "modified": "2024-01-11 20:00:41.004851",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

@@ -9,6 +9,7 @@ from frappe import _
 from frappe.query_builder import Order
 from frappe.utils import (
 	add_days,
+	add_months,
 	cint,
 	date_diff,
 	flt,
@@ -36,17 +37,40 @@ class Loan(AccountsController):
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
+		self.set_default_charge_account()
+		self.set_available_limit_amount()
+		self.validate_repayment_terms()
 
-		if self.is_term_loan and not self.is_new():
-			self.update_draft_schedule()
+		# if self.is_term_loan and not self.is_new() and self.repayment_schedule_type != "Line of Credit":
+		# 	update_draft_schedule(
+		# 		self.name,
+		# 		self.repayment_method,
+		# 		self.repayment_start_date,
+		# 		self.repayment_periods,
+		# 		self.monthly_repayment_amount,
+		# 		self.posting_date,
+		# 		self.repayment_frequency,
+		# 		moratorium_tenure=self.moratorium_tenure,
+		# 		treatment_of_interest=self.treatment_of_interest,
+		# 	)
 
 		if not self.is_term_loan or (self.is_term_loan and not self.is_new()):
 			self.calculate_totals()
 
-	def after_insert(self):
-		if self.is_term_loan:
-			self.make_draft_schedule()
-			self.calculate_totals(on_insert=True)
+	# def after_insert(self):
+	# 	if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+	# 		make_draft_schedule(
+	# 			self.name,
+	# 			self.repayment_method,
+	# 			self.repayment_start_date,
+	# 			self.repayment_periods,
+	# 			self.monthly_repayment_amount,
+	# 			self.posting_date,
+	# 			self.repayment_frequency,
+	# 			moratorium_tenure=self.moratorium_tenure,
+	# 			treatment_of_interest=self.treatment_of_interest,
+	# 		)
+	# 		self.calculate_totals(on_insert=True)
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -72,28 +96,45 @@ class Loan(AccountsController):
 				frappe.throw(_("Cost center is mandatory for loans having rate of interest greater than 0"))
 
 	def set_cyclic_date(self):
-		if self.repayment_schedule_type == "Monthly as per cycle date":
-			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
-				"Loan Product",
-				self.loan_product,
-				["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
-			)
-			cycle_day = cint(cycle_day)
-
-			last_day_of_month = get_last_day(self.posting_date)
-			cyclic_date = add_days(last_day_of_month, cycle_day)
-
-			broken_period_days = date_diff(cyclic_date, self.posting_date)
-			if broken_period_days < min_days_bw_disbursement_first_repayment:
-				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
-
+		if (
+			self.repayment_schedule_type == "Monthly as per cycle date"
+			and self.repayment_frequency == "Monthly"
+		):
+			cyclic_date = get_cyclic_date(self.loan_product, self.posting_date)
 			self.repayment_start_date = cyclic_date
+
+			if self.moratorium_tenure:
+				self.repayment_start_date = add_months(self.repayment_start_date, self.moratorium_tenure)
+
+	def set_default_charge_account(self):
+		for charge in self.get("loan_charges"):
+			if not charge.account:
+				account = frappe.get_cached_value(
+					"Loan Charges", {"parent": self.loan_product, "charge_type": charge.charge}, "income_account"
+				)
+
+				if not account:
+					account = frappe.get_cached_value(
+						"Item Default", {"parent": charge.charge, "company": self.company}, "income_account"
+					)
+
+				charge.account = account
+
+	def set_available_limit_amount(self):
+		self.available_limit_amount = self.maximum_limit_amount
+
+	def validate_repayment_terms(self):
+		if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+			if not self.repayment_periods:
+				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
 	def on_submit(self):
 		self.link_loan_security_pledge()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
-		self.submit_draft_schedule()
+
+		# if self.repayment_schedule_type != "Line of Credit":
+		# 	self.submit_draft_schedule()
 
 	def on_cancel(self):
 		self.unlink_loan_security_pledge()
@@ -107,6 +148,17 @@ class Loan(AccountsController):
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
 		move_unpaid_interest_to_suspense_ledger(
 			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
+		)
+
+	def before_update_after_submit(self):
+		self.update_available_limit_amount()
+
+	def update_available_limit_amount(self):
+		if self.maximum_limit_amount < self.utilized_limit_amount:
+			frappe.throw(_("New maximum limit amount cannot be lesser than the utilized limit amount"))
+
+		self.available_limit_amount += self.maximum_limit_amount - frappe.db.get_value(
+			"Loan", self.name, "maximum_limit_amount"
 		)
 
 	def set_missing_fields(self):
@@ -137,42 +189,6 @@ class Loan(AccountsController):
 				)
 			)
 
-	def make_draft_schedule(self):
-		frappe.get_doc(
-			{
-				"doctype": "Loan Repayment Schedule",
-				"loan": self.name,
-				"repayment_method": self.repayment_method,
-				"repayment_start_date": self.repayment_start_date,
-				"repayment_periods": self.repayment_periods,
-				"loan_amount": self.loan_amount,
-				"monthly_repayment_amount": self.monthly_repayment_amount,
-				"loan_product": self.loan_product,
-				"rate_of_interest": self.rate_of_interest,
-				"posting_date": self.posting_date,
-			}
-		).insert()
-
-	def update_draft_schedule(self):
-		draft_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
-		)
-		if draft_schedule:
-			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
-			schedule.update(
-				{
-					"loan": self.name,
-					"loan_product": self.loan_product,
-					"repayment_periods": self.repayment_periods,
-					"repayment_method": self.repayment_method,
-					"repayment_start_date": self.repayment_start_date,
-					"posting_date": self.posting_date,
-					"loan_amount": self.loan_amount,
-					"monthly_repayment_amount": self.monthly_repayment_amount,
-				}
-			)
-			schedule.save()
-
 	def submit_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
@@ -194,14 +210,15 @@ class Loan(AccountsController):
 		self.total_interest_payable = 0
 		self.total_amount_paid = 0
 
-		if self.is_term_loan:
-			schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
-			for data in schedule.repayment_schedule:
-				self.total_payment += data.total_payment
-				self.total_interest_payable += data.interest_amount
+		# if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+		# 	schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": self.name, "docstatus": 0})
+		# 	for data in schedule.repayment_schedule:
+		# 		self.total_payment += data.total_payment
+		# 		self.total_interest_payable += data.interest_amount
 
-			self.monthly_repayment_amount = schedule.monthly_repayment_amount
-		else:
+		# 	self.monthly_repayment_amount = schedule.monthly_repayment_amount
+
+		if not self.is_term_loan:
 			self.total_payment = self.loan_amount
 
 		if on_insert:
@@ -210,12 +227,15 @@ class Loan(AccountsController):
 			self.db_set("total_payment", self.total_payment)
 
 	def set_loan_amount(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			self.loan_amount = self.maximum_limit_amount
+
 		if self.loan_application and not self.loan_amount:
 			self.loan_amount = frappe.db.get_value("Loan Application", self.loan_application, "loan_amount")
 
 	def validate_loan_amount(self):
-		if self.maximum_loan_amount and self.loan_amount > self.maximum_loan_amount:
-			msg = _("Loan amount cannot be greater than {0}").format(self.maximum_loan_amount)
+		if self.maximum_limit_amount and self.loan_amount > self.maximum_limit_amount:
+			msg = _("Loan amount cannot be greater than {0}").format(self.maximum_limit_amount)
 			frappe.throw(msg)
 
 		if not self.loan_amount:
@@ -243,11 +263,11 @@ class Loan(AccountsController):
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_term_loans,
+			process_loan_interest_accrual_for_loans,
 		)
 
 		if getdate(self.repayment_start_date) < getdate() and self.is_term_loan:
-			process_loan_interest_accrual_for_term_loans(
+			process_loan_interest_accrual_for_loans(
 				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 
@@ -384,16 +404,41 @@ def close_unsecured_term_loan(loan):
 
 
 @frappe.whitelist()
-def make_loan_disbursement(loan, company, applicant_type, applicant, pending_amount=0, as_dict=0):
+def make_loan_disbursement(
+	loan,
+	disbursement_amount=0,
+	as_dict=0,
+	submit=0,
+	repayment_start_date=None,
+	repayment_frequency=None,
+	posting_date=None,
+	disbursement_date=None,
+	bank_account=None,
+	is_term_loan=None,
+):
+	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
-	disbursement_entry.against_loan = loan
-	disbursement_entry.applicant_type = applicant_type
-	disbursement_entry.applicant = applicant
-	disbursement_entry.company = company
-	disbursement_entry.disbursement_date = nowdate()
-	disbursement_entry.posting_date = nowdate()
+	disbursement_entry.against_loan = loan_doc.name
+	disbursement_entry.applicant_type = loan_doc.applicant_type
+	disbursement_entry.applicant = loan_doc.applicant
+	disbursement_entry.company = loan_doc.company
+	disbursement_entry.disbursement_date = posting_date or nowdate()
+	disbursement_entry.posting_date = disbursement_date or nowdate()
+	disbursement_entry.bank_account = bank_account
+	disbursement_entry.repayment_start_date = repayment_start_date
+	disbursement_entry.repayment_frequency = repayment_frequency
+	disbursement_entry.disbursed_amount = disbursement_amount
+	disbursement_entry.is_term_loan = is_term_loan
 
-	disbursement_entry.disbursed_amount = pending_amount
+	for charge in loan_doc.get("loan_charges"):
+		disbursement_entry.append(
+			"loan_disbursement_charges",
+			{"charge": charge.charge, "amount": charge.amount, "account": charge.account},
+		)
+
+	if submit:
+		disbursement_entry.submit()
+
 	if as_dict:
 		return disbursement_entry.as_dict()
 	else:
@@ -491,7 +536,7 @@ def unpledge_security(
 			unpledge_request.status = "Approved"
 			unpledge_request.save()
 		else:
-			frappe.throw(_("Only submittted unpledge requests can be approved"))
+			frappe.throw(_("Only submitted unpledge requests can be approved"))
 
 	if as_dict:
 		return unpledge_request
@@ -909,3 +954,22 @@ def move_unpaid_interest_to_suspense_ledger(
 
 		jv.flags.ignore_mandatory = True
 		jv.submit()
+
+
+@frappe.whitelist()
+def get_cyclic_date(loan_product, posting_date):
+	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+		"Loan Product",
+		loan_product,
+		["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
+	)
+	cycle_day = cint(cycle_day)
+
+	last_day_of_month = get_last_day(posting_date)
+	cyclic_date = add_days(last_day_of_month, cycle_day)
+
+	broken_period_days = date_diff(cyclic_date, posting_date)
+	if broken_period_days < min_days_bw_disbursement_first_repayment:
+		cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+	return cyclic_date

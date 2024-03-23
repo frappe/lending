@@ -9,12 +9,11 @@ from frappe.utils import add_days, cint, date_diff, flt, get_datetime, getdate, 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+
 
 class LoanInterestAccrual(AccountsController):
 	def validate(self):
-		if not self.loan:
-			frappe.throw(_("Loan is mandatory"))
-
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
@@ -22,20 +21,14 @@ class LoanInterestAccrual(AccountsController):
 			frappe.throw(_("Interest Amount or Principal Amount is mandatory"))
 
 		if not self.last_accrual_date:
-			self.last_accrual_date = get_last_accrual_date(self.loan, self.posting_date)
+			self.last_accrual_date = get_last_accrual_date(self.loan, self.posting_date, self.interest_type)
 
 	def on_submit(self):
 		self.make_gl_entries()
 
 	def on_cancel(self):
-		if self.repayment_schedule_name:
-			self.update_is_accrued()
-
 		self.make_gl_entries(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
-
-	def update_is_accrued(self):
-		frappe.db.set_value("Repayment Schedule", self.repayment_schedule_name, "is_accrued", 0)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
@@ -44,7 +37,7 @@ class LoanInterestAccrual(AccountsController):
 		account_details = frappe.db.get_value(
 			"Loan Product",
 			self.loan_product,
-			["interest_receivable_account", "suspense_interest_receivable", "suspense_interest_income"],
+			["interest_accrued_account", "suspense_interest_receivable", "suspense_interest_income"],
 			as_dict=1,
 		)
 
@@ -52,7 +45,7 @@ class LoanInterestAccrual(AccountsController):
 			receivable_account = account_details.suspense_interest_receivable
 			income_account = account_details.suspense_interest_income
 		else:
-			receivable_account = account_details.interest_receivable_account
+			receivable_account = account_details.interest_accrued_account
 			income_account = self.interest_income_account
 
 		if self.interest_amount:
@@ -101,257 +94,292 @@ class LoanInterestAccrual(AccountsController):
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
 # rate of interest is 13.5 then first loan interest accrual will be on '01-10-2019'
 # which means interest will be accrued for 30 days which should be equal to 11095.89
-def calculate_accrual_amount_for_demand_loans(
-	loan, posting_date, process_loan_interest, accrual_type
-):
+def calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-		calculate_amounts,
 		get_pending_principal_amount,
 	)
 
-	no_of_days = get_no_of_days_for_interest_accural(loan, posting_date)
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
-
-	if no_of_days <= 0:
-		return
-
-	pending_principal_amount = get_pending_principal_amount(loan)
+	last_accrual_date = get_last_accrual_date(loan.name, posting_date, "Normal Interest")
 
 	if loan.is_term_loan:
-		pending_amounts = calculate_amounts(loan.name, posting_date)
-		pending_principal_amount = pending_principal_amount - flt(
-			pending_amounts["payable_principal_amount"]
-		)
+		overlapping_dates = get_overlapping_dates(loan.name, last_accrual_date, posting_date)
+		for date in overlapping_dates:
+			pending_principal_amount = get_principal_amount_for_term_loan(loan, last_accrual_date)
+			payable_interest = get_interest_for_term(
+				loan, pending_principal_amount, last_accrual_date, date
+			)
+			if payable_interest > 0:
+				make_loan_interest_accrual_entry(
+					loan.name,
+					pending_principal_amount,
+					payable_interest,
+					process_loan_interest,
+					last_accrual_date,
+					date,
+					accrual_type,
+					"Normal Interest",
+					loan.rate_of_interest,
+				)
+			last_accrual_date = add_days(date, 1)
 	else:
-		pending_amounts = calculate_amounts(loan.name, posting_date, payment_type="Loan Closure")
+		no_of_days = date_diff(posting_date or nowdate(), last_accrual_date)
+		if no_of_days <= 0:
+			return
 
+		pending_principal_amount = get_pending_principal_amount(loan, posting_date)
+
+		payable_interest = get_interest_amount(
+			no_of_days,
+			principal_amount=pending_principal_amount,
+			rate_of_interest=loan.rate_of_interest,
+			company=loan.company,
+			posting_date=posting_date,
+		)
+
+		if payable_interest > 0:
+			make_loan_interest_accrual_entry(
+				loan.name,
+				pending_principal_amount,
+				payable_interest,
+				process_loan_interest,
+				last_accrual_date,
+				posting_date,
+				accrual_type,
+				"Normal Interest",
+				loan.rate_of_interest,
+			)
+
+
+def get_interest_for_term(loan, pending_principal_amount, from_date, to_date):
+	no_of_days = date_diff(to_date, from_date)
 	payable_interest = get_interest_amount(
-		no_of_days, pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
+		no_of_days,
+		principal_amount=pending_principal_amount,
+		rate_of_interest=loan.rate_of_interest,
+		company=loan.company,
+		posting_date=to_date,
 	)
 
-	args = frappe._dict(
-		{
-			"loan": loan.name,
-			"applicant_type": loan.applicant_type,
-			"applicant": loan.applicant,
-			"interest_income_account": loan.interest_income_account,
-			"loan_account": loan.loan_account,
-			"pending_principal_amount": pending_principal_amount,
-			"interest_amount": payable_interest,
-			"total_pending_interest_amount": pending_amounts["interest_amount"],
-			"penalty_amount": pending_amounts["penalty_amount"],
-			"process_loan_interest": process_loan_interest,
-			"posting_date": posting_date,
-			"due_date": posting_date,
-			"accrual_type": accrual_type,
-		}
-	)
-
-	if flt(payable_interest, precision) > 0.0:
-		make_loan_interest_accrual_entry(args)
+	return payable_interest
 
 
-def make_accrual_interest_entry_for_demand_loans(
+def make_loan_interest_accrual_entry(
+	loan,
+	base_amount,
+	interest_amount,
+	process_loan_interest,
+	start_date,
 	posting_date,
-	process_loan_interest=None,
-	open_loans=None,
-	loan_product=None,
-	accrual_type="Regular",
-	via_restructure=False,
+	accrual_type,
+	interest_type,
+	rate_of_interest,
+	loan_demand=None,
 ):
-	query_filters = {
-		"status": ("in", ["Disbursed", "Partially Disbursed"]),
-		"docstatus": 1,
-	}
-
-	if not via_restructure:
-		query_filters.update({"is_term_loan": 0})
-
-	if loan_product:
-		query_filters.update({"loan_product": loan_product})
-
-	if not open_loans:
-		open_loans = frappe.get_all(
-			"Loan",
-			fields=[
-				"name",
-				"total_payment",
-				"total_amount_paid",
-				"debit_adjustment_amount",
-				"credit_adjustment_amount",
-				"refund_amount",
-				"loan_account",
-				"interest_income_account",
-				"loan_amount",
-				"is_term_loan",
-				"status",
-				"disbursement_date",
-				"disbursed_amount",
-				"applicant_type",
-				"applicant",
-				"rate_of_interest",
-				"total_interest_payable",
-				"written_off_amount",
-				"total_principal_paid",
-				"repayment_start_date",
-				"company",
-			],
-			filters=query_filters,
-		)
-
-	for loan in open_loans:
-		calculate_accrual_amount_for_demand_loans(
-			loan, posting_date, process_loan_interest, accrual_type
-		)
-
-
-def make_accrual_interest_entry_for_term_loans(
-	posting_date, process_loan_interest, term_loan=None, loan_product=None, accrual_type="Regular"
-):
-	curr_date = posting_date or add_days(nowdate(), 1)
-
-	term_loans = get_term_loans(curr_date, term_loan, loan_product)
-
-	accrued_entries = []
-
-	for loan in term_loans:
-		accrued_entries.append(loan.payment_entry)
-		args = frappe._dict(
-			{
-				"loan": loan.name,
-				"applicant_type": loan.applicant_type,
-				"applicant": loan.applicant,
-				"interest_income_account": loan.interest_income_account,
-				"loan_account": loan.loan_account,
-				"interest_amount": loan.interest_amount,
-				"payable_principal": loan.principal_amount,
-				"process_loan_interest": process_loan_interest,
-				"repayment_schedule_name": loan.payment_entry,
-				"posting_date": posting_date,
-				"accrual_type": accrual_type,
-				"due_date": loan.payment_date,
-			}
-		)
-
-		make_loan_interest_accrual_entry(args)
-
-	if accrued_entries:
-		frappe.db.sql(
-			"""UPDATE `tabRepayment Schedule`
-			SET is_accrued = 1 where name in (%s)"""  # nosec
-			% ", ".join(["%s"] * len(accrued_entries)),
-			tuple(accrued_entries),
-		)
-
-
-def get_term_loans(date, term_loan=None, loan_product=None):
-	loan = frappe.qb.DocType("Loan")
-	loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
-	loan_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
-
-	query = (
-		frappe.qb.from_(loan)
-		.inner_join(loan_schedule)
-		.on(loan.name == loan_schedule.loan)
-		.inner_join(loan_repayment_schedule)
-		.on(loan_repayment_schedule.parent == loan_schedule.name)
-		.select(
-			loan.name,
-			loan.total_payment,
-			loan.total_amount_paid,
-			loan.loan_account,
-			loan.interest_income_account,
-			loan.is_term_loan,
-			loan.disbursement_date,
-			loan.applicant_type,
-			loan.applicant,
-			loan.rate_of_interest,
-			loan.total_interest_payable,
-			loan.repayment_start_date,
-			loan_repayment_schedule.name.as_("payment_entry"),
-			loan_repayment_schedule.payment_date,
-			loan_repayment_schedule.principal_amount,
-			loan_repayment_schedule.interest_amount,
-			loan_repayment_schedule.is_accrued,
-			loan_repayment_schedule.balance_loan_amount,
-		)
-		.where(
-			(loan.docstatus == 1)
-			& (loan.status == "Disbursed")
-			& (loan.is_term_loan == 1)
-			& (loan_schedule.status == "Active")
-			& (loan_repayment_schedule.principal_amount > 0)
-			& (loan_repayment_schedule.payment_date <= date)
-			& (loan_repayment_schedule.is_accrued == 0)
-			& (loan_repayment_schedule.docstatus == 1)
-		)
-	)
-
-	if term_loan:
-		query = query.where(loan.name == term_loan)
-
-	if loan_product:
-		query = query.where(loan.loan_product == loan_product)
-
-	term_loans = query.run(as_dict=1)
-
-	return term_loans
-
-
-def make_loan_interest_accrual_entry(args):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	loan_interest_accrual = frappe.new_doc("Loan Interest Accrual")
-	loan_interest_accrual.loan = args.loan
-	loan_interest_accrual.applicant_type = args.applicant_type
-	loan_interest_accrual.applicant = args.applicant
-	loan_interest_accrual.interest_income_account = args.interest_income_account
-	loan_interest_accrual.loan_account = args.loan_account
-	loan_interest_accrual.pending_principal_amount = flt(args.pending_principal_amount, precision)
-	loan_interest_accrual.interest_amount = flt(args.interest_amount, precision)
-	loan_interest_accrual.total_pending_interest_amount = flt(
-		args.total_pending_interest_amount, precision
-	)
-	loan_interest_accrual.penalty_amount = flt(args.penalty_amount, precision)
-	loan_interest_accrual.posting_date = args.posting_date or nowdate()
-	loan_interest_accrual.process_loan_interest_accrual = args.process_loan_interest
-	loan_interest_accrual.repayment_schedule_name = args.repayment_schedule_name
-	loan_interest_accrual.payable_principal_amount = args.payable_principal
-	loan_interest_accrual.accrual_type = args.accrual_type
-	loan_interest_accrual.due_date = args.due_date
+	loan_interest_accrual.loan = loan
+	loan_interest_accrual.interest_amount = flt(interest_amount, precision)
+	loan_interest_accrual.base_amount = flt(base_amount, precision)
+	loan_interest_accrual.posting_date = posting_date or nowdate()
+	loan_interest_accrual.start_date = start_date
+	loan_interest_accrual.process_loan_interest_accrual = process_loan_interest
+	loan_interest_accrual.accrual_type = accrual_type
+	loan_interest_accrual.interest_type = interest_type
+	loan_interest_accrual.rate_of_interest = rate_of_interest
+	loan_interest_accrual.loan_demand = loan_demand
 
 	loan_interest_accrual.save()
 	loan_interest_accrual.submit()
 
 
-def get_no_of_days_for_interest_accural(loan, posting_date):
-	last_interest_accrual_date = get_last_accrual_date(loan.name, posting_date)
+def get_overlapping_dates(loan, last_accrual_date, posting_date):
+	loan_repayment_schedules = frappe.db.get_all(
+		"Loan Repayment Schedule", filters={"loan": loan, "status": "Active"}, pluck="name"
+	)
+	overlapping_dates = []
 
-	no_of_days = date_diff(posting_date or nowdate(), last_interest_accrual_date) + 1
+	if loan_repayment_schedules and last_accrual_date:
+		for schedule in loan_repayment_schedules:
+			overlapping_dates = frappe.db.get_all(
+				"Repayment Schedule",
+				filters={"parent": schedule, "payment_date": ("between", [last_accrual_date, posting_date])},
+				pluck="payment_date",
+				order_by="payment_date",
+			)
 
-	return no_of_days
+	overlapping_dates.append(posting_date)
+
+	return overlapping_dates
 
 
-def get_last_accrual_date(loan, posting_date):
-	last_posting_date = frappe.db.sql(
-		""" SELECT MAX(posting_date) from `tabLoan Interest Accrual`
-		WHERE loan = %s and docstatus = 1""",
-		(loan),
+def get_principal_amount_for_term_loan(loan, date):
+	repayment_schedule = frappe.db.get_value(
+		"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
 	)
 
-	if last_posting_date[0][0]:
-		last_interest_accrual_date = last_posting_date[0][0]
-		# interest for last interest accrual date is already booked, so add 1 day
-		last_disbursement_date = get_last_disbursement_date(loan, posting_date)
+	principal_amount = frappe.db.get_value(
+		"Repayment Schedule",
+		{"parent": repayment_schedule, "payment_date": ("<", date)},
+		"balance_loan_amount",
+		order_by="payment_date DESC",
+	)
 
-		if last_disbursement_date and getdate(last_disbursement_date) > add_days(
-			getdate(last_interest_accrual_date), 1
+	if not principal_amount:
+		principal_amount = loan.disbursed_amount
+
+	return principal_amount
+
+
+def get_term_loan_payment_date(loan_repayment_schedule, date):
+	payment_date = frappe.db.get_value(
+		"Repayment Schedule",
+		{"parent": loan_repayment_schedule, "payment_date": ("<=", date)},
+		"MAX(payment_date)",
+	)
+
+	return payment_date
+
+
+def calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+
+	demands = get_unpaid_demands(loan.name, posting_date)
+
+	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
+	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+	grace_period_days = cint(frappe.get_value("Loan Product", loan_product, "grace_period_in_days"))
+	penal_interest_amount = 0
+
+	for demand in demands:
+		if demand.demand_subtype in ("Principal", "Interest"):
+			if getdate(posting_date) > add_days(demand.demand_date, grace_period_days):
+				last_accrual_date = get_last_accrual_date(
+					loan.name, posting_date, "Penal Interest", demand=demand.name
+				)
+
+				if not last_accrual_date:
+					from_date = demand.demand_date
+				else:
+					from_date = add_days(last_accrual_date, 1)
+
+				no_of_days = date_diff(posting_date, from_date)
+
+				penal_interest_amount = demand.demand_amount * penal_interest_rate * no_of_days / 36500
+
+				if penal_interest_amount > 0:
+					make_loan_interest_accrual_entry(
+						loan.name,
+						demand.demand_amount,
+						penal_interest_amount,
+						process_loan_interest,
+						from_date,
+						posting_date,
+						accrual_type,
+						"Penal Interest",
+						penal_interest_rate,
+						loan_demand=demand.name,
+					)
+
+					create_loan_demand(
+						loan.name,
+						posting_date,
+						"Penalty",
+						"Penalty",
+						penal_interest_amount,
+						loan_repayment_schedule=demand.loan_repayment_schedule,
+						loan_disbursement=loan.loan_disbursement,
+					)
+
+
+def make_accrual_interest_entry_for_loans(
+	posting_date,
+	process_loan_interest=None,
+	loan=None,
+	loan_product=None,
+	accrual_type="Regular",
+):
+	query_filters = {
+		"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+		"docstatus": 1,
+	}
+
+	if loan:
+		query_filters.update({"name": loan})
+
+	if loan_product:
+		query_filters.update({"loan_product": loan_product})
+
+	open_loans = frappe.get_all(
+		"Loan",
+		fields=[
+			"name",
+			"total_payment",
+			"total_amount_paid",
+			"debit_adjustment_amount",
+			"credit_adjustment_amount",
+			"refund_amount",
+			"loan_account",
+			"interest_income_account",
+			"penalty_income_account",
+			"loan_amount",
+			"is_term_loan",
+			"status",
+			"disbursement_date",
+			"disbursed_amount",
+			"applicant_type",
+			"applicant",
+			"rate_of_interest",
+			"total_interest_payable",
+			"written_off_amount",
+			"total_principal_paid",
+			"repayment_start_date",
+			"company",
+		],
+		filters=query_filters,
+	)
+
+	for loan in open_loans:
+		calculate_penal_interest_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+		calculate_accrual_amount_for_loans(loan, posting_date, process_loan_interest, accrual_type)
+
+
+def get_last_accrual_date(loan, posting_date, interest_type, demand=None):
+	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
+
+	if demand:
+		filters["loan_demand"] = demand
+
+	last_interest_accrual_date = frappe.db.get_value(
+		"Loan Interest Accrual", filters, "MAX(posting_date)"
+	)
+	last_disbursement_date = get_last_disbursement_date(loan, posting_date)
+
+	if interest_type == "Penal Interest":
+		return last_interest_accrual_date
+
+	if last_interest_accrual_date:
+		# interest for last interest accrual date is already booked, so add 1 day
+		if last_disbursement_date and getdate(last_disbursement_date) > getdate(
+			last_interest_accrual_date
 		):
 			last_interest_accrual_date = last_disbursement_date
 
-		return add_days(last_interest_accrual_date, 1)
+		return last_interest_accrual_date
 	else:
-		return frappe.db.get_value("Loan", loan, "disbursement_date")
+		moratorium_end_date = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan, "docstatus": 1, "status": "Active"},
+			"moratorium_end_date",
+		)
+		print("moratorium_end_date", moratorium_end_date)
+		print("last_disbursement_date", last_disbursement_date)
+		if moratorium_end_date and getdate(moratorium_end_date) > getdate(last_disbursement_date):
+			last_interest_accrual_date = add_days(moratorium_end_date, 1)
+		else:
+			last_interest_accrual_date = last_disbursement_date
+
+		return last_interest_accrual_date
 
 
 def get_last_disbursement_date(loan, posting_date):

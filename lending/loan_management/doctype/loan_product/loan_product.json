@@ -11,16 +11,10 @@
   "loan_category",
   "maximum_loan_amount",
   "rate_of_interest",
-  "penalty_interest_method",
   "penalty_interest_rate",
-  "penalty_interest_value_ptpd",
   "grace_period_in_days",
   "write_off_amount",
   "min_days_bw_disbursement_first_repayment",
-  "broken_period_interest_charged",
-  "auto_close_with_security_deposit",
-  "min_auto_closure_tolerance_amount",
-  "max_auto_closure_tolerance_amount",
   "loan_partners",
   "column_break_2",
   "company",
@@ -145,7 +139,6 @@
    "label": "Is Term Loan"
   },
   {
-   "depends_on": "eval:doc.penalty_interest_method == \"Rate\"",
    "description": "Penalty Interest Rate is levied on the pending interest amount on a daily basis in case of delayed repayment ",
    "fieldname": "penalty_interest_rate",
    "fieldtype": "Percent",
@@ -198,7 +191,7 @@
    "fieldtype": "Select",
    "label": "Repayment Schedule Type",
    "mandatory_depends_on": "is_term_loan",
-   "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date"
+   "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date\nLine of Credit"
   },
   {
    "depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
@@ -281,10 +274,9 @@
    "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
    "description": "Day of every month on which the repayment date is considered",
    "fieldname": "cyclic_day_of_the_month",
-   "fieldtype": "Select",
+   "fieldtype": "Int",
    "label": "Cyclic Day Of the Month",
-   "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31"
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\""
   },
   {
    "fieldname": "loan_partners",
@@ -308,45 +300,6 @@
    "unique": 1
   },
   {
-   "fieldname": "penalty_interest_method",
-   "fieldtype": "Select",
-   "label": "Penalty Interest Method",
-   "options": "Rate\nPTPD"
-  },
-  {
-   "depends_on": "eval:doc.penalty_interest_method == \"PTPD\"",
-   "description": "Per thousand per day penal amount which will be applied to the loan EMI proportionately to the EMI amount",
-   "fieldname": "penalty_interest_value_ptpd",
-   "fieldtype": "Currency",
-   "label": "Penalty Interest Value (PTPD)",
-   "mandatory_depends_on": "eval:doc.penalty_interest_method == \"PTPD\""
-  },
-  {
-   "default": "0",
-   "fieldname": "broken_period_interest_charged",
-   "fieldtype": "Check",
-   "label": "Broken Period Interest charged"
-  },
-  {
-   "default": "0",
-   "fieldname": "auto_close_with_security_deposit",
-   "fieldtype": "Check",
-   "label": "Auto-close with Security Deposit"
-  },
-  {
-   "fieldname": "min_auto_closure_tolerance_amount",
-   "fieldtype": "Currency",
-   "label": "Min Auto-closure Tolerance Amount",
-   "reqd": 1
-  },
-  {
-   "fieldname": "max_auto_closure_tolerance_amount",
-   "fieldtype": "Currency",
-   "label": "Max Auto-closure Tolerance Amount",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "min_days_bw_disbursement_first_repayment",
    "fieldtype": "Int",
    "label": "Minimum days between Disbursement date and first Repayment date",
@@ -363,7 +316,8 @@
    "fieldname": "interest_accrued_account",
    "fieldtype": "Link",
    "label": "Interest Accrued Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "broken_period_interest_recovery_account",
@@ -431,7 +385,8 @@
    "fieldname": "penalty_accrued_account",
    "fieldtype": "Link",
    "label": "Penalty Accrued Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_zslc",
@@ -475,7 +430,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-29 19:33:39.463380",
+ "modified": "2023-12-30 10:46:13.647135",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

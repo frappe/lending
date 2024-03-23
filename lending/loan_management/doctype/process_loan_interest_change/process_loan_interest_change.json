@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-11-24 10:22:41.551363",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_pqgh",
+  "new_rate_of_interest",
+  "loan_product",
+  "loans",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_pqgh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Process Loan Interest Change",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Will apply to all loans having this loan product",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fieldname": "loans",
+   "fieldtype": "Table MultiSelect",
+   "label": "Loans",
+   "options": "Loan Interest Change Detail"
+  },
+  {
+   "fieldname": "new_rate_of_interest",
+   "fieldtype": "Float",
+   "label": "New Rate Of Interest"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2023-11-24 14:21:08.379356",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Process Loan Interest Change",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
