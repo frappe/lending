@@ -187,6 +187,7 @@ def create_loan_demand(
 	process_loan_demand=None,
 	paid_amount=0,
 ):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if amount:
 		demand = frappe.new_doc("Loan Demand")
 		demand.loan = loan
@@ -196,7 +197,7 @@ def create_loan_demand(
 		demand.demand_date = posting_date
 		demand.demand_type = demand_type
 		demand.demand_subtype = demand_subtype
-		demand.demand_amount = amount
+		demand.demand_amount = flt(amount, precision)
 		demand.sales_invoice = sales_invoice
 		demand.process_loan_demand = process_loan_demand
 		demand.paid_amount = paid_amount

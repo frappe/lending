@@ -345,6 +345,7 @@ class LoanRepaymentSchedule(Document):
 		previous_interest_amount=0,
 		additional_principal_amount=0,
 	):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
 		if additional_principal_amount:
 			current_balance_amount = additional_principal_amount
@@ -353,7 +354,7 @@ class LoanRepaymentSchedule(Document):
 			current_balance_amount = balance_amount
 
 		interest_amount = flt(
-			current_balance_amount * flt(self.rate_of_interest) * days / (months * 100)
+			current_balance_amount * flt(self.rate_of_interest) * days / (months * 100), precision
 		)
 		principal_amount = self.monthly_repayment_amount - flt(interest_amount)
 
