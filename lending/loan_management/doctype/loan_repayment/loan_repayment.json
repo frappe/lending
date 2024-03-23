@@ -359,7 +359,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Repayment Type",
-   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nInterest Capitalization\nCharges Capitalization\nPenalty Capitalization\nPrincipal Adjustment\nInterest Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments\nLoan Closure"
+   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nPrincipal Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments\nLoan Closure\nPartial Settlement\nFull Settlement"
   },
   {
    "fieldname": "loan_restructure",
@@ -409,7 +409,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-12 13:15:42.086497",
+ "modified": "2024-03-23 18:02:14.978937",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

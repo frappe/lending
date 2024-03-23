@@ -567,7 +567,9 @@ def get_interest_amount(
 	return interest_per_day * no_of_days
 
 
-def reverse_loan_interest_accruals(loan, posting_date, interest_type=None):
+def reverse_loan_interest_accruals(
+	loan, posting_date, interest_type=None, loan_repayment_schedule=None
+):
 
 	filters = {
 		"loan": loan,
@@ -577,6 +579,9 @@ def reverse_loan_interest_accruals(loan, posting_date, interest_type=None):
 
 	if interest_type:
 		filters["interest_type"] = interest_type
+
+	if loan_repayment_schedule:
+		filters["loan_repayment_schedule"] = loan_repayment_schedule
 
 	accruals = frappe.get_all("Loan Interest Accrual", filters=filters)
 

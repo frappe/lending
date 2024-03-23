@@ -644,7 +644,10 @@ def update_days_past_due_in_loans(
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	demands = get_unpaid_demands(loan_name, posting_date=posting_date, loan_product=loan_product)
+	demand = get_unpaid_demands(
+		loan_name, posting_date=posting_date, loan_product=loan_product, demand_type="EMI", limit=1
+	)
+
 	threshold_map = get_dpd_threshold_map()
 	threshold_write_off_map = get_dpd_threshold_write_off_map()
 	checked_loans = []
@@ -652,20 +655,21 @@ def update_days_past_due_in_loans(
 	applicant_type = frappe.db.get_value("Loan", loan_name, "applicant_type")
 	applicant = frappe.db.get_value("Loan", loan_name, "applicant")
 
-	for loan in demands:
+	if demand:
+		demand = demand[0]
 		is_npa = 0
-		days_past_due = date_diff(getdate(posting_date), getdate(loan.demand_date))
+		days_past_due = date_diff(getdate(posting_date), getdate(demand.demand_date))
 		if days_past_due < 0:
 			days_past_due = 0
 
-		threshold = threshold_map.get(loan.loan_product, 0)
+		threshold = threshold_map.get(demand.loan_product, 0)
 
 		if days_past_due and threshold and days_past_due > threshold:
 			is_npa = 1
 
 		update_loan_and_customer_status(
-			loan.loan,
-			loan.company,
+			demand.loan,
+			demand.company,
 			applicant_type,
 			applicant,
 			days_past_due,
@@ -673,17 +677,17 @@ def update_days_past_due_in_loans(
 			posting_date or getdate(),
 		)
 
-		create_dpd_record(loan.loan, posting_date, days_past_due, process_loan_classification)
+		create_dpd_record(demand.loan, posting_date, days_past_due, process_loan_classification)
 
-		write_off_threshold = threshold_write_off_map.get(loan.company, 0)
+		write_off_threshold = threshold_write_off_map.get(demand.company, 0)
 
 		if write_off_threshold and days_past_due > write_off_threshold:
-			create_loan_write_off(loan.loan, posting_date)
+			create_loan_write_off(demand.loan, posting_date)
 
-		checked_loans.append(loan.loan)
+		checked_loans.append(demand.loan)
 
 	open_loans_with_no_overdue = []
-	if loan_name and not demands:
+	if loan_name and not demand:
 		open_loans_with_no_overdue = [
 			frappe.db.get_value(
 				"Loan", loan_name, ["name", "company", "applicant_type", "applicant"], as_dict=1

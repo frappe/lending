@@ -668,9 +668,6 @@ class LoanRepayment(AccountsController):
 			"Penalty Waiver": "penalty_waiver_account",
 			"Charges Waiver": "charges_waiver_account",
 			"Principal Capitalization": "loan_account",
-			"Interest Capitalization": "loan_account",
-			"Charges Capitalization": "loan_account",
-			"Penalty Capitalization": "loan_account",
 			"Loan Closure": "payment_account",
 			"Write Off Recovery": "write_off_recovery_account",
 			"Principal Adjustment": "loan_account",
@@ -746,7 +743,7 @@ def create_repayment_entry(
 
 
 def get_unpaid_demands(
-	against_loan, posting_date=None, loan_product=None, demand_type=None, demand_subtype=None
+	against_loan, posting_date=None, loan_product=None, demand_type=None, demand_subtype=None, limit=0
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -776,6 +773,7 @@ def get_unpaid_demands(
 			& (loan_demand.demand_date <= posting_date)
 			& (Round(loan_demand.outstanding_amount, precision) > 0)
 		)
+		.orderby(loan_demand.demand_date)
 		.orderby(loan_demand.disbursement_date)
 		.orderby(loan_demand.repayment_schedule_detail)
 		.orderby(loan_demand.demand_type)
@@ -790,6 +788,9 @@ def get_unpaid_demands(
 
 	if demand_subtype:
 		query = query.where(loan_demand.demand_subtype == demand_subtype)
+
+	if limit:
+		query = query.limit(limit)
 
 	loan_demands = query.run(as_dict=1)
 

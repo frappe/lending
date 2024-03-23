@@ -73,11 +73,17 @@ class LoanRepaymentSchedule(Document):
 			)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
+
 		if self.broken_period_interest and self.broken_period_interest > 0:
 			bpi_row = self.repayment_schedule[0]
 			frappe.db.set_value("Repayment Schedule", bpi_row.name, "demand_generated", 0)
 			loan_demand = frappe.get_doc("Loan Demand", {"repayment_schedule_detail": bpi_row.name})
 			loan_demand.cancel()
+
+		reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
 	def set_repayment_period(self):
 		if self.repayment_method == "Repay Fixed Amount per Period":
