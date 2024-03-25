@@ -2,12 +2,16 @@
 // License: GNU General Public License v3. See license.txt
 
 // render
-frappe.listview_settings['Loan Security Unpledge'] = {
+frappe.listview_settings['Loan Security Assignment'] = {
 	add_fields: ["status"],
 	get_indicator: function(doc) {
 		var status_color = {
-			"Requested": "orange",
-			"Approved": "green",
+			"Unassigned": "orange",
+			"Assigned": "blue",
+			"Assignment Requested": "grey",
+			"Release Requested": "grey",
+			"Released": "green",
+			"Repossessed": "red"
 		};
 		return [__(doc.status), status_color[doc.status], "status,=,"+doc.status];
 	}

@@ -23,7 +23,9 @@ from lending.loan_management.doctype.loan.loan import (
 	request_loan_closure,
 	unpledge_security,
 )
-from lending.loan_management.doctype.loan_application.loan_application import create_pledge
+from lending.loan_management.doctype.loan_application.loan_application import (
+	create_loan_security_assignment_from_loan_application,
+)
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
@@ -31,7 +33,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 	days_in_year,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -174,7 +176,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledge, "Repay Over Number of Periods", 12
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -188,7 +190,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledge, "Repay Over Number of Periods", 12
 		)
 
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -222,7 +224,9 @@ class TestLoan(unittest.TestCase):
 		# Clear loan docs before checking
 		frappe.db.sql("DELETE FROM `tabLoan` where applicant = '_Test Loan Customer 1'")
 		frappe.db.sql("DELETE FROM `tabLoan Application` where applicant = '_Test Loan Customer 1'")
-		frappe.db.sql("DELETE FROM `tabLoan Security Pledge` where applicant = '_Test Loan Customer 1'")
+		frappe.db.sql(
+			"DELETE FROM `tabLoan Security Assignment` where applicant = '_Test Loan Customer 1'"
+		)
 
 		if not frappe.db.get_value(
 			"Sanctioned Loan Amount",
@@ -248,7 +252,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant3, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 		loan = create_demand_loan(
 			self.applicant3, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
@@ -266,7 +270,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -326,8 +330,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
-
+		create_loan_security_assignment_from_loan_application(loan_application)
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
@@ -381,7 +384,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2,
@@ -426,7 +429,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -458,13 +461,13 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
-	def test_loan_security_unpledge(self):
+	def test_loan_security_release(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -515,7 +518,7 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(amounts["payable_principal_amount"], 0.0)
 		self.assertEqual(amounts["interest_amount"], 0)
 
-	def test_partial_loan_security_unpledge(self):
+	def test_partial_loan_security_release(self):
 		pledge = [
 			{"loan_security": "Test Security 1", "qty": 2000.00},
 			{"loan_security": "Test Security 2", "qty": 4000.00},
@@ -524,7 +527,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -554,13 +557,13 @@ class TestLoan(unittest.TestCase):
 		unpledge_request.load_from_db()
 		self.assertEqual(unpledge_request.docstatus, 1)
 
-	def test_sanctioned_loan_security_unpledge(self):
+	def test_sanctioned_loan_security_release(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -589,7 +592,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -628,7 +631,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -646,7 +649,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -696,7 +699,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -759,7 +762,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -811,7 +814,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -836,7 +839,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -948,7 +951,7 @@ def create_loan_scenario_for_penalty(doc):
 	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 	loan_application = create_loan_application("_Test Company", doc.applicant2, "Demand Loan", pledge)
-	create_pledge(loan_application)
+	create_loan_security_assignment_from_loan_application(loan_application)
 	loan = create_demand_loan(
 		doc.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 	)
@@ -1122,7 +1125,7 @@ def create_loan_security():
 			{
 				"doctype": "Loan Security",
 				"loan_security_type": "Stock",
-				"loan_security_code": "532779",
+				"loan_security_code": "Test Security 1",
 				"loan_security_name": "Test Security 1",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
@@ -1134,32 +1137,12 @@ def create_loan_security():
 			{
 				"doctype": "Loan Security",
 				"loan_security_type": "Stock",
-				"loan_security_code": "531335",
+				"loan_security_code": "Test Security 2",
 				"loan_security_name": "Test Security 2",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
 			}
 		).insert(ignore_permissions=True)
-
-
-def create_loan_security_pledge(applicant, pledges, loan_application=None, loan=None):
-
-	lsp = frappe.new_doc("Loan Security Pledge")
-	lsp.applicant_type = "Customer"
-	lsp.applicant = applicant
-	lsp.company = "_Test Company"
-	lsp.loan_application = loan_application
-
-	if loan:
-		lsp.loan = loan
-
-	for pledge in pledges:
-		lsp.append("securities", {"loan_security": pledge["loan_security"], "qty": pledge["qty"]})
-
-	lsp.save()
-	lsp.submit()
-
-	return lsp
 
 
 def make_loan_disbursement_entry(loan, amount, disbursement_date=None):

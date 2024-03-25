@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import itertools
 
 import frappe
 from frappe import _
@@ -8,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, get_datetime, getdate
 
 
-class LoanSecurityUnpledge(Document):
+class LoanSecurityRelease(Document):
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
@@ -88,7 +89,7 @@ class LoanSecurityUnpledge(Document):
 				)
 				msg += "<br>"
 				msg += _("You are trying to unpledge more.")
-				frappe.throw(msg, title=_("Loan Security Unpledge Error"))
+				frappe.throw(msg, title=_("Loan Security Release Error"))
 
 			unpledge_qty_map.setdefault(security.loan_security, 0)
 			unpledge_qty_map[security.loan_security] += security.qty
@@ -99,6 +100,12 @@ class LoanSecurityUnpledge(Document):
 
 			qty_after_unpledge = pledge_qty_map.get(security, 0) - unpledge_qty_map.get(security, 0)
 			current_price = loan_security_price_map.get(security)
+
+			if not current_price:
+				current_price = frappe.db.get_value(
+					"Pledge", {"loan_security": security}, "loan_security_price"
+				)
+
 			security_value += qty_after_unpledge * current_price
 
 		if not security_value and flt(pending_principal_amount, 2) > 0:
@@ -122,6 +129,9 @@ class LoanSecurityUnpledge(Document):
 		if self.status == "Approved" and not self.unpledge_time:
 			self.update_loan_status()
 			self.db_set("unpledge_time", get_datetime())
+
+			for security in self.securities:
+				check_and_request_loan_security_assignment_release(security.loan_security)
 
 	def update_loan_status(self, cancel=0):
 		if cancel:
@@ -148,7 +158,7 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Unpledge` up, `tabUnpledge` u
+		FROM `tabLoan Security Release` up, `tabUnpledge` u
 		WHERE up.loan = %s
 		AND u.parent = up.name
 		AND up.status = 'Approved'
@@ -162,10 +172,11 @@ def get_pledged_security_qty(loan):
 		frappe.db.sql(
 			"""
 		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Pledge` lp, `tabPledge`p
-		WHERE lp.loan = %s
-		AND p.parent = lp.name
-		AND lp.status = 'Pledged'
+		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Security Assignment Loan Detail` lsald
+		WHERE lsald.loan = %s
+		AND p.parent = lsa.name
+		AND lsald.parent = lsa.name
+		AND lsa.status = 'Assigned'
 		GROUP BY p.loan_security
 	""",
 			(loan),
@@ -177,3 +188,41 @@ def get_pledged_security_qty(loan):
 		current_pledges[security] -= unpledges.get(security, 0.0)
 
 	return current_pledges
+
+
+def check_and_request_loan_security_assignment_release(loan_security):
+	active_loans_and_lsa = []
+
+	all_loans_and_lsa = frappe.db.sql(
+		"""
+		SELECT lsald.loan, lsa.name as lsa
+		FROM `tabLoan Security Assignment` lsa, `tabPledge` p, `tabLoan Security Assignment Loan Detail` lsald
+		WHERE p.loan_security = %s
+		AND p.parent = lsa.name
+		AND lsald.parent = lsa.name
+		AND lsa.status = 'Assigned'
+		""",
+		(loan_security),
+		as_dict=True,
+	)
+
+	loans_with_security_unpledged = frappe.db.sql(
+		"""
+		SELECT lsr.loan
+		FROM `tabLoan Security Release` lsr, `tabUnpledge` u
+		WHERE u.loan_security = %s
+		AND u.parent = lsr.name
+		AND lsr.status = 'Approved'
+		""",
+		(loan_security),
+		as_list=True,
+	)
+	loans_with_security_unpledged = list(itertools.chain(*loans_with_security_unpledged))
+
+	for loan_and_lsa in all_loans_and_lsa:
+		if loan_and_lsa.loan not in loans_with_security_unpledged:
+			active_loans_and_lsa.append(loan_and_lsa)
+
+	if not active_loans_and_lsa:
+		for d in all_loans_and_lsa:
+			frappe.db.set_value("Loan Security Assignment", d.lsa, "status", "Release Requested")

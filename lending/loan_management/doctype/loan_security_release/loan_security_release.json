@@ -29,7 +29,7 @@
    "label": "Loan  Details"
   },
   {
-   "fetch_from": "loan_application.applicant",
+   "fetch_from": "loan.applicant",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -74,7 +74,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Loan Security Unpledge",
+   "options": "Loan Security Release",
    "print_hide": 1,
    "read_only": 1
   },
@@ -126,10 +126,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-19 18:12:01.401744",
+ "modified": "2023-10-25 08:58:12.703335",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Loan Security Unpledge",
+ "name": "Loan Security Release",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -179,5 +180,6 @@
  "search_fields": "applicant",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

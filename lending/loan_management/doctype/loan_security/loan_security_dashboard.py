@@ -3,6 +3,6 @@ def get_data():
 		"fieldname": "loan_security",
 		"transactions": [
 			{"items": ["Loan Application", "Loan Security Price"]},
-			{"items": ["Loan Security Pledge", "Loan Security Unpledge"]},
+			{"items": ["Loan Security Assignment", "Loan Security Release"]},
 		],
 	}

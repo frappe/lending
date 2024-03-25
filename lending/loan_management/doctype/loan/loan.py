@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order
+from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	cint,
@@ -22,7 +23,7 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
 
@@ -90,13 +91,13 @@ class Loan(AccountsController):
 			self.repayment_start_date = cyclic_date
 
 	def on_submit(self):
-		self.link_loan_security_pledge()
+		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 		self.submit_draft_schedule()
 
 	def on_cancel(self):
-		self.unlink_loan_security_pledge()
+		self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
@@ -221,25 +222,35 @@ class Loan(AccountsController):
 		if not self.loan_amount:
 			frappe.throw(_("Loan amount is mandatory"))
 
-	def link_loan_security_pledge(self):
-		if self.is_secured_loan and self.loan_application:
-			maximum_loan_value = frappe.db.get_value(
-				"Loan Security Pledge",
-				{"loan_application": self.loan_application, "status": "Requested"},
-				"sum(maximum_loan_value)",
-			)
+	def link_loan_security_assignment(self):
+		if not self.is_secured_loan or not self.loan_application:
+			return
 
-			if maximum_loan_value:
-				frappe.db.sql(
-					"""
-					UPDATE `tabLoan Security Pledge`
-					SET loan = %s, pledge_time = %s, status = 'Pledged'
-					WHERE status = 'Requested' and loan_application = %s
-				""",
-					(self.name, now_datetime(), self.loan_application),
-				)
+		lsa = frappe.qb.DocType("Loan Security Assignment")
+		lsald = frappe.qb.DocType("Loan Security Assignment Loan Detail")
 
-				self.db_set("maximum_loan_amount", maximum_loan_value)
+		lsa_and_maximum_loan_value = (
+			frappe.qb.from_(lsa)
+			.inner_join(lsald)
+			.on(lsald.parent == lsa.name)
+			.select(lsa.name, Sum(lsa.maximum_loan_value))
+			.where(lsa.status == "Assignment Requested")
+			.where(lsald.loan_application == self.loan_application)
+		).run()
+
+		if not lsa_and_maximum_loan_value:
+			return
+
+		lsa = frappe.get_doc("Loan Security Assignment", lsa_and_maximum_loan_value[0][0])
+		for row in lsa.allocated_loans:
+			if row.loan_application == self.loan_application:
+				row.loan = self.name
+				break
+		lsa.pledge_time = now_datetime()
+		lsa.status = "Assigned"
+		lsa.save()
+
+		self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -251,13 +262,15 @@ class Loan(AccountsController):
 				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
 			)
 
-	def unlink_loan_security_pledge(self):
-		pledges = frappe.get_all("Loan Security Pledge", fields=["name"], filters={"loan": self.name})
+	def unlink_loan_security_assignment(self):
+		pledges = frappe.get_all(
+			"Loan Security Assignment", fields=["name"], filters={"loan": self.name}
+		)
 		pledge_list = [d.name for d in pledges]
 		if pledge_list:
 			frappe.db.sql(
-				"""UPDATE `tabLoan Security Pledge` SET
-				loan = '', status = 'Unpledged'
+				"""UPDATE `tabLoan Security Assignment` SET
+				loan = '', status = 'Unassigned'
 				where name in (%s) """
 				% (", ".join(["%s"] * len(pledge_list))),
 				tuple(pledge_list),
@@ -453,7 +466,13 @@ def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict
 
 @frappe.whitelist()
 def unpledge_security(
-	loan=None, loan_security_pledge=None, security_map=None, as_dict=0, save=0, submit=0, approve=0
+	loan=None,
+	loan_security_assignment=None,
+	security_map=None,
+	as_dict=0,
+	save=0,
+	submit=0,
+	approve=0,
 ):
 	# if no security_map is passed it will be considered as full unpledge
 	if security_map and isinstance(security_map, str):
@@ -462,17 +481,17 @@ def unpledge_security(
 	if loan:
 		pledge_qty_map = security_map or get_pledged_security_qty(loan)
 		loan_doc = frappe.get_doc("Loan", loan)
-		unpledge_request = create_loan_security_unpledge(
+		unpledge_request = create_loan_security_release(
 			pledge_qty_map, loan_doc.name, loan_doc.company, loan_doc.applicant_type, loan_doc.applicant
 		)
-	# will unpledge qty based on loan security pledge
-	elif loan_security_pledge:
+	# will unpledge qty based on Loan Security Assignment
+	elif loan_security_assignment:
 		security_map = {}
-		pledge_doc = frappe.get_doc("Loan Security Pledge", loan_security_pledge)
+		pledge_doc = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
 		for security in pledge_doc.securities:
 			security_map.setdefault(security.loan_security, security.qty)
 
-		unpledge_request = create_loan_security_unpledge(
+		unpledge_request = create_loan_security_release(
 			security_map,
 			pledge_doc.loan,
 			pledge_doc.company,
@@ -499,8 +518,8 @@ def unpledge_security(
 		return unpledge_request
 
 
-def create_loan_security_unpledge(unpledge_map, loan, company, applicant_type, applicant):
-	unpledge_request = frappe.new_doc("Loan Security Unpledge")
+def create_loan_security_release(unpledge_map, loan, company, applicant_type, applicant):
+	unpledge_request = frappe.new_doc("Loan Security Release")
 	unpledge_request.applicant_type = applicant_type
 	unpledge_request.applicant = applicant
 	unpledge_request.loan = loan
