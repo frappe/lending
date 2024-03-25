@@ -15,6 +15,7 @@
   "column_break_3",
   "company",
   "posting_date",
+  "cancellation_date",
   "status",
   "section_break_8",
   "loan_product",
@@ -590,12 +591,19 @@
    "fieldname": "freeze_date",
    "fieldtype": "Date",
    "label": "Freeze Date"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "cancellation_date",
+   "fieldtype": "Date",
+   "label": "Cancellation Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-23 17:33:20.728608",
+ "modified": "2024-03-25 14:45:55.449271",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

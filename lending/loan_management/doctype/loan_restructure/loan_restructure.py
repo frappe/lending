@@ -202,7 +202,7 @@ class LoanRestructure(AccountsController):
 		if doc_before_save.status != "Initiated":
 			return
 
-		if self.status == "Approved":
+		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				loan_doc = frappe.get_doc("Loan", self.loan)
 				make_accrual_interest_entry_for_loans(
@@ -323,13 +323,12 @@ class LoanRestructure(AccountsController):
 
 		schedule = frappe.db.get_all(
 			"Loan Repayment Schedule",
-			{"docstatus": 1, "status": status},
+			{"docstatus": 1, "loan": self.loan, "status": status},
 			order_by="posting_date desc",
 			limit=1,
 		)[0]
 
 		frappe.db.set_value("Loan Repayment Schedule", schedule.name, "status", "Active")
-		# self.update_totals(cancel=1)
 
 	def validate_waiver_amount(self):
 		if flt(self.interest_waiver_amount) > flt(self.interest_overdue) - flt(

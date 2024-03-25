@@ -165,18 +165,20 @@ class LoanRepayment(AccountsController):
 
 	def on_cancel(self):
 		self.check_future_accruals()
+		self.mark_as_unpaid()
+		self.update_demands(cancel=1)
+		self.update_limits(cancel=1)
 
-		if self.repayment_type == "Normal Repayment":
-			self.mark_as_unpaid()
-			self.update_demands(cancel=1)
-			self.update_limits(cancel=1)
-			if self.is_npa or self.manual_npa:
-				# Mark back all loans as NPA
-				update_all_linked_loan_customer_npa_status(
-					self.is_npa, self.manual_npa, self.applicant_type, self.applicant
-				)
+		if self.is_npa or self.manual_npa:
+			# Mark back all loans as NPA
+			update_all_linked_loan_customer_npa_status(
+				self.is_npa, self.manual_npa, self.applicant_type, self.applicant
+			)
 
-			frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
+		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
+
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+			self.cancel_loan_restructure()
 
 		update_loan_securities_values(
 			self.against_loan,
@@ -192,6 +194,10 @@ class LoanRepayment(AccountsController):
 		]
 		self.make_gl_entries(cancel=1)
 		update_installment_counts(self.against_loan)
+
+	def cancel_loan_restructure(self):
+		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
+		loan_restructure.cancel()
 
 	def make_credit_note(self):
 		item_details = frappe.db.get_value(
@@ -310,15 +316,16 @@ class LoanRepayment(AccountsController):
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def mark_as_unpaid(self):
-		loan = frappe.qb.DocType("Loan")
+		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment", "Loan Closure"):
+			loan = frappe.qb.DocType("Loan")
 
-		frappe.qb.update(loan).set(
-			loan.total_amount_paid, loan.total_amount_paid - self.amount_paid
-		).set(
-			loan.total_principal_paid, loan.total_principal_paid - self.principal_amount_paid
-		).where(
-			loan.name == self.against_loan
-		).run()
+			frappe.qb.update(loan).set(
+				loan.total_amount_paid, loan.total_amount_paid - self.amount_paid
+			).set(
+				loan.total_principal_paid, loan.total_principal_paid - self.principal_amount_paid
+			).where(
+				loan.name == self.against_loan
+			).run()
 
 	def update_demands(self, cancel=0):
 		loan_demand = frappe.qb.DocType("Loan Demand")
