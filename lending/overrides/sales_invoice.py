@@ -32,3 +32,9 @@ def get_tax_amount(taxes, item_code):
 				tax_amount += flt(item_wise_tax_detail.get(item_code)[1])
 
 	return tax_amount
+
+
+def validate(doc, method):
+	if doc.get("loan"):
+		doc.against_voucher_type = "Loan"
+		doc.against_voucher = doc.loan
