@@ -120,6 +120,7 @@ doc_events = {
 	"Sales Invoice": {
 		"on_submit": "lending.overrides.sales_invoice.generate_demand",
 		"on_cancel": "lending.overrides.sales_invoice.cancel_demand",
+		"validate": "lending.overrides.sales_invoice.validate",
 	},
 }
 
