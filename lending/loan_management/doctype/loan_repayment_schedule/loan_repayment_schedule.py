@@ -33,7 +33,7 @@ class LoanRepaymentSchedule(Document):
 			create_loan_demand(
 				self.loan,
 				bpi_row.payment_date,
-				"Normal",
+				"BPI",
 				"Interest",
 				bpi_row.interest_amount,
 				loan_repayment_schedule=self.name,
@@ -86,13 +86,6 @@ class LoanRepaymentSchedule(Document):
 		reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
 	def set_repayment_period(self):
-		if self.repayment_method == "Repay Fixed Amount per Period":
-			if self.restructure_type == "Pre Payment":
-				self.repayment_periods = math.ceil(
-					self.current_principal_amount / self.monthly_repayment_amount
-				)
-			else:
-				self.repayment_periods = len(self.repayment_schedule)
 		if self.repayment_frequency == "One Time":
 			self.repayment_method = "Repay Over Number of Periods"
 			self.repayment_periods = 1
@@ -180,7 +173,10 @@ class LoanRepaymentSchedule(Document):
 				payment_date, principal_amount, interest_amount, total_payment, balance_amount, days
 			)
 
-			if self.repayment_frequency != "One Time" and len(self.get("repayment_schedule")) >= tenure:
+			if (
+				self.repayment_method == "Repay Over Number of Periods"
+				and len(self.get("repayment_schedule")) >= tenure
+			):
 				self.get("repayment_schedule")[-1].principal_amount += balance_amount
 				self.get("repayment_schedule")[-1].balance_loan_amount = 0
 				self.get("repayment_schedule")[-1].total_payment = (
