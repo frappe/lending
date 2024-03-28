@@ -6,10 +6,6 @@ from frappe.model.document import Document
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
-from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
-	get_accounting_dimensions,
-)
-
 
 class LoanTransfer(Document):
 	def after_insert(self):
@@ -40,16 +36,31 @@ class LoanTransfer(Document):
 			self.make_update_journal_entry(loan, balance)
 
 	def on_submit(self):
+		self.update_branch()
+
 		if len(self.loans) > 10:
 			frappe.enqueue(self.submit_journal_entries, queue="long")
 		else:
-			self.submit_journal_entries()
+			self.submit_cancel_journal_entries()
 
-	def submit_journal_entries(self):
+	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
 			"Accounting Dimension", {"document_type": "Branch"}, "fieldname"
 		)
 
+		if cancel:
+			branch = self.from_branch
+		else:
+			branch = self.to_branch
+
+		for loan in self.loans:
+			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
+
+	def on_cancel(self):
+		self.update_branch(cancel=1)
+		self.submit_cancel_journal_entries(cancel=1)
+
+	def submit_cancel_journal_entries(self, cancel=0):
 		for loan in self.loans:
 			je_exists = frappe.db.get_value(
 				"Journal Entry", {"loan": loan.loan, "loan_transfer": self.name}, "name"
@@ -57,8 +68,10 @@ class LoanTransfer(Document):
 
 			if je_exists:
 				je_doc = frappe.get_doc("Journal Entry", je_exists)
-				je_doc.submit()
-				# frappe.db.set_value("Loan", loan.loan, branch_fieldname, self.to_branch)
+				if cancel:
+					je_doc.cancel()
+				else:
+					je_doc.submit()
 
 	def make_update_journal_entry(self, loan, balances):
 		branch_fieldname = frappe.db.get_value(
@@ -81,12 +94,12 @@ class LoanTransfer(Document):
 		je_doc.loan = loan
 
 		for balance in balances:
-			if flt(balance.bal_in_account_currency) > 0.01:
+			if flt(abs(balance.bal_in_account_currency)) > 0.01:
 				je_doc.append(
 					"accounts",
 					{
 						"account": balance.account,
-						"credit_in_account_currency": balance.bal_in_account_currency,
+						"debit_in_account_currency": balance.bal_in_account_currency,
 						"party_type": balance.party_type,
 						"party": balance.party,
 						"reference_type": balance.against_voucher_type,
@@ -99,7 +112,7 @@ class LoanTransfer(Document):
 					"accounts",
 					{
 						"account": balance.account,
-						"debit_in_account_currency": balance.bal_in_account_currency,
+						"credit_in_account_currency": balance.bal_in_account_currency,
 						"party_type": balance.party_type,
 						"party": balance.party,
 						"reference_type": balance.against_voucher_type,
@@ -129,7 +142,14 @@ def get_loans(branch, applicant=None):
 
 def get_loan_accounts():
 	accounts = []
-	account_fields = ["loan_account", "interest_income_account", "interest_accrued_account"]
+	account_fields = [
+		"loan_account",
+		"interest_income_account",
+		"interest_accrued_account",
+		"penalty_income_account",
+		"penalty_accrued_account",
+		"write_off_account",
+	]
 
 	account_details = frappe.get_all("Loan Product", fields=account_fields)
 
@@ -146,10 +166,9 @@ def get_balances_based_on_dimensions(company, transfer_date, accounts, loans, fr
 	"""Get balance for dimension-wise pl accounts"""
 
 	qb_dimension_fields = ["cost_center", "finance_book", "project"]
-	accounting_dimensions = get_accounting_dimensions()
-
-	for dimension in accounting_dimensions:
-		qb_dimension_fields.append(dimension)
+	branch_fieldname = frappe.db.get_value(
+		"Accounting Dimension", {"document_type": "Branch"}, "fieldname"
+	)
 
 	qb_dimension_fields.append("account")
 
@@ -178,8 +197,9 @@ def get_balances_based_on_dimensions(company, transfer_date, accounts, loans, fr
 		& (gl_entry.against_voucher.isin(loans))
 	)
 
-	for dimension in qb_dimension_fields:
-		query = query.groupby(gl_entry[dimension])
+	query = query.where(gl_entry[branch_fieldname] == from_branch)
+
+	query = query.groupby(gl_entry[branch_fieldname])
 
 	query = query.groupby(gl_entry.account)
 	query = query.groupby(gl_entry.against_voucher)

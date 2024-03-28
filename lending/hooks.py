@@ -122,7 +122,19 @@ doc_events = {
 		"on_cancel": "lending.overrides.sales_invoice.cancel_demand",
 		"validate": "lending.overrides.sales_invoice.validate",
 	},
+	"Custom Field": {
+		"before_insert": "lending.overrides.custom_field.update_dimensions",
+	},
 }
+
+accounting_dimension_doctypes = [
+	"Loan",
+	"Loan Disbursement",
+	"Loan Interest Accrual",
+	"Loan Demand",
+	"Loan Repayment",
+	"Loan Refund",
+]
 
 # Scheduled Tasks
 # ---------------
