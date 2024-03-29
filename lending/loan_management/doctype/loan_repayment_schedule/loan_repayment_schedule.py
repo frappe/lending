@@ -18,7 +18,7 @@ class LoanRepaymentSchedule(Document):
 		self.make_repayment_schedule()
 
 	def set_missing_fields(self):
-		if self.repayment_method == "Repay Over Number of Periods":
+		if self.repayment_method == "Repay Over Number of Periods" and not self.restructure_type:
 			self.monthly_repayment_amount = get_monthly_repayment_amount(
 				self.current_principal_amount,
 				self.rate_of_interest,
@@ -253,7 +253,7 @@ class LoanRepaymentSchedule(Document):
 			if prev_schedule:
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
-				prev_monthly_repayment_amount = prev_schedule.monthly_repayment_amount
+				self.monthly_repayment_amount = prev_schedule.monthly_repayment_amount
 
 				if getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date):
 					for row in prev_schedule.get("repayment_schedule"):
@@ -274,7 +274,6 @@ class LoanRepaymentSchedule(Document):
 						else:
 							self.repayment_start_date = row.payment_date
 							prev_repayment_date = row.payment_date
-							prev_balance_amount = row.balance_loan_amount
 							break
 
 					pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
@@ -294,25 +293,29 @@ class LoanRepaymentSchedule(Document):
 					additional_principal_amount = self.disbursed_amount
 
 				if self.restructure_type == "Advance Payment":
-					paid_principal_amount = prev_monthly_repayment_amount - previous_interest_amount
-					balance_principal_amount = self.current_principal_amount - paid_principal_amount
+					paid_principal_amount = prev_balance_amount - self.current_principal_amount
+					balance_principal_amount = self.current_principal_amount
+					previous_interest_amount = self.monthly_repayment_amount - paid_principal_amount
 
 					self.add_repayment_schedule_row(
 						self.repayment_start_date,
 						paid_principal_amount,
 						previous_interest_amount,
-						prev_monthly_repayment_amount,
+						self.monthly_repayment_amount,
 						balance_principal_amount,
 						date_diff(self.repayment_start_date, self.posting_date),
-						0,
+						1,
 					)
+
+					self.repayment_start_date = self.get_next_payment_date(self.repayment_start_date)
+
 					completed_tenure += 1
 					previous_interest_amount = 0
 				elif not self.restructure_type:
 					self.current_principal_amount = self.disbursed_amount + prev_balance_amount
 					balance_principal_amount = self.current_principal_amount
 
-				if self.repayment_method == "Repay Over Number of Periods":
+				if self.repayment_method == "Repay Over Number of Periods" and not self.restructure_type:
 					self.monthly_repayment_amount = get_monthly_repayment_amount(
 						balance_principal_amount,
 						self.rate_of_interest,
