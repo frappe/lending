@@ -100,6 +100,7 @@ class LoanRepaymentSchedule(Document):
 			previous_interest_amount,
 			balance_amount,
 			additional_principal_amount,
+			pending_prev_days,
 		) = self.add_rows_from_prev_disbursement()
 
 		payment_date = self.repayment_start_date
@@ -140,6 +141,7 @@ class LoanRepaymentSchedule(Document):
 				carry_forward_interest,
 				previous_interest_amount,
 				additional_principal_amount,
+				pending_prev_days,
 			)
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
@@ -191,6 +193,7 @@ class LoanRepaymentSchedule(Document):
 			additional_days = 0
 			previous_interest_amount = 0
 			additional_principal_amount = 0
+			pending_prev_days = 0
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -333,7 +336,12 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_frequency,
 					)
 
-		return previous_interest_amount, balance_principal_amount, additional_principal_amount
+		return (
+			previous_interest_amount,
+			balance_principal_amount,
+			additional_principal_amount,
+			pending_prev_days,
+		)
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
@@ -353,9 +361,11 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest=0,
 		previous_interest_amount=0,
 		additional_principal_amount=0,
+		pending_prev_days=0,
 	):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		days, months = self.get_days_and_months(payment_date, additional_days, balance_amount)
+
 		if additional_principal_amount:
 			current_balance_amount = additional_principal_amount
 			additional_principal_amount = 0
@@ -381,6 +391,10 @@ class LoanRepaymentSchedule(Document):
 			balance_amount = 0.0
 
 		total_payment = principal_amount + interest_amount
+
+		if pending_prev_days > 0:
+			days += pending_prev_days
+			pending_prev_days = 0
 
 		return interest_amount, principal_amount, balance_amount, total_payment, days
 
