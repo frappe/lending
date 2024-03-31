@@ -117,9 +117,6 @@ class LoanRepayment(AccountsController):
 		self.update_limits()
 		update_installment_counts(self.against_loan)
 
-		if self.repayment_type == "Charges Waiver":
-			self.make_credit_note()
-
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
@@ -198,43 +195,6 @@ class LoanRepayment(AccountsController):
 	def cancel_loan_restructure(self):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
 		loan_restructure.cancel()
-
-	def make_credit_note(self):
-		item_details = frappe.db.get_value(
-			"Loan Product",
-			self.loan_product,
-			["charges_waiver_item", "charges_receivable_account"],
-			as_dict=1,
-		)
-
-		charges_waiver_item_income_account = frappe.db.get_value(
-			"Loan Charges",
-			{"charge_type": item_details.charges_waiver_item, "parent": self.loan_product},
-			"income_account",
-		)
-
-		for invoice in self.get("pending_charges"):
-			if invoice.sales_invoice:
-				si = frappe.new_doc("Sales Invoice")
-				si.customer = self.applicant
-				si.append(
-					"items",
-					{
-						"item_code": item_details.charges_waiver_item,
-						"qty": -1,
-						"rate": invoice.allocated_amount,
-						"income_account": charges_waiver_item_income_account,
-					},
-				)
-				si.set_missing_values()
-				si.is_return = 1
-				si.loan = self.against_loan
-				si.debit_to = item_details.charges_receivable_account
-				si.save()
-				for tax in si.get("taxes"):
-					tax.included_in_print_rate = 1
-				si.save()
-				si.submit()
 
 	def set_missing_values(self, amounts):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2

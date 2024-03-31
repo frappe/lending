@@ -251,11 +251,18 @@ class LoanRepaymentSchedule(Document):
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
 			if prev_schedule:
+				after_bpi = 0
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
 				self.monthly_repayment_amount = prev_schedule.monthly_repayment_amount
+				first_date = prev_schedule.get("repayment_schedule")[0].payment_date
 
-				if getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date):
+				if getdate(first_date) < prev_schedule.repayment_start_date:
+					after_bpi = 1
+
+				if (
+					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date) or after_bpi
+				):
 					for row in prev_schedule.get("repayment_schedule"):
 						if getdate(row.payment_date) < getdate(self.posting_date):
 							self.add_repayment_schedule_row(
@@ -271,10 +278,13 @@ class LoanRepaymentSchedule(Document):
 							prev_balance_amount = row.balance_loan_amount
 							if row.principal_amount:
 								completed_tenure += 1
-						else:
+						elif not after_bpi:
 							self.repayment_start_date = row.payment_date
 							prev_repayment_date = row.payment_date
 							break
+
+					if after_bpi:
+						self.broken_period_interest = prev_schedule.broken_period_interest
 
 					pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
 

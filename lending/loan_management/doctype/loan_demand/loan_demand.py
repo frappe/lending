@@ -43,6 +43,15 @@ class LoanDemand(AccountsController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.update_repayment_schedule(cancel=1)
+		self.make_credit_note()
+
+	def make_credit_note(self):
+		if not self.demand_type == "Charges":
+			return
+
+		make_credit_note(
+			self.company, self.demand_subtype, self.applicant, self.loan, self.sales_invoice
+		)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
@@ -215,3 +224,30 @@ def reverse_demands(loan, posting_date, demand_type=None):
 		doc = frappe.get_doc("Loan Demand", demand.name)
 		doc.flags.ignore_links = True
 		doc.cancel()
+
+
+def make_credit_note(company, item_code, applicant, loan, sales_invoice):
+	si = frappe.new_doc("Sales Invoice")
+	si.company = company
+	si.customer = applicant
+	si.loan = loan
+	si.is_return = 1
+	si.return_against = sales_invoice
+	rate, income_account = frappe.db.get_value(
+		"Sales Invoice Item",
+		{"item_code": item_code, "parent": sales_invoice},
+		["rate", "income_account"],
+	)
+
+	si.append(
+		"items",
+		{
+			"item_code": item_code,
+			"qty": -1,
+			"rate": rate,
+			"income_account": income_account,
+		},
+	)
+
+	si.save()
+	si.submit()
