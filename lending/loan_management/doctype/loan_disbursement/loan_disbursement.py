@@ -554,6 +554,7 @@ class LoanDisbursement(AccountsController):
 		if self.get("loan_disbursement_charges") and not cancel:
 			sales_invoice = make_sales_invoice_for_charge(
 				self.against_loan,
+				"loan_disbursement",
 				self.name,
 				self.disbursement_date,
 				self.company,
@@ -574,12 +575,17 @@ class LoanDisbursement(AccountsController):
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 
-def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, company, charges):
+def make_sales_invoice_for_charge(
+	loan, reference_fieldname, reference_doctype, disbursement_date, company, charges
+):
+	if not charges:
+		return
+
 	si = frappe.get_doc(
 		{
 			"doctype": "Sales Invoice",
 			"loan": loan,
-			"loan_disbursement": loan_disbursement,
+			reference_fieldname: reference_doctype,
 			"set_posting_time": 1,
 			"posting_date": disbursement_date,
 			"due_date": disbursement_date,
@@ -597,7 +603,7 @@ def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, co
 		account = frappe.db.get_value(
 			"Loan Charges", {"parent": loan_product, "charge_type": charge.charge}, "income_account"
 		)
-		receivable_account = charge.account
+		receivable_account = charge.get("account")
 		if not account:
 			account = frappe.db.get_value(
 				"Item Default", {"parent": charge.charge, "company": company}, "income_account"
@@ -608,7 +614,8 @@ def make_sales_invoice_for_charge(loan, loan_disbursement, disbursement_date, co
 			{"item_code": charge.charge, "rate": charge.amount, "qty": 1, "income_account": account},
 		)
 
-	si.debit_to = receivable_account
+	if reference_doctype == "Loan Disbursement":
+		si.debit_to = receivable_account
 	si.ignore_default_payment_terms_template = 1
 
 	si.save()

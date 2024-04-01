@@ -30,6 +30,7 @@
   "pending_principal_amount",
   "interest_payable",
   "payable_amount",
+  "total_charges_payable",
   "column_break_9",
   "shortfall_amount",
   "payable_principal_amount",
@@ -37,10 +38,8 @@
   "amount_paid",
   "accounting_dimensions_section",
   "cost_center",
-  "section_break_a5v1",
-  "pending_charges",
-  "column_break_g9f3",
-  "total_charges_payable",
+  "prepayment_charges_section",
+  "prepayment_charges",
   "references_section",
   "reference_number",
   "total_interest_paid",
@@ -332,25 +331,10 @@
    "label": "Manual NPA"
   },
   {
-   "fieldname": "section_break_a5v1",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "pending_charges",
-   "fieldtype": "Table",
-   "label": "Pending Charges",
-   "options": "Loan Charge Reference",
-   "read_only": 1
-  },
-  {
    "fieldname": "total_charges_payable",
    "fieldtype": "Currency",
    "label": "Total Charges Payable",
    "read_only": 1
-  },
-  {
-   "fieldname": "column_break_g9f3",
-   "fieldtype": "Column Break"
   },
   {
    "columns": 1,
@@ -404,12 +388,23 @@
    "fieldtype": "Link",
    "label": "Bank Account",
    "options": "Bank Account"
+  },
+  {
+   "fieldname": "prepayment_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Prepayment Charges"
+  },
+  {
+   "fieldname": "prepayment_charges",
+   "fieldtype": "Table",
+   "label": "Pre Payment Charges",
+   "options": "Prepayment Charges"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-23 18:02:14.978937",
+ "modified": "2024-04-01 17:44:38.606360",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

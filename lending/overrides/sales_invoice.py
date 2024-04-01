@@ -7,7 +7,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 
 
 def generate_demand(self, method=None):
-	if self.get("loan") and not self.get("loan_disbursement"):
+	if self.get("loan") and not self.get("loan_disbursement") and not self.get("is_return"):
 		for item in self.get("items"):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
 			demand_amount = item.base_net_amount + tax_amount

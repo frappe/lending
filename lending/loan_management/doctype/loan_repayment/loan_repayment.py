@@ -85,6 +85,9 @@ class LoanRepayment(AccountsController):
 		# 	)
 
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+			make_sales_invoice_for_charge,
+		)
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
@@ -93,6 +96,16 @@ class LoanRepayment(AccountsController):
 		)
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		make_sales_invoice_for_charge(
+			self.against_loan,
+			"loan_repayment",
+			self.name,
+			self.posting_date,
+			self.company,
+			self.get("prepayment_charges"),
+		)
+
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
@@ -105,7 +118,7 @@ class LoanRepayment(AccountsController):
 
 			self.process_reschedule()
 
-		if self.repayment_type == "Advance Payment":
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
 			)
@@ -174,6 +187,8 @@ class LoanRepayment(AccountsController):
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
+		self.cancel_charge_demands()
+
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			self.cancel_loan_restructure()
 
@@ -188,9 +203,16 @@ class LoanRepayment(AccountsController):
 			"GL Entry",
 			"Payment Ledger Entry",
 			"Process Loan Classification",
+			"Sales Invoice",
 		]
 		self.make_gl_entries(cancel=1)
 		update_installment_counts(self.against_loan)
+
+	def cancel_charge_demands(self):
+		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
+		loan_demands = frappe.db.get_all("Loan Demand", {"sales_invoice": sales_invoice}, pluck="name")
+		for demand in loan_demands:
+			frappe.get_doc("Loan Demand", demand).cancel()
 
 	def cancel_loan_restructure(self):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})

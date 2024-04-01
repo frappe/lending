@@ -232,7 +232,6 @@ def make_credit_note(company, item_code, applicant, loan, sales_invoice):
 	si.customer = applicant
 	si.loan = loan
 	si.is_return = 1
-	si.return_against = sales_invoice
 	rate, income_account = frappe.db.get_value(
 		"Sales Invoice Item",
 		{"item_code": item_code, "parent": sales_invoice},
