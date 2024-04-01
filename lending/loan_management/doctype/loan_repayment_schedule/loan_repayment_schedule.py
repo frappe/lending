@@ -245,6 +245,7 @@ class LoanRepaymentSchedule(Document):
 		completed_tenure = 0
 		balance_principal_amount = self.current_principal_amount
 		additional_principal_amount = 0
+		pending_prev_days = 0
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
