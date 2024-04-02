@@ -16,10 +16,14 @@
   "cost_center",
   "section_break_9",
   "refund_account",
+  "type_of_refund",
+  "initiator",
+  "verification",
   "column_break_11",
   "refund_amount",
   "reference_number",
-  "amended_from"
+  "amended_from",
+  "stage"
  ],
  "fields": [
   {
@@ -126,12 +130,32 @@
    "fieldname": "reference_number",
    "fieldtype": "Data",
    "label": "Reference Number"
+  },
+  {
+   "fieldname": "type_of_refund",
+   "fieldtype": "Data",
+   "label": "Type of Refund"
+  },
+  {
+   "fieldname": "initiator",
+   "fieldtype": "Data",
+   "label": "Initiator"
+  },
+  {
+   "fieldname": "verification",
+   "fieldtype": "Data",
+   "label": "Verification"
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "label": "Stage"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-06-24 16:13:48.793486",
+ "modified": "2024-04-02 18:33:03.488070",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Refund",
