@@ -309,22 +309,29 @@ class LoanRepaymentSchedule(Document):
 				if self.restructure_type == "Advance Payment":
 					paid_principal_amount = prev_balance_amount - self.current_principal_amount
 					balance_principal_amount = self.current_principal_amount
-					previous_interest_amount = self.monthly_repayment_amount - paid_principal_amount
+					interest_amount = self.monthly_repayment_amount - paid_principal_amount
+					previous_interest_amount = 0
 
 					self.add_repayment_schedule_row(
 						self.repayment_start_date,
 						paid_principal_amount,
-						previous_interest_amount,
+						interest_amount,
 						self.monthly_repayment_amount,
 						balance_principal_amount,
 						date_diff(self.repayment_start_date, self.posting_date),
 						1,
 					)
 
+					pending_prev_days = date_diff(self.repayment_start_date, self.posting_date)
+
+					if pending_prev_days > 0:
+						previous_interest_amount += flt(
+							balance_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
+						)
+
 					self.repayment_start_date = self.get_next_payment_date(self.repayment_start_date)
 
 					completed_tenure += 1
-					previous_interest_amount = 0
 				elif not self.restructure_type:
 					self.current_principal_amount = self.disbursed_amount + prev_balance_amount
 					balance_principal_amount = self.current_principal_amount
@@ -337,6 +344,7 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_frequency,
 					)
 
+		print(pending_prev_days, "##############")
 		return (
 			previous_interest_amount,
 			balance_principal_amount,
