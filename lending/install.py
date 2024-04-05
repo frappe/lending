@@ -1,6 +1,7 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from hrms.setup import append_user_doctypes_to_user_type, get_lending_doctypes_for_ess
 
 LOAN_CUSTOM_FIELDS = {
 	"Sales Invoice": [
@@ -234,3 +235,13 @@ def after_install():
 	make_property_setter_for_journal_entry()
 	print("\nRunning post-install patches to patch existing data...\n")
 	run_patches(get_post_install_patches())
+	add_lending_doctypes_to_ess()
+
+def add_lending_doctypes_to_ess():
+	doc = frappe.get_doc("User Type", "Employee Self Service")
+
+	loan_doctypes = get_lending_doctypes_for_ess()
+	append_user_doctypes_to_user_type(loan_doctypes.items(), doc)
+
+	doc.name = "Employee Self Service"
+	doc.save(ignore_permissions=True)
