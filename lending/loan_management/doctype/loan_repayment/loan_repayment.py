@@ -663,6 +663,7 @@ class LoanRepayment(AccountsController):
 			"Interest Adjustment": "security_deposit_account",
 			"Interest Carry Forward": "interest_income_account",
 			"Security Deposit Adjustment": "security_deposit_account",
+			"Subsidy Adjustments": "subsidy_adjustment_account",
 		}
 
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
@@ -749,7 +750,6 @@ def get_unpaid_demands(
 			loan_demand.sales_invoice,
 			loan_demand.loan_repayment_schedule,
 			loan_demand.loan_disbursement,
-			loan_demand.last_repayment_date,
 			loan_demand.loan_product,
 			loan_demand.company,
 			(loan_demand.outstanding_amount).as_("outstanding_amount"),

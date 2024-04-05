@@ -28,6 +28,7 @@
   "account_details_section",
   "disbursement_account",
   "payment_account",
+  "subsidy_adjustment_account",
   "column_break_12",
   "loan_account",
   "security_deposit_account",
@@ -426,11 +427,17 @@
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
+  },
+  {
+   "fieldname": "subsidy_adjustment_account",
+   "fieldtype": "Link",
+   "label": "Subsidy Adjustment Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-30 10:46:13.647135",
+ "modified": "2024-04-05 19:30:30.668472",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
