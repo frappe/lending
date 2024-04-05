@@ -128,6 +128,7 @@ class LoanRepayment(AccountsController):
 		self.update_paid_amounts()
 		self.update_demands()
 		self.update_limits()
+		self.update_security_deposit_amount()
 		update_installment_counts(self.against_loan)
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
@@ -178,6 +179,7 @@ class LoanRepayment(AccountsController):
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_limits(cancel=1)
+		self.update_security_deposit_amount(cancel=1)
 
 		if self.is_npa or self.manual_npa:
 			# Mark back all loans as NPA
@@ -344,6 +346,22 @@ class LoanRepayment(AccountsController):
 				loan.utilized_limit_amount, loan.utilized_limit_amount - principal_amount_paid
 			).where(
 				loan.name == self.against_loan
+			).run()
+
+	def update_security_deposit_amount(self, cancel=0):
+		if self.repayment_type == "Security Deposit Adjustment":
+			loan_security_deposit = frappe.qb.DocType("Loan Security Deposit")
+			if cancel:
+				amount = -1 * flt(self.amount_paid)
+			else:
+				amount = flt(self.amount_paid)
+
+			frappe.qb.update(loan_security_deposit).set(
+				loan_security_deposit.available_amount, loan_security_deposit.available_amount - amount
+			).set(
+				loan_security_deposit.allocated_amount, loan_security_deposit.allocated_amount + amount
+			).where(
+				loan_security_deposit.loan == self.against_loan
 			).run()
 
 	def check_future_accruals(self):
