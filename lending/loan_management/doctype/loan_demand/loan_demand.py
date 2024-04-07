@@ -50,7 +50,12 @@ class LoanDemand(AccountsController):
 			return
 
 		make_credit_note(
-			self.company, self.demand_subtype, self.applicant, self.loan, self.sales_invoice
+			self.company,
+			self.demand_subtype,
+			self.applicant,
+			self.loan,
+			self.sales_invoice,
+			self.demand_date,
 		)
 
 	def make_gl_entries(self, cancel=0):
@@ -226,12 +231,22 @@ def reverse_demands(loan, posting_date, demand_type=None):
 		doc.cancel()
 
 
-def make_credit_note(company, item_code, applicant, loan, sales_invoice):
+def make_credit_note(company, item_code, applicant, loan, sales_invoice, demand_date):
 	si = frappe.new_doc("Sales Invoice")
 	si.company = company
 	si.customer = applicant
 	si.loan = loan
 	si.is_return = 1
+	si.return_against = sales_invoice
+
+	posting_date = getdate()
+
+	if posting_date < getdate(demand_date):
+		posting_date = demand_date
+
+	si.set_posting_time = 1
+	si.posting_date = posting_date
+
 	rate, income_account = frappe.db.get_value(
 		"Sales Invoice Item",
 		{"item_code": item_code, "parent": sales_invoice},
