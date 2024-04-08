@@ -13,6 +13,7 @@
   "applicant_type",
   "loan_product",
   "monthly_repayment_amount",
+  "loan_partner",
   "column_break_4",
   "company",
   "applicant",
@@ -290,12 +291,19 @@
    "fieldtype": "Currency",
    "label": "Broken Period Interest",
    "read_only": 1
+  },
+  {
+   "fetch_from": "against_loan.loan_partner",
+   "fieldname": "loan_partner",
+   "fieldtype": "Link",
+   "label": "Loan Partner",
+   "options": "Loan Partner"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-07 18:31:36.297386",
+ "modified": "2024-04-05 18:36:39.343026",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

@@ -14,11 +14,9 @@
   "partner_name",
   "partner_loan_share_percentage",
   "partner_base_interest_rate",
-  "effective_date",
   "column_break_yfag",
   "repayment_schedule_type",
-  "company_loan_share_percentage",
-  "company_base_interest_rate",
+  "effective_date",
   "interest_increment_percentage",
   "incremental_interest_applicable",
   "section_break_mpap",
@@ -43,7 +41,11 @@
   "column_break_xyxj",
   "waiving_of_charges_applicable",
   "section_break_scge",
-  "partial_payment_mechanism"
+  "partial_payment_mechanism",
+  "accounts_section",
+  "receivable_account",
+  "column_break_bqpp",
+  "credit_account"
  ],
  "fields": [
   {
@@ -128,12 +130,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "company_loan_share_percentage",
-   "fieldtype": "Percent",
-   "label": "Company Loan Share Percentage",
-   "reqd": 1
-  },
-  {
    "fieldname": "partner_base_interest_rate",
    "fieldtype": "Percent",
    "label": "Partner Base Interest Rate",
@@ -144,11 +140,6 @@
    "fieldname": "incremental_interest_applicable",
    "fieldtype": "Check",
    "label": "Incremental Interest Applicable"
-  },
-  {
-   "fieldname": "company_base_interest_rate",
-   "fieldtype": "Percent",
-   "label": "Company Base Interest Rate"
   },
   {
    "depends_on": "incremental_interest_applicable",
@@ -245,11 +236,32 @@
   {
    "fieldname": "section_break_scge",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Accounts"
+  },
+  {
+   "fieldname": "receivable_account",
+   "fieldtype": "Link",
+   "label": "Receivable Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_bqpp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "credit_account",
+   "fieldtype": "Link",
+   "label": "Credit Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-09 14:55:36.675654",
+ "modified": "2024-04-05 22:38:11.277418",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",

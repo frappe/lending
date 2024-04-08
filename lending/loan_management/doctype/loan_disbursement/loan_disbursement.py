@@ -28,6 +28,7 @@ from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	get_pending_principal_amount,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.utils import get_loan_partner_details
 from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
 	update_loan_securities_values,
 )
@@ -569,6 +570,16 @@ class LoanDisbursement(AccountsController):
 				remarks,
 				"Sales Invoice",
 				sales_invoice.name,
+			)
+
+		if self.loan_partner:
+			loan_partner_details = get_loan_partner_details(self.loan_partner)
+			self.add_gl_entry(
+				gle_map,
+				loan_partner_details.receivable_account,
+				loan_partner_details.credit_account,
+				(self.disbursed_amount * loan_partner_details.partner_loan_share_percentage) / 100,
+				remarks,
 			)
 
 		if gle_map:

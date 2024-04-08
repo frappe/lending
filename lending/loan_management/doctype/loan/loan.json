@@ -15,6 +15,7 @@
   "column_break_3",
   "company",
   "posting_date",
+  "loan_partner",
   "cancellation_date",
   "status",
   "section_break_8",
@@ -598,12 +599,18 @@
    "fieldtype": "Date",
    "label": "Cancellation Date",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_partner",
+   "fieldtype": "Link",
+   "label": "Loan Partner",
+   "options": "Loan Partner"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-25 14:45:55.449271",
+ "modified": "2024-04-03 20:28:10.549903",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

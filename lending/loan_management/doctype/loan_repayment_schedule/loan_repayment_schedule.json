@@ -13,6 +13,8 @@
   "loan_amount",
   "current_principal_amount",
   "rate_of_interest",
+  "loan_partner",
+  "loan_partner_rate_of_interest",
   "column_break_n6iy",
   "posting_date",
   "repayment_frequency",
@@ -22,6 +24,8 @@
   "repayment_start_date",
   "repayment_schedule_section",
   "repayment_schedule",
+  "co_lender_schedule_section",
+  "colender_schedule",
   "term_details_section",
   "total_installments_paid",
   "total_installments_raised",
@@ -120,7 +124,8 @@
    "fieldname": "repayment_schedule",
    "fieldtype": "Table",
    "label": "Repayment Schedule",
-   "options": "Repayment Schedule"
+   "options": "Repayment Schedule",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_n6iy",
@@ -283,12 +288,36 @@
    "fieldtype": "Select",
    "label": "Restructure Type",
    "options": "\nNormal Restructure\nAdvance Payment\nPre Payment"
+  },
+  {
+   "fieldname": "co_lender_schedule_section",
+   "fieldtype": "Section Break",
+   "label": "Co Lender Schedule"
+  },
+  {
+   "fieldname": "colender_schedule",
+   "fieldtype": "Table",
+   "options": "Co-Lender Schedule",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan.loan_partner",
+   "fieldname": "loan_partner",
+   "fieldtype": "Link",
+   "label": "Loan Partner",
+   "options": "Loan Partner"
+  },
+  {
+   "fetch_from": "loan_partner.partner_base_interest_rate",
+   "fieldname": "loan_partner_rate_of_interest",
+   "fieldtype": "Float",
+   "label": "Loan Partner Rate Of Interest"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-20 10:23:29.581951",
+ "modified": "2024-04-05 18:55:11.568488",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
