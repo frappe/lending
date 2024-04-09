@@ -147,9 +147,13 @@ class LoanRepaymentSchedule(Document):
 		moratorium_interest = 0
 
 		rate_of_interest = self.get_rate_of_interest(schedule_field)
-		monthly_repayment_amount = get_monthly_repayment_amount(
-			balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
-		)
+
+		if not self.restructure_type:
+			monthly_repayment_amount = get_monthly_repayment_amount(
+				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+			)
+		else:
+			monthly_repayment_amount = self.monthly_repayment_amount
 
 		if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
@@ -251,7 +255,7 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount = 0
 			pending_prev_days = 0
 
-		if schedule_field == "repayment_schedule":
+		if schedule_field == "repayment_schedule" and not self.restructure_type:
 			self.monthly_repayment_amount = monthly_repayment_amount
 
 	def get_rate_of_interest(self, schedule_field):
@@ -353,7 +357,7 @@ class LoanRepaymentSchedule(Document):
 							prev_repayment_date = row.payment_date
 							break
 
-					if after_bpi:
+					if after_bpi and not self.restructure_type:
 						self.broken_period_interest = prev_schedule.broken_period_interest
 
 					pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
@@ -378,6 +382,9 @@ class LoanRepaymentSchedule(Document):
 					interest_amount = self.monthly_repayment_amount - paid_principal_amount
 					previous_interest_amount = 0
 
+					self.repayment_start_date = frappe.db.get_value(
+						"Loan Restructure", self.loan_restructure, "repayment_start_date"
+					)
 					self.add_repayment_schedule_row(
 						self.repayment_start_date,
 						paid_principal_amount,
@@ -427,6 +434,9 @@ class LoanRepaymentSchedule(Document):
 			frappe.throw(_("Please enter Repayment Periods"))
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
+			self.monthly_repayment_amount = frappe.db.get_value(
+				"Loan", self.loan, "monthly_repayment_amount"
+			)
 			if not self.monthly_repayment_amount:
 				frappe.throw(_("Please enter repayment Amount"))
 			if self.monthly_repayment_amount > self.loan_amount:
