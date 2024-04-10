@@ -67,7 +67,8 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_qrjm",
@@ -172,7 +173,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-27 09:13:14.660236",
+ "modified": "2024-04-10 18:31:33.533747",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

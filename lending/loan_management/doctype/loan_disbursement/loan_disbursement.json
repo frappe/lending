@@ -52,7 +52,8 @@
    "in_list_view": 1,
    "label": "Against Loan ",
    "options": "Loan",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "disbursement_date",
@@ -303,7 +304,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-05 18:36:39.343026",
+ "modified": "2024-04-10 18:28:03.925934",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

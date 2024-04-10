@@ -56,7 +56,8 @@
    "in_list_view": 1,
    "label": "Loan",
    "options": "Loan",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fetch_from": "loan.loan_product",
@@ -317,7 +318,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-05 18:55:11.568488",
+ "modified": "2024-04-10 18:27:49.076863",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

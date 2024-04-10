@@ -17,7 +17,8 @@
    "fieldtype": "Link",
    "label": "Loan",
    "options": "Loan",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "posting_date",
@@ -41,7 +42,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-09-14 20:29:11.095918",
+ "modified": "2024-04-10 18:36:37.540308",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Days Past Due Log",

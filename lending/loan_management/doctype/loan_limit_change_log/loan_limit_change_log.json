@@ -16,7 +16,8 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "search_index": 1
   },
   {
    "fieldname": "event",
@@ -44,7 +45,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-01-28 14:20:46.431427",
+ "modified": "2024-04-10 18:36:56.526456",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Limit Change Log",
