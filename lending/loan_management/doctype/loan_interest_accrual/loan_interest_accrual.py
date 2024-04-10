@@ -343,7 +343,7 @@ def calculate_penal_interest_for_loans(
 							demand.loan_repayment_schedule, posting_date
 						)
 
-						pending_principal_amount = day_end_balance - schedule_balance
+						pending_principal_amount = flt(day_end_balance) - flt(schedule_balance)
 
 						per_day_interest = get_per_day_interest(
 							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
