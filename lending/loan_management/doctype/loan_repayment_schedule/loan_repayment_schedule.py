@@ -103,7 +103,7 @@ class LoanRepaymentSchedule(Document):
 			balance_amount,
 			additional_principal_amount,
 			pending_prev_days,
-		) = self.add_rows_from_prev_disbursement("repayment_schedule", 100)
+		) = self.add_rows_from_prev_disbursement("repayment_schedule", 100, 100)
 
 		self.make_repayment_schedule(
 			"repayment_schedule",
@@ -111,6 +111,8 @@ class LoanRepaymentSchedule(Document):
 			balance_amount,
 			additional_principal_amount,
 			pending_prev_days,
+			self.rate_of_interest,
+			100,
 			100,
 		)
 
@@ -126,12 +128,30 @@ class LoanRepaymentSchedule(Document):
 			partner_loan_amount = (
 				self.current_principal_amount * flt(loan_partner_details.partner_loan_share_percentage) / 100
 			)
-			share_percentage = 100
+			principal_share_percentage = 100
+			interest_share_percentage = 100
+			rate_of_interest = self.loan_partner_rate_of_interest
 		elif loan_partner_details.repayment_schedule_type == "Collection at partner's percentage":
 			partner_loan_amount = self.current_principal_amount
-			share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
+			rate_of_interest = self.rate_of_interest
+			principal_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
+			interest_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
+		else:
+			partner_loan_amount = self.current_principal_amount
+			rate_of_interest = self.loan_partner_rate_of_interest
+			principal_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
+			interest_share_percentage = 100
 
-		self.make_repayment_schedule("colender_schedule", 0, partner_loan_amount, 0, 0, share_percentage)
+		self.make_repayment_schedule(
+			"colender_schedule",
+			0,
+			partner_loan_amount,
+			0,
+			0,
+			rate_of_interest,
+			principal_share_percentage,
+			interest_share_percentage,
+		)
 
 	def make_repayment_schedule(
 		self,
@@ -140,13 +160,13 @@ class LoanRepaymentSchedule(Document):
 		balance_amount,
 		additional_principal_amount,
 		pending_prev_days,
-		share_percentage,
+		rate_of_interest,
+		principal_share_percentage,
+		interest_share_percentage,
 	):
 		payment_date = self.repayment_start_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
-
-		rate_of_interest = self.get_rate_of_interest(schedule_field)
 
 		if not self.restructure_type:
 			monthly_repayment_amount = get_monthly_repayment_amount(
@@ -183,7 +203,12 @@ class LoanRepaymentSchedule(Document):
 						moratorium_interest = 0
 
 			payment_days, months = self.get_days_and_months(
-				payment_date, additional_days, balance_amount, schedule_field, share_percentage
+				payment_date,
+				additional_days,
+				balance_amount,
+				schedule_field,
+				principal_share_percentage,
+				interest_share_percentage,
 			)
 
 			interest_amount, principal_amount, balance_amount, total_payment, days = get_amounts(
@@ -233,7 +258,8 @@ class LoanRepaymentSchedule(Document):
 				balance_amount,
 				days,
 				repayment_schedule_field=schedule_field,
-				share_percentage=share_percentage,
+				principal_share_percentage=principal_share_percentage,
+				interest_share_percentage=interest_share_percentage,
 			)
 
 			if (
@@ -257,12 +283,6 @@ class LoanRepaymentSchedule(Document):
 
 		if schedule_field == "repayment_schedule" and not self.restructure_type:
 			self.monthly_repayment_amount = monthly_repayment_amount
-
-	def get_rate_of_interest(self, schedule_field):
-		if schedule_field == "repayment_schedule":
-			return self.rate_of_interest
-		else:
-			return self.loan_partner_rate_of_interest
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -309,7 +329,9 @@ class LoanRepaymentSchedule(Document):
 
 		return tenure
 
-	def add_rows_from_prev_disbursement(self, schedule_field, share_percentage):
+	def add_rows_from_prev_disbursement(
+		self, schedule_field, principal_share_percentage, interest_share_percentage=100
+	):
 		previous_interest_amount = 0
 		completed_tenure = 0
 		balance_principal_amount = self.current_principal_amount
@@ -394,7 +416,8 @@ class LoanRepaymentSchedule(Document):
 						date_diff(self.repayment_start_date, self.posting_date),
 						0,
 						repayment_schedule_field=schedule_field,
-						share_percentage=share_percentage,
+						principal_share_percentage=principal_share_percentage,
+						interest_share_percentage=interest_share_percentage,
 					)
 
 					pending_prev_days = date_diff(self.repayment_start_date, self.posting_date)
@@ -443,7 +466,13 @@ class LoanRepaymentSchedule(Document):
 				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
 	def get_days_and_months(
-		self, payment_date, additional_days, balance_amount, schedule_field, share_percentage
+		self,
+		payment_date,
+		additional_days,
+		balance_amount,
+		schedule_field,
+		principal_share_percentage,
+		interest_share_percentage,
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
@@ -467,7 +496,8 @@ class LoanRepaymentSchedule(Document):
 							additional_days,
 							payment_date,
 							schedule_field,
-							share_percentage=share_percentage,
+							principal_share_percentage=principal_share_percentage,
+							interest_share_percentage=interest_share_percentage,
 						)
 						additional_days = 0
 
@@ -491,7 +521,13 @@ class LoanRepaymentSchedule(Document):
 		return days, months
 
 	def add_broken_period_interest(
-		self, balance_amount, additional_days, payment_date, schedule_field, share_percentage
+		self,
+		balance_amount,
+		additional_days,
+		payment_date,
+		schedule_field,
+		principal_share_percentage,
+		interest_share_percentage,
 	):
 		interest_amount = flt(
 			balance_amount * flt(self.rate_of_interest) * additional_days / (365 * 100)
@@ -507,7 +543,8 @@ class LoanRepaymentSchedule(Document):
 			balance_amount,
 			additional_days,
 			repayment_schedule_field=schedule_field,
-			share_percentage=share_percentage,
+			principal_share_percentage=principal_share_percentage,
+			interest_share_percentage=interest_share_percentage,
 		)
 
 	def add_repayment_schedule_row(
@@ -520,7 +557,8 @@ class LoanRepaymentSchedule(Document):
 		days,
 		demand_generated=0,
 		repayment_schedule_field=None,
-		share_percentage=100,
+		principal_share_percentage=100,
+		interest_share_percentage=100,
 	):
 		if (
 			self.moratorium_type == "EMI"
@@ -532,9 +570,9 @@ class LoanRepaymentSchedule(Document):
 		if not repayment_schedule_field:
 			repayment_schedule_field = "repayment_schedule"
 
-		interest_amount = interest_amount * share_percentage / 100
-		principal_amount = principal_amount * share_percentage / 100
-		total_payment = total_payment * share_percentage / 100
+		interest_amount = interest_amount * interest_share_percentage / 100
+		principal_amount = principal_amount * principal_share_percentage / 100
+		total_payment = principal_amount + interest_amount
 
 		self.append(
 			repayment_schedule_field,
