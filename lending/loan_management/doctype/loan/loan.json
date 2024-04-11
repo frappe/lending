@@ -508,7 +508,7 @@
    "fieldtype": "Select",
    "label": "Treatment of Interest",
    "mandatory_depends_on": "moratorium_tenure",
-   "options": "Capitalize\nAdd to first repayment"
+   "options": "\nCapitalize\nAdd to first repayment"
   },
   {
    "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
@@ -577,7 +577,7 @@
    "fieldname": "moratorium_type",
    "fieldtype": "Select",
    "label": "Moratorium Type",
-   "options": "EMI\nPrincipal"
+   "options": "\nEMI\nPrincipal"
   },
   {
    "allow_on_submit": 1,
@@ -610,7 +610,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-03 20:28:10.549903",
+ "modified": "2024-04-11 20:52:35.332196",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
