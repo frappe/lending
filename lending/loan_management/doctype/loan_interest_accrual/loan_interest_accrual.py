@@ -40,10 +40,13 @@ class LoanInterestAccrual(AccountsController):
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
 
-		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
+		cost_center, loan_product = frappe.db.get_value(
+			"Loan", self.loan, ["cost_center", "loan_product"]
+		)
+
 		account_details = frappe.db.get_value(
 			"Loan Product",
-			self.loan_product,
+			loan_product,
 			["interest_receivable_account", "suspense_interest_receivable", "suspense_interest_income"],
 			as_dict=1,
 		)
