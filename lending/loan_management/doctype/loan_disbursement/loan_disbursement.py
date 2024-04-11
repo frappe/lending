@@ -71,6 +71,9 @@ class LoanDisbursement(AccountsController):
 			"repayment_frequency": self.repayment_frequency,
 			"disbursed_amount": self.disbursed_amount,
 			"current_principal_amount": self.disbursed_amount,
+			"monthly_repayment_amount": self.monthly_repayment_amount
+			if self.repayment_method == "Repay Fixed Amount per Period"
+			else 0,
 			"loan_disbursement": self.name,
 		}
 
