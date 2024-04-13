@@ -19,7 +19,6 @@ class LoanPartner(Document):
 	def validate_percentage_and_interest_fields(self):
 		fields = [
 			"partner_loan_share_percentage",
-			"company_loan_share_percentage",
 			"partner_base_interest_rate",
 			"company_base_interest_rate",
 		]
