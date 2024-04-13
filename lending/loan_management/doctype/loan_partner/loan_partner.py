@@ -17,11 +17,7 @@ class LoanPartner(Document):
 		self.validate_shareables()
 
 	def validate_percentage_and_interest_fields(self):
-		fields = [
-			"partner_loan_share_percentage",
-			"partner_base_interest_rate",
-			"company_base_interest_rate",
-		]
+		fields = ["partner_loan_share_percentage", "partner_base_interest_rate"]
 
 		for field in fields:
 			if not self.get(field) or self.get(field) < 1 or self.get(field) > 99:
