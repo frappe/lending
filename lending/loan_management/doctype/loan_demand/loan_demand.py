@@ -30,7 +30,11 @@ class LoanDemand(AccountsController):
 
 		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
 
-		if getdate(last_accrual_job_date) < getdate(self.demand_date) and self.demand_type == "EMI":
+		if (
+			self.is_term_loan
+			and getdate(last_accrual_job_date) < getdate(self.demand_date)
+			and self.demand_type == "EMI"
+		):
 			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
@@ -49,14 +53,15 @@ class LoanDemand(AccountsController):
 		if not self.demand_type == "Charges":
 			return
 
-		make_credit_note(
-			self.company,
-			self.demand_subtype,
-			self.applicant,
-			self.loan,
-			self.sales_invoice,
-			self.demand_date,
-		)
+		if frappe.db.get_value("Sales Invoice", self.sales_invoice, "docstatus") == 1:
+			make_credit_note(
+				self.company,
+				self.demand_subtype,
+				self.applicant,
+				self.loan,
+				self.sales_invoice,
+				self.demand_date,
+			)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
@@ -238,6 +243,7 @@ def make_credit_note(company, item_code, applicant, loan, sales_invoice, demand_
 	si.loan = loan
 	si.is_return = 1
 	si.return_against = sales_invoice
+	si.update_outstanding_for_self = 0
 
 	posting_date = getdate()
 
