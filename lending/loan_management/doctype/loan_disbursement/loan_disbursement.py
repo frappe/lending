@@ -4,7 +4,6 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -118,6 +117,12 @@ class LoanDisbursement(AccountsController):
 
 	def on_submit(self):
 		if self.is_term_loan:
+			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
+			if loan_status == "Partially Disbursed":
+				process_loan_interest_accrual_for_loans(
+					posting_date=self.disbursement_date, loan=self.against_loan, accrual_type="Disbursement"
+				)
+
 			self.submit_repayment_schedule()
 			self.update_current_repayment_schedule()
 			self.update_repayment_schedule_status()
@@ -225,6 +230,11 @@ class LoanDisbursement(AccountsController):
 
 		if not self.disbursement_account and self.bank_account:
 			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
+		if self.repayment_method == "Repay Fixed Amount per Period":
+			self.monthly_repayment_amount = frappe.db.get_value(
+				"Loan", self.against_loan, "monthly_repayment_amount"
+			)
 
 	def withheld_security_deposit(self):
 		if self.withhold_security_deposit:
@@ -718,13 +728,6 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
-	lsa = frappe.qb.DocType("Loan Security Assignment")
-
-	maximum_loan_value = (
-		frappe.qb.from_(lsa)
-		.select(Sum(lsa.maximum_loan_value))
-		.where(lsa.status == "Pledged")
-		.where(lsa.loan == loan)
-	).run()
-
-	return maximum_loan_value[0][0] if maximum_loan_value else 0
+	return flt(
+		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, "sum(maximum_loan_value)")
+	)
