@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "LM-LD-.#####",
  "creation": "2023-11-22 17:03:33.314004",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -26,7 +26,8 @@
   "outstanding_amount",
   "sales_invoice",
   "cost_center",
-  "process_loan_demand"
+  "process_loan_demand",
+  "is_term_loan"
  ],
  "fields": [
   {
@@ -51,7 +52,8 @@
    "fieldname": "demand_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Demand Amount"
+   "label": "Demand Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "amended_from",
@@ -66,6 +68,7 @@
   {
    "fieldname": "loan",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan",
    "search_index": 1
@@ -78,17 +81,20 @@
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Paid Amount"
+   "label": "Paid Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "waived_amount",
    "fieldtype": "Currency",
-   "label": "Waived Amount"
+   "label": "Waived Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
-   "label": "Outstanding Amount"
+   "label": "Outstanding Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fetch_from": "loan.loan_product",
@@ -167,16 +173,26 @@
    "fieldname": "disbursement_date",
    "fieldtype": "Date",
    "label": "Disbursement Date"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan.is_term_loan",
+   "fieldname": "is_term_loan",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Term Loan",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:31:33.533747",
+ "modified": "2024-04-14 06:54:22.147912",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -189,6 +205,19 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
    "share": 1,
    "submit": 1,
    "write": 1
