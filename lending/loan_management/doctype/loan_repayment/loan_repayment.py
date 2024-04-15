@@ -73,9 +73,6 @@ class LoanRepayment(AccountsController):
 				)
 
 	def on_submit(self):
-		# from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-		# 	process_loan_interest_accrual_for_loans
-		# )
 		# if self.repayment_type == "Normal Repayment":
 		# 	create_process_loan_classification(
 		# 		posting_date=self.posting_date,
@@ -83,7 +80,6 @@ class LoanRepayment(AccountsController):
 		# 		loan=self.against_loan,
 		# 		payment_reference=self.name,
 		# 	)
-
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 			make_sales_invoice_for_charge,
@@ -93,6 +89,9 @@ class LoanRepayment(AccountsController):
 		)
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
+		)
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+			process_loan_interest_accrual_for_loans,
 		)
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -118,7 +117,7 @@ class LoanRepayment(AccountsController):
 
 			self.process_reschedule()
 
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
 			)
@@ -134,10 +133,17 @@ class LoanRepayment(AccountsController):
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
-		reverse_loan_interest_accruals(
-			self.against_loan, self.posting_date, interest_type="Penal Interest"
-		)
-		reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
+
+		if self.is_term_loan:
+			reverse_loan_interest_accruals(
+				self.against_loan, self.posting_date, interest_type="Penal Interest"
+			)
+			reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
+
+		if not self.is_term_loan:
+			process_loan_interest_accrual_for_loans(
+				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
+			)
 
 	def process_reschedule(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -422,15 +428,18 @@ class LoanRepayment(AccountsController):
 				"monthly_repayment_amount",
 			)
 
-			if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
-				frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
-			elif amount_paid < monthly_repayment_amount and self.get("repayment_type") not in (
-				"Pre Payment",
-				"Loan Closure",
-			):
-				frappe.throw(_("Only pre payment type allowed for this scenario"))
+			if self.is_term_loan:
+				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
+					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
+				elif amount_paid < monthly_repayment_amount and self.get("repayment_type") not in (
+					"Pre Payment",
+					"Loan Closure",
+				):
+					frappe.throw(_("Only pre payment type allowed for this scenario"))
 
-			pending_interest = amounts.get("unaccrued_interest") + amounts.get("unbooked_interest")
+			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
+				amounts.get("unbooked_interest")
+			)
 
 			if pending_interest > 0:
 				if pending_interest > amount_paid:
@@ -807,7 +816,7 @@ def get_unpaid_demands(
 def get_pending_principal_amount(loan):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	if loan.status in ("Disbursed", "Closed", "Active"):
+	if loan.status in ("Disbursed", "Closed", "Active", "Written Off"):
 		pending_principal_amount = flt(
 			flt(loan.total_payment)
 			+ flt(loan.debit_adjustment_amount)
@@ -892,7 +901,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
-			against_loan_doc, posting_date=posting_date, accrual_type="Normal Interest", is_future_accrual=1
+			against_loan_doc, posting_date=posting_date, accrual_type="Regular", is_future_accrual=1
 		)
 
 		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
