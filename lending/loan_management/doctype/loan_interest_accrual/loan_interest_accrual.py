@@ -40,15 +40,18 @@ class LoanInterestAccrual(AccountsController):
 			[
 				"interest_accrued_account",
 				"suspense_interest_receivable",
+				"suspense_interest_accrued",
 				"suspense_interest_income",
 				"penalty_accrued_account",
 				"penalty_income_account",
+				"additional_interest_income",
+				"additional_interest_accrued",
 			],
 			as_dict=1,
 		)
 
 		if self.is_npa:
-			receivable_account = account_details.suspense_interest_receivable
+			receivable_account = account_details.suspense_interest_accrued
 			income_account = account_details.suspense_interest_income
 		else:
 			if self.interest_type == "Normal Interest":
@@ -84,6 +87,43 @@ class LoanInterestAccrual(AccountsController):
 						"against": receivable_account,
 						"credit": self.interest_amount,
 						"credit_in_account_currency": self.interest_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.loan,
+						"remarks": ("Interest accrued from {0} to {1} against loan: {2}").format(
+							self.last_accrual_date, self.posting_date, self.loan
+						),
+						"cost_center": cost_center,
+						"posting_date": self.posting_date,
+					}
+				)
+			)
+
+		if self.additional_interest_amount:
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": account_details.additional_interest_accrued,
+						"against": account_details.additional_interest_income,
+						"debit": self.additional_interest_amount,
+						"debit_in_account_currency": self.additional_interest_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.loan,
+						"remarks": _("Interest accrued from {0} to {1} against loan: {2}").format(
+							self.last_accrual_date, self.posting_date, self.loan
+						),
+						"cost_center": cost_center,
+						"posting_date": self.posting_date,
+					}
+				)
+			)
+
+			gle_map.append(
+				self.get_gl_dict(
+					{
+						"account": account_details.additional_interest_income,
+						"against": account_details.additional_interest_accrued,
+						"credit": self.additional_interest_amount,
+						"credit_in_account_currency": self.additional_interest_amount,
 						"against_voucher_type": "Loan",
 						"against_voucher": self.loan,
 						"remarks": ("Interest accrued from {0} to {1} against loan: {2}").format(
@@ -178,6 +218,8 @@ def calculate_accrual_amount_for_loans(
 				"Normal Interest",
 				loan.rate_of_interest,
 			)
+
+			create_loan_demand(loan.name, posting_date, "Normal", "Interest", payable_interest)
 	if is_future_accrual:
 		return total_payable_interest
 
@@ -340,7 +382,7 @@ def calculate_penal_interest_for_loans(
 					if demand.demand_subtype == "Interest":
 						day_end_balance = get_pending_principal_amount(loan)
 						schedule_balance = get_principal_amount_for_term_loan(
-							demand.loan_repayment_schedule, posting_date
+							demand.loan_repayment_schedule, demand.demand_date
 						)
 
 						pending_principal_amount = flt(day_end_balance) - flt(schedule_balance)
@@ -350,6 +392,7 @@ def calculate_penal_interest_for_loans(
 						)
 
 						additional_interest = flt(per_day_interest * no_of_days, precision)
+
 					if not is_future_accrual:
 						make_loan_interest_accrual_entry(
 							loan.name,
@@ -475,6 +518,8 @@ def get_last_accrual_date(
 
 	if last_interest_accrual_date:
 		# interest for last interest accrual date is already booked, so add 1 day
+		last_interest_accrual_date = add_days(last_interest_accrual_date, 1)
+
 		if last_disbursement_date and getdate(last_disbursement_date) > getdate(
 			last_interest_accrual_date
 		):

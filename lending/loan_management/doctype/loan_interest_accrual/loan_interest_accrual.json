@@ -77,7 +77,6 @@
    "fetch_from": "loan.applicant",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type"
@@ -192,13 +191,15 @@
   {
    "fieldname": "additional_interest_amount",
    "fieldtype": "Currency",
-   "label": "Additional Interest Amount"
+   "label": "Additional Interest Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "description": "Amount on which interest is calculated",
    "fieldname": "base_amount",
    "fieldtype": "Currency",
-   "label": "Base Amount"
+   "label": "Base Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "loan_demand",
@@ -217,7 +218,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:33:15.790246",
+ "modified": "2024-04-15 02:19:28.920698",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
