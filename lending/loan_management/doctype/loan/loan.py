@@ -6,7 +6,6 @@ import json
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -104,7 +103,7 @@ class Loan(AccountsController):
 				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
 	def on_submit(self):
-		# self.link_loan_security_assignment()
+		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
 		self.accrue_loan_interest()
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
@@ -112,6 +111,7 @@ class Loan(AccountsController):
 	def on_cancel(self):
 		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
+		self.cancel_loan_security_assignment()
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def on_update_after_submit(self):
@@ -234,31 +234,28 @@ class Loan(AccountsController):
 
 	def link_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
-			lsa = frappe.qb.DocType("Loan Security Assignment")
-			lsalad = frappe.qb.DocType("Loan Security Assignment Loan Application Detail")
+			lsa, maximum_loan_value = frappe.db.get_value(
+				"Loan Security Assignment",
+				{
+					"loan_application": self.loan_application,
+					"status": "Pledge Requested",
+					"docstatus": 1,
+				},
+				["name", "maximum_loan_value"],
+			)
 
-			lsa_and_maximum_loan_value = (
-				frappe.qb.from_(lsa)
-				.inner_join(lsalad)
-				.on(lsalad.parent == lsa.name)
-				.select(lsa.name, Sum(lsa.maximum_loan_value))
-				.where(lsa.status == "Pledge Requested")
-				.where(lsalad.loan_application == self.loan_application)
-			).run()
-
-			if lsa_and_maximum_loan_value:
-				lsa = frappe.get_doc("Loan Security Assignment", lsa_and_maximum_loan_value[0][0])
-				lsa.append(
-					"allocated_loans",
+			if lsa:
+				frappe.db.set_value(
+					"Loan Security Assignment",
+					lsa,
 					{
 						"loan": self.name,
+						"pledge_time": now_datetime(),
+						"status": "Pledged",
 					},
 				)
-				lsa.pledge_time = now_datetime()
-				lsa.status = "Pledged"
-				lsa.save()
 
-				self.db_set("maximum_loan_amount", lsa_and_maximum_loan_value[0][1])
+				self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def accrue_loan_interest(self):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
@@ -283,6 +280,16 @@ class Loan(AccountsController):
 				% (", ".join(["%s"] * len(pledge_list))),
 				tuple(pledge_list),
 			)  # nosec
+
+	def cancel_loan_security_assignment(self):
+		if not self.loan_application:
+			for assignment in frappe.get_all(
+				"Loan Security Assignment",
+				filters={"loan": self.name, "status": "Pledged"},
+				fields=["name"],
+			):
+				doc = frappe.get_doc("Loan Security Assignment", assignment.name)
+				doc.cancel()
 
 
 def update_total_amount_paid(doc):
