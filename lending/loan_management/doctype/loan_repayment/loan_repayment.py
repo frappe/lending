@@ -526,7 +526,6 @@ class LoanRepayment(AccountsController):
 				"suspense_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
-				"charges_receivable_account",
 			],
 			as_dict=1,
 		)
@@ -578,7 +577,7 @@ class LoanRepayment(AccountsController):
 			elif repayment.demand_subtype == "Penalty":
 				against_account = account_details.penalty_receivable_account
 			elif repayment.demand_type == "Charges":
-				against_account = account_details.charges_receivable_account
+				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
 
 			gle_map.append(
 				self.get_gl_dict(
