@@ -5,5 +5,5 @@
 import unittest
 
 
-class TestLoanSecurityPledge(unittest.TestCase):
+class TestLoanSecurityAssignment(unittest.TestCase):
 	pass

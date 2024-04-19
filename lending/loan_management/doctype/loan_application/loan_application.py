@@ -91,13 +91,20 @@ class LoanApplication(Document):
 	def set_pledge_amount(self):
 		for proposed_pledge in self.proposed_pledges:
 
-			if not proposed_pledge.qty and not proposed_pledge.amount:
-				frappe.throw(_("Qty or Amount is mandatroy for loan security"))
-
-			proposed_pledge.loan_security_price = get_loan_security_price(proposed_pledge.loan_security)
-
 			if not proposed_pledge.qty:
-				proposed_pledge.qty = cint(proposed_pledge.amount / proposed_pledge.loan_security_price)
+				frappe.throw(_("Qty is mandatory for loan security!"))
+
+			if not proposed_pledge.loan_security_price:
+				loan_security_price = get_loan_security_price(proposed_pledge.loan_security)
+
+				if loan_security_price:
+					proposed_pledge.loan_security_price = loan_security_price
+				else:
+					frappe.throw(
+						_("No valid Loan Security Price found for {0}").format(
+							frappe.bold(proposed_pledge.loan_security)
+						)
+					)
 
 			proposed_pledge.amount = proposed_pledge.qty * proposed_pledge.loan_security_price
 			proposed_pledge.post_haircut_amount = cint(
@@ -198,21 +205,25 @@ def create_loan(source_name, target_doc=None, submit=0):
 
 
 @frappe.whitelist()
-def create_pledge(loan_application, loan=None):
+def create_loan_security_assignment_from_loan_application(loan_application):
 	loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 
-	lsp = frappe.new_doc("Loan Security Pledge")
-	lsp.applicant_type = loan_application_doc.applicant_type
-	lsp.applicant = loan_application_doc.applicant
-	lsp.loan_application = loan_application_doc.name
-	lsp.company = loan_application_doc.company
+	lsa = frappe.new_doc("Loan Security Assignment")
+	lsa.applicant_type = loan_application_doc.applicant_type
+	lsa.applicant = loan_application_doc.applicant
+	lsa.security_owner_type = loan_application_doc.applicant_type
+	lsa.security_owner = loan_application_doc.applicant
+	lsa.company = loan_application_doc.company
 
-	if loan:
-		lsp.loan = loan
+	lsa.append(
+		"allocated_loans",
+		{
+			"loan_application": loan_application_doc.name,
+		},
+	)
 
 	for pledge in loan_application_doc.proposed_pledges:
-
-		lsp.append(
+		lsa.append(
 			"securities",
 			{
 				"loan_security": pledge.loan_security,
@@ -222,13 +233,13 @@ def create_pledge(loan_application, loan=None):
 			},
 		)
 
-	lsp.save()
-	lsp.submit()
+	lsa.save()
+	lsa.submit()
 
-	message = _("Loan Security Pledge Created : {0}").format(lsp.name)
+	message = _("Loan Security Assignment Created : {0}").format(lsa.name)
 	frappe.msgprint(message)
 
-	return lsp.name
+	return lsa.name
 
 
 # This is a sandbox method to get the proposed pledges

@@ -23,14 +23,15 @@ from lending.loan_management.doctype.loan.test_loan import (
 	create_loan_application,
 	create_loan_product,
 	create_loan_security,
-	create_loan_security_pledge,
 	create_loan_security_price,
 	create_loan_security_type,
 	create_repayment_entry,
 	make_loan_disbursement_entry,
 	set_loan_settings_in_company,
 )
-from lending.loan_management.doctype.loan_application.loan_application import create_pledge
+from lending.loan_management.doctype.loan_application.loan_application import (
+	create_loan_security_assignment_from_loan_application,
+)
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 	get_interest_amount,
@@ -84,7 +85,7 @@ class TestLoanDisbursement(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant, "Demand Loan", loan_application, posting_date=get_first_day(nowdate())
@@ -133,7 +134,7 @@ class TestLoanDisbursement(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant, "Demand Loan", pledge
 		)
-		create_pledge(loan_application)
+		create_loan_security_assignment_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -154,7 +155,9 @@ class TestLoanDisbursement(unittest.TestCase):
 
 		pledge1 = [{"loan_security": "Test Security 1", "qty": 2000.00}]
 
-		create_loan_security_pledge(self.applicant, pledge1, loan=loan.name)
+		create_loan_security_assignment_with_applicant_and_pledge(
+			self.applicant, pledge1, loan=loan.name
+		)
 
 		# Topup 500000
 		make_loan_disbursement_entry(loan.name, 500000, disbursement_date=add_days(last_date, 1))
@@ -164,3 +167,34 @@ class TestLoanDisbursement(unittest.TestCase):
 		interest = get_interest_amount(15, 1500000, 13.5, "_Test Company", "2019-10-30")
 
 		self.assertEqual(amounts["pending_principal_amount"], 1500000)
+
+
+def create_loan_security_assignment_with_applicant_and_pledge(
+	applicant, pledges, loan_application=None, loan=None
+):
+	lsa = frappe.new_doc("Loan Security Assignment")
+	lsa.applicant_type = "Customer"
+	lsa.applicant = applicant
+	lsa.security_owner_type = "Customer"
+	lsa.security_owner = applicant
+	lsa.company = "_Test Company"
+
+	if loan_application:
+		lsa.append(
+			"allocated_loan_applications",
+			{"loan_application": loan_application},
+		)
+
+	if loan:
+		lsa.append(
+			"allocated_loans",
+			{"loan": loan},
+		)
+
+	for pledge in pledges:
+		lsa.append("securities", {"loan_security": pledge["loan_security"], "qty": pledge["qty"]})
+
+	lsa.save()
+	lsa.submit()
+
+	return lsa

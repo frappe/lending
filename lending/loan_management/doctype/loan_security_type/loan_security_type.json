@@ -7,7 +7,6 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_security_type",
-  "unit_of_measure",
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
@@ -29,18 +28,11 @@
    "unique": 1
   },
   {
+   "default": "0",
    "description": "Haircut percentage is the percentage difference between market value of the Loan Security and the value ascribed to that Loan Security when used as collateral for that loan.",
    "fieldname": "haircut",
    "fieldtype": "Percent",
    "label": "Haircut %"
-  },
-  {
-   "fieldname": "unit_of_measure",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Unit Of Measure",
-   "options": "UOM",
-   "reqd": 1
   },
   {
    "fieldname": "column_break_5",
@@ -54,10 +46,11 @@
   }
  ],
  "links": [],
- "modified": "2020-05-16 09:38:45.988080",
+ "modified": "2023-11-30 15:48:30.025175",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -88,5 +81,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

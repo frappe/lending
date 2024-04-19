@@ -7,13 +7,13 @@ frappe.ui.form.on('Loan', {
 	setup: function(frm) {
 		frm.make_methods = {
 			'Loan Disbursement': function() { frm.trigger('make_loan_disbursement') },
-			'Loan Security Unpledge': function() { frm.trigger('create_loan_security_unpledge') },
+			'Loan Security Release': function() { frm.trigger('create_loan_security_release') },
 			'Loan Write Off': function() { frm.trigger('make_loan_write_off_entry') }
 		}
 	},
 	onload: function (frm) {
-		// Ignore loan security pledge on cancel of loan
-		frm.ignore_doctypes_on_cancel_all = ["Loan Security Pledge", "Loan Repayment Schedule"];
+		// Ignore Loan Security Assignment on cancel of loan
+		frm.ignore_doctypes_on_cancel_all = ["Loan Security Assignment", "Loan Repayment Schedule"];
 
 		frm.set_query("loan_application", function () {
 			return {
@@ -82,8 +82,8 @@ frappe.ui.form.on('Loan', {
 			}
 
 			if (frm.doc.status == "Loan Closure Requested") {
-				frm.add_custom_button(__('Loan Security Unpledge'), function() {
-					frm.trigger("create_loan_security_unpledge");
+				frm.add_custom_button(__('Loan Security Release'), function() {
+					frm.trigger("create_loan_security_release");
 				},__('Create'));
 			}
 
@@ -219,7 +219,7 @@ frappe.ui.form.on('Loan', {
 		);
 	},
 
-	create_loan_security_unpledge: function(frm) {
+	create_loan_security_release: function(frm) {
 		frappe.call({
 			method: "lending.loan_management.doctype.loan.loan.unpledge_security",
 			args : {
