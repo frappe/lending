@@ -337,6 +337,7 @@ class LoanRepaymentSchedule(Document):
 		balance_principal_amount = self.current_principal_amount
 		additional_principal_amount = 0
 		pending_prev_days = 0
+		last_row_added = False
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
@@ -359,6 +360,14 @@ class LoanRepaymentSchedule(Document):
 					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date) or after_bpi
 				):
 					for row in prev_schedule.get(schedule_field):
+						if not last_row_added and (
+							loan_status == "Partially Disbursed"
+							and getdate(row.payment_date) > getdate(self.posting_date)
+							and self.get(schedule_field)
+						):
+							self.get(schedule_field)[-1].balance_loan_amount = self.current_principal_amount
+							last_row_added = True
+
 						if getdate(row.payment_date) < getdate(self.posting_date):
 							self.add_repayment_schedule_row(
 								row.payment_date,
@@ -456,12 +465,12 @@ class LoanRepaymentSchedule(Document):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
 			frappe.throw(_("Please enter Repayment Periods"))
 
-		if self.repayment_method == "Repay Fixed Amount per Period":
+		if self.repayment_method == "Repay Fixed Amount per Period" and not self.restructure_type:
 			self.monthly_repayment_amount = frappe.db.get_value(
 				"Loan", self.loan, "monthly_repayment_amount"
 			)
 			if not self.monthly_repayment_amount:
-				frappe.throw(_("Please enter repayment Amount"))
+				frappe.throw(_("Please enter monthly repayment amount"))
 			if self.monthly_repayment_amount > self.loan_amount:
 				frappe.throw(_("Monthly Repayment Amount cannot be greater than Loan Amount"))
 
