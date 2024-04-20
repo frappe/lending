@@ -17,8 +17,9 @@ from frappe.utils import (
 )
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
+from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
@@ -153,7 +154,7 @@ class LoanDisbursement(AccountsController):
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.cancel()
 
-	def cancel_sales_invoice(self):
+	def make_credit_note(self):
 		filters = {
 			"loan": self.against_loan,
 			"loan_disbursement": self.name,
@@ -161,8 +162,11 @@ class LoanDisbursement(AccountsController):
 		}
 
 		for si in frappe.get_all("Sales Invoice", filters, pluck="name"):
-			si_doc = frappe.get_doc("Sales Invoice", si)
-			si_doc.cancel()
+			doc = make_return_doc("Sales Invoice", si)
+			doc.update_outstanding_for_self = 0
+			doc.loan_disbursement = ""
+			doc.submit()
+			doc.set_status(update=True)
 
 	def update_current_repayment_schedule(self, cancel=0):
 		# Update status of existing schedule on top up
@@ -199,14 +203,14 @@ class LoanDisbursement(AccountsController):
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
 
 	def on_cancel(self):
-		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule"]
+		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule", "Sales Invoice"]
 
 		self.set_status_and_amounts(cancel=1)
 
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
 
-		self.cancel_sales_invoice()
+		self.make_credit_note()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
@@ -527,6 +531,9 @@ class LoanDisbursement(AccountsController):
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
 		remarks = _("Disbursement against loan:") + self.against_loan
+
+		if cancel:
+			make_reverse_gl_entries(voucher_type="Loan Disbursement", voucher_no=self.name)
 
 		self.add_gl_entry(
 			gle_map, self.loan_account, self.disbursement_account, self.disbursed_amount, remarks

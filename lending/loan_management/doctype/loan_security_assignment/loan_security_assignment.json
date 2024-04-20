@@ -159,7 +159,6 @@
    "fieldtype": "Link",
    "label": "Loan",
    "options": "Loan",
-   "reqd": 1,
    "search_index": 1
   },
   {
@@ -172,7 +171,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:31:09.074032",
+ "modified": "2024-04-11 08:26:14.563117",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

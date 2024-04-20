@@ -144,7 +144,7 @@ class LoanRestructure(AccountsController):
 		)
 
 		self.completed_tenure = frappe.db.count(
-			"Repayment Schedule", filters={"parent": previous_repayment_schedule, "is_accrued": 1}
+			"Repayment Schedule", filters={"parent": previous_repayment_schedule, "demand_generated": 1}
 		)
 
 		return self.completed_tenure

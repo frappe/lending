@@ -215,6 +215,7 @@
    "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -278,6 +279,7 @@
    "fieldname": "sanctioned_loan_amount",
    "fieldtype": "Currency",
    "label": "Sanctioned Loan Amount",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -285,12 +287,14 @@
    "fieldname": "current_disbursed_amount",
    "fieldtype": "Currency",
    "label": "Current Disbursed Amount",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
    "fieldname": "broken_period_interest",
    "fieldtype": "Currency",
    "label": "Broken Period Interest",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -304,7 +308,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:28:03.925934",
+ "modified": "2024-04-19 02:37:30.199644",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
