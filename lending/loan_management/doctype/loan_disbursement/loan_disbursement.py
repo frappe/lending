@@ -534,6 +534,7 @@ class LoanDisbursement(AccountsController):
 
 		if cancel:
 			make_reverse_gl_entries(voucher_type="Loan Disbursement", voucher_no=self.name)
+			return
 
 		self.add_gl_entry(
 			gle_map, self.loan_account, self.disbursement_account, self.disbursed_amount, remarks
