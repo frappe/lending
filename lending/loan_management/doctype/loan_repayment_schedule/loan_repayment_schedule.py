@@ -364,6 +364,7 @@ class LoanRepaymentSchedule(Document):
 							loan_status == "Partially Disbursed"
 							and getdate(row.payment_date) > getdate(self.posting_date)
 							and self.get(schedule_field)
+							and not self.restructure_type
 						):
 							self.get(schedule_field)[-1].balance_loan_amount = self.current_principal_amount
 							last_row_added = True

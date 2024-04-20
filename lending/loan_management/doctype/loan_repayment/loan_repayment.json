@@ -335,6 +335,7 @@
    "fieldname": "total_charges_payable",
    "fieldtype": "Currency",
    "label": "Total Charges Payable",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -376,6 +377,7 @@
    "fieldname": "total_charges_paid",
    "fieldtype": "Currency",
    "label": "Total Charges Paid",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -405,7 +407,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:31:52.288594",
+ "modified": "2024-04-20 09:07:35.783774",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

@@ -121,8 +121,7 @@ class LoanRepayment(AccountsController):
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
 			)
-			self.allocate_amount_against_demands(amounts)
-			self.db_update_all()
+			self.allocate_amount_against_demands(amounts, for_advance=True)
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -144,6 +143,9 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
+
+		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
+			self.db_update_all()
 
 	def process_reschedule(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -382,10 +384,12 @@ class LoanRepayment(AccountsController):
 				"Cannot cancel. Repayments made till date {0}".format(get_datetime(future_repayment))
 			)
 
-	def allocate_amount_against_demands(self, amounts):
+	def allocate_amount_against_demands(self, amounts, for_advance=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		self.set("repayment_details", [])
+		if not for_advance:
+			self.set("repayment_details", [])
+
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
 		self.total_interest_paid = 0
@@ -472,7 +476,12 @@ class LoanRepayment(AccountsController):
 		return pending_amount
 
 	def adjust_component(self, amount_to_adjust, demand_type, demands):
+		existing_demands = [d.loan_demand for d in self.get("repayment_details")]
+
 		for demand in demands:
+			if demand.name in existing_demands:
+				continue
+
 			if demand.demand_type == demand_type:
 				if amount_to_adjust >= demand.outstanding_amount:
 					self.append(
