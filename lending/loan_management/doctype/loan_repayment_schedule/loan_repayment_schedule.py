@@ -384,7 +384,7 @@ class LoanRepaymentSchedule(Document):
 							prev_balance_amount = row.balance_loan_amount
 							if row.principal_amount:
 								completed_tenure += 1
-						elif not after_bpi:
+						elif not after_bpi and getdate(self.posting_date) > row.payment_date:
 							self.repayment_start_date = row.payment_date
 							prev_repayment_date = row.payment_date
 							break
@@ -452,6 +452,7 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_frequency,
 					)
 
+		print(previous_interest_amount, pending_prev_days, "##########")
 		return (
 			previous_interest_amount,
 			balance_principal_amount,
