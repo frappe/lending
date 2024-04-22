@@ -507,7 +507,7 @@
    "fieldname": "treatment_of_interest",
    "fieldtype": "Select",
    "label": "Treatment of Interest",
-   "mandatory_depends_on": "moratorium_tenure",
+   "mandatory_depends_on": "eval:doc.moratorium_tenure && doc.moratorium_type == \"EMI\"",
    "options": "\nCapitalize\nAdd to first repayment"
   },
   {
@@ -610,7 +610,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-14 07:16:02.153140",
+ "modified": "2024-04-22 11:56:28.778170",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
