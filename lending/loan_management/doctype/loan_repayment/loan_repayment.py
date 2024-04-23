@@ -435,11 +435,6 @@ class LoanRepayment(AccountsController):
 			if self.is_term_loan:
 				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
-				elif amount_paid < monthly_repayment_amount and self.get("repayment_type") not in (
-					"Pre Payment",
-					"Loan Closure",
-				):
-					frappe.throw(_("Only pre payment type allowed for this scenario"))
 
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
