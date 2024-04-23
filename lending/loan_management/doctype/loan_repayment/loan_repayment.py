@@ -841,7 +841,6 @@ def get_pending_principal_amount(loan):
 			+ flt(loan.debit_adjustment_amount)
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)
-			- flt(loan.total_interest_payable)
 			- flt(loan.written_off_amount)
 			+ flt(loan.refund_amount),
 			precision,

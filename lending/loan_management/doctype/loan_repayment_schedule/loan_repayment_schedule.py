@@ -452,7 +452,6 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_frequency,
 					)
 
-		print(previous_interest_amount, pending_prev_days, "##########")
 		return (
 			previous_interest_amount,
 			balance_principal_amount,

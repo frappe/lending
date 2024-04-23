@@ -163,9 +163,6 @@ def calculate_accrual_amount_for_loans(
 				or last_accrual_date
 			)
 
-			if is_future_accrual:
-				last_accrual_date_for_schedule = add_days(last_accrual_date, 1)
-
 			pending_principal_amount = get_principal_amount_for_term_loan(
 				schedule.parent, schedule.payment_date
 			)
