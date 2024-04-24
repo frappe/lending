@@ -303,7 +303,9 @@ class LoanRestructure(AccountsController):
 		self.interest_overdue = flt(amounts.get("interest_amount"), precision)
 		self.penalty_overdue = flt(amounts.get("penalty_amount"), precision)
 		self.charges_overdue = flt(amounts.get("total_charges_payable"), precision)
-		self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision)
+		self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision) + flt(
+			amounts.get("unbooked_interest"), precision
+		)
 		self.available_security_deposit = flt(amounts.get("available_security_deposit"), precision)
 
 	def cancel_repayment_schedule(self):

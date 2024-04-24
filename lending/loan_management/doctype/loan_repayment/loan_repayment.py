@@ -582,6 +582,8 @@ class LoanRepayment(AccountsController):
 				against_account = account_details.penalty_receivable_account
 			elif repayment.demand_type == "Charges":
 				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
+				if self.repayment_type == "Charges Waiver":
+					payment_account = self.get_charges_waiver_account(self.loan_product, repayment.demand_subtype)
 
 			gle_map.append(
 				self.get_gl_dict(
@@ -682,10 +684,13 @@ class LoanRepayment(AccountsController):
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 	def get_payment_account(self):
+
+		if self.repayment_type == "Charges Waiver":
+			return
+
 		payment_account_field_map = {
 			"Interest Waiver": "interest_waiver_account",
 			"Penalty Waiver": "penalty_waiver_account",
-			"Charges Waiver": "charges_waiver_account",
 			"Principal Capitalization": "loan_account",
 			"Loan Closure": "payment_account",
 			"Write Off Recovery": "write_off_recovery_account",
@@ -707,6 +712,22 @@ class LoanRepayment(AccountsController):
 			)
 
 		return payment_account
+
+	def get_charges_waiver_account(self, loan_product, charge):
+		waiver_account = frappe.db.get_value(
+			"Loan Charges", {"parent": loan_product, "charge_type": charge}, "waiver_account"
+		)
+
+		if not waiver_account:
+			frappe.throw(
+				_(
+					"Waiver account not set for charge {0} in Loan Product {1}".format(
+						frappe.bold(charge), frappe.bold(loan_product)
+					)
+				)
+			)
+
+		return waiver_account
 
 	def get_remarks(self):
 		if self.shortfall_amount and self.amount_paid > self.shortfall_amount:
