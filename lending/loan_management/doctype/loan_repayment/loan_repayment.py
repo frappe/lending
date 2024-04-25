@@ -42,6 +42,7 @@ class LoanRepayment(AccountsController):
 		)
 		self.set_missing_values(amounts)
 		self.check_future_entries()
+		self.validate_security_deposit_amount()
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
@@ -279,6 +280,17 @@ class LoanRepayment(AccountsController):
 
 		if future_repayment_date:
 			frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
+
+	def validate_security_deposit_amount(self):
+		if self.repayment_type == "Security Deposit Adjustment":
+			available_deposit = frappe.db.get_value(
+				"Loan Security Deposit",
+				{"loan": self.against_loan, "docstatus": 1},
+				"available_amount",
+			)
+
+			if flt(self.amount_paid) > flt(available_deposit):
+				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
 
 	def validate_amount(self, payable_amount):
 		if not self.amount_paid:
