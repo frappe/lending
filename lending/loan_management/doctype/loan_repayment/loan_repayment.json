@@ -211,7 +211,6 @@
    "default": "0.0",
    "fieldname": "principal_amount_paid",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "Principal Amount Paid",
    "options": "Company:company:default_currency",
    "read_only": 1
@@ -240,7 +239,6 @@
   {
    "fieldname": "total_interest_paid",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "Total Interest Paid",
    "options": "Company:company:default_currency",
    "read_only": 1
@@ -262,7 +260,6 @@
   {
    "fieldname": "total_penalty_paid",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "Total Penalty Paid",
    "options": "Company:company:default_currency",
    "read_only": 1
@@ -407,7 +404,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-20 09:07:35.783774",
+ "modified": "2024-04-25 14:15:02.084998",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
