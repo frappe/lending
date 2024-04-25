@@ -225,15 +225,16 @@ class LoanRepaymentSchedule(Document):
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				if getdate(payment_date) <= getdate(self.moratorium_end_date):
-					if self.moratorium_type == "EMI":
-						total_payment = 0
-					else:
-						total_payment = interest_amount
-
 					principal_amount = 0
 					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
-					interest_amount = 0
+
+					if self.moratorium_type == "EMI":
+						total_payment = 0
+						interest_amount = 0
+					else:
+						total_payment = interest_amount
+
 				elif (
 					self.moratorium_type == "EMI"
 					and self.treatment_of_interest == "Add to first repayment"
