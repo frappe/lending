@@ -360,7 +360,10 @@ class LoanRepaymentSchedule(Document):
 					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date) or after_bpi
 				):
 					for row in prev_schedule.get(schedule_field):
-						if getdate(row.payment_date) < getdate(self.posting_date):
+						if getdate(row.payment_date) < getdate(self.posting_date) or (
+							getdate(row.payment_date) == getdate(self.posting_date)
+							and self.restructure_type == "Advance Payment"
+						):
 							self.add_repayment_schedule_row(
 								row.payment_date,
 								row.principal_amount,

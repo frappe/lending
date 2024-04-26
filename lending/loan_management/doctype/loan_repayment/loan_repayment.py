@@ -32,11 +32,6 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
-		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
-			create_update_loan_reschedule,
-		)
-
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		amounts = calculate_amounts(
 			self.against_loan, self.posting_date, payment_type=self.repayment_type
 		)
@@ -46,6 +41,14 @@ class LoanRepayment(AccountsController):
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
+	def on_update(self):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_update_loan_reschedule,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		principal_adjusted = self.get_principal_adjusted()
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
@@ -53,25 +56,15 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					self.name,
 					self.repayment_type,
-					self.principal_amount_paid,
+					principal_adjusted,
 				)
 
-	def after_insert(self):
-		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
-			create_update_loan_reschedule,
+	def get_principal_adjusted(self):
+		demand_principal = sum(
+			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
 		)
 
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
-
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				create_update_loan_reschedule(
-					self.against_loan,
-					self.posting_date,
-					self.name,
-					self.repayment_type,
-					self.principal_amount_paid,
-				)
+		return self.principal_amount_paid - demand_principal
 
 	def on_submit(self):
 		# if self.repayment_type == "Normal Repayment":
@@ -88,14 +81,9 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
-		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
-			create_update_loan_reschedule,
-		)
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
 		)
-
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -107,15 +95,6 @@ class LoanRepayment(AccountsController):
 		)
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				create_update_loan_reschedule(
-					self.against_loan,
-					self.posting_date,
-					self.name,
-					self.repayment_type,
-					self.principal_amount_paid,
-				)
-
 			self.process_reschedule()
 
 		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
