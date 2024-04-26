@@ -8,7 +8,7 @@ from frappe.query_builder.functions import Round, Sum
 from frappe.utils import cint, flt, get_datetime, getdate
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan.loan import update_all_linked_loan_customer_npa_status
@@ -122,7 +122,8 @@ class LoanRepayment(AccountsController):
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
 			)
-			self.allocate_amount_against_demands(amounts, for_advance=True)
+			self.allocate_amount_against_demands(amounts, on_submit=True)
+			self.db_update_all()
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -144,9 +145,6 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
-
-		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
-			self.db_update_all()
 
 	def process_reschedule(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -396,11 +394,16 @@ class LoanRepayment(AccountsController):
 				"Cannot cancel. Repayments made till date {0}".format(get_datetime(future_repayment))
 			)
 
-	def allocate_amount_against_demands(self, amounts, for_advance=False):
+	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		if not for_advance:
+		if not on_submit:
 			self.set("repayment_details", [])
+		else:
+			records_to_delete = [d.name for d in self.get("repayment_details")]
+			lr_detail = frappe.qb.DocType("Loan Repayment Detail")
+			frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
+			self.load_from_db()
 
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
@@ -438,12 +441,6 @@ class LoanRepayment(AccountsController):
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if flt(amount_paid, precision) > 0:
-			monthly_repayment_amount = frappe.db.get_value(
-				"Loan Repayment Schedule",
-				{"loan": self.against_loan, "status": "Active"},
-				"monthly_repayment_amount",
-			)
-
 			if self.is_term_loan:
 				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
@@ -475,6 +472,8 @@ class LoanRepayment(AccountsController):
 				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
 			if d.demand_type == "Interest" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
+			if d.demand_type == "Additional Interest" and pending_amount > 0:
+				pending_amount = self.adjust_component(pending_amount, "Additional Interest", demands)
 			if d.demand_type == "Penalty" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Penalty", demands)
 			if d.demand_type == "Charges" and pending_amount > 0:
@@ -483,12 +482,7 @@ class LoanRepayment(AccountsController):
 		return pending_amount
 
 	def adjust_component(self, amount_to_adjust, demand_type, demands):
-		existing_demands = [d.loan_demand for d in self.get("repayment_details")]
-
 		for demand in demands:
-			if demand.name in existing_demands:
-				continue
-
 			if demand.demand_type == demand_type:
 				if amount_to_adjust >= demand.outstanding_amount:
 					self.append(
@@ -518,6 +512,10 @@ class LoanRepayment(AccountsController):
 		return amount_to_adjust
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		if cancel:
+			make_reverse_gl_entries(voucher_type="Loan Repayment", voucher_no=self.name)
+			return
+
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		gle_map = []
 		remarks = self.get_remarks()
