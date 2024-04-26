@@ -344,9 +344,9 @@ class LoanRestructure(AccountsController):
 		if flt(self.penal_interest_waiver) > flt(self.penalty_overdue):
 			frappe.throw(_("Penalty Waiver cannot be greater than overdue penalty interest"))
 
-		if flt(self.unaccrued_interest_waiver) > flt(self.unaccrued_interest) - flt(
-			self.adjusted_unaccrued_interest
-		):
+		if self.unaccrued_interest_waiver and flt(self.unaccrued_interest_waiver) > flt(
+			self.unaccrued_interest
+		) - flt(self.adjusted_unaccrued_interest):
 			frappe.throw(_("Unaccrued Interest Waiver cannot be greater than overdue amount"))
 
 	def update_restructured_loan_details(self):

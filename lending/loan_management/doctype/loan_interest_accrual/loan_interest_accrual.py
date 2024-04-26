@@ -99,6 +99,20 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if self.additional_interest_amount:
+			if not account_details.additional_interest_accrued:
+				frappe.throw(
+					_("Please set Additional Interest Accrued Account in Loan Product {0}").format(
+						self.loan_product
+					)
+				)
+
+			if not account_details.additional_interest_income:
+				frappe.throw(
+					_("Please set Additional Interest Income Account in Loan Product {0}").format(
+						self.loan_product
+					)
+				)
+
 			gle_map.append(
 				self.get_gl_dict(
 					{
@@ -411,6 +425,16 @@ def calculate_penal_interest_for_loans(
 							"Penalty",
 							"Penalty",
 							penal_interest_amount,
+							loan_repayment_schedule=demand.loan_repayment_schedule,
+							loan_disbursement=loan.loan_disbursement,
+						)
+
+						create_loan_demand(
+							loan.name,
+							posting_date,
+							"Additional Interest",
+							"Additional Interest",
+							additional_interest,
 							loan_repayment_schedule=demand.loan_repayment_schedule,
 							loan_disbursement=loan.loan_disbursement,
 						)

@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.utils import cint, flt, getdate
 
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -22,7 +23,7 @@ class LoanDemand(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
-		if self.demand_subtype in ("Principal", "Interest", "Penalty"):
+		if self.demand_subtype in ("Principal", "Interest", "Penalty", "Additional Interest"):
 			self.make_gl_entries()
 
 		if self.demand_type == "EMI":
@@ -85,6 +86,27 @@ class LoanDemand(AccountsController):
 			)
 			receivable_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "penalty_receivable_account"
+			)
+		elif self.demand_subtype == "Additional Interest":
+			accrual_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "additional_interest_accrued"
+			)
+			receivable_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "additional_interest_receivable"
+			)
+
+		if not accrual_account:
+			frappe.throw(
+				_("Please set {0} Accrual Account in Loan Product {1}").format(
+					self.demand_subtype, self.loan_product
+				)
+			)
+
+		if not receivable_account:
+			frappe.throw(
+				_("Please set {0} Receivable Account in Loan Product {1}").format(
+					self.demand_subtype, self.loan_product
+				)
 			)
 
 		gl_entries.append(

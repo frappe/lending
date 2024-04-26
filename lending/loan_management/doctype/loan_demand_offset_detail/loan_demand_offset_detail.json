@@ -20,13 +20,13 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Demand Type",
-   "options": "EMI (Principal + Interest)\nPrincipal\nInterest\nPenalty\nCharges"
+   "options": "EMI (Principal + Interest)\nPrincipal\nInterest\nAdditional Interest\nPenalty\nCharges"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-12-04 19:20:49.209590",
+ "modified": "2024-04-25 07:56:57.897822",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand Offset Detail",
