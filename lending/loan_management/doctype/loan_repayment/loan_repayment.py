@@ -381,8 +381,9 @@ class LoanRepayment(AccountsController):
 		else:
 			records_to_delete = [d.name for d in self.get("repayment_details")]
 			lr_detail = frappe.qb.DocType("Loan Repayment Detail")
-			frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
-			self.load_from_db()
+			if records_to_delete:
+				frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
+				self.load_from_db()
 
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
