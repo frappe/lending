@@ -342,7 +342,7 @@ class LoanRepaymentSchedule(Document):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
 			loan_status == "Partially Disbursed" and self.repayment_schedule_type != "Line of Credit"
-		) or self.restructure_type == "Advance Payment":
+		) or self.restructure_type:
 			prev_schedule = frappe.get_doc(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
@@ -453,6 +453,12 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_periods - completed_tenure,
 						self.repayment_frequency,
 					)
+
+				if self.restructure_type == "Pre Payment":
+					balance_principal_amount = self.current_principal_amount
+					previous_interest_amount = 0
+					additional_principal_amount = 0
+					pending_prev_days = 0
 
 		return (
 			previous_interest_amount,
