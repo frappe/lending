@@ -112,7 +112,7 @@ class Loan(AccountsController):
 		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.cancel_loan_security_assignment()
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry", "Sales Invoice"]
 
 	def on_update_after_submit(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
