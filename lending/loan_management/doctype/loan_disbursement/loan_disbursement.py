@@ -93,7 +93,9 @@ class LoanDisbursement(AccountsController):
 
 		schedule = frappe.get_doc(self.get_schedule_details()).insert()
 		self.monthly_repayment_amount = schedule.monthly_repayment_amount
-		self.broken_period_interest = schedule.broken_period_interest
+
+		if loan_details.status == "Sanctioned":
+			self.broken_period_interest = schedule.broken_period_interest
 
 	def get_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
