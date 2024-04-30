@@ -619,8 +619,8 @@ class LoanRepayment(AccountsController):
 							"against": account_details.suspense_interest_receivable,
 							"party_type": self.applicant_type,
 							"party": self.applicant,
-							"debit": repayment.paid_interest_amount,
-							"debit_in_account_currency": repayment.paid_interest_amount,
+							"debit": repayment.paid_amount,
+							"debit_in_account_currency": repayment.paid_amount,
 							"against_voucher_type": "Loan",
 							"against_voucher": self.against_loan,
 							"cost_center": self.cost_center,
@@ -636,8 +636,8 @@ class LoanRepayment(AccountsController):
 							"party_type": self.applicant_type,
 							"party": self.applicant,
 							"against": account_details.interest_receivable_account,
-							"credit": repayment.paid_interest_amount,
-							"credit_in_account_currency": repayment.paid_interest_amount,
+							"credit": repayment.paid_amount,
+							"credit_in_account_currency": repayment.paid_amount,
 							"against_voucher_type": "Loan",
 							"against_voucher": self.against_loan,
 							"cost_center": self.cost_center,
@@ -650,8 +650,8 @@ class LoanRepayment(AccountsController):
 					self.get_gl_dict(
 						{
 							"account": account_details.interest_income_account,
-							"credit_in_account_currency": repayment.paid_interest_amount,
-							"credit": repayment.paid_interest_amount,
+							"credit_in_account_currency": repayment.paid_amount,
+							"credit": repayment.paid_amount,
 							"cost_center": self.cost_center,
 							"against": account_details.suspense_interest_income,
 						}
@@ -662,8 +662,8 @@ class LoanRepayment(AccountsController):
 					self.get_gl_dict(
 						{
 							"account": account_details.suspense_interest_income,
-							"debit": repayment.paid_interest_amount,
-							"debit_in_account_currency": repayment.paid_interest_amount,
+							"debit": repayment.paid_amount,
+							"debit_in_account_currency": repayment.paid_amount,
 							"cost_center": self.cost_center,
 							"against": account_details.interest_income_account,
 						}
