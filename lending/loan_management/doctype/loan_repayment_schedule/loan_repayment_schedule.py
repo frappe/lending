@@ -361,8 +361,7 @@ class LoanRepaymentSchedule(Document):
 				):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
-							getdate(row.payment_date) == getdate(self.posting_date)
-							and self.restructure_type == "Advance Payment"
+							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
 						):
 							self.add_repayment_schedule_row(
 								row.payment_date,
@@ -433,6 +432,9 @@ class LoanRepaymentSchedule(Document):
 					)
 
 					pending_prev_days = date_diff(self.repayment_start_date, self.posting_date)
+
+					if not interest_amount:
+						pending_prev_days = 0
 
 					if pending_prev_days > 0:
 						previous_interest_amount += flt(

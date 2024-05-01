@@ -38,7 +38,6 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
-		self.validate_repayment_type(amounts)
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
@@ -270,19 +269,6 @@ class LoanRepayment(AccountsController):
 			if flt(self.amount_paid) > flt(available_deposit):
 				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
 
-	def validate_repayment_type(self, amounts):
-		if self.is_term_loan:
-			if amounts.get("unpaid_demands") and self.repayment_type in ("Advance Payment", "Pre Payment"):
-				frappe.throw(_("Cannot make advance/pre payment when there are unpaid demands"))
-
-			if self.repayment_type == "Advance Payment":
-				monthly_repayment_amount = frappe.db.get_value(
-					"Loan Repayment Schedule", {"status": "Active", "docstatus": 1}, "monthly_repayment_amount"
-				)
-
-				if not (monthly_repayment_amount <= self.amount_paid < (2 * monthly_repayment_amount)):
-					frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
-
 	def validate_amount(self, payable_amount):
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
@@ -438,6 +424,14 @@ class LoanRepayment(AccountsController):
 			if self.is_term_loan:
 				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
+
+				if self.repayment_type == "Advance Payment":
+					monthly_repayment_amount = frappe.db.get_value(
+						"Loan Repayment Schedule", {"status": "Active", "docstatus": 1}, "monthly_repayment_amount"
+					)
+
+					if not (monthly_repayment_amount <= self.amount_paid < (2 * monthly_repayment_amount)):
+						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")

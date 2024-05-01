@@ -306,6 +306,10 @@ class LoanRestructure(AccountsController):
 		self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision) + flt(
 			amounts.get("unbooked_interest"), precision
 		)
+
+		if self.unaccrued_interest < 0:
+			self.unaccrued_interest = 0
+
 		self.available_security_deposit = flt(amounts.get("available_security_deposit"), precision)
 
 	def cancel_repayment_schedule(self):
