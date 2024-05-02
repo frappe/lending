@@ -16,6 +16,32 @@ def generate_demand(self, method=None):
 			)
 
 
+def update_waived_amount_in_demand(self, method=None):
+	if self.get("is_return"):
+		for item in self.get("items"):
+			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
+			waived_amount = abs(item.base_net_amount + tax_amount)
+			demand_details = frappe.db.get_value(
+				"Loan Demand",
+				{"loan": self.loan, "docstatus": 1, "demand_subtype": item.item_code},
+				["name", "outstanding_amount"],
+				as_dict=1,
+			)
+
+			if flt(demand_details.outstanding_amount) - flt(waived_amount) < 0:
+				frappe.throw("Waived amount cannot be greater than outstanding amount")
+
+			if flt(demand_details.outstanding_amount) > flt(waived_amount):
+				loan_demand = frappe.qb.DocType("Loan Demand")
+				frappe.qb.update(loan_demand).set(
+					loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
+				).set(
+					loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
+				).where(
+					loan_demand.name == demand_details.name
+				).run()
+
+
 def cancel_demand(self, method=None):
 	if self.get("loan"):
 		demand = frappe.db.get_value("Loan Demand", {"sales_invoice": self.name})
