@@ -111,12 +111,15 @@ class LoanDisbursement(AccountsController):
 			self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
 
 		if draft_schedule:
+			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
 			schedule.update(self.get_schedule_details())
 			schedule.save()
 
-			self.broken_period_interest = schedule.broken_period_interest
 			self.monthly_repayment_amount = schedule.monthly_repayment_amount
+
+			if loan_status == "Sanctioned":
+				self.broken_period_interest = schedule.broken_period_interest
 
 	def on_submit(self):
 		if self.is_term_loan:
