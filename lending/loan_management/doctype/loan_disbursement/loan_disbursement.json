@@ -294,6 +294,7 @@
    "fieldname": "broken_period_interest",
    "fieldtype": "Currency",
    "label": "Broken Period Interest",
+   "no_copy": 1,
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -308,7 +309,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-19 02:37:30.199644",
+ "modified": "2024-05-02 11:50:33.281940",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
