@@ -133,9 +133,9 @@ class LoanRepayment(AccountsController):
 		reverse_loan_interest_accruals(self.against_loan, self.posting_date)
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
 		loan_restructure.flags.ignore_links = True
-		loan_restructure.submit()
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
+		loan_restructure.submit()
 
 	def set_repayment_account(self):
 		if not self.payment_account and self.mode_of_payment:
