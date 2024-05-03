@@ -28,18 +28,19 @@ def update_waived_amount_in_demand(self, method=None):
 				as_dict=1,
 			)
 
-			if flt(demand_details.outstanding_amount) - flt(waived_amount) < 0:
-				frappe.throw("Waived amount cannot be greater than outstanding amount")
+			if demand_details:
+				if flt(demand_details.outstanding_amount) - flt(waived_amount) < 0:
+					frappe.throw("Waived amount cannot be greater than outstanding amount")
 
-			if flt(demand_details.outstanding_amount) > flt(waived_amount):
-				loan_demand = frappe.qb.DocType("Loan Demand")
-				frappe.qb.update(loan_demand).set(
-					loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
-				).set(
-					loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
-				).where(
-					loan_demand.name == demand_details.name
-				).run()
+				if flt(demand_details.outstanding_amount) > flt(waived_amount):
+					loan_demand = frappe.qb.DocType("Loan Demand")
+					frappe.qb.update(loan_demand).set(
+						loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
+					).set(
+						loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
+					).where(
+						loan_demand.name == demand_details.name
+					).run()
 
 
 def cancel_demand(self, method=None):
