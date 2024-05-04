@@ -48,7 +48,6 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		principal_adjusted = self.get_principal_adjusted()
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
@@ -56,15 +55,15 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					self.name,
 					self.repayment_type,
-					principal_adjusted,
+					self.principal_amount_paid,
 				)
 
-	def get_principal_adjusted(self):
-		demand_principal = sum(
-			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
-		)
+	# def get_principal_adjusted(self):
+	# 	demand_principal = sum(
+	# 		d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
+	# 	)
 
-		return self.principal_amount_paid - demand_principal
+	# 	return self.principal_amount_paid - demand_principal
 
 	def on_submit(self):
 		# if self.repayment_type == "Normal Repayment":
@@ -427,15 +426,27 @@ class LoanRepayment(AccountsController):
 
 				if self.repayment_type == "Advance Payment":
 					monthly_repayment_amount = frappe.db.get_value(
-						"Loan Repayment Schedule", {"status": "Active", "docstatus": 1}, "monthly_repayment_amount"
+						"Loan Repayment Schedule",
+						{"loan": self.against_loan, "status": "Active", "docstatus": 1},
+						"monthly_repayment_amount",
 					)
 
-					if not (monthly_repayment_amount <= self.amount_paid < (2 * monthly_repayment_amount)):
+					if not (monthly_repayment_amount <= amount_paid < (2 * monthly_repayment_amount)):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
+
+			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
+
+			if unbooked_penalty > 0:
+				if unbooked_penalty > amount_paid:
+					self.total_penalty_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_penalty_paid += unbooked_penalty
+					amount_paid -= unbooked_penalty
 
 			if pending_interest > 0:
 				if pending_interest > amount_paid:

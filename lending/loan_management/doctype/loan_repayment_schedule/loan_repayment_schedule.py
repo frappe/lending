@@ -356,6 +356,21 @@ class LoanRepaymentSchedule(Document):
 				if getdate(first_date) < prev_schedule.repayment_start_date:
 					after_bpi = 1
 
+				if after_bpi and getdate(self.posting_date) <= getdate(prev_schedule.posting_date):
+					row = prev_schedule.get(schedule_field)[0]
+					self.add_repayment_schedule_row(
+						row.payment_date,
+						row.principal_amount,
+						row.interest_amount,
+						row.total_payment,
+						row.balance_loan_amount,
+						row.number_of_days,
+						demand_generated=row.demand_generated,
+						repayment_schedule_field=schedule_field,
+					)
+
+					prev_repayment_date = row.payment_date
+
 				if (
 					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date) or after_bpi
 				):
@@ -402,15 +417,12 @@ class LoanRepaymentSchedule(Document):
 					additional_principal_amount = self.disbursed_amount
 
 				if self.restructure_type == "Advance Payment":
-					restructure_details = frappe.db.get_value(
-						"Loan Restructure",
-						self.loan_restructure,
-						["principal_adjusted", "unaccrued_interest"],
-						as_dict=1,
+					unaccrued_interest = frappe.db.get_value(
+						"Loan Restructure", self.loan_restructure, "unaccrued_interest"
 					)
 
-					paid_principal_amount = restructure_details.principal_adjusted
-					interest_amount = restructure_details.unaccrued_interest
+					interest_amount = unaccrued_interest
+					paid_principal_amount = self.monthly_repayment_amount - interest_amount
 					total_payment = paid_principal_amount + interest_amount
 					balance_principal_amount = self.current_principal_amount
 					previous_interest_amount = 0
