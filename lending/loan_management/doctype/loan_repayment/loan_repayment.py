@@ -420,7 +420,17 @@ class LoanRepayment(AccountsController):
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if flt(amount_paid, precision) > 0:
-			if self.is_term_loan:
+			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
+
+			if unbooked_penalty > 0:
+				if unbooked_penalty > amount_paid:
+					self.total_penalty_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_penalty_paid += unbooked_penalty
+					amount_paid -= unbooked_penalty
+
+			if self.is_term_loan and not on_submit:
 				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
@@ -437,16 +447,6 @@ class LoanRepayment(AccountsController):
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
-
-			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
-
-			if unbooked_penalty > 0:
-				if unbooked_penalty > amount_paid:
-					self.total_penalty_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_penalty_paid += unbooked_penalty
-					amount_paid -= unbooked_penalty
 
 			if pending_interest > 0:
 				if pending_interest > amount_paid:
