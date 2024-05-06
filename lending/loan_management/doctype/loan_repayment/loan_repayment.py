@@ -812,6 +812,7 @@ def get_unpaid_demands(
 			loan_demand.loan_disbursement,
 			loan_demand.loan_product,
 			loan_demand.company,
+			loan_demand.loan_partner,
 			(loan_demand.outstanding_amount).as_("outstanding_amount"),
 			loan_demand.demand_subtype,
 			loan_demand.demand_type,

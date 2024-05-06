@@ -13,6 +13,7 @@
   "applicant_type",
   "applicant",
   "loan_product",
+  "loan_partner",
   "demand_type",
   "demand_subtype",
   "amended_from",
@@ -182,13 +183,20 @@
    "hidden": 1,
    "label": "Is Term Loan",
    "read_only": 1
+  },
+  {
+   "fetch_from": "loan.loan_partner",
+   "fieldname": "loan_partner",
+   "fieldtype": "Link",
+   "label": "Loan Partner",
+   "options": "Loan Partner"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-26 04:49:39.832581",
+ "modified": "2024-05-05 15:31:13.487652",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

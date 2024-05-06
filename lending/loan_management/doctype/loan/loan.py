@@ -112,7 +112,12 @@ class Loan(AccountsController):
 		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.cancel_loan_security_assignment()
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry", "Sales Invoice"]
+		self.ignore_linked_doctypes = [
+			"GL Entry",
+			"Payment Ledger Entry",
+			"Sales Invoice",
+			"Loan Interest Accrual",
+		]
 
 	def on_update_after_submit(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
@@ -132,6 +137,9 @@ class Loan(AccountsController):
 			create_loan_feeze_log(self.name, self.freeze_date, self.freeze_reason)
 			reverse_demands(self.name, self.freeze_date)
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
+
+		if self.has_value_changed("maximum_limit_amount"):
+			self.db_set("loan_amount", self.maximum_limit_amount)
 
 		self.create_loan_limit_change_log("Limit Renewal", nowdate())
 
@@ -657,6 +665,8 @@ def update_days_past_due_in_loans(
 
 	threshold_map = get_dpd_threshold_map()
 	threshold_write_off_map = get_dpd_threshold_write_off_map()
+	loan_partner_threshold_map = get_loan_partner_threshold_map()
+
 	checked_loans = []
 
 	applicant_type = frappe.db.get_value("Loan", loan_name, "applicant_type")
@@ -671,8 +681,13 @@ def update_days_past_due_in_loans(
 
 		threshold = threshold_map.get(demand.loan_product, 0)
 
+		fldg_trigger_dpd = loan_partner_threshold_map.get(demand.loan_partner, 0)
+
 		if days_past_due and threshold and days_past_due > threshold:
 			is_npa = 1
+
+		if days_past_due and fldg_trigger_dpd and days_past_due > fldg_trigger_dpd:
+			fldg_triggered = 1
 
 		update_loan_and_customer_status(
 			demand.loan,
@@ -681,6 +696,7 @@ def update_days_past_due_in_loans(
 			applicant,
 			days_past_due,
 			is_npa,
+			fldg_triggered,
 			posting_date or getdate(),
 		)
 
@@ -709,7 +725,7 @@ def update_days_past_due_in_loans(
 
 	for d in open_loans_with_no_overdue:
 		update_loan_and_customer_status(
-			d.name, d.company, d.applicant_type, d.applicant, 0, 0, posting_date or getdate()
+			d.name, d.company, d.applicant_type, d.applicant, 0, 0, 0, posting_date or getdate()
 		)
 
 		create_dpd_record(d.name, posting_date, 0, process_loan_classification)
@@ -754,7 +770,7 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_classifica
 
 
 def update_loan_and_customer_status(
-	loan, company, applicant_type, applicant, days_past_due, is_npa, posting_date
+	loan, company, applicant_type, applicant, days_past_due, is_npa, fldg_triggered, posting_date
 ):
 	classification_code, classification_name = get_classification_code_and_name(
 		days_past_due, company
@@ -769,6 +785,10 @@ def update_loan_and_customer_status(
 			"classification_name": classification_name,
 		},
 	)
+
+	if fldg_triggered:
+		frappe.db.set_value("Loan", loan, "fldg_triggered", 1)
+		make_fldg_invocation_jv(loan, posting_date)
 
 	if is_npa:
 		for loan in frappe.get_all(
@@ -880,6 +900,12 @@ def get_dpd_threshold_write_off_map():
 	)
 
 
+def get_loan_partner_threshold_map():
+	return frappe._dict(
+		frappe.get_all("Loan Partner", fields=["name", "fldg_trigger_dpd"], as_list=1)
+	)
+
+
 def move_unpaid_interest_to_suspense_ledger(
 	loan=None, posting_date=None, applicant_type=None, applicant=None, reverse=0
 ):
@@ -957,6 +983,72 @@ def move_unpaid_interest_to_suspense_ledger(
 			)
 
 			jv.submit()
+
+
+def make_fldg_invocation_jv(loan, posting_date):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_pending_principal_amount,
+	)
+
+	loan_partner = frappe.db.get_value("Loan", loan, "loan_partner")
+	partner_details = frappe.db.get_value(
+		"Loan Partner",
+		loan_partner,
+		[
+			"payable_account",
+			"fldg_account",
+			"partner_interest_share",
+			"fldg_limit_calculation_component",
+			"type_of_fldg_applicable",
+			"fldg_fixed_deposit_percentage",
+			"fldg_corporate_guarantee_percentage",
+		],
+		as_dict=1,
+	)
+
+	limit_amount = 0
+
+	if partner_details.fldg_limit_calculation_component == "Disbursement":
+		base_amount = frappe.db.get_value("Loan", loan, "disbursed_amount")
+	elif partner_details.fldg_limit_calculation_component == "POS":
+		base_amount = get_pending_principal_amount(loan)
+
+	if partner_details.type_of_fldg_applicable == "Fixed Deposit Only":
+		limit_amount += base_amount * partner_details.fldg_fixed_deposit_percentage / 100
+	elif partner_details.type_of_fldg_applicable == "Corporate Guarantee Only":
+		limit_amount += base_amount * partner_details.fldg_corporate_guarantee_percentage / 100
+	elif partner_details.type_of_fldg_applicable == "Both Fixed Deposit and Corporate Guarantee":
+		limit_amount += base_amount * partner_details.fldg_fixed_deposit_percentage / 100
+		limit_amount += base_amount * partner_details.fldg_corporate_guarantee_percentage / 100
+
+	if not partner_details.payable_account:
+		frappe.throw(_("Please add partner Payable Account for Loan Partner {0}").format(loan_partner))
+
+	if not partner_details.fldg_account:
+		frappe.throw(_("Please add partner FLGD Account for Loan Partner {0}").format(loan_partner))
+
+	journal_entry = frappe.new_doc("Journal Entry")
+	journal_entry.posting_date = posting_date
+
+	journal_entry.append(
+		"accounts",
+		{
+			"account": partner_details.payable_account,
+			"credit_in_account_currency": limit_amount,
+			"credit": limit_amount,
+		},
+	)
+
+	journal_entry.append(
+		"accounts",
+		{
+			"account": partner_details.fldg_account,
+			"debit_in_account_currency": limit_amount,
+			"debit": limit_amount,
+		},
+	)
+
+	journal_entry.submit()
 
 
 @frappe.whitelist()

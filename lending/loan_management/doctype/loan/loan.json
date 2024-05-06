@@ -79,7 +79,8 @@
   "manual_npa",
   "freeze_account",
   "freeze_date",
-  "amended_from"
+  "amended_from",
+  "fldg_triggered"
  ],
  "fields": [
   {
@@ -605,12 +606,19 @@
    "fieldtype": "Link",
    "label": "Loan Partner",
    "options": "Loan Partner"
+  },
+  {
+   "default": "0",
+   "depends_on": "loan_partner",
+   "fieldname": "fldg_triggered",
+   "fieldtype": "Check",
+   "label": "FLDG Triggered"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-22 11:56:28.778170",
+ "modified": "2024-05-02 11:30:07.003707",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

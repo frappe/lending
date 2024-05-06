@@ -25,9 +25,9 @@ class LoanPartner(Document):
 
 		fldg_fields_to_validate = []
 
-		if self.type_of_fldg_applicable == "Fixed Deposit only":
+		if self.type_of_fldg_applicable == "Fixed Deposit Only":
 			fldg_fields_to_validate = ["fldg_fixed_deposit_percentage"]
-		elif self.type_of_fldg_applicable == "Corporate Guarantee only":
+		elif self.type_of_fldg_applicable == "Corporate Guarantee Only":
 			fldg_fields_to_validate = ["fldg_corporate_guarantee_percentage"]
 		elif self.type_of_fldg_applicable == "Both Fixed Deposit and Corporate Guarantee":
 			fldg_fields_to_validate = [

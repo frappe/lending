@@ -44,8 +44,11 @@
   "partial_payment_mechanism",
   "accounts_section",
   "receivable_account",
+  "payable_account",
   "column_break_bqpp",
-  "credit_account"
+  "credit_account",
+  "fldg_account",
+  "partner_interest_share"
  ],
  "fields": [
   {
@@ -166,17 +169,17 @@
    "fieldname": "fldg_limit_calculation_component",
    "fieldtype": "Select",
    "label": "FLDG Limit Calculation Component",
-   "options": "\nDisbursement\nPOS\nPOS & Interest Accrued"
+   "options": "\nDisbursement\nOutstanding Principal\nOutstanding Principal & Interest Accrued"
   },
   {
-   "depends_on": "eval:doc.type_of_fldg_applicable == \"Fixed Deposit only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
+   "depends_on": "eval:doc.type_of_fldg_applicable == \"Fixed Deposit Only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
    "fieldname": "fldg_fixed_deposit_percentage",
    "fieldtype": "Percent",
    "label": "FLDG Fixed Deposit Percentage",
    "mandatory_depends_on": "eval:doc.type_of_fldg_applicable == \"Fixed Deposit only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\""
   },
   {
-   "depends_on": "eval:doc.type_of_fldg_applicable == \"Corporate Guarantee only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
+   "depends_on": "eval:doc.type_of_fldg_applicable == \"Corporate Guarantee Only\" || doc.type_of_fldg_applicable == \"Both Fixed Deposit and Corporate Guarantee\"",
    "fieldname": "fldg_corporate_guarantee_percentage",
    "fieldtype": "Percent",
    "label": "FLDG Corporate Guarantee Percentage",
@@ -208,7 +211,7 @@
    "fieldname": "type_of_fldg_applicable",
    "fieldtype": "Select",
    "label": "Type of FLDG Applicable",
-   "options": "\nFixed Deposit only\nCorporate Guarantee only\nBoth Fixed Deposit and Corporate Guarantee"
+   "options": "\nFixed Deposit Only\nCorporate Guarantee Only\nBoth Fixed Deposit and Corporate Guarantee"
   },
   {
    "default": "0",
@@ -257,11 +260,29 @@
    "fieldtype": "Link",
    "label": "Credit Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "payable_account",
+   "fieldtype": "Link",
+   "label": "Payable Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "fldg_account",
+   "fieldtype": "Link",
+   "label": "FLDG Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "partner_interest_share",
+   "fieldtype": "Link",
+   "label": "Partner Interest Share",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-05 22:38:11.277418",
+ "modified": "2024-05-06 13:06:37.409100",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
