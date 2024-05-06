@@ -117,6 +117,7 @@ class Loan(AccountsController):
 			"Payment Ledger Entry",
 			"Sales Invoice",
 			"Loan Interest Accrual",
+			"Journal Entry",
 		]
 
 	def on_update_after_submit(self):
