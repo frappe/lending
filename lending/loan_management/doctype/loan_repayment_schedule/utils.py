@@ -43,6 +43,7 @@ def get_amounts(
 	carry_forward_interest=0,
 	previous_interest_amount=0,
 	additional_principal_amount=0,
+	advance_principal_amount=0,
 	pending_prev_days=0,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -53,10 +54,17 @@ def get_amounts(
 	else:
 		current_balance_amount = balance_amount
 
+	if advance_principal_amount:
+		current_balance_amount = advance_principal_amount
+
 	interest_amount = flt(
 		current_balance_amount * flt(rate_of_interest) * days / (months * 100), precision
 	)
 	principal_amount = monthly_repayment_amount - flt(interest_amount)
+
+	if advance_principal_amount:
+		current_balance_amount = balance_amount
+		advance_principal_amount = 0
 
 	if carry_forward_interest:
 		interest_amount += carry_forward_interest
