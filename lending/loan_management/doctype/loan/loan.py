@@ -676,6 +676,7 @@ def update_days_past_due_in_loans(
 	if demand:
 		demand = demand[0]
 		is_npa = 0
+		fldg_triggered = 0
 		days_past_due = date_diff(getdate(posting_date), getdate(demand.demand_date))
 		if days_past_due < 0:
 			days_past_due = 0
