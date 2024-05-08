@@ -349,7 +349,7 @@ class LoanRepaymentSchedule(Document):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 		if (
 			loan_status == "Partially Disbursed" and self.repayment_schedule_type != "Line of Credit"
-		) or self.restructure_type:
+		) or self.restructure_type in ("Advance Payment", "Pre Payment"):
 			prev_schedule = frappe.get_doc(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
@@ -459,6 +459,7 @@ class LoanRepaymentSchedule(Document):
 
 					pending_prev_days = date_diff(self.repayment_start_date, self.posting_date)
 
+					# Full advance payment made
 					if not interest_amount:
 						pending_prev_days = 0
 
