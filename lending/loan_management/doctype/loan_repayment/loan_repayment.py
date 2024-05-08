@@ -469,8 +469,14 @@ class LoanRepayment(AccountsController):
 				pending_amount = self.adjust_component(pending_amount, "EMI", demands)
 			if d.demand_type == "Principal" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
+				pending_amount = self.adjust_component(
+					pending_amount, "EMI", demands, demand_subtype="Principal"
+				)
 			if d.demand_type == "Interest" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Normal", demands)
+				pending_amount = self.adjust_component(
+					pending_amount, "EMI", demands, demand_subtype="Interest"
+				)
 			if d.demand_type == "Additional Interest" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Additional Interest", demands)
 			if d.demand_type == "Penalty" and pending_amount > 0:
@@ -480,33 +486,34 @@ class LoanRepayment(AccountsController):
 
 		return pending_amount
 
-	def adjust_component(self, amount_to_adjust, demand_type, demands):
+	def adjust_component(self, amount_to_adjust, demand_type, demands, demand_subtype=None):
 		for demand in demands:
 			if demand.demand_type == demand_type:
-				if amount_to_adjust >= demand.outstanding_amount:
-					self.append(
-						"repayment_details",
-						{
-							"loan_demand": demand.name,
-							"paid_amount": demand.outstanding_amount,
-							"demand_type": demand.demand_type,
-							"demand_subtype": demand.demand_subtype,
-							"sales_invoice": demand.sales_invoice,
-						},
-					)
-					amount_to_adjust -= flt(demand.outstanding_amount)
-				elif amount_to_adjust > 0:
-					self.append(
-						"repayment_details",
-						{
-							"loan_demand": demand.name,
-							"paid_amount": amount_to_adjust,
-							"demand_type": demand.demand_type,
-							"demand_subtype": demand.demand_subtype,
-							"sales_invoice": demand.sales_invoice,
-						},
-					)
-					amount_to_adjust = 0
+				if not demand_subtype or demand.demand_subtype == demand_subtype:
+					if amount_to_adjust >= demand.outstanding_amount:
+						self.append(
+							"repayment_details",
+							{
+								"loan_demand": demand.name,
+								"paid_amount": demand.outstanding_amount,
+								"demand_type": demand.demand_type,
+								"demand_subtype": demand.demand_subtype,
+								"sales_invoice": demand.sales_invoice,
+							},
+						)
+						amount_to_adjust -= flt(demand.outstanding_amount)
+					elif amount_to_adjust > 0:
+						self.append(
+							"repayment_details",
+							{
+								"loan_demand": demand.name,
+								"paid_amount": amount_to_adjust,
+								"demand_type": demand.demand_type,
+								"demand_subtype": demand.demand_subtype,
+								"sales_invoice": demand.sales_invoice,
+							},
+						)
+						amount_to_adjust = 0
 
 		return amount_to_adjust
 
