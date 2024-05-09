@@ -23,8 +23,9 @@ class LoanRepaymentSchedule(Document):
 		self.validate_repayment_method()
 		self.make_customer_repayment_schedule()
 		self.make_co_lender_schedule()
+		self.reset_index()
 
-	def before_save(self):
+	def reset_index(self):
 		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
 			row.idx = idx
 
