@@ -61,6 +61,21 @@ class LoanInterestAccrual(AccountsController):
 				receivable_account = account_details.penalty_accrued_account
 				income_account = account_details.penalty_income_account
 
+		if self.additional_interest_amount:
+			if not account_details.additional_interest_accrued:
+				frappe.throw(
+					_("Please set Additional Interest Accrued Account in Loan Product {0}").format(
+						self.loan_product
+					)
+				)
+
+			if not account_details.additional_interest_income:
+				frappe.throw(
+					_("Please set Additional Interest Income Account in Loan Product {0}").format(
+						self.loan_product
+					)
+				)
+
 		if self.interest_amount:
 			gle_map.append(
 				self.get_gl_dict(
@@ -99,24 +114,10 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if self.additional_interest_amount:
-			if not account_details.additional_interest_accrued:
-				frappe.throw(
-					_("Please set Additional Interest Accrued Account in Loan Product {0}").format(
-						self.loan_product
-					)
-				)
-
-			if not account_details.additional_interest_income:
-				frappe.throw(
-					_("Please set Additional Interest Income Account in Loan Product {0}").format(
-						self.loan_product
-					)
-				)
-
 			gle_map.append(
 				self.get_gl_dict(
 					{
-						"account": account_details.additional_interest_accrued,
+						"account": income_account,
 						"against": account_details.additional_interest_income,
 						"debit": self.additional_interest_amount,
 						"debit_in_account_currency": self.additional_interest_amount,
@@ -135,7 +136,7 @@ class LoanInterestAccrual(AccountsController):
 				self.get_gl_dict(
 					{
 						"account": account_details.additional_interest_income,
-						"against": account_details.additional_interest_accrued,
+						"against": income_account,
 						"credit": self.additional_interest_amount,
 						"credit_in_account_currency": self.additional_interest_amount,
 						"against_voucher_type": "Loan",
@@ -425,16 +426,6 @@ def calculate_penal_interest_for_loans(
 							"Penalty",
 							"Penalty",
 							penal_interest_amount,
-							loan_repayment_schedule=demand.loan_repayment_schedule,
-							loan_disbursement=loan.loan_disbursement,
-						)
-
-						create_loan_demand(
-							loan.name,
-							posting_date,
-							"Additional Interest",
-							"Additional Interest",
-							additional_interest,
 							loan_repayment_schedule=demand.loan_repayment_schedule,
 							loan_disbursement=loan.loan_disbursement,
 						)

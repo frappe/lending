@@ -47,7 +47,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Demand Type",
-   "options": "EMI\nPenalty\nNormal\nCharges\nBPI\nAdditional Interest"
+   "options": "EMI\nPenalty\nNormal\nCharges\nBPI"
   },
   {
    "fieldname": "demand_amount",
@@ -196,7 +196,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-05 15:31:13.487652",
+ "modified": "2024-05-08 22:58:13.879182",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
