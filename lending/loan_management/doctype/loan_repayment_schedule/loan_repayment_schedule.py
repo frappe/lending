@@ -441,27 +441,28 @@ class LoanRepaymentSchedule(Document):
 					balance_principal_amount = self.current_principal_amount
 					previous_interest_amount = 0
 
+					next_emi_date = self.get_next_payment_date(prev_repayment_date)
+
 					self.repayment_start_date = frappe.db.get_value(
 						"Loan Restructure", self.loan_restructure, "repayment_start_date"
 					)
 					self.add_repayment_schedule_row(
-						self.repayment_start_date,
+						next_emi_date,
 						paid_principal_amount,
 						interest_amount,
 						total_payment,
 						balance_principal_amount,
-						date_diff(self.repayment_start_date, self.posting_date),
+						date_diff(next_emi_date, self.posting_date),
 						0,
 						repayment_schedule_field=schedule_field,
 						principal_share_percentage=principal_share_percentage,
 						interest_share_percentage=interest_share_percentage,
 					)
 
-					pending_prev_days = date_diff(self.repayment_start_date, self.posting_date)
-
-					# Full advance payment made
-					if not interest_amount:
-						pending_prev_days = 0
+					if getdate(self.posting_date) < getdate(prev_schedule.repayment_start_date):
+						pending_prev_days = date_diff(next_emi_date, prev_repayment_date)
+					else:
+						pending_prev_days = date_diff(next_emi_date, self.posting_date)
 
 					advance_principal_amount = self.current_principal_amount - skipped_principal_amount
 
@@ -470,7 +471,7 @@ class LoanRepaymentSchedule(Document):
 							advance_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
 						)
 
-					self.repayment_start_date = self.get_next_payment_date(self.repayment_start_date)
+					self.repayment_start_date = self.get_next_payment_date(next_emi_date)
 
 					completed_tenure += 1
 				elif not self.restructure_type:
