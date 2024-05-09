@@ -175,7 +175,10 @@ class LoanRestructure(AccountsController):
 		if self.unaccrued_interest_treatment == "Capitalize":
 			self.new_loan_amount += flt(self.balance_unaccrued_interest)
 
-		if self.treatment_of_penal_interest == "Capitalize":
+		if (
+			self.treatment_of_penal_interest == "Capitalize"
+			and self.restructure_type == "Normal Restructure"
+		):
 			self.new_loan_amount += flt(self.balance_penalty_amount)
 
 		if self.treatment_of_other_charges == "Capitalize":
