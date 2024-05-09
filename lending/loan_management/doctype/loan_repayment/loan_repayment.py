@@ -276,7 +276,13 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 	def update_paid_amounts(self):
-		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment", "Loan Closure"):
+		if self.repayment_type in (
+			"Normal Repayment",
+			"Pre Payment",
+			"Advance Payment",
+			"Loan Closure",
+			"Full Settlement",
+		):
 			loan = frappe.qb.DocType("Loan")
 			query = (
 				frappe.qb.update(loan)
@@ -291,6 +297,9 @@ class LoanRepayment(AccountsController):
 
 			if not is_secured_loan and pending_principal_amount <= 0:
 				query = query.set(loan.status, "Closed")
+
+			if self.repayment_type == "Full Settlement":
+				query = query.set(loan.status, "Settled")
 
 			query.run()
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)

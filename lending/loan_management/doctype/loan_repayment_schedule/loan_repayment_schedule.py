@@ -24,6 +24,10 @@ class LoanRepaymentSchedule(Document):
 		self.make_customer_repayment_schedule()
 		self.make_co_lender_schedule()
 
+	def before_save(self):
+		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
+			row.idx = idx
+
 	def on_submit(self):
 		self.make_bpi_demand()
 		self.make_demand_for_advance_payment()
