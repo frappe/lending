@@ -39,7 +39,7 @@ class LoanTransfer(Document):
 		self.update_branch()
 
 		if len(self.loans) > 10:
-			frappe.enqueue(self.submit_journal_entries, queue="long")
+			frappe.enqueue(self.submit_cancel_journal_entries, queue="long")
 		else:
 			self.submit_cancel_journal_entries()
 
