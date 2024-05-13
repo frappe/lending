@@ -159,6 +159,13 @@ class LoanDisbursement(AccountsController):
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.cancel()
 
+	def cancel_linked_demand(self):
+		filters = {"loan": self.against_loan, "loan_disbursement": self.name, "docstatus": 1}
+
+		for demand in frappe.get_all("Loan Demand", filters, pluck="name"):
+			doc = frappe.get_doc("Loan Demand", demand)
+			doc.cancel()
+
 	def make_credit_note(self):
 		filters = {
 			"loan": self.against_loan,
@@ -216,6 +223,7 @@ class LoanDisbursement(AccountsController):
 			self.cancel_and_delete_repayment_schedule()
 
 		self.make_credit_note()
+		self.cancel_linked_demand()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(

@@ -111,6 +111,7 @@ class LoanRepayment(AccountsController):
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
+		self.make_credit_note_for_charge_waivers()
 		self.make_gl_entries()
 
 		if self.is_term_loan:
@@ -149,6 +150,22 @@ class LoanRepayment(AccountsController):
 
 		if not self.payment_account:
 			self.payment_account = frappe.db.get_value("Loan Product", self.loan_product, "payment_account")
+
+	def make_credit_note_for_charge_waivers(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import make_credit_note
+
+		if self.repayment_type == "Charges Waiver":
+			for demand in self.get("repayment_details"):
+				demand_doc = frappe.get_doc("Loan Demand", demand.loan_demand)
+				make_credit_note(
+					demand_doc.company,
+					demand_doc.demand_subtype,
+					demand_doc.applicant,
+					demand_doc.loan,
+					demand_doc.sales_invoice,
+					self.posting_date,
+					self.amount_paid,
+				)
 
 	def create_loan_limit_change_log(self):
 		create_loan_limit_change_log(
