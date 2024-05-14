@@ -165,6 +165,7 @@ class LoanRepayment(AccountsController):
 					demand_doc.sales_invoice,
 					self.posting_date,
 					self.amount_paid,
+					self.name,
 				)
 
 	def create_loan_limit_change_log(self):
