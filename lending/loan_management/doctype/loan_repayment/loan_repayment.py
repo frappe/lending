@@ -157,6 +157,7 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Charges Waiver":
 			for demand in self.get("repayment_details"):
 				demand_doc = frappe.get_doc("Loan Demand", demand.loan_demand)
+				waiver_account = self.get_charges_waiver_account(self.loan_product, demand.demand_subtype)
 				make_credit_note(
 					demand_doc.company,
 					demand_doc.demand_subtype,
@@ -164,8 +165,9 @@ class LoanRepayment(AccountsController):
 					demand_doc.loan,
 					demand_doc.sales_invoice,
 					self.posting_date,
-					self.amount_paid,
-					self.name,
+					amount=self.amount_paid,
+					loan_repayment=self.name,
+					waiver_account=waiver_account,
 				)
 
 	def create_loan_limit_change_log(self):
@@ -543,6 +545,9 @@ class LoanRepayment(AccountsController):
 		return amount_to_adjust
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		if self.repayment_type == "Charges Waiver":
+			return
+
 		if cancel:
 			make_reverse_gl_entries(voucher_type="Loan Repayment", voucher_no=self.name)
 			return
@@ -623,8 +628,6 @@ class LoanRepayment(AccountsController):
 				against_account = account_details.penalty_receivable_account
 			elif repayment.demand_type == "Charges":
 				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
-				if self.repayment_type == "Charges Waiver":
-					payment_account = self.get_charges_waiver_account(self.loan_product, repayment.demand_subtype)
 
 			gle_map.append(
 				self.get_gl_dict(

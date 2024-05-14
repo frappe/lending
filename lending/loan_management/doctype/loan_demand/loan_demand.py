@@ -259,7 +259,15 @@ def reverse_demands(loan, posting_date, demand_type=None):
 
 
 def make_credit_note(
-	company, item_code, applicant, loan, sales_invoice, demand_date, amount=0, loan_repayment=None
+	company,
+	item_code,
+	applicant,
+	loan,
+	sales_invoice,
+	demand_date,
+	amount=0,
+	loan_repayment=None,
+	waiver_account=None,
 ):
 	si = frappe.new_doc("Sales Invoice")
 	si.company = company
@@ -290,7 +298,7 @@ def make_credit_note(
 			"item_code": item_code,
 			"qty": -1,
 			"rate": amount or rate,
-			"income_account": income_account,
+			"income_account": waiver_account or income_account,
 		},
 	)
 
