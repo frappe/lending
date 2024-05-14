@@ -60,6 +60,7 @@ class LoanWriteOff(AccountsController):
 
 	def on_submit(self):
 		self.update_outstanding_amount_and_status()
+		self.make_loan_waivers()
 		self.make_gl_entries()
 		self.close_employee_loan()
 
@@ -68,6 +69,32 @@ class LoanWriteOff(AccountsController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.close_employee_loan(cancel=1)
+
+	def make_loan_waivers(self):
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_loan_repayment,
+		)
+
+		amounts = calculate_amounts(self.loan, self.posting_date)
+		if amounts.get("penalty_amount") > 0:
+			create_loan_repayment(
+				self.loan, self.posting_date, "Penalty Waiver", amounts.get("penalty_amount")
+			)
+
+		interest_amount = (
+			amounts.get("interest_amount", 0)
+			+ amounts.get("unaccrued_interest", 0)
+			+ amounts.get("accrued_interest", 0)
+		)
+
+		if interest_amount > 0:
+			create_loan_repayment(self.loan, self.posting_date, "Interest Waiver", interest_amount)
+
+		if amounts.get("total_charges_payable") > 0:
+			create_loan_repayment(
+				self.loan, self.posting_date, "Charges Waiver", amounts.get("total_charges_payable")
+			)
 
 	def update_outstanding_amount_and_status(self, cancel=0):
 		written_off_amount = frappe.db.get_value("Loan", self.loan, "written_off_amount")
