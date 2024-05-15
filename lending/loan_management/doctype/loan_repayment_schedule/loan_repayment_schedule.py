@@ -481,19 +481,19 @@ class LoanRepaymentSchedule(Document):
 					principal_amount = 0
 
 					next_emi_date = self.get_next_payment_date(prev_repayment_date)
-					balance_principal_amount = self.current_principal_amount
 
 					pending_prev_days = date_diff(next_emi_date, self.posting_date)
 
 					if pending_prev_days > 0:
 						interest_amount = flt(
-							balance_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
+							self.current_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
 						)
 
 						principal_amount = self.monthly_repayment_amount - interest_amount
 
 					total_payment = principal_amount + interest_amount
 
+					balance_principal_amount = self.current_principal_amount - principal_amount
 					self.add_repayment_schedule_row(
 						next_emi_date,
 						principal_amount,
