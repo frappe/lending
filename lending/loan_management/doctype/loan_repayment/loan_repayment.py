@@ -165,7 +165,7 @@ class LoanRepayment(AccountsController):
 					demand_doc.loan,
 					demand_doc.sales_invoice,
 					self.posting_date,
-					amount=self.amount_paid,
+					amount=demand.paid_amount,
 					loan_repayment=self.name,
 					waiver_account=waiver_account,
 				)
