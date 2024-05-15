@@ -295,6 +295,10 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Loan Closure" and flt(self.amount_paid) < flt(payable_amount):
 			frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
+		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			if flt(self.amount_paid) > flt(payable_amount):
+				frappe.throw(_("Waived amount cannot be greater than overdue amount"))
+
 	def update_paid_amounts(self):
 		if self.repayment_type in (
 			"Normal Repayment",
