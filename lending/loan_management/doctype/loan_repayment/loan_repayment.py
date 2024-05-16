@@ -297,7 +297,15 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 			if flt(self.amount_paid) > flt(payable_amount):
-				frappe.throw(_("Waived amount cannot be greater than overdue amount"))
+				frappe.throw(
+					_("Waived {0} amount cannot be greater than overdue amount").format(
+						{
+							"Interest Waiver": "interest",
+							"Penalty Waiver": "penalty",
+							"Charges Waiver": "charges",
+						}.get(self.repayment_type)
+					)
+				)
 
 	def update_paid_amounts(self):
 		if self.repayment_type in (

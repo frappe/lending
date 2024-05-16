@@ -169,20 +169,21 @@ class LoanRestructure(AccountsController):
 	def calculate_new_loan_amount(self):
 		self.new_loan_amount = flt(self.pending_principal_amount) - flt(self.principal_adjusted)
 
-		if self.treatment_of_normal_interest == "Capitalize":
-			self.new_loan_amount += flt(self.balance_interest_amount)
+		if self.restructure_type == "Normal Restructure":
+			if self.treatment_of_normal_interest == "Capitalize":
+				self.new_loan_amount += flt(self.balance_interest_amount)
 
-		if self.unaccrued_interest_treatment == "Capitalize":
-			self.new_loan_amount += flt(self.balance_unaccrued_interest)
+			if self.unaccrued_interest_treatment == "Capitalize":
+				self.new_loan_amount += flt(self.balance_unaccrued_interest)
 
-		if (
-			self.treatment_of_penal_interest == "Capitalize"
-			and self.restructure_type == "Normal Restructure"
-		):
-			self.new_loan_amount += flt(self.balance_penalty_amount)
+			if (
+				self.treatment_of_penal_interest == "Capitalize"
+				and self.restructure_type == "Normal Restructure"
+			):
+				self.new_loan_amount += flt(self.balance_penalty_amount)
 
-		if self.treatment_of_other_charges == "Capitalize":
-			self.new_loan_amount += flt(self.balance_charges)
+			if self.treatment_of_other_charges == "Capitalize":
+				self.new_loan_amount += flt(self.balance_charges)
 
 		self.new_loan_amount = flt(self.new_loan_amount, 2)
 
