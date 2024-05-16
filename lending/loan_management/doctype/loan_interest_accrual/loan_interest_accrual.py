@@ -290,6 +290,10 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date):
 		pluck="name",
 	)
 
+	freeze_date = frappe.db.get_value("Loan", loan, "freeze_date")
+	if freeze_date and getdate(freeze_date) < getdate(posting_date):
+		posting_date = freeze_date
+
 	schedule_dates = (
 		frappe.db.get_all(
 			"Repayment Schedule",

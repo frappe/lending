@@ -150,7 +150,6 @@ def make_loan_demand_for_term_loans(
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
 		"is_term_loan": 1,
-		"freeze_account": 0,
 	}
 
 	if loan_product:
@@ -160,6 +159,8 @@ def make_loan_demand_for_term_loans(
 		filters["name"] = loan
 
 	open_loans = frappe.db.get_all("Loan", filters=filters, pluck="name")
+
+	freeze_dates = get_freeze_date_map(open_loans)
 
 	loan_repayment_schedules = frappe.db.get_all(
 		"Loan Repayment Schedule",
@@ -187,6 +188,10 @@ def make_loan_demand_for_term_loans(
 	)
 
 	for row in emi_rows:
+		freeze_date = freeze_dates.get(loan_repayment_schedule_map.get(row.parent))
+		if freeze_date and getdate(freeze_date) <= getdate(row.payment_date):
+			continue
+
 		demand_type = "EMI"
 		create_loan_demand(
 			loan_repayment_schedule_map.get(row.parent),
@@ -304,3 +309,11 @@ def make_credit_note(
 
 	si.save()
 	si.submit()
+
+
+def get_freeze_date_map(loans):
+	return frappe._dict(
+		frappe.db.get_all(
+			"Loan", filters={"name": ("in", loans)}, fields=["name", "freeze_date"], as_list=1
+		)
+	)

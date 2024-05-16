@@ -135,7 +135,7 @@ class Loan(AccountsController):
 		)
 
 		if self.has_value_changed("freeze_account") and self.freeze_account:
-			create_loan_feeze_log(self.name, self.freeze_date, self.freeze_reason)
+			create_loan_feeze_log(self.name, self.freeze_date, self.get("freeze_reason"))
 			reverse_demands(self.name, self.freeze_date)
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
 
@@ -670,8 +670,16 @@ def update_days_past_due_in_loans(
 
 	checked_loans = []
 
-	applicant_type = frappe.db.get_value("Loan", loan_name, "applicant_type")
-	applicant = frappe.db.get_value("Loan", loan_name, "applicant")
+	loan_details = frappe.db.get_value(
+		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date"], as_dict=1
+	)
+
+	applicant_type = loan_details.get("applicant_type")
+	applicant = loan_details.get("applicant")
+	freeze_date = loan_details.get("freeze_date")
+
+	if freeze_date and getdate(freeze_date) < getdate(posting_date):
+		return
 
 	if demand:
 		demand = demand[0]
