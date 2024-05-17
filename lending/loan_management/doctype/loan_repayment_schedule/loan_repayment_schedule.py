@@ -509,6 +509,7 @@ class LoanRepaymentSchedule(Document):
 
 					previous_interest_amount = 0
 					additional_principal_amount = 0
+					self.repayment_start_date = self.get_next_payment_date(next_emi_date)
 
 		return (
 			previous_interest_amount,
