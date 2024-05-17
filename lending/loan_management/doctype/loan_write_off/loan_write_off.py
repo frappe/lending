@@ -82,14 +82,10 @@ class LoanWriteOff(AccountsController):
 				self.loan, self.posting_date, "Penalty Waiver", amounts.get("penalty_amount")
 			)
 
-		interest_amount = (
-			amounts.get("interest_amount", 0)
-			+ amounts.get("unaccrued_interest", 0)
-			+ amounts.get("accrued_interest", 0)
-		)
-
-		if interest_amount > 0:
-			create_loan_repayment(self.loan, self.posting_date, "Interest Waiver", interest_amount)
+		if amounts.get("interest_amount") > 0:
+			create_loan_repayment(
+				self.loan, self.posting_date, "Interest Waiver", amounts.get("interest_amount")
+			)
 
 		if amounts.get("total_charges_payable") > 0:
 			create_loan_repayment(
