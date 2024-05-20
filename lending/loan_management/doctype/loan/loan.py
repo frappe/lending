@@ -118,6 +118,7 @@ class Loan(AccountsController):
 			"Sales Invoice",
 			"Loan Interest Accrual",
 			"Journal Entry",
+			"Process Loan Interest Accrual",
 		]
 
 	def on_update_after_submit(self):
