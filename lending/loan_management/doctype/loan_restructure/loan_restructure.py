@@ -307,11 +307,7 @@ class LoanRestructure(AccountsController):
 		self.interest_overdue = flt(amounts.get("interest_amount"), precision)
 		self.penalty_overdue = flt(amounts.get("penalty_amount"), precision)
 		self.charges_overdue = flt(amounts.get("total_charges_payable"), precision)
-		self.unaccrued_interest = flt(
-			flt(amounts.get("unaccrued_interest"), precision)
-			+ flt(amounts.get("unbooked_interest"), precision),
-			precision,
-		)
+		self.unaccrued_interest = flt(amounts.get("unaccrued_interest"), precision)
 
 		if self.unaccrued_interest < 0:
 			self.unaccrued_interest = 0
