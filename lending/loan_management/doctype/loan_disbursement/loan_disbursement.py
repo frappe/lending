@@ -17,7 +17,7 @@ from frappe.utils import (
 )
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
@@ -545,13 +545,12 @@ class LoanDisbursement(AccountsController):
 		gle_map = []
 		remarks = _("Disbursement against loan:") + self.against_loan
 
-		if cancel:
-			make_reverse_gl_entries(voucher_type="Loan Disbursement", voucher_no=self.name)
-			return
+		if self.get("refund_account") and cancel:
+			bank_account = self.refund_account
+		else:
+			bank_account = self.disbursement_account
 
-		self.add_gl_entry(
-			gle_map, self.loan_account, self.disbursement_account, self.disbursed_amount, remarks
-		)
+		self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
 
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
@@ -561,7 +560,7 @@ class LoanDisbursement(AccountsController):
 			self.add_gl_entry(
 				gle_map,
 				security_deposit_account,
-				self.disbursement_account,
+				bank_account,
 				-1 * self.monthly_repayment_amount,
 				remarks,
 			)
@@ -581,7 +580,7 @@ class LoanDisbursement(AccountsController):
 			self.add_gl_entry(
 				gle_map,
 				broken_period_interest_account,
-				self.disbursement_account,
+				bank_account,
 				-1 * self.broken_period_interest,
 				remarks,
 			)
@@ -599,7 +598,7 @@ class LoanDisbursement(AccountsController):
 			self.add_gl_entry(
 				gle_map,
 				sales_invoice.debit_to,
-				self.disbursement_account,
+				bank_account,
 				-1 * sales_invoice.grand_total,
 				remarks,
 				"Sales Invoice",
