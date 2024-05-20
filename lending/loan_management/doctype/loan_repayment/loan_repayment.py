@@ -485,7 +485,9 @@ class LoanRepayment(AccountsController):
 					if not (monthly_repayment_amount <= amount_paid < (2 * monthly_repayment_amount)):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
-			pending_interest = flt(amounts.get("unaccrued_interest"))
+			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
+				amounts.get("unbooked_interest")
+			)
 
 			if pending_interest > 0:
 				if pending_interest > amount_paid:

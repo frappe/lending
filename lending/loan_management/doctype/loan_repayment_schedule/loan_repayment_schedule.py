@@ -34,6 +34,13 @@ class LoanRepaymentSchedule(Document):
 		self.make_demand_for_advance_payment()
 
 	def make_demand_for_advance_payment(self):
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			get_interest_for_term,
+			get_last_accrual_date,
+			make_loan_interest_accrual_entry,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		if self.restructure_type == "Advance Payment":
 			advance_payment = ""
 			for row in self.repayment_schedule:
@@ -62,6 +69,31 @@ class LoanRepaymentSchedule(Document):
 				loan_repayment_schedule=self.name,
 				loan_disbursement=self.loan_disbursement,
 				repayment_schedule_detail=advance_payment.name,
+			)
+
+			last_accrual_date = get_last_accrual_date(
+				self.loan, advance_payment.payment_date, "Normal Interest"
+			)
+
+			payable_interest = get_interest_for_term(
+				self.company,
+				self.rate_of_interest,
+				self.current_principal_amount,
+				last_accrual_date,
+				advance_payment.payment_date,
+			)
+
+			make_loan_interest_accrual_entry(
+				self.loan,
+				self.current_principal_amount,
+				flt(payable_interest, precision),
+				"",
+				last_accrual_date,
+				advance_payment.payment_date,
+				"Regular",
+				"Normal Interest",
+				self.rate_of_interest,
+				loan_repayment_schedule=self.name,
 			)
 
 	def make_bpi_demand(self):

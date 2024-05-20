@@ -183,7 +183,11 @@ def calculate_accrual_amount_for_loans(
 			)
 
 			payable_interest = get_interest_for_term(
-				loan, pending_principal_amount, last_accrual_date_for_schedule, schedule.payment_date
+				loan.company,
+				loan.rate_of_interest,
+				pending_principal_amount,
+				last_accrual_date_for_schedule,
+				schedule.payment_date,
 			)
 
 			if payable_interest > 0:
@@ -236,13 +240,13 @@ def calculate_accrual_amount_for_loans(
 		return total_payable_interest
 
 
-def get_interest_for_term(loan, pending_principal_amount, from_date, to_date):
+def get_interest_for_term(company, rate_of_interest, pending_principal_amount, from_date, to_date):
 	no_of_days = date_diff(to_date, from_date) + 1
 	payable_interest = get_interest_amount(
 		no_of_days,
 		principal_amount=pending_principal_amount,
-		rate_of_interest=loan.rate_of_interest,
-		company=loan.company,
+		rate_of_interest=rate_of_interest,
+		company=company,
 		posting_date=to_date,
 	)
 
