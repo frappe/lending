@@ -139,6 +139,7 @@ class Loan(AccountsController):
 			create_loan_feeze_log(self.name, self.freeze_date, self.get("freeze_reason"))
 			reverse_demands(self.name, self.freeze_date)
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
+			update_days_past_due_in_loans(posting_date=self.get("freeze_date"), loan_name=self.name)
 
 		if self.has_value_changed("maximum_limit_amount"):
 			self.db_set("loan_amount", self.maximum_limit_amount)
