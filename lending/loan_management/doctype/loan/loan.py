@@ -126,6 +126,9 @@ class Loan(AccountsController):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+			process_loan_interest_accrual_for_loans,
+		)
 
 		if self.watch_period_end_date and getdate() < getdate(self.watch_period_end_date):
 			frappe.throw(_("Cannot un mark as NPA before watch period end date"))
@@ -140,6 +143,7 @@ class Loan(AccountsController):
 			reverse_demands(self.name, self.freeze_date)
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
 			update_days_past_due_in_loans(posting_date=self.get("freeze_date"), loan_name=self.name)
+			process_loan_interest_accrual_for_loans(posting_date=self.get("freeze_date"), loan=self.name)
 
 		if self.has_value_changed("maximum_limit_amount"):
 			self.db_set("loan_amount", self.maximum_limit_amount)
