@@ -93,15 +93,15 @@ class LoanRepayment(AccountsController):
 			self.get("prepayment_charges"),
 		)
 
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			self.process_reschedule()
-
 		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
 			amounts = calculate_amounts(
 				self.against_loan, self.posting_date, payment_type=self.repayment_type
 			)
 			self.allocate_amount_against_demands(amounts, on_submit=True)
 			self.db_update_all()
+
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+			self.process_reschedule()
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -488,6 +488,9 @@ class LoanRepayment(AccountsController):
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
+
+			print("unaccrued_interest", amounts.get("unaccrued_interest"))
+			print("unbooked_interest", amounts.get("unbooked_interest"))
 
 			if pending_interest > 0:
 				if pending_interest > amount_paid:

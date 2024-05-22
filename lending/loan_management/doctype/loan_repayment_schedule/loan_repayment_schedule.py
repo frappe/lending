@@ -40,61 +40,84 @@ class LoanRepaymentSchedule(Document):
 			make_loan_interest_accrual_entry,
 		)
 
+		advance_payment = ""
+		if not self.restructure_type in ("Advance Payment", "Pre Payment"):
+			return
+
+		for row in self.repayment_schedule:
+			if not row.demand_generated:
+				advance_payment = row
+				break
+
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if self.restructure_type == "Advance Payment":
-			advance_payment = ""
-			for row in self.repayment_schedule:
-				if not row.demand_generated:
-					advance_payment = row
-					break
-
 			set_demand(advance_payment.name)
-			create_loan_demand(
-				self.loan,
-				self.posting_date,
-				"EMI",
-				"Interest",
-				advance_payment.interest_amount,
-				loan_repayment_schedule=self.name,
-				loan_disbursement=self.loan_disbursement,
-				repayment_schedule_detail=advance_payment.name,
+			interest_amount = advance_payment.interest_amount
+			principal_amount = advance_payment.principal_amount
+			paid_interest_amount = 0
+			paid_principal_amount = 0
+		else:
+			prepayment_details = frappe.db.get_value(
+				"Loan Restructure",
+				self.loan_restructure,
+				["unaccrued_interest", "principal_adjusted"],
+				as_dict=1,
 			)
 
-			create_loan_demand(
-				self.loan,
-				self.posting_date,
-				"EMI",
-				"Principal",
-				advance_payment.principal_amount,
-				loan_repayment_schedule=self.name,
-				loan_disbursement=self.loan_disbursement,
-				repayment_schedule_detail=advance_payment.name,
-			)
+			interest_amount = prepayment_details.unaccrued_interest
+			principal_amount = prepayment_details.principal_adjusted
+			paid_interest_amount = interest_amount
+			paid_principal_amount = principal_amount
 
-			last_accrual_date = get_last_accrual_date(
-				self.loan, advance_payment.payment_date, "Normal Interest"
-			)
+		create_loan_demand(
+			self.loan,
+			self.posting_date,
+			"EMI",
+			"Interest",
+			interest_amount,
+			loan_repayment_schedule=self.name,
+			loan_disbursement=self.loan_disbursement,
+			repayment_schedule_detail=advance_payment.name,
+			paid_amount=paid_interest_amount,
+		)
 
-			payable_interest = get_interest_for_term(
-				self.company,
-				self.rate_of_interest,
-				self.current_principal_amount,
-				last_accrual_date,
-				advance_payment.payment_date,
-			)
+		create_loan_demand(
+			self.loan,
+			self.posting_date,
+			"EMI",
+			"Principal",
+			principal_amount,
+			loan_repayment_schedule=self.name,
+			loan_disbursement=self.loan_disbursement,
+			repayment_schedule_detail=advance_payment.name,
+			paid_amount=paid_principal_amount,
+		)
 
-			make_loan_interest_accrual_entry(
-				self.loan,
-				self.current_principal_amount,
-				flt(payable_interest, precision),
-				"",
-				last_accrual_date,
-				advance_payment.payment_date,
-				"Regular",
-				"Normal Interest",
-				self.rate_of_interest,
-				loan_repayment_schedule=self.name,
-			)
+		last_accrual_date = get_last_accrual_date(
+			self.loan, advance_payment.payment_date, "Normal Interest"
+		)
+
+		payable_interest = get_interest_for_term(
+			self.company,
+			self.rate_of_interest,
+			self.current_principal_amount,
+			last_accrual_date,
+			advance_payment.payment_date,
+		)
+
+		make_loan_interest_accrual_entry(
+			self.loan,
+			self.current_principal_amount,
+			flt(payable_interest, precision),
+			"",
+			last_accrual_date,
+			advance_payment.payment_date,
+			"Regular",
+			"Normal Interest",
+			self.rate_of_interest,
+			loan_repayment_schedule=self.name,
+		)
 
 	def make_bpi_demand(self):
 		if self.broken_period_interest > 0 and self.broken_period_interest_days > 0:

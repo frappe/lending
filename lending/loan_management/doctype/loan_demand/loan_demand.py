@@ -26,7 +26,7 @@ class LoanDemand(AccountsController):
 		if self.demand_subtype in ("Principal", "Interest", "Penalty", "Additional Interest"):
 			self.make_gl_entries()
 
-		if self.demand_type == "EMI":
+		if self.demand_type == "EMI" and not self.paid_amount:
 			self.update_repayment_schedule()
 
 		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
