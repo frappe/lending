@@ -211,6 +211,7 @@ class LoanRepayment(AccountsController):
 			"Payment Ledger Entry",
 			"Process Loan Classification",
 			"Sales Invoice",
+			"Loan Repayment Schedule",
 		]
 		self.make_gl_entries(cancel=1)
 		update_installment_counts(self.against_loan)
