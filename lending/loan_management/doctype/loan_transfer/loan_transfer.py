@@ -25,11 +25,10 @@ class LoanTransfer(Document):
 			self.get_balances_and_make_journal_entry()
 
 	def get_balances_and_make_journal_entry(self):
-		accounts = get_loan_accounts()
 		loans = [d.loan for d in self.loans]
 
 		balances = get_balances_based_on_dimensions(
-			self.company, self.transfer_date, accounts, loans, self.from_branch
+			self.company, self.transfer_date, loans, self.from_branch
 		)
 
 		for loan, balance in balances.items():
@@ -140,29 +139,7 @@ def get_loans(branch, applicant=None):
 	return loans
 
 
-def get_loan_accounts():
-	accounts = []
-	account_fields = [
-		"loan_account",
-		"interest_income_account",
-		"interest_accrued_account",
-		"penalty_income_account",
-		"penalty_accrued_account",
-		"write_off_account",
-	]
-
-	account_details = frappe.get_all("Loan Product", fields=account_fields)
-
-	accounts = []
-	for account in account_details:
-		for field in account_fields:
-			if account.get(field) not in accounts:
-				accounts.append(account.get(field))
-
-	return accounts
-
-
-def get_balances_based_on_dimensions(company, transfer_date, accounts, loans, from_branch):
+def get_balances_based_on_dimensions(company, transfer_date, loans, from_branch):
 	"""Get balance for dimension-wise pl accounts"""
 
 	qb_dimension_fields = ["cost_center", "finance_book", "project"]
@@ -191,7 +168,6 @@ def get_balances_based_on_dimensions(company, transfer_date, accounts, loans, fr
 	query = query.where(
 		(gl_entry.company == company)
 		& (gl_entry.is_cancelled == 0)
-		& (gl_entry.account.isin(accounts))
 		& (gl_entry.posting_date <= transfer_date)
 		& (gl_entry.against_voucher_type == "Loan")
 		& (gl_entry.against_voucher.isin(loans))
