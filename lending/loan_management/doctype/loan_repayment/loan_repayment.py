@@ -489,9 +489,6 @@ class LoanRepayment(AccountsController):
 				amounts.get("unbooked_interest")
 			)
 
-			print("unaccrued_interest", amounts.get("unaccrued_interest"))
-			print("unbooked_interest", amounts.get("unbooked_interest"))
-
 			if pending_interest > 0:
 				if pending_interest > amount_paid:
 					self.total_interest_paid += amount_paid

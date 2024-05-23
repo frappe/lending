@@ -55,8 +55,8 @@ class LoanRepaymentSchedule(Document):
 			set_demand(advance_payment.name)
 			interest_amount = advance_payment.interest_amount
 			principal_amount = advance_payment.principal_amount
-			paid_interest_amount = 0
-			paid_principal_amount = 0
+			paid_interest_amount = advance_payment.interest_amount
+			paid_principal_amount = advance_payment.principal_amount
 		else:
 			prepayment_details = frappe.db.get_value(
 				"Loan Restructure",
