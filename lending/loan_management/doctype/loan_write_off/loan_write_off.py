@@ -79,17 +79,29 @@ class LoanWriteOff(AccountsController):
 		amounts = calculate_amounts(self.loan, self.posting_date)
 		if amounts.get("penalty_amount") > 0:
 			create_loan_repayment(
-				self.loan, self.posting_date, "Penalty Waiver", amounts.get("penalty_amount")
+				self.loan,
+				self.posting_date,
+				"Penalty Waiver",
+				amounts.get("penalty_amount"),
+				is_write_off_waiver=1,
 			)
 
 		if amounts.get("interest_amount") > 0:
 			create_loan_repayment(
-				self.loan, self.posting_date, "Interest Waiver", amounts.get("interest_amount")
+				self.loan,
+				self.posting_date,
+				"Interest Waiver",
+				amounts.get("interest_amount"),
+				is_write_off_waiver=1,
 			)
 
 		if amounts.get("total_charges_payable") > 0:
 			create_loan_repayment(
-				self.loan, self.posting_date, "Charges Waiver", amounts.get("total_charges_payable")
+				self.loan,
+				self.posting_date,
+				"Charges Waiver",
+				amounts.get("total_charges_payable"),
+				is_write_off_waiver=1,
 			)
 
 	def update_outstanding_amount_and_status(self, cancel=0):

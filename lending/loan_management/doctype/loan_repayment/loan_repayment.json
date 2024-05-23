@@ -13,7 +13,6 @@
   "applicant",
   "loan_product",
   "repayment_type",
-  "select_charge_manually",
   "loan_restructure",
   "column_break_3",
   "company",
@@ -25,6 +24,7 @@
   "is_term_loan",
   "is_npa",
   "manual_npa",
+  "is_write_off_waiver",
   "payment_details_section",
   "due_date",
   "pending_principal_amount",
@@ -352,13 +352,6 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval:doc.repayment_type == \"Charges Waiver\"",
-   "fieldname": "select_charge_manually",
-   "fieldtype": "Check",
-   "label": "Select Charge Manually"
-  },
-  {
    "fetch_from": "against_loan.repayment_schedule_type",
    "fieldname": "repayment_schedule_type",
    "fieldtype": "Data",
@@ -399,12 +392,19 @@
    "fieldtype": "Table",
    "label": "Pre Payment Charges",
    "options": "Prepayment Charges"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_write_off_waiver",
+   "fieldtype": "Check",
+   "label": "Is Write Off Waiver",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-09 20:51:14.463949",
+ "modified": "2024-05-23 19:20:52.028515",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
