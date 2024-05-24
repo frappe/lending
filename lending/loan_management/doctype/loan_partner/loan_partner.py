@@ -84,3 +84,82 @@ class LoanPartner(Document):
 				for field in ["partner_collection_percentage", "company_collection_percentage"]:
 					if shareable.get(field):
 						shareable.set(field, 0)
+
+
+@frappe.whitelist()
+def get_colender_payout_details(posting_date):
+	account_details = frappe.get_all(
+		"Loan Partner", fields=["fldg_account", "credit_account", "partner_interest_share", "name"]
+	)
+
+	accounts = []
+	account_map = {}
+
+	for account_detail in account_details:
+		accounts.append(account_detail.fldg_account)
+		accounts.append(account_detail.credit_account)
+		accounts.append(account_detail.partner_interest_share)
+
+		account_map[account_detail.name] = {
+			"interest_account": account_detail.partner_interest_share,
+			"fldg_account": account_detail.fldg_account,
+			"credit_account": account_detail.credit_account,
+		}
+
+	payable_balances = frappe.db.get_all(
+		"GL Entry",
+		filters={"posting_date": ("<=", posting_date), "account": ("in", accounts)},
+		fields=["against_voucher", "account", "sum(debit-credit) as balance"],
+		group_by="against_voucher, account",
+	)
+
+	loans = [d.against_voucher for d in payable_balances]
+
+	partner_map = frappe._dict(
+		frappe.db.get_all(
+			"Loan", filters={"name": ("in", loans)}, fields=["name", "loan_partner"], as_list=True
+		)
+	)
+
+	data = {}
+	for payable_balance in payable_balances:
+		data.setdefault(
+			payable_balance.against_voucher,
+			{
+				"payable_fldg_balance": 0.0,
+				"payable_interest": 0.0,
+				"payable_principal": 0.0,
+				"payable_emi": 0.0,
+				"total_payable": 0.0,
+			},
+		)
+
+		loan_partner = partner_map.get(payable_balance.against_voucher)
+
+		if loan_partner:
+			partner_details = account_map.get(loan_partner)
+
+			account_type = get_account_type(partner_details, payable_balance.account)
+			if account_type == "FLDG":
+				data[payable_balance.against_voucher]["payable_fldg_balance"] += payable_balance.balance
+			elif account_type == "Credit":
+				data[payable_balance.against_voucher]["payable_principal"] += -1 * payable_balance.balance
+			elif account_type == "Interest":
+				data[payable_balance.against_voucher]["payable_interest"] += payable_balance.balance
+
+	result = []
+	for loan, values in data.items():
+		values["loan_partner"] = partner_map.get(loan)
+		values["loan"] = loan
+		result.append(values)
+
+	return result
+
+
+def get_account_type(colender_details, account):
+	if account == colender_details.get("fldg_account"):
+		return "FLDG"
+	elif account == colender_details.get("credit_account"):
+		return "Credit"
+	elif account == colender_details.get("partner_interest_share"):
+		return "Interest"

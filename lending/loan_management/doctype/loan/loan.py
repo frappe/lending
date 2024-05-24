@@ -1052,6 +1052,8 @@ def make_fldg_invocation_jv(loan, posting_date):
 			"account": partner_details.payable_account,
 			"credit_in_account_currency": limit_amount,
 			"credit": limit_amount,
+			"reference_type": "Loan",
+			"reference_name": loan,
 		},
 	)
 
@@ -1061,6 +1063,8 @@ def make_fldg_invocation_jv(loan, posting_date):
 			"account": partner_details.fldg_account,
 			"debit_in_account_currency": limit_amount,
 			"debit": limit_amount,
+			"reference_type": "Loan",
+			"reference_name": loan,
 		},
 	)
 
