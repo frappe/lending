@@ -137,6 +137,7 @@ class LoanRepaymentSchedule(Document):
 			)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
@@ -148,6 +149,7 @@ class LoanRepaymentSchedule(Document):
 			loan_demand.cancel()
 
 		reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
+		reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
 	def set_repayment_period(self):
 		if self.repayment_frequency == "One Time":
