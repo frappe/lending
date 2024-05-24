@@ -875,8 +875,12 @@ def get_unpaid_demands(
 		.orderby(loan_demand.disbursement_date)
 		.orderby(loan_demand.repayment_schedule_detail)
 		.orderby(loan_demand.demand_type)
-		.orderby(loan_demand.demand_subtype)
 	)
+
+	if demand_subtype == "Charges":
+		query = query.orderby(loan_demand.invoice_date)
+	else:
+		query = query.orderby(loan_demand.demand_subtype)
 
 	if loan_product:
 		query = query.where(loan_demand.loan_product == loan_product)

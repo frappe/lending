@@ -26,6 +26,7 @@
   "waived_amount",
   "outstanding_amount",
   "sales_invoice",
+  "invoice_date",
   "cost_center",
   "process_loan_demand",
   "is_term_loan"
@@ -190,13 +191,19 @@
    "fieldtype": "Link",
    "label": "Loan Partner",
    "options": "Loan Partner"
+  },
+  {
+   "fetch_from": "sales_invoice.posting_date",
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-08 22:58:13.879182",
+ "modified": "2024-05-24 08:32:58.755327",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
