@@ -41,8 +41,6 @@
   "column_break_nuqr",
   "interest_receivable_account",
   "suspense_interest_income",
-  "suspense_interest_accrued",
-  "suspense_interest_receivable",
   "additional_interest_accounts_section",
   "same_as_regular_interest_accounts",
   "additional_interest_income",
@@ -220,12 +218,6 @@
    "fieldname": "penalty_waiver_account",
    "fieldtype": "Link",
    "label": "Penalty Waiver Account",
-   "options": "Account"
-  },
-  {
-   "fieldname": "suspense_interest_receivable",
-   "fieldtype": "Link",
-   "label": "Suspense Interest Receivable",
    "options": "Account"
   },
   {
@@ -433,17 +425,11 @@
    "fieldtype": "Link",
    "label": "Subsidy Adjustment Account",
    "options": "Account"
-  },
-  {
-   "fieldname": "suspense_interest_accrued",
-   "fieldtype": "Link",
-   "label": "Suspense Interest Accrued",
-   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-11 13:26:12.590912",
+ "modified": "2024-05-25 20:02:26.111269",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

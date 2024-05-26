@@ -134,9 +134,9 @@ class Loan(AccountsController):
 			frappe.throw(_("Cannot un mark as NPA before watch period end date"))
 
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
-		move_unpaid_interest_to_suspense_ledger(
-			applicant_type=self.applicant_type, applicant=self.applicant, reverse=not self.manual_npa
-		)
+
+		if self.has_value_changed("manual_npa") and self.manual_npa:
+			move_unpaid_interest_to_suspense_ledger(self.name)
 
 		if self.has_value_changed("freeze_account") and self.freeze_account:
 			create_loan_feeze_log(self.name, self.freeze_date, self.get("freeze_reason"))
@@ -816,9 +816,7 @@ def update_loan_and_customer_status(
 			},
 			pluck="name",
 		):
-			move_unpaid_interest_to_suspense_ledger(
-				loan, posting_date, applicant_type=applicant_type, applicant=applicant
-			)
+			move_unpaid_interest_to_suspense_ledger(loan, posting_date)
 
 		update_all_linked_loan_customer_npa_status(
 			is_npa, is_npa, applicant_type, applicant, posting_date
@@ -922,83 +920,89 @@ def get_loan_partner_threshold_map():
 	)
 
 
-def move_unpaid_interest_to_suspense_ledger(
-	loan=None, posting_date=None, applicant_type=None, applicant=None, reverse=0
-):
+def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
+	if not posting_date:
+		posting_date = getdate()
+
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+	company = frappe.db.get_value("Loan", loan, "company")
+
+	normal_interest = get_unpaid_interest_amount(loan, posting_date, "Interest")
+	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penal Interest")
+
+	if normal_interest > 0:
+		make_suspense_journal_entry(loan, company, loan_product, normal_interest, posting_date)
+
+	if penal_interest > 0:
+		make_suspense_journal_entry(
+			loan, company, loan_product, penal_interest, posting_date, is_penal=True
+		)
+
+
+def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):
+	account_details = frappe.get_value(
+		"Loan Product",
+		loan_product,
+		[
+			"suspense_interest_income",
+			"interest_income_account",
+			"penalty_suspense_account",
+			"penalty_income_account",
+		],
+		as_dict=1,
+	)
+
+	if is_penal:
+		debit_account = account_details.penalty_income_account
+		credit_account = account_details.penalty_suspense_account
+	else:
+		debit_account = account_details.interest_income_account
+		credit_account = account_details.suspense_interest_income
+
+	if amount:
+		jv = frappe.get_doc(
+			{
+				"doctype": "Journal Entry",
+				"voucher_type": "Journal Entry",
+				"posting_date": posting_date,
+				"company": company,
+				"accounts": [
+					{
+						"account": debit_account,
+						"debit_in_account_currency": amount,
+						"debit": amount,
+						"reference_type": "Loan",
+						"reference_name": loan,
+						"cost_center": erpnext.get_default_cost_center(company),
+					},
+					{
+						"account": credit_account,
+						"credit_in_account_currency": amount,
+						"credit": amount,
+						"reference_type": "Loan",
+						"reference_name": loan,
+						"cost_center": erpnext.get_default_cost_center(company),
+					},
+				],
+			}
+		)
+
+		jv.submit()
+
+
+def get_unpaid_interest_amount(loan, posting_date, demand_subtype):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	posting_date = posting_date or getdate()
-	previous_npa = frappe.db.get_value("Loan", loan, "is_npa")
-	if previous_npa:
-		return
+	unpaid_demands = get_unpaid_demands(
+		loan, posting_date=posting_date, demand_subtype=demand_subtype
+	)
 
-	unpaid_demands = get_unpaid_demands(loan, posting_date=posting_date)
-
+	amount = 0
 	for demand in unpaid_demands:
-		amount = demand.demand_amount
+		amount += demand.outstanding_amount
 
-		if reverse:
-			amount = -1 * amount
-
-		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-
-		account_details = frappe.get_value(
-			"Loan Product",
-			loan_product,
-			[
-				"suspense_interest_receivable",
-				"suspense_interest_income",
-				"interest_receivable_account",
-				"interest_income_account",
-			],
-			as_dict=1,
-		)
-
-		if amount:
-			jv = frappe.get_doc(
-				{
-					"doctype": "Journal Entry",
-					"voucher_type": "Journal Entry",
-					"posting_date": posting_date,
-					"company": demand.company,
-					"accounts": [
-						{
-							"account": account_details.suspense_interest_receivable,
-							"party": applicant,
-							"party_type": applicant_type,
-							"debit_in_account_currency": amount,
-							"debit": amount,
-							"reference_type": "Loan",
-							"reference_name": loan,
-							"cost_center": erpnext.get_default_cost_center(demand.company),
-						},
-						{
-							"account": account_details.interest_receivable_account,
-							"party": applicant,
-							"party_type": applicant_type,
-							"credit_in_account_currency": amount,
-							"credit": amount,
-							"reference_type": "Loan",
-							"reference_name": loan,
-							"cost_center": erpnext.get_default_cost_center(demand.company),
-						},
-						{
-							"account": account_details.suspense_interest_income,
-							"credit_in_account_currency": amount,
-							"credit": amount,
-							"cost_center": erpnext.get_default_cost_center(demand.company),
-						},
-						{
-							"account": account_details.interest_income_account,
-							"debit": amount,
-							"debit_in_account_currency": amount,
-							"cost_center": erpnext.get_default_cost_center(demand.company),
-						},
-					],
-				}
-			)
-
-			jv.submit()
+	return amount
 
 
 def make_fldg_invocation_jv(loan, posting_date):

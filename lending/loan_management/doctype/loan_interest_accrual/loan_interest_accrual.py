@@ -24,7 +24,23 @@ class LoanInterestAccrual(AccountsController):
 			self.last_accrual_date = get_last_accrual_date(self.loan, self.posting_date, self.interest_type)
 
 	def on_submit(self):
+		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
+
 		self.make_gl_entries()
+		if self.is_npa:
+			if self.interest_type == "Normal Interest":
+				is_penal = False
+			else:
+				is_penal = True
+
+			make_suspense_journal_entry(
+				self.loan,
+				self.company,
+				self.loan_product,
+				self.interest_amount,
+				self.posting_date,
+				is_penal=is_penal,
+			)
 
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
@@ -39,36 +55,21 @@ class LoanInterestAccrual(AccountsController):
 			self.loan_product,
 			[
 				"interest_accrued_account",
-				"suspense_interest_receivable",
-				"suspense_interest_accrued",
-				"suspense_interest_income",
 				"penalty_accrued_account",
 				"penalty_income_account",
 				"additional_interest_income",
-				"additional_interest_accrued",
 			],
 			as_dict=1,
 		)
 
-		if self.is_npa:
-			receivable_account = account_details.suspense_interest_accrued
-			income_account = account_details.suspense_interest_income
+		if self.interest_type == "Normal Interest":
+			receivable_account = account_details.interest_accrued_account
+			income_account = self.interest_income_account
 		else:
-			if self.interest_type == "Normal Interest":
-				receivable_account = account_details.interest_accrued_account
-				income_account = self.interest_income_account
-			else:
-				receivable_account = account_details.penalty_accrued_account
-				income_account = account_details.penalty_income_account
+			receivable_account = account_details.penalty_accrued_account
+			income_account = account_details.penalty_income_account
 
 		if self.additional_interest_amount:
-			if not account_details.additional_interest_accrued:
-				frappe.throw(
-					_("Please set Additional Interest Accrued Account in Loan Product {0}").format(
-						self.loan_product
-					)
-				)
-
 			if not account_details.additional_interest_income:
 				frappe.throw(
 					_("Please set Additional Interest Income Account in Loan Product {0}").format(

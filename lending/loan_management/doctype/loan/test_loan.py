@@ -1041,6 +1041,69 @@ class TestLoan(unittest.TestCase):
 
 		self.assertEqual(len(repayment_entry.get("repayment_details")), 2)
 
+	def test_multiple_advance_payment(self):
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Standard Loan Demand Offset Order",
+		)
+
+		loan = create_loan(
+			self.applicant1,
+			"Term Loan Product 4",
+			1200000,
+			"Repay Over Number of Periods",
+			36,
+			repayment_start_date="2024-06-05",
+			posting_date="2024-05-03",
+			rate_of_interest=29,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
+
+		# Make a scheduled loan repayment
+		repayment_entry = create_repayment_entry(loan.name, "2024-06-05", 50287)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-06-18", 50287, repayment_type="Advance Payment"
+		)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-05", 251435)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-21", 50287, repayment_type="Advance Payment"
+		)
+
+	def test_interest_accrual_and_demand_on_freeze_and_unfreeze(self):
+		loan = create_loan(
+			self.applicant1,
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			repayment_start_date="2023-12-05",
+			posting_date="2023-11-01",
+			rate_of_interest=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-11-01", repayment_start_date="2023-12-05"
+		)
+		process_daily_loan_demands(posting_date="2024-02-05", loan=loan.name)
+
 	def test_principal_amount_paid(self):
 		frappe.db.set_value(
 			"Company",
