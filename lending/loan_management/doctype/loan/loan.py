@@ -136,6 +136,7 @@ class Loan(AccountsController):
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
 
 		if self.has_value_changed("manual_npa") and self.manual_npa:
+			print("Ininininin")
 			move_unpaid_interest_to_suspense_ledger(self.name)
 
 		if self.has_value_changed("freeze_account") and self.freeze_account:
@@ -816,7 +817,9 @@ def update_loan_and_customer_status(
 			},
 			pluck="name",
 		):
-			move_unpaid_interest_to_suspense_ledger(loan, posting_date)
+			prev_npa = frappe.db.get_value("Loan", loan, "manual_npa")
+			if not prev_npa:
+				move_unpaid_interest_to_suspense_ledger(loan, posting_date)
 
 		update_all_linked_loan_customer_npa_status(
 			is_npa, is_npa, applicant_type, applicant, posting_date
