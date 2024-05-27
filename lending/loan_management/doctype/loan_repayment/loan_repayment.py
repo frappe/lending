@@ -567,18 +567,8 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		gle_map = []
-		remarks = self.get_remarks()
+
 		payment_account = self.get_payment_account()
-
-		payment_party_type = ""
-		payment_party = ""
-
-		if (
-			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
-			and self.process_payroll_accounting_entry_based_on_employee
-		):
-			payment_party_type = "Employee"
-			payment_party = self.applicant
 
 		account_details = frappe.db.get_value(
 			"Loan Product",
@@ -595,150 +585,87 @@ class LoanRepayment(AccountsController):
 
 		if flt(self.principal_amount_paid, precision) > 0:
 			against_account = self.loan_account
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": payment_account,
-						"against": account_details.interest_receivable_account + ", " + self.penalty_income_account,
-						"debit": self.principal_amount_paid,
-						"debit_in_account_currency": self.principal_amount_paid,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"posting_date": getdate(self.posting_date),
-						"party_type": payment_party_type,
-						"party": payment_party,
-					}
-				)
-			)
+			self.add_gl_entry(payment_account, against_account, self.principal_amount_paid, gle_map)
 
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": against_account,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"against": payment_account,
-						"credit": self.principal_amount_paid,
-						"credit_in_account_currency": self.principal_amount_paid,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"posting_date": getdate(self.posting_date),
-					}
-				)
-			)
+		if flt(self.total_interest_paid, precision) > 0:
+			against_account = account_details.interest_receivable_account
+			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
+
+		if flt(self.total_penalty_paid, precision) > 0:
+			against_account = account_details.penalty_receivable_account
+			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
 
 		for repayment in self.get("repayment_details"):
-			if repayment.demand_subtype == "Principal":
-				continue
-
-			if repayment.demand_subtype == "Interest":
-				against_account = account_details.interest_receivable_account
-			elif repayment.demand_subtype == "Penalty":
-				against_account = account_details.penalty_receivable_account
-			elif repayment.demand_type == "Charges":
+			if repayment.demand_type == "Charges":
 				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
-
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": payment_account,
-						"against": account_details.interest_receivable_account + ", " + self.penalty_income_account,
-						"debit": repayment.paid_amount,
-						"debit_in_account_currency": repayment.paid_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"posting_date": getdate(self.posting_date),
-						"party_type": payment_party_type,
-						"party": payment_party,
-					}
-				)
-			)
-
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": against_account,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"against": payment_account,
-						"credit": repayment.paid_amount,
-						"credit_in_account_currency": repayment.paid_amount,
-						"against_voucher_type": "Sales Invoice" if repayment.sales_invoice else "Loan",
-						"against_voucher": repayment.sales_invoice or self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"posting_date": getdate(self.posting_date),
-					}
-				)
-			)
-
-			if self.is_npa:
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": account_details.interest_receivable_account,
-							"against": account_details.suspense_interest_receivable,
-							"party_type": self.applicant_type,
-							"party": self.applicant,
-							"debit": repayment.paid_amount,
-							"debit_in_account_currency": repayment.paid_amount,
-							"against_voucher_type": "Loan",
-							"against_voucher": self.against_loan,
-							"cost_center": self.cost_center,
-							"posting_date": getdate(self.posting_date),
-						}
-					)
-				)
-
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": account_details.suspense_interest_receivable,
-							"party_type": self.applicant_type,
-							"party": self.applicant,
-							"against": account_details.interest_receivable_account,
-							"credit": repayment.paid_amount,
-							"credit_in_account_currency": repayment.paid_amount,
-							"against_voucher_type": "Loan",
-							"against_voucher": self.against_loan,
-							"cost_center": self.cost_center,
-							"posting_date": getdate(self.posting_date),
-						}
-					)
-				)
-
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": account_details.interest_income_account,
-							"credit_in_account_currency": repayment.paid_amount,
-							"credit": repayment.paid_amount,
-							"cost_center": self.cost_center,
-							"against": account_details.suspense_interest_income,
-						}
-					)
-				)
-
-				gle_map.append(
-					self.get_gl_dict(
-						{
-							"account": account_details.suspense_interest_income,
-							"debit": repayment.paid_amount,
-							"debit_in_account_currency": repayment.paid_amount,
-							"cost_center": self.cost_center,
-							"against": account_details.interest_income_account,
-						}
-					)
+				self.add_gl_entry(
+					payment_account,
+					against_account,
+					repayment.paid_amount,
+					gle_map,
+					against_voucher_type="Sales Invoice",
+					against_voucher=repayment.sales_invoice,
 				)
 
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+
+	def add_gl_entry(
+		self,
+		account,
+		against_account,
+		amount,
+		gl_entries,
+		against_voucher_type=None,
+		against_voucher=None,
+	):
+		remarks = self.get_remarks()
+
+		payment_party_type = self.applicant_type
+		payment_party = self.applicant
+
+		if not (
+			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
+			and self.process_payroll_accounting_entry_based_on_employee
+		):
+			payment_party_type = ""
+			payment_party = ""
+
+		gl_entries.append(
+			self.get_gl_dict(
+				{
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
+					"against_voucher_type": "Loan",
+					"against_voucher": self.against_loan,
+					"remarks": _(remarks),
+					"cost_center": self.cost_center,
+					"posting_date": getdate(self.posting_date),
+					"party_type": payment_party_type,
+					"party": payment_party,
+				}
+			)
+		)
+
+		gl_entries.append(
+			self.get_gl_dict(
+				{
+					"account": against_account,
+					"party_type": self.applicant_type,
+					"party": self.applicant,
+					"against": account,
+					"credit": amount,
+					"credit_in_account_currency": amount,
+					"against_voucher_type": against_voucher_type or "Loan",
+					"against_voucher": against_voucher or self.against_loan,
+					"remarks": _(remarks),
+					"cost_center": self.cost_center,
+					"posting_date": getdate(self.posting_date),
+				}
+			)
+		)
 
 	def get_payment_account(self):
 
