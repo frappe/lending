@@ -564,6 +564,7 @@ class LoanRepaymentSchedule(Document):
 						interest_share_percentage=interest_share_percentage,
 					)
 
+					pending_prev_days = 0
 					previous_interest_amount = 0
 					additional_principal_amount = 0
 					self.repayment_start_date = self.get_next_payment_date(next_emi_date)
