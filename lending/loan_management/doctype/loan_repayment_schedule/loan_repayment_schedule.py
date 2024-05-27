@@ -273,7 +273,14 @@ class LoanRepaymentSchedule(Document):
 				interest_share_percentage,
 			)
 
-			interest_amount, principal_amount, balance_amount, total_payment, days = get_amounts(
+			(
+				interest_amount,
+				principal_amount,
+				balance_amount,
+				total_payment,
+				days,
+				previous_interest_amount,
+			) = get_amounts(
 				balance_amount,
 				rate_of_interest,
 				payment_days,
@@ -340,7 +347,6 @@ class LoanRepaymentSchedule(Document):
 
 			carry_forward_interest = 0
 			additional_days = 0
-			previous_interest_amount = 0
 			additional_principal_amount = 0
 			pending_prev_days = 0
 

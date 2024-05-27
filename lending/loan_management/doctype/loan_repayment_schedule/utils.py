@@ -56,6 +56,7 @@ def get_amounts(
 	interest_amount = flt(
 		current_balance_amount * flt(rate_of_interest) * days / (months * 100), precision
 	)
+
 	principal_amount = monthly_repayment_amount - flt(interest_amount)
 
 	if carry_forward_interest:
@@ -64,6 +65,7 @@ def get_amounts(
 	if previous_interest_amount > 0:
 		interest_amount += previous_interest_amount
 		principal_amount -= previous_interest_amount
+		previous_interest_amount = 0
 
 	balance_amount = flt(balance_amount + interest_amount - monthly_repayment_amount, 2)
 
@@ -77,7 +79,19 @@ def get_amounts(
 		days += pending_prev_days
 		pending_prev_days = 0
 
-	return interest_amount, principal_amount, balance_amount, total_payment, days
+	if interest_amount > monthly_repayment_amount:
+		previous_interest_amount = interest_amount - monthly_repayment_amount
+		interest_amount = monthly_repayment_amount
+		principal_amount = 0
+
+	return (
+		interest_amount,
+		principal_amount,
+		balance_amount,
+		total_payment,
+		days,
+		previous_interest_amount,
+	)
 
 
 def get_loan_partner_details(loan_partner):
