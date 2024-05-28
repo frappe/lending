@@ -60,7 +60,7 @@ class LoanWriteOff(AccountsController):
 
 	def on_submit(self):
 		self.update_outstanding_amount_and_status()
-		self.make_loan_waivers()
+		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
 		self.close_employee_loan()
@@ -91,40 +91,6 @@ class LoanWriteOff(AccountsController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.close_employee_loan(cancel=1)
-
-	def make_loan_waivers(self):
-		from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
-			create_loan_repayment,
-		)
-
-		amounts = calculate_amounts(self.loan, self.posting_date)
-		if amounts.get("penalty_amount") > 0:
-			create_loan_repayment(
-				self.loan,
-				self.posting_date,
-				"Penalty Waiver",
-				amounts.get("penalty_amount"),
-				is_write_off_waiver=1,
-			)
-
-		if amounts.get("interest_amount") > 0:
-			create_loan_repayment(
-				self.loan,
-				self.posting_date,
-				"Interest Waiver",
-				amounts.get("interest_amount"),
-				is_write_off_waiver=1,
-			)
-
-		if amounts.get("total_charges_payable") > 0:
-			create_loan_repayment(
-				self.loan,
-				self.posting_date,
-				"Charges Waiver",
-				amounts.get("total_charges_payable"),
-				is_write_off_waiver=1,
-			)
 
 	def update_outstanding_amount_and_status(self, cancel=0):
 		written_off_amount = frappe.db.get_value("Loan", self.loan, "written_off_amount")
@@ -213,3 +179,38 @@ class LoanWriteOff(AccountsController):
 				frappe.msgprint(_("Loan {0} closed").format(loan.name))
 		else:
 			frappe.db.set_value("Loan", loan.loan, "status", "Disbursed")
+
+
+def make_loan_waivers(loan, posting_date):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+	from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+		create_loan_repayment,
+	)
+
+	amounts = calculate_amounts(loan, posting_date)
+	if amounts.get("penalty_amount") > 0:
+		create_loan_repayment(
+			loan,
+			posting_date,
+			"Penalty Waiver",
+			amounts.get("penalty_amount"),
+			is_write_off_waiver=1,
+		)
+
+	if amounts.get("interest_amount") > 0:
+		create_loan_repayment(
+			loan,
+			posting_date,
+			"Interest Waiver",
+			amounts.get("interest_amount"),
+			is_write_off_waiver=1,
+		)
+
+	if amounts.get("total_charges_payable") > 0:
+		create_loan_repayment(
+			loan,
+			posting_date,
+			"Charges Waiver",
+			amounts.get("total_charges_payable"),
+			is_write_off_waiver=1,
+		)

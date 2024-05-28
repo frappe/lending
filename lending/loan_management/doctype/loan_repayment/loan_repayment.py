@@ -309,6 +309,8 @@ class LoanRepayment(AccountsController):
 				)
 
 	def update_paid_amounts(self):
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import make_loan_waivers
+
 		if self.repayment_type in (
 			"Normal Repayment",
 			"Pre Payment",
@@ -332,6 +334,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type == "Full Settlement":
+				make_loan_waivers(self.against_loan, self.posting_date)
 				query = query.set(loan.status, "Settled")
 
 			query.run()
@@ -462,18 +465,24 @@ class LoanRepayment(AccountsController):
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if flt(amount_paid, precision) > 0:
-			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
+			if self.repayment_type not in ("Full Settlement"):
+				unbooked_penalty = flt(amounts.get("unbooked_penalty"))
 
-			if unbooked_penalty > 0:
-				if unbooked_penalty > amount_paid:
-					self.total_penalty_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_penalty_paid += unbooked_penalty
-					amount_paid -= unbooked_penalty
+				if unbooked_penalty > 0:
+					if unbooked_penalty > amount_paid:
+						self.total_penalty_paid += amount_paid
+						amount_paid = 0
+					else:
+						self.total_penalty_paid += unbooked_penalty
+						amount_paid -= unbooked_penalty
 
 			if self.is_term_loan and not on_submit:
-				if self.get("repayment_type") not in ("Advance Payment", "Pre Payment", "Loan Closure"):
+				if self.get("repayment_type") not in (
+					"Advance Payment",
+					"Pre Payment",
+					"Loan Closure",
+					"Full Settlement",
+				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
 				if self.repayment_type == "Advance Payment":
@@ -486,17 +495,18 @@ class LoanRepayment(AccountsController):
 					if not (monthly_repayment_amount <= amount_paid < (2 * monthly_repayment_amount)):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
-			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
-				amounts.get("unbooked_interest")
-			)
+			if self.repayment_type not in ("Full Settlement"):
+				pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
+					amounts.get("unbooked_interest")
+				)
 
-			if pending_interest > 0:
-				if pending_interest > amount_paid:
-					self.total_interest_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_interest_paid += pending_interest
-					amount_paid -= pending_interest
+				if pending_interest > 0:
+					if pending_interest > amount_paid:
+						self.total_interest_paid += amount_paid
+						amount_paid = 0
+					else:
+						self.total_interest_paid += pending_interest
+						amount_paid -= pending_interest
 
 			self.principal_amount_paid += flt(amount_paid, precision)
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
@@ -683,6 +693,7 @@ class LoanRepayment(AccountsController):
 			"Interest Carry Forward": "interest_income_account",
 			"Security Deposit Adjustment": "security_deposit_account",
 			"Subsidy Adjustments": "subsidy_adjustment_account",
+			"Full Settlement": "payment_account",
 		}
 
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
@@ -870,6 +881,9 @@ def get_demand_type(payment_type):
 		demand_subtype = "Penalty"
 	elif payment_type == "Charges Waiver":
 		demand_type = "Charges"
+	elif payment_type == "Full Settlement":
+		demand_type = "EMI"
+		demand_subtype = "Principal"
 
 	return demand_type, demand_subtype
 
