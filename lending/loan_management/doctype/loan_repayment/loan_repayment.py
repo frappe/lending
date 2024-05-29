@@ -293,8 +293,12 @@ class LoanRepayment(AccountsController):
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
 
-		if self.repayment_type == "Loan Closure" and flt(self.amount_paid) < flt(payable_amount):
-			frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
+		if self.repayment_type == "Loan Closure":
+			auto_write_off_amount = frappe.db.get_value(
+				"Loan Product", self.loan_product, "auto_write_off_amount"
+			)
+			if flt(self.amount_paid) < (flt(payable_amount) - flt(auto_write_off_amount)):
+				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 			if flt(self.amount_paid) > flt(payable_amount):
@@ -848,7 +852,7 @@ def get_pending_principal_amount(loan):
 			- flt(loan.total_principal_paid)
 			- flt(loan.total_interest_payable)
 			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount),
+			- flt(loan.refund_amount),
 			precision,
 		)
 	else:
@@ -858,7 +862,7 @@ def get_pending_principal_amount(loan):
 			- flt(loan.credit_adjustment_amount)
 			- flt(loan.total_principal_paid)
 			- flt(loan.written_off_amount)
-			+ flt(loan.refund_amount),
+			- flt(loan.refund_amount),
 			precision,
 		)
 
