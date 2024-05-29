@@ -330,7 +330,7 @@ class LoanRepayment(AccountsController):
 			pending_principal_amount = get_pending_principal_amount(loan_doc)
 			is_secured_loan = loan_doc.is_secured_loan
 
-			if not is_secured_loan and pending_principal_amount <= 0:
+			if not is_secured_loan and (pending_principal_amount - self.principal_amount_paid) <= 0:
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type == "Full Settlement":
