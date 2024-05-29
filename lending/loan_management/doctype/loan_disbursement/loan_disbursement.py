@@ -99,7 +99,9 @@ class LoanDisbursement(AccountsController):
 
 	def get_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 0}, "name"
+			"Loan Repayment Schedule",
+			{"loan": self.against_loan, "docstatus": 0, "loan_disbursement": self.name},
+			"name",
 		)
 		return draft_schedule
 
