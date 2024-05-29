@@ -295,7 +295,7 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Loan Closure":
 			auto_write_off_amount = frappe.db.get_value(
-				"Loan Product", self.loan_product, "auto_write_off_amount"
+				"Loan Product", self.loan_product, "write_off_amount"
 			)
 			if flt(self.amount_paid) < (flt(payable_amount) - flt(auto_write_off_amount)):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
@@ -333,8 +333,14 @@ class LoanRepayment(AccountsController):
 			loan_doc = frappe.get_doc("Loan", self.against_loan)
 			pending_principal_amount = get_pending_principal_amount(loan_doc)
 			is_secured_loan = loan_doc.is_secured_loan
+			auto_write_off_amount = frappe.db.get_value(
+				"Loan Product", self.loan_product, "write_off_amount"
+			)
 
-			if not is_secured_loan and (pending_principal_amount - self.principal_amount_paid) <= 0:
+			if (
+				not is_secured_loan
+				and (pending_principal_amount - self.principal_amount_paid - flt(auto_write_off_amount)) <= 0
+			):
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type == "Full Settlement":
@@ -496,7 +502,9 @@ class LoanRepayment(AccountsController):
 						"monthly_repayment_amount",
 					)
 
-					if not (monthly_repayment_amount <= amount_paid < (2 * monthly_repayment_amount)):
+					if not (
+						monthly_repayment_amount <= flt(amount_paid, precision) < (2 * monthly_repayment_amount)
+					):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
 			if self.repayment_type not in ("Full Settlement"):
