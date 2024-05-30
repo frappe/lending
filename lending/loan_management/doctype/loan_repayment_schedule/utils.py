@@ -67,6 +67,11 @@ def get_amounts(
 		principal_amount -= previous_interest_amount
 		previous_interest_amount = 0
 
+	if interest_amount > monthly_repayment_amount:
+		previous_interest_amount = interest_amount - monthly_repayment_amount
+		interest_amount = monthly_repayment_amount
+		principal_amount = 0
+
 	balance_amount = flt(balance_amount + interest_amount - monthly_repayment_amount, 2)
 
 	if balance_amount < 0:
@@ -78,11 +83,6 @@ def get_amounts(
 	if pending_prev_days > 0:
 		days += pending_prev_days
 		pending_prev_days = 0
-
-	if interest_amount > monthly_repayment_amount:
-		previous_interest_amount = interest_amount - monthly_repayment_amount
-		interest_amount = monthly_repayment_amount
-		principal_amount = 0
 
 	return (
 		interest_amount,

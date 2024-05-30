@@ -514,10 +514,7 @@ class LoanRepaymentSchedule(Document):
 						interest_share_percentage=interest_share_percentage,
 					)
 
-					if getdate(self.posting_date) < getdate(prev_schedule.repayment_start_date):
-						pending_prev_days = date_diff(next_emi_date, prev_repayment_date)
-					else:
-						pending_prev_days = date_diff(next_emi_date, self.posting_date)
+					pending_prev_days = date_diff(next_emi_date, self.posting_date)
 
 					if pending_prev_days > 0:
 						previous_interest_amount += flt(
