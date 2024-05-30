@@ -66,25 +66,7 @@ class LoanWriteOff(AccountsController):
 		self.close_employee_loan()
 
 	def cancel_suspense_entries(self):
-		suspense_accounts = frappe.db.get_value(
-			"Loan Product", self.loan_product, ["suspense_interest_income", "penalty_suspense_account"]
-		)
-
-		journal_entries = frappe.db.get_all(
-			"Journal Entry Account",
-			filters={
-				"account": ("in", suspense_accounts),
-				"docstatus": 1,
-				"reference_type": "Loan",
-				"reference_name": self.loan,
-			},
-			pluck="parent",
-		)
-
-		for je in journal_entries:
-			je_doc = frappe.get_doc("Journal Entry", je)
-			frappe.form_dict["posting_date"] = self.posting_date
-			je_doc.cancel()
+		cancel_suspense_entries(self.loan, self.loan_product, self.posting_date)
 
 	def on_cancel(self):
 		self.update_outstanding_amount_and_status(cancel=1)
@@ -214,3 +196,25 @@ def make_loan_waivers(loan, posting_date):
 			amounts.get("total_charges_payable"),
 			is_write_off_waiver=1,
 		)
+
+
+def cancel_suspense_entries(loan, loan_product, posting_date):
+	suspense_accounts = frappe.db.get_value(
+		"Loan Product", loan_product, ["suspense_interest_income", "penalty_suspense_account"]
+	)
+
+	journal_entries = frappe.db.get_all(
+		"Journal Entry Account",
+		filters={
+			"account": ("in", suspense_accounts),
+			"docstatus": 1,
+			"reference_type": "Loan",
+			"reference_name": loan,
+		},
+		pluck="parent",
+	)
+
+	for je in journal_entries:
+		je_doc = frappe.get_doc("Journal Entry", je)
+		frappe.form_dict["posting_date"] = posting_date
+		je_doc.cancel()

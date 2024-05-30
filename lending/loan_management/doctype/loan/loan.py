@@ -136,7 +136,6 @@ class Loan(AccountsController):
 		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
 
 		if self.has_value_changed("manual_npa") and self.manual_npa:
-			print("Ininininin")
 			move_unpaid_interest_to_suspense_ledger(self.name)
 
 		if self.has_value_changed("freeze_account") and self.freeze_account:
@@ -789,6 +788,8 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_classifica
 def update_loan_and_customer_status(
 	loan, company, applicant_type, applicant, days_past_due, is_npa, fldg_triggered, posting_date
 ):
+	from lending.loan_management.doctype.loan_write_off.loan_write_off import cancel_suspense_entries
+
 	classification_code, classification_name = get_classification_code_and_name(
 		days_past_due, company
 	)
@@ -834,6 +835,8 @@ def update_loan_and_customer_status(
 			update_all_linked_loan_customer_npa_status(
 				is_npa, is_npa, applicant_type, applicant, posting_date
 			)
+			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+			cancel_suspense_entries(loan, loan_product, posting_date)
 
 
 def update_all_linked_loan_customer_npa_status(
@@ -868,6 +871,16 @@ def update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date)
 	).run()
 
 	frappe.db.set_value("Customer", applicant, "is_npa", manual_npa)
+
+
+def create_loan_npa_log(loan, posting_date, is_npa, manual_npa, event):
+	loan_npa_log = frappe.new_doc("Loan NPA Log")
+	loan_npa_log.loan = loan
+	loan_npa_log.posting_date = posting_date
+	loan_npa_log.is_npa = is_npa
+	loan_npa_log.manual_npa = manual_npa
+	loan_npa_log.event = event
+	loan_npa_log.save(ignore_permissions=True)
 
 
 def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type, applicant):
@@ -955,42 +968,43 @@ def make_suspense_journal_entry(loan, company, loan_product, amount, posting_dat
 		as_dict=1,
 	)
 
-	if is_penal:
-		debit_account = account_details.penalty_income_account
-		credit_account = account_details.penalty_suspense_account
-	else:
-		debit_account = account_details.interest_income_account
-		credit_account = account_details.suspense_interest_income
+	if account_details:
+		if is_penal:
+			debit_account = account_details.penalty_income_account
+			credit_account = account_details.penalty_suspense_account
+		else:
+			debit_account = account_details.interest_income_account
+			credit_account = account_details.suspense_interest_income
 
-	if amount:
-		jv = frappe.get_doc(
-			{
-				"doctype": "Journal Entry",
-				"voucher_type": "Journal Entry",
-				"posting_date": posting_date,
-				"company": company,
-				"accounts": [
-					{
-						"account": debit_account,
-						"debit_in_account_currency": amount,
-						"debit": amount,
-						"reference_type": "Loan",
-						"reference_name": loan,
-						"cost_center": erpnext.get_default_cost_center(company),
-					},
-					{
-						"account": credit_account,
-						"credit_in_account_currency": amount,
-						"credit": amount,
-						"reference_type": "Loan",
-						"reference_name": loan,
-						"cost_center": erpnext.get_default_cost_center(company),
-					},
-				],
-			}
-		)
+		if amount:
+			jv = frappe.get_doc(
+				{
+					"doctype": "Journal Entry",
+					"voucher_type": "Journal Entry",
+					"posting_date": posting_date,
+					"company": company,
+					"accounts": [
+						{
+							"account": debit_account,
+							"debit_in_account_currency": amount,
+							"debit": amount,
+							"reference_type": "Loan",
+							"reference_name": loan,
+							"cost_center": erpnext.get_default_cost_center(company),
+						},
+						{
+							"account": credit_account,
+							"credit_in_account_currency": amount,
+							"credit": amount,
+							"reference_type": "Loan",
+							"reference_name": loan,
+							"cost_center": erpnext.get_default_cost_center(company),
+						},
+					],
+				}
+			)
 
-		jv.submit()
+			jv.submit()
 
 
 def get_unpaid_interest_amount(loan, posting_date, demand_subtype):

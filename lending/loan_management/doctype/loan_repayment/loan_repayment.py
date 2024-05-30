@@ -58,27 +58,16 @@ class LoanRepayment(AccountsController):
 					self.principal_amount_paid,
 				)
 
-	# def get_principal_adjusted(self):
-	# 	demand_principal = sum(
-	# 		d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
-	# 	)
-
-	# 	return self.principal_amount_paid - demand_principal
-
 	def on_submit(self):
-		# if self.repayment_type == "Normal Repayment":
-		# 	create_process_loan_classification(
-		# 		posting_date=self.posting_date,
-		# 		loan_product=self.loan_product,
-		# 		loan=self.against_loan,
-		# 		payment_reference=self.name,
-		# 	)
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 			make_sales_invoice_for_charge,
 		)
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
+		)
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
 		)
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
@@ -119,6 +108,13 @@ class LoanRepayment(AccountsController):
 				self.against_loan, self.posting_date, interest_type="Penal Interest"
 			)
 			reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
+
+			create_process_loan_classification(
+				posting_date=self.posting_date,
+				loan_product=self.loan_product,
+				loan=self.against_loan,
+				payment_reference=self.name,
+			)
 
 		if not self.is_term_loan:
 			process_loan_interest_accrual_for_loans(
