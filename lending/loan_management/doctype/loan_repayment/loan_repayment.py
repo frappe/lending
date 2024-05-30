@@ -321,6 +321,9 @@ class LoanRepayment(AccountsController):
 			"Advance Payment",
 			"Loan Closure",
 			"Full Settlement",
+			"Write Off Recovery",
+			"Partial Settlement",
+			"Write Off Settlement",
 		):
 			loan = frappe.qb.DocType("Loan")
 			query = (
