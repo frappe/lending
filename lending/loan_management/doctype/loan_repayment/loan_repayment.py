@@ -290,9 +290,13 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be zero"))
 
 		if self.repayment_type == "Loan Closure":
-			auto_write_off_amount = frappe.db.get_value(
-				"Loan Product", self.loan_product, "write_off_amount"
+			auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
+				"Loan Product", self.loan_product, ["write_off_amount", "excess_amount_acceptance_limit"]
 			)
+
+			if flt(self.amount_paid) > (flt(payable_amount) + flt(excess_amount_limit)):
+				frappe.throw(_("Amount paid greater than accepted limit for loan closure"))
+
 			if flt(self.amount_paid) < (flt(payable_amount) - flt(auto_write_off_amount)):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
