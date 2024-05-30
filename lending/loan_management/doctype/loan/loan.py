@@ -345,7 +345,7 @@ def get_total_loan_amount(applicant_type, applicant, company):
 	)
 
 	for loan in loan_details:
-		if loan.status in ("Disbursed", "Loan Closure Requested"):
+		if loan.status in ("Disbursed", "Loan Closure Requested", "Active"):
 			pending_amount += (
 				flt(loan.total_payment)
 				- flt(loan.total_interest_payable)
@@ -812,7 +812,7 @@ def update_loan_and_customer_status(
 		for loan in frappe.get_all(
 			"Loan",
 			{
-				"status": ("in", ["Disbursed", "Partially Disbursed"]),
+				"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
 				"applicant_type": applicant_type,
 				"applicant": applicant,
 			},
@@ -851,7 +851,7 @@ def update_system_npa_check(is_npa, applicant_type, applicant, posting_date):
 	_loan = frappe.qb.DocType("Loan")
 	frappe.qb.update(_loan).set(_loan.is_npa, is_npa).where(
 		(_loan.docstatus == 1)
-		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 		& (_loan.applicant_type == applicant_type)
 		& (_loan.applicant == applicant)
 		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
@@ -864,7 +864,7 @@ def update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date)
 	_loan = frappe.qb.DocType("Loan")
 	frappe.qb.update(_loan).set(_loan.manual_npa, manual_npa).where(
 		(_loan.docstatus == 1)
-		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 		& (_loan.applicant_type == applicant_type)
 		& (_loan.applicant == applicant)
 		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
@@ -887,7 +887,7 @@ def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type
 	_loan = frappe.qb.DocType("Loan")
 	frappe.qb.update(_loan).set(_loan.watch_period_end_date, watch_period_end_date).where(
 		(_loan.docstatus == 1)
-		& (_loan.status.isin(["Disbursed", "Partially Disbursed"]))
+		& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 		& (_loan.applicant_type == applicant_type)
 		& (_loan.applicant == applicant)
 	).run()
