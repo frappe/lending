@@ -344,11 +344,13 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type == "Full Settlement":
-				make_loan_waivers(self.against_loan, self.posting_date)
 				query = query.set(loan.status, "Settled")
 
 			query.run()
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
+
+			if self.repayment_type in ("Loan Closure", "Full Settlement"):
+				make_loan_waivers(self.against_loan, self.posting_date)
 
 	def mark_as_unpaid(self):
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment", "Loan Closure"):
