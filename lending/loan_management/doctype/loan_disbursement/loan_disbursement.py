@@ -533,7 +533,7 @@ class LoanDisbursement(AccountsController):
 					"account": against_account,
 					"against": account,
 					"debit": -1 * amount,
-					"debit_in_account_currency": amount,
+					"debit_in_account_currency": -1 * amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
 					"remarks": remarks,
