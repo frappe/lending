@@ -73,27 +73,21 @@ class LoanDemand(AccountsController):
 		if self.demand_type == "Charges":
 			return
 
-		if self.demand_subtype == "Interest":
-			accrual_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "interest_accrued_account"
-			)
-			receivable_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "interest_receivable_account"
-			)
+		party_type = ""
+		party = ""
+
+		if self.demand_type == "BPI":
+			fields = ["interest_receivable_account", "broken_period_interest_recovery_account"]
+			party_type = self.applicant_type
+			party = self.applicant
+		elif self.demand_subtype == "Interest":
+			fields = ["interest_accrued_account", "interest_receivable_account"]
 		elif self.demand_subtype == "Penalty":
-			accrual_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "penalty_accrued_account"
-			)
-			receivable_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "penalty_receivable_account"
-			)
-		elif self.demand_subtype == "Additional Interest":
-			accrual_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "additional_interest_accrued"
-			)
-			receivable_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "additional_interest_receivable"
-			)
+			fields = ["penalty_accrued_account", "penalty_receivable_account"]
+
+		accrual_account, receivable_account = frappe.db.get_value(
+			"Loan Product", self.loan_product, fields
+		)
 
 		if not accrual_account:
 			frappe.throw(
@@ -135,6 +129,8 @@ class LoanDemand(AccountsController):
 					"against_voucher_type": "Loan",
 					"against_voucher": self.loan,
 					"cost_center": self.cost_center,
+					"party_type": party_type,
+					"party": party,
 				}
 			)
 		)
