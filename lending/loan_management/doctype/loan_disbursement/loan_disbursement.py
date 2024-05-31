@@ -17,7 +17,7 @@ from frappe.utils import (
 )
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries, toggle_debit_credit_if_negative
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
@@ -618,6 +618,7 @@ class LoanDisbursement(AccountsController):
 			)
 
 		if gle_map:
+			toggle_debit_credit_if_negative(gle_map)
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 
