@@ -204,7 +204,8 @@
   {
    "fieldname": "disbursed_amount",
    "fieldtype": "Currency",
-   "label": "Disbursed Amount"
+   "label": "Disbursed Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "loan_disbursement",
@@ -217,6 +218,7 @@
    "fieldname": "broken_period_interest",
    "fieldtype": "Currency",
    "label": "Broken Period Interest",
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -228,7 +230,8 @@
   {
    "fieldname": "current_principal_amount",
    "fieldtype": "Currency",
-   "label": "Current Principal Amount"
+   "label": "Current Principal Amount",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "broken_period_interest_days",
@@ -318,7 +321,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:27:49.076863",
+ "modified": "2024-05-30 01:44:49.803866",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

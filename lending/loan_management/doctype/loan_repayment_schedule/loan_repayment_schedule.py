@@ -186,7 +186,7 @@ class LoanRepaymentSchedule(Document):
 
 		loan_partner_details = get_loan_partner_details(self.loan_partner)
 
-		if loan_partner_details.repayment_schedule_type == "EMI (PMT) Based":
+		if loan_partner_details.repayment_schedule_type == "EMI (PMT) based":
 			partner_loan_amount = (
 				self.current_principal_amount * flt(loan_partner_details.partner_loan_share_percentage) / 100
 			)
@@ -268,6 +268,7 @@ class LoanRepaymentSchedule(Document):
 				payment_date,
 				additional_days,
 				balance_amount,
+				rate_of_interest,
 				schedule_field,
 				principal_share_percentage,
 				interest_share_percentage,
@@ -600,6 +601,7 @@ class LoanRepaymentSchedule(Document):
 		payment_date,
 		additional_days,
 		balance_amount,
+		rate_of_interest,
 		schedule_field,
 		principal_share_percentage,
 		interest_share_percentage,
@@ -620,14 +622,10 @@ class LoanRepaymentSchedule(Document):
 						days = date_diff(payment_date, self.posting_date)
 						additional_days = 0
 
-					if (
-						additional_days
-						and not self.moratorium_tenure
-						and not self.restructure_type
-						and schedule_field == "repayment_schedule"
-					):
+					if additional_days and not self.moratorium_tenure and not self.restructure_type:
 						self.add_broken_period_interest(
 							balance_amount,
+							rate_of_interest,
 							additional_days,
 							payment_date,
 							schedule_field,
@@ -658,23 +656,24 @@ class LoanRepaymentSchedule(Document):
 	def add_broken_period_interest(
 		self,
 		balance_amount,
+		rate_of_interest,
 		additional_days,
 		payment_date,
 		schedule_field,
 		principal_share_percentage,
 		interest_share_percentage,
 	):
-		interest_amount = flt(
-			balance_amount * flt(self.rate_of_interest) * additional_days / (365 * 100)
-		)
-		self.broken_period_interest += interest_amount
+		interest_amount = flt(balance_amount * flt(rate_of_interest) * additional_days / (365 * 100))
+
+		if schedule_field == "repayment_schedule":
+			self.broken_period_interest += interest_amount
 
 		payment_date = add_months(payment_date, -1)
 		self.add_repayment_schedule_row(
 			payment_date,
 			0,
-			self.broken_period_interest,
-			self.broken_period_interest,
+			interest_amount,
+			interest_amount,
 			balance_amount,
 			additional_days,
 			repayment_schedule_field=schedule_field,
