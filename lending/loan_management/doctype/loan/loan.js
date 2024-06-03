@@ -13,7 +13,8 @@ frappe.ui.form.on('Loan', {
 	},
 	onload: function (frm) {
 		// Ignore Loan Security Assignment on cancel of loan
-		frm.ignore_doctypes_on_cancel_all = ["Loan Security Assignment", "Loan Repayment Schedule", "Sales Invoice"];
+		frm.ignore_doctypes_on_cancel_all = ["Loan Security Assignment", "Loan Repayment Schedule", "Sales Invoice",
+			"Loan Transfer", "Journal Entry"];
 
 		frm.set_query("loan_application", function () {
 			return {

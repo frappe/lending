@@ -34,7 +34,8 @@
   {
    "fieldname": "event",
    "fieldtype": "Data",
-   "label": "Event"
+   "label": "Event",
+   "options": "\nBackground Job\nLoan Repayment\nLoan Restructure"
   },
   {
    "fieldname": "npa_date",
@@ -49,7 +50,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-30 17:06:30.647956",
+ "modified": "2024-05-29 21:23:05.474990",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan NPA Log",

@@ -119,6 +119,7 @@ class Loan(AccountsController):
 			"Loan Interest Accrual",
 			"Journal Entry",
 			"Process Loan Interest Accrual",
+			"Loan Transfer",
 		]
 
 	def on_update_after_submit(self):
@@ -809,7 +810,7 @@ def update_loan_and_customer_status(
 		make_fldg_invocation_jv(loan, posting_date)
 
 	if is_npa:
-		for loan in frappe.get_all(
+		for loan_id in frappe.get_all(
 			"Loan",
 			{
 				"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
@@ -818,12 +819,12 @@ def update_loan_and_customer_status(
 			},
 			pluck="name",
 		):
-			prev_npa = frappe.db.get_value("Loan", loan, "manual_npa")
+			prev_npa = frappe.db.get_value("Loan", loan_id, "manual_npa")
 			if not prev_npa:
-				move_unpaid_interest_to_suspense_ledger(loan, posting_date)
+				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 
 		update_all_linked_loan_customer_npa_status(
-			is_npa, is_npa, applicant_type, applicant, posting_date
+			is_npa, is_npa, applicant_type, applicant, posting_date, loan
 		)
 	else:
 		max_dpd = frappe.db.get_value(
@@ -833,18 +834,21 @@ def update_loan_and_customer_status(
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0:
 			update_all_linked_loan_customer_npa_status(
-				is_npa, is_npa, applicant_type, applicant, posting_date
+				is_npa, is_npa, applicant_type, applicant, posting_date, loan
 			)
 			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 			cancel_suspense_entries(loan, loan_product, posting_date)
 
 
 def update_all_linked_loan_customer_npa_status(
-	is_npa, manual_npa, applicant_type, applicant, posting_date
+	is_npa, manual_npa, applicant_type, applicant, posting_date, loan=None
 ):
 	"""Update NPA status of all linked customers"""
 	update_system_npa_check(is_npa, applicant_type, applicant, posting_date)
 	update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date)
+
+	if loan:
+		create_loan_npa_log(loan, posting_date, is_npa, manual_npa, "Background Job")
 
 
 def update_system_npa_check(is_npa, applicant_type, applicant, posting_date):
