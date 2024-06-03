@@ -48,6 +48,7 @@
   "reference_date",
   "principal_amount_paid",
   "total_charges_paid",
+  "excess_amount",
   "section_break_55wc",
   "repayment_details",
   "amended_from",
@@ -399,12 +400,19 @@
    "fieldtype": "Check",
    "label": "Is Write Off Waiver",
    "read_only": 1
+  },
+  {
+   "fieldname": "excess_amount",
+   "fieldtype": "Currency",
+   "label": "Excess Amount",
+   "options": "Company:company:default_currency",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-23 19:20:52.028515",
+ "modified": "2024-06-03 21:55:38.339146",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

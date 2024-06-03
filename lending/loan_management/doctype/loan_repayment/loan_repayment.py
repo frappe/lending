@@ -533,7 +533,9 @@ class LoanRepayment(AccountsController):
 			if amount_paid > flt(excess_amount_limit):
 				frappe.throw(_("Excess amount paid cannot be greater than {0}").format(excess_amount_limit))
 
-			amount_paid = 0
+			if amount_paid > 0:
+				self.excess_amount = amount_paid
+				amount_paid = 0
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands):
 		"""Allocate amount based on allocation order"""
@@ -611,6 +613,7 @@ class LoanRepayment(AccountsController):
 				"suspense_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
+				"interest_waiver_account",
 			],
 			as_dict=1,
 		)
@@ -626,6 +629,10 @@ class LoanRepayment(AccountsController):
 		if flt(self.total_penalty_paid, precision) > 0:
 			against_account = account_details.penalty_receivable_account
 			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
+
+		if flt(self.excess_amount) > 0:
+			against_account = account_details.interest_waiver_account
+			self.add_gl_entry(payment_account, against_account, self.excess_amount, gle_map)
 
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
