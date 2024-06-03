@@ -137,6 +137,8 @@ accounting_dimension_doctypes = [
 	"Loan Demand",
 	"Loan Repayment",
 	"Loan Refund",
+	"Sales Invoice",
+	"Journal Entry",
 ]
 
 # Scheduled Tasks
