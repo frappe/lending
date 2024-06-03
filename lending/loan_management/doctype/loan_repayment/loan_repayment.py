@@ -346,7 +346,7 @@ class LoanRepayment(AccountsController):
 			):
 				query = query.set(loan.status, "Closed")
 
-			if self.repayment_type == "Full Settlement":
+			if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
 				query = query.set(loan.status, "Settled")
 
 			query.run()
@@ -497,6 +497,7 @@ class LoanRepayment(AccountsController):
 					"Pre Payment",
 					"Loan Closure",
 					"Full Settlement",
+					"Write Off Settlement",
 				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
@@ -512,7 +513,7 @@ class LoanRepayment(AccountsController):
 					):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
-			if self.repayment_type not in ("Full Settlement"):
+			if self.repayment_type not in ("Full Settlement", "Write Off Settlement"):
 				pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 					amounts.get("unbooked_interest")
 				)
@@ -711,6 +712,7 @@ class LoanRepayment(AccountsController):
 			"Security Deposit Adjustment": "security_deposit_account",
 			"Subsidy Adjustments": "subsidy_adjustment_account",
 			"Full Settlement": "payment_account",
+			"Write Off Settlement": "payment_account",
 		}
 
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
