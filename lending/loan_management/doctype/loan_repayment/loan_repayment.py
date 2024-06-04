@@ -353,7 +353,15 @@ class LoanRepayment(AccountsController):
 				make_loan_waivers(self.against_loan, self.posting_date)
 
 	def mark_as_unpaid(self):
-		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment", "Loan Closure"):
+		if self.repayment_type in (
+			"Normal Repayment",
+			"Pre Payment",
+			"Advance Payment",
+			"Loan Closure",
+			"Full Settlement",
+			"Write Off Settlement",
+			"Partial Settlement",
+		):
 			loan = frappe.qb.DocType("Loan")
 
 			frappe.qb.update(loan).set(
@@ -724,6 +732,7 @@ class LoanRepayment(AccountsController):
 			"Subsidy Adjustments": "subsidy_adjustment_account",
 			"Full Settlement": "payment_account",
 			"Write Off Settlement": "payment_account",
+			"Partial Settlement": "payment_account",
 		}
 
 		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
@@ -911,6 +920,9 @@ def get_demand_type(payment_type):
 	elif payment_type == "Charges Waiver":
 		demand_type = "Charges"
 	elif payment_type == "Full Settlement":
+		demand_type = "EMI"
+		demand_subtype = "Principal"
+	elif payment_type == "Partial Settlement":
 		demand_type = "EMI"
 		demand_subtype = "Principal"
 
