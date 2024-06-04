@@ -494,6 +494,7 @@ class LoanDisbursement(AccountsController):
 		remarks=None,
 		against_voucher_type=None,
 		against_voucher=None,
+		credit=False,
 	):
 		gl_entries.append(
 			self.get_gl_dict(
@@ -513,13 +514,19 @@ class LoanDisbursement(AccountsController):
 			)
 		)
 
+		if not credit:
+			dr_cr = "debit"
+			amount = -1 * amount
+		else:
+			dr_cr = "credit"
+
 		gl_entries.append(
 			self.get_gl_dict(
 				{
 					"account": against_account,
 					"against": account,
-					"debit": -1 * amount,
-					"debit_in_account_currency": -1 * amount,
+					dr_cr: amount,
+					dr_cr + "_in_account_currency": amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
 					"remarks": remarks,
@@ -535,10 +542,12 @@ class LoanDisbursement(AccountsController):
 
 		if self.get("refund_account") and cancel:
 			bank_account = self.refund_account
+			self.add_gl_entry(
+				gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks, credit=True
+			)
 		else:
 			bank_account = self.disbursement_account
-
-		self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
+			self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
 
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
