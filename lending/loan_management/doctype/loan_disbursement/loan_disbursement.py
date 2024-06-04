@@ -48,8 +48,6 @@ class LoanDisbursement(AccountsController):
 			self.set_cyclic_date()
 
 		self.validate_repayment_start_date()
-		if self.is_term_loan and not self.is_new():
-			self.update_draft_schedule()
 
 	def on_update(self):
 		if self.is_term_loan:
