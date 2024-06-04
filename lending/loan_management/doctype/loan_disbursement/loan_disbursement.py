@@ -51,9 +51,9 @@ class LoanDisbursement(AccountsController):
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
 
-	def after_insert(self):
+	def on_update(self):
 		if self.is_term_loan:
-			self.make_draft_schedule()
+			self.make_update_draft_schedule()
 
 	def on_trash(self):
 		if self.docstatus == 0 and self.is_term_loan:
@@ -77,26 +77,6 @@ class LoanDisbursement(AccountsController):
 			"loan_disbursement": self.name,
 		}
 
-	def make_draft_schedule(self):
-		loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
-		loan_details = frappe.db.get_value(
-			"Loan", self.against_loan, ["repayment_periods", "moratorium_tenure", "status"], as_dict=1
-		)
-		if self.repayment_schedule_type != "Line of Credit":
-			if not self.repayment_start_date:
-				self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
-
-				if loan_details.status == "Sanctioned" and loan_details.moratorium_tenure:
-					self.repayment_start_date = add_months(
-						self.repayment_start_date, loan_details.moratorium_tenure
-					)
-
-		schedule = frappe.get_doc(self.get_schedule_details()).insert()
-		self.monthly_repayment_amount = schedule.monthly_repayment_amount
-
-		if loan_details.status == "Sanctioned":
-			self.broken_period_interest = schedule.broken_period_interest
-
 	def get_draft_schedule(self):
 		draft_schedule = frappe.db.get_value(
 			"Loan Repayment Schedule",
@@ -105,23 +85,31 @@ class LoanDisbursement(AccountsController):
 		)
 		return draft_schedule
 
-	def update_draft_schedule(self):
+	def make_update_draft_schedule(self):
 		draft_schedule = self.get_draft_schedule()
+		loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
+		loan_details = frappe.db.get_value(
+			"Loan", self.against_loan, ["repayment_periods", "moratorium_tenure", "status"], as_dict=1
+		)
 
 		if self.repayment_frequency == "Monthly" and not self.repayment_start_date:
-			loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
 			self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
 
+			if loan_details.status == "Sanctioned" and loan_details.moratorium_tenure:
+				self.repayment_start_date = add_months(
+					self.repayment_start_date, loan_details.moratorium_tenure
+				)
+
 		if draft_schedule:
-			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
 			schedule.update(self.get_schedule_details())
 			schedule.save()
+		else:
+			schedule = frappe.get_doc(self.get_schedule_details()).insert()
 
-			self.monthly_repayment_amount = schedule.monthly_repayment_amount
-
-			if loan_status == "Sanctioned":
-				self.broken_period_interest = schedule.broken_period_interest
+		self.db_set("monthly_repayment_amount", schedule.monthly_repayment_amount)
+		if loan_details.status == "Sanctioned":
+			self.db_set("broken_period_interest", schedule.broken_period_interest)
 
 	def on_submit(self):
 		if self.is_term_loan:
