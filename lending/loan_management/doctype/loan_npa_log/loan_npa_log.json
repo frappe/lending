@@ -9,8 +9,7 @@
   "npa",
   "manual_npa",
   "event",
-  "npa_date",
-  "manual_npa_date"
+  "npa_date"
  ],
  "fields": [
   {
@@ -41,16 +40,11 @@
    "fieldname": "npa_date",
    "fieldtype": "Date",
    "label": "NPA Date"
-  },
-  {
-   "fieldname": "manual_npa_date",
-   "fieldtype": "Date",
-   "label": "Manual NPA Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-29 21:23:05.474990",
+ "modified": "2024-06-04 15:16:54.946852",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan NPA Log",

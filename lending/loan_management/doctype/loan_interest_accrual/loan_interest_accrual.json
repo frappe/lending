@@ -165,7 +165,7 @@
   },
   {
    "default": "0",
-   "fetch_from": "loan.manual_npa",
+   "fetch_from": "loan.is_npa",
    "fieldname": "is_npa",
    "fieldtype": "Check",
    "label": "Is NPA"
@@ -218,7 +218,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-15 02:19:28.920698",
+ "modified": "2024-06-04 13:58:43.948769",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

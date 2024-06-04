@@ -134,10 +134,12 @@ class Loan(AccountsController):
 		if self.watch_period_end_date and getdate() < getdate(self.watch_period_end_date):
 			frappe.throw(_("Cannot un mark as NPA before watch period end date"))
 
-		update_manual_npa_check(self.manual_npa, self.applicant_type, self.applicant, self.posting_date)
-
-		if self.has_value_changed("manual_npa") and self.manual_npa:
-			move_unpaid_interest_to_suspense_ledger(self.name)
+		if self.has_value_changed("manual_npa"):
+			update_all_linked_loan_customer_npa_status(
+				self.manual_npa, self.applicant_type, self.applicant, nowdate(), loan=self.name
+			)
+			if self.manual_npa:
+				move_unpaid_interest_to_suspense_ledger(self.name)
 
 		if self.has_value_changed("freeze_account") and self.freeze_account:
 			create_loan_feeze_log(self.name, self.freeze_date, self.get("freeze_reason"))
@@ -823,9 +825,7 @@ def update_loan_and_customer_status(
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 
-		update_all_linked_loan_customer_npa_status(
-			is_npa, is_npa, applicant_type, applicant, posting_date, loan
-		)
+		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
 		max_dpd = frappe.db.get_value(
 			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
@@ -834,24 +834,23 @@ def update_loan_and_customer_status(
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0:
 			update_all_linked_loan_customer_npa_status(
-				is_npa, is_npa, applicant_type, applicant, posting_date, loan
+				is_npa, applicant_type, applicant, posting_date, loan
 			)
 			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 			cancel_suspense_entries(loan, loan_product, posting_date)
 
 
 def update_all_linked_loan_customer_npa_status(
-	is_npa, manual_npa, applicant_type, applicant, posting_date, loan=None
+	is_npa, applicant_type, applicant, posting_date, loan=None
 ):
 	"""Update NPA status of all linked customers"""
-	update_system_npa_check(is_npa, applicant_type, applicant, posting_date)
-	update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date)
+	update_npa_check(is_npa, applicant_type, applicant, posting_date)
 
 	if loan:
-		create_loan_npa_log(loan, posting_date, is_npa, manual_npa, "Background Job")
+		create_loan_npa_log(loan, posting_date, is_npa, "Background Job")
 
 
-def update_system_npa_check(is_npa, applicant_type, applicant, posting_date):
+def update_npa_check(is_npa, applicant_type, applicant, posting_date):
 	_loan = frappe.qb.DocType("Loan")
 	frappe.qb.update(_loan).set(_loan.is_npa, is_npa).where(
 		(_loan.docstatus == 1)
@@ -864,23 +863,10 @@ def update_system_npa_check(is_npa, applicant_type, applicant, posting_date):
 	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
 
-def update_manual_npa_check(manual_npa, applicant_type, applicant, posting_date):
-	_loan = frappe.qb.DocType("Loan")
-	frappe.qb.update(_loan).set(_loan.manual_npa, manual_npa).where(
-		(_loan.docstatus == 1)
-		& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
-		& (_loan.applicant_type == applicant_type)
-		& (_loan.applicant == applicant)
-		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
-	).run()
-
-	frappe.db.set_value("Customer", applicant, "is_npa", manual_npa)
-
-
-def create_loan_npa_log(loan, posting_date, is_npa, manual_npa, event):
+def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):
 	loan_npa_log = frappe.new_doc("Loan NPA Log")
 	loan_npa_log.loan = loan
-	loan_npa_log.posting_date = posting_date
+	loan_npa_log.npa_date = posting_date
 	loan_npa_log.is_npa = is_npa
 	loan_npa_log.manual_npa = manual_npa
 	loan_npa_log.event = event
