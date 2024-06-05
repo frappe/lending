@@ -550,9 +550,8 @@ class LoanRepayment(AccountsController):
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 
-			if amount_paid > 0:
-				self.excess_amount = amount_paid
-				amount_paid = 0
+			if self.principal_amount_paid - self.pending_principal_amount > 0:
+				self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands):
 		"""Allocate amount based on allocation order"""
