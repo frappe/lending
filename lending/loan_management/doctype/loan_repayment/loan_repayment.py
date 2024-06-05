@@ -46,9 +46,10 @@ class LoanRepayment(AccountsController):
 			create_update_loan_reschedule,
 		)
 
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		excess_amount = self.pending_principal_amount - self.principal_amount_paid
 
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		if self.repayment_type in ("Advance Payment", "Pre Payment") and not excess_amount:
 			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
 					self.against_loan,
@@ -82,15 +83,16 @@ class LoanRepayment(AccountsController):
 			self.get("prepayment_charges"),
 		)
 
-		if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
-			amounts = calculate_amounts(
-				self.against_loan, self.posting_date, payment_type=self.repayment_type
-			)
-			self.allocate_amount_against_demands(amounts, on_submit=True)
-			self.db_update_all()
+		if not self.excess_amount:
+			if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
+				amounts = calculate_amounts(
+					self.against_loan, self.posting_date, payment_type=self.repayment_type
+				)
+				self.allocate_amount_against_demands(amounts, on_submit=True)
+				self.db_update_all()
 
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			self.process_reschedule()
+			if self.repayment_type in ("Advance Payment", "Pre Payment"):
+				self.process_reschedule()
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -330,17 +332,11 @@ class LoanRepayment(AccountsController):
 				.where(loan.name == self.against_loan)
 			)
 
-			loan_doc = frappe.get_doc("Loan", self.against_loan)
-			pending_principal_amount = get_pending_principal_amount(loan_doc)
-			is_secured_loan = loan_doc.is_secured_loan
-			auto_write_off_amount = frappe.db.get_value(
-				"Loan Product", self.loan_product, "write_off_amount"
-			)
+			is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
-			if (
-				not is_secured_loan
-				and (pending_principal_amount - self.principal_amount_paid - flt(auto_write_off_amount)) <= 0
-			):
+			auto_close_loan, post_loan_waiver = self.auto_close_loan()
+
+			if not is_secured_loan and auto_close_loan:
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
@@ -349,8 +345,27 @@ class LoanRepayment(AccountsController):
 			query.run()
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
-			if self.repayment_type in ("Loan Closure", "Full Settlement"):
+			if post_loan_waiver:
 				make_loan_waivers(self.against_loan, self.posting_date)
+
+	def auto_close_loan(self):
+		auto_close = False
+		post_loan_waiver = False
+
+		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
+			"Loan Product", self.loan_product, ["write_off_amount", "excess_amount_acceptance_limit"]
+		)
+
+		shortfall_amount = self.pending_principal_amount - self.principal_amount_paid
+
+		if shortfall_amount > 0 and shortfall_amount < auto_write_off_amount:
+			auto_close = True
+			post_loan_waiver = True
+
+		if self.excess_amount and self.excess_amount < excess_amount_limit:
+			auto_close = True
+
+		return auto_close, post_loan_waiver
 
 	def mark_as_unpaid(self):
 		if self.repayment_type in (
@@ -534,12 +549,6 @@ class LoanRepayment(AccountsController):
 			self.principal_amount_paid += flt(amount_paid, precision)
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
-
-			excess_amount_limit = frappe.db.get_value(
-				"Loan Product", self.loan_product, "excess_amount_acceptance_limit"
-			)
-			if amount_paid > flt(excess_amount_limit):
-				frappe.throw(_("Excess amount paid cannot be greater than {0}").format(excess_amount_limit))
 
 			if amount_paid > 0:
 				self.excess_amount = amount_paid
