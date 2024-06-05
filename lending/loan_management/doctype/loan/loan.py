@@ -136,7 +136,12 @@ class Loan(AccountsController):
 
 		if self.has_value_changed("manual_npa"):
 			update_all_linked_loan_customer_npa_status(
-				self.manual_npa, self.applicant_type, self.applicant, nowdate(), loan=self.name
+				self.manual_npa,
+				self.applicant_type,
+				self.applicant,
+				nowdate(),
+				loan=self.name,
+				manual_npa=self.manual_npa,
 			)
 			if self.manual_npa:
 				move_unpaid_interest_to_suspense_ledger(self.name)
@@ -841,24 +846,33 @@ def update_loan_and_customer_status(
 
 
 def update_all_linked_loan_customer_npa_status(
-	is_npa, applicant_type, applicant, posting_date, loan=None
+	is_npa, applicant_type, applicant, posting_date, loan=None, manual_npa=False
 ):
 	"""Update NPA status of all linked customers"""
-	update_npa_check(is_npa, applicant_type, applicant, posting_date)
+	update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
 
 	if loan:
 		create_loan_npa_log(loan, posting_date, is_npa, "Background Job")
 
 
-def update_npa_check(is_npa, applicant_type, applicant, posting_date):
+def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=False):
 	_loan = frappe.qb.DocType("Loan")
-	frappe.qb.update(_loan).set(_loan.is_npa, is_npa).where(
-		(_loan.docstatus == 1)
-		& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
-		& (_loan.applicant_type == applicant_type)
-		& (_loan.applicant == applicant)
-		& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
-	).run()
+	query = (
+		frappe.qb.update(_loan)
+		.set(_loan.is_npa, is_npa)
+		.where(
+			(_loan.docstatus == 1)
+			& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
+			& (_loan.applicant_type == applicant_type)
+			& (_loan.applicant == applicant)
+			& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
+		)
+	)
+
+	if manual_npa:
+		query = query.set(_loan.manual_npa, manual_npa)
+
+	query.run()
 
 	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
