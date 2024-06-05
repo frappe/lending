@@ -12,5 +12,5 @@ class LoanAdjustment(Document):
 		for repayment in self.get("adjustments"):
 			if repayment.amount:
 				create_loan_repayment(
-					self.loan, self.posting_date, repayment.loan_repayment_type, repayment.amount
+					self.loan, self.posting_date, repayment.loan_repayment_type, repayment.amount, self.name
 				)
