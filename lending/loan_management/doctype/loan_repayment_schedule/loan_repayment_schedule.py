@@ -352,7 +352,10 @@ class LoanRepaymentSchedule(Document):
 			pending_prev_days = 0
 
 		if schedule_field == "repayment_schedule" and not self.restructure_type:
-			self.monthly_repayment_amount = monthly_repayment_amount
+			if self.repayment_frequency == "One Time":
+				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
+			else:
+				self.monthly_repayment_amount = monthly_repayment_amount
 
 	def get_next_payment_date(self, payment_date):
 		if (
