@@ -46,11 +46,11 @@ class LoanRepayment(AccountsController):
 			create_update_loan_reschedule,
 		)
 
-		excess_amount = self.pending_principal_amount - self.principal_amount_paid
+		excess_amount = self.principal_amount_paid - self.pending_principal_amount
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		if self.repayment_type in ("Advance Payment", "Pre Payment") and not excess_amount:
-			if not self.is_new() and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+		if self.repayment_type in ("Advance Payment", "Pre Payment") and excess_amount < 0:
+			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
 					self.against_loan,
 					self.posting_date,
