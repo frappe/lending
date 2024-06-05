@@ -626,7 +626,6 @@ class LoanRepayment(AccountsController):
 			[
 				"interest_receivable_account",
 				"penalty_receivable_account",
-				"suspense_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
 				"interest_waiver_account",

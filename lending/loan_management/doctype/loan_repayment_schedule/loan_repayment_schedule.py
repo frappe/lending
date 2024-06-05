@@ -230,7 +230,7 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 
-		if not self.restructure_type:
+		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
 				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
 			)
