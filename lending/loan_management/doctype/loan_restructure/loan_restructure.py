@@ -612,7 +612,7 @@ def create_loan_repayment(
 	repayment.posting_date = posting_date
 	repayment.repayment_type = repayment_type
 	repayment.amount_paid = waiver_amount
-	repayment.custom_loan_adjustment = adjustment_name 
+	repayment.loan_adjustment = adjustment_name 
 	repayment.loan_restructure = restructure_name
 	repayment.is_write_off_waiver = is_write_off_waiver
 	repayment.save()

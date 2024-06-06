@@ -8,6 +8,7 @@
  "field_order": [
   "against_loan",
   "loan_disbursement",
+  "loan_adjustment",
   "repayment_schedule_type",
   "applicant_type",
   "applicant",
@@ -407,12 +408,17 @@
    "label": "Excess Amount",
    "options": "Company:company:default_currency",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_adjustment",
+   "fieldtype": "Data",
+   "label": "Loan Adjustment"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-03 21:55:38.339146",
+ "modified": "2024-06-06 16:37:54.636451",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
