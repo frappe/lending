@@ -852,7 +852,7 @@ def update_all_linked_loan_customer_npa_status(
 	update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
 
 	if loan:
-		create_loan_npa_log(loan, posting_date, is_npa, "Background Job")
+		create_loan_npa_log(loan, posting_date, is_npa, "Background Job", manual_npa=manual_npa)
 
 
 def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=False):
@@ -881,8 +881,10 @@ def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):
 	loan_npa_log = frappe.new_doc("Loan NPA Log")
 	loan_npa_log.loan = loan
 	loan_npa_log.npa_date = posting_date
-	loan_npa_log.is_npa = is_npa
+	loan_npa_log.npa = is_npa
 	loan_npa_log.manual_npa = manual_npa
+	if manual_npa:
+		loan_npa_log.manual_npa_date = posting_date
 	loan_npa_log.event = event
 	loan_npa_log.save(ignore_permissions=True)
 
