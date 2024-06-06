@@ -152,6 +152,8 @@ class Loan(AccountsController):
 			reverse_loan_interest_accruals(self.name, self.freeze_date)
 			update_days_past_due_in_loans(posting_date=self.get("freeze_date"), loan_name=self.name)
 			process_loan_interest_accrual_for_loans(posting_date=self.get("freeze_date"), loan=self.name)
+		else:
+			self.freeze_date = None
 
 		if self.has_value_changed("maximum_limit_amount"):
 			self.db_set("loan_amount", self.maximum_limit_amount)
