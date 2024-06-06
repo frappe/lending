@@ -411,14 +411,15 @@
   },
   {
    "fieldname": "loan_adjustment",
-   "fieldtype": "Data",
-   "label": "Loan Adjustment"
+   "fieldtype": "Link",
+   "label": "Loan Adjustment",
+   "options": "Loan Adjustment"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-06 16:37:54.636451",
+ "modified": "2024-06-06 16:54:03.869802",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
