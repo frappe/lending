@@ -26,8 +26,7 @@ class LoanDemand(AccountsController):
 		if self.demand_subtype in ("Principal", "Interest", "Penalty", "Additional Interest"):
 			self.make_gl_entries()
 
-		if self.demand_type == "EMI" and not self.paid_amount:
-			self.update_repayment_schedule()
+		self.update_repayment_schedule()
 
 		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
 
@@ -103,6 +102,24 @@ class LoanDemand(AccountsController):
 				)
 			)
 
+		gl_entries = self.add_gl_entries(
+			gl_entries, receivable_account, accrual_account, cancel, party_type, party
+		)
+
+		if self.demand_type == "BPI":
+			receivable_account, accrual_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, ["interest_receivable_account", "interest_accrued_account"]
+			)
+
+			gl_entries = self.add_gl_entries(
+				gl_entries, receivable_account, accrual_account, cancel, party_type, party
+			)
+
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
+
+	def add_gl_entries(
+		self, gl_entries, receivable_account, accrual_account, cancel, party_type=None, party=None
+	):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
@@ -135,7 +152,7 @@ class LoanDemand(AccountsController):
 			)
 		)
 
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
+		return gl_entries
 
 
 def make_loan_demand_for_term_loans(
@@ -188,30 +205,41 @@ def make_loan_demand_for_term_loans(
 		if freeze_date and getdate(freeze_date) <= getdate(row.payment_date):
 			continue
 
-		demand_type = "EMI"
-		create_loan_demand(
-			loan_repayment_schedule_map.get(row.parent),
-			row.payment_date,
-			demand_type,
-			"Interest",
-			flt(row.interest_amount, precision),
-			loan_repayment_schedule=row.parent,
-			loan_disbursement=disbursement_map.get(row.parent),
-			repayment_schedule_detail=row.name,
-			process_loan_demand=process_loan_demand,
-		)
+		paid_amount = 0
 
-		create_loan_demand(
-			loan_repayment_schedule_map.get(row.parent),
-			row.payment_date,
-			demand_type,
-			"Principal",
-			flt(row.principal_amount, precision),
-			loan_repayment_schedule=row.parent,
-			loan_disbursement=disbursement_map.get(row.parent),
-			repayment_schedule_detail=row.name,
-			process_loan_demand=process_loan_demand,
-		)
+		if not row.principal_amount:
+			demand_type = "BPI"
+			paid_amount = row.interest_amount
+		else:
+			demand_type = "EMI"
+
+		if row.interest_amount:
+			create_loan_demand(
+				loan_repayment_schedule_map.get(row.parent),
+				row.payment_date,
+				demand_type,
+				"Interest",
+				flt(row.interest_amount, precision),
+				loan_repayment_schedule=row.parent,
+				loan_disbursement=disbursement_map.get(row.parent),
+				repayment_schedule_detail=row.name,
+				process_loan_demand=process_loan_demand,
+				paid_amount=paid_amount,
+			)
+
+		if row.principal_amount:
+			create_loan_demand(
+				loan_repayment_schedule_map.get(row.parent),
+				row.payment_date,
+				demand_type,
+				"Principal",
+				flt(row.principal_amount, precision),
+				loan_repayment_schedule=row.parent,
+				loan_disbursement=disbursement_map.get(row.parent),
+				repayment_schedule_detail=row.name,
+				process_loan_demand=process_loan_demand,
+				paid_amount=paid_amount,
+			)
 
 		update_installment_counts(loan_repayment_schedule_map.get(row.parent))
 

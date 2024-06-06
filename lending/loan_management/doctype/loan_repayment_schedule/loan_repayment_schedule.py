@@ -30,7 +30,6 @@ class LoanRepaymentSchedule(Document):
 			row.idx = idx
 
 	def on_submit(self):
-		self.make_bpi_demand()
 		self.make_demand_for_advance_payment()
 
 	def make_demand_for_advance_payment(self):
@@ -118,23 +117,6 @@ class LoanRepaymentSchedule(Document):
 			self.rate_of_interest,
 			loan_repayment_schedule=self.name,
 		)
-
-	def make_bpi_demand(self):
-		if self.broken_period_interest > 0 and self.broken_period_interest_days > 0:
-			bpi_row = self.repayment_schedule[0]
-
-			set_demand(bpi_row.name)
-			create_loan_demand(
-				self.loan,
-				bpi_row.payment_date,
-				"BPI",
-				"Interest",
-				bpi_row.interest_amount,
-				loan_repayment_schedule=self.name,
-				loan_disbursement=self.loan_disbursement,
-				repayment_schedule_detail=bpi_row.name,
-				paid_amount=bpi_row.interest_amount,
-			)
 
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
