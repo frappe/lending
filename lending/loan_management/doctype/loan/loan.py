@@ -952,7 +952,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 	company = frappe.db.get_value("Loan", loan, "company")
 
 	normal_interest = get_unpaid_interest_amount(loan, posting_date, "Interest")
-	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penal Interest")
+	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penalty")
 
 	if normal_interest > 0:
 		make_suspense_journal_entry(loan, company, loan_product, normal_interest, posting_date)
