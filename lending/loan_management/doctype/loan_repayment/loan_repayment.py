@@ -312,8 +312,6 @@ class LoanRepayment(AccountsController):
 				)
 
 	def update_paid_amounts(self):
-		from lending.loan_management.doctype.loan_write_off.loan_write_off import make_loan_waivers
-
 		if self.repayment_type in (
 			"Normal Repayment",
 			"Pre Payment",
@@ -334,9 +332,7 @@ class LoanRepayment(AccountsController):
 
 			is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
-			auto_close_loan, post_loan_waiver = self.auto_close_loan()
-
-			if not is_secured_loan and auto_close_loan:
+			if not is_secured_loan and self.auto_close_loan():
 				query = query.set(loan.status, "Closed")
 
 			if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
@@ -345,12 +341,8 @@ class LoanRepayment(AccountsController):
 			query.run()
 			update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
-			if post_loan_waiver:
-				make_loan_waivers(self.against_loan, self.posting_date)
-
 	def auto_close_loan(self):
 		auto_close = False
-		post_loan_waiver = False
 
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
 			"Loan Product", self.loan_product, ["write_off_amount", "excess_amount_acceptance_limit"]
@@ -360,12 +352,12 @@ class LoanRepayment(AccountsController):
 
 		if shortfall_amount > 0 and shortfall_amount < auto_write_off_amount:
 			auto_close = True
-			post_loan_waiver = True
 
-		if self.excess_amount and self.excess_amount < excess_amount_limit:
+		excess_amount = self.principal_amount_paid - self.pending_principal_amount
+		if excess_amount > 0 and excess_amount < excess_amount_limit:
 			auto_close = True
 
-		return auto_close, post_loan_waiver
+		return auto_close
 
 	def mark_as_unpaid(self):
 		if self.repayment_type in (
@@ -550,8 +542,8 @@ class LoanRepayment(AccountsController):
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 
-			if self.principal_amount_paid - self.pending_principal_amount > 0:
-				self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
+		if self.auto_close_loan() or self.principal_amount_paid - self.pending_principal_amount > 0:
+			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands):
 		"""Allocate amount based on allocation order"""
@@ -646,7 +638,7 @@ class LoanRepayment(AccountsController):
 			against_account = account_details.penalty_receivable_account
 			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
 
-		if flt(self.excess_amount) > 0:
+		if flt(self.excess_amount):
 			against_account = account_details.interest_waiver_account
 			self.add_gl_entry(payment_account, against_account, self.excess_amount, gle_map)
 
