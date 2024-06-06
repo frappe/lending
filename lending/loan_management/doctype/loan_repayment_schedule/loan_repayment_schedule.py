@@ -124,12 +124,6 @@ class LoanRepaymentSchedule(Document):
 			reverse_loan_interest_accruals,
 		)
 
-		if self.broken_period_interest and self.broken_period_interest > 0:
-			bpi_row = self.repayment_schedule[0]
-			frappe.db.set_value("Repayment Schedule", bpi_row.name, "demand_generated", 0)
-			loan_demand = frappe.get_doc("Loan Demand", {"repayment_schedule_detail": bpi_row.name})
-			loan_demand.cancel()
-
 		reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 		reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
