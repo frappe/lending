@@ -828,7 +828,7 @@ def update_loan_and_customer_status(
 			},
 			pluck="name",
 		):
-			prev_npa = frappe.db.get_value("Loan", loan_id, "manual_npa")
+			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 
