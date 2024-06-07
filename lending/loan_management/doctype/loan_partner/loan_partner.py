@@ -108,7 +108,11 @@ def get_colender_payout_details(posting_date):
 
 	payable_balances = frappe.db.get_all(
 		"GL Entry",
-		filters={"posting_date": ("<=", posting_date), "account": ("in", accounts)},
+		filters={
+			"posting_date": ("<=", posting_date),
+			"account": ("in", accounts),
+			"voucher_type": ("!=", "Loan Disbursement"),
+		},
 		fields=["against_voucher", "account", "sum(debit-credit) as balance"],
 		group_by="against_voucher, account",
 	)
