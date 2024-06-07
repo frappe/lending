@@ -11,7 +11,6 @@ import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
-from lending.loan_management.doctype.loan.loan import update_all_linked_loan_customer_npa_status
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
@@ -183,12 +182,6 @@ class LoanRepayment(AccountsController):
 		self.update_demands(cancel=1)
 		self.update_limits(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
-
-		if self.is_npa or self.manual_npa:
-			# Mark back all loans as NPA
-			update_all_linked_loan_customer_npa_status(
-				self.is_npa, self.manual_npa, self.applicant_type, self.applicant
-			)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
