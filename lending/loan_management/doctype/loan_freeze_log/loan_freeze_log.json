@@ -7,12 +7,15 @@
  "field_order": [
   "loan",
   "freeze_date",
+  "unfreeze_date",
   "reason_for_freezing"
  ],
  "fields": [
   {
    "fieldname": "loan",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan",
    "search_index": 1
@@ -20,17 +23,24 @@
   {
    "fieldname": "freeze_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Freeze Date"
   },
   {
    "fieldname": "reason_for_freezing",
    "fieldtype": "Small Text",
    "label": "Reason For Freezing"
+  },
+  {
+   "fieldname": "unfreeze_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Unfreeze Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-10 18:33:59.495525",
+ "modified": "2024-06-11 08:07:05.587405",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Freeze Log",

@@ -154,6 +154,7 @@ class Loan(AccountsController):
 			process_loan_interest_accrual_for_loans(posting_date=self.get("freeze_date"), loan=self.name)
 		else:
 			self.freeze_date = None
+			create_loan_feeze_log(self.name, None, self.get("freeze_reason"), unfreeze_date=nowdate())
 
 		if self.has_value_changed("maximum_limit_amount"):
 			self.db_set("loan_amount", self.maximum_limit_amount)
@@ -1119,12 +1120,13 @@ def get_cyclic_date(loan_product, posting_date):
 	return cyclic_date
 
 
-def create_loan_feeze_log(loan, freeze_date, reason):
+def create_loan_feeze_log(loan, freeze_date, reason, unfreeze_date=None):
 	frappe.get_doc(
 		{
 			"doctype": "Loan Freeze Log",
 			"loan": loan,
 			"freeze_date": freeze_date,
+			"unfreeze_date": unfreeze_date,
 			"reason_for_freezing": reason,
 		}
 	).insert(ignore_permissions=True)
