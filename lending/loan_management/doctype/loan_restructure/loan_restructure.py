@@ -154,7 +154,7 @@ class LoanRestructure(AccountsController):
 
 		for charge in frappe.get_all(
 			"Loan Charges",
-			filters={"parent": self.loan_product, "event": "Restructure"},
+			filters={"parent": self.loan_product},
 			fields=["charge_type", "charge_based_on", "amount", "percentage"],
 		):
 			if charge.charge_based_on == "Percentage":
