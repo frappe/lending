@@ -17,7 +17,7 @@ from frappe.utils import (
 )
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
@@ -494,7 +494,6 @@ class LoanDisbursement(AccountsController):
 		remarks=None,
 		against_voucher_type=None,
 		against_voucher=None,
-		credit=False,
 	):
 		gl_entries.append(
 			self.get_gl_dict(
@@ -514,19 +513,13 @@ class LoanDisbursement(AccountsController):
 			)
 		)
 
-		if not credit:
-			dr_cr = "debit"
-			amount = -1 * amount
-		else:
-			dr_cr = "credit"
-
 		gl_entries.append(
 			self.get_gl_dict(
 				{
 					"account": against_account,
 					"against": account,
-					dr_cr: amount,
-					dr_cr + "_in_account_currency": amount,
+					"debit": -1 * amount,
+					"debit_in_account_currency": -1 * amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
 					"remarks": remarks,
@@ -542,12 +535,10 @@ class LoanDisbursement(AccountsController):
 
 		if self.get("refund_account") and cancel:
 			bank_account = self.refund_account
-			self.add_gl_entry(
-				gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks, credit=True
-			)
 		else:
 			bank_account = self.disbursement_account
-			self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
+
+		self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
 
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
@@ -613,6 +604,9 @@ class LoanDisbursement(AccountsController):
 			)
 
 		if gle_map:
+			if cancel:
+				gle_map = process_gl_map(gle_map)
+
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 
