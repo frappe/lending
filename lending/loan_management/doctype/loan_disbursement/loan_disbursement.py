@@ -574,7 +574,7 @@ class LoanDisbursement(AccountsController):
 			)
 
 		if self.get("loan_disbursement_charges") and not cancel:
-			sales_invoice = make_sales_invoice_for_charge(
+			make_sales_invoice_for_charge(
 				self.against_loan,
 				"loan_disbursement",
 				self.name,
@@ -583,14 +583,21 @@ class LoanDisbursement(AccountsController):
 				self.get("loan_disbursement_charges"),
 			)
 
+		sales_invoices = frappe.db.get_all(
+			"Sales Invoice",
+			filters={"loan_disbursement": self.name, "docstatus": 1},
+			fields=["name", "debit_to", "grand_total"],
+		)
+
+		for invoice in sales_invoices:
 			self.add_gl_entry(
 				gle_map,
-				sales_invoice.debit_to,
+				invoice.debit_to,
 				bank_account,
-				-1 * sales_invoice.grand_total,
+				-1 * invoice.grand_total,
 				remarks,
 				"Sales Invoice",
-				sales_invoice.name,
+				invoice.name,
 			)
 
 		if self.loan_partner:
