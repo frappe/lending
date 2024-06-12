@@ -946,6 +946,8 @@ def get_loan_partner_threshold_map():
 
 
 def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unbooked_interest
+
 	if not posting_date:
 		posting_date = getdate()
 
@@ -954,6 +956,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 
 	normal_interest = get_unpaid_interest_amount(loan, posting_date, "Interest")
 	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penalty")
+	unbooked_interest = get_unbooked_interest(loan, posting_date)
 
 	if normal_interest > 0:
 		make_suspense_journal_entry(loan, company, loan_product, normal_interest, posting_date)
@@ -962,6 +965,9 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		make_suspense_journal_entry(
 			loan, company, loan_product, penal_interest, posting_date, is_penal=True
 		)
+
+	if unbooked_interest > 0:
+		make_suspense_journal_entry(loan, company, loan_product, unbooked_interest, posting_date)
 
 
 def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):

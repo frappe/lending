@@ -955,9 +955,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 
 	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
 
-	accrued_interest = get_accrued_interest(against_loan, posting_date)
-	total_demand_interest = get_demanded_interest(against_loan, posting_date)
-	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
+	unbooked_interest = get_unbooked_interest(against_loan, posting_date)
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
@@ -1093,6 +1091,16 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 		last_demand_date = get_last_disbursement_date(loan, posting_date)
 
 	return last_demand_date
+
+
+def get_unbooked_interest(loan, posting_date):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+	accrued_interest = get_accrued_interest(loan, posting_date)
+	total_demand_interest = get_demanded_interest(loan, posting_date)
+	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
+
+	return unbooked_interest
 
 
 def get_accrued_interest(loan, posting_date, interest_type="Normal Interest"):
