@@ -474,6 +474,9 @@ def make_loan_disbursement(
 	disbursement_entry.is_term_loan = is_term_loan
 	disbursement_entry.repayment_schedule_type = loan_doc.repayment_schedule_type
 
+	if loan_doc.repayment_schedule_type != "Line of Credit":
+		disbursement_entry.repayment_method = loan_doc.repayment_method
+
 	for charge in loan_doc.get("loan_charges"):
 		disbursement_entry.append(
 			"loan_disbursement_charges",
