@@ -98,7 +98,7 @@ class Loan(AccountsController):
 		self.available_limit_amount = self.maximum_limit_amount
 
 	def validate_repayment_terms(self):
-		if self.is_term_loan and self.repayment_schedule_type != "Line of Credit":
+		if self.is_term_loan and self.repayment_schedule_type == "Repay Over Number of Periods":
 			if not self.repayment_periods:
 				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
