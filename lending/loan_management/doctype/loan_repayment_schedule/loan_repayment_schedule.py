@@ -7,6 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_day, getdate
 
+from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
@@ -520,7 +521,11 @@ class LoanRepaymentSchedule(Document):
 					interest_amount = 0
 					principal_amount = 0
 
-					next_emi_date = self.get_next_payment_date(prev_repayment_date)
+					# Pre payment made even before the first EMI
+					if getdate(self.posting_date) < getdate(first_date):
+						next_emi_date = get_cyclic_date(self.loan_product, self.posting_date)
+					else:
+						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
 					pending_prev_days = date_diff(next_emi_date, self.posting_date)
 
