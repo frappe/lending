@@ -7,13 +7,20 @@
  "engine": "InnoDB",
  "field_order": [
   "against_loan",
+  "sanctioned_loan_amount",
+  "current_disbursed_amount",
   "posting_date",
   "applicant_type",
   "loan_product",
   "monthly_repayment_amount",
+  "tenure",
   "column_break_4",
   "company",
   "applicant",
+  "repayment_schedule_type",
+  "repayment_frequency",
+  "repayment_method",
+  "repayment_start_date",
   "is_term_loan",
   "withhold_security_deposit",
   "section_break_7",
@@ -21,6 +28,7 @@
   "clearance_date",
   "column_break_8",
   "disbursed_amount",
+  "broken_period_interest",
   "accounting_dimensions_section",
   "cost_center",
   "charges_section",
@@ -226,12 +234,64 @@
    "fieldtype": "Table",
    "label": "Loan Disbursement Charges",
    "options": "Loan Disbursement Charge"
+  },
+  {
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fetch_from": "against_loan.repayment_schedule_type",
+   "fieldname": "repayment_schedule_type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Repayment Schedule Type"
+  },
+  {
+   "fetch_from": "against_loan.repayment_start_date",
+   "fetch_if_empty": 1,
+   "fieldname": "repayment_start_date",
+   "fieldtype": "Date",
+   "label": "Repayment Start Date"
+  },
+  {
+   "fieldname": "tenure",
+   "fieldtype": "Int",
+   "label": "Tenure",
+   "mandatory_depends_on": "eval:doc.repayment_schedule_type==\"Line of Credit\""
+  },
+  {
+   "fieldname": "repayment_method",
+   "fieldtype": "Select",
+   "label": "Repayment Method",
+   "options": "Repay Over Number of Periods\nRepay Fixed Amount per Period"
+  },
+  {
+   "fetch_from": "against_loan.loan_amount",
+   "fieldname": "sanctioned_loan_amount",
+   "fieldtype": "Currency",
+   "label": "Sanctioned Loan Amount",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "against_loan.disbursed_amount",
+   "fieldname": "current_disbursed_amount",
+   "fieldtype": "Currency",
+   "label": "Current Disbursed Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "broken_period_interest",
+   "fieldtype": "Currency",
+   "label": "Broken Period Interest",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-10 19:19:44.826241",
+ "modified": "2023-12-10 18:58:36.390130",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

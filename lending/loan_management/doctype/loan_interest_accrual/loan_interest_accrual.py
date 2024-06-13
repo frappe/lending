@@ -280,7 +280,7 @@ def get_term_loans(date, term_loan=None, loan_product=None):
 		)
 		.where(
 			(loan.docstatus == 1)
-			& (loan.status == "Disbursed")
+			& (loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (loan.is_term_loan == 1)
 			& (loan_schedule.status == "Active")
 			& (loan_repayment_schedule.principal_amount > 0)

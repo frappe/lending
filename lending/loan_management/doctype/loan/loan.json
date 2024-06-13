@@ -12,7 +12,6 @@
   "applicant",
   "applicant_name",
   "loan_application",
-  "branch",
   "column_break_3",
   "company",
   "posting_date",
@@ -30,10 +29,19 @@
   "column_break_11",
   "maximum_loan_amount",
   "repayment_method",
+  "repayment_frequency",
   "repayment_periods",
   "monthly_repayment_amount",
   "repayment_start_date",
+  "moratorium_tenure",
+  "moratorium_type",
+  "treatment_of_interest",
   "is_term_loan",
+  "loan_credit_limits_section",
+  "limit_applicable_start",
+  "maximum_limit_amount",
+  "column_break_foeo",
+  "limit_applicable_end",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -44,6 +52,8 @@
   "tenure_post_restructure",
   "accounting_dimensions_section",
   "cost_center",
+  "loan_charges_section",
+  "loan_charges",
   "account_info",
   "disbursement_account",
   "payment_account",
@@ -133,7 +143,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Sanctioned\nPartially Disbursed\nDisbursed\nLoan Closure Requested\nClosed",
+   "options": "Sanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed",
    "read_only": 1
   },
   {
@@ -154,7 +164,6 @@
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
    "label": "Rate of Interest (%) / Year",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -165,7 +174,7 @@
    "no_copy": 1
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_start_date",
    "fieldtype": "Date",
    "label": "Repayment Start Date"
@@ -175,25 +184,26 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_method",
    "fieldtype": "Select",
    "label": "Repayment Method",
    "options": "\nRepay Fixed Amount per Period\nRepay Over Number of Periods"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_periods",
    "fieldtype": "Int",
-   "label": "Repayment Period in Months"
+   "label": "Repayment Periods"
   },
   {
-   "depends_on": "is_term_loan",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fetch_from": "loan_application.repayment_amount",
    "fetch_if_empty": 1,
    "fieldname": "monthly_repayment_amount",
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
+   "no_copy": 1,
    "options": "Company:company:default_currency"
   },
   {
@@ -418,12 +428,6 @@
    "label": "Manual NPA"
   },
   {
-   "fieldname": "branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch"
-  },
-  {
    "fieldname": "loan_restructure_count",
    "fieldtype": "Int",
    "label": "Loan Restructure Count",
@@ -467,17 +471,79 @@
    "label": "Loan Classification Details"
   },
   {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nDaily\nWeekly\nQuarterly\nOne Time"
+  },
+  {
+   "fieldname": "loan_charges",
+   "fieldtype": "Table",
+   "label": "Loan Charges",
+   "options": "Loan Disbursement Charge"
+  },
+  {
+   "fieldname": "loan_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Charges"
+  },
+  {
+   "depends_on": "moratorium_tenure",
+   "fieldname": "treatment_of_interest",
+   "fieldtype": "Select",
+   "label": "Treatment of Interest",
+   "mandatory_depends_on": "moratorium_tenure",
+   "options": "Capitalize\nAdd to first repayment"
+  },
+  {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "fieldname": "moratorium_tenure",
+   "fieldtype": "Int",
+   "label": "Moratorium Tenure"
+  },
+  {
+   "fieldname": "loan_credit_limits_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Credit Limits"
+  },
+  {
+   "fieldname": "limit_applicable_start",
+   "fieldtype": "Date",
+   "label": "Limit Applicable Start"
+  },
+  {
+   "fieldname": "column_break_foeo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "limit_applicable_end",
+   "fieldtype": "Date",
+   "label": "Limit Applicable End"
+  },
+  {
+   "fieldname": "maximum_limit_amount",
+   "fieldtype": "Currency",
+   "label": "Maximum Limit Amount"
+  },
+  {
    "fetch_from": "loan_product.loan_category",
    "fieldname": "loan_category",
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
+  },
+  {
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "fieldname": "moratorium_type",
+   "fieldtype": "Select",
+   "label": "Moratorium Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-29 19:34:09.691251",
+ "modified": "2023-12-06 20:36:53.297695",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

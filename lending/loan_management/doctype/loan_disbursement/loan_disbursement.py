@@ -4,12 +4,23 @@
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, flt, get_datetime, nowdate
+from frappe.utils import (
+	add_days,
+	add_months,
+	cint,
+	date_diff,
+	flt,
+	get_datetime,
+	get_last_day,
+	getdate,
+	nowdate,
+)
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpledge import (
 	get_pledged_security_qty,
 )
@@ -22,14 +33,154 @@ class LoanDisbursement(AccountsController):
 	def validate(self):
 		self.set_missing_values()
 		self.validate_disbursal_amount()
+		if self.repayment_schedule_type == "Line of Credit":
+			self.set_cyclic_date()
+
+		if self.is_term_loan and not self.is_new():
+			self.update_draft_schedule()
+
+	def after_insert(self):
+		self.make_draft_schedule()
+
+	def on_trash(self):
+		if self.docstatus == 0:
+			draft_schedule = self.get_draft_schedule()
+			frappe.delete_doc("Loan Repayment Schedule", draft_schedule)
+
+	def get_schedule_details(self):
+		disbursed_amount = self.get_disbursed_amount()
+
+		return {
+			"doctype": "Loan Repayment Schedule",
+			"loan": self.against_loan,
+			"repayment_method": self.repayment_method,
+			"repayment_start_date": self.repayment_start_date,
+			"repayment_periods": self.tenure,
+			"posting_date": self.disbursement_date,
+			"repayment_frequency": self.repayment_frequency,
+			"disbursed_amount": disbursed_amount,
+			"loan_disbursement": self.name,
+		}
+
+	def make_draft_schedule(self):
+		loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
+		loan_details = frappe.db.get_value(
+			"Loan", self.against_loan, ["repayment_periods", "moratorium_tenure", "status"], as_dict=1
+		)
+		if self.repayment_schedule_type != "Line of Credit":
+			if not self.repayment_start_date:
+				self.repayment_start_date = get_cyclic_date(loan_product, self.posting_date)
+
+				if loan_details.status == "Sanctioned" and loan_details.moratorium_tenure:
+					self.repayment_start_date = add_months(
+						self.repayment_start_date, loan_details.moratorium_tenure
+					)
+		already_accrued_months = self.get_already_accrued_months()
+		self.tenure = loan_details.repayment_periods - already_accrued_months
+
+		schedule = frappe.get_doc(self.get_schedule_details()).insert()
+		self.monthly_repayment_amount = schedule.monthly_repayment_amount
+		self.broken_period_interest = schedule.broken_period_interest
+
+	def get_already_accrued_months(self):
+		already_accrued_months = 0
+		existing_schedule = frappe.db.get_all(
+			"Loan Repayment Schedule",
+			{"loan": self.against_loan, "docstatus": 1, "status": ("in", ["Active", "Outdated"])},
+			pluck="name",
+		)
+
+		if existing_schedule:
+			already_accrued_months = frappe.db.count(
+				"Repayment Schedule", {"parent": ("in", existing_schedule), "is_accrued": 1}
+			)
+
+		return already_accrued_months
+
+	def get_disbursed_amount(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			disbursed_amount = self.disbursed_amount
+		else:
+			current_disbursed_amount = frappe.db.get_value("Loan", self.against_loan, "disbursed_amount")
+			disbursed_amount = self.disbursed_amount + current_disbursed_amount
+
+		return disbursed_amount
+
+	def get_draft_schedule(self):
+		return frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 0}, "name"
+		)
+
+	def update_draft_schedule(self):
+		draft_schedule = self.get_draft_schedule()
+
+		if self.repayment_frequency == "Monthly" and not self.repayment_start_date:
+			loan_details = frappe.db.get_value(
+				"Loan", self.against_loan, ["status", "moratorium_tenure", "loan_product"], as_dict=1
+			)
+
+			self.repayment_start_date = get_cyclic_date(loan_details.loan_product, self.posting_date)
+			if loan_details.status == "Sanctioned" and loan_details.moratorium_tenure:
+				self.repayment_start_date = add_months(
+					self.repayment_start_date, loan_details.moratorium_tenure
+				)
+
+		if draft_schedule:
+			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.update(self.get_schedule_details())
+			schedule.save()
+
+			self.broken_period_interest = schedule.broken_period_interest
+			self.monthly_repayment_amount = schedule.monthly_repayment_amount
 
 	def on_submit(self):
 		if self.is_term_loan:
+			self.update_current_repayment_schedule()
+			self.submit_repayment_schedule()
 			self.update_repayment_schedule_status()
 
 		self.set_status_and_amounts()
 		self.withheld_security_deposit()
 		self.make_gl_entries()
+
+	def submit_repayment_schedule(self):
+		filters = {
+			"loan": self.against_loan,
+			"docstatus": 0,
+			"status": "Initiated",
+			"loan_disbursement": self.name,
+		}
+		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+		schedule.submit()
+
+	def cancel_and_delete_repayment_schedule(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			filters = {
+				"loan": self.against_loan,
+				"docstatus": 1,
+				"status": "Active",
+				"loan_disbursement": self.name,
+			}
+			schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+			schedule.cancel()
+
+	def update_current_repayment_schedule(self, cancel=0):
+		# Update status of existing schedule on topup
+		if cancel:
+			status = "Active"
+			current_status = "Outdated"
+		else:
+			status = "Outdated"
+			current_status = "Active"
+
+		if self.repayment_schedule_type != "Line of Credit":
+			existing_schedule = frappe.db.get_value(
+				"Loan Repayment Schedule",
+				{"loan": self.against_loan, "docstatus": 1, "status": current_status},
+			)
+
+			if existing_schedule:
+				frappe.db.set_value("Loan Repayment Schedule", existing_schedule, "status", status)
 
 	def update_repayment_schedule_status(self, cancel=0):
 		if cancel:
@@ -39,17 +190,19 @@ class LoanDisbursement(AccountsController):
 			status = "Active"
 			current_status = "Initiated"
 
+		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
 		schedule = frappe.db.get_value(
 			"Loan Repayment Schedule",
-			{"loan": self.against_loan, "docstatus": 1, "status": current_status},
+			filters,
 			"name",
 		)
-
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
 
 	def on_cancel(self):
 		if self.is_term_loan:
+			self.cancel_and_delete_repayment_schedule()
 			self.update_repayment_schedule_status(cancel=1)
+			self.update_current_repayment_schedule(cancel=1)
 
 		self.delete_security_deposit()
 		self.set_status_and_amounts(cancel=1)
@@ -66,6 +219,9 @@ class LoanDisbursement(AccountsController):
 		if not self.posting_date:
 			self.posting_date = self.disbursement_date or nowdate()
 
+		if not self.disbursement_account and self.bank_account:
+			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
 	def withheld_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc(
@@ -78,6 +234,24 @@ class LoanDisbursement(AccountsController):
 			).insert()
 			sd.submit()
 
+	def set_cyclic_date(self):
+		if self.repayment_frequency == "Monthly" and not self.repayment_start_date:
+			cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+				"Loan Product",
+				self.loan_product,
+				["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
+			)
+			cycle_day = cint(cycle_day)
+
+			last_day_of_month = get_last_day(self.posting_date)
+			cyclic_date = add_days(last_day_of_month, cycle_day)
+
+			broken_period_days = date_diff(cyclic_date, self.posting_date)
+			if broken_period_days < min_days_bw_disbursement_first_repayment:
+				cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+
+			self.repayment_start_date = cyclic_date
+
 	def delete_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
@@ -85,13 +259,37 @@ class LoanDisbursement(AccountsController):
 			sd.delete()
 
 	def validate_disbursal_amount(self):
-		possible_disbursal_amount = get_disbursal_amount(self.against_loan)
+		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
+		limit_details = frappe.db.get_value(
+			"Loan",
+			self.against_loan,
+			[
+				"limit_applicable_start",
+				"limit_applicable_end",
+				"maximum_limit_amount",
+			],
+			as_dict=1,
+		)
 
 		if not self.disbursed_amount:
 			frappe.throw(_("Disbursed amount cannot be zero"))
 
+		elif self.repayment_schedule_type == "Line of Credit":
+			if (
+				getdate(limit_details.limit_applicable_end)
+				< getdate(self.disbursement_date)
+				< getdate(limit_details.limit_applicable_start)
+			):
+				frappe.throw("Disbursement date is out of approved limit dates")
+
 		elif self.disbursed_amount > possible_disbursal_amount:
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
+
+		if (
+			limit_details.maximum_limit_amount
+			and pending_principal_amount + self.disbursed_amount > flt(limit_details.maximum_limit_amount)
+		):
+			frappe.throw(_("Disbursement amount cannot be greater than maximum limit amount"))
 
 	def set_status_and_amounts(self, cancel=0):
 		loan_details = frappe.get_all(
@@ -136,9 +334,8 @@ class LoanDisbursement(AccountsController):
 
 			total_payment = total_payment - topup_amount
 
-		if disbursed_amount == 0:
+		if disbursed_amount <= 0:
 			status = "Sanctioned"
-
 		elif disbursed_amount >= loan_details.loan_amount:
 			status = "Disbursed"
 		else:
@@ -168,26 +365,26 @@ class LoanDisbursement(AccountsController):
 
 			total_payment = total_payment + topup_amount
 
-		if flt(disbursed_amount) >= loan_details.loan_amount:
+		if self.repayment_schedule_type == "Line of Credit":
+			status = "Active"
+		elif flt(disbursed_amount) >= loan_details.loan_amount:
 			status = "Disbursed"
 		else:
 			status = "Partially Disbursed"
 
 		return disbursed_amount, status, total_payment
 
-	def make_gl_entries(self, cancel=0, adv_adj=0):
-		gle_map = []
-
-		gle_map.append(
+	def add_gl_entry(self, gl_entries, account, against_account, amount, remarks=None):
+		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.loan_account,
-					"against": self.disbursement_account,
-					"debit": self.disbursed_amount,
-					"debit_in_account_currency": self.disbursed_amount,
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
-					"remarks": _("Disbursement against loan:") + self.against_loan,
+					"remarks": remarks,
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type,
 					"party": self.applicant,
@@ -196,94 +393,57 @@ class LoanDisbursement(AccountsController):
 			)
 		)
 
-		gle_map.append(
+		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.disbursement_account,
-					"against": self.loan_account,
-					"credit": self.disbursed_amount,
-					"credit_in_account_currency": self.disbursed_amount,
+					"account": against_account,
+					"against": account,
+					"debit": -1 * amount,
+					"debit_in_account_currency": amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.against_loan,
-					"remarks": _("Disbursement against loan:") + self.against_loan,
+					"remarks": remarks,
 					"cost_center": self.cost_center,
 					"posting_date": self.disbursement_date,
 				}
 			)
 		)
 
+	def make_gl_entries(self, cancel=0, adv_adj=0):
+		gle_map = []
+		remarks = _("Disbursement against loan:") + self.against_loan
+
+		self.add_gl_entry(
+			gle_map, self.loan_account, self.disbursement_account, self.disbursed_amount, remarks
+		)
+
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "security_deposit_account"
 			)
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": security_deposit_account,
-						"against": self.disbursement_account,
-						"credit": self.monthly_repayment_amount,
-						"credit_in_account_currency": self.monthly_repayment_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"posting_date": self.disbursement_date,
-					}
-				)
+
+			self.add_gl_entry(
+				gle_map,
+				security_deposit_account,
+				self.disbursement_account,
+				-1 * self.monthly_repayment_amount,
+				remarks,
 			)
 
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": self.disbursement_account,
-						"against": self.loan_account,
-						"credit": -1 * self.monthly_repayment_amount,
-						"credit_in_account_currency": -1 * self.monthly_repayment_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"posting_date": self.disbursement_date,
-					}
-				)
+		if self.broken_period_interest:
+			broken_period_interest_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
+			)
+			self.add_gl_entry(
+				gle_map,
+				broken_period_interest_account,
+				self.disbursement_account,
+				-1 * self.broken_period_interest,
+				remarks,
 			)
 
 		for charge in self.get("loan_disbursement_charges"):
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": charge.account,
-						"against": self.disbursement_account,
-						"credit": charge.amount,
-						"credit_in_account_currency": charge.amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"party_type": self.applicant_type,
-						"party": self.applicant,
-						"posting_date": self.disbursement_date,
-					}
-				)
-			)
-
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": self.disbursement_account,
-						"against": self.loan_account,
-						"credit": -1 * charge.amount,
-						"credit_in_account_currency": -1 * charge.amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _("Disbursement against loan:") + self.against_loan,
-						"cost_center": self.cost_center,
-						"posting_date": self.disbursement_date,
-					}
-				)
-			)
+			self.add_gl_entry(gle_map, charge.account, self.disbursement_account, charge.amount, remarks)
 
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
@@ -369,7 +529,7 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 	):
 		disbursal_amount = loan_details.loan_amount - loan_details.disbursed_amount
 
-	return disbursal_amount
+	return disbursal_amount, pending_principal_amount
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
