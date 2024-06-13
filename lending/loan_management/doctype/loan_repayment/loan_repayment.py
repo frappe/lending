@@ -66,6 +66,9 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_update_loan_reschedule,
+		)
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
 		)
@@ -89,6 +92,14 @@ class LoanRepayment(AccountsController):
 				)
 				self.allocate_amount_against_demands(amounts, on_submit=True)
 				self.db_update_all()
+
+				create_update_loan_reschedule(
+					self.against_loan,
+					self.posting_date,
+					self.name,
+					self.repayment_type,
+					self.principal_amount_paid,
+				)
 
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
