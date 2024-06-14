@@ -188,6 +188,7 @@ class LoanRepayment(AccountsController):
 		)
 
 	def on_cancel(self):
+		self.validate_net_paid_amount()
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -217,6 +218,11 @@ class LoanRepayment(AccountsController):
 		]
 		self.make_gl_entries(cancel=1)
 		update_installment_counts(self.against_loan)
+
+	def validate_net_paid_amount(self):
+		net_paid_amount = get_net_paid_amount(self.against_loan)
+		if net_paid_amount - self.amount_paid < 0:
+			frappe.throw("Reversal amount is more than the net paid amount")
 
 	def cancel_charge_demands(self):
 		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
@@ -1143,3 +1149,7 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest"):
 	)
 
 	return flt(demand_interest)
+
+
+def get_net_paid_amount(loan):
+	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
