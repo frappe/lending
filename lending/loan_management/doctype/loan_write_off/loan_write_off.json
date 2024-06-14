@@ -13,6 +13,7 @@
   "column_break_3",
   "company",
   "posting_date",
+  "is_npa",
   "accounting_dimensions_section",
   "cost_center",
   "section_break_9",
@@ -120,12 +121,20 @@
    "hidden": 1,
    "label": "Loan Product",
    "options": "Loan Product"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan.is_npa",
+   "fieldname": "is_npa",
+   "fieldtype": "Check",
+   "label": "Is NPA",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-10 18:33:28.771547",
+ "modified": "2024-06-14 03:11:25.031163",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Write Off",

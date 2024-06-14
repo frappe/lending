@@ -973,7 +973,9 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		make_suspense_journal_entry(loan, company, loan_product, unbooked_interest, posting_date)
 
 
-def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):
+def make_suspense_journal_entry(
+	loan, company, loan_product, amount, posting_date, is_penal=False, is_npa=0
+):
 	account_details = frappe.get_value(
 		"Loan Product",
 		loan_product,
@@ -995,34 +997,38 @@ def make_suspense_journal_entry(loan, company, loan_product, amount, posting_dat
 			credit_account = account_details.suspense_interest_income
 
 		if amount:
-			jv = frappe.get_doc(
-				{
-					"doctype": "Journal Entry",
-					"voucher_type": "Journal Entry",
-					"posting_date": posting_date,
-					"company": company,
-					"accounts": [
-						{
-							"account": debit_account,
-							"debit_in_account_currency": amount,
-							"debit": amount,
-							"reference_type": "Loan",
-							"reference_name": loan,
-							"cost_center": erpnext.get_default_cost_center(company),
-						},
-						{
-							"account": credit_account,
-							"credit_in_account_currency": amount,
-							"credit": amount,
-							"reference_type": "Loan",
-							"reference_name": loan,
-							"cost_center": erpnext.get_default_cost_center(company),
-						},
-					],
-				}
-			)
+			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-			jv.submit()
+
+def make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account):
+	jv = frappe.get_doc(
+		{
+			"doctype": "Journal Entry",
+			"voucher_type": "Journal Entry",
+			"posting_date": posting_date,
+			"company": company,
+			"accounts": [
+				{
+					"account": debit_account,
+					"debit_in_account_currency": amount,
+					"debit": amount,
+					"reference_type": "Loan",
+					"reference_name": loan,
+					"cost_center": erpnext.get_default_cost_center(company),
+				},
+				{
+					"account": credit_account,
+					"credit_in_account_currency": amount,
+					"credit": amount,
+					"reference_type": "Loan",
+					"reference_name": loan,
+					"cost_center": erpnext.get_default_cost_center(company),
+				},
+			],
+		}
+	)
+
+	jv.submit()
 
 
 def get_unpaid_interest_amount(loan, posting_date, demand_subtype):

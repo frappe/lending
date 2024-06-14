@@ -512,6 +512,7 @@ class LoanRepayment(AccountsController):
 					"Advance Payment",
 					"Pre Payment",
 					"Loan Closure",
+					"Partial Settlement",
 					"Full Settlement",
 					"Write Off Settlement",
 				):

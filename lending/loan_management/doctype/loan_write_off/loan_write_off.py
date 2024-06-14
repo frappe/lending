@@ -66,7 +66,10 @@ class LoanWriteOff(AccountsController):
 		self.close_employee_loan()
 
 	def cancel_suspense_entries(self):
-		cancel_suspense_entries(self.loan, self.loan_product, self.posting_date)
+		if not self.is_npa:
+			cancel_suspense_entries(self.loan, self.loan_product, self.posting_date)
+		else:
+			write_off_suspense_entries(self.loan, self.loan_product, self.posting_date, self.company)
 
 	def on_cancel(self):
 		self.update_outstanding_amount_and_status(cancel=1)
@@ -198,7 +201,57 @@ def make_loan_waivers(loan, posting_date):
 		)
 
 
+def write_off_suspense_entries(loan, loan_product, posting_date, company):
+	from lending.loan_management.doctype.loan.loan import make_journal_entry
+
+	accounts = frappe.db.get_value(
+		"Loan Product",
+		loan_product,
+		[
+			"suspense_interest_income",
+			"penalty_suspense_account",
+			"interest_waiver_account",
+			"penalty_waiver_account",
+		],
+		as_dict=1,
+	)
+
+	amounts = frappe._dict(
+		frappe.db.get_all(
+			"GL Entry",
+			fields=["account", "sum(credit) - sum(debit) as amount"],
+			filters={
+				"against_voucher_type": "Loan",
+				"against_voucher": loan,
+				"account": ("in", [accounts.suspense_interest_income, accounts.penalty_suspense_account]),
+				"is_cancelled": 0,
+			},
+			as_list=1,
+		)
+	)
+
+	if amounts.get(accounts.suspense_interest_income, 0) > 0:
+		amount = amounts.get(accounts.suspense_interest_income)
+		debit_account = accounts.suspense_interest_income
+		credit_account = accounts.interest_waiver_account
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
+		debit_account = accounts.suspense_interest_income
+		credit_account = accounts.interest_waiver_account
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+
 def cancel_suspense_entries(loan, loan_product, posting_date):
+	journal_entries = get_suspense_entries(loan, loan_product)
+
+	for je in journal_entries:
+		je_doc = frappe.get_doc("Journal Entry", je)
+		frappe.form_dict["posting_date"] = posting_date
+		je_doc.cancel()
+
+
+def get_suspense_entries(loan, loan_product):
 	suspense_accounts = frappe.db.get_value(
 		"Loan Product", loan_product, ["suspense_interest_income", "penalty_suspense_account"]
 	)
@@ -214,7 +267,4 @@ def cancel_suspense_entries(loan, loan_product, posting_date):
 		pluck="parent",
 	)
 
-	for je in journal_entries:
-		je_doc = frappe.get_doc("Journal Entry", je)
-		frappe.form_dict["posting_date"] = posting_date
-		je_doc.cancel()
+	return journal_entries
