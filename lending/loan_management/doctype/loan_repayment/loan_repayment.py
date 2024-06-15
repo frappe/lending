@@ -521,6 +521,7 @@ class LoanRepayment(AccountsController):
 					"Partial Settlement",
 					"Full Settlement",
 					"Write Off Settlement",
+					"Subsidy Adjustments",
 				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
