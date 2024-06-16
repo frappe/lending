@@ -121,6 +121,7 @@ class Loan(AccountsController):
 			"Process Loan Interest Accrual",
 			"Loan Transfer",
 		]
+		self.db_set("status", "Cancelled")
 
 	def on_update_after_submit(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
