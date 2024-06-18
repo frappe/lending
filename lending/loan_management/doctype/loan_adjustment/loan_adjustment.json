@@ -10,6 +10,7 @@
   "foreclosure_type",
   "column_break_lgju",
   "posting_date",
+  "payment_account",
   "section_break_eauk",
   "adjustments",
   "amended_from"
@@ -62,12 +63,18 @@
   {
    "fieldname": "section_break_eauk",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "payment_account",
+   "fieldtype": "Link",
+   "label": "Payment Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-11 12:21:28.018803",
+ "modified": "2024-06-18 12:24:59.784876",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",
