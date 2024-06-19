@@ -133,6 +133,9 @@ class LoanRepaymentSchedule(Document):
 			self.repayment_method = "Repay Over Number of Periods"
 			self.repayment_periods = 1
 
+		if self.restructure_type and self.repayment_periods == 1:
+			self.repayment_frequency = "One Time"
+
 	def make_customer_repayment_schedule(self):
 		self.set("repayment_schedule", [])
 
@@ -519,7 +522,7 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_frequency,
 					)
 
-				if self.restructure_type == "Pre Payment":
+				if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":
 					interest_amount = 0
 					principal_amount = 0
 
