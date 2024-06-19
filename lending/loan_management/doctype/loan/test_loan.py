@@ -1176,7 +1176,7 @@ class TestLoan(unittest.TestCase):
 
 	def test_npa_loan(self):
 		loan = create_loan(
-			"_Test Customer 1",
+			"Customer B",
 			"Term Loan Product 4",
 			500000,
 			"Repay Over Number of Periods",
@@ -1194,10 +1194,14 @@ class TestLoan(unittest.TestCase):
 		)
 		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
+		process_loan_interest_accrual_for_loans(posting_date="2024-04-10", loan=loan.name)
+
 		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
-		repayment_entry.submit()
+		create_process_loan_classification(posting_date="2024-11-05", loan=loan.name)
+
+		# repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
+		# repayment_entry.submit()
 
 	def test_npa_for_loc(self):
 		loan = create_loan(
@@ -1223,8 +1227,60 @@ class TestLoan(unittest.TestCase):
 
 		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
-		# repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
-		# repayment_entry.submit()
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
+		repayment_entry.submit()
+
+	def test_shortfall_loan_close_limit(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			2,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 257320.97)
+		repayment_entry.submit()
+
+	def test_excess_loan_close_limit(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			2,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-05-05", 257950.97, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
 
 
 def create_secured_demand_loan(applicant, disbursement_amount=None):
@@ -1299,6 +1355,22 @@ def create_loan_accounts():
 	)
 
 	create_account(
+		"Interest Waiver Account",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
+	)
+
+	create_account(
+		"Penalty Waiver Account",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
+	)
+
+	create_account(
 		"Additional Interest Income Account",
 		"Direct Income - _TC",
 		"Income",
@@ -1339,6 +1411,10 @@ def create_loan_accounts():
 	)
 	create_account(
 		"Suspense Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
+	)
+
+	create_account(
+		"Suspense Penalty Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
 	)
 
 	create_account(

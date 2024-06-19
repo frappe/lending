@@ -115,7 +115,7 @@ class LoanDemand(AccountsController):
 				gl_entries, receivable_account, accrual_account, cancel, party_type, party
 			)
 
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
+		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, cancel, party_type=None, party=None
