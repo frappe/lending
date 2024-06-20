@@ -626,7 +626,6 @@ class LoanRepayment(AccountsController):
 			[
 				"interest_receivable_account",
 				"penalty_receivable_account",
-				"suspense_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
 				"interest_waiver_account",
@@ -946,7 +945,7 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	demand_type, demand_subtype = get_demand_type(payment_type)
 
-	against_loan_doc = frappe.get_doc("Loan", against_loan)
+	against_loan_doc = frappe.get_cached_doc("Loan", against_loan)
 	unpaid_demands = get_unpaid_demands(
 		against_loan_doc.name, posting_date, demand_type=demand_type, demand_subtype=demand_subtype
 	)
@@ -998,6 +997,13 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 		return amounts, against_loan_doc.as_dict()
 	else:
 		return amounts
+
+
+# def get_bulk_due_details(loans, posting_date):
+# 	loan_details = frappe.db.get_all("Loan", fields=["name", "written_off_amount", "status",
+# 		"total_payment", "total_principal_paid", "total_interest_payable", "refund_amount",
+# 		"debit_adjustment_amount", "credit_adjustment_amount", "disbursed_amount"],
+# 		filters={"name": ["in", loans]})
 
 
 @frappe.whitelist()
