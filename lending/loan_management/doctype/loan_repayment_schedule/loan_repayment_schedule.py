@@ -174,9 +174,7 @@ class LoanRepaymentSchedule(Document):
 			interest_share_percentage = 100
 			rate_of_interest = self.loan_partner_rate_of_interest
 		elif loan_partner_details.repayment_schedule_type == "Collection at partner's percentage":
-			partner_loan_amount = (
-				self.current_principal_amount * flt(loan_partner_details.partner_loan_share_percentage) / 100
-			)
+			partner_loan_amount = self.current_principal_amount
 			rate_of_interest = self.rate_of_interest
 			principal_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
 			interest_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)

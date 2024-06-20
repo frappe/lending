@@ -21,10 +21,6 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 	update_shortfall_status,
 )
 
-# from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-# 	create_process_loan_classification,
-# )
-
 
 class LoanRepayment(AccountsController):
 	def before_validate(self):
