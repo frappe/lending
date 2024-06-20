@@ -825,7 +825,12 @@ def create_repayment_entry(
 
 
 def get_unpaid_demands(
-	against_loan, posting_date=None, loan_product=None, demand_type=None, demand_subtype=None, limit=0
+	against_loan,
+	posting_date=None,
+	loan_product=None,
+	demand_type=None,
+	demand_subtype=None,
+	limit=0,
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -833,23 +838,10 @@ def get_unpaid_demands(
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	loan_demand = frappe.qb.DocType("Loan Demand")
+	query = get_demand_query()
+
 	query = (
-		frappe.qb.from_(loan_demand)
-		.select(
-			loan_demand.name,
-			loan_demand.loan,
-			loan_demand.demand_date,
-			loan_demand.sales_invoice,
-			loan_demand.loan_repayment_schedule,
-			loan_demand.loan_disbursement,
-			loan_demand.loan_product,
-			loan_demand.company,
-			loan_demand.loan_partner,
-			(loan_demand.outstanding_amount).as_("outstanding_amount"),
-			loan_demand.demand_subtype,
-			loan_demand.demand_type,
-		)
-		.where(
+		query.where(
 			(loan_demand.loan == against_loan)
 			& (loan_demand.docstatus == 1)
 			& (loan_demand.demand_date <= posting_date)
@@ -882,6 +874,24 @@ def get_unpaid_demands(
 	loan_demands = query.run(as_dict=1)
 
 	return loan_demands
+
+
+def get_demand_query():
+	loan_demand = frappe.qb.DocType("Loan Demand")
+	return frappe.qb.from_(loan_demand).select(
+		loan_demand.name,
+		loan_demand.loan,
+		loan_demand.demand_date,
+		loan_demand.sales_invoice,
+		loan_demand.loan_repayment_schedule,
+		loan_demand.loan_disbursement,
+		loan_demand.loan_product,
+		loan_demand.company,
+		loan_demand.loan_partner,
+		(loan_demand.outstanding_amount).as_("outstanding_amount"),
+		loan_demand.demand_subtype,
+		loan_demand.demand_type,
+	)
 
 
 def get_pending_principal_amount(loan):
@@ -937,12 +947,6 @@ def get_demand_type(payment_type):
 
 
 def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, payment_type=None):
-	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-		calculate_accrual_amount_for_loans,
-		calculate_penal_interest_for_loans,
-	)
-
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	demand_type, demand_subtype = get_demand_type(payment_type)
 
 	against_loan_doc = frappe.get_cached_doc("Loan", against_loan)
@@ -950,14 +954,29 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 		against_loan_doc.name, posting_date, demand_type=demand_type, demand_subtype=demand_subtype
 	)
 
+	amounts = process_amount_for_loan(against_loan_doc, posting_date, unpaid_demands, amounts)
+
+	if with_loan_details:
+		return amounts, against_loan_doc.as_dict()
+	else:
+		return amounts
+
+
+def process_amount_for_loan(loan, posting_date, demands, amounts):
+	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+		calculate_accrual_amount_for_loans,
+		calculate_penal_interest_for_loans,
+	)
+
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	total_pending_interest = 0
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
 
-	last_demand_date = get_last_demand_date(against_loan_doc.name, posting_date)
+	last_demand_date = get_last_demand_date(loan.name, posting_date)
 
-	for demand in unpaid_demands:
+	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
 		elif demand.demand_subtype == "Principal":
@@ -967,17 +986,17 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 		elif demand.demand_type == "Charges":
 			charges += demand.outstanding_amount
 
-	pending_principal_amount = get_pending_principal_amount(against_loan_doc)
+	pending_principal_amount = get_pending_principal_amount(loan)
 
-	unbooked_interest = get_unbooked_interest(against_loan, posting_date)
+	unbooked_interest = get_unbooked_interest(loan.name, posting_date)
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
-			against_loan_doc, posting_date=posting_date, accrual_type="Regular", is_future_accrual=1
+			loan, posting_date=posting_date, accrual_type="Regular", is_future_accrual=1
 		)
 
 		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
-			loan=against_loan_doc, posting_date=posting_date, is_future_accrual=1
+			loan=loan, posting_date=posting_date, is_future_accrual=1
 		)
 
 	amounts["total_charges_payable"] = charges
@@ -989,38 +1008,61 @@ def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, pa
 		payable_principal_amount + total_pending_interest + penalty_amount + charges, precision
 	)
 	amounts["unbooked_interest"] = flt(unbooked_interest, precision)
-	amounts["written_off_amount"] = flt(against_loan_doc.written_off_amount, precision)
-	amounts["unpaid_demands"] = unpaid_demands
+	amounts["written_off_amount"] = flt(loan.written_off_amount, precision)
+	amounts["unpaid_demands"] = demands
 	amounts["due_date"] = last_demand_date
 
-	if with_loan_details:
-		return amounts, against_loan_doc.as_dict()
-	else:
-		return amounts
+	return amounts
 
 
-# def get_bulk_due_details(loans, posting_date):
-# 	loan_details = frappe.db.get_all("Loan", fields=["name", "written_off_amount", "status",
-# 		"total_payment", "total_principal_paid", "total_interest_payable", "refund_amount",
-# 		"debit_adjustment_amount", "credit_adjustment_amount", "disbursed_amount"],
-# 		filters={"name": ["in", loans]})
+@frappe.whitelist()
+def get_bulk_due_details(loans, posting_date):
+	loan_details = frappe.db.get_all(
+		"Loan",
+		fields=[
+			"name",
+			"written_off_amount",
+			"status",
+			"total_payment",
+			"total_principal_paid",
+			"total_interest_payable",
+			"refund_amount",
+			"debit_adjustment_amount",
+			"credit_adjustment_amount",
+			"disbursed_amount",
+		],
+		filters={"name": ("in", loans)},
+	)
+
+	loan_demands = get_all_demands(loans, posting_date)
+	demand_map = {}
+	for loan in loan_demands:
+		demand_map.setdefault(loan.loan, [])
+		demand_map[loan.loan].append(loan)
+
+	due_details = []
+	for loan in loan_details:
+		amounts = init_amounts()
+		demands = demand_map.get(loan.name, [])
+		amounts = process_amount_for_loan(loan, posting_date, demands, amounts)
+		amounts["loan"] = loan.name
+		due_details.append(amounts)
+
+	return due_details
+
+
+def get_all_demands(loans, posting_date):
+	loan_demand = frappe.qb.DocType("Loan Demand")
+
+	query = get_demand_query()
+	query = query.where(loan_demand.loan.isin(loans)).where(loan_demand.demand_date <= posting_date)
+
+	return query.run(as_dict=1)
 
 
 @frappe.whitelist()
 def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_details=False):
-	amounts = {
-		"penalty_amount": 0.0,
-		"interest_amount": 0.0,
-		"pending_principal_amount": 0.0,
-		"payable_principal_amount": 0.0,
-		"payable_amount": 0.0,
-		"unaccrued_interest": 0.0,
-		"unbooked_interest": 0.0,
-		"unbooked_penalty": 0.0,
-		"due_date": "",
-		"total_charges_payable": 0.0,
-		"available_security_deposit": 0.0,
-	}
+	amounts = init_amounts()
 
 	if with_loan_details:
 		amounts, loan_details = get_amounts(
@@ -1047,6 +1089,22 @@ def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_det
 		return {"amounts": amounts, "loan_details": loan_details}
 	else:
 		return amounts
+
+
+def init_amounts():
+	return {
+		"penalty_amount": 0.0,
+		"interest_amount": 0.0,
+		"pending_principal_amount": 0.0,
+		"payable_principal_amount": 0.0,
+		"payable_amount": 0.0,
+		"unaccrued_interest": 0.0,
+		"unbooked_interest": 0.0,
+		"unbooked_penalty": 0.0,
+		"due_date": "",
+		"total_charges_payable": 0.0,
+		"available_security_deposit": 0.0,
+	}
 
 
 def update_installment_counts(against_loan):
