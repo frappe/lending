@@ -674,7 +674,11 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	posting_date=None, loan_product=None, loan_name=None, process_loan_classification=None
+	posting_date=None,
+	loan_product=None,
+	loan_name=None,
+	process_loan_classification=None,
+	ignore_freeze=False,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -699,14 +703,16 @@ def update_days_past_due_in_loans(
 	applicant = loan_details.get("applicant")
 	freeze_date = loan_details.get("freeze_date")
 
-	if freeze_date and getdate(freeze_date) < getdate(posting_date):
+	if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
 		return
 
 	if demand:
 		demand = demand[0]
 		is_npa = 0
 		fldg_triggered = 0
-		days_past_due = date_diff(getdate(posting_date), getdate(demand.demand_date))
+
+		dpd_date = freeze_date or posting_date
+		days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date))
 		if days_past_due < 0:
 			days_past_due = 0
 

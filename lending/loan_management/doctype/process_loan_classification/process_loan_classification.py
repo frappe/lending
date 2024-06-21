@@ -15,6 +15,7 @@ class ProcessLoanClassification(Document):
 			loan_product=self.loan_product,
 			loan_name=self.loan,
 			process_loan_classification=self.name,
+			ignore_freeze=True if self.payment_reference else False,
 		)
 
 
