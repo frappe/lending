@@ -1021,6 +1021,9 @@ def get_bulk_due_details(loans, posting_date):
 		"Loan",
 		fields=[
 			"name",
+			"company",
+			"rate_of_interest",
+			"is_term_loan",
 			"written_off_amount",
 			"status",
 			"total_payment",
