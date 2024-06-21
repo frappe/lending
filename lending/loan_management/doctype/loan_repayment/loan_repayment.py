@@ -630,6 +630,7 @@ class LoanRepayment(AccountsController):
 				"interest_income_account",
 				"interest_waiver_account",
 				"write_off_recovery_account",
+				"customer_refund_account",
 			],
 			as_dict=1,
 		)
@@ -651,7 +652,11 @@ class LoanRepayment(AccountsController):
 			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
 
 		if flt(self.excess_amount):
-			against_account = account_details.interest_waiver_account
+			if self.auto_close_loan():
+				against_account = account_details.interest_waiver_account
+			else:
+				against_account = account_details.customer_refund_account
+
 			self.add_gl_entry(payment_account, against_account, self.excess_amount, gle_map)
 
 		for repayment in self.get("repayment_details"):

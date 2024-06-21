@@ -34,6 +34,7 @@
   "loan_account",
   "security_deposit_account",
   "suspense_collection_account",
+  "customer_refund_account",
   "interest_accounts_section",
   "interest_income_account",
   "interest_accrued_account",
@@ -432,11 +433,17 @@
    "fieldname": "excess_amount_acceptance_limit",
    "fieldtype": "Float",
    "label": "Excess Amount Acceptance Limit"
+  },
+  {
+   "fieldname": "customer_refund_account",
+   "fieldtype": "Link",
+   "label": "Customer Refund Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-30 15:22:00.998150",
+ "modified": "2024-06-21 13:57:19.263052",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
