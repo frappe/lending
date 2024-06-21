@@ -629,12 +629,17 @@ class LoanRepayment(AccountsController):
 				"suspense_interest_income",
 				"interest_income_account",
 				"interest_waiver_account",
+				"write_off_recovery_account",
 			],
 			as_dict=1,
 		)
 
 		if flt(self.principal_amount_paid, precision) > 0:
-			against_account = self.loan_account
+			if self.repayment_type == "Write Off Recovery":
+				against_account = account_details.write_off_recovery_account
+			else:
+				against_account = self.loan_account
+
 			self.add_gl_entry(payment_account, against_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
@@ -731,7 +736,6 @@ class LoanRepayment(AccountsController):
 			"Penalty Waiver": "penalty_waiver_account",
 			"Principal Capitalization": "loan_account",
 			"Loan Closure": "payment_account",
-			"Write Off Recovery": "write_off_recovery_account",
 			"Principal Adjustment": "loan_account",
 			"Interest Adjustment": "security_deposit_account",
 			"Interest Carry Forward": "interest_income_account",
@@ -742,7 +746,12 @@ class LoanRepayment(AccountsController):
 			"Partial Settlement": "payment_account",
 		}
 
-		if self.repayment_type in ("Normal Repayment", "Pre Payment", "Advance Payment"):
+		if self.repayment_type in (
+			"Normal Repayment",
+			"Pre Payment",
+			"Advance Payment",
+			"Write Off Recovery",
+		):
 			if hasattr(self, "repay_from_salary") and self.repay_from_salary:
 				payment_account = self.payroll_payable_account
 			else:
