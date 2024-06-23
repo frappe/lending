@@ -179,7 +179,9 @@ class LoanRepaymentSchedule(Document):
 			principal_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
 			interest_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
 		else:
-			partner_loan_amount = self.current_principal_amount
+			partner_loan_amount = (
+				self.current_principal_amount * flt(loan_partner_details.partner_loan_share_percentage) / 100
+			)
 			rate_of_interest = self.loan_partner_rate_of_interest
 			principal_share_percentage = flt(loan_partner_details.partner_loan_share_percentage)
 			interest_share_percentage = 100
@@ -193,6 +195,7 @@ class LoanRepaymentSchedule(Document):
 			rate_of_interest,
 			principal_share_percentage,
 			interest_share_percentage,
+			loan_partner_details.repayment_schedule_type,
 		)
 
 	def make_repayment_schedule(
@@ -205,10 +208,12 @@ class LoanRepaymentSchedule(Document):
 		rate_of_interest,
 		principal_share_percentage,
 		interest_share_percentage,
+		partner_schedule_type=None,
 	):
 		payment_date = self.repayment_start_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
+		row = 0
 
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
@@ -244,6 +249,8 @@ class LoanRepaymentSchedule(Document):
 						)
 						moratorium_interest = 0
 
+			prev_balance_amount = balance_amount
+
 			payment_days, months = self.get_days_and_months(
 				payment_date,
 				additional_days,
@@ -272,6 +279,14 @@ class LoanRepaymentSchedule(Document):
 				additional_principal_amount,
 				pending_prev_days,
 			)
+
+			if (
+				schedule_field == "colender_schedule"
+				and partner_schedule_type == "POS reduction plus interest at partner ROI"
+			):
+				principal_amount = self.get("repayment_schedule")[row].principal_amount
+				balance_amount = prev_balance_amount - (principal_amount * principal_share_percentage / 100)
+				row = row + 1
 
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				if getdate(payment_date) <= getdate(self.moratorium_end_date):
