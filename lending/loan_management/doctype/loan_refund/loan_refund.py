@@ -19,7 +19,7 @@ class LoanRefund(AccountsController):
 
 	def validate(self):
 		self.set_missing_values()
-		self.validate_refund_amount()
+		# self.validate_refund_amount()
 
 	def set_missing_values(self):
 		if not self.cost_center:
