@@ -197,7 +197,6 @@ class LoanRepayment(AccountsController):
 		)
 
 	def on_cancel(self):
-		self.validate_net_paid_amount()
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -227,11 +226,6 @@ class LoanRepayment(AccountsController):
 		]
 		self.make_gl_entries(cancel=1)
 		update_installment_counts(self.against_loan)
-
-	def validate_net_paid_amount(self):
-		net_paid_amount = get_net_paid_amount(self.against_loan)
-		if net_paid_amount - self.amount_paid < 0:
-			frappe.throw("Reversal amount is more than the net paid amount")
 
 	def cancel_charge_demands(self):
 		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
@@ -331,34 +325,24 @@ class LoanRepayment(AccountsController):
 				)
 
 	def update_paid_amounts(self):
-		if self.repayment_type in (
-			"Normal Repayment",
-			"Pre Payment",
-			"Advance Payment",
-			"Loan Closure",
-			"Full Settlement",
-			"Write Off Recovery",
-			"Partial Settlement",
-			"Write Off Settlement",
-		):
-			loan = frappe.qb.DocType("Loan")
-			query = (
-				frappe.qb.update(loan)
-				.set(loan.total_amount_paid, loan.total_amount_paid + self.amount_paid)
-				.set(loan.total_principal_paid, loan.total_principal_paid + self.principal_amount_paid)
-				.where(loan.name == self.against_loan)
-			)
+		loan = frappe.qb.DocType("Loan")
+		query = (
+			frappe.qb.update(loan)
+			.set(loan.total_amount_paid, loan.total_amount_paid + self.amount_paid)
+			.set(loan.total_principal_paid, loan.total_principal_paid + self.principal_amount_paid)
+			.where(loan.name == self.against_loan)
+		)
 
-			is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
+		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
-			if not is_secured_loan and self.auto_close_loan():
-				query = query.set(loan.status, "Closed")
+		if not is_secured_loan and self.auto_close_loan():
+			query = query.set(loan.status, "Closed")
 
-			if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
-				query = query.set(loan.status, "Settled")
+		if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
+			query = query.set(loan.status, "Settled")
 
-			query.run()
-			update_shortfall_status(self.against_loan, self.principal_amount_paid)
+		query.run()
+		update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def auto_close_loan(self):
 		auto_close = False
