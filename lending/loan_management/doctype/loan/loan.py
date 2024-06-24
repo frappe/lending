@@ -147,6 +147,10 @@ class Loan(AccountsController):
 			if self.manual_npa:
 				move_unpaid_interest_to_suspense_ledger(self.name)
 
+		if self.has_value_changed("unmark_npa"):
+			if self.unmark_npa:
+				frappe.db.set_value("Loan", self.name, "is_npa", 0)
+
 		if self.has_value_changed("freeze_account") and self.freeze_account:
 			create_loan_feeze_log(self.name, self.freeze_date, self.get("freeze_reason"))
 			reverse_demands(self.name, self.freeze_date)
@@ -809,7 +813,9 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_classifica
 def update_loan_and_customer_status(
 	loan, company, applicant_type, applicant, days_past_due, is_npa, fldg_triggered, posting_date
 ):
-	from lending.loan_management.doctype.loan_write_off.loan_write_off import cancel_suspense_entries
+	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+		write_off_suspense_entries,
+	)
 
 	classification_code, classification_name = get_classification_code_and_name(
 		days_past_due, company
@@ -855,7 +861,7 @@ def update_loan_and_customer_status(
 				is_npa, applicant_type, applicant, posting_date, loan
 			)
 			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-			cancel_suspense_entries(loan, loan_product, posting_date)
+			write_off_suspense_entries(loan, loan_product, posting_date, company)
 
 
 def update_all_linked_loan_customer_npa_status(
@@ -875,6 +881,7 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 		.set(_loan.is_npa, is_npa)
 		.where(
 			(_loan.docstatus == 1)
+			& (_loan.unmark_npa == 0)
 			& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (_loan.applicant_type == applicant_type)
 			& (_loan.applicant == applicant)

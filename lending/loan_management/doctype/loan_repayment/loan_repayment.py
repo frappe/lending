@@ -65,6 +65,9 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
 		)
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+			write_off_suspense_entries,
+		)
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
 		)
@@ -127,6 +130,16 @@ class LoanRepayment(AccountsController):
 		if not self.is_term_loan:
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
+			)
+
+		if self.is_npa:
+			write_off_suspense_entries(
+				self.against_loan,
+				self.loan_product,
+				self.posting_date,
+				self.company,
+				interest_amount=self.total_interest_paid,
+				penalty_amount=self.total_penalty_paid,
 			)
 
 	def process_reschedule(self):
