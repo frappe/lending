@@ -407,7 +407,7 @@ def calculate_penal_interest_for_loans(
 					if demand.demand_subtype == "Interest":
 						day_end_balance = get_pending_principal_amount(loan)
 						schedule_balance = get_principal_amount_for_term_loan(
-							demand.loan_repayment_schedule, demand.demand_date
+							demand.loan_repayment_schedule, posting_date
 						)
 
 						pending_principal_amount = flt(day_end_balance) - flt(schedule_balance)
@@ -415,7 +415,6 @@ def calculate_penal_interest_for_loans(
 						per_day_interest = get_per_day_interest(
 							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
 						)
-
 						additional_interest = flt(per_day_interest * no_of_days, precision)
 
 					if not is_future_accrual:
