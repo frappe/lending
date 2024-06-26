@@ -178,15 +178,17 @@ def make_loan_demand_for_term_loans(
 	loan_repayment_schedules = frappe.db.get_all(
 		"Loan Repayment Schedule",
 		filters={"docstatus": 1, "status": "Active", "loan": ("in", open_loans)},
-		fields=["name", "loan", "loan_disbursement"],
+		fields=["name", "loan", "loan_disbursement", "repayment_start_date"],
 	)
 
 	loan_repayment_schedule_map = frappe._dict()
 	disbursement_map = frappe._dict()
+	start_date_map = frappe._dict()
 
 	for schedule in loan_repayment_schedules:
 		loan_repayment_schedule_map[schedule.name] = schedule.loan
 		disbursement_map[schedule.name] = schedule.loan_disbursement
+		start_date_map[schedule.name] = schedule.repayment_start_date
 
 	repayment_schedules = loan_repayment_schedule_map.keys()
 
@@ -207,7 +209,9 @@ def make_loan_demand_for_term_loans(
 
 		paid_amount = 0
 
-		if not row.principal_amount:
+		if not row.principal_amount and getdate(row.payment_date) < getdate(
+			start_date_map.get(row.parent)
+		):
 			demand_type = "BPI"
 			paid_amount = row.interest_amount
 		else:

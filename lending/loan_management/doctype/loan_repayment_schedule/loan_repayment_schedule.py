@@ -616,37 +616,37 @@ class LoanRepaymentSchedule(Document):
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
-			if self.repayment_schedule_type == "Monthly as per repayment start date":
-				days = 1
-				months = 12
+			expected_payment_date = get_last_day(payment_date)
+			if self.repayment_date_on == "Start of the next month":
+				expected_payment_date = add_days(expected_payment_date, 1)
+
+			if self.repayment_schedule_type in (
+				"Monthly as per cycle date",
+				"Line of Credit",
+				"Monthly as per repayment start date",
+			):
+				days = date_diff(payment_date, add_months(payment_date, -1))
+				if additional_days < 0 or (additional_days > 0 and self.moratorium_tenure):
+					days = date_diff(payment_date, self.posting_date)
+					additional_days = 0
+
+				if additional_days and not self.moratorium_tenure and not self.restructure_type:
+					self.add_broken_period_interest(
+						balance_amount,
+						rate_of_interest,
+						additional_days,
+						payment_date,
+						schedule_field,
+						principal_share_percentage=principal_share_percentage,
+						interest_share_percentage=interest_share_percentage,
+					)
+					additional_days = 0
+
+			elif expected_payment_date == payment_date:
+				# using 30 days for calculating interest for all full months
+				days = 30
 			else:
-				expected_payment_date = get_last_day(payment_date)
-				if self.repayment_date_on == "Start of the next month":
-					expected_payment_date = add_days(expected_payment_date, 1)
-
-				if self.repayment_schedule_type in ("Monthly as per cycle date", "Line of Credit"):
-					days = date_diff(payment_date, add_months(payment_date, -1))
-					if additional_days < 0 or (additional_days > 0 and self.moratorium_tenure):
-						days = date_diff(payment_date, self.posting_date)
-						additional_days = 0
-
-					if additional_days and not self.moratorium_tenure and not self.restructure_type:
-						self.add_broken_period_interest(
-							balance_amount,
-							rate_of_interest,
-							additional_days,
-							payment_date,
-							schedule_field,
-							principal_share_percentage=principal_share_percentage,
-							interest_share_percentage=interest_share_percentage,
-						)
-						additional_days = 0
-
-				elif expected_payment_date == payment_date:
-					# using 30 days for calculating interest for all full months
-					days = 30
-				else:
-					days = date_diff(get_last_day(payment_date), payment_date)
+				days = date_diff(get_last_day(payment_date), payment_date)
 		else:
 			if payment_date == self.repayment_start_date:
 				days = date_diff(payment_date, self.posting_date)
