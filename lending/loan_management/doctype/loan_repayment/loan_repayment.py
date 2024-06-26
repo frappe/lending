@@ -33,6 +33,7 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
+		self.validate_repayment_type()
 		self.validate_amount(amounts["payable_amount"])
 		self.allocate_amount_against_demands(amounts)
 
@@ -299,6 +300,15 @@ class LoanRepayment(AccountsController):
 
 			if flt(self.amount_paid) > flt(available_deposit):
 				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
+
+	def validate_repayment_type(self):
+		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
+		if loan_status == "Written Off":
+			if self.repayment_type not in ("Write Off Recovery", "Write Off Settlement"):
+				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
+		else:
+			if self.repay_type in ("Write Off Recovery", "Write Off Settlement"):
+				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
 	def validate_amount(self, payable_amount):
 		if not self.amount_paid:
@@ -633,7 +643,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		if flt(self.principal_amount_paid, precision) > 0:
-			if self.repayment_type == "Write Off Recovery":
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
 				against_account = self.loan_account
