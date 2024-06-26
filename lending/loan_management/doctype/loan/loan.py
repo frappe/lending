@@ -678,9 +678,9 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
+	loan_name,
 	posting_date=None,
 	loan_product=None,
-	loan_name=None,
 	process_loan_classification=None,
 	ignore_freeze=False,
 ):
@@ -696,8 +696,6 @@ def update_days_past_due_in_loans(
 	threshold_map = get_dpd_threshold_map()
 	threshold_write_off_map = get_dpd_threshold_write_off_map()
 	loan_partner_threshold_map = get_loan_partner_threshold_map()
-
-	checked_loans = []
 
 	loan_details = frappe.db.get_value(
 		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date"], as_dict=1
@@ -748,29 +746,6 @@ def update_days_past_due_in_loans(
 		if write_off_threshold and days_past_due > write_off_threshold:
 			create_loan_write_off(demand.loan, posting_date)
 
-		checked_loans.append(demand.loan)
-
-	open_loans_with_no_overdue = []
-	if loan_name and not demand:
-		open_loans_with_no_overdue = [
-			frappe.db.get_value(
-				"Loan", loan_name, ["name", "company", "applicant_type", "applicant"], as_dict=1
-			)
-		]
-	elif not loan_name:
-		open_loans_with_no_overdue = frappe.db.get_all(
-			"Loan",
-			{"status": "Disbursed", "docstatus": 1, "name": ("not in", checked_loans)},
-			["name", "company", "applicant_type", "applicant"],
-		)
-
-	for d in open_loans_with_no_overdue:
-		update_loan_and_customer_status(
-			d.name, d.company, d.applicant_type, d.applicant, 0, 0, 0, posting_date or getdate()
-		)
-
-		create_dpd_record(d.name, posting_date, 0, process_loan_classification)
-
 
 def create_loan_write_off(loan, posting_date):
 	if frappe.db.get_value("Loan", loan, "status") != "Written Off":
@@ -780,22 +755,22 @@ def create_loan_write_off(loan, posting_date):
 		loan_write_off.submit()
 
 
-def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
-	pac = frappe.db.get_value(
-		"Process Loan Classification",
-		{"payment_reference": repayment_reference},
-		"previous_process",
-	)
-	for d in frappe.db.get_all(
-		"Days Past Due Log",
-		filters={
-			"process_loan_classification": pac,
-			"applicant_type": applicant_type,
-			"applicant": applicant,
-		},
-		fields=["loan", "days_past_due"],
-	):
-		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
+# def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
+# 	pac = frappe.db.get_value(
+# 		"Process Loan Classification",
+# 		{"payment_reference": repayment_reference},
+# 		"previous_process",
+# 	)
+# 	for d in frappe.db.get_all(
+# 		"Days Past Due Log",
+# 		filters={
+# 			"process_loan_classification": pac,
+# 			"applicant_type": applicant_type,
+# 			"applicant": applicant,
+# 		},
+# 		fields=["loan", "days_past_due"],
+# 	):
+# 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
 
 
 def create_dpd_record(loan, posting_date, days_past_due, process_loan_classification=None):
@@ -1102,32 +1077,33 @@ def make_fldg_invocation_jv(loan, posting_date):
 	if not partner_details.fldg_account:
 		frappe.throw(_("Please add partner FLGD Account for Loan Partner {0}").format(loan_partner))
 
-	journal_entry = frappe.new_doc("Journal Entry")
-	journal_entry.posting_date = posting_date
+	if limit_amount:
+		journal_entry = frappe.new_doc("Journal Entry")
+		journal_entry.posting_date = posting_date
 
-	journal_entry.append(
-		"accounts",
-		{
-			"account": partner_details.payable_account,
-			"credit_in_account_currency": limit_amount,
-			"credit": limit_amount,
-			"reference_type": "Loan",
-			"reference_name": loan,
-		},
-	)
+		journal_entry.append(
+			"accounts",
+			{
+				"account": partner_details.payable_account,
+				"credit_in_account_currency": limit_amount,
+				"credit": limit_amount,
+				"reference_type": "Loan",
+				"reference_name": loan,
+			},
+		)
 
-	journal_entry.append(
-		"accounts",
-		{
-			"account": partner_details.fldg_account,
-			"debit_in_account_currency": limit_amount,
-			"debit": limit_amount,
-			"reference_type": "Loan",
-			"reference_name": loan,
-		},
-	)
+		journal_entry.append(
+			"accounts",
+			{
+				"account": partner_details.fldg_account,
+				"debit_in_account_currency": limit_amount,
+				"debit": limit_amount,
+				"reference_type": "Loan",
+				"reference_name": loan,
+			},
+		)
 
-	journal_entry.submit()
+		journal_entry.submit()
 
 
 @frappe.whitelist()
