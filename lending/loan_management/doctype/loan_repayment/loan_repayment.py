@@ -306,7 +306,7 @@ class LoanRepayment(AccountsController):
 		if loan_status == "Written Off":
 			if self.repayment_type not in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
-		else:
+		elif not self.is_write_off_waiver:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
