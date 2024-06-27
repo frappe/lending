@@ -628,8 +628,10 @@ class LoanRepaymentSchedule(Document):
 				"Monthly as per repayment start date",
 			):
 				days = date_diff(payment_date, add_months(payment_date, -1))
-				if additional_days < 0 or (
-					additional_days > 0 and self.moratorium_tenure and not self.restructure_type
+				if (
+					additional_days < 0
+					or (additional_days > 0 and self.moratorium_tenure and not self.restructure_type)
+					or self.restructure_type == "Normal Restructure"
 				):
 					days = date_diff(payment_date, self.posting_date)
 					additional_days = 0
