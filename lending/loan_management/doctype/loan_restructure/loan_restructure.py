@@ -33,7 +33,6 @@ class LoanRestructure(AccountsController):
 		self.set_missing_values()
 		self.validate_repayment_start_date()
 		self.calculate_new_loan_amount()
-		self.add_restructure_charges()
 		self.update_restructured_loan_details()
 		if not self.is_new():
 			self.make_update_draft_loan_repayment_schedule()
@@ -148,23 +147,6 @@ class LoanRestructure(AccountsController):
 		)
 
 		return self.completed_tenure
-
-	def add_restructure_charges(self):
-		self.restructure_charges = 0
-
-		for charge in frappe.get_all(
-			"Loan Charges",
-			filters={"parent": self.loan_product, "event": "Restructure"},
-			fields=["charge_type", "charge_based_on", "amount", "percentage"],
-		):
-			if charge.charge_based_on == "Percentage":
-				amount = flt(self.new_loan_amount) * flt(charge.percentage) / 100
-			else:
-				amount = flt(charge.amount)
-
-			self.restructure_charges += amount
-
-		self.restructure_charges = flt(self.restructure_charges, 2)
 
 	def calculate_new_loan_amount(self):
 		self.new_loan_amount = flt(self.pending_principal_amount) - flt(self.principal_adjusted)
