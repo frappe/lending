@@ -294,7 +294,9 @@ class LoanRepaymentSchedule(Document):
 				balance_amount = prev_balance_amount - (principal_amount * principal_share_percentage / 100)
 				row = row + 1
 
-			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
+			if (
+				self.moratorium_tenure and self.repayment_frequency == "Monthly" and not self.restructure_type
+			):
 				if getdate(payment_date) <= getdate(self.moratorium_end_date):
 					principal_amount = 0
 					balance_amount = self.loan_amount
@@ -626,7 +628,9 @@ class LoanRepaymentSchedule(Document):
 				"Monthly as per repayment start date",
 			):
 				days = date_diff(payment_date, add_months(payment_date, -1))
-				if additional_days < 0 or (additional_days > 0 and self.moratorium_tenure):
+				if additional_days < 0 or (
+					additional_days > 0 and self.moratorium_tenure and not self.restructure_type
+				):
 					days = date_diff(payment_date, self.posting_date)
 					additional_days = 0
 
