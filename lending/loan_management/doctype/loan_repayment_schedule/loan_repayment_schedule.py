@@ -229,7 +229,7 @@ class LoanRepaymentSchedule(Document):
 		):
 			payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
 			self.moratorium_end_date = add_months(self.repayment_start_date, -1)
-		else:
+		elif self.moratorium_tenure and self.repayment_frequency == "Monthly":
 			self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
 
 		tenure = self.get_applicable_tenure(payment_date)
