@@ -59,11 +59,11 @@ class LoanWriteOff(AccountsController):
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
-		self.update_outstanding_amount_and_status()
 		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
 		self.close_employee_loan()
+		self.update_outstanding_amount_and_status()
 
 	def cancel_suspense_entries(self):
 		write_off_suspense_entries(
@@ -71,10 +71,10 @@ class LoanWriteOff(AccountsController):
 		)
 
 	def on_cancel(self):
-		self.update_outstanding_amount_and_status(cancel=1)
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		self.make_gl_entries(cancel=1)
 		self.close_employee_loan(cancel=1)
+		self.update_outstanding_amount_and_status(cancel=1)
 
 	def update_outstanding_amount_and_status(self, cancel=0):
 		written_off_amount = frappe.db.get_value("Loan", self.loan, "written_off_amount")
