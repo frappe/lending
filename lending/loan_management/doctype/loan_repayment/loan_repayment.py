@@ -658,7 +658,7 @@ class LoanRepayment(AccountsController):
 			against_account = account_details.penalty_receivable_account
 			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
 
-		if flt(self.excess_amount):
+		if flt(self.excess_amount, precision):
 			if self.auto_close_loan():
 				against_account = account_details.interest_waiver_account
 			else:
