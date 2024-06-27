@@ -698,11 +698,12 @@ def update_days_past_due_in_loans(
 	loan_partner_threshold_map = get_loan_partner_threshold_map()
 
 	loan_details = frappe.db.get_value(
-		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date"], as_dict=1
+		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
 	)
 
 	applicant_type = loan_details.get("applicant_type")
 	applicant = loan_details.get("applicant")
+	company = loan_details.get("company")
 	freeze_date = loan_details.get("freeze_date")
 
 	if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -745,6 +746,19 @@ def update_days_past_due_in_loans(
 
 		if write_off_threshold and days_past_due > write_off_threshold:
 			create_loan_write_off(demand.loan, posting_date)
+	else:
+		# if no demand found, set DPD as 0
+		update_loan_and_customer_status(
+			loan_name,
+			company,
+			applicant_type,
+			applicant,
+			0,
+			0,
+			0,
+			posting_date or getdate(),
+		)
+		create_dpd_record(loan_name, posting_date, 0, process_loan_classification)
 
 
 def create_loan_write_off(loan, posting_date):
