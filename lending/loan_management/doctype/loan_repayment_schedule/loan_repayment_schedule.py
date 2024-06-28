@@ -286,7 +286,6 @@ class LoanRepaymentSchedule(Document):
 				pending_prev_days,
 			)
 
-			print(principal_amount, "###########")
 			if (
 				schedule_field == "colender_schedule"
 				and partner_schedule_type == "POS reduction plus interest at partner ROI"
@@ -298,7 +297,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				self.moratorium_tenure and self.repayment_frequency == "Monthly" and not self.restructure_type
 			):
-				if getdate(payment_date) <= getdate(self.moratorium_end_date):
+				if getdate(payment_date) < getdate(self.moratorium_end_date):
 					principal_amount = 0
 					balance_amount = self.loan_amount
 					moratorium_interest += interest_amount
