@@ -286,6 +286,7 @@ class LoanRepaymentSchedule(Document):
 				pending_prev_days,
 			)
 
+			print(principal_amount, "###########")
 			if (
 				schedule_field == "colender_schedule"
 				and partner_schedule_type == "POS reduction plus interest at partner ROI"
@@ -631,7 +632,7 @@ class LoanRepaymentSchedule(Document):
 				if (
 					additional_days < 0
 					or (additional_days > 0 and self.moratorium_tenure and not self.restructure_type)
-					or self.restructure_type == "Normal Restructure"
+					or (additional_days > 0 and self.restructure_type == "Normal Restructure")
 				):
 					days = date_diff(payment_date, self.posting_date)
 					additional_days = 0
