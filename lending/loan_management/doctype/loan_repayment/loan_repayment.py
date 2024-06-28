@@ -682,7 +682,7 @@ class LoanRepayment(AccountsController):
 				)
 
 		if gle_map:
-			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 	def add_gl_entry(
 		self,
