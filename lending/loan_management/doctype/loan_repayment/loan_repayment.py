@@ -960,12 +960,6 @@ def get_demand_type(payment_type):
 		demand_subtype = "Penalty"
 	elif payment_type == "Charges Waiver":
 		demand_type = "Charges"
-	elif payment_type == "Full Settlement":
-		demand_type = "EMI"
-		demand_subtype = "Principal"
-	elif payment_type == "Partial Settlement":
-		demand_type = "EMI"
-		demand_subtype = "Principal"
 
 	return demand_type, demand_subtype
 
