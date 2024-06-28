@@ -120,6 +120,7 @@ class Loan(AccountsController):
 			"Journal Entry",
 			"Process Loan Interest Accrual",
 			"Loan Transfer",
+			"Loan Demand",
 		]
 		self.db_set("status", "Cancelled")
 
