@@ -851,7 +851,7 @@ def update_loan_and_customer_status(
 				is_npa, applicant_type, applicant, posting_date, loan
 			)
 			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-			write_off_suspense_entries(loan, loan_product, posting_date, company)
+			write_off_suspense_entries(loan, loan_product, posting_date, company, is_npa=0)
 
 
 def update_all_linked_loan_customer_npa_status(

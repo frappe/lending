@@ -115,6 +115,17 @@ class LoanRepayment(AccountsController):
 		self.make_credit_note_for_charge_waivers()
 		self.make_gl_entries()
 
+		if self.is_npa:
+			write_off_suspense_entries(
+				self.against_loan,
+				self.loan_product,
+				self.posting_date,
+				self.company,
+				is_npa=self.is_npa,
+				interest_amount=self.total_interest_paid,
+				penalty_amount=self.total_penalty_paid,
+			)
+
 		if self.is_term_loan:
 			reverse_loan_interest_accruals(
 				self.against_loan, self.posting_date, interest_type="Penal Interest"
@@ -131,16 +142,6 @@ class LoanRepayment(AccountsController):
 		if not self.is_term_loan:
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
-			)
-
-		if self.is_npa:
-			write_off_suspense_entries(
-				self.against_loan,
-				self.loan_product,
-				self.posting_date,
-				self.company,
-				interest_amount=self.total_interest_paid,
-				penalty_amount=self.total_penalty_paid,
 			)
 
 	def process_reschedule(self):

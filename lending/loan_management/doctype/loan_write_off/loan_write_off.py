@@ -67,7 +67,7 @@ class LoanWriteOff(AccountsController):
 
 	def cancel_suspense_entries(self):
 		write_off_suspense_entries(
-			self.loan, self.loan_product, self.posting_date, self.company, is_npa=self.is_npa
+			self.loan, self.loan_product, self.posting_date, self.company, is_write_off=self.is_npa
 		)
 
 	def on_cancel(self):
@@ -201,7 +201,14 @@ def make_loan_waivers(loan, posting_date):
 
 
 def write_off_suspense_entries(
-	loan, loan_product, posting_date, company, is_npa=0, interest_amount=0, penalty_amount=0
+	loan,
+	loan_product,
+	posting_date,
+	company,
+	is_write_off=0,
+	is_npa=0,
+	interest_amount=0,
+	penalty_amount=0,
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
@@ -234,16 +241,20 @@ def write_off_suspense_entries(
 		)
 	)
 
-	if amounts.get(accounts.suspense_interest_income, 0) > 0 or interest_amount > 0:
+	if (amounts.get(accounts.suspense_interest_income, 0) > 0 and not is_npa) or interest_amount > 0:
 		amount = interest_amount or amounts.get(accounts.suspense_interest_income)
 		debit_account = accounts.suspense_interest_income
-		credit_account = accounts.interest_waiver_account if is_npa else accounts.interest_income_account
+		credit_account = (
+			accounts.interest_waiver_account if is_write_off else accounts.interest_income_account
+		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if amounts.get(accounts.penalty_suspense_account, 0) > 0 or penalty_amount > 0:
+	if (amounts.get(accounts.penalty_suspense_account, 0) > 0 and not is_npa) or penalty_amount > 0:
 		amount = penalty_amount or amounts.get(accounts.penalty_suspense_account)
-		debit_account = accounts.suspense_interest_income
-		credit_account = accounts.penalty_waiver_account if is_npa else accounts.penalty_income_account
+		debit_account = accounts.penalty_suspense_account
+		credit_account = (
+			accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
+		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 

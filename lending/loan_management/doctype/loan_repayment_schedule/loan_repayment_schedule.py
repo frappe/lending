@@ -233,7 +233,6 @@ class LoanRepaymentSchedule(Document):
 			self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
 
 		tenure = self.get_applicable_tenure(payment_date)
-		print(tenure, "#################")
 		additional_days = cint(self.broken_period_interest_days)
 
 		if len(self.get(schedule_field)) > 0:
