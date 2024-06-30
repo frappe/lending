@@ -463,6 +463,7 @@ class LoanRepayment(AccountsController):
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
 		if not on_submit:
 			self.set("repayment_details", [])
@@ -480,9 +481,13 @@ class LoanRepayment(AccountsController):
 
 		amount_paid = self.amount_paid
 
-		if self.manual_npa:
+		if self.is_npa:
 			allocation_order = frappe.db.get_value(
 				"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
+			)
+		elif loan_status == "Written Off":
+			allocation_order = frappe.db.get_value(
+				"Company", self.company, "collection_offset_sequence_for_written_off_asset"
 			)
 		else:
 			allocation_order = frappe.db.get_value(

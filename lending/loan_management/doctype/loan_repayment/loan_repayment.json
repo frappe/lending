@@ -24,7 +24,6 @@
   "mode_of_payment",
   "is_term_loan",
   "is_npa",
-  "manual_npa",
   "is_write_off_waiver",
   "payment_details_section",
   "due_date",
@@ -310,7 +309,8 @@
    "fetch_from": "against_loan.is_npa",
    "fieldname": "is_npa",
    "fieldtype": "Check",
-   "label": "Is NPA"
+   "label": "Is NPA",
+   "read_only": 1
   },
   {
    "fetch_from": "against_loan.days_past_due",
@@ -322,13 +322,6 @@
   {
    "fieldname": "section_break_55wc",
    "fieldtype": "Section Break"
-  },
-  {
-   "default": "0",
-   "fetch_from": "against_loan.manual_npa",
-   "fieldname": "manual_npa",
-   "fieldtype": "Check",
-   "label": "Manual NPA"
   },
   {
    "fieldname": "total_charges_payable",
@@ -419,7 +412,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-06 16:54:03.869802",
+ "modified": "2024-06-30 17:15:23.521474",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
