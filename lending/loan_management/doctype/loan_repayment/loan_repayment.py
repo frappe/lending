@@ -481,13 +481,13 @@ class LoanRepayment(AccountsController):
 
 		amount_paid = self.amount_paid
 
-		if self.is_npa:
-			allocation_order = frappe.db.get_value(
-				"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
-			)
-		elif loan_status == "Written Off":
+		if loan_status == "Written Off":
 			allocation_order = frappe.db.get_value(
 				"Company", self.company, "collection_offset_sequence_for_written_off_asset"
+			)
+		elif self.is_npa:
+			allocation_order = frappe.db.get_value(
+				"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
 			)
 		else:
 			allocation_order = frappe.db.get_value(
