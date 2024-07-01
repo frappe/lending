@@ -406,9 +406,11 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 	)
 
 	loan_product = frappe.get_value("Loan", loan, "loan_product")
+	loan_status = frappe.get_value("Loan", loan, "status")
+
 	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
 
-	if pending_amount and abs(pending_amount) < write_off_limit:
+	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
 		write_off = make_loan_write_off(loan)
 		write_off.submit()
