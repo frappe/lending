@@ -532,6 +532,7 @@ class LoanRepayment(AccountsController):
 					"Loan Closure",
 					"Partial Settlement",
 					"Full Settlement",
+					"Write Off Recovery",
 					"Write Off Settlement",
 					"Subsidy Adjustments",
 				):
@@ -566,7 +567,9 @@ class LoanRepayment(AccountsController):
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 
-		if self.auto_close_loan() or self.principal_amount_paid - self.pending_principal_amount > 0:
+		if (
+			self.auto_close_loan() or self.principal_amount_paid - self.pending_principal_amount > 0
+		) and self.repayment_type not in ("Write Off Settlement", "Write Off Recovery"):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
