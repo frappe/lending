@@ -637,6 +637,7 @@ def get_restructure_details(loan, posting_date, repayment_type, principal_adjust
 	else:
 		loan_restructure["new_repayment_method"] = "Repay Fixed Amount per Period"
 		loan_restructure["new_monthly_repayment_amount"] = monthly_repayment_amount
+		loan_restructure["new_repayment_period_in_months"] = pending_tenure
 
 	return loan_restructure
 
