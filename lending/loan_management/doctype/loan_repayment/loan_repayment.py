@@ -550,18 +550,17 @@ class LoanRepayment(AccountsController):
 					):
 						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
-			if self.repayment_type not in ("Full Settlement", "Write Off Settlement", "Partial Settlement"):
-				pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
-					amounts.get("unbooked_interest")
-				)
+			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
+				amounts.get("unbooked_interest")
+			)
 
-				if pending_interest > 0:
-					if pending_interest > amount_paid:
-						self.total_interest_paid += amount_paid
-						amount_paid = 0
-					else:
-						self.total_interest_paid += pending_interest
-						amount_paid -= pending_interest
+			if pending_interest > 0:
+				if pending_interest > amount_paid:
+					self.total_interest_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_interest_paid += pending_interest
+					amount_paid -= pending_interest
 
 			self.principal_amount_paid += flt(amount_paid, precision)
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
