@@ -20,6 +20,7 @@
   "column_break_qrjm",
   "company",
   "demand_date",
+  "posting_date",
   "disbursement_date",
   "demand_amount",
   "paid_amount",
@@ -198,13 +199,18 @@
    "fieldname": "invoice_date",
    "fieldtype": "Date",
    "label": "Invoice Date"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-24 12:50:18.034652",
+ "modified": "2024-07-03 09:05:32.443791",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

@@ -123,7 +123,7 @@ class LoanDemand(AccountsController):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"posting_date": self.demand_date,
+					"posting_date": self.posting_date or self.demand_date,
 					"account": receivable_account,
 					"against": self.loan,
 					"debit": self.demand_amount,
@@ -139,7 +139,7 @@ class LoanDemand(AccountsController):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"posting_date": self.demand_date,
+					"posting_date": self.posting_date or self.demand_date,
 					"account": accrual_account,
 					"against": receivable_account,
 					"credit": self.demand_amount,
@@ -229,6 +229,7 @@ def make_loan_demand_for_term_loans(
 				repayment_schedule_detail=row.name,
 				process_loan_demand=process_loan_demand,
 				paid_amount=paid_amount,
+				posting_date=posting_date,
 			)
 
 		if row.principal_amount:
@@ -243,6 +244,7 @@ def make_loan_demand_for_term_loans(
 				repayment_schedule_detail=row.name,
 				process_loan_demand=process_loan_demand,
 				paid_amount=paid_amount,
+				posting_date=posting_date,
 			)
 
 		update_installment_counts(loan_repayment_schedule_map.get(row.parent))
@@ -250,7 +252,7 @@ def make_loan_demand_for_term_loans(
 
 def create_loan_demand(
 	loan,
-	posting_date,
+	demand_date,
 	demand_type,
 	demand_subtype,
 	amount,
@@ -260,6 +262,7 @@ def create_loan_demand(
 	sales_invoice=None,
 	process_loan_demand=None,
 	paid_amount=0,
+	posting_date=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if amount:
@@ -268,7 +271,8 @@ def create_loan_demand(
 		demand.loan_repayment_schedule = loan_repayment_schedule
 		demand.loan_disbursement = loan_disbursement
 		demand.repayment_schedule_detail = repayment_schedule_detail
-		demand.demand_date = posting_date
+		demand.demand_date = demand_date
+		demand.posting_date = posting_date
 		demand.demand_type = demand_type
 		demand.demand_subtype = demand_subtype
 		demand.demand_amount = flt(amount, precision)
