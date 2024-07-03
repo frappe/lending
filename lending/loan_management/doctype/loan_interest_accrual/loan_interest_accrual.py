@@ -494,12 +494,23 @@ def make_accrual_interest_entry_for_loans(
 	)
 
 	for loan in open_loans:
-		calculate_penal_interest_for_loans(
-			loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
-		)
-		calculate_accrual_amount_for_loans(
-			loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
-		)
+		try:
+			calculate_penal_interest_for_loans(
+				loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+			)
+			calculate_accrual_amount_for_loans(
+				loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+			)
+		except Exception as e:
+			if len(open_loans) > 1:
+				frappe.log_error(
+					title=_("Loan Interest Accrual failed for Loan: {0}").format(loan.name),
+					message=frappe.get_traceback(),
+					reference_doctype="Loan",
+					reference_name=loan.name,
+				)
+			else:
+				raise e
 
 
 def get_last_accrual_date(

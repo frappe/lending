@@ -32,6 +32,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 
 class Loan(AccountsController):
 	def validate(self):
+		self.set_status()
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
@@ -122,7 +123,15 @@ class Loan(AccountsController):
 			"Loan Transfer",
 			"Loan Demand",
 		]
-		self.db_set("status", "Cancelled")
+		self.set_status()
+
+	def set_status(self):
+		if self.docstatus == 0:
+			self.status = "Draft"
+		elif self.docstatus == 1:
+			self.db_set("status", "Sanctioned")
+		elif self.docstatus == 2:
+			self.db_set("status", "Cancelled")
 
 	def on_update_after_submit(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands

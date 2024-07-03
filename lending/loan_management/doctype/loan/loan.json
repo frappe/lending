@@ -151,7 +151,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Sanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed\nWritten Off\nSettled",
+   "options": "Draft\nSanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed\nWritten Off\nSettled",
    "read_only": 1
   },
   {
@@ -630,7 +630,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-23 22:00:23.727508",
+ "modified": "2024-07-03 14:24:52.798296",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
