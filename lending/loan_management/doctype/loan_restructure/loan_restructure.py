@@ -23,7 +23,6 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 class LoanRestructure(AccountsController):
 	def validate(self):
 		self.validate_against_initiated_restructure()
-		self.validate_against_charge_date()
 		self.validate_restructure_date()
 		self.set_completed_tenure()
 		self.update_overdue_amounts()
@@ -42,13 +41,6 @@ class LoanRestructure(AccountsController):
 			"Loan Restructure", {"loan": self.loan, "docstatus": 1, "status": "Initiated"}
 		):
 			frappe.throw(_("Another Loan Restructure is already initiated for this Loan"))
-
-	def validate_against_charge_date(self):
-		last_charge_date = frappe.db.get_value("Sales Invoice", {"loan": self.loan}, "max(due_date)")
-		if last_charge_date and getdate(self.restructure_date) < getdate(last_charge_date):
-			frappe.throw(
-				_("Restructure Date cannot be before last charge date {0}").format(last_charge_date)
-			)
 
 	def validate_restructure_date(self):
 		max_due_date = frappe.db.get_value("Loan Interest Accrual", {"loan": self.loan}, "max(due_date)")
