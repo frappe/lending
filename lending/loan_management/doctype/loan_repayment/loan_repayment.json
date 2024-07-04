@@ -44,6 +44,7 @@
   "reference_number",
   "total_interest_paid",
   "total_penalty_paid",
+  "payable_charges",
   "column_break_21",
   "reference_date",
   "principal_amount_paid",
@@ -337,7 +338,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Repayment Type",
-   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nPrincipal Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments\nLoan Closure\nPartial Settlement\nFull Settlement\nWrite Off Settlement"
+   "options": "Normal Repayment\nInterest Waiver\nPenalty Waiver\nCharges Waiver\nPrincipal Capitalization\nPrincipal Adjustment\nInterest Carry Forward\nWrite Off Recovery\nSecurity Deposit Adjustment\nAdvance Payment\nPre Payment\nSubsidy Adjustments\nLoan Closure\nPartial Settlement\nFull Settlement\nWrite Off Settlement\nCharge Payment"
   },
   {
    "fieldname": "loan_restructure",
@@ -407,12 +408,18 @@
    "fieldtype": "Link",
    "label": "Loan Adjustment",
    "options": "Loan Adjustment"
+  },
+  {
+   "fieldname": "payable_charges",
+   "fieldtype": "Table",
+   "label": "Payable Charges",
+   "options": "Loan Repayment Charges"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-30 17:15:23.521474",
+ "modified": "2024-07-04 11:27:37.406388",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

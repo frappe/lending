@@ -767,6 +767,7 @@ class LoanRepayment(AccountsController):
 			"Subsidy Adjustments": "subsidy_adjustment_account",
 			"Full Settlement": "payment_account",
 			"Partial Settlement": "payment_account",
+			"Charge Payment": "payment_account",
 		}
 
 		if self.repayment_type in (
@@ -864,6 +865,7 @@ def get_unpaid_demands(
 	demand_type=None,
 	demand_subtype=None,
 	limit=0,
+	charges=None,
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -897,6 +899,9 @@ def get_unpaid_demands(
 
 	if demand_type:
 		query = query.where(loan_demand.demand_type == demand_type)
+
+	if charges:
+		query = query.where(loan_demand.demand_subtype.isin(charges))
 
 	if demand_subtype:
 		query = query.where(loan_demand.demand_subtype == demand_subtype)
@@ -967,18 +972,24 @@ def get_demand_type(payment_type):
 	elif payment_type == "Penalty Waiver":
 		demand_type = "Penalty"
 		demand_subtype = "Penalty"
-	elif payment_type == "Charges Waiver":
+	elif payment_type in ("Charges Waiver", "Charge Payment"):
 		demand_type = "Charges"
 
 	return demand_type, demand_subtype
 
 
-def get_amounts(amounts, against_loan, posting_date, with_loan_details=False, payment_type=None):
+def get_amounts(
+	amounts, against_loan, posting_date, with_loan_details=False, payment_type=None, charges=None
+):
 	demand_type, demand_subtype = get_demand_type(payment_type)
 
 	against_loan_doc = frappe.get_cached_doc("Loan", against_loan)
 	unpaid_demands = get_unpaid_demands(
-		against_loan_doc.name, posting_date, demand_type=demand_type, demand_subtype=demand_subtype
+		against_loan_doc.name,
+		posting_date,
+		demand_type=demand_type,
+		demand_subtype=demand_subtype,
+		charges=charges,
 	)
 
 	amounts = process_amount_for_loan(against_loan_doc, posting_date, unpaid_demands, amounts)
