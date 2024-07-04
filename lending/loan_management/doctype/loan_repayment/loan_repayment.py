@@ -27,8 +27,12 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
+		charges = None
+		if self.get("payable_charges"):
+			charges = [d.get("charge_code") for d in self.get("payable_charges")]
+
 		amounts = calculate_amounts(
-			self.against_loan, self.posting_date, payment_type=self.repayment_type
+			self.against_loan, self.posting_date, payment_type=self.repayment_type, charges=charges
 		)
 		self.set_missing_values(amounts)
 		self.check_future_entries()
@@ -1102,15 +1106,24 @@ def get_all_demands(loans, posting_date):
 
 
 @frappe.whitelist()
-def calculate_amounts(against_loan, posting_date, payment_type="", with_loan_details=False):
+def calculate_amounts(
+	against_loan, posting_date, payment_type="", with_loan_details=False, charges=None
+):
 	amounts = init_amounts()
 
 	if with_loan_details:
 		amounts, loan_details = get_amounts(
-			amounts, against_loan, posting_date, with_loan_details, payment_type=payment_type
+			amounts,
+			against_loan,
+			posting_date,
+			with_loan_details,
+			payment_type=payment_type,
+			charges=charges,
 		)
 	else:
-		amounts = get_amounts(amounts, against_loan, posting_date, payment_type=payment_type)
+		amounts = get_amounts(
+			amounts, against_loan, posting_date, payment_type=payment_type, charges=charges
+		)
 
 	amounts["available_security_deposit"] = frappe.db.get_value(
 		"Loan Security Deposit", {"loan": against_loan}, "sum(deposit_amount - allocated_amount)"
