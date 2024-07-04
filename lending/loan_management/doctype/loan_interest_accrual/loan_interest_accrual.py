@@ -504,7 +504,6 @@ def make_accrual_interest_entry_for_loans(
 		except Exception as e:
 			if len(open_loans) > 1:
 				frappe.log_error(
-					title=_("Loan Interest Accrual failed for Loan: {0}").format(loan.name),
 					reference_doctype="Loan",
 					reference_name=loan.name,
 				)
