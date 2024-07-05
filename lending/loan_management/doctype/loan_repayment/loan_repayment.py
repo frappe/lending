@@ -809,7 +809,9 @@ class LoanRepayment(AccountsController):
 		return waiver_account
 
 	def get_remarks(self):
-		if self.shortfall_amount and self.amount_paid > self.shortfall_amount:
+		if self.manual_remarks:
+			remarks = self.manual_remarks
+		elif self.shortfall_amount and self.amount_paid > self.shortfall_amount:
 			remarks = "Shortfall repayment of {0}.<br>Repayment against loan {1}".format(
 				self.shortfall_amount, self.against_loan
 			)

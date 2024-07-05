@@ -50,6 +50,7 @@
   "principal_amount_paid",
   "total_charges_paid",
   "excess_amount",
+  "manual_remarks",
   "section_break_55wc",
   "repayment_details",
   "amended_from",
@@ -414,12 +415,17 @@
    "fieldtype": "Table",
    "label": "Payable Charges",
    "options": "Loan Repayment Charges"
+  },
+  {
+   "fieldname": "manual_remarks",
+   "fieldtype": "Small Text",
+   "label": "Manual Remarks"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-04 11:27:37.406388",
+ "modified": "2024-07-05 18:10:13.147895",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
