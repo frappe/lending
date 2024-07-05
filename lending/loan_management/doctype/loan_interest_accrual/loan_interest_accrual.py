@@ -503,10 +503,7 @@ def make_accrual_interest_entry_for_loans(
 			)
 		except Exception as e:
 			if len(open_loans) > 1:
-				frappe.log_error(
-					reference_doctype="Loan",
-					reference_name=loan.name,
-				)
+				pass
 			else:
 				raise e
 
