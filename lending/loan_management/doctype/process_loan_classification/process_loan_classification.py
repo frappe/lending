@@ -10,7 +10,10 @@ class ProcessLoanClassification(Document):
 	def on_submit(self):
 		from lending.loan_management.doctype.loan.loan import update_days_past_due_in_loans
 
-		filters = {"docstatus": 1, "status": ("in", ["Disbursed", "Partially Disbursed", "Active"])}
+		filters = {
+			"docstatus": 1,
+			"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off"]),
+		}
 
 		if self.loan:
 			filters["name"] = self.loan
