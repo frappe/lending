@@ -833,7 +833,15 @@ def update_loan_and_customer_status(
 	)
 
 	if fldg_triggered:
-		frappe.db.set_value("Loan", loan, "fldg_triggered", 1)
+		frappe.db.set_value(
+			"Loan",
+			loan,
+			{
+				"fldg_triggered": 1,
+				"fldg_trigger_date": posting_date,
+			},
+		)
+
 		make_fldg_invocation_jv(loan, posting_date)
 
 	if is_npa:

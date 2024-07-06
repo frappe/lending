@@ -12,7 +12,7 @@ class ProcessLoanClassification(Document):
 
 		filters = {
 			"docstatus": 1,
-			"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off"]),
+			"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off", "Settled"]),
 		}
 
 		if self.loan:

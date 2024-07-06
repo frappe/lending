@@ -88,14 +88,116 @@ class LoanPartner(Document):
 
 @frappe.whitelist()
 def get_colender_payout_details(posting_date):
-	account_details = frappe.get_all(
-		"Loan Partner", fields=["fldg_account", "credit_account", "partner_interest_share", "name"]
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_bulk_due_details
+
+	partner_accounts = get_partner_accounts()
+	accounts, account_map = get_account_details_and_map(partner_accounts)
+	payable_balances = get_payable_balances(posting_date, accounts)
+	loans = [d.against_voucher for d in payable_balances]
+
+	bulk_due_details = get_bulk_due_details(loans, posting_date)
+	bulk_due_map = {}
+
+	for due in bulk_due_details:
+		bulk_due_map[due.get("loan")] = due
+
+	partner_map = get_partner_map(loans)
+	fldg_date_map = get_fldg_date_map(loans)
+
+	data = {}
+	for payable_balance in payable_balances:
+		dues = bulk_due_map.get(payable_balance.against_voucher, {})
+		principal_outstanding = dues.get("pending_principal_amount")
+		interest_accrued = dues.get("interest_accrued")
+		interest_overdue = dues.get("interest_amount")
+		penalty_overdue = dues.get("penalty_amount")
+		charge_overdue = dues.get("total_charges_payable")
+		fldg_date = fldg_date_map.get(payable_balance.against_voucher)
+
+		data.setdefault(
+			payable_balance.against_voucher,
+			get_initial_balances(
+				principal_outstanding,
+				interest_accrued,
+				interest_overdue,
+				penalty_overdue,
+				charge_overdue,
+				fldg_date,
+			),
+		)
+
+		loan_partner = partner_map.get(payable_balance.against_voucher)
+
+		row = data[payable_balance.against_voucher]
+		if loan_partner:
+			partner_details = account_map.get(loan_partner)
+
+			account_type = get_account_type(partner_details, payable_balance.account)
+			if account_type == "FLDG":
+				row["payable_fldg_balance"] += payable_balance.debit - payable_balance.credit
+				row["amount_invoked"] += payable_balance.debit
+				row["amount_paid"] += payable_balance.credit
+			elif account_type == "Credit":
+				row["payable_principal"] += -1 * (payable_balance.debit - payable_balance.credit)
+			elif account_type == "Interest":
+				row["payable_interest"] += payable_balance.debit - payable_balance.credit
+
+	result = []
+	for loan, values in data.items():
+		values["loan_partner"] = partner_map.get(loan)
+		values["loan"] = loan
+		result.append(values)
+
+	return result
+
+
+def get_initial_balances(
+	principal_outstanding,
+	interest_accrued,
+	interest_overdue,
+	penalty_overdue,
+	charge_overdue,
+	fldg_date,
+):
+	total_overdue = interest_overdue + penalty_overdue + charge_overdue
+	return {
+		"payable_fldg_balance": 0.0,
+		"payable_interest": 0.0,
+		"payable_principal": 0.0,
+		"payable_emi": 0.0,
+		"total_payable": 0.0,
+		"principal_outstanding": principal_outstanding,
+		"interest_accrued": interest_accrued,
+		"interest_overdue": interest_overdue,
+		"penalty_overdue": penalty_overdue,
+		"charge_overdue": charge_overdue,
+		"total_overdue": total_overdue,
+		"amount_invoked": 0.0,
+		"amount_paid": 0.0,
+		"fldg_trigger_date": fldg_date,
+	}
+
+
+def get_payable_balances(posting_date, accounts):
+	payable_balances = frappe.db.get_all(
+		"GL Entry",
+		filters={
+			"posting_date": ("<=", posting_date),
+			"account": ("in", accounts),
+			"voucher_type": ("!=", "Loan Disbursement"),
+		},
+		fields=["against_voucher", "account", "sum(debit) as debit", "sum(credit) as credit"],
+		group_by="against_voucher, account",
 	)
 
+	return payable_balances
+
+
+def get_account_details_and_map(partner_accounts):
 	accounts = []
 	account_map = {}
 
-	for account_detail in account_details:
+	for account_detail in partner_accounts:
 		accounts.append(account_detail.fldg_account)
 		accounts.append(account_detail.credit_account)
 		accounts.append(account_detail.partner_interest_share)
@@ -106,58 +208,29 @@ def get_colender_payout_details(posting_date):
 			"credit_account": account_detail.credit_account,
 		}
 
-	payable_balances = frappe.db.get_all(
-		"GL Entry",
-		filters={
-			"posting_date": ("<=", posting_date),
-			"account": ("in", accounts),
-			"voucher_type": ("!=", "Loan Disbursement"),
-		},
-		fields=["against_voucher", "account", "sum(debit-credit) as balance"],
-		group_by="against_voucher, account",
+	return accounts, account_map
+
+
+def get_partner_accounts():
+	return frappe.get_all(
+		"Loan Partner", fields=["fldg_account", "credit_account", "partner_interest_share", "name"]
 	)
 
-	loans = [d.against_voucher for d in payable_balances]
 
-	partner_map = frappe._dict(
+def get_partner_map(loans):
+	return frappe._dict(
 		frappe.db.get_all(
 			"Loan", filters={"name": ("in", loans)}, fields=["name", "loan_partner"], as_list=True
 		)
 	)
 
-	data = {}
-	for payable_balance in payable_balances:
-		data.setdefault(
-			payable_balance.against_voucher,
-			{
-				"payable_fldg_balance": 0.0,
-				"payable_interest": 0.0,
-				"payable_principal": 0.0,
-				"payable_emi": 0.0,
-				"total_payable": 0.0,
-			},
+
+def get_fldg_date_map(loans):
+	return frappe._dict(
+		frappe.db.get_all(
+			"Loan", filters={"name": ("in", loans)}, fields=["name", "fldg_trigger_date"], as_list=True
 		)
-
-		loan_partner = partner_map.get(payable_balance.against_voucher)
-
-		if loan_partner:
-			partner_details = account_map.get(loan_partner)
-
-			account_type = get_account_type(partner_details, payable_balance.account)
-			if account_type == "FLDG":
-				data[payable_balance.against_voucher]["payable_fldg_balance"] += payable_balance.balance
-			elif account_type == "Credit":
-				data[payable_balance.against_voucher]["payable_principal"] += -1 * payable_balance.balance
-			elif account_type == "Interest":
-				data[payable_balance.against_voucher]["payable_interest"] += payable_balance.balance
-
-	result = []
-	for loan, values in data.items():
-		values["loan_partner"] = partner_map.get(loan)
-		values["loan"] = loan
-		result.append(values)
-
-	return result
+	)
 
 
 def get_account_type(colender_details, account):

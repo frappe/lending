@@ -81,7 +81,8 @@
   "freeze_account",
   "freeze_date",
   "amended_from",
-  "fldg_triggered"
+  "fldg_triggered",
+  "fldg_trigger_date"
  ],
  "fields": [
   {
@@ -625,12 +626,17 @@
    "fieldname": "unmark_npa",
    "fieldtype": "Check",
    "label": "Unmark NPA"
+  },
+  {
+   "fieldname": "fldg_trigger_date",
+   "fieldtype": "Date",
+   "label": "FLDG Trigger Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-03 14:24:52.798296",
+ "modified": "2024-07-06 17:13:36.668863",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

@@ -1032,7 +1032,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 
 	pending_principal_amount = get_pending_principal_amount(loan)
 
-	unbooked_interest = get_unbooked_interest(loan.name, posting_date)
+	unbooked_interest, accrued_interest = get_unbooked_interest(loan.name, posting_date)
 
 	if getdate(posting_date) > getdate(last_demand_date):
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
@@ -1043,6 +1043,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 			loan=loan, posting_date=posting_date, is_future_accrual=1
 		)
 
+	amounts["interest_accrued"] = accrued_interest
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
 	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
@@ -1154,6 +1155,7 @@ def init_amounts():
 		"pending_principal_amount": 0.0,
 		"payable_principal_amount": 0.0,
 		"payable_amount": 0.0,
+		"interest_accrued": 0.0,
 		"unaccrued_interest": 0.0,
 		"unbooked_interest": 0.0,
 		"unbooked_penalty": 0.0,
@@ -1235,7 +1237,7 @@ def get_unbooked_interest(loan, posting_date):
 	total_demand_interest = get_demanded_interest(loan, posting_date)
 	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
 
-	return unbooked_interest
+	return unbooked_interest, accrued_interest
 
 
 def get_accrued_interest(loan, posting_date, interest_type="Normal Interest"):
