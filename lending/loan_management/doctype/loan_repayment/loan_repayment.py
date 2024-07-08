@@ -692,11 +692,18 @@ class LoanRepayment(AccountsController):
 			self.add_gl_entry(payment_account, against_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
-			against_account = account_details.interest_receivable_account
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+				against_account = account_details.write_off_recovery_account
+			else:
+				against_account = account_details.interest_receivable_account
+
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
 		if flt(self.total_penalty_paid, precision) > 0:
-			against_account = account_details.penalty_receivable_account
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+				against_account = account_details.write_off_recovery_account
+			else:
+				against_account = account_details.penalty_receivable_account
 			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
 
 		if flt(self.excess_amount, precision):
