@@ -485,27 +485,30 @@ class LoanRepayment(AccountsController):
 
 		amount_paid = self.amount_paid
 
-		if loan_status == "Written Off":
-			allocation_order = frappe.db.get_value(
-				"Company", self.company, "collection_offset_sequence_for_written_off_asset"
-			)
-		elif self.is_npa:
-			allocation_order = frappe.db.get_value(
-				"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
-			)
+		if self.repayment_type == "Charge Payment":
+			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
-			allocation_order = frappe.db.get_value(
-				"Company", self.company, "collection_offset_sequence_for_standard_asset"
+			if loan_status == "Written Off":
+				allocation_order = frappe.db.get_value(
+					"Company", self.company, "collection_offset_sequence_for_written_off_asset"
+				)
+			elif self.is_npa:
+				allocation_order = frappe.db.get_value(
+					"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
+				)
+			else:
+				allocation_order = frappe.db.get_value(
+					"Company", self.company, "collection_offset_sequence_for_standard_asset"
+				)
+
+			if self.shortfall_amount and self.amount_paid > self.shortfall_amount:
+				self.principal_amount_paid = self.shortfall_amount
+			elif self.shortfall_amount:
+				self.principal_amount_paid = self.amount_paid
+
+			amount_paid = self.apply_allocation_order(
+				allocation_order, amount_paid, amounts.get("unpaid_demands")
 			)
-
-		if self.shortfall_amount and self.amount_paid > self.shortfall_amount:
-			self.principal_amount_paid = self.shortfall_amount
-		elif self.shortfall_amount:
-			self.principal_amount_paid = self.amount_paid
-
-		amount_paid = self.apply_allocation_order(
-			allocation_order, amount_paid, amounts.get("unpaid_demands")
-		)
 
 		for payment in self.repayment_details:
 			if payment.demand_subtype == "Interest":
@@ -575,6 +578,28 @@ class LoanRepayment(AccountsController):
 		) and self.repayment_type not in ("Write Off Settlement", "Write Off Recovery"):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
+
+	def allocate_charges(self, amount_paid, demands):
+		paid_charges = {}
+		for charge in self.get("payable_charges"):
+			paid_charges[charge.charge_code] = charge.amount
+
+		for demand in demands:
+			if paid_charges.get(demand.demand_subtype) > 0:
+				self.append(
+					"repayment_details",
+					{
+						"loan_demand": demand.name,
+						"paid_amount": paid_charges.get(demand.demand_subtype),
+						"demand_type": "Charges",
+						"demand_subtype": demand.demand_subtype,
+						"sales_invoice": demand.sales_invoice,
+					},
+				)
+
+				amount_paid -= paid_charges.get(demand.demand_subtype, 0)
+
+		return amount_paid
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands):
 		"""Allocate amount based on allocation order"""
