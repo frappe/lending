@@ -982,7 +982,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 
 	normal_interest = get_unpaid_interest_amount(loan, posting_date, "Interest")
 	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penalty")
-	unbooked_interest = get_unbooked_interest(loan, posting_date)
+	unbooked_interest, accrued_interest = get_unbooked_interest(loan, posting_date)
 
 	if normal_interest > 0:
 		make_suspense_journal_entry(loan, company, loan_product, normal_interest, posting_date)
