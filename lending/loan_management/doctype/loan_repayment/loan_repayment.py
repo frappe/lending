@@ -541,6 +541,7 @@ class LoanRepayment(AccountsController):
 					"Write Off Recovery",
 					"Write Off Settlement",
 					"Subsidy Adjustments",
+					"Security Deposit Adjustment",
 				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
