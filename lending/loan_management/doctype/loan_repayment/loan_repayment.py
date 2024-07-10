@@ -491,6 +491,10 @@ class LoanRepayment(AccountsController):
 				allocation_order = frappe.db.get_value(
 					"Company", self.company, "collection_offset_sequence_for_written_off_asset"
 				)
+			elif self.repayment_type in ("Partial Settlement", "Full Settlement"):
+				allocation_order = frappe.db.get_value(
+					"Company", self.company, "collection_offset_sequence_for_settlement_collection"
+				)
 			elif self.is_npa:
 				allocation_order = frappe.db.get_value(
 					"Company", self.company, "collection_offset_sequence_for_sub_standard_asset"
