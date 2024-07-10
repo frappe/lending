@@ -241,16 +241,24 @@ def write_off_suspense_entries(
 		)
 	)
 
-	if (amounts.get(accounts.suspense_interest_income, 0) > 0 and not is_npa) or interest_amount > 0:
-		amount = interest_amount or amounts.get(accounts.suspense_interest_income)
+	if amounts.get(accounts.suspense_interest_income, 0) > 0:
+		if interest_amount <= amounts.get(accounts.suspense_interest_income):
+			amount = interest_amount
+		else:
+			amount = amounts.get(accounts.suspense_interest_income)
+
 		debit_account = accounts.suspense_interest_income
 		credit_account = (
 			accounts.interest_waiver_account if is_write_off else accounts.interest_income_account
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if (amounts.get(accounts.penalty_suspense_account, 0) > 0 and not is_npa) or penalty_amount > 0:
-		amount = penalty_amount or amounts.get(accounts.penalty_suspense_account)
+	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
+		if interest_amount <= amounts.get(accounts.penalty_suspense_account):
+			amount = interest_amount
+		else:
+			amount = amounts.get(accounts.penalty_suspense_account)
+
 		debit_account = accounts.penalty_suspense_account
 		credit_account = (
 			accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
