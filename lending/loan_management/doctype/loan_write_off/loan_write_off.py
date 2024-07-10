@@ -254,7 +254,7 @@ def write_off_suspense_entries(
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
-		if interest_amount <= amounts.get(accounts.penalty_suspense_account):
+		if penalty_amount <= amounts.get(accounts.penalty_suspense_account):
 			amount = interest_amount
 		else:
 			amount = amounts.get(accounts.penalty_suspense_account)
