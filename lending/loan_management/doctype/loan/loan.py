@@ -122,6 +122,10 @@ class Loan(AccountsController):
 			"Process Loan Interest Accrual",
 			"Loan Transfer",
 			"Loan Demand",
+			"Loan Repayment",
+			"Loan Adjustment",
+			"Process Loan Classification",
+			"Loan Restructure",
 		]
 		self.set_status()
 
@@ -238,10 +242,10 @@ class Loan(AccountsController):
 			schedule.submit()
 
 	def cancel_and_delete_repayment_schedule(self):
-		schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 1}, "name"
+		schedules = frappe.db.get_all(
+			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 1}, pluck="name"
 		)
-		if schedule:
+		for schedule in schedules:
 			schedule = frappe.get_doc("Loan Repayment Schedule", schedule)
 			schedule.cancel()
 

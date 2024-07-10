@@ -23,7 +23,12 @@ def update_waived_amount_in_demand(self, method=None):
 			waived_amount = abs(item.base_net_amount + tax_amount)
 			demand_details = frappe.db.get_value(
 				"Loan Demand",
-				{"loan": self.loan, "docstatus": 1, "demand_subtype": item.item_code},
+				{
+					"loan": self.loan,
+					"docstatus": 1,
+					"demand_subtype": item.item_code,
+					"sales_invoice": self.get("return_against"),
+				},
 				["name", "outstanding_amount"],
 				as_dict=1,
 			)

@@ -141,7 +141,6 @@ class LoanDisbursement(AccountsController):
 		filters = {
 			"loan": self.against_loan,
 			"docstatus": 1,
-			"status": "Active",
 			"loan_disbursement": self.name,
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
