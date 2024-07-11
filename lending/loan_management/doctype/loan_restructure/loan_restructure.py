@@ -182,10 +182,7 @@ class LoanRestructure(AccountsController):
 
 		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
-				loan_doc = frappe.get_doc("Loan", self.loan)
-				make_accrual_interest_entry_for_loans(
-					posting_date=self.restructure_date, open_loans=[loan_doc], via_restructure=True
-				)
+				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
 
 				self.make_waiver_and_capitalization_for_penalty()
 				self.make_loan_repayment_for_adjustment()
