@@ -745,6 +745,10 @@ def update_days_past_due_in_loans(
 		if days_past_due and fldg_trigger_dpd and days_past_due > fldg_trigger_dpd:
 			fldg_triggered = 1
 
+		if freeze_date:
+			days_past_due = 0
+			is_npa = 0
+
 		update_loan_and_customer_status(
 			demand.loan,
 			demand.company,
@@ -754,6 +758,7 @@ def update_days_past_due_in_loans(
 			is_npa,
 			fldg_triggered,
 			posting_date or getdate(),
+			freeze_date=freeze_date,
 		)
 
 		create_dpd_record(demand.loan, posting_date, days_past_due, process_loan_classification)
@@ -816,7 +821,15 @@ def create_dpd_record(loan, posting_date, days_past_due, process_loan_classifica
 
 
 def update_loan_and_customer_status(
-	loan, company, applicant_type, applicant, days_past_due, is_npa, fldg_triggered, posting_date
+	loan,
+	company,
+	applicant_type,
+	applicant,
+	days_past_due,
+	is_npa,
+	fldg_triggered,
+	posting_date,
+	freeze_date=None,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_suspense_entries,
@@ -869,7 +882,7 @@ def update_loan_and_customer_status(
 		)
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
-		if max_dpd == 0:
+		if max_dpd == 0 or freeze_date:
 			update_all_linked_loan_customer_npa_status(
 				is_npa, applicant_type, applicant, posting_date, loan
 			)
@@ -1000,9 +1013,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		make_suspense_journal_entry(loan, company, loan_product, unbooked_interest, posting_date)
 
 
-def make_suspense_journal_entry(
-	loan, company, loan_product, amount, posting_date, is_penal=False, is_npa=0
-):
+def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):
 	account_details = frappe.get_value(
 		"Loan Product",
 		loan_product,
