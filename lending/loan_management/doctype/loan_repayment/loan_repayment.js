@@ -21,6 +21,15 @@ frappe.ui.form.on('Loan Repayment', {
 			};
 		});
 
+		frm.set_query('payment_account', function() {
+			return {
+				'filters': {
+					"company": frm.doc.company,
+					"is_group": 0
+				}
+			};
+		});
+
 		if (frm.doc.against_loan && frm.doc.posting_date && frm.is_new()) {
 			frm.trigger('calculate_repayment_amounts');
 		}

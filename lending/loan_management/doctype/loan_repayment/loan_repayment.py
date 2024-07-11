@@ -834,7 +834,6 @@ class LoanRepayment(AccountsController):
 			"Subsidy Adjustments": "subsidy_adjustment_account",
 			"Full Settlement": "payment_account",
 			"Partial Settlement": "payment_account",
-			"Charge Payment": "payment_account",
 		}
 
 		if self.repayment_type in (
@@ -843,6 +842,7 @@ class LoanRepayment(AccountsController):
 			"Advance Payment",
 			"Write Off Recovery",
 			"Write Off Settlement",
+			"Charge Payment",
 		):
 			if hasattr(self, "repay_from_salary") and self.repay_from_salary:
 				payment_account = self.payroll_payable_account
