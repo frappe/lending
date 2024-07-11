@@ -465,6 +465,11 @@ class LoanRepayment(AccountsController):
 			)
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+			get_write_off_recovery_details,
+			get_write_off_waivers,
+		)
+
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
@@ -481,6 +486,20 @@ class LoanRepayment(AccountsController):
 		self.total_penalty_paid = 0
 		self.total_interest_paid = 0
 		self.total_charges_paid = 0
+
+		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+			waiver_details = get_write_off_waivers(self.against_loan, self.posting_date)
+			recovery_details = get_write_off_recovery_details(self.against_loan, self.posting_date)
+			pending_interest = waiver_details.get("Interest Waiver") - recovery_details.get(
+				"total_interest"
+			)
+			pending_penalty = waiver_details.get("Penalty Waiver") - recovery_details.get("total_penalty")
+
+			if pending_interest > 0:
+				amounts["unbooked_interest"] += pending_interest
+
+			if pending_penalty > 0:
+				amounts["unbooked_penalty"] += pending_penalty
 
 		amount_paid = self.amount_paid
 
@@ -524,9 +543,17 @@ class LoanRepayment(AccountsController):
 				self.total_charges_paid += flt(payment.paid_amount, precision)
 
 		if flt(amount_paid, precision) > 0:
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+				payable_principal_amount = self.pending_principal_amount - self.principal_amount_paid
+				if flt(amount_paid) >= payable_principal_amount:
+					self.principal_amount_paid += payable_principal_amount
+					amount_paid -= payable_principal_amount
+				else:
+					self.principal_amount_paid += amount_paid
+					amount_paid = 0
+
 			if self.repayment_type not in ("Full Settlement"):
 				unbooked_penalty = flt(amounts.get("unbooked_penalty"))
-
 				if unbooked_penalty > 0:
 					if unbooked_penalty > amount_paid:
 						self.total_penalty_paid += amount_paid

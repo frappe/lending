@@ -283,3 +283,41 @@ def get_suspense_entries(loan, loan_product):
 	)
 
 	return journal_entries
+
+
+def get_write_off_waivers(loan_name, posting_date):
+	return frappe._dict(
+		frappe.db.get_all(
+			"Loan Repayment",
+			filters={
+				"against_loan": loan_name,
+				"posting_date": ("<=", posting_date),
+				"docstatus": 1,
+				"is_write_off_waiver": 1,
+			},
+			fields=["repayment_type", "sum(amount_paid) as amount"],
+			group_by="repayment_type",
+			as_list=1,
+		)
+	)
+
+
+def get_write_off_recovery_details(loan_name, posting_date):
+	write_of_recover_details = frappe.db.get_value(
+		"Loan Repayment",
+		{
+			"against_loan": loan_name,
+			"posting_date": ("<=", posting_date),
+			"docstatus": 1,
+			"repayment_type": ("in", ["Write Off Recovery", "Write Off Settlement"]),
+		},
+		[
+			"sum(total_penalty_paid) as total_penalty",
+			"sum(total_interest_paid) as total_interest",
+			"sum(total_charges_paid) as total_charges",
+			"sum(principal_amount_paid) as total_principal",
+		],
+		as_dict=1,
+	)
+
+	return write_of_recover_details or {}
