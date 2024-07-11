@@ -53,9 +53,10 @@ class LoanRestructure(AccountsController):
 	def set_status(self, status=None):
 		if self.restructure_type == "Pre Payment":
 			self.db_set("status", "Approved")
-		if self.docstatus == 1 and not status:
+
+		if self.docstatus == 1 and self.status not in ("Approved", "Rejected"):
 			self.db_set("status", "Initiated")
-		else:
+		elif status:
 			self.status = status
 			self.db_set("status", status)
 
