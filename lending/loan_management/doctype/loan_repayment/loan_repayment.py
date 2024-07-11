@@ -154,15 +154,11 @@ class LoanRepayment(AccountsController):
 		)
 
 		reverse_loan_interest_accruals(self.against_loan, self.posting_date)
-		loan_restructure = frappe.db.get_value(
-			"Loan Restructure", {"loan_repayment": self.name, "docstatus": 1}
-		)
-		if loan_restructure:
-			loan_restructure = frappe.get_doc("Loan Restructure", loan_restructure)
-			loan_restructure.flags.ignore_links = True
-			loan_restructure.submit()
-			loan_restructure.status = "Approved"
-			loan_restructure.save()
+		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
+		loan_restructure.flags.ignore_links = True
+		loan_restructure.submit()
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
 
 	def set_repayment_account(self):
 		if not self.payment_account and self.mode_of_payment:
@@ -244,8 +240,11 @@ class LoanRepayment(AccountsController):
 			frappe.get_doc("Loan Demand", demand).cancel()
 
 	def cancel_loan_restructure(self):
-		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
-		loan_restructure.cancel()
+		loan_restructure = frappe.db.get_value(
+			"Loan Restructure", {"loan_repayment": self.name, "docstatus": 1}
+		)
+		if loan_restructure:
+			frappe.get_doc("Loan Restructure", {"loan_repayment": self.name}).cancel()
 
 	def set_missing_values(self, amounts):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
