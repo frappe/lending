@@ -181,6 +181,9 @@ class LoanRestructure(AccountsController):
 		if doc_before_save.status != "Initiated":
 			return
 
+		self.apply_workflow()
+
+	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
@@ -260,6 +263,7 @@ class LoanRestructure(AccountsController):
 		self.validate_new_loan_amount()
 		self.set_status()
 		self.update_repayment_schedule_status(status="Initiated")
+		self.apply_workflow()
 
 	def on_cancel(self):
 		self.cancel_repayment_schedule()
