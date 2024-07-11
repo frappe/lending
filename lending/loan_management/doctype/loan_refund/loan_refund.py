@@ -57,7 +57,7 @@ class LoanRefund(AccountsController):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.refund_account,
+					"account": loan_details.loan_account,
 					"against": loan_details.loan_account,
 					"credit": self.refund_amount,
 					"credit_in_account_currency": self.refund_amount,
@@ -73,7 +73,7 @@ class LoanRefund(AccountsController):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": loan_details.loan_account,
+					"account": self.refund_account,
 					"party_type": loan_details.applicant_type,
 					"party": loan_details.applicant,
 					"against": self.refund_account,
