@@ -66,6 +66,8 @@ class LoanRefund(AccountsController):
 					"remarks": _("Against Loan:") + self.loan,
 					"cost_center": self.cost_center,
 					"posting_date": getdate(self.posting_date),
+					"party_type": loan_details.applicant_type,
+					"party": loan_details.applicant,
 				}
 			)
 		)
@@ -74,8 +76,6 @@ class LoanRefund(AccountsController):
 			self.get_gl_dict(
 				{
 					"account": self.refund_account,
-					"party_type": loan_details.applicant_type,
-					"party": loan_details.applicant,
 					"against": self.refund_account,
 					"debit": self.refund_amount,
 					"debit_in_account_currency": self.refund_amount,
