@@ -495,7 +495,9 @@ class LoanRepayment(AccountsController):
 			pending_interest = waiver_details.get("Interest Waiver") - recovery_details.get(
 				"total_interest"
 			)
-			pending_penalty = waiver_details.get("Penalty Waiver") - recovery_details.get("total_penalty")
+			pending_penalty = flt(waiver_details.get("Penalty Waiver")) - flt(
+				recovery_details.get("total_penalty")
+			)
 
 			if pending_interest > 0:
 				amounts["unbooked_interest"] += pending_interest
