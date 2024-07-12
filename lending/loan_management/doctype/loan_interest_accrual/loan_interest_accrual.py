@@ -91,7 +91,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.posting_date,
+						"posting_date": self.accrual_date or self.posting_date,
 					}
 				)
 			)
@@ -109,7 +109,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.posting_date,
+						"posting_date": self.accrual_date or self.posting_date,
 					}
 				)
 			)
@@ -128,7 +128,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.posting_date,
+						"posting_date": self.accrual_date or self.posting_date,
 					}
 				)
 			)
@@ -146,7 +146,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.posting_date,
+						"posting_date": self.accrual_date or self.posting_date,
 					}
 				)
 			)
@@ -159,7 +159,12 @@ class LoanInterestAccrual(AccountsController):
 # rate of interest is 13.5 then first loan interest accrual will be on '01-10-2019'
 # which means interest will be accrued for 30 days which should be equal to 11095.89
 def calculate_accrual_amount_for_loans(
-	loan, posting_date, process_loan_interest=None, accrual_type=None, is_future_accrual=0
+	loan,
+	posting_date,
+	process_loan_interest=None,
+	accrual_type=None,
+	is_future_accrual=0,
+	accrual_date=None,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_pending_principal_amount,
@@ -205,6 +210,7 @@ def calculate_accrual_amount_for_loans(
 						"Normal Interest",
 						loan.rate_of_interest,
 						loan_repayment_schedule=schedule.parent,
+						accrual_date=accrual_date,
 					)
 			elif is_future_accrual:
 				last_accrual_date = schedule.payment_date
@@ -267,6 +273,7 @@ def make_loan_interest_accrual_entry(
 	loan_demand=None,
 	loan_repayment_schedule=None,
 	additional_interest=0,
+	accrual_date=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -283,6 +290,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.loan_demand = loan_demand
 		loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
 		loan_interest_accrual.additional_interest_amount = additional_interest
+		loan_interest_accrual.accrual_date = accrual_date
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -365,6 +373,7 @@ def calculate_penal_interest_for_loans(
 	process_loan_interest=None,
 	accrual_type=None,
 	is_future_accrual=0,
+	accrual_date=None,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_pending_principal_amount,
@@ -430,6 +439,7 @@ def calculate_penal_interest_for_loans(
 							penal_interest_rate,
 							loan_demand=demand.name,
 							additional_interest=additional_interest,
+							accrual_date=accrual_date,
 						)
 
 						create_loan_demand(
@@ -452,6 +462,7 @@ def make_accrual_interest_entry_for_loans(
 	loan=None,
 	loan_product=None,
 	accrual_type="Regular",
+	accrual_date=None,
 ):
 	query_filters = {
 		"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
@@ -496,10 +507,18 @@ def make_accrual_interest_entry_for_loans(
 	for loan in open_loans:
 		try:
 			calculate_penal_interest_for_loans(
-				loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+				loan,
+				posting_date,
+				process_loan_interest=process_loan_interest,
+				accrual_type=accrual_type,
+				accrual_date=accrual_date,
 			)
 			calculate_accrual_amount_for_loans(
-				loan, posting_date, process_loan_interest=process_loan_interest, accrual_type=accrual_type
+				loan,
+				posting_date,
+				process_loan_interest=process_loan_interest,
+				accrual_type=accrual_type,
+				accrual_date=accrual_date,
 			)
 		except Exception as e:
 			if len(open_loans) > 1:

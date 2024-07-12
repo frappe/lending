@@ -9,8 +9,8 @@
             cur_frm.add_custom_button(__("Accounting Ledger"), function() {
               frappe.route_options = {
                 voucher_no: frm.doc.name,
-                from_date: frm.doc.posting_date || frm.doc.demand_date,
-                to_date: frm.doc.posting_date || frm.doc.demand_date,
+                from_date: frm.doc.accrual_date || frm.doc.posting_date || frm.doc.demand_date,
+                to_date: frm.doc.accrual_date || frm.doc.posting_date || frm.doc.demand_date,
                 company: frm.doc.company,
                 group_by: "Group by Voucher (Consolidated)",
                 show_cancelled_entries: frm.doc.docstatus === 2
@@ -40,4 +40,4 @@
     }
   };
 })();
-//# sourceMappingURL=lending.bundle.RQIPGG2H.js.map
+//# sourceMappingURL=lending.bundle.KBKH6K2M.js.map

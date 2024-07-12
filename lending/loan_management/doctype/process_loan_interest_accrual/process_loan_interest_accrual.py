@@ -19,6 +19,7 @@ class ProcessLoanInterestAccrual(Document):
 			loan=self.loan,
 			loan_product=self.loan_product,
 			accrual_type=self.accrual_type,
+			accrual_date=self.posting_date,
 		)
 
 

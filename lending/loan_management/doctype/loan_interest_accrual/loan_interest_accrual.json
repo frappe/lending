@@ -18,7 +18,7 @@
   "company",
   "start_date",
   "posting_date",
-  "due_date",
+  "accrual_date",
   "accrual_type",
   "interest_type",
   "is_term_loan",
@@ -150,11 +150,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "due_date",
-   "fieldtype": "Date",
-   "label": "Due Date"
-  },
-  {
    "fetch_from": "loan.loan_product",
    "fieldname": "loan_product",
    "fieldtype": "Link",
@@ -212,13 +207,18 @@
    "fieldtype": "Link",
    "label": "Loan Repayment Schedule",
    "options": "Loan Repayment Schedule"
+  },
+  {
+   "fieldname": "accrual_date",
+   "fieldtype": "Date",
+   "label": "Accrual Date"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-04 13:58:43.948769",
+ "modified": "2024-07-12 19:30:57.080389",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
