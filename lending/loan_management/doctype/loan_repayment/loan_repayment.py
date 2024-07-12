@@ -492,8 +492,8 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 			waiver_details = get_write_off_waivers(self.against_loan, self.posting_date)
 			recovery_details = get_write_off_recovery_details(self.against_loan, self.posting_date)
-			pending_interest = waiver_details.get("Interest Waiver") - recovery_details.get(
-				"total_interest"
+			pending_interest = flt(waiver_details.get("Interest Waiver")) - flt(
+				recovery_details.get("total_interest")
 			)
 			pending_penalty = flt(waiver_details.get("Penalty Waiver")) - flt(
 				recovery_details.get("total_penalty")
