@@ -866,6 +866,7 @@ def update_loan_and_customer_status(
 			"Loan",
 			{
 				"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+				"docstatus": 1,
 				"applicant_type": applicant_type,
 				"applicant": applicant,
 			},
