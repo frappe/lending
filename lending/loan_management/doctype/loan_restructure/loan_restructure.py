@@ -364,7 +364,7 @@ class LoanRestructure(AccountsController):
 		if self.restructure_type == "Normal Restructure":
 			# Mark Loan as NPA
 			update_all_linked_loan_customer_npa_status(
-				1, 1, self.applicant_type, self.applicant, self.restructure_date
+				1, self.applicant_type, self.applicant, self.restructure_date, loan=self.loan
 			)
 
 			watch_period_days = frappe.db.get_value(
