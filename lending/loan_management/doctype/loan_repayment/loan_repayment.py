@@ -119,13 +119,16 @@ class LoanRepayment(AccountsController):
 		self.make_credit_note_for_charge_waivers()
 		self.make_gl_entries()
 
-		if self.is_npa:
+		if self.is_npa and self.repayment_type not in (
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+		):
 			write_off_suspense_entries(
 				self.against_loan,
 				self.loan_product,
 				self.posting_date,
 				self.company,
-				is_npa=self.is_npa,
 				interest_amount=self.total_interest_paid,
 				penalty_amount=self.total_penalty_paid,
 			)

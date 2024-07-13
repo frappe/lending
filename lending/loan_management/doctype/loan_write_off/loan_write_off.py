@@ -206,7 +206,6 @@ def write_off_suspense_entries(
 	posting_date,
 	company,
 	is_write_off=0,
-	is_npa=0,
 	interest_amount=0,
 	penalty_amount=0,
 ):
