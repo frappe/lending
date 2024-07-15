@@ -59,7 +59,8 @@ class LoanWriteOff(AccountsController):
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
-		make_loan_waivers(self.loan, self.posting_date)
+		if not self.is_npa:
+			make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
 		self.close_employee_loan()
@@ -236,6 +237,7 @@ def write_off_suspense_entries(
 				"is_cancelled": 0,
 				"posting_date": ("<=", posting_date),
 			},
+			group_by="account",
 			as_list=1,
 		)
 	)
