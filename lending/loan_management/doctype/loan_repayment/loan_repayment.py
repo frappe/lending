@@ -358,7 +358,7 @@ class LoanRepayment(AccountsController):
 
 		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
-		if not is_secured_loan and self.auto_close_loan():
+		if not is_secured_loan and self.auto_close_loan() and self.repayment_type != "Full Settlement":
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type in ("Full Settlement", "Write Off Settlement"):
 			query = query.set(loan.status, "Settled")
