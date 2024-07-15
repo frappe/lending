@@ -875,6 +875,7 @@ def update_loan_and_customer_status(
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
+				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date)
 
 		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
@@ -1037,6 +1038,44 @@ def make_suspense_journal_entry(loan, company, loan_product, amount, posting_dat
 
 		if amount:
 			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+
+def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+
+	suspense_account_map = frappe._dict(
+		frappe.db.get_all(
+			"Loan Charges",
+			{"parent": loan_product},
+			[
+				"income_account",
+				"suspense_account",
+			],
+			as_list=1,
+		)
+	)
+
+	invoices = frappe.db.get_all(
+		"Sales Invoice", {"loan": loan, "docstatus": 1, "status": "Unpaid"}, pluck="name"
+	)
+
+	amounts = frappe._dict(
+		frappe.db.get_all(
+			"Sales Invoice Item",
+			filters={
+				"parent": ("in", invoices),
+			},
+			fields=["income_account", "amount"],
+			group_by="income_account",
+			as_list=1,
+		)
+	)
+
+	for key, value in amounts.items():
+		if value > 0:
+			suspense_account = suspense_account_map.get(key)
+			if suspense_account:
+				make_journal_entry(posting_date, company, loan, value, key, suspense_account)
 
 
 def make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account):
