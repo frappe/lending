@@ -375,10 +375,7 @@ def calculate_penal_interest_for_loans(
 	is_future_accrual=0,
 	accrual_date=None,
 ):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-		get_pending_principal_amount,
-		get_unpaid_demands,
-	)
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	demands = get_unpaid_demands(loan.name, posting_date)
@@ -412,17 +409,9 @@ def calculate_penal_interest_for_loans(
 
 				if penal_interest_amount > 0:
 					total_penal_interest += penal_interest_amount
-
-					if demand.demand_subtype == "Interest":
-						day_end_balance = get_pending_principal_amount(loan)
-						schedule_balance = get_principal_amount_for_term_loan(
-							demand.loan_repayment_schedule, posting_date
-						)
-
-						pending_principal_amount = flt(day_end_balance) - flt(schedule_balance)
-
+					if demand.demand_subtype == "Principal":
 						per_day_interest = get_per_day_interest(
-							pending_principal_amount, loan.rate_of_interest, loan.company, posting_date
+							demand.outstanding_amount, loan.rate_of_interest, loan.company, posting_date
 						)
 						additional_interest = flt(per_day_interest * no_of_days, precision)
 
