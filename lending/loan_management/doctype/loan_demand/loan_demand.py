@@ -103,7 +103,7 @@ class LoanDemand(AccountsController):
 			)
 
 		gl_entries = self.add_gl_entries(
-			gl_entries, receivable_account, accrual_account, cancel, party_type, party
+			gl_entries, receivable_account, accrual_account, party_type, party
 		)
 
 		if self.demand_type == "BPI":
@@ -112,20 +112,20 @@ class LoanDemand(AccountsController):
 			)
 
 			gl_entries = self.add_gl_entries(
-				gl_entries, receivable_account, accrual_account, cancel, party_type, party
+				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
 		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
 
 	def add_gl_entries(
-		self, gl_entries, receivable_account, accrual_account, cancel, party_type=None, party=None
+		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None
 	):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
 					"posting_date": self.posting_date or self.demand_date,
 					"account": receivable_account,
-					"against": self.loan,
+					"against": accrual_account,
 					"debit": self.demand_amount,
 					"against_voucher_type": "Loan",
 					"against_voucher": self.loan,

@@ -34,6 +34,7 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan"
   },
@@ -74,7 +75,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-18 12:24:59.784876",
+ "modified": "2024-07-16 14:47:02.285860",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",
