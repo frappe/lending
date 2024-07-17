@@ -49,6 +49,11 @@ class LoanInterestAccrual(AccountsController):
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
 
+		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+
+		if loan_status == "Written Off":
+			return
+
 		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
 		account_details = frappe.db.get_value(
 			"Loan Product",
@@ -382,6 +387,8 @@ def calculate_penal_interest_for_loans(
 
 	loan_product = frappe.get_value("Loan", loan.name, "loan_product")
 	freeze_date = frappe.get_value("Loan", loan.name, "freeze_date")
+	loan_status = frappe.get_value("Loan", loan.name, "status")
+
 	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
 	grace_period_days = cint(frappe.get_value("Loan Product", loan_product, "grace_period_in_days"))
 	total_penal_interest = 0
@@ -431,15 +438,16 @@ def calculate_penal_interest_for_loans(
 							accrual_date=accrual_date,
 						)
 
-						create_loan_demand(
-							loan.name,
-							posting_date,
-							"Penalty",
-							"Penalty",
-							penal_interest_amount,
-							loan_repayment_schedule=demand.loan_repayment_schedule,
-							loan_disbursement=loan.loan_disbursement,
-						)
+						if loan_status != "Written Off":
+							create_loan_demand(
+								loan.name,
+								posting_date,
+								"Penalty",
+								"Penalty",
+								penal_interest_amount,
+								loan_repayment_schedule=demand.loan_repayment_schedule,
+								loan_disbursement=loan.loan_disbursement,
+							)
 
 	if is_future_accrual:
 		return total_penal_interest
@@ -454,7 +462,7 @@ def make_accrual_interest_entry_for_loans(
 	accrual_date=None,
 ):
 	query_filters = {
-		"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+		"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off"]),
 		"docstatus": 1,
 	}
 

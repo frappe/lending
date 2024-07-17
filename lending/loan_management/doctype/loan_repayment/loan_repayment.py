@@ -488,6 +488,7 @@ class LoanRepayment(AccountsController):
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+			get_accrued_interest_for_write_off_recovery,
 			get_write_off_recovery_details,
 			get_write_off_waivers,
 		)
@@ -519,11 +520,21 @@ class LoanRepayment(AccountsController):
 				recovery_details.get("total_penalty")
 			)
 
+			accrued_interest, accrued_penalty = get_accrued_interest_for_write_off_recovery(
+				self.against_loan, self.posting_date
+			)
+
 			if pending_interest > 0:
 				amounts["unbooked_interest"] += pending_interest
 
 			if pending_penalty > 0:
 				amounts["unbooked_penalty"] += pending_penalty
+
+			if accrued_interest > 0:
+				amounts["unbooked_interest"] += accrued_interest
+
+			if accrued_penalty > 0:
+				amounts["unbooked_penalty"] += accrued_penalty
 
 		amount_paid = self.amount_paid
 
@@ -1336,15 +1347,22 @@ def get_unbooked_interest(loan, posting_date):
 	return unbooked_interest, accrued_interest
 
 
-def get_accrued_interest(loan, posting_date, interest_type="Normal Interest"):
+def get_accrued_interest(
+	loan, posting_date, interest_type="Normal Interest", last_demand_date=None
+):
+	filters = {
+		"loan": loan,
+		"docstatus": 1,
+		"posting_date": ("<=", posting_date),
+		"interest_type": interest_type,
+	}
+
+	if last_demand_date:
+		filters["posting_date"] = (">", last_demand_date)
+
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
-		{
-			"loan": loan,
-			"docstatus": 1,
-			"posting_date": ("<=", posting_date),
-			"interest_type": interest_type,
-		},
+		filters,
 		"SUM(interest_amount)",
 	)
 

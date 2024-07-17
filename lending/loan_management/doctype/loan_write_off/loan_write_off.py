@@ -302,9 +302,6 @@ def write_off_charges(loan, posting_date, company):
 		)
 	)
 
-	# print(amounts)
-	# frappe.throw("Stop")
-
 	for account, amount in amounts.items():
 		if amount > 0:
 			waiver_account = suspense_account_map.get(account)
@@ -366,3 +363,25 @@ def get_write_off_recovery_details(loan_name, posting_date):
 	)
 
 	return write_of_recover_details or {}
+
+
+def get_accrued_interest_for_write_off_recovery(loan_name, posting_date):
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_accrued_interest,
+		get_last_demand_date,
+	)
+
+	last_interest_demand_date = get_last_demand_date(loan_name, posting_date)
+	last_penalty_demand_date = get_last_demand_date(loan_name, posting_date, demand_subtype="Penalty")
+
+	accrued_interest = get_accrued_interest(
+		loan_name, posting_date, last_demand_date=last_interest_demand_date
+	)
+	accrued_penalty = get_accrued_interest(
+		loan_name,
+		posting_date,
+		interest_type="Penal Interest",
+		last_demand_date=last_penalty_demand_date,
+	)
+
+	return accrued_interest, accrued_penalty
