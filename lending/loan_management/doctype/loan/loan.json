@@ -70,6 +70,7 @@
   "total_principal_paid",
   "written_off_amount",
   "refund_amount",
+  "excess_amount_paid",
   "debit_adjustment_amount",
   "credit_adjustment_amount",
   "column_break_19",
@@ -631,12 +632,19 @@
    "fieldname": "fldg_trigger_date",
    "fieldtype": "Date",
    "label": "FLDG Trigger Date"
+  },
+  {
+   "fieldname": "excess_amount_paid",
+   "fieldtype": "Currency",
+   "label": "Excess Amount Paid",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-06 17:13:36.668863",
+ "modified": "2024-07-17 09:18:09.539043",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

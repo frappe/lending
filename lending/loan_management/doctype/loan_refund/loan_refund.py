@@ -41,14 +41,21 @@ class LoanRefund(AccountsController):
 		self.make_gl_entries(cancel=1)
 
 	def update_outstanding_amount(self, cancel=0):
-		refund_amount = frappe.db.get_value("Loan", self.loan, "refund_amount")
+		if self.is_excess_amount_refund:
+			fieldname = "excess_amount_paid"
+			amount = -1 * self.refund_amount
+		else:
+			fieldname = "refund_amount"
+			amount = self.refund_amount
+
+		refund_amount = frappe.db.get_value("Loan", self.loan, fieldname)
 
 		if cancel:
-			refund_amount -= self.refund_amount
+			refund_amount -= amount
 		else:
-			refund_amount += self.refund_amount
+			refund_amount += amount
 
-		frappe.db.set_value("Loan", self.loan, "refund_amount", refund_amount)
+		frappe.db.set_value("Loan", self.loan, fieldname, refund_amount)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []

@@ -356,6 +356,9 @@ class LoanRepayment(AccountsController):
 			.where(loan.name == self.against_loan)
 		)
 
+		if self.excess_amount > 0:
+			query = query.set(loan.excess_amount_paid, loan.excess_amount_paid + self.excess_amount)
+
 		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
 		if not is_secured_loan and self.auto_close_loan() and self.repayment_type != "Full Settlement":
@@ -375,11 +378,18 @@ class LoanRepayment(AccountsController):
 
 		shortfall_amount = self.pending_principal_amount - self.principal_amount_paid
 
-		if shortfall_amount >= 0 and shortfall_amount <= auto_write_off_amount:
+		if shortfall_amount > 0 and shortfall_amount <= auto_write_off_amount:
 			auto_close = True
 
 		excess_amount = self.principal_amount_paid - self.pending_principal_amount
 		if excess_amount > 0 and excess_amount < excess_amount_limit:
+			auto_close = True
+
+		if (
+			self.principal_amount_paid >= self.pending_principal_amount
+			and shortfall_amount == 0
+			and self.excess_amount == 0
+		):
 			auto_close = True
 
 		return auto_close
@@ -396,13 +406,17 @@ class LoanRepayment(AccountsController):
 		):
 			loan = frappe.qb.DocType("Loan")
 
-			frappe.qb.update(loan).set(
-				loan.total_amount_paid, loan.total_amount_paid - self.amount_paid
-			).set(
-				loan.total_principal_paid, loan.total_principal_paid - self.principal_amount_paid
-			).where(
-				loan.name == self.against_loan
-			).run()
+			query = (
+				frappe.qb.update(loan)
+				.set(loan.total_amount_paid, loan.total_amount_paid - self.amount_paid)
+				.set(loan.total_principal_paid, loan.total_principal_paid - self.principal_amount_paid)
+				.where(loan.name == self.against_loan)
+			)
+
+			if self.excess_amount:
+				query = query.set(loan.excess_amount_paid, loan.excess_amount_paid - self.excess_amount)
+
+			query.run()
 
 	def update_demands(self, cancel=0):
 		loan_demand = frappe.qb.DocType("Loan Demand")
@@ -1134,6 +1148,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 	amounts["written_off_amount"] = flt(loan.written_off_amount, precision)
 	amounts["unpaid_demands"] = demands
 	amounts["due_date"] = last_demand_date
+	amounts["excess_amount_paid"] = flt(loan.excess_amount_paid, precision)
 
 	return amounts
 

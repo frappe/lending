@@ -12,6 +12,7 @@
   "column_break_3",
   "company",
   "posting_date",
+  "is_excess_amount_refund",
   "accounting_dimensions_section",
   "cost_center",
   "section_break_9",
@@ -126,12 +127,18 @@
    "fieldname": "reference_number",
    "fieldtype": "Data",
    "label": "Reference Number"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_excess_amount_refund",
+   "fieldtype": "Check",
+   "label": "Is Excess Amount Refund"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-06-24 16:13:48.793486",
+ "modified": "2024-07-16 21:38:50.120910",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Refund",
