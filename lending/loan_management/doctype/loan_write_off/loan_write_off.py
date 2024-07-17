@@ -59,10 +59,10 @@ class LoanWriteOff(AccountsController):
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
-		if not self.is_npa:
-			make_loan_waivers(self.loan, self.posting_date)
+		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
+		write_off_charges(self.loan, self.posting_date, self.company)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
 
@@ -265,6 +265,50 @@ def write_off_suspense_entries(
 			accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+
+def write_off_charges(loan, posting_date, company):
+	from lending.loan_management.doctype.loan.loan import make_journal_entry
+
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+
+	suspense_account_map = frappe._dict(
+		frappe.db.get_all(
+			"Loan Charges",
+			{"parent": loan_product},
+			[
+				"suspense_account",
+				"waiver_account",
+			],
+			as_list=1,
+		)
+	)
+
+	suspense_accounts = [key for key, value in suspense_account_map.items()]
+
+	amounts = frappe._dict(
+		frappe.db.get_all(
+			"GL Entry",
+			fields=["account", "sum(credit) - sum(debit) as amount"],
+			filters={
+				"against_voucher_type": "Loan",
+				"against_voucher": loan,
+				"account": ("in", suspense_accounts),
+				"is_cancelled": 0,
+				"posting_date": ("<=", posting_date),
+			},
+			group_by="account",
+			as_list=1,
+		)
+	)
+
+	# print(amounts)
+	# frappe.throw("Stop")
+
+	for account, amount in amounts.items():
+		if amount > 0:
+			waiver_account = suspense_account_map.get(account)
+			make_journal_entry(posting_date, company, loan, amount, account, waiver_account)
 
 
 def get_suspense_entries(loan, loan_product):

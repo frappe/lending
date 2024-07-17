@@ -1059,7 +1059,9 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
 	)
 
 	invoices = frappe.db.get_all(
-		"Sales Invoice", {"loan": loan, "docstatus": 1, "status": "Unpaid"}, pluck="name"
+		"Sales Invoice",
+		{"loan": loan, "docstatus": 1, "status": ("in", ["Unpaid", "Overdue"])},
+		pluck="name",
 	)
 
 	amounts = frappe._dict(
