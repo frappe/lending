@@ -356,7 +356,7 @@ class LoanRepayment(AccountsController):
 			.where(loan.name == self.against_loan)
 		)
 
-		if self.excess_amount > 0:
+		if flt(self.excess_amount > 0):
 			query = query.set(loan.excess_amount_paid, loan.excess_amount_paid + self.excess_amount)
 
 		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
