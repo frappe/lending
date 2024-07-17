@@ -413,6 +413,9 @@ class LoanRepayment(AccountsController):
 				.where(loan.name == self.against_loan)
 			)
 
+			if self.repayment_type == "Write Off Settlement":
+				query = query.set(loan.status, "Written Off")
+
 			if self.excess_amount:
 				query = query.set(loan.excess_amount_paid, loan.excess_amount_paid - self.excess_amount)
 
@@ -861,8 +864,6 @@ class LoanRepayment(AccountsController):
 			"Interest Carry Forward": "interest_income_account",
 			"Security Deposit Adjustment": "security_deposit_account",
 			"Subsidy Adjustments": "subsidy_adjustment_account",
-			"Full Settlement": "payment_account",
-			"Partial Settlement": "payment_account",
 		}
 
 		if self.repayment_type in (
@@ -872,6 +873,8 @@ class LoanRepayment(AccountsController):
 			"Write Off Recovery",
 			"Write Off Settlement",
 			"Charge Payment",
+			"Full Settlement",
+			"Partial Settlement",
 		):
 			if hasattr(self, "repay_from_salary") and self.repay_from_salary:
 				payment_account = self.payroll_payable_account
