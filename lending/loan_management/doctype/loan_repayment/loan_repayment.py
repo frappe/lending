@@ -545,7 +545,7 @@ class LoanRepayment(AccountsController):
 				allocation_order = frappe.db.get_value(
 					"Company", self.company, "collection_offset_sequence_for_written_off_asset"
 				)
-			elif self.repayment_type in ("Partial Settlement", "Full Settlement"):
+			elif self.repayment_type in ("Partial Settlement", "Full Settlement", "Principal Adjustment"):
 				allocation_order = frappe.db.get_value(
 					"Company", self.company, "collection_offset_sequence_for_settlement_collection"
 				)
@@ -599,6 +599,7 @@ class LoanRepayment(AccountsController):
 					"Write Off Settlement",
 					"Subsidy Adjustments",
 					"Security Deposit Adjustment",
+					"Principal Adjustment",
 				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
@@ -674,6 +675,7 @@ class LoanRepayment(AccountsController):
 					"Full Settlement",
 					"Write Off Recovery",
 					"Write Off Settlement",
+					"Principal Adjustment",
 				):
 					principal_amount_paid = sum(
 						d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
@@ -886,6 +888,7 @@ class LoanRepayment(AccountsController):
 			"Charge Payment",
 			"Full Settlement",
 			"Partial Settlement",
+			"Principal Adjustment",
 		):
 			if hasattr(self, "repay_from_salary") and self.repay_from_salary:
 				payment_account = self.payroll_payable_account
