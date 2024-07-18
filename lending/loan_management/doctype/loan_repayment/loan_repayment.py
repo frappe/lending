@@ -361,13 +361,51 @@ class LoanRepayment(AccountsController):
 
 		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
 
-		if not is_secured_loan and self.auto_close_loan() and self.repayment_type != "Full Settlement":
+		if self.repayment_type == "Write Off Settlement":
+			if self.amount_paid >= self.payable_amount:
+				query = query.set(loan.status, "Closed")
+			else:
+				query = query.set(loan.status, "Settled")
+
+			self.post_write_off_settlements()
+		elif not is_secured_loan and self.auto_close_loan() and self.repayment_type != "Full Settlement":
 			query = query.set(loan.status, "Closed")
-		elif self.repayment_type in ("Full Settlement", "Write Off Settlement"):
+		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
 
 		query.run()
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
+
+	def post_write_off_settlements(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_loan_repayment,
+		)
+
+		if self.interest_payable - self.total_interest_paid > 0:
+			interest_amount = self.interest_payable - self.total_interest_paid
+			create_loan_demand(
+				self.against_loan,
+				self.posting_date,
+				"EMI",
+				"Interest",
+				interest_amount,
+			)
+			create_loan_repayment(
+				self.against_loan,
+				self.posting_date,
+				"Interest Waiver",
+				interest_amount,
+				is_settlement_waiver=1,
+			)
+
+		if self.penalty_amount - self.total_penalty_paid > 0:
+			penalty_amount = self.penalty_amount - self.total_penalty_paid
+			create_loan_demand(self.against_loan, self.posting_date, "Penalty", "Penalty", penalty_amount)
+
+			create_loan_repayment(
+				self.against_loan, self.posting_date, "Penalty Waiver", penalty_amount, is_settlement_waiver=1
+			)
 
 	def auto_close_loan(self):
 		auto_close = False
@@ -535,6 +573,13 @@ class LoanRepayment(AccountsController):
 
 			if accrued_penalty > 0:
 				amounts["unbooked_penalty"] += accrued_penalty
+
+			self.interest_payable = amounts.get("unbooked_interest")
+			self.penalty_amount = amounts.get("unbooked_penalty")
+
+			self.payable_amount = (
+				self.pending_principal_amount + self.interest_payable + self.penalty_amount
+			)
 
 		amount_paid = self.amount_paid
 

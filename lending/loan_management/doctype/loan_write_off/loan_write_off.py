@@ -345,7 +345,7 @@ def get_write_off_waivers(loan_name, posting_date):
 
 
 def get_write_off_recovery_details(loan_name, posting_date):
-	write_of_recover_details = frappe.db.get_value(
+	write_of_recovery_details = frappe.db.get_value(
 		"Loan Repayment",
 		{
 			"against_loan": loan_name,
@@ -362,7 +362,7 @@ def get_write_off_recovery_details(loan_name, posting_date):
 		as_dict=1,
 	)
 
-	return write_of_recover_details or {}
+	return write_of_recovery_details or {}
 
 
 def get_accrued_interest_for_write_off_recovery(loan_name, posting_date):
