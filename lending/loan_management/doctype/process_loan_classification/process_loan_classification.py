@@ -24,13 +24,16 @@ class ProcessLoanClassification(Document):
 		open_loans = frappe.get_all("Loan", filters=filters, pluck="name")
 
 		for loan in open_loans:
-			update_days_past_due_in_loans(
-				loan_name=loan,
-				posting_date=self.posting_date,
-				loan_product=self.loan_product,
-				process_loan_classification=self.name,
-				ignore_freeze=True if self.payment_reference else False,
-			)
+			try:
+				update_days_past_due_in_loans(
+					loan_name=loan,
+					posting_date=self.posting_date,
+					loan_product=self.loan_product,
+					process_loan_classification=self.name,
+					ignore_freeze=True if self.payment_reference else False,
+				)
+			except Exception as e:
+				pass
 
 
 def create_process_loan_classification(

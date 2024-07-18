@@ -203,51 +203,54 @@ def make_loan_demand_for_term_loans(
 	)
 
 	for row in emi_rows:
-		freeze_date = freeze_dates.get(loan_repayment_schedule_map.get(row.parent))
-		if freeze_date and getdate(freeze_date) <= getdate(row.payment_date):
-			continue
+		try:
+			freeze_date = freeze_dates.get(loan_repayment_schedule_map.get(row.parent))
+			if freeze_date and getdate(freeze_date) <= getdate(row.payment_date):
+				continue
 
-		paid_amount = 0
+			paid_amount = 0
 
-		if not row.principal_amount and getdate(row.payment_date) < getdate(
-			start_date_map.get(row.parent)
-		):
-			demand_type = "BPI"
-			paid_amount = row.interest_amount
-		else:
-			demand_type = "EMI"
+			if not row.principal_amount and getdate(row.payment_date) < getdate(
+				start_date_map.get(row.parent)
+			):
+				demand_type = "BPI"
+				paid_amount = row.interest_amount
+			else:
+				demand_type = "EMI"
 
-		if row.interest_amount:
-			create_loan_demand(
-				loan_repayment_schedule_map.get(row.parent),
-				row.payment_date,
-				demand_type,
-				"Interest",
-				flt(row.interest_amount, precision),
-				loan_repayment_schedule=row.parent,
-				loan_disbursement=disbursement_map.get(row.parent),
-				repayment_schedule_detail=row.name,
-				process_loan_demand=process_loan_demand,
-				paid_amount=paid_amount,
-				posting_date=posting_date,
-			)
+			if row.interest_amount:
+				create_loan_demand(
+					loan_repayment_schedule_map.get(row.parent),
+					row.payment_date,
+					demand_type,
+					"Interest",
+					flt(row.interest_amount, precision),
+					loan_repayment_schedule=row.parent,
+					loan_disbursement=disbursement_map.get(row.parent),
+					repayment_schedule_detail=row.name,
+					process_loan_demand=process_loan_demand,
+					paid_amount=paid_amount,
+					posting_date=posting_date,
+				)
 
-		if row.principal_amount:
-			create_loan_demand(
-				loan_repayment_schedule_map.get(row.parent),
-				row.payment_date,
-				demand_type,
-				"Principal",
-				flt(row.principal_amount, precision),
-				loan_repayment_schedule=row.parent,
-				loan_disbursement=disbursement_map.get(row.parent),
-				repayment_schedule_detail=row.name,
-				process_loan_demand=process_loan_demand,
-				paid_amount=paid_amount,
-				posting_date=posting_date,
-			)
+			if row.principal_amount:
+				create_loan_demand(
+					loan_repayment_schedule_map.get(row.parent),
+					row.payment_date,
+					demand_type,
+					"Principal",
+					flt(row.principal_amount, precision),
+					loan_repayment_schedule=row.parent,
+					loan_disbursement=disbursement_map.get(row.parent),
+					repayment_schedule_detail=row.name,
+					process_loan_demand=process_loan_demand,
+					paid_amount=paid_amount,
+					posting_date=posting_date,
+				)
 
-		update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+			update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+		except Exception as e:
+			pass
 
 
 def create_loan_demand(
