@@ -157,7 +157,7 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if gle_map:
-			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
