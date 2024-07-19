@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Sum
-from frappe.utils import date_diff
+from frappe.utils import date_diff, flt
 
 
 def execute(filters=None):
@@ -14,7 +14,6 @@ def execute(filters=None):
 
 
 def get_columns():
-	ageing_columns = get_ageing_columns()
 	columns = [
 		{"label": _("Loan"), "fieldname": "loan", "fieldtype": "Link", "options": "Loan", "width": 160},
 		{
@@ -22,6 +21,12 @@ def get_columns():
 			"fieldname": "loan_product",
 			"fieldtype": "Link",
 			"options": "Loan Product",
+			"width": 100,
+		},
+		{
+			"label": _("Ageing"),
+			"fieldname": "ageing",
+			"fieldtype": "Data",
 			"width": 100,
 		},
 		{
@@ -54,44 +59,25 @@ def get_columns():
 		},
 	]
 
-	return columns[:1] + ageing_columns + columns[1:]
-
-
-def get_ageing_columns():
-	columns = []
-	for ageing in get_ageing_list(columns=True):
-		columns.append(
-			{
-				"label": _(frappe.unscrub(ageing)),
-				"fieldname": ageing,
-				"fieldtype": "Currency",
-				"options": "currency",
-				"width": 120,
-			}
-		)
-
 	return columns
 
 
-def get_ageing_list(columns=False):
+def get_ageing_map():
 	ageing_map = {
-		"0-0": "overdue",
-		"0-30": "0_to_1_month",
-		"30-60": "1_to_2_months",
-		"60-90": "2_to_3_months",
-		"90-180": "3_to_6_months",
-		"180-365": "6_to_12_months",
-		"365-730": "1_to_2_years",
-		"730-1095": "2_to_3_years",
-		"1095-1460": "3_to_4_years",
-		"1460-1825": "4_to_5_years",
-		"1825-100000": "5_years_and_above",
+		"0-0": "Overdue",
+		"0-30": "0 to 1 Month",
+		"30-60": "1 to 2 Months",
+		"60-90": "2 to 3 Months",
+		"90-180": "3 to 6 Months",
+		"180-365": "6 to 12 Months",
+		"365-730": "1 to 2 Years",
+		"730-1095": "2 to 3 Years",
+		"1095-1460": "3 to 4 Years",
+		"1460-1825": "4 to 5 Years",
+		"1825-100000": "5 Years and Above",
 	}
 
-	if columns:
-		return [value for key, value in ageing_map.items()]
-	else:
-		return ageing_map
+	return ageing_map
 
 
 def get_data(filters):
@@ -114,37 +100,65 @@ def get_data(filters):
 
 	for loan in loans:
 		amounts = demand_details.get(loan, {})
-		future_details = future_details_map.get(loan, [])
+		future_details = future_details_map.get(loan, {})
+
+		parent_row = {
+			"indent": 0,
+			"loan": loan,
+			"ageing": "",
+			"loan_product": loan_product_map.get(loan),
+			"accrued_principal": amounts.get("total_pending_principal", 0),
+			"accrued_interest": amounts.get("total_pending_interest", 0),
+			"penalty_amount": amounts.get("total_pending_penalty", 0),
+			"total": 0,
+		}
+
 		total = (
 			amounts.get("total_pending_principal", 0)
 			+ amounts.get("total_pending_interest", 0)
 			+ amounts.get("total_pending_penalty", 0)
 		)
 
-		row = {
-			"loan": loan,
-			"loan_product": loan_product_map.get(loan),
-			"accrued_principal": amounts.get("total_pending_principal", 0),
-			"accrued_interest": amounts.get("total_pending_interest", 0),
-			"penalty_amount": amounts.get("total_pending_penalty", 0),
-			"overdue": total,
-			"total": total,
-		}
+		child_data = [
+			{
+				"ageing": "Overdue",
+				"accrued_principal": amounts.get("total_pending_principal", 0),
+				"accrued_interest": amounts.get("total_pending_interest", 0),
+				"penalty_amount": amounts.get("total_pending_penalty", 0),
+				"indent": 1,
+			}
+		]
+		for bucket, entry in future_details.items():
+			child_row = {
+				"accrued_principal": 0.0,
+				"accrued_interest": 0.0,
+				"penalty_amount": 0.0,
+				"indent": 1,
+			}
+			child_row["accrued_interest"] += flt(entry.interest_amount)
+			child_row["accrued_principal"] += flt(entry.principal_amount)
+			child_row["penalty_amount"] += flt(entry.penalty_amount)
+			child_row["ageing"] = bucket
+			child_row["total"] = (
+				child_row["accrued_principal"] + child_row["accrued_interest"] + child_row["penalty_amount"]
+			)
 
-		for entry in future_details:
-			ageing_bucket = get_ageing_bucket(entry.payment_date, filters.get("as_on_date"))
-			row.setdefault(ageing_bucket, 0.0)
-			row[ageing_bucket] += entry.interest_amount
-			row[ageing_bucket] += entry.principal_amount
-			row["total"] += entry.interest_amount + entry.principal_amount
+			parent_row["accrued_interest"] += flt(entry.interest_amount)
+			parent_row["accrued_principal"] += flt(entry.principal_amount)
+			parent_row["penalty_amount"] += flt(entry.penalty_amount)
+			parent_row["total"] += child_row["total"]
 
-		data.append(row)
+			child_data.append(child_row)
+
+		data.append(parent_row)
+		for child in child_data:
+			data.append(child)
 
 	return data
 
 
 def get_ageing_bucket(as_on_date, payment_date):
-	ageing_map = get_ageing_list()
+	ageing_map = get_ageing_map()
 	ageing_days = date_diff(as_on_date, payment_date)
 	for key, value in ageing_map.items():
 		start, end = key.split("-")
@@ -183,13 +197,27 @@ def get_future_interest_details(as_on_date, company):
 			"payment_date": (">", as_on_date),
 		},
 		fields=["parent", "payment_date", "interest_amount", "principal_amount"],
+		order_by="payment_date",
 	)
 
 	future_details = {}
 	for emi in future_emis:
 		loan = loan_repayment_schedules.get(emi.parent)
-		future_details.setdefault(loan, [])
-		future_details[loan].append(emi)
+		future_details.setdefault(loan, frappe._dict())
+		bucket_wise_details = future_details.get(loan)
+		age_bucket = get_ageing_bucket(emi.payment_date, as_on_date)
+		bucket_wise_details.setdefault(
+			age_bucket,
+			frappe._dict(
+				{
+					"interest_amount": 0.0,
+					"principal_amount": 0.0,
+				}
+			),
+		)
+
+		bucket_wise_details[age_bucket]["interest_amount"] += emi.interest_amount
+		bucket_wise_details[age_bucket]["principal_amount"] += emi.principal_amount
 
 	return future_details, loans
 
