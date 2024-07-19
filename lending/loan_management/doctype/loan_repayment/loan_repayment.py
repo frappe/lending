@@ -423,8 +423,8 @@ class LoanRepayment(AccountsController):
 
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
-			and shortfall_amount == 0
-			and self.excess_amount == 0
+			and not flt(shortfall_amount)
+			and not flt(self.excess_amount)
 		):
 			auto_close = True
 
@@ -443,6 +443,10 @@ class LoanRepayment(AccountsController):
 		):
 			loan = frappe.qb.DocType("Loan")
 
+			loan_status, repayment_schedule_type = frappe.db.get_value(
+				"Loan", self.against_loan, ["status", "repayment_schedule_type"]
+			)
+
 			query = (
 				frappe.qb.update(loan)
 				.set(loan.total_amount_paid, loan.total_amount_paid - self.amount_paid)
@@ -452,6 +456,11 @@ class LoanRepayment(AccountsController):
 
 			if self.repayment_type == "Write Off Settlement":
 				query = query.set(loan.status, "Written Off")
+			elif loan_status == "Closed":
+				if repayment_schedule_type == "Line of Credit":
+					query = query.set(loan.status, "Active")
+				else:
+					query = query.set(loan.status, "Disbursed")
 
 			if self.excess_amount:
 				query = query.set(loan.excess_amount_paid, loan.excess_amount_paid - self.excess_amount)
