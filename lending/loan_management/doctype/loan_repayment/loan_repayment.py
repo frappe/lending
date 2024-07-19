@@ -359,8 +359,6 @@ class LoanRepayment(AccountsController):
 		if flt(self.excess_amount) > 0:
 			query = query.set(loan.excess_amount_paid, loan.excess_amount_paid + self.excess_amount)
 
-		is_secured_loan = frappe.db.get_value("Loan", self.against_loan, "is_secured_loan")
-
 		if self.repayment_type == "Write Off Settlement":
 			if self.amount_paid >= self.payable_amount:
 				query = query.set(loan.status, "Closed")
@@ -368,7 +366,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Settled")
 
 			self.post_write_off_settlements()
-		elif not is_secured_loan and self.auto_close_loan() and self.repayment_type != "Full Settlement":
+		elif self.auto_close_loan() and self.repayment_type != "Full Settlement":
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
