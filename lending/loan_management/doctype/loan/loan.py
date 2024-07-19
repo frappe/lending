@@ -106,7 +106,6 @@ class Loan(AccountsController):
 	def on_submit(self):
 		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
-		self.accrue_loan_interest()
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
 
 	def on_cancel(self):
@@ -301,16 +300,6 @@ class Loan(AccountsController):
 				)
 
 				self.db_set("maximum_loan_amount", maximum_loan_value)
-
-	def accrue_loan_interest(self):
-		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_loans,
-		)
-
-		if getdate(self.repayment_start_date) < getdate() and self.is_term_loan:
-			process_loan_interest_accrual_for_loans(
-				posting_date=getdate(), loan_product=self.loan_product, loan=self.name
-			)
 
 	def unlink_loan_security_assignment(self):
 		pledges = frappe.get_all(

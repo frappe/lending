@@ -663,7 +663,9 @@ class LoanRepaymentSchedule(Document):
 
 			elif expected_payment_date == payment_date:
 				if self.repayment_schedule_type == "Pro-rated calendar months":
-					if self.repayment_date_on == "End of the current month":
+					if payment_date == self.repayment_start_date:
+						days = date_diff(payment_date, self.posting_date)
+					elif self.repayment_date_on == "End of the current month":
 						days = date_diff(payment_date, get_first_day(payment_date)) + 1
 					else:
 						days = date_diff(get_last_day(payment_date), payment_date) + 1
@@ -671,9 +673,8 @@ class LoanRepaymentSchedule(Document):
 					# using 30 days for calculating interest for all full months
 					days = 30
 			else:
-				if additional_days < 0:
+				if payment_date == self.repayment_start_date:
 					days = date_diff(payment_date, self.posting_date)
-					additional_days = 0
 				else:
 					days = date_diff(get_last_day(payment_date), payment_date)
 		else:
