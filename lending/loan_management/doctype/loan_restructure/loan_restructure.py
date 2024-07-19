@@ -505,12 +505,22 @@ class LoanRestructure(AccountsController):
 			)
 
 	def make_loan_repayment_for_waiver(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+
 		if self.interest_waiver_amount:
 			create_loan_repayment(
 				self.loan, self.restructure_date, "Interest Waiver", self.interest_waiver_amount, self.name
 			)
 
 		if self.unaccrued_interest_waiver:
+			create_loan_demand(
+				self.against_loan,
+				self.restructure_date,
+				"EMI",
+				"Interest",
+				self.unaccrued_interest_waiver,
+			)
+
 			create_loan_repayment(
 				self.loan, self.restructure_date, "Interest Waiver", self.unaccrued_interest_waiver, self.name
 			)
