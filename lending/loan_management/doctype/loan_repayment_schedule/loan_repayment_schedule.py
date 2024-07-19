@@ -5,7 +5,16 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_day, getdate
+from frappe.utils import (
+	add_days,
+	add_months,
+	cint,
+	date_diff,
+	flt,
+	get_first_day,
+	get_last_day,
+	getdate,
+)
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -653,8 +662,14 @@ class LoanRepaymentSchedule(Document):
 					additional_days = 0
 
 			elif expected_payment_date == payment_date:
-				# using 30 days for calculating interest for all full months
-				days = 30
+				if self.repayment_schedule_type == "Pro-rated calendar months":
+					if self.repayment_date_on == "End of the current month":
+						days = date_diff(payment_date, get_first_day(payment_date)) + 1
+					else:
+						days = date_diff(get_last_day(payment_date), payment_date) + 1
+				else:
+					# using 30 days for calculating interest for all full months
+					days = 30
 			else:
 				days = date_diff(get_last_day(payment_date), payment_date)
 		else:
