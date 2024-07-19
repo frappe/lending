@@ -16,7 +16,8 @@ def generate_demand(self, method=None):
 			total_demand_amount += demand_amount
 			if i == total_items - 1:
 				precision_diff = self.rounded_total - total_demand_amount
-				demand_amount += flt(precision_diff, 2)
+				if precision_diff > 0:
+					demand_amount += flt(precision_diff, 2)
 
 			create_loan_demand(
 				self.loan,
