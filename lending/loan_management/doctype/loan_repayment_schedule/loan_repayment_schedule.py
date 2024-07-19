@@ -671,7 +671,11 @@ class LoanRepaymentSchedule(Document):
 					# using 30 days for calculating interest for all full months
 					days = 30
 			else:
-				days = date_diff(get_last_day(payment_date), payment_date)
+				if additional_days < 0:
+					days = date_diff(payment_date, self.posting_date)
+					additional_days = 0
+				else:
+					days = date_diff(get_last_day(payment_date), payment_date)
 		else:
 			if payment_date == self.repayment_start_date:
 				days = date_diff(payment_date, self.posting_date)
