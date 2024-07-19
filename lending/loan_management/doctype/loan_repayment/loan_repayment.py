@@ -441,6 +441,7 @@ class LoanRepayment(AccountsController):
 			"Full Settlement",
 			"Write Off Settlement",
 			"Partial Settlement",
+			"Principal Adjustment",
 		):
 			loan = frappe.qb.DocType("Loan")
 
