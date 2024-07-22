@@ -643,6 +643,7 @@ class LoanRepayment(AccountsController):
 					"Subsidy Adjustments",
 					"Security Deposit Adjustment",
 					"Principal Adjustment",
+					"Charge Payment",
 				):
 					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
 
