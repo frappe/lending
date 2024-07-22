@@ -33,7 +33,10 @@ class ProcessLoanClassification(Document):
 					ignore_freeze=True if self.payment_reference else False,
 				)
 			except Exception as e:
-				pass
+				if len(open_loans) == 1:
+					raise e
+				else:
+					pass
 
 
 def create_process_loan_classification(

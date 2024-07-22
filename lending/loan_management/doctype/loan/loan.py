@@ -983,28 +983,66 @@ def get_loan_partner_threshold_map():
 
 
 def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unbooked_interest
-
 	if not posting_date:
 		posting_date = getdate()
 
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 	company = frappe.db.get_value("Loan", loan, "company")
 
-	normal_interest = get_unpaid_interest_amount(loan, posting_date, "Interest")
-	penal_interest = get_unpaid_interest_amount(loan, posting_date, "Penalty")
-	unbooked_interest, accrued_interest = get_unbooked_interest(loan, posting_date)
+	accounts = frappe.db.get_value(
+		"Loan Product",
+		loan_product,
+		[
+			"interest_income_account",
+			"additional_interest_income",
+			"penalty_income_account",
+			"suspense_interest_income",
+			"penalty_suspense_account",
+			"additional_interest_suspense",
+		],
+		as_dict=1,
+	)
 
-	if normal_interest > 0:
-		make_suspense_journal_entry(loan, company, loan_product, normal_interest, posting_date)
-
-	if penal_interest > 0:
-		make_suspense_journal_entry(
-			loan, company, loan_product, penal_interest, posting_date, is_penal=True
+	amounts = frappe._dict(
+		frappe.db.get_all(
+			"GL Entry",
+			fields=["account", "sum(credit) - sum(debit) as amount"],
+			filters={
+				"against_voucher_type": "Loan",
+				"against_voucher": loan,
+				"account": (
+					"in",
+					[
+						accounts.interest_income_account,
+						accounts.additional_interest_income,
+						accounts.penalty_income_account,
+					],
+				),
+				"is_cancelled": 0,
+				"posting_date": ("<=", posting_date),
+			},
+			group_by="account",
+			as_list=1,
 		)
+	)
 
-	if unbooked_interest > 0:
-		make_suspense_journal_entry(loan, company, loan_product, unbooked_interest, posting_date)
+	if amounts.get(accounts.interest_income_account, 0) > 0:
+		amount = amounts.get(accounts.interest_income_account, 0)
+		debit_account = accounts.interest_income_account
+		credit_account = accounts.get("suspense_interest_income")
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+	if amounts.get(accounts.penalty_income_account, 0) > 0:
+		amount = amounts.get(accounts.penalty_income_account, 0)
+		debit_account = accounts.penalty_income_account
+		credit_account = accounts.get("penalty_suspense_account")
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+	if amounts.get(accounts.additional_interest_income, 0) > 0:
+		amount = amounts.get(accounts.additional_interest_income, 0)
+		debit_account = accounts.additional_interest_income
+		credit_account = accounts.get("additional_interest_suspense")
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 
 def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):
