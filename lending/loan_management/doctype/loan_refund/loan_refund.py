@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -54,6 +54,12 @@ class LoanRefund(AccountsController):
 			refund_amount -= amount
 		else:
 			refund_amount += amount
+
+		if self.is_excess_amount_refund:
+			if not flt(refund_amount):
+				frappe.db.set_value("Loan", "status", "Closed")
+			elif refund_amount < 0:
+				frappe.throw(_("Excess amount refund cannot be more than excess amount paid"))
 
 		frappe.db.set_value("Loan", self.loan, fieldname, refund_amount)
 

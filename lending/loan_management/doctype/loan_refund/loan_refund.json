@@ -27,6 +27,7 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan",
    "reqd": 1
@@ -138,7 +139,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-16 21:38:50.120910",
+ "modified": "2024-07-22 12:35:56.681335",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Refund",

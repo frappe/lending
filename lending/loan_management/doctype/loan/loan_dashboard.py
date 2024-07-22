@@ -22,6 +22,7 @@ def get_data():
 					"Loan Interest Accrual",
 					"Loan Write Off",
 					"Loan Restructure",
+					"Loan Refund",
 					"Loan Freeze Log",
 				]
 			},
