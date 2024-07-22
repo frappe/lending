@@ -550,11 +550,15 @@ def get_last_accrual_date(
 			dates = frappe.db.get_value(
 				"Loan Repayment Schedule",
 				loan_repayment_schedule,
-				["moratorium_end_date", "posting_date"],
+				["moratorium_end_date", "posting_date", "moratorium_type"],
 				as_dict=1,
 			)
 
-			final_date = dates.moratorium_end_date or dates.posting_date
+			if dates.moratorium_type == "EMI" and dates.moratorium_end_date:
+				final_date = dates.moratorium_end_date
+			else:
+				final_date = dates.posting_date
+
 			return add_days(final_date, 1)
 
 	last_disbursement_date = get_last_disbursement_date(loan, posting_date)
@@ -573,13 +577,17 @@ def get_last_accrual_date(
 
 		return last_interest_accrual_date
 	else:
-		moratorium_end_date = frappe.db.get_value(
+		moratorium_end_date, moratorium_type = frappe.db.get_value(
 			"Loan Repayment Schedule",
 			{"loan": loan, "docstatus": 1, "status": "Active"},
-			"moratorium_end_date",
+			["moratorium_end_date", "moratorium_type"],
 		)
 
-		if moratorium_end_date and getdate(moratorium_end_date) > getdate(last_disbursement_date):
+		if (
+			moratorium_end_date
+			and moratorium_type == "EMI"
+			and getdate(moratorium_end_date) > getdate(last_disbursement_date)
+		):
 			last_interest_accrual_date = add_days(moratorium_end_date, 1)
 		else:
 			last_interest_accrual_date = last_disbursement_date
