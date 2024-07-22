@@ -125,6 +125,7 @@ class Loan(AccountsController):
 			"Loan Adjustment",
 			"Process Loan Classification",
 			"Loan Restructure",
+			"Process Loan Demand",
 		]
 		self.set_status()
 
