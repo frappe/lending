@@ -59,6 +59,11 @@ class LoanWriteOff(AccountsController):
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
+		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+			process_daily_loan_demands,
+		)
+
+		process_daily_loan_demands(self.posting_date, loan=self.loan)
 		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
