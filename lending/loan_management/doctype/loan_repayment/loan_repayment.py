@@ -370,6 +370,7 @@ class LoanRepayment(AccountsController):
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
+			self.post_write_off_settlements()
 
 		query.run()
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
