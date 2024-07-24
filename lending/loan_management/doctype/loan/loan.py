@@ -698,81 +698,91 @@ def update_days_past_due_in_loans(
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	demand = get_unpaid_demands(
-		loan_name, posting_date=posting_date, loan_product=loan_product, demand_type="EMI", limit=1
-	)
+	disbursements = frappe.db.get_all("Loan Disbursement", {"against_loan": loan_name}, pluck="name")
 
-	threshold_map = get_dpd_threshold_map()
-	threshold_write_off_map = get_dpd_threshold_write_off_map()
-	loan_partner_threshold_map = get_loan_partner_threshold_map()
-
-	loan_details = frappe.db.get_value(
-		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
-	)
-
-	applicant_type = loan_details.get("applicant_type")
-	applicant = loan_details.get("applicant")
-	company = loan_details.get("company")
-	freeze_date = loan_details.get("freeze_date")
-
-	if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
-		return
-
-	if demand:
-		demand = demand[0]
-		is_npa = 0
-		fldg_triggered = 0
-
-		dpd_date = freeze_date or posting_date
-		days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date))
-		if days_past_due < 0:
-			days_past_due = 0
-
-		threshold = threshold_map.get(demand.loan_product, 0)
-
-		fldg_trigger_dpd = loan_partner_threshold_map.get(demand.loan_partner, 0)
-
-		if days_past_due and threshold and days_past_due > threshold:
-			is_npa = 1
-
-		if days_past_due and fldg_trigger_dpd and days_past_due > fldg_trigger_dpd:
-			fldg_triggered = 1
-
-		if freeze_date:
-			days_past_due = 0
-			is_npa = 0
-
-		update_loan_and_customer_status(
-			demand.loan,
-			demand.company,
-			applicant_type,
-			applicant,
-			days_past_due,
-			is_npa,
-			fldg_triggered,
-			posting_date or getdate(),
-			freeze_date=freeze_date,
-		)
-
-		create_dpd_record(demand.loan, posting_date, days_past_due, process_loan_classification)
-
-		write_off_threshold = threshold_write_off_map.get(demand.company, 0)
-
-		if write_off_threshold and days_past_due > write_off_threshold:
-			create_loan_write_off(demand.loan, posting_date)
-	else:
-		# if no demand found, set DPD as 0
-		update_loan_and_customer_status(
+	for disbursement in disbursements:
+		demand = get_unpaid_demands(
 			loan_name,
-			company,
-			applicant_type,
-			applicant,
-			0,
-			0,
-			0,
-			posting_date or getdate(),
+			posting_date=posting_date,
+			loan_product=loan_product,
+			demand_type="EMI",
+			limit=1,
+			loan_disbursement=disbursement,
 		)
-		create_dpd_record(loan_name, posting_date, 0, process_loan_classification)
+
+		threshold_map = get_dpd_threshold_map()
+		threshold_write_off_map = get_dpd_threshold_write_off_map()
+		loan_partner_threshold_map = get_loan_partner_threshold_map()
+
+		loan_details = frappe.db.get_value(
+			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
+		)
+
+		applicant_type = loan_details.get("applicant_type")
+		applicant = loan_details.get("applicant")
+		company = loan_details.get("company")
+		freeze_date = loan_details.get("freeze_date")
+
+		if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
+			return
+
+		if demand:
+			demand = demand[0]
+			is_npa = 0
+			fldg_triggered = 0
+
+			dpd_date = freeze_date or posting_date
+			days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date))
+			if days_past_due < 0:
+				days_past_due = 0
+
+			threshold = threshold_map.get(demand.loan_product, 0)
+
+			fldg_trigger_dpd = loan_partner_threshold_map.get(demand.loan_partner, 0)
+
+			if days_past_due and threshold and days_past_due > threshold:
+				is_npa = 1
+
+			if days_past_due and fldg_trigger_dpd and days_past_due > fldg_trigger_dpd:
+				fldg_triggered = 1
+
+			if freeze_date:
+				days_past_due = 0
+				is_npa = 0
+
+			update_loan_and_customer_status(
+				demand.loan,
+				demand.company,
+				applicant_type,
+				applicant,
+				days_past_due,
+				is_npa,
+				fldg_triggered,
+				posting_date or getdate(),
+				freeze_date=freeze_date,
+				loan_disbursement=disbursement,
+			)
+
+			create_dpd_record(demand.loan, posting_date, days_past_due, process_loan_classification)
+
+			write_off_threshold = threshold_write_off_map.get(demand.company, 0)
+
+			if write_off_threshold and days_past_due > write_off_threshold:
+				create_loan_write_off(demand.loan, posting_date)
+		else:
+			# if no demand found, set DPD as 0
+			update_loan_and_customer_status(
+				loan_name,
+				company,
+				applicant_type,
+				applicant,
+				0,
+				0,
+				0,
+				posting_date or getdate(),
+				loan_disbursement=disbursement,
+			)
+			create_dpd_record(loan_name, posting_date, 0, process_loan_classification)
 
 
 def create_loan_write_off(loan, posting_date):
@@ -823,6 +833,7 @@ def update_loan_and_customer_status(
 	fldg_triggered,
 	posting_date,
 	freeze_date=None,
+	loan_disbursement=None,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_suspense_entries,
@@ -841,6 +852,15 @@ def update_loan_and_customer_status(
 			"classification_name": classification_name,
 		},
 	)
+
+	if loan_disbursement:
+		frappe.db.set_value(
+			"Loan Disbursement",
+			loan_disbursement,
+			{
+				"days_past_due": days_past_due,
+			},
+		)
 
 	if fldg_triggered:
 		frappe.db.set_value(

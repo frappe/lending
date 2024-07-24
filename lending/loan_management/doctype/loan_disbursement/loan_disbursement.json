@@ -42,6 +42,7 @@
   "bank_account",
   "disbursement_references_section",
   "reference_date",
+  "days_past_due",
   "column_break_17",
   "reference_number",
   "amended_from"
@@ -312,12 +313,17 @@
    "fieldtype": "Link",
    "label": "Refund Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "days_past_due",
+   "fieldtype": "Int",
+   "label": "Days Past Due"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-20 22:10:38.786116",
+ "modified": "2024-07-24 10:35:11.867601",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
