@@ -1034,6 +1034,7 @@ def get_unpaid_demands(
 	demand_subtype=None,
 	limit=0,
 	charges=None,
+	loan_disbursement=None,
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -1076,6 +1077,9 @@ def get_unpaid_demands(
 
 	if limit:
 		query = query.limit(limit)
+
+	if loan_disbursement:
+		query = query.where(loan_demand.loan_disbursement == loan_disbursement)
 
 	loan_demands = query.run(as_dict=1)
 
