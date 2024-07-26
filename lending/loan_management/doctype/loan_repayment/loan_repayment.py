@@ -366,7 +366,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Settled")
 
 			self.post_write_off_settlements()
-		elif self.auto_close_loan() and self.repayment_type != "Full Settlement":
+		elif self.auto_close_loan() and self.repayment_type == "Normal Repayment":
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
