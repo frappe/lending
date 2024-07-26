@@ -38,7 +38,7 @@ class LoanRepayment(AccountsController):
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
-		self.validate_amount(amounts["payable_amount"])
+		self.validate_amount(amounts)
 		self.allocate_amount_against_demands(amounts)
 
 	def on_update(self):
@@ -107,7 +107,7 @@ class LoanRepayment(AccountsController):
 
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
-
+		self.book_interest_accrued_not_demanded()
 		self.update_paid_amounts()
 		self.update_demands()
 		self.update_limits()
@@ -323,7 +323,7 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
-	def validate_amount(self, payable_amount):
+	def validate_amount(self, amounts):
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
 
@@ -332,10 +332,11 @@ class LoanRepayment(AccountsController):
 				"Loan Product", self.loan_product, "write_off_amount"
 			)
 
-			if flt(self.amount_paid) < (flt(payable_amount) - flt(auto_write_off_amount)):
+			if flt(self.amount_paid) < (flt(amounts.get("payable_amount")) - flt(auto_write_off_amount)):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			payable_amount = self.get_waiver_amount(amounts)
 			if flt(self.amount_paid) > flt(payable_amount):
 				frappe.throw(
 					_("Waived {0} amount cannot be greater than overdue amount").format(
@@ -346,6 +347,41 @@ class LoanRepayment(AccountsController):
 						}.get(self.repayment_type)
 					)
 				)
+
+	def get_waiver_amount(self, amounts):
+		if self.repayment_type == "Interest Waiver":
+			return (
+				amounts.get("interest_amount", 0)
+				+ amounts.get("unaccrued_interest", 0)
+				+ amounts.get("unbooked_interest", 0)
+			)
+		elif self.repayment_type == "Penalty Waiver":
+			return amounts.get("penalty_amount", 0) + amounts.get("unbooked_penalty", 0)
+		elif self.repayment_type == "Charges Waiver":
+			return amounts.get("payable_amount", 0)
+
+	def book_interest_accrued_not_demanded(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+
+		if self.unbooked_interest_paid > 0:
+			create_loan_demand(
+				self.against_loan,
+				self.posting_date,
+				"EMI",
+				"Interest",
+				self.unbooked_interest_paid,
+				paid_amount=self.unbooked_interest_paid,
+			)
+
+		if self.unbooked_penalty_paid > 0:
+			create_loan_demand(
+				self.against_loan,
+				self.posting_date,
+				"Penalty",
+				"Penalty",
+				self.unbooked_penalty_paid,
+				paid_amount=self.unbooked_penalty_paid,
+			)
 
 	def update_paid_amounts(self):
 		loan = frappe.qb.DocType("Loan")
@@ -376,34 +412,26 @@ class LoanRepayment(AccountsController):
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def post_write_off_settlements(self):
-		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_loan_repayment,
 		)
 
-		if self.interest_payable - self.total_interest_paid > 0:
-			interest_amount = self.interest_payable - self.total_interest_paid
-			create_loan_demand(
-				self.against_loan,
-				self.posting_date,
-				"EMI",
-				"Interest",
-				interest_amount,
-			)
+		if self.unbooked_interest_paid > 0:
 			create_loan_repayment(
 				self.against_loan,
 				self.posting_date,
 				"Interest Waiver",
-				interest_amount,
+				self.unbooked_interest_paid,
 				is_write_off_waiver=1,
 			)
 
-		if self.penalty_amount - self.total_penalty_paid > 0:
-			penalty_amount = self.penalty_amount - self.total_penalty_paid
-			create_loan_demand(self.against_loan, self.posting_date, "Penalty", "Penalty", penalty_amount)
-
+		if self.unbooked_penalty_paid > 0:
 			create_loan_repayment(
-				self.against_loan, self.posting_date, "Penalty Waiver", penalty_amount, is_write_off_waiver=1
+				self.against_loan,
+				self.posting_date,
+				"Penalty Waiver",
+				self.unbooked_penalty_paid,
+				is_write_off_waiver=1,
 			)
 
 	def auto_close_loan(self):
@@ -556,6 +584,8 @@ class LoanRepayment(AccountsController):
 		self.total_penalty_paid = 0
 		self.total_interest_paid = 0
 		self.total_charges_paid = 0
+		self.unbooked_interest_paid = 0
+		self.unbooked_penalty_paid = 0
 
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 			waiver_details = get_write_off_waivers(self.against_loan, self.posting_date)
@@ -633,21 +663,6 @@ class LoanRepayment(AccountsController):
 
 		if flt(amount_paid, precision) > 0:
 			if self.is_term_loan and not on_submit:
-				if self.get("repayment_type") not in (
-					"Advance Payment",
-					"Pre Payment",
-					"Loan Closure",
-					"Partial Settlement",
-					"Full Settlement",
-					"Write Off Recovery",
-					"Write Off Settlement",
-					"Subsidy Adjustments",
-					"Security Deposit Adjustment",
-					"Principal Adjustment",
-					"Charge Payment",
-				):
-					frappe.throw(_("Amount paid/waived cannot be greater than payable amount"))
-
 				if self.repayment_type == "Advance Payment":
 					monthly_repayment_amount = frappe.db.get_value(
 						"Loan Repayment Schedule",
@@ -667,18 +682,22 @@ class LoanRepayment(AccountsController):
 			if pending_interest > 0:
 				if pending_interest > amount_paid:
 					self.total_interest_paid += amount_paid
+					self.unbooked_interest_paid += amount_paid
 					amount_paid = 0
 				else:
 					self.total_interest_paid += pending_interest
+					self.unbooked_interest_paid += pending_interest
 					amount_paid -= pending_interest
 
 			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
 			if unbooked_penalty > 0:
 				if unbooked_penalty > amount_paid:
 					self.total_penalty_paid += amount_paid
+					self.unbooked_penalty_paid += amount_paid
 					amount_paid = 0
 				else:
 					self.total_penalty_paid += unbooked_penalty
+					self.unbooked_penalty_paid += unbooked_penalty
 					amount_paid -= unbooked_penalty
 
 			self.principal_amount_paid += flt(amount_paid, precision)

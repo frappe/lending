@@ -44,6 +44,8 @@
   "reference_number",
   "total_interest_paid",
   "total_penalty_paid",
+  "unbooked_interest_paid",
+  "unbooked_penalty_paid",
   "payable_charges",
   "column_break_21",
   "reference_date",
@@ -420,12 +422,26 @@
    "fieldname": "manual_remarks",
    "fieldtype": "Small Text",
    "label": "Manual Remarks"
+  },
+  {
+   "fieldname": "unbooked_interest_paid",
+   "fieldtype": "Currency",
+   "label": "Unbooked Interest Paid",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "unbooked_penalty_paid",
+   "fieldtype": "Currency",
+   "label": "Unbooked Penalty Paid",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-05 18:10:13.147895",
+ "modified": "2024-07-26 19:31:51.308529",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
