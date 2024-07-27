@@ -107,7 +107,10 @@ class LoanRepayment(AccountsController):
 
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
-		self.book_interest_accrued_not_demanded()
+
+		if self.repayment_type not in ("Advance Payment", "Pre Payment"):
+			self.book_interest_accrued_not_demanded()
+
 		self.update_paid_amounts()
 		self.update_demands()
 		self.update_limits()
@@ -416,21 +419,23 @@ class LoanRepayment(AccountsController):
 			create_loan_repayment,
 		)
 
-		if self.unbooked_interest_paid > 0:
+		if self.interest_payable - self.total_interest_paid > 0:
+			interest_amount = self.interest_payable - self.total_interest_paid
 			create_loan_repayment(
 				self.against_loan,
 				self.posting_date,
 				"Interest Waiver",
-				self.unbooked_interest_paid,
+				interest_amount,
 				is_write_off_waiver=1,
 			)
 
-		if self.unbooked_penalty_paid > 0:
+		if self.penalty_amount - self.total_penalty_paid > 0:
+			penalty_amount = self.penalty_amount - self.total_penalty_paid
 			create_loan_repayment(
 				self.against_loan,
 				self.posting_date,
 				"Penalty Waiver",
-				self.unbooked_penalty_paid,
+				penalty_amount,
 				is_write_off_waiver=1,
 			)
 
