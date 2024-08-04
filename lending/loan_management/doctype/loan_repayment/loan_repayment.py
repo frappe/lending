@@ -89,7 +89,7 @@ class LoanRepayment(AccountsController):
 			self.get("prepayment_charges"),
 		)
 
-		if not self.excess_amount:
+		if not self.principal_amount_paid >= self.pending_principal_amount:
 			if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
 				amounts = calculate_amounts(
 					self.against_loan, self.posting_date, payment_type=self.repayment_type
@@ -108,7 +108,7 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
 
-		if self.repayment_type not in ("Advance Payment", "Pre Payment"):
+		if self.unbooked_interest_paid and self.principal_amount_paid >= self.pending_principal_amount:
 			self.book_interest_accrued_not_demanded()
 
 		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
