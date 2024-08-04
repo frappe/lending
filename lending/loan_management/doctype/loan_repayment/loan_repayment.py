@@ -111,6 +111,9 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type not in ("Advance Payment", "Pre Payment"):
 			self.book_interest_accrued_not_demanded()
 
+		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
+			self.post_write_off_settlements()
+
 		self.update_paid_amounts()
 		self.update_demands()
 		self.update_limits()
@@ -418,6 +421,7 @@ class LoanRepayment(AccountsController):
 			query = query.set(loan.status, "Settled")
 
 		query.run()
+
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def post_write_off_settlements(self):
