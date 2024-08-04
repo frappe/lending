@@ -74,6 +74,7 @@ class Loan(AccountsController):
 		if (
 			self.repayment_schedule_type == "Monthly as per cycle date"
 			and self.repayment_frequency == "Monthly"
+			and not self.repayment_start_date
 		):
 			cyclic_date = get_cyclic_date(self.loan_product, self.posting_date)
 			self.repayment_start_date = cyclic_date

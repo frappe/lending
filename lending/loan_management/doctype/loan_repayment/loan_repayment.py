@@ -339,8 +339,10 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			precision = cint(frappe.db.get_default("currency_precision")) or 2
 			payable_amount = self.get_waiver_amount(amounts)
-			if flt(self.amount_paid) > flt(payable_amount):
+
+			if flt(self.amount_paid, precision) > flt(payable_amount, precision):
 				frappe.throw(
 					_("Waived {0} amount cannot be greater than overdue amount").format(
 						{
@@ -366,23 +368,25 @@ class LoanRepayment(AccountsController):
 	def book_interest_accrued_not_demanded(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 
-		if self.unbooked_interest_paid > 0:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if flt(self.unbooked_interest_paid, precision) > 0:
 			create_loan_demand(
 				self.against_loan,
 				self.posting_date,
 				"EMI",
 				"Interest",
-				self.unbooked_interest_paid,
+				flt(self.unbooked_interest_paid, precision),
 				paid_amount=self.unbooked_interest_paid,
 			)
 
-		if self.unbooked_penalty_paid > 0:
+		if flt(self.unbooked_penalty_paid, precision) > 0:
 			create_loan_demand(
 				self.against_loan,
 				self.posting_date,
 				"Penalty",
 				"Penalty",
-				self.unbooked_penalty_paid,
+				flt(self.unbooked_penalty_paid, precision),
 				paid_amount=self.unbooked_penalty_paid,
 			)
 
@@ -404,12 +408,14 @@ class LoanRepayment(AccountsController):
 			else:
 				query = query.set(loan.status, "Settled")
 
-			self.post_write_off_settlements()
-		elif self.auto_close_loan() and self.repayment_type == "Normal Repayment":
+		elif self.auto_close_loan() and self.repayment_type in (
+			"Normal Repayment",
+			"Pre Payment",
+			"Advance Payment",
+		):
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
-			self.post_write_off_settlements()
 
 		query.run()
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
@@ -437,6 +443,19 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
+			)
+
+		if self.payable_principal_amount - self.principal_amount_paid > 0:
+			principal_amount = self.payable_principal_amount - self.principal_amount_paid
+			loan_write_off_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "write_off_account"
+			)
+			create_loan_repayment(
+				self.against_loan,
+				self.posting_date,
+				"Principal Adjustment",
+				principal_amount,
+				payment_account=loan_write_off_account,
 			)
 
 	def auto_close_loan(self):
@@ -490,6 +509,8 @@ class LoanRepayment(AccountsController):
 
 			if self.repayment_type == "Write Off Settlement":
 				query = query.set(loan.status, "Written Off")
+			elif self.repayment_type == "Full Settlement":
+				query = query.set(loan.status, "Disbursed")
 			elif loan_status == "Closed":
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
@@ -1325,7 +1346,7 @@ def calculate_amounts(
 	)
 
 	# update values for closure
-	if payment_type == "Loan Closure":
+	if payment_type in ("Loan Closure", "Full Settlement"):
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
 		amounts["interest_amount"] = (
 			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]

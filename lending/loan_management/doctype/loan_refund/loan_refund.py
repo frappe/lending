@@ -78,7 +78,7 @@ class LoanRefund(AccountsController):
 			frappe.qb.update(loan_security_deposit).set(
 				loan_security_deposit.available_amount, loan_security_deposit.available_amount - amount
 			).set(
-				loan_security_deposit.allocated_amount, loan_security_deposit.allocated_amount + amount
+				loan_security_deposit.refund_amount, loan_security_deposit.refund_amount + amount
 			).where(
 				loan_security_deposit.loan == self.loan
 			).run()
