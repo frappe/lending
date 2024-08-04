@@ -475,13 +475,13 @@ class LoanRepayment(AccountsController):
 			auto_close = True
 
 		excess_amount = self.principal_amount_paid - self.pending_principal_amount
-		if excess_amount > 0 and excess_amount < excess_amount_limit:
+		if excess_amount > 0 and excess_amount <= excess_amount_limit:
 			auto_close = True
 
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
 			and not flt(shortfall_amount)
-			and not flt(self.excess_amount)
+			and flt(self.excess_amount) <= excess_amount_limit
 		):
 			auto_close = True
 
