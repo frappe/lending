@@ -13,6 +13,7 @@
   "company",
   "posting_date",
   "is_excess_amount_refund",
+  "is_security_amount_refund",
   "accounting_dimensions_section",
   "cost_center",
   "section_break_9",
@@ -134,12 +135,18 @@
    "fieldname": "is_excess_amount_refund",
    "fieldtype": "Check",
    "label": "Is Excess Amount Refund"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_security_amount_refund",
+   "fieldtype": "Check",
+   "label": "Is Security Amount Refund"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-22 12:35:56.681335",
+ "modified": "2024-08-04 09:27:42.944315",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Refund",

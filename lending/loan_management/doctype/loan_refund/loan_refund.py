@@ -41,9 +41,18 @@ class LoanRefund(AccountsController):
 		self.make_gl_entries(cancel=1)
 
 	def update_outstanding_amount(self, cancel=0):
+		security_deposit_available_amount = 0
+
 		if self.is_excess_amount_refund:
 			fieldname = "excess_amount_paid"
 			amount = -1 * self.refund_amount
+		elif self.is_security_amount_refund:
+			security_deposit_available_amount = frappe.db.get_value(
+				"Loan Security Deposit", {"loan": self.loan}, "available_amount"
+			)
+
+			fieldname = "refund_amount"
+			amount = self.refund_amount
 		else:
 			fieldname = "refund_amount"
 			amount = self.refund_amount
@@ -60,18 +69,46 @@ class LoanRefund(AccountsController):
 				frappe.db.set_value("Loan", self.loan, "status", "Closed")
 			elif refund_amount < 0:
 				frappe.throw(_("Excess amount refund cannot be more than excess amount paid"))
+		elif self.is_security_amount_refund:
+			loan_security_deposit = frappe.qb.DocType("Loan Security Deposit")
+
+			if self.refund_amount > flt(security_deposit_available_amount):
+				frappe.throw(_("Refund amount cannot be more than available amount"))
+
+			frappe.qb.update(loan_security_deposit).set(
+				loan_security_deposit.available_amount, loan_security_deposit.available_amount - amount
+			).set(
+				loan_security_deposit.allocated_amount, loan_security_deposit.allocated_amount + amount
+			).where(
+				loan_security_deposit.loan == self.loan
+			).run()
 
 		frappe.db.set_value("Loan", self.loan, fieldname, refund_amount)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
-		loan_details = frappe.get_doc("Loan", self.loan)
+		loan_details = frappe.db.get_value(
+			"Loan Product",
+			self.loan_product,
+			["loan_account", "security_deposit_account", "customer_refund_account"],
+			as_dict=1,
+		)
+
+		if self.is_security_amount_refund:
+			debit_account = loan_details.security_deposit_account
+			credit_account = self.refund_account
+		elif self.is_excess_amount_refund:
+			debit_account = loan_details.customer_refund_account
+			credit_account = self.refund_account
+		else:
+			debit_account = self.refund_account
+			credit_account = loan_details.loan_account
 
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": loan_details.loan_account,
-					"against": loan_details.loan_account,
+					"account": credit_account,
+					"against": debit_account,
 					"credit": self.refund_amount,
 					"credit_in_account_currency": self.refund_amount,
 					"against_voucher_type": "Loan",
@@ -88,8 +125,8 @@ class LoanRefund(AccountsController):
 		gl_entries.append(
 			self.get_gl_dict(
 				{
-					"account": self.refund_account,
-					"against": self.refund_account,
+					"account": debit_account,
+					"against": credit_account,
 					"debit": self.refund_amount,
 					"debit_in_account_currency": self.refund_amount,
 					"against_voucher_type": "Loan",
