@@ -65,16 +65,14 @@ def get_columns():
 def get_ageing_map():
 	ageing_map = {
 		"0-0": "Overdue",
-		"0-30": "0 to 1 Month",
+		"0-30": "1 day to 30/31 days (one month)",
 		"30-60": "1 to 2 Months",
-		"60-90": "2 to 3 Months",
-		"90-180": "3 to 6 Months",
-		"180-365": "6 to 12 Months",
-		"365-730": "1 to 2 Years",
-		"730-1095": "2 to 3 Years",
-		"1095-1460": "3 to 4 Years",
-		"1460-1825": "4 to 5 Years",
-		"1825-100000": "5 Years and Above",
+		"60-90": "Over 2 Months upto 3 Months",
+		"90-180": "Over 3 Months to 6 Months",
+		"180-365": "Over 6 Months to 1 Year",
+		"365-1095": "1 to 3 Years",
+		"1095-1825": "3 to 5 Years",
+		"1825-100000": "Over 5 Years",
 	}
 
 	return ageing_map
