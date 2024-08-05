@@ -227,6 +227,8 @@ def write_off_suspense_entries(
 			"penalty_waiver_account",
 			"interest_income_account",
 			"penalty_income_account",
+			"additional_interest_suspense",
+			"additional_interest_income",
 		],
 		as_dict=1,
 	)
@@ -238,7 +240,14 @@ def write_off_suspense_entries(
 			filters={
 				"against_voucher_type": "Loan",
 				"against_voucher": loan,
-				"account": ("in", [accounts.suspense_interest_income, accounts.penalty_suspense_account]),
+				"account": (
+					"in",
+					[
+						accounts.suspense_interest_income,
+						accounts.penalty_suspense_account,
+						accounts.additional_interest_suspense,
+					],
+				),
 				"is_cancelled": 0,
 				"posting_date": ("<=", posting_date),
 			},
@@ -268,6 +277,15 @@ def write_off_suspense_entries(
 		debit_account = accounts.penalty_suspense_account
 		credit_account = (
 			accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
+		)
+		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
+		amount = amounts.get(accounts.additional_interest_suspense)
+
+		debit_account = accounts.additional_interest_suspense
+		credit_account = (
+			accounts.penalty_waiver_account if is_write_off else accounts.additional_interest_income
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
