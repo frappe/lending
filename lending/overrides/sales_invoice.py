@@ -1,5 +1,9 @@
+import json
+
 import frappe
 from frappe.utils import flt
+
+from erpnext.accounts.general_ledger import make_gl_entries
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	create_loan_demand,
@@ -59,6 +63,77 @@ def update_waived_amount_in_demand(self, method=None):
 					).where(
 						loan_demand.name == demand_details.name
 					).run()
+
+
+def make_partner_charge_gl_entries(doc, method):
+	if doc.get("loan_partner"):
+		gl_entries = []
+		partner_details = frappe._dict(
+			frappe.db.get_all(
+				"Loan Partner Shareable",
+				filters={"parent": doc.loan_partner},
+				fields=["shareable_type", "partner_collection_percentage"],
+				as_list=1,
+			)
+		)
+
+		partner_payable_account = frappe.db.get_value(
+			"Loan Partner", doc.loan_partner, "payable_account"
+		)
+
+		for item in doc.get("items"):
+			share_percentage = partner_details.get(item.item_code, 0)
+			income_amount = item.base_amount * share_percentage / 100
+
+			if income_amount > 0:
+				gl_entries = make_partner_gl_entries(
+					doc, item, income_amount, item.income_account, partner_payable_account, gl_entries
+				)
+
+		for tax in doc.get("taxes"):
+			item_details = json.loads(tax.item_wise_tax_detail)
+			for item_code, tax_amount in item_details.items():
+				share_percentage = partner_details.get(item_code, 0)
+				tax_amount = tax_amount[1] * share_percentage / 100
+				if tax_amount > 0:
+					gl_entries = make_partner_gl_entries(
+						doc, item, tax_amount, tax.account_head, partner_payable_account, gl_entries
+					)
+
+		make_gl_entries(gl_entries)
+
+
+def make_partner_gl_entries(
+	doc, item, amount, item_tax_account, partner_payable_account, gl_entries
+):
+	gl_entries.append(
+		doc.get_gl_dict(
+			{
+				"account": item_tax_account,
+				"against": doc.customer,
+				"debit": amount,
+				"debit_in_account_currency": amount,
+				"cost_center": item.cost_center,
+				"project": item.project or doc.project,
+			},
+			item=item,
+		)
+	)
+	gl_entries.append(
+		doc.get_gl_dict(
+			{
+				"account": partner_payable_account,
+				"against": doc.customer,
+				"credit": amount,
+				"credit_in_account_currency": amount,
+				"cost_center": item.cost_center,
+				"project": item.project or doc.project,
+			},
+			item=item,
+		)
+	)
+
+	return gl_entries
 
 
 def cancel_demand(self, method=None):

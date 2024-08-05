@@ -121,6 +121,7 @@ doc_events = {
 		"on_submit": [
 			"lending.overrides.sales_invoice.generate_demand",
 			"lending.overrides.sales_invoice.update_waived_amount_in_demand",
+			"lending.overrides.sales_invoice.make_partner_charge_gl_entries",
 		],
 		"on_cancel": "lending.overrides.sales_invoice.cancel_demand",
 		"validate": "lending.overrides.sales_invoice.validate",
