@@ -452,7 +452,10 @@ class LoanRepayment(AccountsController):
 				is_write_off_waiver=1,
 			)
 
-		if self.payable_principal_amount - self.principal_amount_paid > 0:
+		if (
+			self.payable_principal_amount - self.principal_amount_paid > 0
+			and self.repayment_type == "Full Settlement"
+		):
 			principal_amount = self.payable_principal_amount - self.principal_amount_paid
 			loan_write_off_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "write_off_account"
