@@ -270,7 +270,7 @@ def write_off_suspense_entries(
 
 	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
 		if penalty_amount and penalty_amount <= amounts.get(accounts.penalty_suspense_account):
-			amount = interest_amount
+			amount = penalty_amount
 		else:
 			amount = amounts.get(accounts.penalty_suspense_account)
 
