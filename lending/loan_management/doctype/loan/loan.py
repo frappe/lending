@@ -1050,14 +1050,14 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		)
 	)
 
-	if amounts.get(accounts.interest_receivable_account, 0) > 0:
-		amount = amounts.get(accounts.interest_receivable_account, 0)
+	if abs(amounts.get(accounts.interest_receivable_account, 0)) > 0:
+		amount = abs(amounts.get(accounts.interest_receivable_account, 0))
 		debit_account = accounts.interest_income_account
 		credit_account = accounts.get("suspense_interest_income")
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if amounts.get(accounts.penalty_receivable_account, 0) > 0:
-		amount = amounts.get(accounts.penalty_receivable_account, 0)
+	if abs(amounts.get(accounts.penalty_receivable_account, 0)) > 0:
+		amount = abs(amounts.get(accounts.penalty_receivable_account, 0))
 		debit_account = accounts.penalty_income_account
 		credit_account = accounts.get("penalty_suspense_account")
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
