@@ -33,14 +33,17 @@ class LoanInterestAccrual(AccountsController):
 			else:
 				is_penal = True
 
-			make_suspense_journal_entry(
-				self.loan,
-				self.company,
-				self.loan_product,
-				self.interest_amount,
-				self.posting_date,
-				is_penal=is_penal,
-			)
+			loan_status = frappe.db.get_value("Loan", self.loan, "status")
+
+			if loan_status != "Written Off":
+				make_suspense_journal_entry(
+					self.loan,
+					self.company,
+					self.loan_product,
+					self.interest_amount,
+					self.posting_date,
+					is_penal=is_penal,
+				)
 
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
