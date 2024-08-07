@@ -177,7 +177,7 @@ class LoanRepayment(AccountsController):
 				"EMI",
 				"Principal",
 				flt(amount, precision),
-				paid_amount=self.unbooked_interest_paid,
+				paid_amount=flt(amount, precision),
 			)
 
 	def process_reschedule(self):
