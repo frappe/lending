@@ -1013,7 +1013,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 	company = frappe.db.get_value("Loan", loan, "company")
 
-	unbooked_interest = get_unbooked_interest(loan, posting_date)
+	unbooked_interest, accrued_interest = get_unbooked_interest(loan, posting_date)
 
 	accounts = frappe.db.get_value(
 		"Loan Product",
