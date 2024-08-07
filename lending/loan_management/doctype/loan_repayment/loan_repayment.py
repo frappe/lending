@@ -111,6 +111,8 @@ class LoanRepayment(AccountsController):
 		if self.unbooked_interest_paid and self.principal_amount_paid >= self.pending_principal_amount:
 			self.book_interest_accrued_not_demanded()
 
+		self.book_pending_principal()
+
 		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
 			self.post_write_off_settlements()
 
@@ -155,6 +157,27 @@ class LoanRepayment(AccountsController):
 		if not self.is_term_loan:
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
+			)
+
+	def book_unbooked_principal(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+
+		overdue_principal_paid = 0
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		for d in self.get("repayment_details"):
+			if d.demand_subtype == "Principal":
+				overdue_principal_paid += d.paid_amount
+
+		if self.principal_amount_paid - overdue_principal_paid > 0:
+			amount = self.principal_amount_paid - overdue_principal_paid
+			create_loan_demand(
+				self.against_loan,
+				self.posting_date,
+				"EMI",
+				"Principal",
+				flt(amount, precision),
+				paid_amount=self.unbooked_interest_paid,
 			)
 
 	def process_reschedule(self):
@@ -747,6 +770,9 @@ class LoanRepayment(AccountsController):
 			self.auto_close_loan() or self.principal_amount_paid - self.pending_principal_amount > 0
 		) and self.repayment_type not in ("Write Off Settlement", "Write Off Recovery"):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
+			self.principal_amount_paid -= self.excess_amount
+		elif self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
+			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
 	def allocate_charges(self, amount_paid, demands):
@@ -1359,7 +1385,7 @@ def calculate_amounts(
 	)
 
 	# update values for closure
-	if payment_type in ("Loan Closure", "Full Settlement"):
+	if payment_type in ("Loan Closure", "Full Settlement", "Write Off Settlement"):
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
 		amounts["interest_amount"] = (
 			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
