@@ -159,7 +159,7 @@ class LoanRepayment(AccountsController):
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
 
-	def book_unbooked_principal(self):
+	def book_pending_principal(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 
 		overdue_principal_paid = 0
