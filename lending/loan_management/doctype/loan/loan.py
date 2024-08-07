@@ -1016,6 +1016,8 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		loan_product,
 		[
 			"interest_income_account",
+			"interest_receivable_account",
+			"penalty_receivable_account",
 			"additional_interest_income",
 			"penalty_income_account",
 			"suspense_interest_income",
@@ -1035,9 +1037,9 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 				"account": (
 					"in",
 					[
-						accounts.interest_income_account,
+						accounts.interest_receivable_account,
 						accounts.additional_interest_income,
-						accounts.penalty_income_account,
+						accounts.penalty_receivable_account,
 					],
 				),
 				"is_cancelled": 0,
@@ -1048,14 +1050,14 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		)
 	)
 
-	if amounts.get(accounts.interest_income_account, 0) > 0:
-		amount = amounts.get(accounts.interest_income_account, 0)
+	if amounts.get(accounts.interest_receivable_account, 0) > 0:
+		amount = amounts.get(accounts.interest_receivable_account, 0)
 		debit_account = accounts.interest_income_account
 		credit_account = accounts.get("suspense_interest_income")
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if amounts.get(accounts.penalty_income_account, 0) > 0:
-		amount = amounts.get(accounts.penalty_income_account, 0)
+	if amounts.get(accounts.penalty_receivable_account, 0) > 0:
+		amount = amounts.get(accounts.penalty_receivable_account, 0)
 		debit_account = accounts.penalty_income_account
 		credit_account = accounts.get("penalty_suspense_account")
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
