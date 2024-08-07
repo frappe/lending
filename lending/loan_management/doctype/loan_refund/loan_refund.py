@@ -101,8 +101,8 @@ class LoanRefund(AccountsController):
 			debit_account = loan_details.customer_refund_account
 			credit_account = self.refund_account
 		else:
-			debit_account = self.refund_account
-			credit_account = loan_details.loan_account
+			credit_account = self.refund_account
+			debit_account = loan_details.customer_refund_account
 
 		gl_entries.append(
 			self.get_gl_dict(
