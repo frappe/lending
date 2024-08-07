@@ -1127,7 +1127,7 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
 			filters={
 				"parent": ("in", invoices),
 			},
-			fields=["income_account", "amount"],
+			fields=["income_account", "base_net_amount"],
 			group_by="income_account",
 			as_list=1,
 		)
