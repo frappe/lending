@@ -131,18 +131,17 @@ class LoanRepayment(AccountsController):
 			"Interest Waiver",
 			"Penalty Waiver",
 			"Charges Waiver",
+			"Write Off Recovery",
+			"Write Off Settlement",
 		):
-			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
-
-			if loan_status != "Written Off":
-				write_off_suspense_entries(
-					self.against_loan,
-					self.loan_product,
-					self.posting_date,
-					self.company,
-					interest_amount=self.total_interest_paid,
-					penalty_amount=self.total_penalty_paid,
-				)
+			write_off_suspense_entries(
+				self.against_loan,
+				self.loan_product,
+				self.posting_date,
+				self.company,
+				interest_amount=self.total_interest_paid,
+				penalty_amount=self.total_penalty_paid,
+			)
 
 		if self.is_term_loan:
 			reverse_loan_interest_accruals(
