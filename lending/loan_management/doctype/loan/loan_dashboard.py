@@ -30,6 +30,7 @@ def get_data():
 				"items": [
 					"Loan Security Release",
 					"Days Past Due Log",
+					"Loan NPA Log",
 					"Journal Entry",
 					"Sales Invoice",
 					"Loan Limit Change Log",

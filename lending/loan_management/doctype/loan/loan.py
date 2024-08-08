@@ -1015,6 +1015,13 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 
 	unbooked_interest, accrued_interest = get_unbooked_interest(loan, posting_date)
 
+	previous_non_npa_date = frappe.db.get_value("Loan NPA Log", {"loan": loan, "npa": 0}, "npa_date")
+
+	if not previous_non_npa_date:
+		previous_non_npa_date = frappe.db.get_value("Loan", loan, "posting_date")
+	else:
+		previous_non_npa_date = add_days(previous_non_npa_date, 1)
+
 	accounts = frappe.db.get_value(
 		"Loan Product",
 		loan_product,
@@ -1047,7 +1054,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 					],
 				),
 				"is_cancelled": 0,
-				"posting_date": ("<=", posting_date),
+				"posting_date": ("between", [previous_non_npa_date, posting_date]),
 			},
 			group_by="account",
 			as_list=1,
