@@ -141,6 +141,7 @@ class LoanRepayment(AccountsController):
 				self.company,
 				interest_amount=self.total_interest_paid,
 				penalty_amount=self.total_penalty_paid,
+				on_payment_allocation=True,
 			)
 
 		if self.is_term_loan:

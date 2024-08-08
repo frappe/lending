@@ -214,6 +214,7 @@ def write_off_suspense_entries(
 	is_write_off=0,
 	interest_amount=0,
 	penalty_amount=0,
+	on_payment_allocation=False,
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
@@ -262,6 +263,9 @@ def write_off_suspense_entries(
 		else:
 			amount = amounts.get(accounts.suspense_interest_income)
 
+		if on_payment_allocation and not interest_amount > 0:
+			return
+
 		debit_account = accounts.suspense_interest_income
 		credit_account = (
 			accounts.interest_waiver_account if is_write_off else accounts.interest_income_account
@@ -274,13 +278,16 @@ def write_off_suspense_entries(
 		else:
 			amount = amounts.get(accounts.penalty_suspense_account)
 
+		if on_payment_allocation and not penalty_amount > 0:
+			return
+
 		debit_account = accounts.penalty_suspense_account
 		credit_account = (
 			accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
+	if amounts.get(accounts.additional_interest_suspense, 0) > 0 and not on_payment_allocation:
 		amount = amounts.get(accounts.additional_interest_suspense)
 
 		debit_account = accounts.additional_interest_suspense
