@@ -164,6 +164,14 @@ class LoanDisbursement(AccountsController):
 			doc = make_return_doc("Sales Invoice", si)
 			doc.update_outstanding_for_self = 0
 			doc.loan_disbursement = ""
+			doc.posting_date = "2024-08-23"
+
+			if self.get("reverse_charges"):
+				for item in doc.get("items"):
+					if item.item_code not in self.get("reverse_charges"):
+						doc.remove(item)
+
+			doc.save()
 			doc.submit()
 			doc.set_status(update=True)
 
@@ -537,7 +545,8 @@ class LoanDisbursement(AccountsController):
 		else:
 			bank_account = self.disbursement_account
 
-		self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
+		if not cancel:
+			self.add_gl_entry(gle_map, self.loan_account, bank_account, self.disbursed_amount, remarks)
 
 		if self.withhold_security_deposit:
 			security_deposit_account = frappe.db.get_value(
