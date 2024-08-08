@@ -774,7 +774,7 @@ class LoanRepayment(AccountsController):
 		) and self.repayment_type not in ("Write Off Settlement", "Write Off Recovery"):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
-		elif self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
+		elif self.repayment_type == "Write Off Settlement":
 			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
