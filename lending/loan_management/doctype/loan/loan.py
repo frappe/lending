@@ -1156,6 +1156,9 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
 
 
 def make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account):
+	if not flt(amount):
+		return
+
 	jv = frappe.get_doc(
 		{
 			"doctype": "Journal Entry",
