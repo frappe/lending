@@ -43,6 +43,7 @@ class LoanInterestAccrual(AccountsController):
 					self.interest_amount,
 					self.posting_date,
 					is_penal=is_penal,
+					additional_interest=self.additional_interest_amount,
 				)
 
 	def on_cancel(self):

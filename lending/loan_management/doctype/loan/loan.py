@@ -1075,7 +1075,9 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 
-def make_suspense_journal_entry(loan, company, loan_product, amount, posting_date, is_penal=False):
+def make_suspense_journal_entry(
+	loan, company, loan_product, amount, posting_date, is_penal=False, additional_interest=0
+):
 	account_details = frappe.get_value(
 		"Loan Product",
 		loan_product,
@@ -1084,6 +1086,8 @@ def make_suspense_journal_entry(loan, company, loan_product, amount, posting_dat
 			"interest_income_account",
 			"penalty_suspense_account",
 			"penalty_income_account",
+			"additional_interest_income",
+			"additional_interest_suspense",
 		],
 		as_dict=1,
 	)
@@ -1097,7 +1101,18 @@ def make_suspense_journal_entry(loan, company, loan_product, amount, posting_dat
 			credit_account = account_details.suspense_interest_income
 
 		if amount:
+			amount = amount - additional_interest
 			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+
+		if additional_interest > 0:
+			make_journal_entry(
+				posting_date,
+				company,
+				loan,
+				additional_interest,
+				account_details.additional_interest_income,
+				account_details.additional_interest_suspense,
+			)
 
 
 def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
