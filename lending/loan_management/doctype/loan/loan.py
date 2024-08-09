@@ -1083,7 +1083,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 	if abs(amounts.get(accounts.additional_interest_receivable, 0)) > 0:
-		amount = abs(amounts.get(accounts.additional_interest_income, 0))
+		amount = abs(amounts.get(accounts.additional_interest_receivable, 0))
 		debit_account = accounts.additional_interest_income
 		credit_account = accounts.get("additional_interest_suspense")
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
