@@ -262,7 +262,7 @@ def get_overdue_details(as_on_date, company):
 			overdue_details[demand.loan]["total_pending_interest"] += demand.outstanding_amount
 		elif demand.demand_subtype == "Principal":
 			overdue_details[demand.loan]["total_pending_principal"] += demand.outstanding_amount
-		elif demand.demand_subtype == "Penalty":
+		elif demand.demand_subtype in ("Penalty", "Additional Interest"):
 			overdue_details[demand.loan]["total_pending_penalty"] += demand.outstanding_amount
 
 	return overdue_details, loan_product_map
