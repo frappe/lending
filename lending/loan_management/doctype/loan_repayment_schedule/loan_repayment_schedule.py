@@ -435,6 +435,8 @@ class LoanRepaymentSchedule(Document):
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
 			)
 			if prev_schedule:
+				self.loan_disbursement = prev_schedule.loan_disbursement
+
 				after_bpi = 0
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
