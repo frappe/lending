@@ -83,6 +83,8 @@ class LoanDemand(AccountsController):
 			fields = ["interest_accrued_account", "interest_receivable_account"]
 		elif self.demand_subtype == "Penalty":
 			fields = ["penalty_accrued_account", "penalty_receivable_account"]
+		elif self.demand_subtype == "Additional Interest":
+			fields = ["additional_interest_accrued", "additional_interest_receivable"]
 
 		accrual_account, receivable_account = frappe.db.get_value(
 			"Loan Product", self.loan_product, fields

@@ -1123,6 +1123,7 @@ def get_unpaid_demands(
 	limit=0,
 	charges=None,
 	loan_disbursement=None,
+	emi_wise=False,
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -1168,6 +1169,12 @@ def get_unpaid_demands(
 
 	if loan_disbursement:
 		query = query.where(loan_demand.loan_disbursement == loan_disbursement)
+
+	if emi_wise:
+		query = query.where(loan_demand.demand_type == "EMI")
+		query = query.select(Sum(loan_demand.outstanding_amount).as_("pending_amount"))
+		query = query.select(loan_demand.repayment_schedule_detail)
+		query = query.groupby(loan_demand.repayment_schedule_detail)
 
 	loan_demands = query.run(as_dict=1)
 
