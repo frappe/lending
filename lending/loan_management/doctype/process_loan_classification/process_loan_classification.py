@@ -36,7 +36,12 @@ class ProcessLoanClassification(Document):
 				if len(open_loans) == 1:
 					raise e
 				else:
-					pass
+					frappe.log_error(
+						title="Process Loan Classification Error",
+						message=e,
+						reference_doctype="Loan",
+						reference_name=loan,
+					)
 
 
 def create_process_loan_classification(
