@@ -876,16 +876,7 @@ def update_loan_and_customer_status(
 		make_fldg_invocation_jv(loan, posting_date)
 
 	if is_npa:
-		for loan_id in frappe.get_all(
-			"Loan",
-			{
-				"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
-				"docstatus": 1,
-				"applicant_type": applicant_type,
-				"applicant": applicant,
-			},
-			pluck="name",
-		):
+		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
@@ -902,8 +893,23 @@ def update_loan_and_customer_status(
 			update_all_linked_loan_customer_npa_status(
 				is_npa, applicant_type, applicant, posting_date, loan
 			)
-			loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-			write_off_suspense_entries(loan, loan_product, posting_date, company)
+
+			for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
+				loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
+				write_off_suspense_entries(loan_id, loan_product, posting_date, company)
+
+
+def get_all_active_loans_for_the_customer(applicant, applicant_type):
+	return frappe.get_all(
+		"Loan",
+		{
+			"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+			"docstatus": 1,
+			"applicant_type": applicant_type,
+			"applicant": applicant,
+		},
+		pluck="name",
+	)
 
 
 def update_all_linked_loan_customer_npa_status(
