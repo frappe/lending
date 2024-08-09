@@ -1187,7 +1187,7 @@ def get_unpaid_demands(
 		if demand_subtype != "Penalty":
 			query = query.where(loan_demand.demand_subtype == demand_subtype)
 		else:
-			query = query.where(loan_demand.demand_type.isin("Penalty", "Additional Interest"))
+			query = query.where(loan_demand.demand_type.isin(["Penalty", "Additional Interest"]))
 
 	if limit:
 		query = query.limit(limit)
