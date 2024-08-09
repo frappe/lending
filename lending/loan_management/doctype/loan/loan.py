@@ -1026,6 +1026,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		{
 			"against_loan": loan,
 			"repayment_type": ("not in", ["Interest Waiver", "Charge Waiver", "Penalty Waiver"]),
+			"docstatus": 1,
 		},
 		"posting_date",
 		order_by="posting_date desc",
