@@ -591,9 +591,15 @@ class LoanDisbursement(AccountsController):
 				self.get("loan_disbursement_charges"),
 			)
 
+		filters = {"loan": self.against_loan, "docstatus": 1, "is_return": 0}
+		if cancel:
+			filters["is_return"] = 1
+		else:
+			filters["loan_disbursement"] = self.name
+
 		sales_invoices = frappe.db.get_all(
 			"Sales Invoice",
-			filters={"loan_disbursement": self.name, "docstatus": 1},
+			filters=filters,
 			fields=["name", "debit_to", "grand_total"],
 		)
 
@@ -602,7 +608,7 @@ class LoanDisbursement(AccountsController):
 				gle_map,
 				invoice.debit_to,
 				bank_account,
-				-1 * invoice.grand_total,
+				-1 * abs(invoice.grand_total),
 				remarks,
 				"Sales Invoice",
 				invoice.name,
