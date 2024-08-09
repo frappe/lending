@@ -721,7 +721,7 @@ class LoanRepayment(AccountsController):
 				self.total_interest_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_subtype == "Principal":
 				self.principal_amount_paid += flt(payment.paid_amount, precision)
-			elif payment.demand_type == "Penalty":
+			elif payment.demand_type in ("Penalty", "Additional Interest"):
 				self.total_penalty_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Charges":
 				self.total_charges_paid += flt(payment.paid_amount, precision)
@@ -836,6 +836,8 @@ class LoanRepayment(AccountsController):
 				)
 			if d.demand_type == "Penalty" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Penalty", demands)
+			if d.demand_type == "Additional Interest" and pending_amount > 0:
+				pending_amount = self.adjust_component(pending_amount, "Additional Interest", demands)
 			if d.demand_type == "Charges" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Charges", demands)
 
@@ -891,6 +893,7 @@ class LoanRepayment(AccountsController):
 			[
 				"interest_receivable_account",
 				"penalty_receivable_account",
+				"additional_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
 				"interest_waiver_account",
@@ -916,12 +919,26 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
-		if flt(self.total_penalty_paid, precision) > 0:
+		additional_interest = sum(
+			d.paid_amount for d in self.get("repayment_details") if d.demand_type == "Additional Interest"
+		)
+		total_penalty_paid = self.total_penalty_paid - additional_interest
+
+		if flt(total_penalty_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
 				against_account = account_details.penalty_receivable_account
-			self.add_gl_entry(payment_account, against_account, self.total_penalty_paid, gle_map)
+
+			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
+
+		if flt(additional_interest, precision) > 0:
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+				against_account = account_details.write_off_recovery_account
+			else:
+				against_account = account_details.additional_interest_receivable
+
+			self.add_gl_entry(payment_account, against_account, additional_interest, gle_map)
 
 		if flt(self.excess_amount, precision):
 			if self.auto_close_loan():
@@ -1162,7 +1179,10 @@ def get_unpaid_demands(
 		query = query.where(loan_demand.demand_subtype.isin(charges))
 
 	if demand_subtype:
-		query = query.where(loan_demand.demand_subtype == demand_subtype)
+		if demand_subtype != "Penalty":
+			query = query.where(loan_demand.demand_subtype == demand_subtype)
+		else:
+			query = query.where(loan_demand.demand_type.isin("Penalty", "Additional Interest"))
 
 	if limit:
 		query = query.limit(limit)
@@ -1286,7 +1306,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 			total_pending_interest += demand.outstanding_amount
 		elif demand.demand_subtype == "Principal":
 			payable_principal_amount += demand.outstanding_amount
-		elif demand.demand_subtype == "Penalty":
+		elif demand.demand_subtype in ("Penalty", "Additional Interest"):
 			penalty_amount += demand.outstanding_amount
 		elif demand.demand_type == "Charges":
 			charges += demand.outstanding_amount
