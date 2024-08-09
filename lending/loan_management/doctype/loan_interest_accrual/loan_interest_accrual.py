@@ -452,7 +452,7 @@ def calculate_penal_interest_for_loans(
 							posting_date,
 							"Penalty",
 							"Penalty",
-							penal_interest_amount,
+							penal_interest_amount - additional_interest,
 							loan_repayment_schedule=demand.loan_repayment_schedule,
 							loan_disbursement=loan.loan_disbursement,
 						)
