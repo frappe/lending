@@ -514,7 +514,7 @@ class LoanRestructure(AccountsController):
 
 		if self.unaccrued_interest_waiver:
 			create_loan_demand(
-				self.against_loan,
+				self.loan,
 				self.restructure_date,
 				"EMI",
 				"Interest",
