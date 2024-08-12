@@ -116,17 +116,6 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
 			self.post_write_off_settlements()
 
-		self.update_paid_amounts()
-		self.update_demands()
-		self.update_limits()
-		self.update_security_deposit_amount()
-		update_installment_counts(self.against_loan)
-
-		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
-		self.create_loan_limit_change_log()
-		self.make_credit_note_for_charge_waivers()
-		self.make_gl_entries()
-
 		if self.is_npa and self.repayment_type not in (
 			"Interest Waiver",
 			"Penalty Waiver",
@@ -151,6 +140,17 @@ class LoanRepayment(AccountsController):
 
 			if self.total_charges_paid > 0:
 				self.write_off_charges()
+
+		self.update_paid_amounts()
+		self.update_demands()
+		self.update_limits()
+		self.update_security_deposit_amount()
+		update_installment_counts(self.against_loan)
+
+		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
+		self.create_loan_limit_change_log()
+		self.make_credit_note_for_charge_waivers()
+		self.make_gl_entries()
 
 		if self.is_term_loan:
 			reverse_loan_interest_accruals(
@@ -972,6 +972,11 @@ class LoanRepayment(AccountsController):
 			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
 
 		if flt(additional_interest, precision) > 0:
+			if self.repayment_type == "Penalty Waiver":
+				payment_account = frappe.db.get_value(
+					"Loan Product", self.loan_product, "additional_interest_waiver"
+				)
+
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
@@ -1067,6 +1072,7 @@ class LoanRepayment(AccountsController):
 		payment_account_field_map = {
 			"Interest Waiver": "interest_waiver_account",
 			"Penalty Waiver": "penalty_waiver_account",
+			"Additional Interest Waiver": "additional_interest_waiver",
 			"Principal Capitalization": "loan_account",
 			"Loan Closure": "payment_account",
 			"Principal Adjustment": "loan_account",
