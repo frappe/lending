@@ -103,6 +103,16 @@ def make_partner_charge_gl_entries(doc, method):
 		make_gl_entries(gl_entries)
 
 
+def make_suspense_gl_entry_for_charges(doc, method):
+	from lending.loan_management.doctype.loan.loan import move_receivable_charges_to_suspense_ledger
+
+	is_npa = frappe.db.get_value("Loan", doc.loan, "is_npa")
+	if is_npa:
+		move_receivable_charges_to_suspense_ledger(
+			doc.loan, doc.company, doc.posting_date, invoice=doc.name
+		)
+
+
 def make_partner_gl_entries(
 	doc, item, amount, item_tax_account, partner_payable_account, gl_entries
 ):

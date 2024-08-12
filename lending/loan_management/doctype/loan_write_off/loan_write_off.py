@@ -67,7 +67,7 @@ class LoanWriteOff(AccountsController):
 		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.posting_date, self.company)
+		write_off_charges(self.loan, self.posting_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
 
@@ -297,10 +297,15 @@ def write_off_suspense_entries(
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 
-def write_off_charges(loan, posting_date, company):
+def write_off_charges(loan, posting_date, company, amount_details=None, on_write_off=False):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+
+	if on_write_off:
+		account_fieldname = "write_off_account"
+	else:
+		account_fieldname = "income_account"
 
 	suspense_account_map = frappe._dict(
 		frappe.db.get_all(
@@ -308,7 +313,7 @@ def write_off_charges(loan, posting_date, company):
 			{"parent": loan_product},
 			[
 				"suspense_account",
-				"waiver_account",
+				account_fieldname,
 			],
 			as_list=1,
 		)
@@ -334,6 +339,11 @@ def write_off_charges(loan, posting_date, company):
 
 	for account, amount in amounts.items():
 		if amount > 0:
+			if amount_details:
+				partial_amount = amount_details.get(account)
+				if partial_amount and partial_amount <= amount:
+					amount = partial_amount
+
 			waiver_account = suspense_account_map.get(account)
 			make_journal_entry(posting_date, company, loan, amount, account, waiver_account)
 

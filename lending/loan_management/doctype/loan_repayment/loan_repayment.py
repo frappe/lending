@@ -149,6 +149,9 @@ class LoanRepayment(AccountsController):
 				on_payment_allocation=True,
 			)
 
+			if self.total_charges_paid > 0:
+				self.write_off_charges()
+
 		if self.is_term_loan:
 			reverse_loan_interest_accruals(
 				self.against_loan, self.posting_date, interest_type="Penal Interest"
@@ -166,6 +169,37 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
+
+	def write_off_charges(self):
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import write_off_charges
+
+		charge_amount_map = {}
+		charges = []
+
+		for demand in self.get("repayment_details"):
+			if demand.demand_type == "Charges":
+				charge_amount_map[demand.demand_subtype] = demand.paid_amount
+				charges.append(demand.demand_subtype)
+
+		accounts = frappe._dict(
+			frappe.db.get_all(
+				"Loan Charges",
+				{"parent": self.loan_product, "charge_type": ("in", charges)},
+				[
+					"charge_type",
+					"suspense_account",
+				],
+				as_list=1,
+			)
+		)
+
+		account_charge_map = {}
+		for charge in charges:
+			account_charge_map[accounts.get(charge)] = charge_amount_map.get(charge)
+
+		write_off_charges(
+			self.against_loan, self.posting_date, self.company, amount_details=account_charge_map
+		)
 
 	def book_pending_principal(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -1177,7 +1211,7 @@ def get_unpaid_demands(
 	if loan_product:
 		query = query.where(loan_demand.loan_product == loan_product)
 
-	if demand_type:
+	if demand_type and demand_type != "Penalty":
 		query = query.where(loan_demand.demand_type == demand_type)
 
 	if charges:
@@ -1188,6 +1222,7 @@ def get_unpaid_demands(
 			query = query.where(loan_demand.demand_subtype == demand_subtype)
 		else:
 			query = query.where(loan_demand.demand_type.isin(["Penalty", "Additional Interest"]))
+			query = query.where(loan_demand.demand_subtype.isin(["Penalty", "Additional Interest"]))
 
 	if limit:
 		query = query.limit(limit)

@@ -87,7 +87,9 @@ class LoanRepaymentSchedule(Document):
 			interest_amount,
 			loan_repayment_schedule=self.name,
 			loan_disbursement=self.loan_disbursement,
-			repayment_schedule_detail=advance_payment.name,
+			repayment_schedule_detail=advance_payment.name
+			if self.restructure_type == "Advance Payment"
+			else None,
 			paid_amount=paid_interest_amount,
 		)
 
@@ -99,7 +101,9 @@ class LoanRepaymentSchedule(Document):
 			principal_amount,
 			loan_repayment_schedule=self.name,
 			loan_disbursement=self.loan_disbursement,
-			repayment_schedule_detail=advance_payment.name,
+			repayment_schedule_detail=advance_payment.name
+			if self.restructure_type == "Advance Payment"
+			else None,
 			paid_amount=paid_principal_amount,
 		)
 

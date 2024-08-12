@@ -1136,7 +1136,7 @@ def make_suspense_journal_entry(
 			)
 
 
-def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
+def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invoice=None):
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 
 	suspense_account_map = frappe._dict(
@@ -1151,11 +1151,14 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date):
 		)
 	)
 
-	invoices = frappe.db.get_all(
-		"Sales Invoice",
-		{"loan": loan, "docstatus": 1, "status": ("in", ["Unpaid", "Overdue"])},
-		pluck="name",
-	)
+	if not invoice:
+		invoices = frappe.db.get_all(
+			"Sales Invoice",
+			{"loan": loan, "docstatus": 1, "status": ("in", ["Unpaid", "Overdue"])},
+			pluck="name",
+		)
+	else:
+		invoices = [invoice]
 
 	amounts = frappe._dict(
 		frappe.db.get_all(
