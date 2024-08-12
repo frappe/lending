@@ -79,19 +79,20 @@ class LoanRepaymentSchedule(Document):
 			paid_interest_amount = interest_amount
 			paid_principal_amount = principal_amount
 
-		create_loan_demand(
-			self.loan,
-			self.posting_date,
-			"EMI",
-			"Interest",
-			interest_amount,
-			loan_repayment_schedule=self.name,
-			loan_disbursement=self.loan_disbursement,
-			repayment_schedule_detail=advance_payment.name
-			if self.restructure_type == "Advance Payment"
-			else None,
-			paid_amount=paid_interest_amount,
-		)
+		if flt(interest_amount) > 0:
+			create_loan_demand(
+				self.loan,
+				self.posting_date,
+				"EMI",
+				"Interest",
+				interest_amount,
+				loan_repayment_schedule=self.name,
+				loan_disbursement=self.loan_disbursement,
+				repayment_schedule_detail=advance_payment.name
+				if self.restructure_type == "Advance Payment"
+				else None,
+				paid_amount=paid_interest_amount,
+			)
 
 		create_loan_demand(
 			self.loan,
