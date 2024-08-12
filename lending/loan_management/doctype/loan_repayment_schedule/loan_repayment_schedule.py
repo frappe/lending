@@ -117,21 +117,22 @@ class LoanRepaymentSchedule(Document):
 			self.rate_of_interest,
 			self.current_principal_amount,
 			last_accrual_date,
-			advance_payment.payment_date,
+			self.posting_date,
 		)
 
-		make_loan_interest_accrual_entry(
-			self.loan,
-			self.current_principal_amount,
-			flt(payable_interest, precision),
-			"",
-			last_accrual_date,
-			advance_payment.payment_date,
-			"Regular",
-			"Normal Interest",
-			self.rate_of_interest,
-			loan_repayment_schedule=self.name,
-		)
+		if payable_interest > 0:
+			make_loan_interest_accrual_entry(
+				self.loan,
+				self.current_principal_amount,
+				flt(payable_interest, precision),
+				"",
+				last_accrual_date,
+				advance_payment.payment_date,
+				"Regular",
+				"Normal Interest",
+				self.rate_of_interest,
+				loan_repayment_schedule=self.name,
+			)
 
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
