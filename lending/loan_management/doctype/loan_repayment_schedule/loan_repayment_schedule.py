@@ -474,6 +474,13 @@ class LoanRepaymentSchedule(Document):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
 							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
 						):
+
+							if (
+								getdate(row.payment_date) == getdate(self.posting_date)
+								and self.restructure_type == "Pre Payment"
+							):
+								row.balance_loan_amount = self.current_principal_amount
+
 							self.add_repayment_schedule_row(
 								row.payment_date,
 								row.principal_amount,

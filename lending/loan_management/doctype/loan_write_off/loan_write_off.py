@@ -230,6 +230,7 @@ def write_off_suspense_entries(
 			"penalty_income_account",
 			"additional_interest_suspense",
 			"additional_interest_income",
+			"additional_interest_waiver",
 		],
 		as_dict=1,
 	)
@@ -292,7 +293,7 @@ def write_off_suspense_entries(
 
 		debit_account = accounts.additional_interest_suspense
 		credit_account = (
-			accounts.penalty_waiver_account if is_write_off else accounts.additional_interest_income
+			accounts.additional_interest_waiver if is_write_off else accounts.additional_interest_income
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
