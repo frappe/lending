@@ -127,6 +127,31 @@ class LoanDisbursement(AccountsController):
 		self.withheld_security_deposit()
 		self.make_gl_entries()
 
+	def on_update_after_submit(self):
+		if self.bpi_amount_difference > 0 and self.has_value_changed("bpi_amount_difference"):
+			gle_map = []
+			broken_period_interest_account = frappe.db.get_value(
+				"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
+			)
+
+			if not broken_period_interest_account:
+				frappe.throw(
+					_("Please set Broken Period Interest Recovery Account for the Loan Product {0}").format(
+						frappe.bold(self.loan_product)
+					)
+				)
+
+			self.add_gl_entry(
+				gle_map,
+				broken_period_interest_account,
+				self.loan_account,
+				-1 * self.bpi_amount_difference,
+				_("BPI difference entry"),
+				bpi_difference_date=self.bpi_difference_date,
+			)
+
+			make_gl_entries(gle_map)
+
 	def submit_repayment_schedule(self):
 		filters = {
 			"loan": self.against_loan,
@@ -152,6 +177,17 @@ class LoanDisbursement(AccountsController):
 		for demand in frappe.get_all("Loan Demand", filters, pluck="name"):
 			doc = frappe.get_doc("Loan Demand", demand)
 			doc.cancel()
+
+	def cancel_linked_accruals(self):
+		if self.get("reverse_interest_accruals"):
+			loan_repayment_schedule = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan_disbursement": self.name}
+			)
+			filters = {"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1}
+
+			for accrual in frappe.get_all("Loan Interest Accrual", filters, pluck="name"):
+				doc = frappe.get_doc("Loan Interest Accrual", accrual)
+				doc.cancel()
 
 	def make_credit_note(self):
 		filters = {
@@ -218,6 +254,7 @@ class LoanDisbursement(AccountsController):
 
 		self.make_credit_note()
 		self.cancel_linked_demand()
+		self.cancel_linked_accruals()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
@@ -500,6 +537,7 @@ class LoanDisbursement(AccountsController):
 		remarks=None,
 		against_voucher_type=None,
 		against_voucher=None,
+		bpi_difference_date=None,
 	):
 		gl_entries.append(
 			self.get_gl_dict(
@@ -514,7 +552,7 @@ class LoanDisbursement(AccountsController):
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type,
 					"party": self.applicant,
-					"posting_date": self.disbursement_date,
+					"posting_date": bpi_difference_date or self.disbursement_date,
 				}
 			)
 		)
@@ -533,7 +571,7 @@ class LoanDisbursement(AccountsController):
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
 					"cost_center": self.cost_center,
-					"posting_date": self.disbursement_date,
+					"posting_date": bpi_difference_date or self.disbursement_date,
 				}
 			)
 		)
