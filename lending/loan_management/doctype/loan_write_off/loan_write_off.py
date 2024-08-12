@@ -288,7 +288,7 @@ def write_off_suspense_entries(
 		)
 		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
-	if amounts.get(accounts.additional_interest_suspense, 0) > 0 and not on_payment_allocation:
+	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
 		amount = amounts.get(accounts.additional_interest_suspense)
 
 		debit_account = accounts.additional_interest_suspense
