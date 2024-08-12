@@ -164,7 +164,6 @@ class LoanDisbursement(AccountsController):
 			doc = make_return_doc("Sales Invoice", si)
 			doc.update_outstanding_for_self = 0
 			doc.loan_disbursement = ""
-			doc.posting_date = "2024-08-23"
 
 			if self.get("reverse_charges"):
 				for item in doc.get("items"):
