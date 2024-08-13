@@ -202,6 +202,7 @@ def make_loan_demand_for_term_loans(
 			"demand_generated": 0,
 		},
 		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
+		order_by = "payment_date asc"
 	)
 
 	for row in emi_rows:
