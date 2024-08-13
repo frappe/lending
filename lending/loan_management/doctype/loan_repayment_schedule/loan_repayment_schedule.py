@@ -475,9 +475,9 @@ class LoanRepaymentSchedule(Document):
 							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
 						):
 
-							if (
-								getdate(row.payment_date) == getdate(self.posting_date)
-								and self.restructure_type == "Pre Payment"
+							if getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type in (
+								"Pre Payment",
+								"Advance Payment",
 							):
 								row.balance_loan_amount = self.current_principal_amount
 
