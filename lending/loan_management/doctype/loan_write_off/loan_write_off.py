@@ -218,6 +218,12 @@ def write_off_suspense_entries(
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
+	is_settled = frappe.db.get_value(
+		"Loan Repayment", {"against_loan": loan, "docstatus": 1, "repayment_type": "Full Settlement"}
+	)
+	if is_settled:
+		is_write_off = 1
+
 	accounts = frappe.db.get_value(
 		"Loan Product",
 		loan_product,
