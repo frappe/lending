@@ -1470,6 +1470,7 @@ def calculate_amounts(
 		amounts["interest_amount"] = (
 			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
 		)
+		amounts["penalty_amount"] = amounts["penalty_amount"] + amounts["unbooked_penalty"]
 		amounts["payable_amount"] = (
 			amounts["payable_principal_amount"] + amounts["interest_amount"] + amounts["penalty_amount"]
 		)
