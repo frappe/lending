@@ -500,7 +500,8 @@ class LoanRepayment(AccountsController):
 			create_loan_repayment,
 		)
 
-		if self.interest_payable - self.total_interest_paid > 0:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		if flt(self.interest_payable - self.total_interest_paid, precision) > 0:
 			interest_amount = self.interest_payable - self.total_interest_paid
 			create_loan_repayment(
 				self.against_loan,
@@ -510,7 +511,7 @@ class LoanRepayment(AccountsController):
 				is_write_off_waiver=1,
 			)
 
-		if self.penalty_amount - self.total_penalty_paid > 0:
+		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
 			penalty_amount = self.penalty_amount - self.total_penalty_paid
 			create_loan_repayment(
 				self.against_loan,
@@ -521,7 +522,7 @@ class LoanRepayment(AccountsController):
 			)
 
 		if (
-			self.payable_principal_amount - self.principal_amount_paid > 0
+			flt(self.payable_principal_amount - self.principal_amount_paid, 2) > 0
 			and self.repayment_type == "Full Settlement"
 		):
 			principal_amount = self.payable_principal_amount - self.principal_amount_paid
