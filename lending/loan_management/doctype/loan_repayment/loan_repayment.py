@@ -266,6 +266,7 @@ class LoanRepayment(AccountsController):
 					amount=demand.paid_amount,
 					loan_repayment=self.name,
 					waiver_account=waiver_account,
+					posting_date=self.posting_date,
 				)
 
 	def create_loan_limit_change_log(self):
@@ -362,6 +363,9 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Please set Payroll Payable Account in Loan Repayment"))
 			elif not self.repay_from_salary and self.payroll_payable_account:
 				self.repay_from_salary = 1
+
+		if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
+			self.total_charges_payable = amounts.get("total_charges_payable")
 
 	def check_future_entries(self):
 		future_repayment_date = frappe.db.get_value(
