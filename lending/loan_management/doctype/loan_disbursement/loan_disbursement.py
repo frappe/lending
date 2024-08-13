@@ -201,10 +201,15 @@ class LoanDisbursement(AccountsController):
 			doc.update_outstanding_for_self = 0
 			doc.loan_disbursement = ""
 
+			items_to_remove = []
 			if self.get("reverse_charges"):
 				for item in doc.get("items"):
 					if item.item_code not in self.get("reverse_charges"):
-						doc.remove(item)
+						items_to_remove.append(item)
+
+			if items_to_remove:
+				for item in items_to_remove:
+					doc.remove(item)
 
 			doc.save()
 			doc.submit()
