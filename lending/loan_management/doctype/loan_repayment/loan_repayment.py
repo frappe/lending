@@ -120,6 +120,7 @@ class LoanRepayment(AccountsController):
 			"Interest Waiver",
 			"Penalty Waiver",
 			"Charges Waiver",
+			"Principal Adjustment",
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
