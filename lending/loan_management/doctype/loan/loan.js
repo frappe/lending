@@ -1,6 +1,3 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-// For license information, please see license.txt
-
 lending.common.setup_filters("Loan");
 
 frappe.ui.form.on('Loan', {
@@ -276,5 +273,65 @@ frappe.ui.form.on('Loan', {
 	toggle_fields: function (frm) {
 		frm.toggle_enable("monthly_repayment_amount", frm.doc.repayment_method == "Repay Fixed Amount per Period")
 		frm.toggle_enable("repayment_periods", frm.doc.repayment_method == "Repay Over Number of Periods")
+	},
+
+	// Add support for multiple payment methods
+	payment_methods: function(frm) {
+		frm.add_custom_button(__('Add Payment Method'), function() {
+			let dialog = new frappe.ui.Dialog({
+				title: __('Add Payment Method'),
+				fields: [
+					{
+						label: __('Payment Method'),
+						fieldname: 'payment_method',
+						fieldtype: 'Select',
+						options: ['Cash', 'Bank Transfer', 'UPI']
+					},
+					{
+						label: __('Amount'),
+						fieldname: 'amount',
+						fieldtype: 'Currency'
+					}
+				],
+				primary_action_label: __('Add'),
+				primary_action(values) {
+					let payment_method = values.payment_method;
+					let amount = values.amount;
+
+					// Add validation to check if the cash limit is obeyed
+					if (payment_method === 'Cash') {
+						frappe.call({
+							method: 'frappe.client.get_value',
+							args: {
+								doctype: 'Payment Method Limit',
+								fieldname: 'limit',
+								filters: { payment_method: 'Cash' }
+							},
+							callback: function(r) {
+								let cash_limit = r.message.limit;
+								if (amount > cash_limit) {
+									frappe.msgprint(__('Cash limit exceeded. The entered lending value for cash will be auto-updated to {0}', [cash_limit]));
+									amount = cash_limit;
+								}
+								frm.add_child('payment_methods', {
+									payment_method: payment_method,
+									amount: amount
+								});
+								frm.refresh_field('payment_methods');
+								dialog.hide();
+							}
+						});
+					} else {
+						frm.add_child('payment_methods', {
+							payment_method: payment_method,
+							amount: amount
+						});
+						frm.refresh_field('payment_methods');
+						dialog.hide();
+					}
+				}
+			});
+			dialog.show();
+		});
 	}
 });
