@@ -72,6 +72,10 @@ class LoanDemand(AccountsController):
 		if self.demand_type == "Charges":
 			return
 
+		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+		if loan_status == "Written Off":
+			return
+
 		party_type = ""
 		party = ""
 
