@@ -63,7 +63,8 @@
   "total_amount_paid",
   "is_npa",
   "manual_npa",
-  "amended_from"
+  "amended_from",
+  "repay_from_salary"
  ],
  "fields": [
   {
@@ -472,6 +473,12 @@
    "fieldtype": "Link",
    "label": "Loan Category",
    "options": "Loan Category"
+  },
+  {
+   "default": "0",
+   "fieldname": "repay_from_salary",
+   "fieldtype": "Check",
+   "label": "Repay From Salary"
   }
  ],
  "index_web_pages_for_search": 1,

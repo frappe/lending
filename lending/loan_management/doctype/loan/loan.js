@@ -1,6 +1,3 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-// For license information, please see license.txt
-
 lending.common.setup_filters("Loan");
 
 frappe.ui.form.on('Loan', {
@@ -245,7 +242,7 @@ frappe.ui.form.on('Loan', {
 					if (!r.exc && r.message) {
 
 						let loan_fields = ["loan_product", "loan_amount", "repayment_method",
-							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan"]
+							"monthly_repayment_amount", "repayment_periods", "rate_of_interest", "is_secured_loan", "repay_from_salary"]
 
 						loan_fields.forEach(field => {
 							frm.set_value(field, r.message[field]);

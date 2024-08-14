@@ -121,6 +121,9 @@ class Loan(AccountsController):
 				"Loan Product", self.loan_product, "rate_of_interest"
 			)
 
+		if not hasattr(self, 'repay_from_salary'):
+			self.repay_from_salary = 0
+
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
 			self.applicant_type, self.applicant, self.company
