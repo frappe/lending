@@ -837,6 +837,7 @@ def update_loan_and_customer_status(
 	loan_disbursement=None,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+		write_off_charges,
 		write_off_suspense_entries,
 	)
 
@@ -897,6 +898,7 @@ def update_loan_and_customer_status(
 			for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 				loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
 				write_off_suspense_entries(loan_id, loan_product, posting_date, company)
+				write_off_charges(loan_id, posting_date, company)
 
 
 def get_all_active_loans_for_the_customer(applicant, applicant_type):

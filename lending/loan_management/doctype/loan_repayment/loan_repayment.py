@@ -527,21 +527,28 @@ class LoanRepayment(AccountsController):
 				is_write_off_waiver=1,
 			)
 
+		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
+			charges_amount = self.total_charges_payable - self.total_charges_paid
+			create_loan_repayment(
+				self.against_loan,
+				self.posting_date,
+				"Charges Waiver",
+				charges_amount,
+				is_write_off_waiver=1,
+			)
+
 		if (
 			flt(self.payable_principal_amount - self.principal_amount_paid, 2) > 0
 			and self.repayment_type == "Full Settlement"
 		):
 			principal_amount = self.payable_principal_amount - self.principal_amount_paid
-			loan_write_off_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "write_off_account"
-			)
-			create_loan_repayment(
-				self.against_loan,
-				self.posting_date,
-				"Principal Adjustment",
-				principal_amount,
-				payment_account=loan_write_off_account,
-			)
+			loan_write_off = frappe.new_doc("Loan Write Off")
+			loan_write_off.loan = self.against_loan
+			loan_write_off.posting_date = self.posting_date
+			loan_write_off.write_off_amount = principal_amount
+			loan_write_off.is_settlement_write_off = 1
+			loan_write_off.save()
+			loan_write_off.submit()
 
 	def auto_close_loan(self):
 		auto_close = False

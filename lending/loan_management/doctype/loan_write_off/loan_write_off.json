@@ -14,6 +14,7 @@
   "company",
   "posting_date",
   "is_npa",
+  "is_settlement_write_off",
   "accounting_dimensions_section",
   "cost_center",
   "section_break_9",
@@ -129,12 +130,18 @@
    "fieldtype": "Check",
    "label": "Is NPA",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_settlement_write_off",
+   "fieldtype": "Check",
+   "label": "Is Settlement Write Off"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-21 03:11:25.031163",
+ "modified": "2024-08-14 09:57:06.700885",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Write Off",
