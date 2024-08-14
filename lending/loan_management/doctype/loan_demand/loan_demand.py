@@ -202,7 +202,7 @@ def make_loan_demand_for_term_loans(
 			"demand_generated": 0,
 		},
 		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
-		order_by = "payment_date asc"
+		order_by="payment_date asc",
 	)
 
 	for row in emi_rows:
@@ -323,6 +323,7 @@ def make_credit_note(
 	amount=0,
 	loan_repayment=None,
 	waiver_account=None,
+	posting_date=None,
 ):
 	si = frappe.new_doc("Sales Invoice")
 	si.company = company
@@ -333,10 +334,11 @@ def make_credit_note(
 	si.update_outstanding_for_self = 0
 	si.loan_repayment = loan_repayment
 
-	posting_date = getdate()
+	if not posting_date:
+		posting_date = getdate()
 
-	if posting_date < getdate(demand_date):
-		posting_date = demand_date
+		if posting_date < getdate(demand_date):
+			posting_date = demand_date
 
 	si.set_posting_time = 1
 	si.posting_date = posting_date
