@@ -179,7 +179,7 @@ class LoanDisbursement(AccountsController):
 			doc.cancel()
 
 	def cancel_linked_accruals(self):
-		if self.get("reverse_interest_accruals"):
+		if cint(self.get("reverse_interest_accruals")):
 			loan_repayment_schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan_disbursement": self.name}
 			)
