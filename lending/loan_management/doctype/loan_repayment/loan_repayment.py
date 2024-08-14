@@ -116,7 +116,9 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
 			self.post_write_off_settlements()
 
-		foreclosure_type = frappe.db.get_value("Loan", self.loan_adjustment, "foreclosure_type")
+		foreclosure_type = frappe.db.get_value(
+			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
+		)
 
 		if self.is_npa and (
 			self.repayment_type
