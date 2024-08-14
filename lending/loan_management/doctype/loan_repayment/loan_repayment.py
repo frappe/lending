@@ -828,7 +828,15 @@ class LoanRepayment(AccountsController):
 					self.unbooked_penalty_paid += unbooked_penalty
 					amount_paid -= unbooked_penalty
 
-			self.principal_amount_paid += flt(amount_paid, precision)
+			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+				self.principal_amount_paid += flt(amount_paid, precision)
+			elif self.repayment_type == "Penalty Waiver":
+				self.total_penalty_paid += amount_paid
+				amount_paid = 0
+			elif self.repayment_type == "Interest Waiver":
+				self.total_interest_paid += amount_paid
+				amount_paid = 0
+
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 
