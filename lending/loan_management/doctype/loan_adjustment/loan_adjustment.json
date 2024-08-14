@@ -55,7 +55,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Foreclosure Type",
-   "options": "Manual Foreclosure\nInternal Foreclosure"
+   "options": "\nManual Foreclosure\nInternal Foreclosure"
   },
   {
    "fieldname": "column_break_lgju",
@@ -75,7 +75,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-16 14:47:02.285860",
+ "modified": "2024-08-14 13:04:56.626092",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",
