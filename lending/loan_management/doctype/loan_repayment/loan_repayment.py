@@ -492,6 +492,7 @@ class LoanRepayment(AccountsController):
 			"Normal Repayment",
 			"Pre Payment",
 			"Advance Payment",
+			"Security Adjustment",
 		):
 			query = query.set(loan.status, "Closed")
 		elif self.repayment_type == "Full Settlement":
