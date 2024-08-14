@@ -1,6 +1,3 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
-// For license information, please see license.txt
-
 lending.common.setup_filters("Loan Repayment");
 
 frappe.ui.form.on('Loan Repayment', {
