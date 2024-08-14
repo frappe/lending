@@ -116,13 +116,19 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
 			self.post_write_off_settlements()
 
-		if self.is_npa and self.repayment_type not in (
-			"Interest Waiver",
-			"Penalty Waiver",
-			"Charges Waiver",
-			"Principal Adjustment",
-			"Write Off Recovery",
-			"Write Off Settlement",
+		foreclosure_type = frappe.db.get_value("Loan", self.loan_adjustment, "foreclosure_type")
+
+		if self.is_npa and (
+			self.repayment_type
+			not in (
+				"Interest Waiver",
+				"Penalty Waiver",
+				"Charges Waiver",
+				"Principal Adjustment",
+				"Write Off Recovery",
+				"Write Off Settlement",
+			)
+			or foreclosure_type
 		):
 			additional_interest = sum(
 				d.paid_amount for d in self.get("repayment_details") if d.demand_type == "Additional Interest"
@@ -138,6 +144,7 @@ class LoanRepayment(AccountsController):
 					interest_amount=self.total_interest_paid,
 					penalty_amount=total_penalty_paid,
 					on_payment_allocation=True,
+					is_write_off=1 if foreclosure_type else 0,
 				)
 
 			if self.total_charges_paid > 0:
