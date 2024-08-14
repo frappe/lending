@@ -154,6 +154,29 @@ class LoanApplication(Document):
 		if not self.loan_amount and self.is_secured_loan and self.proposed_pledges:
 			self.loan_amount = self.maximum_loan_amount
 
+		# Add logic to handle multiple payment methods
+		if self.payment_methods:
+			total_payment = sum([pm.amount for pm in self.payment_methods])
+			if total_payment != self.loan_amount:
+				frappe.throw(_("Total payment amount does not match the loan amount"))
+
+			cash_limit = frappe.db.get_value("Payment Method Limit", {"payment_method": "Cash"}, "limit")
+			for pm in self.payment_methods:
+				if pm.payment_method == "Cash" and pm.amount > cash_limit:
+					frappe.throw(_("Cash payment exceeds the limit of {0}").format(cash_limit))
+
+			remaining_amount = self.loan_amount
+			for pm in self.payment_methods:
+				if pm.payment_method == "Cash":
+					pm.amount = min(pm.amount, cash_limit)
+				remaining_amount -= pm.amount
+
+			if remaining_amount > 0:
+				for pm in self.payment_methods:
+					if pm.payment_method != "Cash":
+						pm.amount += remaining_amount
+						break
+
 
 @frappe.whitelist()
 def create_loan(source_name, target_doc=None, submit=0):
