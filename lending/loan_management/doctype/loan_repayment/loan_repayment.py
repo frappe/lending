@@ -1301,7 +1301,9 @@ def get_demand_query():
 def get_pending_principal_amount(loan):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	if loan.status in ("Disbursed", "Closed", "Active", "Written Off"):
+	if loan.status == "Cancelled":
+		pending_principal_amount = 0
+	elif loan.status in ("Disbursed", "Closed", "Active", "Written Off"):
 		pending_principal_amount = flt(
 			flt(loan.total_payment)
 			+ flt(loan.debit_adjustment_amount)
