@@ -169,6 +169,7 @@ class LoanDisbursement(AccountsController):
 			"loan_disbursement": self.name,
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
 		schedule.cancel()
 
 	def cancel_linked_demand(self):
@@ -177,17 +178,6 @@ class LoanDisbursement(AccountsController):
 		for demand in frappe.get_all("Loan Demand", filters, pluck="name"):
 			doc = frappe.get_doc("Loan Demand", demand)
 			doc.cancel()
-
-	def cancel_linked_accruals(self):
-		if cint(self.get("reverse_interest_accruals")):
-			loan_repayment_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan_disbursement": self.name}
-			)
-			filters = {"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1}
-
-			for accrual in frappe.get_all("Loan Interest Accrual", filters, pluck="name"):
-				doc = frappe.get_doc("Loan Interest Accrual", accrual)
-				doc.cancel()
 
 	def make_credit_note(self):
 		filters = {
@@ -259,7 +249,6 @@ class LoanDisbursement(AccountsController):
 
 		self.make_credit_note()
 		self.cancel_linked_demand()
-		self.cancel_linked_accruals()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
