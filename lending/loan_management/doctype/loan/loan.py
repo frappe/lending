@@ -764,7 +764,9 @@ def update_days_past_due_in_loans(
 				loan_disbursement=disbursement,
 			)
 
-			create_dpd_record(demand.loan, posting_date, days_past_due, process_loan_classification)
+			create_dpd_record(
+				demand.loan, disbursement, posting_date, days_past_due, process_loan_classification
+			)
 
 			write_off_threshold = threshold_write_off_map.get(demand.company, 0)
 
@@ -812,11 +814,14 @@ def create_loan_write_off(loan, posting_date):
 # 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
 
 
-def create_dpd_record(loan, posting_date, days_past_due, process_loan_classification=None):
+def create_dpd_record(
+	loan, loan_disbursement, posting_date, days_past_due, process_loan_classification=None
+):
 	frappe.get_doc(
 		{
 			"doctype": "Days Past Due Log",
 			"loan": loan,
+			"loan_disbursement": loan_disbursement,
 			"posting_date": posting_date,
 			"days_past_due": days_past_due,
 			"process_loan_classification": process_loan_classification,
