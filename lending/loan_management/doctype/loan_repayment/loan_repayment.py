@@ -113,7 +113,7 @@ class LoanRepayment(AccountsController):
 
 		self.book_pending_principal()
 
-		if self.repayment_type in ("Write Off Settlement", "Full Settlement"):
+		if self.repayment_type == "Full Settlement":
 			self.post_write_off_settlements()
 
 		foreclosure_type = frappe.db.get_value(
@@ -957,7 +957,6 @@ class LoanRepayment(AccountsController):
 		gle_map = []
 
 		payment_account = self.get_payment_account()
-		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
 		account_details = frappe.db.get_value(
 			"Loan Product",
@@ -984,10 +983,7 @@ class LoanRepayment(AccountsController):
 			self.add_gl_entry(payment_account, against_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
-			if (
-				self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
-				or loan_status == "Written Off"
-			):
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
 				against_account = account_details.interest_receivable_account
@@ -1000,10 +996,7 @@ class LoanRepayment(AccountsController):
 		total_penalty_paid = self.total_penalty_paid - additional_interest
 
 		if flt(total_penalty_paid, precision) > 0:
-			if (
-				self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
-				or loan_status == "Written Off"
-			):
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
 				against_account = account_details.penalty_receivable_account
@@ -1016,10 +1009,7 @@ class LoanRepayment(AccountsController):
 					"Loan Product", self.loan_product, "additional_interest_waiver"
 				)
 
-			if (
-				self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
-				or loan_status == "Written Off"
-			):
+			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
 			else:
 				against_account = account_details.additional_interest_receivable
