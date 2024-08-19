@@ -785,7 +785,7 @@ def update_days_past_due_in_loans(
 				posting_date or getdate(),
 				loan_disbursement=disbursement,
 			)
-			create_dpd_record(loan_name, posting_date, 0, process_loan_classification)
+			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
 
 def create_loan_write_off(loan, posting_date):
