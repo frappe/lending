@@ -494,6 +494,7 @@ class LoanRepayment(AccountsController):
 			)
 			if self.amount_paid >= self.payable_amount - auto_write_off_amount:
 				query = query.set(loan.status, "Closed")
+				query = query.set(loan.closure_date, self.posting_date)
 			else:
 				query = query.set(loan.status, "Settled")
 
@@ -502,8 +503,10 @@ class LoanRepayment(AccountsController):
 			"Pre Payment",
 			"Advance Payment",
 			"Security Adjustment",
+			"Loan Closure",
 		):
 			query = query.set(loan.status, "Closed")
+			query = query.set(loan.closure_date, self.posting_date)
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
 
