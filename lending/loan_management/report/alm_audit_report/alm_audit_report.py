@@ -88,11 +88,9 @@ def get_data(filters):
 	if filters.get("company"):
 		filter_obj.update({"company": filters.get("company")})
 
-	demand_details, loan_product_map = get_overdue_details(
-		filters.get("as_on_date"), filters.get("company")
-	)
+	demand_details = get_overdue_details(filters.get("as_on_date"), filters.get("company"))
 
-	future_details_map, loans = get_future_interest_details(
+	future_details_map, loans, loan_product_map = get_future_interest_details(
 		filters.get("as_on_date"), filters.get("company")
 	)
 
@@ -100,55 +98,44 @@ def get_data(filters):
 		amounts = demand_details.get(loan, {})
 		future_details = future_details_map.get(loan, {})
 
-		parent_row = {
-			"indent": 0,
-			"loan": loan,
-			"ageing": "",
-			"loan_product": loan_product_map.get(loan),
-			"accrued_principal": amounts.get("total_pending_principal", 0),
-			"accrued_interest": amounts.get("total_pending_interest", 0),
-			"penalty_amount": amounts.get("total_pending_penalty", 0),
-			"total": 0,
-		}
-
-		total = (
+		total_over_due = (
 			amounts.get("total_pending_principal", 0)
 			+ amounts.get("total_pending_interest", 0)
 			+ amounts.get("total_pending_penalty", 0)
 		)
+		child_data = []
 
-		child_data = [
-			{
-				"ageing": "Overdue",
-				"accrued_principal": amounts.get("total_pending_principal", 0),
-				"accrued_interest": amounts.get("total_pending_interest", 0),
-				"penalty_amount": amounts.get("total_pending_penalty", 0),
-				"indent": 1,
-			}
-		]
+		if total_over_due > 0:
+			child_data = [
+				{
+					"ageing": "Overdue",
+					"accrued_principal": amounts.get("total_pending_principal", 0),
+					"accrued_interest": amounts.get("total_pending_interest", 0),
+					"penalty_amount": amounts.get("total_pending_penalty", 0),
+					"loan": loan,
+					"loan_product": amounts.get("loan_product"),
+					"total": total_over_due,
+				}
+			]
+
 		for bucket, entry in future_details.items():
 			child_row = {
 				"accrued_principal": 0.0,
 				"accrued_interest": 0.0,
 				"penalty_amount": 0.0,
-				"indent": 1,
 			}
 			child_row["accrued_interest"] += flt(entry.interest_amount)
 			child_row["accrued_principal"] += flt(entry.principal_amount)
 			child_row["penalty_amount"] += flt(entry.penalty_amount)
 			child_row["ageing"] = bucket
+			child_row["loan"] = loan
+			child_row["loan_product"] = loan_product_map.get(loan)
 			child_row["total"] = (
 				child_row["accrued_principal"] + child_row["accrued_interest"] + child_row["penalty_amount"]
 			)
 
-			parent_row["accrued_interest"] += flt(entry.interest_amount)
-			parent_row["accrued_principal"] += flt(entry.principal_amount)
-			parent_row["penalty_amount"] += flt(entry.penalty_amount)
-			parent_row["total"] += child_row["total"]
-
 			child_data.append(child_row)
 
-		data.append(parent_row)
 		for child in child_data:
 			data.append(child)
 
@@ -173,6 +160,12 @@ def get_future_interest_details(as_on_date, company):
 			"status": ("in", "Disbursed", "Partially Disbursed", "Active"),
 		},
 		pluck="name",
+	)
+
+	loan_product_map = frappe._dict(
+		frappe.db.get_all(
+			"Loan", filters={"name": ("in", loans)}, fields=["name", "loan_product"], as_list=1
+		)
 	)
 
 	loan_repayment_schedules = frappe._dict(
@@ -217,7 +210,7 @@ def get_future_interest_details(as_on_date, company):
 		bucket_wise_details[age_bucket]["interest_amount"] += emi.interest_amount
 		bucket_wise_details[age_bucket]["principal_amount"] += emi.principal_amount
 
-	return future_details, loans
+	return future_details, loans, loan_product_map
 
 
 def get_overdue_details(as_on_date, company):
@@ -245,16 +238,15 @@ def get_overdue_details(as_on_date, company):
 	loan_demands = query.run(as_dict=1)
 
 	overdue_details = {}
-	loan_product_map = {}
 
 	for demand in loan_demands:
-		loan_product_map[demand.loan] = demand.loan_product
 		overdue_details.setdefault(
 			demand.loan,
 			{
 				"total_pending_principal": 0.0,
 				"total_pending_interest": 0.0,
 				"total_pending_penalty": 0.0,
+				"loan_product": demand.loan_product,
 			},
 		)
 
@@ -265,4 +257,4 @@ def get_overdue_details(as_on_date, company):
 		elif demand.demand_subtype in ("Penalty", "Additional Interest"):
 			overdue_details[demand.loan]["total_pending_penalty"] += demand.outstanding_amount
 
-	return overdue_details, loan_product_map
+	return overdue_details
