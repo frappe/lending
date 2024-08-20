@@ -64,12 +64,25 @@ class LoanWriteOff(AccountsController):
 		)
 
 		process_daily_loan_demands(self.posting_date, loan=self.loan)
+		self.process_unbooked_interest()
 		make_loan_waivers(self.loan, self.posting_date)
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
 		write_off_charges(self.loan, self.posting_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
+
+	def process_unbooked_interest(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unbooked_interest
+
+		unbooked_interest, unbooked_penalty = get_unbooked_interest(self.loan, self.posting_date)
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if flt(unbooked_interest) > 0:
+			create_loan_demand(
+				self.loan, self.posting_date, "EMI", "Interest", flt(unbooked_interest, precision)
+			)
 
 	def cancel_suspense_entries(self):
 		write_off_suspense_entries(
