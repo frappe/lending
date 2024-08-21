@@ -638,13 +638,14 @@
    "fieldtype": "Currency",
    "label": "Excess Amount Paid",
    "no_copy": 1,
+   "options": "Company:company:default_currency",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-17 09:18:09.539043",
+ "modified": "2024-08-20 03:35:45.113207",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

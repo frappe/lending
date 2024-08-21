@@ -137,6 +137,15 @@ class LoanRepayment(AccountsController):
 			)
 			total_penalty_paid = self.total_penalty_paid - additional_interest
 
+			if foreclosure_type and self.repayment_type in (
+				"Interest Waiver",
+				"Penalty Waiver",
+				"Charges Waiver",
+			):
+				is_write_off = 1
+			else:
+				is_write_off = 0
+
 			if self.total_interest_paid > 0 or total_penalty_paid > 0:
 				write_off_suspense_entries(
 					self.against_loan,
@@ -146,7 +155,7 @@ class LoanRepayment(AccountsController):
 					interest_amount=self.total_interest_paid,
 					penalty_amount=total_penalty_paid,
 					on_payment_allocation=True,
-					is_write_off=1 if foreclosure_type else 0,
+					is_write_off=is_write_off,
 				)
 
 			if self.total_charges_paid > 0:
@@ -502,7 +511,7 @@ class LoanRepayment(AccountsController):
 			"Normal Repayment",
 			"Pre Payment",
 			"Advance Payment",
-			"Security Adjustment",
+			"Security Deposit Adjustment",
 			"Loan Closure",
 		):
 			query = query.set(loan.status, "Closed")

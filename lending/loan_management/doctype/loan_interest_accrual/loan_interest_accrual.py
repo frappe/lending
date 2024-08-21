@@ -407,7 +407,10 @@ def calculate_penal_interest_for_loans(
 		additional_interest = 0
 		if getdate(posting_date) > add_days(demand.demand_date, grace_period_days):
 			last_accrual_date = get_last_accrual_date(
-				loan.name, posting_date, "Penal Interest", demand=demand.name
+				loan.name,
+				posting_date,
+				"Penal Interest",
+				demand=demand.name if not is_future_accrual else None,
 			)
 
 			if not last_accrual_date:
