@@ -881,6 +881,12 @@ def update_loan_and_customer_status(
 
 		make_fldg_invocation_jv(loan, posting_date)
 
+	loan_status = frappe.db.get_value("Loan", loan, "status")
+
+	if loan_status == "Settled":
+		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+		write_off_suspense_entries(loan, loan_product, posting_date, company)
+		write_off_charges(loan, posting_date, company)
 	if is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
