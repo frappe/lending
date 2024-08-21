@@ -154,6 +154,7 @@ class LoanRepayment(AccountsController):
 					self.company,
 					interest_amount=self.total_interest_paid,
 					penalty_amount=total_penalty_paid,
+					additional_interest_amount=additional_interest,
 					on_payment_allocation=True,
 					is_write_off=is_write_off,
 				)

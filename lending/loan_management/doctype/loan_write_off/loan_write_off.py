@@ -227,6 +227,7 @@ def write_off_suspense_entries(
 	is_write_off=0,
 	interest_amount=0,
 	penalty_amount=0,
+	additional_interest_amount=0,
 	on_payment_allocation=False,
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
@@ -306,11 +307,12 @@ def write_off_suspense_entries(
 	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
 		amount = amounts.get(accounts.additional_interest_suspense)
 
-		debit_account = accounts.additional_interest_suspense
-		credit_account = (
-			accounts.additional_interest_waiver if is_write_off else accounts.additional_interest_income
-		)
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		if not (on_payment_allocation and not additional_interest_amount > 0):
+			debit_account = accounts.additional_interest_suspense
+			credit_account = (
+				accounts.additional_interest_waiver if is_write_off else accounts.additional_interest_income
+			)
+			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 
 def write_off_charges(loan, posting_date, company, amount_details=None, on_write_off=False):
