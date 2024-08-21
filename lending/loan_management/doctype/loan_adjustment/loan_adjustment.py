@@ -30,7 +30,7 @@ class LoanAdjustment(Document):
 			if repayment.loan_repayment_type != "Security Deposit Adjustment":
 				total_paid_amount += repayment.amount
 
-		if total_paid_amount >= net_payable_amount:
+		if abs(total_paid_amount - net_payable_amount) <= 1:
 			repayment_types = [repayment.loan_repayment_type for repayment in self.get("adjustments")]
 			if "Security Deposit Adjustment" not in repayment_types:
 				self.append(
