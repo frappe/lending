@@ -30,6 +30,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 class LoanRepaymentSchedule(Document):
 	def validate(self):
 		self.set_repayment_period()
+		self.set_repayment_start_date()
 		self.validate_repayment_method()
 		self.make_customer_repayment_schedule()
 		self.make_co_lender_schedule()
@@ -337,13 +338,6 @@ class LoanRepaymentSchedule(Document):
 					total_payment = principal_amount + interest_amount
 					moratorium_interest = 0
 
-			if self.repayment_schedule_type == "Pro-rated calendar months":
-				next_payment_date = get_last_day(payment_date)
-				if self.repayment_date_on == "Start of the next month":
-					next_payment_date = add_days(next_payment_date, 1)
-
-				payment_date = next_payment_date
-
 			self.add_repayment_schedule_row(
 				payment_date,
 				principal_amount,
@@ -368,7 +362,6 @@ class LoanRepaymentSchedule(Document):
 				balance_amount = 0
 
 			payment_date = self.get_next_payment_date(payment_date)
-
 			carry_forward_interest = 0
 			additional_days = 0
 			additional_principal_amount = 0
@@ -383,8 +376,12 @@ class LoanRepaymentSchedule(Document):
 	def get_next_payment_date(self, payment_date):
 		if (
 			self.repayment_schedule_type
-			in ["Monthly as per repayment start date", "Monthly as per cycle date", "Line of Credit"]
-			or self.repayment_date_on == "End of the current month"
+			in [
+				"Monthly as per repayment start date",
+				"Monthly as per cycle date",
+				"Line of Credit",
+				"Pro-rated calendar months",
+			]
 		) and self.repayment_frequency == "Monthly":
 			next_payment_date = add_single_month(payment_date)
 			payment_date = next_payment_date
@@ -622,6 +619,14 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount,
 			pending_prev_days,
 		)
+
+	def set_repayment_start_date(self):
+		if self.repayment_schedule_type == "Pro-rated calendar months":
+			repayment_start_date = get_last_day(self.posting_date)
+			if self.repayment_date_on == "Start of the next month":
+				repayment_start_date = add_days(repayment_start_date, 1)
+
+			self.repayment_start_date = repayment_start_date
 
 	def validate_repayment_method(self):
 		if not self.repayment_start_date:
