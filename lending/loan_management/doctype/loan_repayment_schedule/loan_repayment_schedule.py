@@ -664,6 +664,7 @@ class LoanRepaymentSchedule(Document):
 				"Monthly as per cycle date",
 				"Line of Credit",
 				"Monthly as per repayment start date",
+				"Pro-rated calendar months",
 			):
 				days = date_diff(payment_date, add_months(payment_date, -1))
 				if (
