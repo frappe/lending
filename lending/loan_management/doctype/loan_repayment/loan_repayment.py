@@ -108,13 +108,8 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
 
-		if self.unbooked_interest_paid:
-			self.book_interest_accrued_not_demanded()
-
+		self.book_interest_accrued_not_demanded()
 		self.book_pending_principal()
-
-		if self.repayment_type == "Full Settlement":
-			self.post_write_off_settlements()
 
 		foreclosure_type = frappe.db.get_value(
 			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
@@ -167,6 +162,9 @@ class LoanRepayment(AccountsController):
 		self.update_limits()
 		self.update_security_deposit_amount()
 		update_installment_counts(self.against_loan)
+
+		if self.repayment_type == "Full Settlement":
+			self.post_write_off_settlements()
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
@@ -525,11 +523,26 @@ class LoanRepayment(AccountsController):
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
 	def post_write_off_settlements(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_loan_repayment,
 		)
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		unbooked_interest, accrued_interest = get_unbooked_interest(self.against_loan, self.posting_date)
+		unpaid_unbooked_interest = 0
+
+		if flt(unbooked_interest - self.unbooked_interest_paid, precision) > 0:
+			unpaid_unbooked_interest = unbooked_interest - self.unbooked_interest_paid
+			create_loan_demand(
+				self.against_loan,
+				self.posting_date,
+				"EMI",
+				"Interest",
+				flt(unpaid_unbooked_interest, precision),
+			)
+
 		if flt(self.interest_payable - self.total_interest_paid, precision) > 0:
 			interest_amount = self.interest_payable - self.total_interest_paid
 			create_loan_repayment(
