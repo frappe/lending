@@ -305,7 +305,12 @@ def write_off_suspense_entries(
 			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
-		amount = amounts.get(accounts.additional_interest_suspense)
+		if additional_interest_amount and additional_interest_amount <= amounts.get(
+			accounts.additional_interest_suspense
+		):
+			amount = additional_interest_amount
+		else:
+			amount = amounts.get(accounts.additional_interest_suspense)
 
 		if not (on_payment_allocation and not additional_interest_amount > 0):
 			debit_account = accounts.additional_interest_suspense
