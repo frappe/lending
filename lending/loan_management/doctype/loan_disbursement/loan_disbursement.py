@@ -574,6 +574,8 @@ class LoanDisbursement(AccountsController):
 		gle_map = []
 		remarks = _("Disbursement against loan:") + self.against_loan
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if self.get("refund_account") and cancel:
 			bank_account = self.refund_account
 		else:
@@ -611,7 +613,7 @@ class LoanDisbursement(AccountsController):
 				gle_map,
 				broken_period_interest_account,
 				bank_account,
-				-1 * self.broken_period_interest,
+				flt(-1 * self.broken_period_interest, precision),
 				remarks,
 			)
 
