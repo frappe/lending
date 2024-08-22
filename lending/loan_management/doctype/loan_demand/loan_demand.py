@@ -307,6 +307,9 @@ def reverse_demands(loan, posting_date, demand_type=None, loan_repayment_schedul
 	if demand_type:
 		filters["demand_type"] = demand_type
 
+	if demand_type == "Penalty":
+		filters["demand_type"] = ("in", ("Penalty", "Additional Interest"))
+
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
 		filters["demand_date"] = (">=", posting_date)

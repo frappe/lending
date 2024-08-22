@@ -706,6 +706,9 @@ def reverse_loan_interest_accruals(
 	if interest_type:
 		filters["interest_type"] = interest_type
 
+	if interest_type == "Penal Interest":
+		filters["interest_type"] = ("in", ["Penal Interest", "Additional Interest"])
+
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
 

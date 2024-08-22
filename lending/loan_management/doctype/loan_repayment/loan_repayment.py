@@ -5,7 +5,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Round, Sum
-from frappe.utils import cint, flt, get_datetime, getdate
+from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
@@ -175,7 +175,7 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals(
 				self.against_loan, self.posting_date, interest_type="Penal Interest"
 			)
-			reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
+			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
 
 			create_process_loan_classification(
 				posting_date=self.posting_date,
