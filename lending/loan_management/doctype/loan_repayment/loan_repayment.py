@@ -505,6 +505,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.closure_date, self.posting_date)
 			else:
 				query = query.set(loan.status, "Settled")
+				query = query.set(loan.closure_date, self.posting_date)
 
 		elif self.auto_close_loan() and self.repayment_type in (
 			"Normal Repayment",
@@ -517,6 +518,7 @@ class LoanRepayment(AccountsController):
 			query = query.set(loan.closure_date, self.posting_date)
 		elif self.repayment_type == "Full Settlement":
 			query = query.set(loan.status, "Settled")
+			query = query.set(loan.closure_date, self.posting_date)
 
 		query.run()
 
