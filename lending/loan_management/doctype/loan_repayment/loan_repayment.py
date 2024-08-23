@@ -76,6 +76,9 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
 		)
+		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+			process_daily_loan_demands,
+		)
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
 		)
@@ -172,10 +175,17 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries()
 
 		if self.is_term_loan:
-			reverse_loan_interest_accruals(
-				self.against_loan, self.posting_date, interest_type="Penal Interest"
+			accruals = reverse_loan_interest_accruals(
+				self.against_loan,
+				self.posting_date,
+				interest_type="Penal Interest",
+				is_npa=self.is_npa,
+				on_payment_allocation=True,
 			)
 			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
+
+			if accruals:
+				process_daily_loan_demands(posting_date=getdate(), loan=self.against_loan)
 
 			create_process_loan_classification(
 				posting_date=self.posting_date,
