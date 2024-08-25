@@ -28,6 +28,7 @@
   "is_secured_loan",
   "disbursement_date",
   "closure_date",
+  "settlement_date",
   "disbursed_amount",
   "column_break_11",
   "maximum_loan_amount",
@@ -647,12 +648,18 @@
    "fieldname": "penalty_charges_rate",
    "fieldtype": "Percent",
    "label": "Penalty Charges Rate"
+  },
+  {
+   "fieldname": "settlement_date",
+   "fieldtype": "Date",
+   "label": "Settlement Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-25 15:59:36.052598",
+ "modified": "2024-08-25 18:17:20.461903",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
