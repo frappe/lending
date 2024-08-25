@@ -395,7 +395,11 @@ def calculate_penal_interest_for_loans(
 	freeze_date = frappe.get_value("Loan", loan.name, "freeze_date")
 	loan_status = frappe.get_value("Loan", loan.name, "status")
 
-	penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+	penal_interest_rate = frappe.db.get_value("Loan", loan.name, "penalty_charges_rate")
+
+	if not penal_interest_rate:
+		penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+
 	grace_period_days = cint(frappe.get_value("Loan Product", loan_product, "grace_period_in_days"))
 	total_penal_interest = 0
 

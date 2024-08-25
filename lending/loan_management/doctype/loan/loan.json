@@ -24,6 +24,7 @@
   "repayment_schedule_type",
   "loan_amount",
   "rate_of_interest",
+  "penalty_charges_rate",
   "is_secured_loan",
   "disbursement_date",
   "closure_date",
@@ -638,14 +639,20 @@
    "fieldtype": "Currency",
    "label": "Excess Amount Paid",
    "no_copy": 1,
-   "options": "Company:company:default_currency",
    "read_only": 1
+  },
+  {
+   "fetch_from": "loan_product.penalty_interest_rate",
+   "fetch_if_empty": 1,
+   "fieldname": "penalty_charges_rate",
+   "fieldtype": "Percent",
+   "label": "Penalty Charges Rate"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-20 03:35:45.113207",
+ "modified": "2024-08-25 15:59:36.052598",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
