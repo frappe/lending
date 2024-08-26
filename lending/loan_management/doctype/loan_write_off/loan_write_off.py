@@ -366,6 +366,8 @@ def write_off_charges(loan, posting_date, company, amount_details=None, on_write
 				partial_amount = amount_details.get(account)
 				if partial_amount and partial_amount <= amount:
 					amount = partial_amount
+				else:
+					continue
 
 			waiver_account = suspense_account_map.get(account)
 			make_journal_entry(posting_date, company, loan, amount, account, waiver_account)
