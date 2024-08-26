@@ -31,6 +31,7 @@ class ProcessLoanClassification(Document):
 					loan_product=self.loan_product,
 					process_loan_classification=self.name,
 					ignore_freeze=True if self.payment_reference else False,
+					is_backdated=self.is_backdated,
 				)
 			except Exception as e:
 				if len(open_loans) == 1:
@@ -45,7 +46,7 @@ class ProcessLoanClassification(Document):
 
 
 def create_process_loan_classification(
-	posting_date=None, loan_product=None, loan=None, payment_reference=None
+	posting_date=None, loan_product=None, loan=None, payment_reference=None, is_backdated=0
 ):
 	posting_date = posting_date or getdate()
 	process_loan_classification = frappe.new_doc("Process Loan Classification")
@@ -53,4 +54,5 @@ def create_process_loan_classification(
 	process_loan_classification.loan_product = loan_product
 	process_loan_classification.loan = loan
 	process_loan_classification.payment_reference = payment_reference
+	process_loan_classification.is_backdated = is_backdated
 	process_loan_classification.submit()

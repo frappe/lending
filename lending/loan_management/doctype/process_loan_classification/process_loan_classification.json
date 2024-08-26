@@ -11,6 +11,7 @@
   "loan_product",
   "loan",
   "payment_reference",
+  "is_backdated",
   "amended_from"
  ],
  "fields": [
@@ -49,12 +50,19 @@
    "label": "Payment Reference",
    "options": "Loan Repayment",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_backdated",
+   "fieldtype": "Check",
+   "label": "Is Backdated",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-06 10:51:06.623034",
+ "modified": "2024-08-26 14:28:39.193631",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Classification",

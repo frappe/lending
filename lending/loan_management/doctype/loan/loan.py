@@ -693,6 +693,7 @@ def update_days_past_due_in_loans(
 	loan_product=None,
 	process_loan_classification=None,
 	ignore_freeze=False,
+	is_backdated=0,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -762,6 +763,8 @@ def update_days_past_due_in_loans(
 				posting_date or getdate(),
 				freeze_date=freeze_date,
 				loan_disbursement=disbursement,
+				is_backdated=is_backdated,
+				dpd_threshold=threshold,
 			)
 
 			create_dpd_record(
@@ -784,6 +787,7 @@ def update_days_past_due_in_loans(
 				0,
 				posting_date or getdate(),
 				loan_disbursement=disbursement,
+				is_backdated=0,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
@@ -840,6 +844,8 @@ def update_loan_and_customer_status(
 	posting_date,
 	freeze_date=None,
 	loan_disbursement=None,
+	is_backdated=0,
+	dpd_threshold=0,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_charges,
@@ -887,6 +893,8 @@ def update_loan_and_customer_status(
 		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 		write_off_suspense_entries(loan, loan_product, posting_date, company)
 		write_off_charges(loan, posting_date, company)
+	elif is_backdated and days_past_due < dpd_threshold:
+		frappe.db.set_value("Loan", loan, "is_npa", 0)
 	elif is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
