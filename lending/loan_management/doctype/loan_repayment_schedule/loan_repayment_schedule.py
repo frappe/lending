@@ -141,6 +141,21 @@ class LoanRepaymentSchedule(Document):
 			reverse_loan_interest_accruals,
 		)
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		bpi_accrual = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"loan_repayment_schedule": self.name,
+				"docstatus": 1,
+				"interest_amount": flt(self.broken_period_interest, precision),
+			},
+		)
+
+		if bpi_accrual:
+			bpi_accrual_doc = frappe.get_doc("Loan Interest Accrual", bpi_accrual)
+			bpi_accrual_doc.cancel()
+
 		if cint(self.get("reverse_interest_accruals")):
 			reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
