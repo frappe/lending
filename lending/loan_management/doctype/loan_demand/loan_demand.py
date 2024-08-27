@@ -369,6 +369,8 @@ def make_credit_note(
 	si.save()
 	si.submit()
 
+	return si
+
 
 def get_freeze_date_map(loans):
 	return frappe._dict(

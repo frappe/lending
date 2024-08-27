@@ -113,6 +113,7 @@ class LoanRepayment(AccountsController):
 
 		self.book_interest_accrued_not_demanded()
 		self.book_pending_principal()
+		base_amount_map = self.make_credit_note_for_charge_waivers()
 
 		foreclosure_type = frappe.db.get_value(
 			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
@@ -158,7 +159,7 @@ class LoanRepayment(AccountsController):
 				)
 
 			if self.total_charges_paid > 0:
-				self.write_off_charges()
+				self.write_off_charges(is_write_off, base_amount_map)
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -171,7 +172,6 @@ class LoanRepayment(AccountsController):
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
-		self.make_credit_note_for_charge_waivers()
 		self.make_gl_entries()
 
 		if self.is_term_loan:
@@ -202,7 +202,7 @@ class LoanRepayment(AccountsController):
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
 
-	def write_off_charges(self):
+	def write_off_charges(self, is_write_off, base_amount_map):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import write_off_charges
 
 		charge_amount_map = {}
@@ -230,7 +230,12 @@ class LoanRepayment(AccountsController):
 			account_charge_map[accounts.get(charge)] = charge_amount_map.get(charge)
 
 		write_off_charges(
-			self.against_loan, self.posting_date, self.company, amount_details=account_charge_map
+			self.against_loan,
+			self.posting_date,
+			self.company,
+			amount_details=account_charge_map,
+			on_write_off=bool(is_write_off),
+			base_amount_map=base_amount_map,
 		)
 
 	def book_pending_principal(self):
@@ -280,13 +285,14 @@ class LoanRepayment(AccountsController):
 			self.payment_account = frappe.db.get_value("Loan Product", self.loan_product, "payment_account")
 
 	def make_credit_note_for_charge_waivers(self):
+		base_amount_details = {}
 		from lending.loan_management.doctype.loan_demand.loan_demand import make_credit_note
 
 		if self.repayment_type == "Charges Waiver":
 			for demand in self.get("repayment_details"):
 				demand_doc = frappe.get_doc("Loan Demand", demand.loan_demand)
 				waiver_account = self.get_charges_waiver_account(self.loan_product, demand.demand_subtype)
-				make_credit_note(
+				credit_note = make_credit_note(
 					demand_doc.company,
 					demand_doc.demand_subtype,
 					demand_doc.applicant,
@@ -298,6 +304,11 @@ class LoanRepayment(AccountsController):
 					waiver_account=waiver_account,
 					posting_date=self.posting_date,
 				)
+
+				base_amount_details.setdefault(waiver_account, 0)
+				base_amount_details[waiver_account] += abs(credit_note.base_net_total)
+
+		return base_amount_details
 
 	def create_loan_limit_change_log(self):
 		create_loan_limit_change_log(

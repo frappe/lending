@@ -320,7 +320,9 @@ def write_off_suspense_entries(
 			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
 
 
-def write_off_charges(loan, posting_date, company, amount_details=None, on_write_off=False):
+def write_off_charges(
+	loan, posting_date, company, amount_details=None, on_write_off=False, base_amount_map=None
+):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
@@ -368,6 +370,17 @@ def write_off_charges(loan, posting_date, company, amount_details=None, on_write
 					amount = partial_amount
 				else:
 					continue
+
+			if base_amount_map and on_write_off:
+				waiver_account = suspense_account_map.get(account)
+				base_amount = base_amount_map.get(waiver_account, 0)
+
+				if base_amount > 0:
+					income_account = frappe.db.get_value(
+						"Loan Charges", {"parent": loan_product, "suspense_account": account}, "income_account"
+					)
+					income_amount = amount - base_amount
+					make_journal_entry(posting_date, company, loan, income_amount, waiver_account, income_account)
 
 			waiver_account = suspense_account_map.get(account)
 			make_journal_entry(posting_date, company, loan, amount, account, waiver_account)
