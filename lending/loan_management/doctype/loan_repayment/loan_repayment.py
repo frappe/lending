@@ -186,7 +186,13 @@ class LoanRepayment(AccountsController):
 			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
 
 			if accruals:
-				process_daily_loan_demands(posting_date=getdate(), loan=self.against_loan)
+				dates = [getdate(d.get("posting_date")) for d in accruals]
+				max_date = max(dates)
+
+				process_loan_interest_accrual_for_loans(
+					posting_date=max_date, loan=self.against_loan, loan_product=self.loan_product
+				)
+				process_daily_loan_demands(posting_date=max_date, loan=self.against_loan)
 				is_backdated = 1
 
 			create_process_loan_classification(

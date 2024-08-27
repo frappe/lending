@@ -724,7 +724,9 @@ def reverse_loan_interest_accruals(
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
 
-	accruals = frappe.get_all("Loan Interest Accrual", filters=filters)
+	accruals = frappe.get_all(
+		"Loan Interest Accrual", filters=filters, fields=["name", "posting_date"]
+	)
 
 	for accrual in accruals:
 		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name)
