@@ -60,6 +60,7 @@ class LoanRepaymentSchedule(Document):
 				break
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		principal_balance = 0
 
 		if self.restructure_type == "Advance Payment":
 			set_demand(advance_payment.name)
@@ -77,6 +78,7 @@ class LoanRepaymentSchedule(Document):
 
 			interest_amount = prepayment_details.unaccrued_interest
 			principal_amount = prepayment_details.principal_adjusted
+			principal_balance = prepayment_details.balance_principal
 			paid_interest_amount = interest_amount
 			paid_principal_amount = principal_amount
 
@@ -114,7 +116,7 @@ class LoanRepaymentSchedule(Document):
 		payable_interest = get_interest_for_term(
 			self.company,
 			self.rate_of_interest,
-			self.current_principal_amount - prepayment_details.balance_principal,
+			self.current_principal_amount - principal_balance,
 			last_accrual_date,
 			self.posting_date,
 		)
