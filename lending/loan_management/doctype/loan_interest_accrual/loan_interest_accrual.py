@@ -430,8 +430,16 @@ def calculate_penal_interest_for_loans(
 				total_penal_interest += penal_interest_amount
 
 				principal_amount = frappe.db.get_value(
-					"Repayment Schedule", demand.repayment_schedule_detail, "principal_amount"
+					"Loan Demand",
+					{
+						"loan": loan.name,
+						"repayment_schedule_detail": demand.repayment_schedule_detail,
+						"demand_type": "EMI",
+						"demand_subtype": "Principal",
+					},
+					"outstanding_amount",
 				)
+
 				per_day_interest = get_per_day_interest(
 					principal_amount, loan.rate_of_interest, loan.company, posting_date
 				)
