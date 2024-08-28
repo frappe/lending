@@ -270,7 +270,9 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals,
 		)
 
-		reverse_loan_interest_accruals(self.against_loan, self.posting_date)
+		reverse_loan_interest_accruals(
+			self.against_loan, self.posting_date, interest_type="Normal Interest"
+		)
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
 		loan_restructure.flags.ignore_links = True
 		loan_restructure.status = "Approved"

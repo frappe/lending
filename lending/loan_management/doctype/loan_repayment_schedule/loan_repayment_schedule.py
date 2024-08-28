@@ -71,7 +71,7 @@ class LoanRepaymentSchedule(Document):
 			prepayment_details = frappe.db.get_value(
 				"Loan Restructure",
 				self.loan_restructure,
-				["unaccrued_interest", "principal_adjusted"],
+				["unaccrued_interest", "principal_adjusted", "balance_principal"],
 				as_dict=1,
 			)
 
@@ -109,14 +109,12 @@ class LoanRepaymentSchedule(Document):
 			paid_amount=paid_principal_amount,
 		)
 
-		last_accrual_date = get_last_accrual_date(
-			self.loan, advance_payment.payment_date, "Normal Interest"
-		)
+		last_accrual_date = get_last_accrual_date(self.loan, self.posting_date, "Normal Interest")
 
 		payable_interest = get_interest_for_term(
 			self.company,
 			self.rate_of_interest,
-			self.current_principal_amount,
+			self.current_principal_amount - prepayment_details.balance_principal,
 			last_accrual_date,
 			self.posting_date,
 		)
@@ -128,7 +126,7 @@ class LoanRepaymentSchedule(Document):
 				flt(payable_interest, precision),
 				"",
 				last_accrual_date,
-				advance_payment.payment_date,
+				self.posting_date,
 				"Regular",
 				"Normal Interest",
 				self.rate_of_interest,
@@ -516,6 +514,11 @@ class LoanRepaymentSchedule(Document):
 							self.repayment_start_date = row.payment_date
 							prev_repayment_date = row.payment_date
 							break
+
+					if self.restructure_type in ("Pre Payment", "Advance Payment"):
+						self.get("repayment_schedule")[
+							completed_tenure - 1
+						].balance_loan_amount = self.current_principal_amount
 
 					if after_bpi and not self.restructure_type:
 						self.broken_period_interest = prev_schedule.broken_period_interest
