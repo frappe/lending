@@ -454,15 +454,16 @@ def calculate_penal_interest_for_loans(
 					)
 
 					if loan_status != "Written Off":
-						create_loan_demand(
-							loan.name,
-							posting_date,
-							"Penalty",
-							"Penalty",
-							penal_interest_amount - additional_interest,
-							loan_repayment_schedule=demand.loan_repayment_schedule,
-							loan_disbursement=loan.loan_disbursement,
-						)
+						if penal_interest_amount - additional_interest > 0:
+							create_loan_demand(
+								loan.name,
+								posting_date,
+								"Penalty",
+								"Penalty",
+								penal_interest_amount - additional_interest,
+								loan_repayment_schedule=demand.loan_repayment_schedule,
+								loan_disbursement=loan.loan_disbursement,
+							)
 
 						if additional_interest > 0:
 							create_loan_demand(
