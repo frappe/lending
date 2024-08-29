@@ -311,7 +311,7 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					amount=demand.paid_amount,
 					loan_repayment=self.name,
-					waiver_account=waiver_account,
+					waiver_account=waiver_account if self.is_npa else None,
 					posting_date=self.posting_date,
 				)
 
@@ -1029,7 +1029,11 @@ class LoanRepayment(AccountsController):
 				"additional_interest_receivable",
 				"suspense_interest_income",
 				"interest_income_account",
+				"penalty_income_account",
+				"additional_interest_income",
 				"interest_waiver_account",
+				"penalty_waiver_account",
+				"additional_interest_waiver",
 				"write_off_recovery_account",
 				"customer_refund_account",
 			],
@@ -1052,6 +1056,14 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
+			if self.repayment_type == "Interest Waiver" and not self.is_npa:
+				self.add_gl_entry(
+					account_details.interest_income_account,
+					account_details.interest_waiver_account,
+					self.total_interest_paid,
+					gle_map,
+				)
+
 		additional_interest = sum(
 			d.paid_amount for d in self.get("repayment_details") if d.demand_type == "Additional Interest"
 		)
@@ -1065,11 +1077,17 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
 
+			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				self.add_gl_entry(
+					account_details.penalty_income_account,
+					account_details.penalty_waiver_account,
+					total_penalty_paid,
+					gle_map,
+				)
+
 		if flt(additional_interest, precision) > 0:
 			if self.repayment_type == "Penalty Waiver":
-				payment_account = frappe.db.get_value(
-					"Loan Product", self.loan_product, "additional_interest_waiver"
-				)
+				payment_account = account_details.additional_interest_waiver
 
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = account_details.write_off_recovery_account
@@ -1077,6 +1095,14 @@ class LoanRepayment(AccountsController):
 				against_account = account_details.additional_interest_receivable
 
 			self.add_gl_entry(payment_account, against_account, additional_interest, gle_map)
+
+			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				self.add_gl_entry(
+					account_details.additional_interest_income,
+					account_details.additional_interest_waiver,
+					additional_interest,
+					gle_map,
+				)
 
 		if flt(self.excess_amount, precision):
 			if self.auto_close_loan():
