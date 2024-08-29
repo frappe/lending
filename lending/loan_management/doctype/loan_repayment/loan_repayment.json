@@ -38,6 +38,7 @@
   "amount_paid",
   "accounting_dimensions_section",
   "cost_center",
+  "loan_partner",
   "prepayment_charges_section",
   "prepayment_charges",
   "references_section",
@@ -436,12 +437,19 @@
    "label": "Unbooked Penalty Paid",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fetch_from": "against_loan.loan_partner",
+   "fieldname": "loan_partner",
+   "fieldtype": "Link",
+   "label": "Loan Partner",
+   "options": "Loan Partner"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-26 19:31:51.308529",
+ "modified": "2024-08-27 02:34:43.877335",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

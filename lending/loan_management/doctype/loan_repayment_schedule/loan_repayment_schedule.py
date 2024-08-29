@@ -792,6 +792,9 @@ class LoanRepaymentSchedule(Document):
 		principal_amount = principal_amount * principal_share_percentage / 100
 		total_payment = principal_amount + interest_amount
 
+		if repayment_schedule_field == "colender_schedule" and not self.partner_monthly_repayment_amount:
+			self.partner_monthly_repayment_amount = total_payment
+
 		self.append(
 			repayment_schedule_field,
 			{

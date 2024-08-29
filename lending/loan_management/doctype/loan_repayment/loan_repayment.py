@@ -1098,8 +1098,70 @@ class LoanRepayment(AccountsController):
 					against_voucher=repayment.sales_invoice,
 				)
 
+		self.add_loan_partner_gl_entries(gle_map)
+
 		if gle_map:
 			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+
+	def add_loan_partner_gl_entries(self, gle_map):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if self.get("loan_partner"):
+			partner_details = frappe.db.get_value(
+				"Loan Partner",
+				self.loan_partner,
+				[
+					"repayment_schedule_type",
+					"partner_loan_share_percentage",
+					"credit_account",
+					"payable_account",
+					"partner_interest_share",
+				],
+				as_dict=1,
+			)
+
+			if partner_details.repayment_schedule_type == "Collection at partner's percentage":
+				principal_ratio = partner_details.partner_loan_share_percentage / 100
+				interest_ratio = principal_ratio
+			elif partner_details.repayment_schedule_type == "EMI (PMT) based":
+				amounts = frappe.db.get_value(
+					"Loan Repayment Schedule",
+					{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
+					["monthly_repayment_amount", "partner_monthly_repayment_amount"],
+					as_dict=1,
+				)
+
+				principal_ratio = flt(
+					amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount, precision
+				)
+				interest_ratio = principal_ratio
+			elif partner_details.repayment_schedule_type == "POS reduction plus interest at partner ROI":
+				loan_repayment_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"docstatus": 1, "status": "Active", "loan": self.against_loan}
+				)
+
+				borrower_interest = frappe.db.get_value(
+					"Repayment Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+				)
+
+				colender_interest = frappe.db.get_value(
+					"Co-Lender Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+				)
+
+				principal_ratio = partner_details.partner_loan_share_percentage / 100
+				interest_ratio = flt(colender_interest / borrower_interest, precision)
+
+			if flt(self.principal_amount_paid, precision) > 0:
+				amount = self.principal_amount_paid * principal_ratio
+				self.add_gl_entry(
+					partner_details.credit_account, partner_details.payable_account, amount, gle_map
+				)
+
+			if flt(self.total_interest_paid, precision) > 0:
+				amount = self.total_interest_paid * interest_ratio
+				self.add_gl_entry(
+					partner_details.partner_interest_share, partner_details.payable_account, amount, gle_map
+				)
 
 	def add_gl_entry(
 		self,

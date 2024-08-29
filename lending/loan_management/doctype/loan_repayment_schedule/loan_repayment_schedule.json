@@ -36,6 +36,7 @@
   "other_details_section",
   "disbursed_amount",
   "monthly_repayment_amount",
+  "partner_monthly_repayment_amount",
   "loan_restructure",
   "restructure_type",
   "broken_period_interest",
@@ -316,12 +317,18 @@
    "fieldname": "loan_partner_rate_of_interest",
    "fieldtype": "Float",
    "label": "Loan Partner Rate Of Interest"
+  },
+  {
+   "fieldname": "partner_monthly_repayment_amount",
+   "fieldtype": "Currency",
+   "label": "Partner Monthly Repayment Amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-05-30 01:44:49.803866",
+ "modified": "2024-08-28 16:04:03.564265",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
