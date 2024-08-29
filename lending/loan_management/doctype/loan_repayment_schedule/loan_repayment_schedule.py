@@ -517,7 +517,7 @@ class LoanRepaymentSchedule(Document):
 							prev_repayment_date = row.payment_date
 							break
 
-					if self.restructure_type in ("Pre Payment", "Advance Payment"):
+					if self.restructure_type in ("Pre Payment", "Advance Payment") and completed_tenure >= 1:
 						self.get("repayment_schedule")[
 							completed_tenure - 1
 						].balance_loan_amount = self.current_principal_amount
