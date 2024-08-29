@@ -444,6 +444,9 @@ def calculate_penal_interest_for_loans(
 					"outstanding_amount",
 				)
 
+				if not principal_amount:
+					continue
+
 				per_day_interest = get_per_day_interest(
 					principal_amount, loan.rate_of_interest, loan.company, posting_date
 				)
