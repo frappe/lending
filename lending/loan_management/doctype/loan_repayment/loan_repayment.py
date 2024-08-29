@@ -111,7 +111,9 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
 				self.process_reschedule()
 
-		self.book_interest_accrued_not_demanded()
+		if self.repayment_type not in ("Advance Payment", "Pre Payment"):
+			self.book_interest_accrued_not_demanded()
+
 		self.book_pending_principal()
 		base_amount_map = self.make_credit_note_for_charge_waivers()
 
@@ -1439,8 +1441,13 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
+	is_backdated = 0
 
 	last_demand_date = get_last_demand_date(loan.name, posting_date)
+	latest_accrual_date = get_latest_accrual_date(loan.name, posting_date)
+
+	if latest_accrual_date and getdate(latest_accrual_date) > getdate(posting_date):
+		is_backdated = 1
 
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
@@ -1456,7 +1463,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 
 	unbooked_interest, accrued_interest = get_unbooked_interest(loan.name, posting_date)
 
-	if getdate(posting_date) > getdate(last_demand_date):
+	if getdate(posting_date) > getdate(last_demand_date) or is_backdated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan, posting_date=posting_date, accrual_type="Regular", is_future_accrual=1
 		)
@@ -1652,6 +1659,21 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
 		last_demand_date = get_last_disbursement_date(loan, posting_date)
 
 	return last_demand_date
+
+
+def get_latest_accrual_date(loan, posting_date, interest_type="Interest"):
+	latest_accrual_date = frappe.db.get_value(
+		"Loan Interest Accrual",
+		{
+			"loan": loan,
+			"docstatus": 1,
+			"interest_type": interest_type,
+			"posting_date": (">", posting_date),
+		},
+		"MAX(posting_date)",
+	)
+
+	return latest_accrual_date
 
 
 def get_unbooked_interest(loan, posting_date):

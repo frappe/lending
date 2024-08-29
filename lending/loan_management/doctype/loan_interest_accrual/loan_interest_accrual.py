@@ -190,7 +190,11 @@ def calculate_accrual_amount_for_loans(
 		for schedule in overlapping_dates:
 			last_accrual_date_for_schedule = (
 				get_last_accrual_date(
-					loan.name, posting_date, "Normal Interest", loan_repayment_schedule=schedule.parent
+					loan.name,
+					posting_date,
+					"Normal Interest",
+					loan_repayment_schedule=schedule.parent,
+					is_future_accrual=is_future_accrual,
 				)
 				or last_accrual_date
 			)
@@ -565,11 +569,7 @@ def make_accrual_interest_entry_for_loans(
 
 
 def get_last_accrual_date(
-	loan,
-	posting_date,
-	interest_type,
-	demand=None,
-	loan_repayment_schedule=None,
+	loan, posting_date, interest_type, demand=None, loan_repayment_schedule=None, is_future_accrual=0
 ):
 	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
 
@@ -578,6 +578,9 @@ def get_last_accrual_date(
 
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
+
+	if is_future_accrual:
+		filters["posting_date"] = ("<=", posting_date)
 
 	last_interest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual", filters, "MAX(posting_date)"
