@@ -289,6 +289,7 @@ def make_loan_interest_accrual_entry(
 	loan_repayment_schedule=None,
 	additional_interest=0,
 	accrual_date=None,
+	loan_repayment_schedule_detail=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -306,6 +307,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.loan_repayment_schedule = loan_repayment_schedule
 		loan_interest_accrual.additional_interest_amount = additional_interest
 		loan_interest_accrual.accrual_date = accrual_date
+		loan_interest_accrual.loan_repayment_schedule_detail = loan_repayment_schedule_detail
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -418,7 +420,7 @@ def calculate_penal_interest_for_loans(
 				loan.name,
 				posting_date,
 				"Penal Interest",
-				demand=demand.name if not is_future_accrual else None,
+				repayment_schedule_detail=demand.repayment_schedule_detail,
 			)
 
 			if not last_accrual_date:
@@ -466,6 +468,7 @@ def calculate_penal_interest_for_loans(
 						loan_demand=demand.name,
 						additional_interest=additional_interest,
 						accrual_date=accrual_date,
+						loan_repayment_schedule_detail=demand.repayment_schedule_detail,
 					)
 
 					if loan_status != "Written Off":
@@ -572,12 +575,21 @@ def make_accrual_interest_entry_for_loans(
 
 
 def get_last_accrual_date(
-	loan, posting_date, interest_type, demand=None, loan_repayment_schedule=None, is_future_accrual=0
+	loan,
+	posting_date,
+	interest_type,
+	demand=None,
+	loan_repayment_schedule=None,
+	is_future_accrual=0,
+	repayment_schedule_detail=None,
 ):
 	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
 
 	if demand:
 		filters["loan_demand"] = demand
+
+	if repayment_schedule_detail:
+		filters["loan_repayment_schedule_detail"] = repayment_schedule_detail
 
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule

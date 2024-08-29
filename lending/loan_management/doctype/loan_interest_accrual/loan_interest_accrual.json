@@ -29,6 +29,7 @@
   "column_break_14",
   "interest_amount",
   "loan_demand",
+  "loan_repayment_schedule_detail",
   "section_break_15",
   "process_loan_interest_accrual",
   "last_accrual_date",
@@ -212,13 +213,19 @@
    "fieldname": "accrual_date",
    "fieldtype": "Date",
    "label": "Accrual Date"
+  },
+  {
+   "fieldname": "loan_repayment_schedule_detail",
+   "fieldtype": "Data",
+   "label": "Loan Repayment Schedule Detail",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-12 19:30:57.080389",
+ "modified": "2024-08-29 12:58:01.755518",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
