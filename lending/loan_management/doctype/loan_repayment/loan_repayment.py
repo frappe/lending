@@ -311,7 +311,7 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					amount=demand.paid_amount,
 					loan_repayment=self.name,
-					waiver_account=waiver_account if self.is_npa else None,
+					waiver_account=waiver_account if not (self.is_npa or self.is_write_off_waiver) else None,
 					posting_date=self.posting_date,
 				)
 
@@ -1056,7 +1056,9 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
-			if self.repayment_type == "Interest Waiver" and not self.is_npa:
+			if (
+				self.repayment_type == "Interest Waiver" and not self.is_npa and not self.is_write_off_waiver
+			):
 				self.add_gl_entry(
 					account_details.interest_income_account,
 					account_details.interest_waiver_account,
@@ -1077,7 +1079,7 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
 
-			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+			if self.repayment_type == "Penalty Waiver" and not self.is_npa and not self.is_write_off_waiver:
 				self.add_gl_entry(
 					account_details.penalty_income_account,
 					account_details.penalty_waiver_account,
@@ -1096,7 +1098,7 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(payment_account, against_account, additional_interest, gle_map)
 
-			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+			if self.repayment_type == "Penalty Waiver" and not self.is_npa and not self.is_write_off_waiver:
 				self.add_gl_entry(
 					account_details.additional_interest_income,
 					account_details.additional_interest_waiver,
