@@ -894,7 +894,16 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries(loan, loan_product, posting_date, company)
 		write_off_charges(loan, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
-		frappe.db.set_value("Loan", loan, "is_npa", 0)
+		is_previous_npa = frappe.db.get_value(
+			"Loan NPA Log", {"loan": loan, "npa_date": ("<", posting_date)}, "npa", order_by="npa_date desc"
+		)
+		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
+
+		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
+		actual_dpd = days_past_due + actual_diff
+
+		if (not cint(is_previous_npa) and actual_dpd < dpd_threshold) or actual_dpd == 0:
+			frappe.db.set_value("Loan", loan, "is_npa", 0)
 	elif is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
