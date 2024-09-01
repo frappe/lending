@@ -9,11 +9,12 @@
   "classification_code",
   "classification_name",
   "min_dpd_range",
-  "max_dpd_range"
+  "max_dpd_range",
+  "is_written_off"
  ],
  "fields": [
   {
-   "columns": 3,
+   "columns": 2,
    "fieldname": "classification_code",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -42,12 +43,19 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Max DPD Range"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_written_off",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Written Off"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-01 23:33:52.633698",
+ "modified": "2024-09-01 18:54:44.242234",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Classification Range",

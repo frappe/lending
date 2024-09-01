@@ -852,8 +852,15 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
+	loan_status = frappe.db.get_value("Loan", loan, "status")
+
+	if loan_status == "Written Off":
+		is_written_off = 1
+	else:
+		is_written_off = 0
+
 	classification_code, classification_name = get_classification_code_and_name(
-		days_past_due, company
+		days_past_due, company, is_written_off=is_written_off
 	)
 
 	frappe.db.set_value(
@@ -886,8 +893,6 @@ def update_loan_and_customer_status(
 		)
 
 		make_fldg_invocation_jv(loan, posting_date)
-
-	loan_status = frappe.db.get_value("Loan", loan, "status")
 
 	if loan_status == "Settled":
 		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
@@ -997,13 +1002,14 @@ def update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type
 	).run()
 
 
-def get_classification_code_and_name(days_past_due, company):
+def get_classification_code_and_name(days_past_due, company, is_written_off):
 	classification_code = ""
 	classification_name = ""
 
 	ranges = frappe.get_all(
 		"Loan Classification Range",
 		fields=[
+			"is_written_off",
 			"min_dpd_range",
 			"max_dpd_range",
 			"classification_code",
@@ -1014,7 +1020,9 @@ def get_classification_code_and_name(days_past_due, company):
 	)
 
 	for range in ranges:
-		if range.min_dpd_range <= days_past_due <= range.max_dpd_range:
+		if range.min_dpd_range <= days_past_due <= range.max_dpd_range and cint(
+			range.is_written_off
+		) == cint(is_written_off):
 			return range.classification_code, range.classification_name
 
 	return classification_code, classification_name
