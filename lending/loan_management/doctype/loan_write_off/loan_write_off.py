@@ -235,7 +235,7 @@ def write_off_suspense_entries(
 	is_settled = frappe.db.get_value(
 		"Loan Repayment", {"against_loan": loan, "docstatus": 1, "repayment_type": "Full Settlement"}
 	)
-	if is_settled:
+	if is_settled and not on_payment_allocation:
 		is_write_off = 1
 
 	accounts = frappe.db.get_value(
