@@ -311,7 +311,7 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					amount=demand.paid_amount,
 					loan_repayment=self.name,
-					waiver_account=waiver_account,
+					waiver_account=waiver_account if not (self.is_npa and self.is_write_off_waiver) else None,
 					posting_date=self.posting_date,
 				)
 
