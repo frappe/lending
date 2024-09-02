@@ -302,7 +302,7 @@ def create_loan_demand(
 
 
 def reverse_demands(loan, posting_date, demand_type=None, loan_repayment_schedule=None):
-	filters = {"loan": loan, "demand_date": (">", posting_date), "docstatus": 1}
+	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
 
 	if demand_type:
 		filters["demand_type"] = demand_type
@@ -312,7 +312,6 @@ def reverse_demands(loan, posting_date, demand_type=None, loan_repayment_schedul
 
 	if loan_repayment_schedule:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
-		filters["demand_date"] = (">=", posting_date)
 
 	for demand in frappe.get_all("Loan Demand", filters=filters):
 		doc = frappe.get_doc("Loan Demand", demand.name)
