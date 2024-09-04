@@ -759,14 +759,25 @@ def reverse_loan_interest_accruals(
 		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name)
 		accrual_doc.cancel()
 
-		if interest_type == "Penal Interest" and is_npa:
+		if is_npa:
+			interest_amount = 0
+			penalty_amount = 0
+			additional_interest_amount = 0
+
+			if interest_type == "Normal Interest":
+				interest_amount = accrual_doc.interest_amount
+			elif interest_type == "Penal Interest":
+				penalty_amount = accrual_doc.interest_amount - accrual_doc.additional_interest_amount
+				additional_interest_amount = accrual_doc.additional_interest_amount
+
 			write_off_suspense_entries(
 				loan,
 				accrual_doc.loan_product,
 				getdate(),
 				accrual_doc.company,
-				penalty_amount=accrual_doc.interest_amount - accrual_doc.additional_interest_amount,
-				additional_interest_amount=accrual_doc.additional_interest_amount,
+				interest_amount=interest_amount,
+				penalty_amount=penalty_amount,
+				additional_interest_amount=additional_interest_amount,
 				on_payment_allocation=on_payment_allocation,
 			)
 
