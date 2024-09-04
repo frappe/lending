@@ -273,7 +273,11 @@ class LoanRepayment(AccountsController):
 		)
 
 		reverse_loan_interest_accruals(
-			self.against_loan, self.posting_date, interest_type="Normal Interest"
+			self.against_loan,
+			self.posting_date,
+			interest_type="Normal Interest",
+			is_npa=self.is_npa,
+			on_payment_allocation=True,
 		)
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
 		loan_restructure.flags.ignore_links = True
@@ -907,7 +911,9 @@ class LoanRepayment(AccountsController):
 		) and self.repayment_type not in ("Write Off Settlement", "Write Off Recovery"):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
-		elif self.repayment_type == "Write Off Settlement" and self.auto_close_loan():
+		elif self.repayment_type == "Write Off Settlement" and (
+			self.auto_close_loan() or (self.principal_amount_paid - self.payable_principal_amount > 0)
+		):
 			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
