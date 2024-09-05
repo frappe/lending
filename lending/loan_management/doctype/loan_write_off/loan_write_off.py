@@ -103,9 +103,12 @@ class LoanWriteOff(AccountsController):
 		else:
 			written_off_amount += self.write_off_amount
 
-		frappe.db.set_value(
-			"Loan", self.loan, {"written_off_amount": written_off_amount, "status": "Written Off"}
-		)
+		update_values = {"written_off_amount": written_off_amount}
+
+		if not self.is_settlement_write_off:
+			update_values["status"] = "Written Off"
+
+		frappe.db.set_value("Loan", self.loan, update_values)
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
