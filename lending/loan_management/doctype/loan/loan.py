@@ -894,8 +894,9 @@ def update_loan_and_customer_status(
 
 		make_fldg_invocation_jv(loan, posting_date)
 
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+
 	if loan_status == "Settled":
-		loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 		write_off_suspense_entries(loan, loan_product, posting_date, company)
 		write_off_charges(loan, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
@@ -909,6 +910,8 @@ def update_loan_and_customer_status(
 
 		if (not cint(is_previous_npa) and actual_dpd < dpd_threshold) or actual_dpd == 0:
 			frappe.db.set_value("Loan", loan, "is_npa", 0)
+			write_off_suspense_entries(loan, loan_product, max_date, company)
+			write_off_charges(loan, max_date, company)
 	elif is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
