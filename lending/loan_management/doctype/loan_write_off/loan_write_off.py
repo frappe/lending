@@ -59,6 +59,9 @@ class LoanWriteOff(AccountsController):
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
+		)
 		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 			process_daily_loan_demands,
 		)
@@ -71,6 +74,12 @@ class LoanWriteOff(AccountsController):
 		write_off_charges(self.loan, self.posting_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
+
+		create_process_loan_classification(
+			posting_date=self.posting_date,
+			loan_product=self.loan_product,
+			loan=self.loan,
+		)
 
 	def process_unbooked_interest(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
