@@ -817,7 +817,6 @@ class LoanRepayment(AccountsController):
 			if accrued_penalty > 0:
 				amounts["unbooked_penalty"] += accrued_penalty
 
-			print(pending_charges, "###########")
 			self.total_charges_payable += pending_charges
 
 			self.interest_payable = amounts.get("unbooked_interest")
@@ -908,11 +907,11 @@ class LoanRepayment(AccountsController):
 					amount_paid -= unbooked_penalty
 
 			if (
-				self.total_charges_payable > 0
+				flt(self.total_charges_payable) > 0
 				and amount_paid > 0
 				and self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
 			):
-				if self.total_charges_payable > amount_paid:
+				if flt(self.total_charges_payable) > amount_paid:
 					self.total_charges_paid += amount_paid
 					amount_paid = 0
 				else:
