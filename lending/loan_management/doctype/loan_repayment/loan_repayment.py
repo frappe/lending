@@ -541,7 +541,7 @@ class LoanRepayment(AccountsController):
 			auto_write_off_amount = flt(
 				frappe.db.get_value("Loan Product", self.loan_product, "write_off_amount")
 			)
-			if self.amount_paid >= self.payable_amount - auto_write_off_amount:
+			if self.amount_paid >= self.payable_amount - auto_write_off_amount and self.auto_close_loan():
 				query = query.set(loan.status, "Closed")
 				query = query.set(loan.closure_date, self.posting_date)
 			else:
@@ -785,6 +785,9 @@ class LoanRepayment(AccountsController):
 		self.unbooked_penalty_paid = 0
 
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+			if not self.total_charges_payable:
+				self.total_charges_payable = 0
+
 			waiver_details = get_write_off_waivers(self.against_loan, self.posting_date)
 			recovery_details = get_write_off_recovery_details(self.against_loan, self.posting_date)
 			pending_interest = flt(waiver_details.get("Interest Waiver")) - flt(
@@ -792,6 +795,10 @@ class LoanRepayment(AccountsController):
 			)
 			pending_penalty = flt(waiver_details.get("Penalty Waiver")) - flt(
 				recovery_details.get("total_penalty")
+			)
+
+			pending_charges = flt(waiver_details.get("Charges Waiver")) - flt(
+				recovery_details.get("total_charges")
 			)
 
 			accrued_interest, accrued_penalty = get_accrued_interest_for_write_off_recovery(
@@ -809,6 +816,9 @@ class LoanRepayment(AccountsController):
 
 			if accrued_penalty > 0:
 				amounts["unbooked_penalty"] += accrued_penalty
+
+			print(pending_charges, "###########")
+			self.total_charges_payable += pending_charges
 
 			self.interest_payable = amounts.get("unbooked_interest")
 			self.penalty_amount = amounts.get("unbooked_penalty")
@@ -896,6 +906,18 @@ class LoanRepayment(AccountsController):
 					self.total_penalty_paid += unbooked_penalty
 					self.unbooked_penalty_paid += unbooked_penalty
 					amount_paid -= unbooked_penalty
+
+			if (
+				self.total_charges_payable > 0
+				and amount_paid > 0
+				and self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
+			):
+				if self.total_charges_payable > amount_paid:
+					self.total_charges_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_charges_paid += self.total_charges_payable
+					amount_paid -= self.total_charges_payable
 
 			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 				self.principal_amount_paid += flt(amount_paid, precision)
@@ -1120,6 +1142,13 @@ class LoanRepayment(AccountsController):
 				against_account = account_details.customer_refund_account
 
 			self.add_gl_entry(payment_account, against_account, self.excess_amount, gle_map)
+
+		if flt(self.total_charges_paid, precision) > 0 and self.repayment_type in (
+			"Write Off Recovery",
+			"Write Off Settlement",
+		):
+			against_account = account_details.write_off_recovery_account
+			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
