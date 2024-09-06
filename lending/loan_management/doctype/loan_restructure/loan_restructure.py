@@ -301,6 +301,7 @@ class LoanRestructure(AccountsController):
 		)
 
 		doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+		doc.reverse_interest_accruals = 1
 		doc.cancel()
 
 	def update_totals_and_status(self):

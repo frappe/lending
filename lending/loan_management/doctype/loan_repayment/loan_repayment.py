@@ -268,6 +268,7 @@ class LoanRepayment(AccountsController):
 			)
 
 	def process_reschedule(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
 		)
@@ -279,6 +280,8 @@ class LoanRepayment(AccountsController):
 			is_npa=self.is_npa,
 			on_payment_allocation=True,
 		)
+
+		reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="EMI")
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})
 		loan_restructure.flags.ignore_links = True
 		loan_restructure.status = "Approved"
