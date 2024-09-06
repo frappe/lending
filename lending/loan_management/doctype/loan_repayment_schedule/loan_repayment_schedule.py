@@ -158,8 +158,8 @@ class LoanRepaymentSchedule(Document):
 
 		if cint(self.get("reverse_interest_accruals")):
 			reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
+			reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
-		reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 		self.ignore_linked_doctypes = ["Loan Interest Accrual"]
 
 	def set_repayment_period(self):
