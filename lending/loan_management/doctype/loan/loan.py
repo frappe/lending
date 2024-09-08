@@ -1204,9 +1204,15 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invo
 				make_journal_entry(posting_date, company, loan, value, key, suspense_account)
 
 
-def make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account):
+def make_journal_entry(
+	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0
+):
 	if not flt(amount):
 		return
+
+	# Swap Accounts
+	if is_reverse:
+		debit_account, credit_account = credit_account, debit_account
 
 	jv = frappe.get_doc(
 		{
