@@ -241,6 +241,7 @@ def write_off_suspense_entries(
 	penalty_amount=0,
 	additional_interest_amount=0,
 	on_payment_allocation=False,
+	is_reverse=0,
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
@@ -291,7 +292,9 @@ def write_off_suspense_entries(
 	)
 
 	if amounts.get(accounts.suspense_interest_income, 0) > 0:
-		if interest_amount and interest_amount <= amounts.get(accounts.suspense_interest_income):
+		if interest_amount and (
+			interest_amount <= amounts.get(accounts.suspense_interest_income) or is_reverse
+		):
 			amount = interest_amount
 		else:
 			amount = amounts.get(accounts.suspense_interest_income)
@@ -301,10 +304,14 @@ def write_off_suspense_entries(
 			credit_account = (
 				accounts.interest_waiver_account if is_write_off else accounts.interest_income_account
 			)
-			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+			make_journal_entry(
+				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+			)
 
 	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
-		if penalty_amount and penalty_amount <= amounts.get(accounts.penalty_suspense_account):
+		if penalty_amount and (
+			penalty_amount <= amounts.get(accounts.penalty_suspense_account) or is_reverse
+		):
 			amount = penalty_amount
 		else:
 			amount = amounts.get(accounts.penalty_suspense_account)
@@ -314,11 +321,13 @@ def write_off_suspense_entries(
 			credit_account = (
 				accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
 			)
-			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+			make_journal_entry(
+				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+			)
 
 	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
-		if additional_interest_amount and additional_interest_amount <= amounts.get(
-			accounts.additional_interest_suspense
+		if additional_interest_amount and (
+			additional_interest_amount <= amounts.get(accounts.additional_interest_suspense) or is_reverse
 		):
 			amount = additional_interest_amount
 		else:
@@ -329,11 +338,19 @@ def write_off_suspense_entries(
 			credit_account = (
 				accounts.additional_interest_waiver if is_write_off else accounts.additional_interest_income
 			)
-			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+			make_journal_entry(
+				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+			)
 
 
 def write_off_charges(
-	loan, posting_date, company, amount_details=None, on_write_off=False, base_amount_map=None
+	loan,
+	posting_date,
+	company,
+	amount_details=None,
+	on_write_off=False,
+	base_amount_map=None,
+	is_reverse=0,
 ):
 	from lending.loan_management.doctype.loan.loan import make_journal_entry
 
@@ -390,10 +407,20 @@ def write_off_charges(
 						"Loan Charges", {"parent": loan_product, "suspense_account": account}, "income_account"
 					)
 					income_amount = amount - base_amount
-					make_journal_entry(posting_date, company, loan, income_amount, waiver_account, income_account)
+					make_journal_entry(
+						posting_date,
+						company,
+						loan,
+						income_amount,
+						waiver_account,
+						income_account,
+						is_reverse=is_reverse,
+					)
 
 			waiver_account = suspense_account_map.get(account)
-			make_journal_entry(posting_date, company, loan, amount, account, waiver_account)
+			make_journal_entry(
+				posting_date, company, loan, amount, account, waiver_account, is_reverse=is_reverse
+			)
 
 
 def get_suspense_entries(loan, loan_product):

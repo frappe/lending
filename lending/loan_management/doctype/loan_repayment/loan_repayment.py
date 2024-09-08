@@ -70,9 +70,6 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
 		)
-		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
-			write_off_suspense_entries,
-		)
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
 		)
@@ -115,53 +112,7 @@ class LoanRepayment(AccountsController):
 			self.book_interest_accrued_not_demanded()
 
 		self.book_pending_principal()
-		base_amount_map = self.make_credit_note_for_charge_waivers()
-
-		foreclosure_type = frappe.db.get_value(
-			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
-		)
-
-		if self.is_npa and (
-			self.repayment_type
-			not in (
-				"Interest Waiver",
-				"Penalty Waiver",
-				"Charges Waiver",
-				"Principal Adjustment",
-				"Write Off Recovery",
-				"Write Off Settlement",
-			)
-			or foreclosure_type
-		):
-			additional_interest = sum(
-				d.paid_amount for d in self.get("repayment_details") if d.demand_type == "Additional Interest"
-			)
-			total_penalty_paid = self.total_penalty_paid - additional_interest
-
-			if foreclosure_type and self.repayment_type in (
-				"Interest Waiver",
-				"Penalty Waiver",
-				"Charges Waiver",
-			):
-				is_write_off = 1
-			else:
-				is_write_off = 0
-
-			if self.total_interest_paid > 0 or total_penalty_paid > 0:
-				write_off_suspense_entries(
-					self.against_loan,
-					self.loan_product,
-					self.posting_date,
-					self.company,
-					interest_amount=self.total_interest_paid,
-					penalty_amount=total_penalty_paid,
-					additional_interest_amount=additional_interest,
-					on_payment_allocation=True,
-					is_write_off=is_write_off,
-				)
-
-			if self.total_charges_paid > 0:
-				self.write_off_charges(is_write_off, base_amount_map)
+		self.post_suspense_entries()
 
 		self.update_paid_amounts()
 		self.update_demands()
@@ -209,6 +160,60 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
+
+	def post_suspense_entries(self, cancel=0):
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+			write_off_suspense_entries,
+		)
+
+		base_amount_map = self.make_credit_note_for_charge_waivers()
+
+		foreclosure_type = frappe.db.get_value(
+			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
+		)
+
+		if self.is_npa and (
+			self.repayment_type
+			not in (
+				"Interest Waiver",
+				"Penalty Waiver",
+				"Charges Waiver",
+				"Principal Adjustment",
+				"Write Off Recovery",
+				"Write Off Settlement",
+			)
+			or foreclosure_type
+		):
+			additional_interest = sum(
+				d.paid_amount for d in self.get("repayment_details") if d.demand_type == "Additional Interest"
+			)
+			total_penalty_paid = self.total_penalty_paid - additional_interest
+
+			if foreclosure_type and self.repayment_type in (
+				"Interest Waiver",
+				"Penalty Waiver",
+				"Charges Waiver",
+			):
+				is_write_off = 1
+			else:
+				is_write_off = 0
+
+			if self.total_interest_paid > 0 or total_penalty_paid > 0:
+				write_off_suspense_entries(
+					self.against_loan,
+					self.loan_product,
+					self.posting_date,
+					self.company,
+					interest_amount=self.total_interest_paid,
+					penalty_amount=total_penalty_paid,
+					additional_interest_amount=additional_interest,
+					on_payment_allocation=True,
+					is_write_off=is_write_off,
+					is_reverse=cancel,
+				)
+
+			if self.total_charges_paid > 0:
+				self.write_off_charges(is_write_off, base_amount_map, is_reverse=cancel)
 
 	def write_off_charges(self, is_write_off, base_amount_map):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import write_off_charges
@@ -365,6 +370,7 @@ class LoanRepayment(AccountsController):
 			"Loan Repayment Schedule",
 		]
 		self.make_gl_entries(cancel=1)
+		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan)
 
 	def cancel_charge_demands(self):
