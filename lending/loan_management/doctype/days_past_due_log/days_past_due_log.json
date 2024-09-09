@@ -16,6 +16,7 @@
   {
    "fieldname": "loan",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Loan",
    "options": "Loan",
    "read_only": 1,
@@ -24,12 +25,14 @@
   {
    "fieldname": "posting_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Posting Date",
    "read_only": 1
   },
   {
    "fieldname": "days_past_due",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Days Past Due",
    "read_only": 1
   },
@@ -43,6 +46,7 @@
   {
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Loan Disbursement",
    "options": "Loan Disbursement",
    "read_only": 1
@@ -50,7 +54,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-08-16 15:32:44.043995",
+ "modified": "2024-09-05 07:49:21.983558",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Days Past Due Log",
@@ -83,5 +87,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "loan"
 }

@@ -18,6 +18,7 @@
   "cost_center",
   "section_break_9",
   "refund_account",
+  "loan_product",
   "column_break_11",
   "refund_amount",
   "reference_number",
@@ -141,12 +142,20 @@
    "fieldname": "is_security_amount_refund",
    "fieldtype": "Check",
    "label": "Is Security Amount Refund"
+  },
+  {
+   "fetch_from": "loan.loan_product",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-04 09:27:42.944315",
+ "modified": "2024-09-06 04:55:26.739848",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Refund",

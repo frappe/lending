@@ -44,10 +44,10 @@
   "loan_credit_limits_section",
   "limit_applicable_start",
   "maximum_limit_amount",
-  "available_limit_amount",
   "column_break_foeo",
   "limit_applicable_end",
   "utilized_limit_amount",
+  "available_limit_amount",
   "loan_classification_details_section",
   "days_past_due",
   "classification_code",
@@ -554,7 +554,8 @@
    "fieldtype": "Currency",
    "label": "Maximum Limit Amount",
    "mandatory_depends_on": "eval: doc.repayment_schedule_type == \"Line of Credit\"",
-   "no_copy": 1
+   "no_copy": 1,
+   "options": "Company:company:default_currency"
   },
   {
    "fetch_from": "loan_product.loan_category",
@@ -569,6 +570,7 @@
    "fieldtype": "Currency",
    "label": "Available Limit Amount",
    "no_copy": 1,
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -576,6 +578,7 @@
    "fieldtype": "Currency",
    "label": "Utilized Limit Amount",
    "no_copy": 1,
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -640,6 +643,7 @@
    "fieldtype": "Currency",
    "label": "Excess Amount Paid",
    "no_copy": 1,
+   "options": "Company:company:default_currency",
    "read_only": 1
   },
   {
@@ -659,7 +663,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-25 18:17:20.461903",
+ "modified": "2024-09-08 07:24:05.685851",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

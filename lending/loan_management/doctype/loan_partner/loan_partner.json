@@ -13,12 +13,10 @@
   "partner_code",
   "partner_name",
   "partner_loan_share_percentage",
-  "partner_base_interest_rate",
   "column_break_yfag",
   "repayment_schedule_type",
   "effective_date",
-  "interest_increment_percentage",
-  "incremental_interest_applicable",
+  "partner_base_interest_rate",
   "section_break_mpap",
   "column_break_gpwj",
   "organization_type",
@@ -40,8 +38,6 @@
   "restructure_of_loans_applicable",
   "column_break_xyxj",
   "waiving_of_charges_applicable",
-  "section_break_scge",
-  "partial_payment_mechanism",
   "accounts_section",
   "receivable_account",
   "payable_account",
@@ -139,19 +135,6 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "incremental_interest_applicable",
-   "fieldtype": "Check",
-   "label": "Incremental Interest Applicable"
-  },
-  {
-   "depends_on": "incremental_interest_applicable",
-   "fieldname": "interest_increment_percentage",
-   "fieldtype": "Percent",
-   "label": "Interest Increment Percentage",
-   "mandatory_depends_on": "incremental_interest_applicable"
-  },
-  {
    "fieldname": "fldg_section",
    "fieldtype": "Section Break",
    "label": "FLDG"
@@ -226,19 +209,8 @@
    "label": "Restructure of Loans applicable"
   },
   {
-   "fieldname": "partial_payment_mechanism",
-   "fieldtype": "Select",
-   "label": "Partial Payment Mechanism",
-   "options": "\nEMI Percentage wise sharing\nComponent wise sharing",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_xyxj",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_scge",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "accounts_section",
@@ -282,7 +254,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-06 13:06:37.409100",
+ "modified": "2024-09-07 09:32:21.536360",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",

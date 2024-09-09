@@ -94,6 +94,9 @@ class LoanRefund(AccountsController):
 			as_dict=1,
 		)
 
+		if not loan_details.customer_refund_account:
+			frappe.throw(_("Please add customer refund account in Loan Product"))
+
 		if self.is_security_amount_refund:
 			debit_account = loan_details.security_deposit_account
 			credit_account = self.refund_account

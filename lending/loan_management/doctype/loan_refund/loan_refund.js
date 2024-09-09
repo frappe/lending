@@ -4,7 +4,13 @@
 lending.common.setup_filters("Loan Refund");
 
 frappe.ui.form.on('Loan Refund', {
-	// refresh: function(frm) {
-
-	// }
+	refresh: function(frm) {
+		frm.set_query("refund_account", function() {
+			return {
+				filters: {
+					"company": frm.doc.company
+				}
+			};
+		});
+	}
 });
