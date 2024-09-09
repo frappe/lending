@@ -215,7 +215,7 @@ class LoanRepayment(AccountsController):
 			if self.total_charges_paid > 0:
 				self.write_off_charges(is_write_off, base_amount_map, is_reverse=cancel)
 
-	def write_off_charges(self, is_write_off, base_amount_map):
+	def write_off_charges(self, is_write_off, base_amount_map, is_reverse=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import write_off_charges
 
 		charge_amount_map = {}
@@ -249,6 +249,7 @@ class LoanRepayment(AccountsController):
 			amount_details=account_charge_map,
 			on_write_off=bool(is_write_off),
 			base_amount_map=base_amount_map,
+			is_reverse=is_reverse,
 		)
 
 	def book_pending_principal(self):
