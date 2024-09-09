@@ -160,7 +160,7 @@ class LoanRepaymentSchedule(Document):
 			reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 			reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
 
-		self.ignore_linked_doctypes = ["Loan Interest Accrual"]
+		self.ignore_linked_doctypes = ["Loan Interest Accrual", "Loan Demand"]
 
 	def set_repayment_period(self):
 		if self.repayment_frequency == "One Time":
