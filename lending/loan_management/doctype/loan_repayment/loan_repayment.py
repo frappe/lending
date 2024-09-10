@@ -639,6 +639,9 @@ class LoanRepayment(AccountsController):
 	def auto_close_loan(self):
 		auto_close = False
 
+		if self.repayment_schedule_type == "Line of Credit":
+			return auto_close
+
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
 			"Loan Product", self.loan_product, ["write_off_amount", "excess_amount_acceptance_limit"]
 		)

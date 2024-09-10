@@ -1367,3 +1367,24 @@ def create_loan_feeze_log(loan, freeze_date, reason, unfreeze_date=None):
 			"reason_for_freezing": reason,
 		}
 	).insert(ignore_permissions=True)
+
+
+def auto_close_loc_loans(posting_date=None):
+	if not posting_date:
+		posting_date = getdate()
+
+	loc_loans = frappe.db.get_all(
+		"Loan",
+		{
+			"docstatus": 1,
+			"status": "Active",
+			"repayment_schedule_type": "Line of Credit",
+			"limit_applicable_end": ("<=", posting_date),
+			"utilized_limit_amount": 0,
+		},
+		pluck="name",
+	)
+
+	loan = frappe.qb.DocType("Loan")
+
+	frappe.qb.update("Loan").set("status", "Closed").where(loan.name.isin(loc_loans)).run()
