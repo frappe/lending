@@ -1201,8 +1201,12 @@ class LoanRepayment(AccountsController):
 					as_dict=1,
 				)
 
-				principal_ratio = flt(
-					amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount, precision
+				principal_ratio = (
+					flt(
+						((amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount) * 100),
+						precision,
+					)
+					/ 100
 				)
 				interest_ratio = principal_ratio
 			elif partner_details.repayment_schedule_type == "POS reduction plus interest at partner ROI":
@@ -1222,13 +1226,13 @@ class LoanRepayment(AccountsController):
 				interest_ratio = flt(colender_interest / borrower_interest, precision)
 
 			if flt(self.principal_amount_paid, precision) > 0:
-				amount = self.principal_amount_paid * principal_ratio
+				amount = flt(self.principal_amount_paid, precision) * principal_ratio
 				self.add_gl_entry(
 					partner_details.credit_account, partner_details.payable_account, amount, gle_map
 				)
 
 			if flt(self.total_interest_paid, precision) > 0:
-				amount = self.total_interest_paid * interest_ratio
+				amount = flt(self.total_interest_paid, precision) * interest_ratio
 				self.add_gl_entry(
 					partner_details.partner_interest_share, partner_details.payable_account, amount, gle_map
 				)
