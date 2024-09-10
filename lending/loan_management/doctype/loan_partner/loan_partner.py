@@ -138,9 +138,13 @@ def get_colender_payout_details(posting_date):
 				row["amount_invoked"] += payable_balance.debit
 				row["amount_paid"] += payable_balance.credit
 			elif account_type == "Credit":
-				row["payable_principal"] += -1 * (payable_balance.debit - payable_balance.credit)
+				row["payable_principal"] += payable_balance.debit - payable_balance.credit
+				row["payable_emi"] += payable_balance.debit - payable_balance.credit
+				row["total_payable"] += payable_balance.debit - payable_balance.credit
 			elif account_type == "Interest":
 				row["payable_interest"] += payable_balance.debit - payable_balance.credit
+				row["payable_emi"] += payable_balance.debit - payable_balance.credit
+				row["total_payable"] += payable_balance.debit - payable_balance.credit
 
 	result = []
 	for loan, values in data.items():
@@ -198,12 +202,18 @@ def get_account_details_and_map(partner_accounts):
 	account_map = {}
 
 	for account_detail in partner_accounts:
-		accounts.append(account_detail.fldg_account)
-		accounts.append(account_detail.credit_account)
-		accounts.append(account_detail.partner_interest_share)
+
+		if account_detail.fldg_account:
+			accounts.append(account_detail.fldg_account)
+
+		if account_detail.credit_account:
+			accounts.append(account_detail.credit_account)
+
+		if account_detail.partner_interest_share:
+			accounts.append(account_detail.partner_interest_share)
 
 		account_map[account_detail.name] = {
-			"interest_account": account_detail.partner_interest_share,
+			"partner_interest_share": account_detail.partner_interest_share,
 			"fldg_account": account_detail.fldg_account,
 			"credit_account": account_detail.credit_account,
 		}
