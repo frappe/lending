@@ -777,6 +777,9 @@ def update_days_past_due_in_loans(
 				create_loan_write_off(demand.loan, posting_date)
 		else:
 			# if no demand found, set DPD as 0
+			loan_product = frappe.get_value("Loan", loan_name, "loan_product")
+			threshold = threshold_map.get(loan_product, 0)
+
 			update_loan_and_customer_status(
 				loan_name,
 				company,
@@ -787,7 +790,8 @@ def update_days_past_due_in_loans(
 				0,
 				posting_date or getdate(),
 				loan_disbursement=disbursement,
-				is_backdated=0,
+				is_backdated=is_backdated,
+				dpd_threshold=threshold,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
@@ -908,7 +912,11 @@ def update_loan_and_customer_status(
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
 
-		if (not cint(is_previous_npa) and actual_dpd < dpd_threshold) or actual_dpd == 0:
+		if (
+			(not cint(is_previous_npa) and actual_dpd < dpd_threshold)
+			or actual_dpd == 0
+			or days_past_due == 0
+		):
 			frappe.db.set_value("Loan", loan, "is_npa", 0)
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
