@@ -172,13 +172,6 @@ class LoanDisbursement(AccountsController):
 		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
 		schedule.cancel()
 
-	def cancel_linked_demand(self):
-		filters = {"loan": self.against_loan, "loan_disbursement": self.name, "docstatus": 1}
-
-		for demand in frappe.get_all("Loan Demand", filters, pluck="name"):
-			doc = frappe.get_doc("Loan Demand", demand)
-			doc.cancel()
-
 	def make_credit_note(self):
 		filters = {
 			"loan": self.against_loan,
@@ -240,7 +233,7 @@ class LoanDisbursement(AccountsController):
 		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", status)
 
 	def on_cancel(self):
-		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule", "Sales Invoice"]
+		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule", "Sales Invoice", "Loan Demand"]
 
 		self.set_status_and_amounts(cancel=1)
 
@@ -248,7 +241,6 @@ class LoanDisbursement(AccountsController):
 			self.cancel_and_delete_repayment_schedule()
 
 		self.make_credit_note()
-		self.cancel_linked_demand()
 		self.delete_security_deposit()
 
 		update_loan_securities_values(
