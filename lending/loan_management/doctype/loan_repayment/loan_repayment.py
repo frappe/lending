@@ -343,6 +343,10 @@ class LoanRepayment(AccountsController):
 		)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+			process_daily_loan_demands,
+		)
+
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -373,6 +377,12 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan)
+
+		max_demand_date = frappe.db.get_value(
+			"Loan Demand", {"loan": self.against_loan}, "MAX(posting_date)"
+		)
+		if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
+			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
 
 	def cancel_charge_demands(self):
 		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
