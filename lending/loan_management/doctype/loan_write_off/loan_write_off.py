@@ -397,6 +397,8 @@ def write_off_charges(
 				partial_amount = amount_details.get(account)
 				if partial_amount and partial_amount <= amount:
 					amount = partial_amount
+				elif amount_details and not partial_amount:
+					continue
 
 			if base_amount_map and on_write_off:
 				waiver_account = suspense_account_map.get(account)

@@ -271,7 +271,9 @@ class LoanRestructure(AccountsController):
 			self.update_totals_and_status()
 			self.cancel_loan_adjustments()
 			self.update_restructure_count(cancel=1)
-			self.update_security_deposit_amount(cancel=1)
+
+			if self.restructure_type == "Normal Restructure":
+				self.update_security_deposit_amount(cancel=1)
 
 	def update_overdue_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
