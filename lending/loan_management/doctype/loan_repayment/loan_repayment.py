@@ -349,6 +349,9 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 			process_daily_loan_demands,
 		)
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+			process_loan_interest_accrual_for_loans,
+		)
 
 		self.check_future_accruals()
 		self.mark_as_unpaid()
@@ -382,9 +385,12 @@ class LoanRepayment(AccountsController):
 		update_installment_counts(self.against_loan)
 
 		max_demand_date = frappe.db.get_value(
-			"Loan Demand", {"loan": self.against_loan}, "MAX(posting_date)"
+			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
 		)
 		if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
+			process_loan_interest_accrual_for_loans(
+				posting_date=max_demand_date, loan=self.against_loan, loan_product=self.loan_product
+			)
 			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
 			create_process_loan_classification(
 				posting_date=max_demand_date, loan_product=self.loan_product, loan=self.against_loan
