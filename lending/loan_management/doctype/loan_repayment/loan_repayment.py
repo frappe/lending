@@ -343,6 +343,9 @@ class LoanRepayment(AccountsController):
 		)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
+		)
 		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 			process_daily_loan_demands,
 		)
@@ -383,6 +386,9 @@ class LoanRepayment(AccountsController):
 		)
 		if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
 			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
+			create_process_loan_classification(
+				posting_date=max_demand_date, loan_product=self.loan_product, loan=self.against_loan
+			)
 
 	def cancel_charge_demands(self):
 		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
