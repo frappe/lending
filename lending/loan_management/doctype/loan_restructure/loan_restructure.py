@@ -664,13 +664,22 @@ def get_restructure_details(loan, posting_date, repayment_type, principal_adjust
 def get_pending_tenure_and_start_date(loan, posting_date):
 	from lending.loan_management.doctype.loan.loan import get_cyclic_date
 
-	prev_tenure, monthly_repayment_amount = frappe.db.get_value(
+	(
+		prev_tenure,
+		monthly_repayment_amount,
+		repayment_frequency,
+		prev_repayment_start_date,
+	) = frappe.db.get_value(
 		"Loan Repayment Schedule",
 		{"loan": loan, "status": "Active", "docstatus": 1},
-		["repayment_periods", "monthly_repayment_amount"],
+		["repayment_periods", "monthly_repayment_amount", "repayment_frequency", "repayment_start_date"],
 	)
 
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-	repayment_start_date = get_cyclic_date(loan_product, posting_date)
+
+	if repayment_frequency == "One Time":
+		repayment_start_date = prev_repayment_start_date
+	else:
+		repayment_start_date = get_cyclic_date(loan_product, posting_date)
 
 	return prev_tenure, monthly_repayment_amount, repayment_start_date
