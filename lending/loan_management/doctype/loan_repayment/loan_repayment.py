@@ -1441,6 +1441,7 @@ def get_unpaid_demands(
 	charges=None,
 	loan_disbursement=None,
 	emi_wise=False,
+	sales_invoice=None,
 ):
 	if not posting_date:
 		posting_date = getdate()
@@ -1477,6 +1478,9 @@ def get_unpaid_demands(
 
 	if charges:
 		query = query.where(loan_demand.demand_subtype.isin(charges))
+
+	if sales_invoice:
+		query = query.where(loan_demand.sales_invoice == sales_invoice)
 
 	if demand_subtype:
 		if demand_subtype != "Penalty":

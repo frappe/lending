@@ -1170,46 +1170,76 @@ def make_suspense_journal_entry(
 
 
 def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invoice=None):
-	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
-	suspense_account_map = frappe._dict(
-		frappe.db.get_all(
-			"Loan Charges",
-			{"parent": loan_product},
-			[
-				"income_account",
-				"suspense_account",
-			],
-			as_list=1,
-		)
+	overdue_charges = get_unpaid_demands(
+		loan, posting_date=posting_date, demand_type="Charges", sales_invoice=invoice
 	)
 
-	if not invoice:
-		invoices = frappe.db.get_all(
-			"Sales Invoice",
-			{"loan": loan, "docstatus": 1, "status": ("in", ["Unpaid", "Overdue"])},
-			pluck="name",
-		)
-	else:
-		invoices = [invoice]
+	loan_product, applicant = frappe.db.get_value("Loan", loan, ["loan_product", "applicant"])
 
-	amounts = frappe._dict(
-		frappe.db.get_all(
-			"Sales Invoice Item",
-			filters={
-				"parent": ("in", invoices),
-			},
-			fields=["income_account", "base_net_amount"],
-			group_by="income_account",
-			as_list=1,
-		)
+	charge_details = frappe.db.get_all(
+		"Loan Charges",
+		{"parent": loan_product},
+		["charge_type", "income_account", "suspense_account", "receivable_account"],
 	)
 
-	for key, value in amounts.items():
-		if value > 0:
-			suspense_account = suspense_account_map.get(key)
-			if suspense_account:
-				make_journal_entry(posting_date, company, loan, value, key, suspense_account)
+	charge_type_map = {}
+	for d in charge_details:
+		charge_type_map[d.charge_type] = d
+
+	for charges in overdue_charges:
+		income_account = charge_type_map.get(charges.demand_subtype, {}).get("income_account")
+		suspense_account = charge_type_map.get(charges.demand_subtype, {}).get("suspense_account")
+		receivable_account = charge_type_map.get(charges.demand_subtype, {}).get("receivable_account")
+		base_amount = get_base_charge_amount(
+			charges.demand_subtype,
+			charges.outstanding_amount,
+			company,
+			loan,
+			income_account,
+			receivable_account,
+			applicant,
+		)
+
+		if suspense_account:
+			make_journal_entry(posting_date, company, loan, base_amount, income_account, suspense_account)
+
+
+def get_base_charge_amount(
+	charge_type, amount, company, loan, income_account, receivable_account, applicant
+):
+	from erpnext import get_default_currency
+
+	si = frappe.get_doc(
+		{
+			"doctype": "Sales Invoice",
+			"loan": loan,
+			"customer": applicant,
+			"set_posting_time": 1,
+			"company": company,
+			"conversion_rate": 1,
+			"currency": get_default_currency(),
+			"due_date": getdate(),
+		}
+	)
+
+	si.append(
+		"items",
+		{
+			"item_code": charge_type,
+			"rate": amount,
+			"qty": 1,
+			"income_account": income_account,
+		},
+	)
+
+	si.debit_to = receivable_account
+	si.set_missing_values()
+	si.run_method("before_validate")
+	si.validate()
+
+	return si.base_net_total
 
 
 def make_journal_entry(
