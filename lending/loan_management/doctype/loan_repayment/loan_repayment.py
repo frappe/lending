@@ -111,8 +111,8 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment"):
 			self.book_interest_accrued_not_demanded()
+			self.book_pending_principal()
 
-		self.book_pending_principal()
 		self.post_suspense_entries()
 
 		self.update_paid_amounts()
