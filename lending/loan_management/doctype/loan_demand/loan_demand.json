@@ -17,19 +17,21 @@
   "demand_type",
   "demand_subtype",
   "amended_from",
+  "cost_center",
+  "process_loan_demand",
   "column_break_qrjm",
   "company",
   "demand_date",
   "posting_date",
   "disbursement_date",
   "demand_amount",
+  "partner_share",
+  "partner_share_allocated",
   "paid_amount",
   "waived_amount",
   "outstanding_amount",
   "sales_invoice",
   "invoice_date",
-  "cost_center",
-  "process_loan_demand",
   "is_term_loan"
  ],
  "fields": [
@@ -206,13 +208,23 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "label": "Posting Date"
+  },
+  {
+   "fieldname": "partner_share",
+   "fieldtype": "Currency",
+   "label": "Partner Share"
+  },
+  {
+   "fieldname": "partner_share_allocated",
+   "fieldtype": "Currency",
+   "label": "Partner Share Allocated"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-05 17:07:56.708670",
+ "modified": "2024-09-12 11:39:29.547310",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

@@ -9,7 +9,8 @@
   "paid_amount",
   "demand_type",
   "demand_subtype",
-  "sales_invoice"
+  "sales_invoice",
+  "partner_share"
  ],
  "fields": [
   {
@@ -43,12 +44,17 @@
    "fieldname": "demand_subtype",
    "fieldtype": "Data",
    "label": "Demand Subtype"
+  },
+  {
+   "fieldname": "partner_share",
+   "fieldtype": "Currency",
+   "label": "Partner Share"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-02-05 17:32:20.380304",
+ "modified": "2024-09-12 09:49:03.810401",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Detail",

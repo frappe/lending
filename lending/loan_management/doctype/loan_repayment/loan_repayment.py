@@ -38,6 +38,7 @@ class LoanRepayment(AccountsController):
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
+		self.set_partner_payment_ratio()
 		self.validate_amount(amounts)
 		self.allocate_amount_against_demands(amounts)
 
@@ -729,9 +730,11 @@ class LoanRepayment(AccountsController):
 		loan_demand = frappe.qb.DocType("Loan Demand")
 		for payment in self.repayment_details:
 			paid_amount = payment.paid_amount
+			partner_share = payment.partner_share
 
 			if cancel:
 				paid_amount = -1 * flt(payment.paid_amount)
+				partner_share = -1 * flt(payment.partner_share)
 
 			if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 				paid_amount_field = "waived_amount"
@@ -742,6 +745,8 @@ class LoanRepayment(AccountsController):
 				loan_demand[paid_amount_field], loan_demand[paid_amount_field] + paid_amount
 			).set(
 				loan_demand.outstanding_amount, loan_demand.outstanding_amount - paid_amount
+			).set(
+				loan_demand.partner_share_allocated, loan_demand.partner_share_allocated + partner_share
 			).where(
 				loan_demand.name == payment.loan_demand
 			).run()
@@ -815,6 +820,8 @@ class LoanRepayment(AccountsController):
 		self.total_charges_paid = 0
 		self.unbooked_interest_paid = 0
 		self.unbooked_penalty_paid = 0
+		self.total_partner_principal_share = 0
+		self.total_partner_interest_share = 0
 
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 			if not self.total_charges_payable:
@@ -892,8 +899,10 @@ class LoanRepayment(AccountsController):
 		for payment in self.repayment_details:
 			if payment.demand_subtype == "Interest":
 				self.total_interest_paid += flt(payment.paid_amount, precision)
+				self.total_partner_interest_share += flt(payment.partner_share, precision)
 			elif payment.demand_subtype == "Principal":
 				self.principal_amount_paid += flt(payment.paid_amount, precision)
+				self.total_partner_principal_share += flt(payment.partner_share, precision)
 			elif payment.demand_type in ("Penalty", "Additional Interest"):
 				self.total_penalty_paid += flt(payment.paid_amount, precision)
 			elif payment.demand_type == "Charges":
@@ -973,6 +982,58 @@ class LoanRepayment(AccountsController):
 			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
+	def set_partner_payment_ratio(self):
+		if self.get("loan_partner"):
+			precision = cint(frappe.db.get_default("currency_precision")) or 2
+			partner_details = frappe.db.get_value(
+				"Loan Partner",
+				self.loan_partner,
+				[
+					"repayment_schedule_type",
+					"partner_loan_share_percentage",
+					"repayment_schedule_type",
+					"partner_base_interest_rate",
+				],
+				as_dict=1,
+			)
+
+			self.loan_partner_share_percentage = partner_details.partner_loan_share_percentage
+			self.loan_partner_repayment_schedule_type = partner_details.repayment_schedule_type
+			self.partner_base_interest_rate = partner_details.partner_base_interest_rate
+
+			if partner_details.repayment_schedule_type == "Collection at partner's percentage":
+				self.loan_partner_payment_ratio = partner_details.partner_loan_share_percentage / 100
+			elif partner_details.repayment_schedule_type == "EMI (PMT) based":
+				amounts = frappe.db.get_value(
+					"Loan Repayment Schedule",
+					{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
+					["monthly_repayment_amount", "partner_monthly_repayment_amount"],
+					as_dict=1,
+				)
+
+				self.loan_partner_payment_ratio = (
+					flt(
+						((amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount) * 100),
+						precision,
+					)
+					/ 100
+				)
+
+			elif partner_details.repayment_schedule_type == "POS reduction plus interest at partner ROI":
+				loan_repayment_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"docstatus": 1, "status": "Active", "loan": self.against_loan}
+				)
+
+				borrower_interest = frappe.db.get_value(
+					"Repayment Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+				)
+
+				colender_interest = frappe.db.get_value(
+					"Co-Lender Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+				)
+
+				self.loan_partner_payment_ratio = flt(colender_interest / borrower_interest)
+
 	def allocate_charges(self, amount_paid, demands):
 		paid_charges = {}
 		for charge in self.get("payable_charges"):
@@ -1039,35 +1100,64 @@ class LoanRepayment(AccountsController):
 		return pending_amount
 
 	def adjust_component(self, amount_to_adjust, demand_type, demands, demand_subtype=None):
+		partner_share = 0
+		if self.get("loan_partner"):
+			partner_share = self.get_overall_partner_share(amount_to_adjust)
+
 		for demand in demands:
+			paid_amount = 0
+			partner_share_paid = 0
+
 			if demand.demand_type == demand_type:
 				if not demand_subtype or demand.demand_subtype == demand_subtype:
 					if amount_to_adjust >= demand.outstanding_amount:
-						self.append(
-							"repayment_details",
-							{
-								"loan_demand": demand.name,
-								"paid_amount": demand.outstanding_amount,
-								"demand_type": demand.demand_type,
-								"demand_subtype": demand.demand_subtype,
-								"sales_invoice": demand.sales_invoice,
-							},
-						)
+						paid_amount = flt(demand.outstanding_amount)
 						amount_to_adjust -= flt(demand.outstanding_amount)
+
+						if demand_type == "EMI":
+							partner_share_paid = self.get_loan_partner_share_paid(0, paid_amount, demand)
+							partner_share -= partner_share_paid
 					elif amount_to_adjust > 0:
-						self.append(
-							"repayment_details",
-							{
-								"loan_demand": demand.name,
-								"paid_amount": amount_to_adjust,
-								"demand_type": demand.demand_type,
-								"demand_subtype": demand.demand_subtype,
-								"sales_invoice": demand.sales_invoice,
-							},
-						)
+						paid_amount = amount_to_adjust
 						amount_to_adjust = 0
 
+						if demand_type == "EMI":
+							partner_share_paid = self.get_loan_partner_share_paid(amount_to_adjust, paid_amount, demand)
+							partner_share -= partner_share_paid
+
+					if paid_amount > 0:
+						self.append(
+							"repayment_details",
+							{
+								"loan_demand": demand.name,
+								"paid_amount": paid_amount,
+								"demand_type": demand.demand_type,
+								"demand_subtype": demand.demand_subtype,
+								"sales_invoice": demand.sales_invoice,
+								"partner_share": partner_share_paid,
+							},
+						)
+
 		return amount_to_adjust
+
+	def get_loan_partner_share_paid(self, amount_to_adjust, paid_amount, demand):
+		if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
+			return amount_to_adjust or flt(demand.partner_outstanding)
+		elif self.loan_partner_repayment_schedule_type == "Collection at partner's percentage":
+			return self.loan_partner_payment_ratio * paid_amount
+		elif self.loan_partner_repayment_schedule_type == "POS reduction plus interest at partner ROI":
+			if demand.demand_subtype == "Interest":
+				return self.loan_partner_payment_ratio * paid_amount
+			elif demand.demand_subtype == "Principal":
+				return (self.loan_partner_share_percentage * paid_amount) / 100
+
+	def get_overall_partner_share(self, paid_amount):
+		if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
+			return self.loan_partner_payment_ratio * paid_amount
+		elif self.loan_partner_repayment_schedule_type == "Collection at partner's percentage":
+			return self.loan_partner_payment_ratio * paid_amount
+		elif self.loan_partner_repayment_schedule_type == "POS reduction plus interest at partner ROI":
+			return self.loan_partner_share_percentage * paid_amount
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if self.repayment_type == "Charges Waiver":
@@ -1200,66 +1290,27 @@ class LoanRepayment(AccountsController):
 
 	def add_loan_partner_gl_entries(self, gle_map):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-
+		partner_details = frappe.db.get_value(
+			"Loan Partner",
+			self.loan_partner,
+			["credit_account", "payable_account", "partner_interest_share"],
+			as_dict=1,
+		)
 		if self.get("loan_partner"):
-			partner_details = frappe.db.get_value(
-				"Loan Partner",
-				self.loan_partner,
-				[
-					"repayment_schedule_type",
-					"partner_loan_share_percentage",
-					"credit_account",
-					"payable_account",
-					"partner_interest_share",
-				],
-				as_dict=1,
-			)
-
-			if partner_details.repayment_schedule_type == "Collection at partner's percentage":
-				principal_ratio = partner_details.partner_loan_share_percentage / 100
-				interest_ratio = principal_ratio
-			elif partner_details.repayment_schedule_type == "EMI (PMT) based":
-				amounts = frappe.db.get_value(
-					"Loan Repayment Schedule",
-					{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
-					["monthly_repayment_amount", "partner_monthly_repayment_amount"],
-					as_dict=1,
-				)
-
-				principal_ratio = (
-					flt(
-						((amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount) * 100),
-						precision,
-					)
-					/ 100
-				)
-				interest_ratio = principal_ratio
-			elif partner_details.repayment_schedule_type == "POS reduction plus interest at partner ROI":
-				loan_repayment_schedule = frappe.db.get_value(
-					"Loan Repayment Schedule", {"docstatus": 1, "status": "Active", "loan": self.against_loan}
-				)
-
-				borrower_interest = frappe.db.get_value(
-					"Repayment Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
-				)
-
-				colender_interest = frappe.db.get_value(
-					"Co-Lender Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
-				)
-
-				principal_ratio = partner_details.partner_loan_share_percentage / 100
-				interest_ratio = flt(colender_interest / borrower_interest, precision)
-
-			if flt(self.principal_amount_paid, precision) > 0:
-				amount = flt(self.principal_amount_paid, precision) * principal_ratio
+			if flt(self.total_partner_principal_share, precision) > 0:
 				self.add_gl_entry(
-					partner_details.credit_account, partner_details.payable_account, amount, gle_map
+					partner_details.credit_account,
+					partner_details.payable_account,
+					self.total_partner_principal_share,
+					gle_map,
 				)
 
-			if flt(self.total_interest_paid, precision) > 0:
-				amount = flt(self.total_interest_paid, precision) * interest_ratio
+			if flt(self.total_partner_interest_share, precision) > 0:
 				self.add_gl_entry(
-					partner_details.partner_interest_share, partner_details.payable_account, amount, gle_map
+					partner_details.partner_interest_share,
+					partner_details.payable_account,
+					self.total_partner_interest_share,
+					gle_map,
 				)
 
 	def add_gl_entry(
@@ -1520,6 +1571,7 @@ def get_demand_query():
 		loan_demand.company,
 		loan_demand.loan_partner,
 		(loan_demand.outstanding_amount).as_("outstanding_amount"),
+		(loan_demand.partner_share - loan_demand.partner_share_allocated).as_("partner_outstanding"),
 		loan_demand.demand_subtype,
 		loan_demand.demand_type,
 	)

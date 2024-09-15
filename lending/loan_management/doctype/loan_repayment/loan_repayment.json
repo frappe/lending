@@ -54,6 +54,14 @@
   "total_charges_paid",
   "excess_amount",
   "manual_remarks",
+  "loan_partner_details_section",
+  "total_partner_interest_share",
+  "total_partner_principal_share",
+  "loan_partner_interest_rate",
+  "column_break_uxwo",
+  "loan_partner_payment_ratio",
+  "loan_partner_share_percentage",
+  "loan_partner_repayment_schedule_type",
   "section_break_55wc",
   "repayment_details",
   "amended_from",
@@ -124,7 +132,8 @@
   },
   {
    "fieldname": "column_break_9",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "read_only": 1
   },
   {
    "fieldname": "payable_amount",
@@ -445,12 +454,57 @@
    "fieldtype": "Link",
    "label": "Loan Partner",
    "options": "Loan Partner"
+  },
+  {
+   "fieldname": "loan_partner_payment_ratio",
+   "fieldtype": "Percent",
+   "label": "Loan Partner Payment Ratio",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_partner_principal_share",
+   "fieldtype": "Currency",
+   "label": "Total Partner Principal Share",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_partner_interest_share",
+   "fieldtype": "Currency",
+   "label": "Total Partner Interest Share",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "loan_partner_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Loan Partner Share Percentage"
+  },
+  {
+   "fieldname": "loan_partner_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Partner Details"
+  },
+  {
+   "fieldname": "column_break_uxwo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loan_partner_repayment_schedule_type",
+   "fieldtype": "Data",
+   "label": "Loan Partner Repayment Schedule Type"
+  },
+  {
+   "fieldname": "loan_partner_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Loan Partner Interest Rate",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-02 17:55:46.243781",
+ "modified": "2024-09-13 14:47:08.313887",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

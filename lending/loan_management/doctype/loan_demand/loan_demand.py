@@ -14,6 +14,18 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import update
 class LoanDemand(AccountsController):
 	def validate(self):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
+		if self.get("loan_partner"):
+			if self.demand_type == "EMI" and self.demand_subtype == "Principal":
+				partner_share_field = "principal_amount"
+			elif self.demand_type == "EMI" and self.demand_subtype == "Interest":
+				partner_share_field = "interest_amount"
+
+			if self.demand_type == "EMI":
+				self.partner_share = frappe.db.get_value(
+					"Co-Lender Schedule",
+					{"parent": self.loan_repayment_schedule, "payment_date": self.demand_date},
+					partner_share_field,
+				)
 
 	def on_submit(self):
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
