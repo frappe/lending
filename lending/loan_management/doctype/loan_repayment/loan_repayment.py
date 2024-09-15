@@ -32,7 +32,11 @@ class LoanRepayment(AccountsController):
 			charges = [d.get("charge_code") for d in self.get("payable_charges")]
 
 		amounts = calculate_amounts(
-			self.against_loan, self.posting_date, payment_type=self.repayment_type, charges=charges
+			self.against_loan,
+			self.posting_date,
+			payment_type=self.repayment_type,
+			charges=charges,
+			loan_disbursement=self.loan_disbursement,
 		)
 		self.set_missing_values(amounts)
 		self.check_future_entries()
@@ -1626,7 +1630,13 @@ def get_demand_type(payment_type):
 
 
 def get_amounts(
-	amounts, against_loan, posting_date, with_loan_details=False, payment_type=None, charges=None
+	amounts,
+	against_loan,
+	posting_date,
+	with_loan_details=False,
+	payment_type=None,
+	charges=None,
+	loan_disbursement=None,
 ):
 	demand_type, demand_subtype = get_demand_type(payment_type)
 
@@ -1637,6 +1647,7 @@ def get_amounts(
 		demand_type=demand_type,
 		demand_subtype=demand_subtype,
 		charges=charges,
+		loan_disbursement=loan_disbursement,
 	)
 
 	amounts = process_amount_for_loan(against_loan_doc, posting_date, unpaid_demands, amounts)
@@ -1757,7 +1768,12 @@ def get_all_demands(loans, posting_date):
 
 @frappe.whitelist()
 def calculate_amounts(
-	against_loan, posting_date, payment_type="", with_loan_details=False, charges=None
+	against_loan,
+	posting_date,
+	payment_type="",
+	with_loan_details=False,
+	charges=None,
+	loan_disbursement=None,
 ):
 	amounts = init_amounts()
 
@@ -1769,10 +1785,16 @@ def calculate_amounts(
 			with_loan_details,
 			payment_type=payment_type,
 			charges=charges,
+			loan_disbursement=loan_disbursement,
 		)
 	else:
 		amounts = get_amounts(
-			amounts, against_loan, posting_date, payment_type=payment_type, charges=charges
+			amounts,
+			against_loan,
+			posting_date,
+			payment_type=payment_type,
+			charges=charges,
+			loan_disbursement=loan_disbursement,
 		)
 
 	amounts["available_security_deposit"] = frappe.db.get_value(
