@@ -269,10 +269,12 @@ def make_loan_demand_for_term_loans(
 
 			update_installment_counts(loan_repayment_schedule_map.get(row.parent))
 		except Exception as e:
+			error_message = _("Error while creating demand for Loan {0}").format(row.parent)
+
 			if len(emi_rows) > 1:
 				frappe.log_error(
 					title="Loan Demand Generation Error",
-					message=e,
+					message=error_message,
 					reference_doctype="Loan",
 					reference_name=row.parent,
 				)

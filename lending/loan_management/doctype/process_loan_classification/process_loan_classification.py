@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
@@ -37,9 +38,10 @@ class ProcessLoanClassification(Document):
 				if len(open_loans) == 1:
 					raise e
 				else:
+					error_message = _("Error in processing loan classification for loan {0}").format(loan)
 					frappe.log_error(
 						title="Process Loan Classification Error",
-						message=e,
+						message=error_message,
 						reference_doctype="Loan",
 						reference_name=loan,
 					)
