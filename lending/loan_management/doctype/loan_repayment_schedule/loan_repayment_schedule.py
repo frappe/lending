@@ -325,6 +325,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				schedule_field == "colender_schedule"
 				and partner_schedule_type == "POS reduction plus interest at partner ROI"
+				and row <= len(self.get("repayment_schedule"))
 			):
 				principal_amount = self.get("repayment_schedule")[row].principal_amount
 				balance_amount = prev_balance_amount - (principal_amount * principal_share_percentage / 100)
