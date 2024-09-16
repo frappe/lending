@@ -566,7 +566,7 @@ def make_accrual_interest_entry_for_loans(
 			if len(open_loans) > 1:
 				frappe.log_error(
 					title="Loan Interest Accrual Error",
-					message=e,
+					message=frappe.get_traceback(),
 					reference_doctype="Loan",
 					reference_name=loan.name,
 				)
