@@ -171,7 +171,7 @@ def get_future_interest_details(as_on_date, company):
 	loan_repayment_schedules = frappe._dict(
 		frappe.db.get_all(
 			"Loan Repayment Schedule",
-			filters={"loan": ("in", loans), "status": "Active"},
+			filters={"loan": ("in", loans), "status": "Active", "docstatus": 1},
 			fields=["name", "loan"],
 			as_list=1,
 		)
