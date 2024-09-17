@@ -911,6 +911,7 @@ def update_loan_and_customer_status(
 			order_by="npa_date desc",
 		)
 		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
+		current_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -925,7 +926,7 @@ def update_loan_and_customer_status(
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
-		elif cint(is_previous_npa):
+		elif cint(is_previous_npa) and not cint(current_npa):
 			frappe.db.set_value("Loan", loan, "is_npa", 1)
 			move_unpaid_interest_to_suspense_ledger(loan, posting_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, posting_date)
