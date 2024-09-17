@@ -921,7 +921,7 @@ def update_loan_and_customer_status(
 			or actual_dpd == 0
 			or days_past_due == 0
 		):
-			frappe.db.set_value("Loan", loan, "is_npa", 0)
+			frappe.db.set_value("Loan", loan, {"is_npa": 0, "days_past_due": actual_dpd})
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")

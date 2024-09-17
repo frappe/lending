@@ -134,6 +134,7 @@ class LoanRepayment(AccountsController):
 
 		if self.is_term_loan:
 			is_backdated = 0
+			max_date = None
 			accruals = reverse_loan_interest_accruals(
 				self.against_loan,
 				self.posting_date,
@@ -154,7 +155,7 @@ class LoanRepayment(AccountsController):
 				is_backdated = 1
 
 			create_process_loan_classification(
-				posting_date=self.posting_date,
+				posting_date=max_date or self.posting_date,
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 				payment_reference=self.name,
