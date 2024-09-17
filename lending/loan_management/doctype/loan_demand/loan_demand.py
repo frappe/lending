@@ -28,9 +28,6 @@ class LoanDemand(AccountsController):
 				)
 
 	def on_submit(self):
-		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-			get_last_accrual_date,
-		)
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
 		)
@@ -40,13 +37,7 @@ class LoanDemand(AccountsController):
 
 		self.update_repayment_schedule()
 
-		last_accrual_job_date = get_last_accrual_date(self.loan, self.demand_date, "Normal Interest")
-
-		if (
-			self.is_term_loan
-			and getdate(last_accrual_job_date) < getdate(self.demand_date)
-			and self.demand_type == "EMI"
-		):
+		if self.is_term_loan and self.demand_type == "EMI" and self.demand_subtype == "Interest":
 			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
 
 	def update_repayment_schedule(self, cancel=0):
