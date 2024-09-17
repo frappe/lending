@@ -9,7 +9,8 @@
   "npa",
   "manual_npa",
   "event",
-  "npa_date"
+  "npa_date",
+  "delinked"
  ],
  "fields": [
   {
@@ -40,11 +41,17 @@
    "fieldname": "npa_date",
    "fieldtype": "Date",
    "label": "NPA Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "delinked",
+   "fieldtype": "Check",
+   "label": "Delinked"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-04 15:16:54.946852",
+ "modified": "2024-09-17 11:01:06.214520",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan NPA Log",

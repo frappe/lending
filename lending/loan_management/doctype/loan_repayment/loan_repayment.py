@@ -348,6 +348,7 @@ class LoanRepayment(AccountsController):
 		)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.loan_npa_log.loan_npa_log import delink_npa_logs
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
 		)
@@ -393,12 +394,16 @@ class LoanRepayment(AccountsController):
 			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
 		)
 		if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
+			delink_npa_logs(self.against_loan, self.posting_date)
 			process_loan_interest_accrual_for_loans(
 				posting_date=max_demand_date, loan=self.against_loan, loan_product=self.loan_product
 			)
 			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
 			create_process_loan_classification(
-				posting_date=max_demand_date, loan_product=self.loan_product, loan=self.against_loan
+				posting_date=max_demand_date,
+				loan_product=self.loan_product,
+				loan=self.against_loan,
+				is_backdated=1,
 			)
 
 	def cancel_charge_demands(self):

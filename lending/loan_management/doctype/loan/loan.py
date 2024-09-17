@@ -905,7 +905,10 @@ def update_loan_and_customer_status(
 		write_off_charges(loan, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
 		is_previous_npa = frappe.db.get_value(
-			"Loan NPA Log", {"loan": loan, "npa_date": ("<", posting_date)}, "npa", order_by="npa_date desc"
+			"Loan NPA Log",
+			{"loan": loan, "npa_date": ("<", posting_date), "delinked": 0},
+			"npa",
+			order_by="npa_date desc",
 		)
 		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
 
@@ -920,6 +923,13 @@ def update_loan_and_customer_status(
 			frappe.db.set_value("Loan", loan, "is_npa", 0)
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
+			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
+			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
+		elif cint(is_previous_npa):
+			frappe.db.set_value("Loan", loan, "is_npa", 1)
+			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
+			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
+
 	elif is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
@@ -1417,4 +1427,5 @@ def auto_close_loc_loans(posting_date=None):
 
 	loan = frappe.qb.DocType("Loan")
 
-	frappe.qb.update("Loan").set("status", "Closed").where(loan.name.isin(loc_loans)).run()
+	if loc_loans:
+		frappe.qb.update("Loan").set("status", "Closed").where(loan.name.isin(loc_loans)).run()
