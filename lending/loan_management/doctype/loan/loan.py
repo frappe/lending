@@ -855,6 +855,9 @@ def update_loan_and_customer_status(
 		write_off_charges,
 		write_off_suspense_entries,
 	)
+	from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+		create_process_loan_classification,
+	)
 
 	loan_status = frappe.db.get_value("Loan", loan, "status")
 
@@ -925,7 +928,7 @@ def update_loan_and_customer_status(
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
-			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
+			create_process_loan_classification(posting_date=max_date, loan=loan)
 		elif cint(is_previous_npa) and not cint(current_npa):
 			frappe.db.set_value("Loan", loan, "is_npa", 1)
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")

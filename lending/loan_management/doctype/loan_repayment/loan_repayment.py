@@ -155,7 +155,7 @@ class LoanRepayment(AccountsController):
 				is_backdated = 1
 
 			create_process_loan_classification(
-				posting_date=max_date or self.posting_date,
+				posting_date=self.posting_date,
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 				payment_reference=self.name,
