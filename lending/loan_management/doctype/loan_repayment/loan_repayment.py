@@ -133,7 +133,6 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries()
 
 		if self.is_term_loan:
-			is_backdated = 0
 			max_date = None
 			accruals = reverse_loan_interest_accruals(
 				self.against_loan,
@@ -144,6 +143,14 @@ class LoanRepayment(AccountsController):
 			)
 			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
 
+			create_process_loan_classification(
+				posting_date=self.posting_date,
+				loan_product=self.loan_product,
+				loan=self.against_loan,
+				payment_reference=self.name,
+				is_backdated=1 if accruals else 0,
+			)
+
 			if accruals:
 				dates = [getdate(d.get("posting_date")) for d in accruals]
 				max_date = max(dates)
@@ -152,15 +159,6 @@ class LoanRepayment(AccountsController):
 					posting_date=max_date, loan=self.against_loan, loan_product=self.loan_product
 				)
 				process_daily_loan_demands(posting_date=max_date, loan=self.against_loan)
-				is_backdated = 1
-
-			create_process_loan_classification(
-				posting_date=self.posting_date,
-				loan_product=self.loan_product,
-				loan=self.against_loan,
-				payment_reference=self.name,
-				is_backdated=is_backdated,
-			)
 
 		if not self.is_term_loan:
 			process_loan_interest_accrual_for_loans(

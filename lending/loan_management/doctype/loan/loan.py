@@ -804,24 +804,6 @@ def create_loan_write_off(loan, posting_date):
 		loan_write_off.submit()
 
 
-# def restore_pervious_dpd_state(applicant_type, applicant, repayment_reference):
-# 	pac = frappe.db.get_value(
-# 		"Process Loan Classification",
-# 		{"payment_reference": repayment_reference},
-# 		"previous_process",
-# 	)
-# 	for d in frappe.db.get_all(
-# 		"Days Past Due Log",
-# 		filters={
-# 			"process_loan_classification": pac,
-# 			"applicant_type": applicant_type,
-# 			"applicant": applicant,
-# 		},
-# 		fields=["loan", "days_past_due"],
-# 	):
-# 		frappe.db.set_value("Loan", d.loan, "days_past_due", d.days_past_due)
-
-
 def create_dpd_record(
 	loan, loan_disbursement, posting_date, days_past_due, process_loan_classification=None
 ):
@@ -854,9 +836,6 @@ def update_loan_and_customer_status(
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_charges,
 		write_off_suspense_entries,
-	)
-	from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-		create_process_loan_classification,
 	)
 
 	loan_status = frappe.db.get_value("Loan", loan, "status")
@@ -928,11 +907,12 @@ def update_loan_and_customer_status(
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
-			create_process_loan_classification(posting_date=max_date, loan=loan)
 		elif cint(is_previous_npa) and not cint(current_npa):
 			frappe.db.set_value("Loan", loan, "is_npa", 1)
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
+			move_unpaid_interest_to_suspense_ledger(loan, max_date)
+			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
 
 	elif is_npa:
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
