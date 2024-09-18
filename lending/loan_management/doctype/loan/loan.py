@@ -864,7 +864,7 @@ def update_loan_and_customer_status(
 		max_dpd = frappe.db.get_value(
 			"Loan Disbursement",
 			{
-				"loan": loan,
+				"against_loan": loan,
 				"docstatus": 1,
 			},
 			"max(days_past_due)",
