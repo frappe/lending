@@ -1130,7 +1130,7 @@ class LoanRepayment(AccountsController):
 						amount_to_adjust = 0
 
 						if demand_type == "EMI" and self.get("loan_partner"):
-							partner_share_paid = self.get_loan_partner_share_paid(amount_to_adjust, paid_amount, demand)
+							partner_share_paid = self.get_loan_partner_share_paid(partner_share, paid_amount, demand)
 							partner_share -= partner_share_paid
 
 					if paid_amount > 0:
