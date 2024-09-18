@@ -838,7 +838,9 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
-	loan_status = frappe.db.get_value("Loan", loan, "status")
+	loan_status, repayment_schedule_type = frappe.db.get_value(
+		"Loan", loan, ["status", "repayment_schedule_type"]
+	)
 
 	if loan_status == "Written Off":
 		is_written_off = 1
@@ -849,6 +851,26 @@ def update_loan_and_customer_status(
 		days_past_due, company, is_written_off=is_written_off
 	)
 
+	if loan_disbursement:
+		frappe.db.set_value(
+			"Loan Disbursement",
+			loan_disbursement,
+			{
+				"days_past_due": days_past_due,
+			},
+		)
+
+	if repayment_schedule_type == "Line of Credit":
+		max_dpd = frappe.db.get_value(
+			"Loan Disbursement",
+			{
+				"loan": loan,
+				"docstatus": 1,
+			},
+			"max(days_past_due)",
+		)
+		days_past_due = max_dpd
+
 	frappe.db.set_value(
 		"Loan",
 		loan,
@@ -858,15 +880,6 @@ def update_loan_and_customer_status(
 			"classification_name": classification_name,
 		},
 	)
-
-	if loan_disbursement:
-		frappe.db.set_value(
-			"Loan Disbursement",
-			loan_disbursement,
-			{
-				"days_past_due": days_past_due,
-			},
-		)
 
 	if fldg_triggered:
 		frappe.db.set_value(
