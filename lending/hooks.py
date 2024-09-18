@@ -149,9 +149,9 @@ accounting_dimension_doctypes = [
 scheduler_events = {
 	"daily_long": [
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.process_loan_interest_accrual_for_loans",
+		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
-		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 	],
 	"monthly_long": [

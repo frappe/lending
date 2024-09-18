@@ -546,6 +546,8 @@ def make_accrual_interest_entry_for_loans(
 		filters=query_filters,
 	)
 
+	frappe.db.auto_commit_on_many_writes = 1
+
 	for loan in open_loans:
 		try:
 			calculate_penal_interest_for_loans(
@@ -573,6 +575,8 @@ def make_accrual_interest_entry_for_loans(
 				)
 			else:
 				raise e
+
+	frappe.db.auto_commit_on_many_writes = 0
 
 
 def get_last_accrual_date(
