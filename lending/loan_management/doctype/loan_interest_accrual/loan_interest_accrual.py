@@ -648,7 +648,8 @@ def get_last_accrual_date(
 		)
 
 		if (
-			moratorium_details.moratorium_end_date
+			moratorium_details
+			and moratorium_details.moratorium_end_date
 			and moratorium_details.moratorium_type == "EMI"
 			and getdate(moratorium_details.moratorium_end_date) > getdate(last_disbursement_date)
 		):
