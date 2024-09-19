@@ -1162,22 +1162,22 @@ class LoanRepayment(AccountsController):
 
 	def get_loan_partner_share_paid(self, amount_to_adjust, paid_amount, demand):
 		if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
-			return amount_to_adjust or flt(demand.partner_outstanding)
+			return flt(amount_to_adjust) or flt(demand.partner_outstanding)
 		elif self.loan_partner_repayment_schedule_type == "Collection at partner's percentage":
-			return self.loan_partner_payment_ratio * paid_amount
+			return flt(self.loan_partner_payment_ratio * paid_amount)
 		elif self.loan_partner_repayment_schedule_type == "POS reduction plus interest at partner ROI":
 			if demand.demand_subtype == "Interest":
 				return flt(self.loan_partner_payment_ratio * paid_amount)
 			elif demand.demand_subtype == "Principal":
-				return (self.loan_partner_share_percentage * paid_amount) / 100
+				return flt(self.loan_partner_share_percentage * paid_amount) / 100
 
 	def get_overall_partner_share(self, paid_amount):
 		if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
-			return self.loan_partner_payment_ratio * paid_amount
+			return flt(self.loan_partner_payment_ratio * paid_amount)
 		elif self.loan_partner_repayment_schedule_type == "Collection at partner's percentage":
-			return self.loan_partner_payment_ratio * paid_amount
+			return flt(self.loan_partner_payment_ratio * paid_amount)
 		elif self.loan_partner_repayment_schedule_type == "POS reduction plus interest at partner ROI":
-			return self.loan_partner_share_percentage * paid_amount
+			return flt(self.loan_partner_share_percentage * paid_amount)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if self.repayment_type == "Charges Waiver":
