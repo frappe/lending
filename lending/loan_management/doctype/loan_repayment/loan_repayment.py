@@ -1045,7 +1045,7 @@ class LoanRepayment(AccountsController):
 				)
 
 				borrower_interest, payment_date = frappe.db.get_value(
-					"Repayment Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+					"Repayment Schedule", {"parent": loan_repayment_schedule}, ["interest_amount", "payment_date"]
 				)
 
 				colender_interest = frappe.db.get_value(
