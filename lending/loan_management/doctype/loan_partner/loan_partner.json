@@ -18,7 +18,7 @@
   "effective_date",
   "partner_base_interest_rate",
   "incremental_interest_applicable",
-  "incremental_interest_percentage",
+  "interest_increment_percentage",
   "section_break_mpap",
   "column_break_gpwj",
   "organization_type",
@@ -260,14 +260,14 @@
    "label": "Incremental Interest Applicable"
   },
   {
-   "fieldname": "incremental_interest_percentage",
+   "fieldname": "interest_increment_percentage",
    "fieldtype": "Percent",
-   "label": "Incremental Interest Percentage"
+   "label": "Interest Increment Percenatge"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-19 13:18:51.136624",
+ "modified": "2024-09-19 14:38:48.449270",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
