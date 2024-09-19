@@ -50,7 +50,8 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Posting Date (End Date)"
+   "label": "Posting Date (End Date)",
+   "search_index": 1
   },
   {
    "fieldname": "interest_amount",
@@ -176,7 +177,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Interest Type",
-   "options": "Normal Interest\nPenal Interest"
+   "options": "Normal Interest\nPenal Interest",
+   "search_index": 1
   },
   {
    "fetch_from": ".rate_of_interest",
@@ -207,7 +209,8 @@
    "fieldname": "loan_repayment_schedule",
    "fieldtype": "Link",
    "label": "Loan Repayment Schedule",
-   "options": "Loan Repayment Schedule"
+   "options": "Loan Repayment Schedule",
+   "search_index": 1
   },
   {
    "fieldname": "accrual_date",
@@ -218,14 +221,15 @@
    "fieldname": "loan_repayment_schedule_detail",
    "fieldtype": "Data",
    "label": "Loan Repayment Schedule Detail",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-29 12:58:01.755518",
+ "modified": "2024-09-19 11:22:36.044650",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
