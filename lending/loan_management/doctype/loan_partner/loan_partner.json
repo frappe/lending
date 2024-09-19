@@ -17,6 +17,7 @@
   "repayment_schedule_type",
   "effective_date",
   "partner_base_interest_rate",
+  "incremental_interest_rate",
   "section_break_mpap",
   "column_break_gpwj",
   "organization_type",
@@ -250,11 +251,17 @@
    "fieldtype": "Link",
    "label": "Partner Interest Share",
    "options": "Account"
+  },
+  {
+   "default": "0",
+   "fieldname": "incremental_interest_rate",
+   "fieldtype": "Check",
+   "label": "Incremental Interest Rate"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-07 09:32:21.536360",
+ "modified": "2024-09-19 13:02:23.455964",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
