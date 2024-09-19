@@ -1122,7 +1122,7 @@ class LoanRepayment(AccountsController):
 	def adjust_component(self, amount_to_adjust, demand_type, demands, demand_subtype=None):
 		partner_share = 0
 		if self.get("loan_partner"):
-			partner_share = self.get_overall_partner_share(amount_to_adjust)
+			partner_share = self.get_overall_partner_share(amount_to_adjust) or 0
 
 		for demand in demands:
 			paid_amount = 0
@@ -1135,14 +1135,16 @@ class LoanRepayment(AccountsController):
 						amount_to_adjust -= flt(demand.outstanding_amount)
 
 						if demand_type == "EMI" and self.get("loan_partner"):
-							partner_share_paid = self.get_loan_partner_share_paid(0, paid_amount, demand)
+							partner_share_paid = self.get_loan_partner_share_paid(0, paid_amount, demand) or 0
 							partner_share -= partner_share_paid
 					elif amount_to_adjust > 0:
 						paid_amount = amount_to_adjust
 						amount_to_adjust = 0
 
 						if demand_type == "EMI" and self.get("loan_partner"):
-							partner_share_paid = self.get_loan_partner_share_paid(partner_share, paid_amount, demand)
+							partner_share_paid = (
+								self.get_loan_partner_share_paid(partner_share, paid_amount, demand) or 0
+							)
 							partner_share -= partner_share_paid
 
 					if paid_amount > 0:
