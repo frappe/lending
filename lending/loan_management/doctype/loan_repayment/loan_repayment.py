@@ -993,35 +993,47 @@ class LoanRepayment(AccountsController):
 	def set_partner_payment_ratio(self):
 		if self.get("loan_partner"):
 			precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+			schedule_details = frappe.db.get_value(
+				"Loan Repayment Schedule",
+				{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
+				[
+					"monthly_repayment_amount",
+					"partner_monthly_repayment_amount",
+					"partner_repayment_schedule_type",
+					"partner_loan_share_percentage",
+					"partner_base_interest_rate",
+				],
+				as_dict=1,
+			)
+
 			partner_details = frappe.db.get_value(
 				"Loan Partner",
 				self.loan_partner,
 				[
 					"repayment_schedule_type",
 					"partner_loan_share_percentage",
-					"repayment_schedule_type",
 					"partner_base_interest_rate",
 				],
 				as_dict=1,
 			)
 
-			self.loan_partner_share_percentage = partner_details.partner_loan_share_percentage
-			self.loan_partner_repayment_schedule_type = partner_details.repayment_schedule_type
+			self.loan_partner_share_percentage = schedule_details.partner_loan_share_percentage
+			self.loan_partner_repayment_schedule_type = schedule_details.partner_repayment_schedule_type
 			self.partner_base_interest_rate = partner_details.partner_base_interest_rate
 
 			if partner_details.repayment_schedule_type == "Collection at partner's percentage":
 				self.loan_partner_payment_ratio = partner_details.partner_loan_share_percentage / 100
 			elif partner_details.repayment_schedule_type == "EMI (PMT) based":
-				amounts = frappe.db.get_value(
-					"Loan Repayment Schedule",
-					{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
-					["monthly_repayment_amount", "partner_monthly_repayment_amount"],
-					as_dict=1,
-				)
-
 				self.loan_partner_payment_ratio = (
 					flt(
-						((amounts.partner_monthly_repayment_amount / amounts.monthly_repayment_amount) * 100),
+						(
+							(
+								schedule_details.partner_monthly_repayment_amount
+								/ schedule_details.monthly_repayment_amount
+							)
+							* 100
+						),
 						precision,
 					)
 					/ 100
@@ -1155,7 +1167,7 @@ class LoanRepayment(AccountsController):
 			return self.loan_partner_payment_ratio * paid_amount
 		elif self.loan_partner_repayment_schedule_type == "POS reduction plus interest at partner ROI":
 			if demand.demand_subtype == "Interest":
-				return self.loan_partner_payment_ratio * paid_amount
+				return flt(self.loan_partner_payment_ratio * paid_amount)
 			elif demand.demand_subtype == "Principal":
 				return (self.loan_partner_share_percentage * paid_amount) / 100
 

@@ -26,6 +26,11 @@
   "repayment_schedule",
   "co_lender_schedule_section",
   "colender_schedule",
+  "loan_partner_details_section",
+  "partner_loan_share_percentage",
+  "partner_base_interest_rate",
+  "column_break_ilwz",
+  "partner_repayment_schedule_type",
   "term_details_section",
   "total_installments_paid",
   "total_installments_raised",
@@ -324,12 +329,39 @@
    "fieldtype": "Currency",
    "label": "Partner Monthly Repayment Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_partner_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Partner Details"
+  },
+  {
+   "fetch_from": "loan_partner.partner_loan_share_percentage",
+   "fieldname": "partner_loan_share_percentage",
+   "fieldtype": "Percent",
+   "label": "Partner Loan Share Percentage"
+  },
+  {
+   "fetch_from": "loan_partner.partner_base_interest_rate",
+   "fieldname": "partner_base_interest_rate",
+   "fieldtype": "Percent",
+   "label": "Partner Base Interest Rate"
+  },
+  {
+   "fieldname": "column_break_ilwz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "loan_partner.repayment_schedule_type",
+   "fieldname": "partner_repayment_schedule_type",
+   "fieldtype": "Data",
+   "label": "Partner Repayment Schedule Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-10 10:48:48.594000",
+ "modified": "2024-09-19 19:28:15.061379",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
