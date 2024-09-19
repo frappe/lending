@@ -214,19 +214,21 @@
   {
    "fieldname": "partner_share",
    "fieldtype": "Currency",
-   "label": "Partner Share"
+   "label": "Partner Share",
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "partner_share_allocated",
    "fieldtype": "Currency",
-   "label": "Partner Share Allocated"
+   "label": "Partner Share Allocated",
+   "options": "Company:company:default_currency"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-19 11:35:55.952873",
+ "modified": "2024-09-19 14:49:49.410952",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
