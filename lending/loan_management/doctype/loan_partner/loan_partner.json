@@ -13,6 +13,7 @@
   "partner_code",
   "partner_name",
   "partner_loan_share_percentage",
+  "partial_payment_mechanism",
   "column_break_yfag",
   "repayment_schedule_type",
   "effective_date",
@@ -263,11 +264,16 @@
    "fieldname": "interest_increment_percentage",
    "fieldtype": "Percent",
    "label": "Interest Increment Percenatge"
+  },
+  {
+   "fieldname": "partial_payment_mechanism",
+   "fieldtype": "Data",
+   "label": "Partial Payment Mechanism"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-19 14:38:48.449270",
+ "modified": "2024-09-19 14:40:50.301956",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
