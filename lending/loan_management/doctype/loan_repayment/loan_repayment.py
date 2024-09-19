@@ -738,7 +738,7 @@ class LoanRepayment(AccountsController):
 		loan_demand = frappe.qb.DocType("Loan Demand")
 		for payment in self.repayment_details:
 			paid_amount = payment.paid_amount
-			partner_share = payment.partner_share
+			partner_share = flt(payment.partner_share)
 
 			if cancel:
 				paid_amount = -1 * flt(payment.paid_amount)
