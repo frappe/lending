@@ -1044,12 +1044,14 @@ class LoanRepayment(AccountsController):
 					"Loan Repayment Schedule", {"docstatus": 1, "status": "Active", "loan": self.against_loan}
 				)
 
-				borrower_interest = frappe.db.get_value(
+				borrower_interest, payment_date = frappe.db.get_value(
 					"Repayment Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
 				)
 
 				colender_interest = frappe.db.get_value(
-					"Co-Lender Schedule", {"parent": loan_repayment_schedule}, "interest_amount"
+					"Co-Lender Schedule",
+					{"parent": loan_repayment_schedule, "payment_date": payment_date},
+					"interest_amount",
 				)
 
 				self.loan_partner_payment_ratio = flt(colender_interest / borrower_interest)
