@@ -62,6 +62,7 @@ class LoanRepayment(AccountsController):
 					self.name,
 					self.repayment_type,
 					self.principal_amount_paid,
+					loan_disbursement=self.loan_disbursement,
 				)
 
 	def on_submit(self):
@@ -108,6 +109,7 @@ class LoanRepayment(AccountsController):
 					self.name,
 					self.repayment_type,
 					self.principal_amount_paid,
+					loan_disbursement=self.loan_disbursement,
 				)
 
 			if self.repayment_type in ("Advance Payment", "Pre Payment"):
@@ -565,6 +567,14 @@ class LoanRepayment(AccountsController):
 
 	def update_paid_amounts(self):
 		loan = frappe.qb.DocType("Loan")
+
+		if self.loan_disbursement:
+			loan_disbursement = frappe.qb.DocType("Loan Disbursement")
+			frappe.qb.update(loan_disbursement).set(
+				loan_disbursement.principal_amount_paid,
+				loan_disbursement.principal_amount_paid + self.principal_amount_paid,
+			).where(loan_disbursement.name == self.loan_disbursement).run()
+
 		query = (
 			frappe.qb.update(loan)
 			.set(loan.total_amount_paid, loan.total_amount_paid + self.amount_paid)
@@ -611,7 +621,9 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		unbooked_interest, accrued_interest = get_unbooked_interest(self.against_loan, self.posting_date)
+		unbooked_interest, accrued_interest = get_unbooked_interest(
+			self.against_loan, self.posting_date, loan_disbursement=self.loan_disbursement
+		)
 		unpaid_unbooked_interest = 0
 
 		if flt(unbooked_interest - self.unbooked_interest_paid, precision) > 0:
@@ -1601,10 +1613,14 @@ def get_demand_query():
 	)
 
 
-def get_pending_principal_amount(loan):
+def get_pending_principal_amount(loan, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	if loan.status == "Cancelled":
+	if loan_disbursement:
+		pending_principal_amount = frappe.db.get_value(
+			"Loan Disbursement", loan_disbursement, "sum(disbursed_amount - principal_amount_paid)"
+		)
+	elif loan.status == "Cancelled":
 		pending_principal_amount = 0
 	elif loan.status in ("Disbursed", "Closed", "Active", "Written Off"):
 		pending_principal_amount = flt(
@@ -1668,7 +1684,9 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 	)
 
-	amounts = process_amount_for_loan(against_loan_doc, posting_date, unpaid_demands, amounts)
+	amounts = process_amount_for_loan(
+		against_loan_doc, posting_date, unpaid_demands, amounts, loan_disbursement=loan_disbursement
+	)
 
 	if with_loan_details:
 		return amounts, against_loan_doc.as_dict()
@@ -1676,7 +1694,7 @@ def get_amounts(
 		return amounts
 
 
-def process_amount_for_loan(loan, posting_date, demands, amounts):
+def process_amount_for_loan(loan, posting_date, demands, amounts, loan_disbursement=None):
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		calculate_accrual_amount_for_loans,
 		calculate_penal_interest_for_loans,
@@ -1689,8 +1707,12 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 	payable_principal_amount = 0
 	is_backdated = 0
 
-	last_demand_date = get_last_demand_date(loan.name, posting_date)
-	latest_accrual_date = get_latest_accrual_date(loan.name, posting_date)
+	last_demand_date = get_last_demand_date(
+		loan.name, posting_date, loan_disbursement=loan_disbursement
+	)
+	latest_accrual_date = get_latest_accrual_date(
+		loan.name, posting_date, loan_disbursement=loan_disbursement
+	)
 
 	if latest_accrual_date and getdate(latest_accrual_date) > getdate(posting_date):
 		is_backdated = 1
@@ -1705,17 +1727,23 @@ def process_amount_for_loan(loan, posting_date, demands, amounts):
 		elif demand.demand_type == "Charges":
 			charges += demand.outstanding_amount
 
-	pending_principal_amount = get_pending_principal_amount(loan)
+	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
-	unbooked_interest, accrued_interest = get_unbooked_interest(loan.name, posting_date)
+	unbooked_interest, accrued_interest = get_unbooked_interest(
+		loan.name, posting_date, loan_disbursement=loan_disbursement
+	)
 
 	if getdate(posting_date) > getdate(last_demand_date) or is_backdated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
-			loan, posting_date=posting_date, accrual_type="Regular", is_future_accrual=1
+			loan,
+			posting_date=posting_date,
+			accrual_type="Regular",
+			is_future_accrual=1,
+			loan_disbursement=loan_disbursement,
 		)
 
 		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
-			loan=loan, posting_date=posting_date, is_future_accrual=1
+			loan=loan, posting_date=posting_date, is_future_accrual=1, loan_disbursement=loan_disbursement
 		)
 
 	amounts["interest_accrued"] = accrued_interest
@@ -1896,55 +1924,69 @@ def update_installment_counts(against_loan):
 		)
 
 
-def get_last_demand_date(loan, posting_date, demand_subtype="Interest"):
+def get_last_demand_date(loan, posting_date, demand_subtype="Interest", loan_disbursement=None):
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		get_last_disbursement_date,
 	)
 
+	filters = {
+		"loan": loan,
+		"docstatus": 1,
+		"demand_subtype": demand_subtype,
+		"demand_date": ("<=", posting_date),
+	}
+
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
 	last_demand_date = frappe.db.get_value(
 		"Loan Demand",
-		{
-			"loan": loan,
-			"docstatus": 1,
-			"demand_subtype": demand_subtype,
-			"demand_date": ("<=", posting_date),
-		},
+		filters,
 		"MAX(demand_date)",
 	)
 
 	if not last_demand_date:
-		last_demand_date = get_last_disbursement_date(loan, posting_date)
+		last_demand_date = get_last_disbursement_date(
+			loan, posting_date, loan_disbursement=loan_disbursement
+		)
 
 	return last_demand_date
 
 
-def get_latest_accrual_date(loan, posting_date, interest_type="Interest"):
+def get_latest_accrual_date(loan, posting_date, interest_type="Interest", loan_disbursement=None):
+	filters = {
+		"loan": loan,
+		"docstatus": 1,
+		"interest_type": interest_type,
+		"posting_date": (">", posting_date),
+	}
+
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
 	latest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual",
-		{
-			"loan": loan,
-			"docstatus": 1,
-			"interest_type": interest_type,
-			"posting_date": (">", posting_date),
-		},
+		filters,
 		"MAX(posting_date)",
 	)
 
 	return latest_accrual_date
 
 
-def get_unbooked_interest(loan, posting_date):
+def get_unbooked_interest(loan, posting_date, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	accrued_interest = get_accrued_interest(loan, posting_date)
-	total_demand_interest = get_demanded_interest(loan, posting_date)
+	accrued_interest = get_accrued_interest(loan, posting_date, loan_disbursement=loan_disbursement)
+	total_demand_interest = get_demanded_interest(
+		loan, posting_date, loan_disbursement=loan_disbursement
+	)
 	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
 
 	return unbooked_interest, accrued_interest
 
 
 def get_accrued_interest(
-	loan, posting_date, interest_type="Normal Interest", last_demand_date=None
+	loan, posting_date, interest_type="Normal Interest", last_demand_date=None, loan_disbursement=None
 ):
 	filters = {
 		"loan": loan,
@@ -1956,6 +1998,9 @@ def get_accrued_interest(
 	if last_demand_date:
 		filters["posting_date"] = (">", last_demand_date)
 
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
 		filters,
@@ -1965,15 +2010,20 @@ def get_accrued_interest(
 	return flt(accrued_interest)
 
 
-def get_demanded_interest(loan, posting_date, demand_subtype="Interest"):
+def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_disbursement=None):
+	filters = {
+		"loan": loan,
+		"docstatus": 1,
+		"demand_date": ("<=", posting_date),
+		"demand_subtype": demand_subtype,
+	}
+
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
 	demand_interest = frappe.db.get_value(
 		"Loan Demand",
-		{
-			"loan": loan,
-			"docstatus": 1,
-			"demand_date": ("<=", posting_date),
-			"demand_subtype": demand_subtype,
-		},
+		filters,
 		"SUM(demand_amount)",
 	)
 

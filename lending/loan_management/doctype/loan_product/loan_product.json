@@ -319,7 +319,7 @@
     "fieldname": "same_as_regular_interest_accounts",
     "fieldtype": "Check",
     "label": "Same as regular interest accounts"
-   },
+  },
   {
    "fieldname": "broken_period_interest_recovery_account",
    "fieldtype": "Link",

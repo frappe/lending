@@ -277,7 +277,9 @@ class LoanRestructure(AccountsController):
 
 	def update_overdue_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		amounts = calculate_amounts(self.loan, self.restructure_date)
+		amounts = calculate_amounts(
+			self.loan, self.restructure_date, loan_disbursement=self.loan_disbursement
+		)
 
 		self.pending_principal_amount = flt(amounts.get("pending_principal_amount"), precision)
 		self.total_overdue_amount = flt(amounts.get("payable_amount"), precision)
@@ -312,9 +314,14 @@ class LoanRestructure(AccountsController):
 		else:
 			status = "Rescheduled"
 
+		filters = {"docstatus": 1, "loan": self.loan, "status": status}
+
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
 		schedule = frappe.db.get_all(
 			"Loan Repayment Schedule",
-			{"docstatus": 1, "loan": self.loan, "status": status},
+			filters,
 			order_by="posting_date desc",
 			limit=1,
 		)[0]
@@ -385,16 +392,25 @@ class LoanRestructure(AccountsController):
 		# Mark Old Repayment Schedule as Restructured
 		loan_schedule = frappe.qb.DocType("Loan Repayment Schedule")
 
-		frappe.qb.update(loan_schedule).set(loan_schedule.status, status).where(
-			(loan_schedule.docstatus == 1)
-			& (loan_schedule.loan == self.loan)
-			& (loan_schedule.status == "Active")
-			& (
-				(loan_schedule.loan_restructure.isnull())
-				| (loan_schedule.loan_restructure == "")
-				| (loan_schedule.loan_restructure != self.name)
+		query = (
+			frappe.qb.update(loan_schedule)
+			.set(loan_schedule.status, status)
+			.where(
+				(loan_schedule.docstatus == 1)
+				& (loan_schedule.loan == self.loan)
+				& (loan_schedule.status == "Active")
+				& (
+					(loan_schedule.loan_restructure.isnull())
+					| (loan_schedule.loan_restructure == "")
+					| (loan_schedule.loan_restructure != self.name)
+				)
 			)
-		).run()
+		)
+
+		if self.loan_disbursement:
+			query = query.where(loan_schedule.loan_disbursement == self.loan_disbursement)
+
+		query.run()
 
 	def make_update_draft_loan_repayment_schedule(self):
 		adjusted_interest = 0
@@ -621,7 +637,7 @@ def create_loan_repayment(
 
 
 def create_update_loan_reschedule(
-	loan, posting_date, loan_repayment, repayment_type, principal_adjusted
+	loan, posting_date, loan_repayment, repayment_type, principal_adjusted, loan_disbursement=None
 ):
 	if frappe.db.get_value("Loan Restructure", {"loan_repayment": loan_repayment}):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": loan_repayment})
@@ -630,24 +646,30 @@ def create_update_loan_reschedule(
 		loan_restructure.loan_repayment = loan_repayment
 
 	loan_restructure.update(
-		get_restructure_details(loan, posting_date, repayment_type, principal_adjusted)
+		get_restructure_details(
+			loan, posting_date, repayment_type, principal_adjusted, loan_disbursement=loan_disbursement
+		)
 	)
 
 	loan_restructure.save()
 
 
-def get_restructure_details(loan, posting_date, repayment_type, principal_adjusted):
+def get_restructure_details(
+	loan, posting_date, repayment_type, principal_adjusted, loan_disbursement=None
+):
 	(
 		pending_tenure,
 		monthly_repayment_amount,
 		repayment_start_date,
-	) = get_pending_tenure_and_start_date(loan, posting_date)
+	) = get_pending_tenure_and_start_date(loan, posting_date, loan_disbursement=loan_disbursement)
+
 	loan_restructure = {
 		"loan": loan,
 		"restructure_type": repayment_type,
 		"restructure_date": posting_date,
 		"repayment_start_date": repayment_start_date,
 		"principal_adjusted": principal_adjusted,
+		"loan_disbursement": loan_disbursement,
 	}
 
 	if repayment_type == "Advance Payment":
@@ -661,8 +683,12 @@ def get_restructure_details(loan, posting_date, repayment_type, principal_adjust
 	return loan_restructure
 
 
-def get_pending_tenure_and_start_date(loan, posting_date):
+def get_pending_tenure_and_start_date(loan, posting_date, loan_disbursement=None):
 	from lending.loan_management.doctype.loan.loan import get_cyclic_date
+
+	filters = {"loan": loan, "docstatus": 1, "status": "Active"}
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
 
 	(
 		prev_tenure,
@@ -671,7 +697,7 @@ def get_pending_tenure_and_start_date(loan, posting_date):
 		prev_repayment_start_date,
 	) = frappe.db.get_value(
 		"Loan Repayment Schedule",
-		{"loan": loan, "status": "Active", "docstatus": 1},
+		filters,
 		["repayment_periods", "monthly_repayment_amount", "repayment_frequency", "repayment_start_date"],
 	)
 

@@ -455,9 +455,12 @@ class LoanRepaymentSchedule(Document):
 		if (
 			loan_status == "Partially Disbursed" and self.repayment_schedule_type != "Line of Credit"
 		) or self.restructure_type in ("Advance Payment", "Pre Payment"):
-			prev_schedule = frappe.get_doc(
-				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
-			)
+			filters = {"loan": self.loan, "docstatus": 1, "status": "Active"}
+
+			if self.loan_disbursement:
+				filters["loan_disbursement"] = self.loan_disbursement
+
+			prev_schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 			if prev_schedule:
 				self.loan_disbursement = prev_schedule.loan_disbursement
 

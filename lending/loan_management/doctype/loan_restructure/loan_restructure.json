@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_disbursement",
   "applicant_type",
   "applicant",
   "repayment_method",
@@ -508,12 +509,18 @@
    "label": "Loan Repayment",
    "options": "Loan Repayment",
    "read_only": 1
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-06-12 13:29:16.533366",
+ "modified": "2024-09-19 19:56:46.699456",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

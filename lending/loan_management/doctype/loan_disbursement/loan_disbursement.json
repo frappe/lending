@@ -32,6 +32,7 @@
   "disbursed_amount",
   "broken_period_interest",
   "bpi_amount_difference",
+  "principal_amount_paid",
   "accounting_dimensions_section",
   "cost_center",
   "charges_section",
@@ -331,13 +332,20 @@
    "allow_on_submit": 1,
    "fieldname": "bpi_amount_difference",
    "fieldtype": "Currency",
-   "label": "BPI Amount Difference"
+   "label": "BPI Amount Difference",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "principal_amount_paid",
+   "fieldtype": "Currency",
+   "label": "Principal Amount Paid",
+   "options": "Company:company:default_currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-12 12:53:15.696826",
+ "modified": "2024-09-20 12:48:01.722292",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
