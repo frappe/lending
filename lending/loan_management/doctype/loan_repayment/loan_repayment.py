@@ -590,11 +590,16 @@ class LoanRepayment(AccountsController):
 				frappe.db.get_value("Loan Product", self.loan_product, "write_off_amount")
 			)
 			if self.amount_paid >= self.payable_amount - auto_write_off_amount and self.auto_close_loan():
-				query = query.set(loan.status, "Closed")
-				query = query.set(loan.closure_date, self.posting_date)
+				if self.repayment_schedule_type != "Line of Credit":
+					query = query.set(loan.status, "Closed")
+					query = query.set(loan.closure_date, self.posting_date)
+				self.update_repayment_schedule_status()
 			else:
-				query = query.set(loan.status, "Settled")
-				query = query.set(loan.settlement_date, self.posting_date)
+				if self.repayment_schedule_type != "Line of Credit":
+					query = query.set(loan.status, "Active")
+					query = query.set(loan.status, "Settled")
+					query = query.set(loan.settlement_date, self.posting_date)
+				self.update_repayment_schedule_status()
 
 		elif self.auto_close_loan() and self.repayment_type in (
 			"Normal Repayment",
@@ -603,11 +608,15 @@ class LoanRepayment(AccountsController):
 			"Security Deposit Adjustment",
 			"Loan Closure",
 		):
-			query = query.set(loan.status, "Closed")
-			query = query.set(loan.closure_date, self.posting_date)
+			if self.repayment_schedule_type != "Line of Credit":
+				query = query.set(loan.status, "Closed")
+				query = query.set(loan.closure_date, self.posting_date)
+			self.update_repayment_schedule_status()
 		elif self.repayment_type == "Full Settlement":
-			query = query.set(loan.status, "Settled")
-			query = query.set(loan.settlement_date, self.posting_date)
+			if self.repayment_schedule_type != "Line of Credit":
+				query = query.set(loan.status, "Settled")
+				query = query.set(loan.settlement_date, self.posting_date)
+			self.update_repayment_schedule_status()
 
 		query.run()
 
@@ -679,11 +688,25 @@ class LoanRepayment(AccountsController):
 			loan_write_off.save()
 			loan_write_off.submit()
 
+	def update_repayment_schedule_status(self, cancel=0):
+		if cancel:
+			status = "Active"
+			current_status = "Closed"
+		else:
+			status = "Closed"
+			current_status = "Active"
+
+		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
+
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		repayment_schedule = frappe.get_value("Loan Repayment Schedule", filters, "name")
+		if repayment_schedule:
+			frappe.db.set_value("Loan Repayment Schedule", repayment_schedule, "status", status)
+
 	def auto_close_loan(self):
 		auto_close = False
-
-		if self.repayment_schedule_type == "Line of Credit":
-			return auto_close
 
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
 			"Loan Product", self.loan_product, ["write_off_amount", "excess_amount_acceptance_limit"]
@@ -701,7 +724,7 @@ class LoanRepayment(AccountsController):
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
 			and not flt(shortfall_amount)
-			and flt(self.excess_amount) <= excess_amount_limit
+			and flt(self.excess_amount) <= flt(excess_amount_limit)
 		):
 			auto_close = True
 
@@ -733,13 +756,16 @@ class LoanRepayment(AccountsController):
 
 			if self.repayment_type == "Write Off Settlement":
 				query = query.set(loan.status, "Written Off")
+				self.update_repayment_schedule_status(cancel=1)
 			elif self.repayment_type == "Full Settlement":
 				query = query.set(loan.status, "Disbursed")
+				self.update_repayment_schedule_status(cancel=1)
 			elif loan_status == "Closed":
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:
 					query = query.set(loan.status, "Disbursed")
+					self.update_repayment_schedule_status(cancel=1)
 
 			if self.excess_amount:
 				query = query.set(loan.excess_amount_paid, loan.excess_amount_paid - self.excess_amount)
