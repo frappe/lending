@@ -400,6 +400,7 @@ def calculate_penal_interest_for_loans(
 	accrual_type=None,
 	is_future_accrual=0,
 	accrual_date=None,
+	loan_disbursement=None,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -430,6 +431,7 @@ def calculate_penal_interest_for_loans(
 				posting_date,
 				"Penal Interest",
 				repayment_schedule_detail=demand.repayment_schedule_detail,
+				loan_disbursement=loan_disbursement,
 			)
 
 			if not last_accrual_date:
