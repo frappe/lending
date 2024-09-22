@@ -64,7 +64,8 @@
    "fieldname": "disbursement_date",
    "fieldtype": "Date",
    "label": "Disbursement Date",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "disbursed_amount",
@@ -120,7 +121,8 @@
    "fieldtype": "Date",
    "hidden": 1,
    "label": "Posting Date",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_4",
@@ -345,7 +347,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-20 12:48:01.722292",
+ "modified": "2024-09-22 12:40:24.840400",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

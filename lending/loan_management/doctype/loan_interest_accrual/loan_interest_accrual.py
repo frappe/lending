@@ -342,6 +342,7 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disburseme
 			},
 			fields=["payment_date", "parent"],
 			order_by="payment_date",
+			cache=True,
 		)
 		or []
 	)
@@ -414,9 +415,13 @@ def calculate_penal_interest_for_loans(
 	penal_interest_rate = frappe.db.get_value("Loan", loan.name, "penalty_charges_rate")
 
 	if not penal_interest_rate:
-		penal_interest_rate = frappe.get_value("Loan Product", loan_product, "penalty_interest_rate")
+		penal_interest_rate = frappe.get_value(
+			"Loan Product", loan_product, "penalty_interest_rate", cache=True
+		)
 
-	grace_period_days = cint(frappe.get_value("Loan Product", loan_product, "grace_period_in_days"))
+	grace_period_days = cint(
+		frappe.get_value("Loan Product", loan_product, "grace_period_in_days", cache=True)
+	)
 	total_penal_interest = 0
 
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -675,7 +680,7 @@ def get_last_accrual_date(
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
-	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
+	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
 
 	if schedule_type == "Line of Credit":
 		field = "MIN(posting_date)"

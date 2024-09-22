@@ -77,7 +77,7 @@ class LoanDemand(AccountsController):
 		if self.demand_type == "Charges":
 			return
 
-		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 		if loan_status == "Written Off":
 			return
 
