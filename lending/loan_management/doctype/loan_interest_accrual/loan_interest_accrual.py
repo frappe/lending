@@ -189,7 +189,9 @@ def calculate_accrual_amount_for_loans(
 		loan.name, posting_date, "Normal Interest", loan_disbursement=loan_disbursement
 	)
 	if loan.is_term_loan:
-		overlapping_dates = get_overlapping_dates(loan.name, last_accrual_date, posting_date)
+		overlapping_dates = get_overlapping_dates(
+			loan.name, last_accrual_date, posting_date, loan_disbursement=loan_disbursement
+		)
 		for schedule in overlapping_dates:
 			last_accrual_date_for_schedule = (
 				get_last_accrual_date(
@@ -323,49 +325,45 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disburseme
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	schedules = frappe.db.get_all(
+	schedules_details = frappe.db.get_all(
 		"Loan Repayment Schedule",
 		filters=filters,
-		pluck="name",
+		fields=["name", "maturity_date"],
 	)
 
-	freeze_date = frappe.db.get_value("Loan", loan, "freeze_date")
+	schedules = [d.name for d in schedules_details]
+
+	freeze_date = frappe.db.get_value("Loan", loan, "freeze_date", cache=True)
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
 		posting_date = freeze_date
+
+	schedule_filters = {
+		"parent": ("in", schedules),
+		"payment_date": ("between", [last_accrual_date, posting_date]),
+	}
+
+	if len(schedules) == 1:
+		schedule_filters["parent"] = schedules[0]
 
 	schedule_dates = (
 		frappe.db.get_all(
 			"Repayment Schedule",
-			filters={
-				"parent": ("in", schedules),
-				"payment_date": ("between", [last_accrual_date, posting_date]),
-			},
+			filters=schedule_filters,
 			fields=["payment_date", "parent"],
 			order_by="payment_date",
-			cache=True,
 		)
 		or []
 	)
 
-	for schedule in schedules:
+	for schedule in schedules_details:
 		to_accrual_date = posting_date
-		maturity_date = get_maturity_date(schedule)
+		maturity_date = schedule.get("maturity_date")
 		if maturity_date and getdate(maturity_date) < getdate(posting_date):
 			to_accrual_date = maturity_date
 
-		schedule_dates.append(frappe._dict({"payment_date": to_accrual_date, "parent": schedule}))
+		schedule_dates.append(frappe._dict({"payment_date": to_accrual_date, "parent": schedule.name}))
 
 	return schedule_dates
-
-
-def get_maturity_date(schedule):
-	maturity_date = frappe.db.get_value(
-		"Repayment Schedule",
-		{"parent": schedule},
-		"MAX(payment_date)",
-	)
-
-	return maturity_date
 
 
 def get_principal_amount_for_term_loan(repayment_schedule, date):
@@ -374,11 +372,12 @@ def get_principal_amount_for_term_loan(repayment_schedule, date):
 		{"parent": repayment_schedule, "payment_date": ("<", date)},
 		"balance_loan_amount",
 		order_by="payment_date DESC",
+		cache=True,
 	)
 
 	if not principal_amount:
 		principal_amount = frappe.db.get_value(
-			"Loan Repayment Schedule", repayment_schedule, "current_principal_amount"
+			"Loan Repayment Schedule", repayment_schedule, "current_principal_amount", cache=True
 		)
 
 	return principal_amount

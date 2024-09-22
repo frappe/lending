@@ -98,7 +98,10 @@ class LoanRepayment(AccountsController):
 		if not self.principal_amount_paid >= self.pending_principal_amount:
 			if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
 				amounts = calculate_amounts(
-					self.against_loan, self.posting_date, payment_type=self.repayment_type
+					self.against_loan,
+					self.posting_date,
+					payment_type=self.repayment_type,
+					loan_disbursement=self.loan_disbursement,
 				)
 				self.allocate_amount_against_demands(amounts, on_submit=True)
 				self.db_update_all()

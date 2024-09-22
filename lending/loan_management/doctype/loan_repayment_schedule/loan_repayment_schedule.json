@@ -22,6 +22,7 @@
   "repayment_method",
   "repayment_periods",
   "repayment_start_date",
+  "maturity_date",
   "repayment_schedule_section",
   "repayment_schedule",
   "co_lender_schedule_section",
@@ -356,12 +357,18 @@
    "fieldname": "partner_repayment_schedule_type",
    "fieldtype": "Data",
    "label": "Partner Repayment Schedule Type"
+  },
+  {
+   "fieldname": "maturity_date",
+   "fieldtype": "Date",
+   "label": "Maturity Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-21 09:28:16.654420",
+ "modified": "2024-09-22 21:21:31.038679",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
