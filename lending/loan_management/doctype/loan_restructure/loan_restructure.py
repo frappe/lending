@@ -131,9 +131,12 @@ class LoanRestructure(AccountsController):
 
 	@frappe.whitelist()
 	def set_completed_tenure(self):
-		previous_repayment_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}, "name"
-		)
+		filters = {"loan": self.loan, "docstatus": 1, "status": "Active"}
+
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		previous_repayment_schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 
 		self.completed_tenure = frappe.db.count(
 			"Repayment Schedule", filters={"parent": previous_repayment_schedule, "demand_generated": 1}
@@ -449,6 +452,7 @@ class LoanRestructure(AccountsController):
 			"repayment_frequency": "Monthly",
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
 			"restructure_type": self.restructure_type,
+			"loan_disbursement": self.loan_disbursement,
 		}
 
 	def update_totals(self, cancel=0):
