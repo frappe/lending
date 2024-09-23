@@ -844,9 +844,18 @@ class LoanRepayment(AccountsController):
 			).run()
 
 	def check_future_accruals(self):
+		filters = {
+			"posting_date": (">", self.posting_date),
+			"docstatus": 1,
+			"against_loan": self.against_loan,
+		}
+
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
 		future_repayment = frappe.db.get_value(
 			"Loan Repayment",
-			{"posting_date": (">", self.posting_date), "docstatus": 1, "against_loan": self.against_loan},
+			filters,
 			"posting_date",
 		)
 
