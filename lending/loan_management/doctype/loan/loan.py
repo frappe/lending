@@ -1151,7 +1151,6 @@ def make_suspense_journal_entry(
 			"additional_interest_suspense",
 		],
 		as_dict=1,
-		cache=True,
 	)
 
 	if account_details:
