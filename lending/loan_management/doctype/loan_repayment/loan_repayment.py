@@ -39,6 +39,7 @@ class LoanRepayment(AccountsController):
 			loan_disbursement=self.loan_disbursement,
 		)
 		self.set_missing_values(amounts)
+		self.validate_disbursement_link()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
@@ -467,6 +468,16 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type in ("Full Settlement", "Write Off Settlement"):
 			self.total_charges_payable = amounts.get("total_charges_payable")
+
+	def validate_disbursement_link(self):
+		if self.loan_disbursement:
+			disbursements = frappe.get_all(
+				"Loan Disbursement",
+				{"against_loan": self.against_loan, "docstatus": 1},
+				pluck="name",
+			)
+			if self.loan_disbursement not in disbursements:
+				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
 	def check_future_entries(self):
 		future_repayment_date = frappe.db.get_value(
