@@ -607,7 +607,7 @@ class LoanRepaymentSchedule(Document):
 
 					# Pre payment made even before the first EMI
 					if getdate(self.posting_date) < getdate(first_date):
-						next_emi_date = get_cyclic_date(self.loan_product, self.posting_date)
+						next_emi_date = get_cyclic_date(self.loan_product, self.posting_date, ignore_bpi=True)
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 

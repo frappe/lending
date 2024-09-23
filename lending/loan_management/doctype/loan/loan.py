@@ -1378,7 +1378,7 @@ def make_fldg_invocation_jv(loan, posting_date):
 
 
 @frappe.whitelist()
-def get_cyclic_date(loan_product, posting_date):
+def get_cyclic_date(loan_product, posting_date, ignore_bpi=False):
 	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
 		"Loan Product",
 		loan_product,
@@ -1389,9 +1389,10 @@ def get_cyclic_date(loan_product, posting_date):
 	last_day_of_month = get_last_day(posting_date)
 	cyclic_date = add_days(last_day_of_month, cycle_day)
 
-	broken_period_days = date_diff(cyclic_date, posting_date)
-	if broken_period_days < min_days_bw_disbursement_first_repayment:
-		cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
+	if not ignore_bpi:
+		broken_period_days = date_diff(cyclic_date, posting_date)
+		if broken_period_days < min_days_bw_disbursement_first_repayment:
+			cyclic_date = add_days(get_last_day(cyclic_date), cycle_day)
 
 	return cyclic_date
 

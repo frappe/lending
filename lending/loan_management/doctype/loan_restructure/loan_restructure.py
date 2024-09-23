@@ -665,7 +665,9 @@ def get_restructure_details(
 		pending_tenure,
 		monthly_repayment_amount,
 		repayment_start_date,
-	) = get_pending_tenure_and_start_date(loan, posting_date, loan_disbursement=loan_disbursement)
+	) = get_pending_tenure_and_start_date(
+		loan, posting_date, repayment_type, loan_disbursement=loan_disbursement
+	)
 
 	loan_restructure = {
 		"loan": loan,
@@ -687,8 +689,10 @@ def get_restructure_details(
 	return loan_restructure
 
 
-def get_pending_tenure_and_start_date(loan, posting_date, loan_disbursement=None):
+def get_pending_tenure_and_start_date(loan, posting_date, repayment_type, loan_disbursement=None):
 	from lending.loan_management.doctype.loan.loan import get_cyclic_date
+
+	ignore_bpi = False
 
 	filters = {"loan": loan, "docstatus": 1, "status": "Active"}
 	if loan_disbursement:
@@ -710,6 +714,9 @@ def get_pending_tenure_and_start_date(loan, posting_date, loan_disbursement=None
 	if repayment_frequency == "One Time":
 		repayment_start_date = prev_repayment_start_date
 	else:
-		repayment_start_date = get_cyclic_date(loan_product, posting_date)
+		if repayment_type == "Pre Payment":
+			ignore_bpi = True
+
+		repayment_start_date = get_cyclic_date(loan_product, posting_date, ignore_bpi=ignore_bpi)
 
 	return prev_tenure, monthly_repayment_amount, repayment_start_date
