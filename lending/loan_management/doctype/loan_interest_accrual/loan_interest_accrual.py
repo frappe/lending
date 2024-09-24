@@ -495,7 +495,7 @@ def calculate_penal_interest_for_loans(
 								"Penalty",
 								penal_interest_amount - additional_interest,
 								loan_repayment_schedule=demand.loan_repayment_schedule,
-								loan_disbursement=loan.loan_disbursement,
+								loan_disbursement=demand.loan_disbursement,
 							)
 
 						if additional_interest > 0:
@@ -506,7 +506,7 @@ def calculate_penal_interest_for_loans(
 								"Additional Interest",
 								additional_interest,
 								loan_repayment_schedule=demand.loan_repayment_schedule,
-								loan_disbursement=loan.loan_disbursement,
+								loan_disbursement=demand.loan_disbursement,
 							)
 
 	if is_future_accrual:
