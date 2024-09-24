@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
@@ -24,6 +23,8 @@ class ProcessLoanClassification(Document):
 
 		open_loans = frappe.get_all("Loan", filters=filters, pluck="name")
 
+		frappe.db.auto_commit_on_many_writes = 1
+
 		for loan in open_loans:
 			try:
 				update_days_past_due_in_loans(
@@ -38,13 +39,14 @@ class ProcessLoanClassification(Document):
 				if len(open_loans) == 1:
 					raise e
 				else:
-					error_message = _("Error in processing loan classification for loan {0}").format(loan)
 					frappe.log_error(
 						title="Process Loan Classification Error",
-						message=error_message,
+						message=frappe.get_traceback(),
 						reference_doctype="Loan",
 						reference_name=loan,
 					)
+
+		frappe.db.auto_commit_on_many_writes = 0
 
 
 def create_process_loan_classification(
