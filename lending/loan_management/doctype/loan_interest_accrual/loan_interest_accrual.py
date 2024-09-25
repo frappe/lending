@@ -445,7 +445,7 @@ def calculate_penal_interest_for_loans(
 
 			no_of_days = date_diff(posting_date, from_date) + 1
 
-			penal_interest_amount = demand.pending_amount * penal_interest_rate * no_of_days / 36500
+			penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate * no_of_days / 36500
 
 			if penal_interest_amount > 0:
 				total_penal_interest += penal_interest_amount
