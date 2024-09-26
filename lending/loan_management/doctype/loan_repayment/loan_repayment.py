@@ -162,7 +162,7 @@ class LoanRepayment(AccountsController):
 					create_process_loan_classification,
 					posting_date=self.posting_date,
 					loan_product=self.loan_product,
-					loan=self.name,
+					loan=self.against_loan,
 					is_backdated=0,
 					enqueue_after_commit=True,
 				)
