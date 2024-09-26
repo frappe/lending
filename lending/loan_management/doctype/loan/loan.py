@@ -17,6 +17,7 @@ from frappe.utils import (
 	now_datetime,
 	nowdate,
 )
+from frappe.utils.caching import redis_cache
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
@@ -412,9 +413,9 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 		+ amounts.get("excess_amount_paid", 0)
 	)
 
-	loan_product, loan_status = frappe.get_value("Loan", loan, ["loan_product", "status"], cache=True)
+	loan_product, loan_status = frappe.get_value("Loan", loan, ["loan_product", "status"])
 
-	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount", cache=True)
+	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
@@ -716,11 +717,7 @@ def update_days_past_due_in_loans(
 		loan_partner_threshold_map = get_loan_partner_threshold_map()
 
 		loan_details = frappe.db.get_value(
-			"Loan",
-			loan_name,
-			["applicant_type", "applicant", "freeze_date", "company"],
-			as_dict=1,
-			cache=True,
+			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
 		)
 
 		applicant_type = loan_details.get("applicant_type")
@@ -842,7 +839,7 @@ def update_loan_and_customer_status(
 	)
 
 	loan_status, repayment_schedule_type, loan_product = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type", "loan_product"], cache=True
+		"Loan", loan, ["status", "repayment_schedule_type", "loan_product"]
 	)
 
 	if loan_status == "Written Off":
@@ -1047,12 +1044,14 @@ def get_classification_code_and_name(days_past_due, company, is_written_off):
 	return classification_code, classification_name
 
 
+@redis_cache(ttl=60 * 60)
 def get_dpd_threshold_map():
 	return frappe._dict(
 		frappe.get_all("Loan Product", fields=["name", "days_past_due_threshold_for_npa"], as_list=1)
 	)
 
 
+@redis_cache(ttl=60 * 60)
 def get_dpd_threshold_write_off_map():
 	return frappe._dict(
 		frappe.get_all(
@@ -1061,6 +1060,7 @@ def get_dpd_threshold_write_off_map():
 	)
 
 
+@redis_cache(ttl=60 * 60)
 def get_loan_partner_threshold_map():
 	return frappe._dict(
 		frappe.get_all("Loan Partner", fields=["name", "fldg_trigger_dpd"], as_list=1)
