@@ -412,10 +412,9 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 		+ amounts.get("excess_amount_paid", 0)
 	)
 
-	loan_product = frappe.get_value("Loan", loan, "loan_product")
-	loan_status = frappe.get_value("Loan", loan, "status")
+	loan_product, loan_status = frappe.get_value("Loan", loan, ["loan_product", "status"], cache=True)
 
-	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
+	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount", cache=True)
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
@@ -717,7 +716,11 @@ def update_days_past_due_in_loans(
 		loan_partner_threshold_map = get_loan_partner_threshold_map()
 
 		loan_details = frappe.db.get_value(
-			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
+			"Loan",
+			loan_name,
+			["applicant_type", "applicant", "freeze_date", "company"],
+			as_dict=1,
+			cache=True,
 		)
 
 		applicant_type = loan_details.get("applicant_type")
@@ -838,8 +841,8 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
-	loan_status, repayment_schedule_type = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type"]
+	loan_status, repayment_schedule_type, loan_product = frappe.db.get_value(
+		"Loan", loan, ["status", "repayment_schedule_type", "loan_product"], cache=True
 	)
 
 	if loan_status == "Written Off":
@@ -892,8 +895,6 @@ def update_loan_and_customer_status(
 		)
 
 		make_fldg_invocation_jv(loan, posting_date)
-
-	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 
 	if loan_status == "Settled":
 		write_off_suspense_entries(loan, loan_product, posting_date, company)

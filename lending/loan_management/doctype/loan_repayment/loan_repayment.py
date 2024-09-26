@@ -149,13 +149,23 @@ class LoanRepayment(AccountsController):
 			)
 			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
 
-			create_process_loan_classification(
-				posting_date=self.posting_date,
-				loan_product=self.loan_product,
-				loan=self.against_loan,
-				payment_reference=self.name,
-				is_backdated=1 if accruals else 0,
-			)
+			if accruals:
+				create_process_loan_classification(
+					posting_date=self.posting_date,
+					loan_product=self.loan_product,
+					loan=self.against_loan,
+					payment_reference=self.name,
+					is_backdated=1,
+				)
+			else:
+				frappe.enqueue(
+					create_process_loan_classification,
+					posting_date=self.posting_date,
+					loan_product=self.loan_product,
+					loan=self.name,
+					is_backdated=0,
+					enqueue_after_commit=True,
+				)
 
 			if accruals:
 				dates = [getdate(d.get("posting_date")) for d in accruals]
