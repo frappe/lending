@@ -93,7 +93,8 @@
    "fieldtype": "Select",
    "label": "Applicant Type",
    "options": "Employee\nMember\nCustomer",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "applicant",
@@ -101,7 +102,8 @@
    "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "applicant_name",
@@ -156,7 +158,8 @@
    "label": "Status",
    "no_copy": 1,
    "options": "Draft\nSanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed\nWritten Off\nSettled",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "section_break_8",
@@ -663,7 +666,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-08 07:24:05.685851",
+ "modified": "2024-09-26 15:10:51.270227",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
