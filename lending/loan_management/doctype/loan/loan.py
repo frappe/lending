@@ -1287,7 +1287,7 @@ def make_journal_entry(
 		}
 	)
 
-	jv.ignore_validate = True
+	jv.flags.ignore_validate = True
 	jv.submit()
 
 

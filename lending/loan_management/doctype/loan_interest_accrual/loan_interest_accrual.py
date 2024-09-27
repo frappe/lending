@@ -439,6 +439,14 @@ def calculate_penal_interest_for_loans(
 			)
 
 			if not last_accrual_date:
+				last_accrual_date = get_last_accrual_date(
+					loan.name,
+					posting_date,
+					"Penal Interest",
+					loan_repayment_schedule=demand.loan_repayment_schedule,
+				)
+
+			if not last_accrual_date:
 				from_date = add_days(demand.demand_date, 1)
 			else:
 				from_date = add_days(last_accrual_date, 1)
@@ -520,46 +528,51 @@ def make_accrual_interest_entry_for_loans(
 	loan_product=None,
 	accrual_type="Regular",
 	accrual_date=None,
+	limit=0,
 ):
-	query_filters = {
-		"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off"]),
-		"docstatus": 1,
-	}
+
+	loan_doc = frappe.qb.DocType("Loan")
+
+	query = (
+		frappe.qb.from_(loan_doc)
+		.select(
+			loan_doc.name,
+			loan_doc.total_payment,
+			loan_doc.total_amount_paid,
+			loan_doc.debit_adjustment_amount,
+			loan_doc.credit_adjustment_amount,
+			loan_doc.refund_amount,
+			loan_doc.loan_account,
+			loan_doc.interest_income_account,
+			loan_doc.penalty_income_account,
+			loan_doc.loan_amount,
+			loan_doc.is_term_loan,
+			loan_doc.status,
+			loan_doc.disbursement_date,
+			loan_doc.disbursed_amount,
+			loan_doc.applicant_type,
+			loan_doc.applicant,
+			loan_doc.rate_of_interest,
+			loan_doc.total_interest_payable,
+			loan_doc.written_off_amount,
+			loan_doc.total_principal_paid,
+			loan_doc.repayment_start_date,
+			loan_doc.company,
+		)
+		.where(loan_doc.docstatus == 1)
+		.where(loan_doc.status.isin(["Disbursed", "Partially Disbursed", "Active", "Written Off"]))
+	)
 
 	if loan:
-		query_filters.update({"name": loan})
+		query = query.where(loan_doc.name == loan)
 
 	if loan_product:
-		query_filters.update({"loan_product": loan_product})
+		query = query.where(loan_doc.loan_product == loan_product)
 
-	open_loans = frappe.get_all(
-		"Loan",
-		fields=[
-			"name",
-			"total_payment",
-			"total_amount_paid",
-			"debit_adjustment_amount",
-			"credit_adjustment_amount",
-			"refund_amount",
-			"loan_account",
-			"interest_income_account",
-			"penalty_income_account",
-			"loan_amount",
-			"is_term_loan",
-			"status",
-			"disbursement_date",
-			"disbursed_amount",
-			"applicant_type",
-			"applicant",
-			"rate_of_interest",
-			"total_interest_payable",
-			"written_off_amount",
-			"total_principal_paid",
-			"repayment_start_date",
-			"company",
-		],
-		filters=query_filters,
-	)
+	if limit:
+		query = query.limit(limit)
+
+	open_loans = query.run(as_dict=1)
 
 	frappe.db.auto_commit_on_many_writes = 1
 
