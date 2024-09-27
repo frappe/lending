@@ -561,6 +561,7 @@ def make_accrual_interest_entry_for_loans(
 		)
 		.where(loan_doc.docstatus == 1)
 		.where(loan_doc.status.isin(["Disbursed", "Partially Disbursed", "Active", "Written Off"]))
+		.where((loan_doc.loan_product.isnotnull()) & (loan_doc.loan_product != ""))
 	)
 
 	if loan:
