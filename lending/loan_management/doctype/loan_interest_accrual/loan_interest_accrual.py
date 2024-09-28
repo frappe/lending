@@ -602,8 +602,6 @@ def get_batches(open_loans, batch_size):
 def process_interest_accrual_batch(
 	loans, posting_date, process_loan_interest, accrual_type, accrual_date
 ):
-	frappe.db.auto_commit_on_many_writes = 1
-
 	for loan in loans:
 		try:
 			calculate_penal_interest_for_loans(
@@ -620,6 +618,9 @@ def process_interest_accrual_batch(
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
 			)
+
+			if len(loans) > 1:
+				frappe.db.commit()
 		except Exception as e:
 			if len(loans) > 1:
 				frappe.log_error(
@@ -628,10 +629,9 @@ def process_interest_accrual_batch(
 					reference_doctype="Loan",
 					reference_name=loan.name,
 				)
+				frappe.db.rollback()
 			else:
 				raise e
-
-	frappe.db.auto_commit_on_many_writes = 0
 
 
 def get_last_accrual_date(
