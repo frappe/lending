@@ -575,9 +575,36 @@ def make_accrual_interest_entry_for_loans(
 
 	open_loans = query.run(as_dict=1)
 
+	if loan:
+		process_interest_accrual_batch(
+			open_loans, posting_date, process_loan_interest, accrual_type, accrual_date
+		)
+	else:
+		BATCH_SIZE = 5000
+		batch_list = list(get_batches(open_loans, BATCH_SIZE))
+		for batch in batch_list:
+			frappe.enqueue(
+				process_interest_accrual_batch,
+				loans=batch,
+				posting_date=posting_date,
+				process_loan_interest=process_loan_interest,
+				accrual_type=accrual_type,
+				accrual_date=accrual_date,
+				queue="long",
+			)
+
+
+def get_batches(open_loans, batch_size):
+	for i in range(0, len(open_loans), batch_size):
+		yield open_loans[i : i + batch_size]
+
+
+def process_interest_accrual_batch(
+	loans, posting_date, process_loan_interest, accrual_type, accrual_date
+):
 	frappe.db.auto_commit_on_many_writes = 1
 
-	for loan in open_loans:
+	for loan in loans:
 		try:
 			calculate_penal_interest_for_loans(
 				loan,
@@ -594,7 +621,7 @@ def make_accrual_interest_entry_for_loans(
 				accrual_date=accrual_date,
 			)
 		except Exception as e:
-			if len(open_loans) > 1:
+			if len(loans) > 1:
 				frappe.log_error(
 					title="Loan Interest Accrual Error",
 					message=frappe.get_traceback(),
