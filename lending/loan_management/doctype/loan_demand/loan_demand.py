@@ -261,8 +261,11 @@ def make_loan_demand_for_term_loans(
 				)
 
 			update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+
+			if len(open_loans) > 1:
+				frappe.db.commit()
 		except Exception as e:
-			if len(emi_rows) > 1:
+			if len(open_loans) > 1:
 				frappe.log_error(
 					title="Loan Demand Generation Error",
 					message=frappe.get_traceback(),
@@ -271,6 +274,9 @@ def make_loan_demand_for_term_loans(
 				)
 			else:
 				raise e
+
+			if len(open_loans) > 1:
+				frappe.db.rollback()
 
 
 def create_loan_demand(
