@@ -23,8 +23,6 @@ class ProcessLoanClassification(Document):
 
 		open_loans = frappe.get_all("Loan", filters=filters, pluck="name")
 
-		frappe.db.auto_commit_on_many_writes = 1
-
 		for loan in open_loans:
 			try:
 				update_days_past_due_in_loans(
@@ -35,6 +33,9 @@ class ProcessLoanClassification(Document):
 					ignore_freeze=True if self.payment_reference else False,
 					is_backdated=self.is_backdated,
 				)
+
+				if len(open_loans) > 1:
+					frappe.db.commit()
 			except Exception as e:
 				if len(open_loans) == 1:
 					raise e
@@ -45,8 +46,7 @@ class ProcessLoanClassification(Document):
 						reference_doctype="Loan",
 						reference_name=loan,
 					)
-
-		frappe.db.auto_commit_on_many_writes = 0
+					frappe.db.rollback()
 
 
 def create_process_loan_classification(
