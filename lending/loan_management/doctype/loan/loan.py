@@ -940,14 +940,16 @@ def update_loan_and_customer_status(
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0 or freeze_date:
+			prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
+			if prev_npa:
+				for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
+					loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
+					write_off_suspense_entries(loan_id, loan_product, posting_date, company)
+					write_off_charges(loan_id, posting_date, company)
+
 			update_all_linked_loan_customer_npa_status(
 				is_npa, applicant_type, applicant, posting_date, loan
 			)
-
-			for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-				loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
-				write_off_suspense_entries(loan_id, loan_product, posting_date, company)
-				write_off_charges(loan_id, posting_date, company)
 
 
 def get_all_active_loans_for_the_customer(applicant, applicant_type):
