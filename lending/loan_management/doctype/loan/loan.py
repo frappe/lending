@@ -868,6 +868,7 @@ def update_loan_and_customer_status(
 				"docstatus": 1,
 			},
 			"max(days_past_due)",
+			update_modified=False,
 		)
 		days_past_due = max_dpd
 
@@ -879,6 +880,7 @@ def update_loan_and_customer_status(
 			"classification_code": classification_code,
 			"classification_name": classification_name,
 		},
+		update_modified=False,
 	)
 
 	if fldg_triggered:
@@ -889,6 +891,7 @@ def update_loan_and_customer_status(
 				"fldg_triggered": 1,
 				"fldg_trigger_date": posting_date,
 			},
+			update_modified=False,
 		)
 
 		make_fldg_invocation_jv(loan, posting_date)
