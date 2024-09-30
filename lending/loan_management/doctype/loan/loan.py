@@ -851,16 +851,16 @@ def update_loan_and_customer_status(
 		days_past_due, company, is_written_off=is_written_off
 	)
 
-	if loan_disbursement:
-		frappe.db.set_value(
-			"Loan Disbursement",
-			loan_disbursement,
-			{
-				"days_past_due": days_past_due,
-			},
-		)
-
 	if repayment_schedule_type == "Line of Credit":
+		if loan_disbursement:
+			frappe.db.set_value(
+				"Loan Disbursement",
+				loan_disbursement,
+				{
+					"days_past_due": days_past_due,
+				},
+			)
+
 		max_dpd = frappe.db.get_value(
 			"Loan Disbursement",
 			{
