@@ -429,6 +429,8 @@ def calculate_penal_interest_for_loans(
 	for demand in demands:
 		penal_interest_amount = 0
 		additional_interest = 0
+		on_migrate = False
+
 		if getdate(posting_date) > add_days(demand.demand_date, grace_period_days):
 			last_accrual_date = get_last_accrual_date(
 				loan.name,
@@ -445,10 +447,11 @@ def calculate_penal_interest_for_loans(
 					"Penal Interest",
 					loan_repayment_schedule=demand.loan_repayment_schedule,
 				)
+				on_migrate = True
 
 			if not last_accrual_date:
 				from_date = add_days(demand.demand_date, 1)
-			else:
+			elif not on_migrate:
 				from_date = add_days(last_accrual_date, 1)
 
 			no_of_days = date_diff(posting_date, from_date) + 1
