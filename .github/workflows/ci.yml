@@ -99,8 +99,8 @@ jobs:
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          FRAPPE_USER: ${{ github.event.inputs.user }}
-          FRAPPE_BRANCH: ${{ github.event.inputs.branch }}
+          FRAPPE_USER: blaggacao
+          FRAPPE_BRANCH: feat/add-read-only-document-context-to-mapper
 
 
       - name: Run Tests
