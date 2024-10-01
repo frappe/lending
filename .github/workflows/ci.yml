@@ -21,8 +21,6 @@ on:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"
-env:
-    LENDING_BRANCH: ${{ github.base_ref || github.ref_name }}
 
 concurrency:
   group: develop-${{ github.event.number }}
@@ -101,7 +99,8 @@ jobs:
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
+          FRAPPE_USER: blaggacao
+          FRAPPE_BRANCH: feat/add-read-only-document-context-to-mapper
 
 
       - name: Run Tests
