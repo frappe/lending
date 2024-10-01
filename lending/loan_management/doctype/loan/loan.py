@@ -859,6 +859,7 @@ def update_loan_and_customer_status(
 				{
 					"days_past_due": days_past_due,
 				},
+				update_modified=False,
 			)
 
 		max_dpd = frappe.db.get_value(
@@ -868,7 +869,6 @@ def update_loan_and_customer_status(
 				"docstatus": 1,
 			},
 			"max(days_past_due)",
-			update_modified=False,
 		)
 		days_past_due = max_dpd
 
