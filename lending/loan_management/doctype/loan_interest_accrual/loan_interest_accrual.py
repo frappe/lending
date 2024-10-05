@@ -320,7 +320,7 @@ def make_loan_interest_accrual_entry(
 
 
 def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disbursement=None):
-	filters = {"loan": loan, "docstatus": 1, "status": "Active", "posting_date": ("<", posting_date)}
+	filters = {"loan": loan, "docstatus": 1, "status": "Active", "posting_date": ("<=", posting_date)}
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
@@ -685,7 +685,7 @@ def get_last_accrual_date(
 			else:
 				final_date = dates.posting_date
 
-			return add_days(final_date, 1)
+			return final_date
 
 	last_disbursement_date = get_last_disbursement_date(
 		loan, posting_date, loan_disbursement=loan_disbursement
