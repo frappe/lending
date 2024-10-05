@@ -369,7 +369,7 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disburseme
 def get_principal_amount_for_term_loan(repayment_schedule, date):
 	principal_amount = frappe.db.get_value(
 		"Repayment Schedule",
-		{"parent": repayment_schedule, "payment_date": ("<", date)},
+		{"parent": repayment_schedule, "payment_date": ("<=", date)},
 		"balance_loan_amount",
 		order_by="payment_date DESC",
 		cache=True,
