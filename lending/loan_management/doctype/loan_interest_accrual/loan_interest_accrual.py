@@ -487,7 +487,7 @@ def calculate_penal_interest_for_loans(
 				if not is_future_accrual:
 					make_loan_interest_accrual_entry(
 						loan.name,
-						demand.outstanding_amount,
+						demand.pending_amount,
 						penal_interest_amount,
 						process_loan_interest,
 						from_date,
@@ -701,7 +701,7 @@ def get_last_accrual_date(
 		if last_disbursement_date and getdate(last_disbursement_date) > getdate(
 			last_interest_accrual_date
 		):
-			last_interest_accrual_date = last_disbursement_date
+			last_interest_accrual_date = add_days(last_disbursement_date, -1)
 
 		return last_interest_accrual_date
 	else:
@@ -720,7 +720,7 @@ def get_last_accrual_date(
 		):
 			last_interest_accrual_date = add_days(moratorium_details.moratorium_end_date, 1)
 		else:
-			last_interest_accrual_date = last_disbursement_date
+			last_interest_accrual_date = add_days(last_disbursement_date, -1)
 
 		return last_interest_accrual_date
 
