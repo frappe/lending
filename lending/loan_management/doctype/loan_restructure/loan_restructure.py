@@ -305,9 +305,11 @@ class LoanRestructure(AccountsController):
 
 	def cancel_repayment_schedule(self):
 
-		schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan_restructure": self.name, "docstatus": 1}, "name"
-		)
+		filters = {"loan_restructure": self.name, "docstatus": 1}
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 
 		doc = frappe.get_doc("Loan Repayment Schedule", schedule)
 		doc.reverse_interest_accruals = 1
