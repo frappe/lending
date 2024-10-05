@@ -734,7 +734,7 @@ def update_days_past_due_in_loans(
 			fldg_triggered = 0
 
 			dpd_date = freeze_date or posting_date
-			days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date))
+			days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date)) + 1
 			if days_past_due < 0:
 				days_past_due = 0
 
