@@ -450,11 +450,11 @@ def calculate_penal_interest_for_loans(
 				on_migrate = True
 
 			if not last_accrual_date:
-				from_date = add_days(demand.demand_date)
+				from_date = demand.demand_date
 			elif on_migrate:
 				from_date = last_accrual_date
 				if getdate(from_date) <= getdate(demand.demand_date):
-					from_date = add_days(demand.demand_date)
+					from_date = demand.demand_date
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
