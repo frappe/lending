@@ -733,7 +733,7 @@ def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
 	else:
 		field = "MAX(disbursement_date)"
 
-	filters = {"docstatus": 1, "against_loan": loan, "posting_date": ("<", posting_date)}
+	filters = {"docstatus": 1, "against_loan": loan, "posting_date": ("<=", posting_date)}
 
 	if loan_disbursement:
 		filters["name"] = loan_disbursement
