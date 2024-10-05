@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
@@ -40,7 +40,9 @@ class LoanDemand(AccountsController):
 		self.update_repayment_schedule()
 
 		if self.is_term_loan and self.demand_type == "EMI" and self.demand_subtype == "Interest":
-			process_loan_interest_accrual_for_loans(posting_date=self.demand_date, loan=self.loan)
+			process_loan_interest_accrual_for_loans(
+				posting_date=add_days(self.demand_date, -1), loan=self.loan
+			)
 
 	def update_repayment_schedule(self, cancel=0):
 		if self.repayment_schedule_detail:
