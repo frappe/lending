@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate
+from frappe.utils import add_days, getdate
 
 
 class ProcessLoanClassification(Document):
@@ -85,7 +85,7 @@ def get_batches(open_loans, batch_size):
 def create_process_loan_classification(
 	posting_date=None, loan_product=None, loan=None, payment_reference=None, is_backdated=0
 ):
-	posting_date = posting_date or getdate()
+	posting_date = posting_date or add_days(getdate(), -1)
 	process_loan_classification = frappe.new_doc("Process Loan Classification")
 	process_loan_classification.posting_date = posting_date
 	process_loan_classification.loan_product = loan_product
