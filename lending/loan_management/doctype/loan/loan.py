@@ -1434,3 +1434,13 @@ def auto_close_loc_loans(posting_date=None):
 
 	if loc_loans:
 		frappe.qb.update("Loan").set("status", "Closed").where(loan.name.isin(loc_loans)).run()
+
+
+def get_voucher_subtypes(doc):
+	voucher_subtypes = {
+		"Loan Repayment": "repayment_type",
+		"Loan Interest Accrual": "interest_type",
+		"Loan Demand": "demand_subtype",
+	}
+
+	return doc.get(voucher_subtypes.get(doc.doctype))

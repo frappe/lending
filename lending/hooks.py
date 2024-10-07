@@ -17,6 +17,7 @@ audit_trail_doctypes = [
 	"Loan Write Off",
 ]
 
+voucher_subtypes = "lending.loan_management.doctype.loan.loan.get_voucher_subtypes"
 
 # Includes in <head>
 # ------------------
