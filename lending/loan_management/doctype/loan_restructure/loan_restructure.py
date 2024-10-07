@@ -43,11 +43,12 @@ class LoanRestructure(AccountsController):
 			frappe.throw(_("Another Loan Restructure is already initiated for this Loan"))
 
 	def validate_restructure_date(self):
-		max_due_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": self.loan, "docstatus": 1}, "max(posting_date)"
-		)
-		if max_due_date and getdate(self.restructure_date) < getdate(max_due_date):
-			frappe.throw(_("Restructure Date cannot be before last due date {0}").format(max_due_date))
+		if self.restructure_type == "Normal Restructure":
+			max_due_date = frappe.db.get_value(
+				"Loan Interest Accrual", {"loan": self.loan, "docstatus": 1}, "max(posting_date)"
+			)
+			if max_due_date and getdate(self.restructure_date) < getdate(max_due_date):
+				frappe.throw(_("Restructure Date cannot be before last due date {0}").format(max_due_date))
 
 	def after_insert(self):
 		self.make_update_draft_loan_repayment_schedule()
