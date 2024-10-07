@@ -771,6 +771,13 @@ class LoanRepayment(AccountsController):
 				"Loan", self.against_loan, ["status", "repayment_schedule_type"]
 			)
 
+			if self.loan_disbursement:
+				loan_disbursement = frappe.qb.DocType("Loan Disbursement")
+				frappe.qb.update(loan_disbursement).set(
+					loan_disbursement.principal_amount_paid,
+					loan_disbursement.principal_amount_paid - self.principal_amount_paid,
+				).where(loan_disbursement.name == self.loan_disbursement).run()
+
 			query = (
 				frappe.qb.update(loan)
 				.set(loan.total_amount_paid, loan.total_amount_paid - self.amount_paid)
