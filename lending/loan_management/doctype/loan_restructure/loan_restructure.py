@@ -375,6 +375,7 @@ class LoanRestructure(AccountsController):
 			self.status != "Rejected"
 			and self.restructure_type != "Advance Payment"
 			and self.new_loan_amount > self.disbursed_amount
+			and not self.loan_disbursement
 		):
 			frappe.throw(frappe._("New Loan Amount cannot be greater than original disbursed amount"))
 
