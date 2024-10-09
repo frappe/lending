@@ -159,6 +159,7 @@ class Loan(AccountsController):
 				nowdate(),
 				loan=self.name,
 				manual_npa=self.manual_npa,
+				via_background_job=False,
 			)
 			if self.manual_npa:
 				move_unpaid_interest_to_suspense_ledger(self.name)
@@ -694,6 +695,7 @@ def update_days_past_due_in_loans(
 	process_loan_classification=None,
 	ignore_freeze=False,
 	is_backdated=0,
+	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -714,7 +716,6 @@ def update_days_past_due_in_loans(
 
 		threshold_map = get_dpd_threshold_map()
 		threshold_write_off_map = get_dpd_threshold_write_off_map()
-		loan_partner_threshold_map = get_loan_partner_threshold_map()
 
 		loan_details = frappe.db.get_value(
 			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
@@ -731,7 +732,6 @@ def update_days_past_due_in_loans(
 		if demand:
 			demand = demand[0]
 			is_npa = 0
-			fldg_triggered = 0
 
 			dpd_date = freeze_date or posting_date
 			days_past_due = date_diff(getdate(dpd_date), getdate(demand.demand_date)) + 1
@@ -740,13 +740,8 @@ def update_days_past_due_in_loans(
 
 			threshold = threshold_map.get(demand.loan_product, 0)
 
-			fldg_trigger_dpd = loan_partner_threshold_map.get(demand.loan_partner, 0)
-
 			if days_past_due and threshold and days_past_due > threshold:
 				is_npa = 1
-
-			if days_past_due and fldg_trigger_dpd and days_past_due > fldg_trigger_dpd:
-				fldg_triggered = 1
 
 			if freeze_date:
 				days_past_due = 0
@@ -759,12 +754,12 @@ def update_days_past_due_in_loans(
 				applicant,
 				days_past_due,
 				is_npa,
-				fldg_triggered,
 				posting_date or getdate(),
 				freeze_date=freeze_date,
 				loan_disbursement=disbursement,
 				is_backdated=is_backdated,
 				dpd_threshold=threshold,
+				via_background_job=via_background_job,
 			)
 
 			create_dpd_record(
@@ -787,11 +782,11 @@ def update_days_past_due_in_loans(
 				applicant,
 				0,
 				0,
-				0,
 				posting_date or getdate(),
 				loan_disbursement=disbursement,
 				is_backdated=is_backdated,
 				dpd_threshold=threshold,
+				via_background_job=via_background_job,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
@@ -826,12 +821,12 @@ def update_loan_and_customer_status(
 	applicant,
 	days_past_due,
 	is_npa,
-	fldg_triggered,
 	posting_date,
 	freeze_date=None,
 	loan_disbursement=None,
 	is_backdated=0,
 	dpd_threshold=0,
+	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_charges,
@@ -872,30 +867,6 @@ def update_loan_and_customer_status(
 		)
 		days_past_due = max_dpd
 
-	frappe.db.set_value(
-		"Loan",
-		loan,
-		{
-			"days_past_due": days_past_due,
-			"classification_code": classification_code,
-			"classification_name": classification_name,
-		},
-		update_modified=False,
-	)
-
-	if fldg_triggered:
-		frappe.db.set_value(
-			"Loan",
-			loan,
-			{
-				"fldg_triggered": 1,
-				"fldg_trigger_date": posting_date,
-			},
-			update_modified=False,
-		)
-
-		make_fldg_invocation_jv(loan, posting_date)
-
 	if loan_status == "Settled":
 		write_off_suspense_entries(loan, loan_product, posting_date, company)
 		write_off_charges(loan, posting_date, company)
@@ -935,7 +906,9 @@ def update_loan_and_customer_status(
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date)
 
-		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
+		update_all_linked_loan_customer_npa_status(
+			is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
+		)
 	else:
 		max_dpd = frappe.db.get_value(
 			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
@@ -951,8 +924,19 @@ def update_loan_and_customer_status(
 					write_off_charges(loan_id, posting_date, company)
 
 				update_all_linked_loan_customer_npa_status(
-					is_npa, applicant_type, applicant, posting_date, loan
+					is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
 				)
+
+	frappe.db.set_value(
+		"Loan",
+		loan,
+		{
+			"days_past_due": days_past_due,
+			"classification_code": classification_code,
+			"classification_name": classification_name,
+		},
+		update_modified=False,
+	)
 
 
 def get_all_active_loans_for_the_customer(applicant, applicant_type):
@@ -969,10 +953,28 @@ def get_all_active_loans_for_the_customer(applicant, applicant_type):
 
 
 def update_all_linked_loan_customer_npa_status(
-	is_npa, applicant_type, applicant, posting_date, loan=None, manual_npa=False
+	is_npa,
+	applicant_type,
+	applicant,
+	posting_date,
+	loan=None,
+	manual_npa=False,
+	via_background_job=False,
 ):
 	"""Update NPA status of all linked customers"""
-	update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
+	if not via_background_job:
+		update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
+	else:
+		update_value = {
+			"is_npa": is_npa,
+		}
+
+		if manual_npa:
+			update_value["manual_npa"] = manual_npa
+
+		frappe.db.set_value("Loan", loan, update_value)
+
+	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
 	if loan:
 		create_loan_npa_log(loan, posting_date, is_npa, "Background Job", manual_npa=manual_npa)
@@ -1005,8 +1007,6 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 			update_value["manual_npa"] = manual_npa
 
 		frappe.db.set_value("Loan", loan.name, update_value)
-
-	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
 
 def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):

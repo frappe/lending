@@ -19,7 +19,7 @@ class ProcessLoanClassification(Document):
 		if self.loan_product:
 			filters["loan_product"] = self.loan_product
 
-		open_loans = frappe.get_all("Loan", filters=filters, pluck="name")
+		open_loans = frappe.get_all("Loan", filters=filters, pluck="name", order_by="applicant")
 
 		if self.loan:
 			process_loan_classification_batch(
@@ -42,12 +42,19 @@ class ProcessLoanClassification(Document):
 					classification_process=self.name,
 					payment_reference=self.payment_reference,
 					is_backdated=self.is_backdated,
+					via_scheduler=True,
 					queue="long",
 				)
 
 
 def process_loan_classification_batch(
-	open_loans, posting_date, loan_product, classification_process, payment_reference, is_backdated
+	open_loans,
+	posting_date,
+	loan_product,
+	classification_process,
+	payment_reference,
+	is_backdated,
+	via_scheduler=False,
 ):
 	from lending.loan_management.doctype.loan.loan import update_days_past_due_in_loans
 
@@ -60,6 +67,7 @@ def process_loan_classification_batch(
 				process_loan_classification=classification_process,
 				ignore_freeze=True if payment_reference else False,
 				is_backdated=is_backdated,
+				via_background_job=via_scheduler,
 			)
 
 			if len(open_loans) > 1:
