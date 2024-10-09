@@ -434,7 +434,7 @@ class LoanRepaymentSchedule(Document):
 		if (
 			self.restructure_type != "Normal Restructure"
 			and self.repayment_frequency == "Monthly"
-			or self.restructure_type == "Pre Payment"
+			or (self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time")
 		):
 			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 			if (
