@@ -401,6 +401,7 @@ def calculate_penal_interest_for_loans(
 	is_future_accrual=0,
 	accrual_date=None,
 	loan_disbursement=None,
+	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -501,11 +502,16 @@ def calculate_penal_interest_for_loans(
 						loan_repayment_schedule_detail=demand.repayment_schedule_detail,
 					)
 
+					if via_background_job:
+						demand_date = add_days(posting_date, 1)
+					else:
+						demand_date = posting_date
+
 					if loan_status != "Written Off":
 						if penal_interest_amount - additional_interest > 0:
 							create_loan_demand(
 								loan.name,
-								add_days(posting_date, 1),
+								demand_date,
 								"Penalty",
 								"Penalty",
 								penal_interest_amount - additional_interest,
@@ -516,7 +522,7 @@ def calculate_penal_interest_for_loans(
 						if additional_interest > 0:
 							create_loan_demand(
 								loan.name,
-								add_days(posting_date, 1),
+								demand_date,
 								"Additional Interest",
 								"Additional Interest",
 								additional_interest,
@@ -597,6 +603,7 @@ def make_accrual_interest_entry_for_loans(
 				process_loan_interest=process_loan_interest,
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
+				via_background_job=True,
 				queue="long",
 			)
 
@@ -607,7 +614,7 @@ def get_batches(open_loans, batch_size):
 
 
 def process_interest_accrual_batch(
-	loans, posting_date, process_loan_interest, accrual_type, accrual_date
+	loans, posting_date, process_loan_interest, accrual_type, accrual_date, via_background_job=False
 ):
 	for loan in loans:
 		try:
@@ -617,6 +624,7 @@ def process_interest_accrual_batch(
 				process_loan_interest=process_loan_interest,
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
+				via_background_job=via_background_job,
 			)
 			calculate_accrual_amount_for_loans(
 				loan,
