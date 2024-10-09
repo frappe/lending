@@ -2,16 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Assignment', {
-	onload: function(frm) {
-		frm.set_query("loan_security", "securities", function() {
-			return {
-				"filters": {
-					"status": "Pending Hypothecation",
-				}
-			};
-		});
-	},
-
 	refresh: function(frm) {
 		if (frm.doc.status === "Release Requested") {
 			frm.add_custom_button(__("Release"), function() {

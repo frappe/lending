@@ -4,16 +4,6 @@
 lending.common.setup_filters("Loan Application");
 
 frappe.ui.form.on('Loan Application', {
-	onload: function(frm) {
-		frm.set_query("loan_security", "proposed_pledges", function() {
-			return {
-				"filters": {
-					"status": "Pending Hypothecation",
-				}
-			};
-		});
-	},
-
 	setup: function(frm) {
 		frm.make_methods = {
 			'Loan': function() { frm.trigger('create_loan') },
