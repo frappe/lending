@@ -176,7 +176,8 @@
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
    "label": "Loan Disbursement",
-   "options": "Loan Disbursement"
+   "options": "Loan Disbursement",
+   "search_index": 1
   },
   {
    "fetch_from": "loan_repayment_schedule.posting_date",
@@ -228,7 +229,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-19 14:49:49.410952",
+ "modified": "2024-10-09 22:53:57.887899",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

@@ -220,7 +220,8 @@
    "fieldtype": "Link",
    "label": "Loan Disbursement",
    "options": "Loan Disbursement",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "broken_period_interest",
@@ -368,7 +369,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-25 21:21:31.038679",
+ "modified": "2024-10-09 22:53:05.772537",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

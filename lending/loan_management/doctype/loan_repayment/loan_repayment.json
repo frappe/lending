@@ -370,7 +370,8 @@
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
    "label": "Loan Disbursement",
-   "options": "Loan Disbursement"
+   "options": "Loan Disbursement",
+   "search_index": 1
   },
   {
    "fieldname": "total_charges_paid",
@@ -504,7 +505,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-13 14:47:08.313887",
+ "modified": "2024-10-09 22:21:16.665653",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

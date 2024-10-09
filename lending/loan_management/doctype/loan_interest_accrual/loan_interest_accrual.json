@@ -230,14 +230,15 @@
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
    "label": "Loan Disbursement",
-   "options": "Loan Disbursement"
+   "options": "Loan Disbursement",
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-20 11:21:20.217280",
+ "modified": "2024-10-09 22:53:31.070811",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
