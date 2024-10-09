@@ -981,8 +981,8 @@ def update_all_linked_loan_customer_npa_status(
 def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=False):
 	_loan = frappe.qb.DocType("Loan")
 	query = (
-		frappe.qb.update(_loan)
-		.set(_loan.is_npa, is_npa)
+		frappe.qb.from_(_loan)
+		.select(_loan.name)
 		.where(
 			(_loan.docstatus == 1)
 			& (_loan.unmark_npa == 0)
@@ -993,10 +993,18 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 		)
 	)
 
-	if manual_npa:
-		query = query.set(_loan.manual_npa, manual_npa)
+	query = query.for_update()
+	loans = query.run(as_dict=1)
 
-	query.run()
+	for loan in loans:
+		update_value = {
+			"is_npa": is_npa,
+		}
+
+		if manual_npa:
+			update_value["manual_npa"] = manual_npa
+
+		frappe.db.set_value("Loan", loan.name, update_value)
 
 	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
