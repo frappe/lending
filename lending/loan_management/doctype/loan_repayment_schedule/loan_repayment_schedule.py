@@ -543,7 +543,9 @@ class LoanRepaymentSchedule(Document):
 					self.repayment_start_date = prev_schedule.repayment_start_date
 					prev_days = date_diff(self.posting_date, prev_schedule.posting_date)
 					interest_amount = flt(prev_balance_amount * flt(self.rate_of_interest) * prev_days / (36500))
-					self.broken_period_interest += interest_amount
+
+					if self.repayment_frequency != "One Time":
+						self.broken_period_interest += interest_amount
 				else:
 					prev_balance_amount = prev_schedule.current_principal_amount
 					previous_interest_amount = prev_schedule.get(schedule_field)[0].interest_amount
