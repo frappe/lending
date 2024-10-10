@@ -162,7 +162,13 @@ class LoanRepaymentSchedule(Document):
 
 		if cint(self.get("reverse_interest_accruals")):
 			reverse_loan_interest_accruals(self.loan, self.posting_date, loan_repayment_schedule=self.name)
-			reverse_demands(self.loan, self.posting_date, loan_repayment_schedule=self.name)
+
+			if self.restructure_type in ("Advance Payment", "Pre Payment"):
+				date = add_days(self.posting_date, 1)
+			else:
+				date = self.posting_date
+
+			reverse_demands(self.loan, date, loan_repayment_schedule=self.name)
 
 		self.ignore_linked_doctypes = ["Loan Interest Accrual", "Loan Demand"]
 
