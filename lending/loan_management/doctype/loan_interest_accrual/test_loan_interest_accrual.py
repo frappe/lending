@@ -18,7 +18,7 @@ from lending.loan_management.doctype.loan.test_loan import (
 	set_loan_settings_in_company,
 )
 from lending.loan_management.doctype.loan_application.loan_application import (
-	create_loan_security_assignment_from_loan_application,
+	create_loan_security_assignment,
 )
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
@@ -93,7 +93,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant, "Demand Loan", pledge
 		)
-		create_loan_security_assignment_from_loan_application(loan_application)
+		create_loan_security_assignment(loan_application)
 		loan = create_demand_loan(
 			self.applicant, "Demand Loan", loan_application, posting_date=get_first_day(nowdate())
 		)
@@ -188,7 +188,7 @@ class TestLoanInterestAccrual(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant, "Demand Loan", pledge
 		)
-		create_loan_security_assignment_from_loan_application(loan_application)
+		create_loan_security_assignment(loan_application)
 		loan = create_demand_loan(
 			self.applicant, "Demand Loan", loan_application, posting_date=get_first_day(nowdate())
 		)

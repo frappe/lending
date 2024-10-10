@@ -81,7 +81,7 @@ frappe.ui.form.on('Loan Application', {
 		}
 
 		frappe.call({
-			method: "lending.loan_management.doctype.loan_application.loan_application.create_loan_security_assignment_from_loan_application",
+			method: "lending.loan_management.doctype.loan_application.loan_application.create_loan_security_assignment",
 			args: {
 				loan_application: frm.doc.name
 			},
