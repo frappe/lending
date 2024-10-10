@@ -463,7 +463,7 @@ def calculate_penal_interest_for_loans(
 
 			penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate * no_of_days / 36500
 
-			if penal_interest_amount > 0:
+			if flt(penal_interest_amount, precision) > 0:
 				total_penal_interest += penal_interest_amount
 
 				principal_amount = frappe.db.get_value(
@@ -519,7 +519,7 @@ def calculate_penal_interest_for_loans(
 								loan_disbursement=demand.loan_disbursement,
 							)
 
-						if additional_interest > 0:
+						if flt(additional_interest, precision) > 0:
 							create_loan_demand(
 								loan.name,
 								demand_date,
