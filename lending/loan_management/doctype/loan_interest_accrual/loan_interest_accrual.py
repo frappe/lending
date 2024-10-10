@@ -605,6 +605,7 @@ def make_accrual_interest_entry_for_loans(
 				accrual_date=accrual_date,
 				via_background_job=True,
 				queue="long",
+				enqueue_after_commit=True,
 			)
 
 

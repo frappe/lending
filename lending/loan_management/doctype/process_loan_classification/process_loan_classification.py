@@ -44,6 +44,7 @@ class ProcessLoanClassification(Document):
 					is_backdated=self.is_backdated,
 					via_scheduler=True,
 					queue="long",
+					enqueue_after_commit=True,
 				)
 
 
