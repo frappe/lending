@@ -81,7 +81,7 @@ class LoanRepaymentSchedule(Document):
 			)
 
 			interest_amount = prepayment_details.unaccrued_interest
-			principal_amount = prepayment_details.principal_adjusted
+			principal_amount = abs(prepayment_details.balance_principal)
 			principal_balance = prepayment_details.balance_principal
 			paid_interest_amount = interest_amount
 			paid_principal_amount = principal_amount
