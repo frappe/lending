@@ -24,7 +24,7 @@ from lending.loan_management.doctype.loan.loan import (
 	unpledge_security,
 )
 from lending.loan_management.doctype.loan_application.loan_application import (
-	create_loan_security_assignment,
+	create_loan_security_assignment_from_loan_application_from_loan_application,
 )
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
@@ -205,7 +205,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledge, "Repay Over Number of Periods", 12
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -219,7 +219,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledge, "Repay Over Number of Periods", 12
 		)
 
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -281,7 +281,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant3, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 		loan = create_demand_loan(
 			self.applicant3, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
@@ -299,7 +299,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -360,7 +360,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
@@ -416,7 +416,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2,
@@ -467,7 +467,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -505,7 +505,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -565,7 +565,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -601,7 +601,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -630,7 +630,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -669,7 +669,7 @@ class TestLoan(unittest.TestCase):
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
 
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_loan_with_security(
 			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
@@ -687,7 +687,7 @@ class TestLoan(unittest.TestCase):
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Demand Loan", pledge
 		)
-		create_loan_security_assignment(loan_application)
+		create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		loan = create_demand_loan(
 			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -737,7 +737,7 @@ class TestLoan(unittest.TestCase):
 		# loan_application = create_loan_application(
 		# 	"_Test Company", self.applicant2, "Demand Loan", pledge
 		# )
-		# create_loan_security_assignment(loan_application)
+		# create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 		# loan = create_demand_loan(
 		# 	self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
@@ -1294,7 +1294,7 @@ def create_secured_demand_loan(applicant, disbursement_amount=None):
 	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 	loan_application = create_loan_application("_Test Company", applicant, "Demand Loan", pledge)
-	create_loan_security_assignment(loan_application)
+	create_loan_security_assignment_from_loan_application_from_loan_application(loan_application)
 
 	loan = create_demand_loan(applicant, "Demand Loan", loan_application, posting_date="2019-10-01")
 	loan.submit()
@@ -1314,7 +1314,7 @@ def create_loan_scenario_for_penalty(doc):
 	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 	loan_application = create_loan_application("_Test Company", doc.applicant2, "Demand Loan", pledge)
-	create_loan_security_assignment(loan_application)
+	create_loan_security_assignment_from_loan_application(loan_application)
 	loan = create_demand_loan(
 		doc.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 	)
