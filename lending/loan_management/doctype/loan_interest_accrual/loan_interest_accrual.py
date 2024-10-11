@@ -486,21 +486,22 @@ def calculate_penal_interest_for_loans(
 				additional_interest = flt(per_day_interest * no_of_days, precision)
 
 				if not is_future_accrual:
-					make_loan_interest_accrual_entry(
-						loan.name,
-						demand.pending_amount,
-						penal_interest_amount,
-						process_loan_interest,
-						from_date,
-						posting_date,
-						accrual_type,
-						"Penal Interest",
-						penal_interest_rate,
-						loan_demand=demand.name,
-						additional_interest=additional_interest,
-						accrual_date=accrual_date,
-						loan_repayment_schedule_detail=demand.repayment_schedule_detail,
-					)
+					if flt(penal_interest_amount, precision) > 0:
+						make_loan_interest_accrual_entry(
+							loan.name,
+							demand.pending_amount,
+							penal_interest_amount,
+							process_loan_interest,
+							from_date,
+							posting_date,
+							accrual_type,
+							"Penal Interest",
+							penal_interest_rate,
+							loan_demand=demand.name,
+							additional_interest=additional_interest,
+							accrual_date=accrual_date,
+							loan_repayment_schedule_detail=demand.repayment_schedule_detail,
+						)
 
 					if via_background_job:
 						demand_date = add_days(posting_date, 1)
