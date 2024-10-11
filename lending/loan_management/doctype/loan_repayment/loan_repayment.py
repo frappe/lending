@@ -1395,10 +1395,10 @@ class LoanRepayment(AccountsController):
 		partner_details = frappe.db.get_value(
 			"Loan Partner",
 			self.loan_partner,
-			["credit_account", "payable_account", "partner_interest_share"],
+			["credit_account", "payable_account", "partner_interest_share", "enable_partner_accounting"],
 			as_dict=1,
 		)
-		if self.get("loan_partner"):
+		if self.get("loan_partner") and partner_details.enable_partner_accounting:
 			if flt(self.total_partner_principal_share, precision) > 0:
 				self.add_gl_entry(
 					partner_details.credit_account,

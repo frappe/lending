@@ -103,6 +103,7 @@ def get_loan_partner_details(loan_partner):
 			"repayment_schedule_type",
 			"receivable_account",
 			"credit_account",
+			"enable_partner_accounting",
 		],
 		as_dict=True,
 	)

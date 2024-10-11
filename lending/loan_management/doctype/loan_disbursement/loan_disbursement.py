@@ -641,13 +641,14 @@ class LoanDisbursement(AccountsController):
 
 		if self.loan_partner:
 			loan_partner_details = get_loan_partner_details(self.loan_partner)
-			self.add_gl_entry(
-				gle_map,
-				loan_partner_details.receivable_account,
-				loan_partner_details.credit_account,
-				(self.disbursed_amount * loan_partner_details.partner_loan_share_percentage) / 100,
-				remarks,
-			)
+			if loan_partner_details.enable_partner_accounting:
+				self.add_gl_entry(
+					gle_map,
+					loan_partner_details.receivable_account,
+					loan_partner_details.credit_account,
+					(self.disbursed_amount * loan_partner_details.partner_loan_share_percentage) / 100,
+					remarks,
+				)
 
 		self.add_bpi_difference_entry(gle_map)
 

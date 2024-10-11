@@ -19,6 +19,7 @@
   "effective_date",
   "partner_base_interest_rate",
   "incremental_interest_applicable",
+  "enable_partner_accounting",
   "interest_increment_percentage",
   "section_break_mpap",
   "column_break_gpwj",
@@ -269,11 +270,17 @@
    "fieldname": "partial_payment_mechanism",
    "fieldtype": "Data",
    "label": "Partial Payment Mechanism"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_partner_accounting",
+   "fieldtype": "Check",
+   "label": "Enable Partner Accounting"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-19 14:40:50.301956",
+ "modified": "2024-10-11 10:29:14.109028",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Partner",
