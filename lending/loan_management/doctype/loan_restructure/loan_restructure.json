@@ -20,6 +20,7 @@
   "company",
   "restructure_date",
   "reason_for_restructure",
+  "old_repayment_frequency",
   "loan_details_section",
   "loan_product",
   "old_tenure",
@@ -133,7 +134,6 @@
    "label": "Pre Restructure Details"
   },
   {
-   "fetch_from": "loan.disbursed_amount",
    "fieldname": "disbursed_amount",
    "fieldtype": "Currency",
    "label": "Disbursed Amount",
@@ -515,12 +515,18 @@
    "fieldtype": "Link",
    "label": "Loan Disbursement",
    "options": "Loan Disbursement"
+  },
+  {
+   "fetch_from": "loan.repayment_frequency",
+   "fieldname": "old_repayment_frequency",
+   "fieldtype": "Data",
+   "label": "Old Repayment Frequency"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-19 19:56:46.699456",
+ "modified": "2024-10-15 19:17:39.225483",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

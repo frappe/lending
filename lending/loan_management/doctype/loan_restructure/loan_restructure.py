@@ -455,7 +455,7 @@ class LoanRestructure(AccountsController):
 			"loan_amount": self.new_loan_amount,
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
-			"repayment_frequency": "Monthly",
+			"repayment_frequency": self.old_repayment_frequency,
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,

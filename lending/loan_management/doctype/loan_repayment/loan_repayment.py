@@ -490,9 +490,18 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
 	def check_future_entries(self):
+		filters = {
+			"posting_date": (">", self.posting_date),
+			"docstatus": 1,
+			"against_loan": self.against_loan,
+		}
+
+		if self.loan_disbursement and self.repayment_schedule_type == "Line of Credit":
+			filters["loan_disbursement"] = self.loan_disbursement
+
 		future_repayment_date = frappe.db.get_value(
 			"Loan Repayment",
-			{"posting_date": (">", self.posting_date), "docstatus": 1, "against_loan": self.against_loan},
+			filters,
 			"posting_date",
 		)
 
