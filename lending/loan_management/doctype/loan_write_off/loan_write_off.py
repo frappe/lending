@@ -83,9 +83,18 @@ class LoanWriteOff(AccountsController):
 
 	def process_unbooked_interest(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-		from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unbooked_interest
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+			get_last_demand_date,
+			get_unbooked_interest,
+		)
 
-		unbooked_interest, unbooked_penalty = get_unbooked_interest(self.loan, self.posting_date)
+		last_demand_date = get_last_demand_date(
+			self.loan, self.posting_date, loan_disbursement=self.loan_disbursement
+		)
+
+		unbooked_interest, unbooked_penalty = get_unbooked_interest(
+			self.loan, self.posting_date, last_demand_date=last_demand_date
+		)
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if flt(unbooked_interest) > 0:

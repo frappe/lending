@@ -467,12 +467,13 @@ class LoanRepaymentSchedule(Document):
 		) or self.restructure_type in ("Advance Payment", "Pre Payment"):
 			filters = {"loan": self.loan, "docstatus": 1, "status": "Active"}
 
-			if self.loan_disbursement:
+			if self.loan_disbursement and self.repayment_schedule_type == "Line of Credit":
 				filters["loan_disbursement"] = self.loan_disbursement
 
 			prev_schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 			if prev_schedule:
-				self.loan_disbursement = prev_schedule.loan_disbursement
+				if self.restructure_type:
+					self.loan_disbursement = prev_schedule.loan_disbursement
 
 				after_bpi = 0
 				prev_repayment_date = prev_schedule.posting_date

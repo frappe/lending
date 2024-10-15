@@ -1081,7 +1081,10 @@ def get_loan_partner_threshold_map():
 
 
 def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unbooked_interest
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_last_demand_date,
+		get_unbooked_interest,
+	)
 
 	if not posting_date:
 		posting_date = getdate()
@@ -1089,7 +1092,11 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
 	company = frappe.db.get_value("Loan", loan, "company")
 
-	unbooked_interest, accrued_interest = get_unbooked_interest(loan, posting_date)
+	last_demand_date = get_last_demand_date(loan, posting_date)
+
+	unbooked_interest, accrued_interest = get_unbooked_interest(
+		loan, posting_date, last_demand_date=last_demand_date
+	)
 
 	accounts = frappe.db.get_value(
 		"Loan Product",

@@ -97,7 +97,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		if not self.principal_amount_paid >= self.pending_principal_amount:
-			if not self.is_term_loan or self.repayment_type in ("Advance Payment", "Pre Payment"):
+			if self.is_term_loan and self.repayment_type in ("Advance Payment", "Pre Payment"):
 				amounts = calculate_amounts(
 					self.against_loan,
 					self.posting_date,
@@ -663,9 +663,17 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		unbooked_interest, accrued_interest = get_unbooked_interest(
+		last_demand_date = get_last_demand_date(
 			self.against_loan, self.posting_date, loan_disbursement=self.loan_disbursement
 		)
+
+		unbooked_interest, accrued_interest = get_unbooked_interest(
+			self.against_loan,
+			self.posting_date,
+			loan_disbursement=self.loan_disbursement,
+			last_demand_date=last_demand_date,
+		)
+
 		unpaid_unbooked_interest = 0
 
 		if flt(unbooked_interest - self.unbooked_interest_paid, precision) > 0:
@@ -1805,7 +1813,7 @@ def process_amount_for_loan(loan, posting_date, demands, amounts, loan_disbursem
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
 	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan.name, posting_date, loan_disbursement=loan_disbursement
+		loan.name, posting_date, loan_disbursement=loan_disbursement, last_demand_date=last_demand_date
 	)
 
 	if getdate(posting_date) > getdate(last_demand_date) or is_backdated:
@@ -2020,6 +2028,9 @@ def get_last_demand_date(loan, posting_date, demand_subtype="Interest", loan_dis
 		"MAX(demand_date)",
 	)
 
+	if demand_subtype == "Interest" and last_demand_date:
+		last_demand_date = add_days(last_demand_date, -1)
+
 	if not last_demand_date:
 		last_demand_date = get_last_disbursement_date(
 			loan, posting_date, loan_disbursement=loan_disbursement
@@ -2048,14 +2059,13 @@ def get_latest_accrual_date(loan, posting_date, interest_type="Interest", loan_d
 	return latest_accrual_date
 
 
-def get_unbooked_interest(loan, posting_date, loan_disbursement=None):
+def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_demand_date=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	accrued_interest = get_accrued_interest(loan, posting_date, loan_disbursement=loan_disbursement)
-	total_demand_interest = get_demanded_interest(
-		loan, posting_date, loan_disbursement=loan_disbursement
+	accrued_interest = get_accrued_interest(
+		loan, posting_date, loan_disbursement=loan_disbursement, last_demand_date=last_demand_date
 	)
-	unbooked_interest = flt(accrued_interest, precision) - flt(total_demand_interest, precision)
+	unbooked_interest = flt(accrued_interest, precision)
 
 	return unbooked_interest, accrued_interest
 
