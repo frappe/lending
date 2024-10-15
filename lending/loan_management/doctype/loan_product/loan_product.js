@@ -35,8 +35,9 @@ frappe.ui.form.on('Loan Product', {
 			"customer_refund_account", "interest_accrued_account", "interest_waiver_account",
 			"interest_receivable_account", "suspense_interest_income", "broken_period_interest_recovery_account",
 			"additional_interest_income", "additional_interest_accrued", "additional_interest_receivable",
-			"additional_interest_suspense", "additional_interest_waiver", "penalty_accrued_account", "penalty_waiver_account",
-			"penalty_receivable_account", "penalty_suspense_account", "write_off_account", "write_off_recovery_account"
+			"additional_interest_suspense", "additional_interest_waiver", "penalty_accrued_account",
+			"penalty_waiver_account", "penalty_receivable_account", "penalty_suspense_account",
+			"write_off_account", "write_off_recovery_account"
 		], function (i, field) {
 			frm.set_query(field, function () {
 				return {
