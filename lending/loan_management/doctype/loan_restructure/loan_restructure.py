@@ -266,7 +266,6 @@ class LoanRestructure(AccountsController):
 			)
 
 	def on_submit(self):
-		self.validate_new_loan_amount()
 		self.set_status()
 		self.update_repayment_schedule_status(status="Initiated")
 		self.apply_workflow()
@@ -369,15 +368,6 @@ class LoanRestructure(AccountsController):
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
 				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months, "Monthly"
 			)
-
-	def validate_new_loan_amount(self):
-		if (
-			self.status != "Rejected"
-			and self.restructure_type != "Advance Payment"
-			and self.new_loan_amount > self.disbursed_amount
-			and not self.loan_disbursement
-		):
-			frappe.throw(frappe._("New Loan Amount cannot be greater than original disbursed amount"))
 
 	def restructure_loan(self):
 		if self.restructure_type == "Normal Restructure":
