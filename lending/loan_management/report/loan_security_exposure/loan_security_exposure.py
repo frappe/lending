@@ -110,6 +110,9 @@ def get_data(filters):
 				value.get("qty", 0) * loan_security_details.get(security, {}).get("latest_price", 0)
 			)
 			valid_upto = loan_security_details.get(security, {}).get("valid_upto")
+			portfolio_percent = (
+				flt(current_value * 100 / total_portfolio_value, 2) if total_portfolio_value != 0 else 0.0
+			)
 
 			row.update(loan_security_details.get(security))
 			row.update(
@@ -117,7 +120,7 @@ def get_data(filters):
 					"total_qty": value.get("qty"),
 					"current_value": current_value,
 					"price_valid_upto": valid_upto,
-					"portfolio_percent": flt(current_value * 100 / total_portfolio_value, 2),
+					"portfolio_percent": portfolio_percent,
 					"pledged_applicant_count": value.get("applicant_count"),
 					"currency": currency,
 				}
