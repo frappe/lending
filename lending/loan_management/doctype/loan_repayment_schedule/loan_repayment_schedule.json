@@ -164,7 +164,8 @@
    "fieldtype": "Link",
    "label": "Loan Restructure",
    "options": "Loan Restructure",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "adjusted_interest",
@@ -369,7 +370,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-09 22:53:05.772537",
+ "modified": "2024-10-17 16:02:07.817157",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",

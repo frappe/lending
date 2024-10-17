@@ -24,7 +24,8 @@
    "fieldtype": "Link",
    "label": "Loan",
    "options": "Loan",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "loan_disbursement",
@@ -84,7 +85,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-11-30 17:14:55.499085",
+ "modified": "2024-10-17 16:00:11.897562",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Deposit",
