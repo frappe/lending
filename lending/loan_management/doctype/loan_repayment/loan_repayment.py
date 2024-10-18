@@ -374,7 +374,7 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
-		self.doc.ignore_links = True
+		self.flags.ignore_links = True
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
