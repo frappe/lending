@@ -133,37 +133,40 @@ class LoanDemand(AccountsController):
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None
 	):
-		gl_entries.append(
-			self.get_gl_dict(
-				{
-					"posting_date": self.posting_date or self.demand_date,
-					"account": receivable_account,
-					"against": accrual_account,
-					"debit": self.demand_amount,
-					"against_voucher_type": "Loan",
-					"against_voucher": self.loan,
-					"party_type": self.applicant_type,
-					"party": self.applicant,
-					"cost_center": self.cost_center,
-				}
-			)
-		)
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		gl_entries.append(
-			self.get_gl_dict(
-				{
-					"posting_date": self.posting_date or self.demand_date,
-					"account": accrual_account,
-					"against": receivable_account,
-					"credit": self.demand_amount,
-					"against_voucher_type": "Loan",
-					"against_voucher": self.loan,
-					"cost_center": self.cost_center,
-					"party_type": party_type,
-					"party": party,
-				}
+		if flt(self.demand_amount, precision):
+			gl_entries.append(
+				self.get_gl_dict(
+					{
+						"posting_date": self.posting_date or self.demand_date,
+						"account": receivable_account,
+						"against": accrual_account,
+						"debit": self.demand_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.loan,
+						"party_type": self.applicant_type,
+						"party": self.applicant,
+						"cost_center": self.cost_center,
+					}
+				)
 			)
-		)
+
+			gl_entries.append(
+				self.get_gl_dict(
+					{
+						"posting_date": self.posting_date or self.demand_date,
+						"account": accrual_account,
+						"against": receivable_account,
+						"credit": self.demand_amount,
+						"against_voucher_type": "Loan",
+						"against_voucher": self.loan,
+						"cost_center": self.cost_center,
+						"party_type": party_type,
+						"party": party,
+					}
+				)
+			)
 
 		return gl_entries
 
