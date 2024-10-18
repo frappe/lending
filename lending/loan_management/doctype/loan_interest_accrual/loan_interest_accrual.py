@@ -58,6 +58,8 @@ class LoanInterestAccrual(AccountsController):
 		if loan_status == "Written Off":
 			return
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
 		account_details = frappe.db.get_value(
 			"Loan Product",
@@ -89,43 +91,44 @@ class LoanInterestAccrual(AccountsController):
 
 		if self.interest_amount:
 			final_interest_amount = self.interest_amount - self.additional_interest_amount
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": receivable_account,
-						"against": income_account,
-						"debit": final_interest_amount,
-						"debit_in_account_currency": final_interest_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.loan,
-						"remarks": _("Interest accrued from {0} to {1} against loan: {2}").format(
-							self.last_accrual_date, self.posting_date, self.loan
-						),
-						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
-					}
+			if flt(final_interest_amount, precision):
+				gle_map.append(
+					self.get_gl_dict(
+						{
+							"account": receivable_account,
+							"against": income_account,
+							"debit": final_interest_amount,
+							"debit_in_account_currency": final_interest_amount,
+							"against_voucher_type": "Loan",
+							"against_voucher": self.loan,
+							"remarks": _("Interest accrued from {0} to {1} against loan: {2}").format(
+								self.last_accrual_date, self.posting_date, self.loan
+							),
+							"cost_center": cost_center,
+							"posting_date": self.accrual_date or self.posting_date,
+						}
+					)
 				)
-			)
 
-			gle_map.append(
-				self.get_gl_dict(
-					{
-						"account": income_account,
-						"against": receivable_account,
-						"credit": final_interest_amount,
-						"credit_in_account_currency": final_interest_amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.loan,
-						"remarks": ("Interest accrued from {0} to {1} against loan: {2}").format(
-							self.last_accrual_date, self.posting_date, self.loan
-						),
-						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
-					}
+				gle_map.append(
+					self.get_gl_dict(
+						{
+							"account": income_account,
+							"against": receivable_account,
+							"credit": final_interest_amount,
+							"credit_in_account_currency": final_interest_amount,
+							"against_voucher_type": "Loan",
+							"against_voucher": self.loan,
+							"remarks": ("Interest accrued from {0} to {1} against loan: {2}").format(
+								self.last_accrual_date, self.posting_date, self.loan
+							),
+							"cost_center": cost_center,
+							"posting_date": self.accrual_date or self.posting_date,
+						}
+					)
 				)
-			)
 
-		if self.additional_interest_amount:
+		if flt(self.additional_interest_amount, precision):
 			gle_map.append(
 				self.get_gl_dict(
 					{
