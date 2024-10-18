@@ -150,7 +150,8 @@
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
    "label": "Sales Invoice",
-   "options": "Sales Invoice"
+   "options": "Sales Invoice",
+   "search_index": 1
   },
   {
    "fetch_from": "loan.cost_center",
@@ -229,7 +230,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-09 22:53:57.887899",
+ "modified": "2024-10-18 17:59:28.458090",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
