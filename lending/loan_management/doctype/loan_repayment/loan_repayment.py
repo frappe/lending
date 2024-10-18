@@ -424,11 +424,12 @@ class LoanRepayment(AccountsController):
 
 	def cancel_charge_demands(self):
 		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan_repayment": self.name})
-		loan_demands = frappe.db.get_all("Loan Demand", {"sales_invoice": sales_invoice}, pluck="name")
-		for demand in loan_demands:
-			charge_doc = frappe.get_doc("Loan Demand", demand)
-			charge_doc.flags.ignore_links = True
-			charge_doc.cancel()
+		if sales_invoice:
+			loan_demands = frappe.db.get_all("Loan Demand", {"sales_invoice": sales_invoice}, pluck="name")
+			for demand in loan_demands:
+				charge_doc = frappe.get_doc("Loan Demand", demand)
+				charge_doc.flags.ignore_links = True
+				charge_doc.cancel()
 
 	def cancel_loan_restructure(self):
 		loan_restructure = frappe.db.get_value(
