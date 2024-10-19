@@ -88,9 +88,7 @@ class LoanWriteOff(AccountsController):
 			get_unbooked_interest,
 		)
 
-		last_demand_date = get_last_demand_date(
-			self.loan, self.posting_date, loan_disbursement=self.loan_disbursement
-		)
+		last_demand_date = get_last_demand_date(self.loan, self.posting_date)
 
 		unbooked_interest, unbooked_penalty = get_unbooked_interest(
 			self.loan, self.posting_date, last_demand_date=last_demand_date
