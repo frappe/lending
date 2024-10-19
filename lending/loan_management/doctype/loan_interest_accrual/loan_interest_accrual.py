@@ -66,6 +66,7 @@ class LoanInterestAccrual(AccountsController):
 			self.loan_product,
 			[
 				"interest_accrued_account",
+				"interest_income_account",
 				"penalty_accrued_account",
 				"penalty_income_account",
 				"additional_interest_income",
@@ -76,7 +77,7 @@ class LoanInterestAccrual(AccountsController):
 
 		if self.interest_type == "Normal Interest":
 			receivable_account = account_details.interest_accrued_account
-			income_account = self.interest_income_account
+			income_account = self.interest_income_account or account_details.interest_income_account
 		else:
 			receivable_account = account_details.penalty_accrued_account
 			income_account = account_details.penalty_income_account
