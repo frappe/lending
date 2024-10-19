@@ -325,7 +325,10 @@ class LoanDisbursement(AccountsController):
 
 		if not self.disbursed_amount:
 			frappe.throw(_("Disbursed amount cannot be zero"))
-		elif self.disbursed_amount > possible_disbursal_amount:
+		elif (
+			self.disbursed_amount > possible_disbursal_amount
+			and self.repayment_schedule_type != "Line of Credit"
+		):
 			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
 		elif self.repayment_schedule_type == "Line of Credit":
 			if not (
