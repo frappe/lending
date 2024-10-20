@@ -15,6 +15,10 @@ class ProcessLoanClassification(Document):
 
 		if self.loan:
 			filters["name"] = self.loan
+			filters["status"] = (
+				"in",
+				["Disbursed", "Partially Disbursed", "Active", "Written Off", "Settled", "Closed"],
+			)
 
 		if self.loan_product:
 			filters["loan_product"] = self.loan_product
