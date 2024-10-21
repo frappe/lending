@@ -702,7 +702,11 @@ def update_days_past_due_in_loans(
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
 
-	disbursements = frappe.db.get_all("Loan Disbursement", {"against_loan": loan_name}, pluck="name")
+	disbursements = frappe.db.get_all(
+		"Loan Repayment Schedule",
+		{"loan": loan_name, "status": "Active", "docstatus": 1},
+		pluck="loan_disbursement",
+	)
 
 	for disbursement in disbursements:
 		demand = get_unpaid_demands(
