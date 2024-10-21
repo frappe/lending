@@ -21,6 +21,7 @@ frappe.query_reports["Loan Interest Report"] = {
 			"default": "Customer",
 			on_change: function() {
 				frappe.query_report.set_filter_value('applicant', "");
+				frappe.query_report.refresh();
 			}
 		},
 		{
@@ -37,14 +38,23 @@ frappe.query_reports["Loan Interest Report"] = {
 			}
 		},
 		{
-			"fieldname":"from_date",
-			"label": __("From Date"),
+			"fieldname":"as_on_date",
+			"label": __("As On Date"),
 			"fieldtype": "Date",
+			"default": frappe.datetime.get_today(),
+			"reqd": 1,
 		},
 		{
-			"fieldname":"to_date",
-			"label": __("From Date"),
-			"fieldtype": "Date",
+			"fieldname":"name",
+			"label": __("Loan"),
+			"fieldtype": "Link",
+			"options": "Loan",
+		},
+		{
+			"fieldname":"loan_product",
+			"label": __("Loan Product"),
+			"fieldtype": "Link",
+			"options": "Loan Product",
 		},
 	]
 };
