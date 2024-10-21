@@ -847,9 +847,10 @@ def reverse_loan_interest_accruals(
 	)
 
 	for accrual in accruals:
-		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name)
-		accrual_doc.flags.ignore_links = True
-		accrual_doc.cancel()
+		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name, for_update=True)
+		if accrual_doc.docstatus == 1:
+			accrual_doc.flags.ignore_links = True
+			accrual_doc.cancel()
 
 		if is_npa:
 			interest_amount = 0
