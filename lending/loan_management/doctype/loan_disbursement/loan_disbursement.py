@@ -760,6 +760,7 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 			"written_off_amount",
 		],
 		as_dict=1,
+		for_update=True,
 	)
 
 	if loan_details.is_secured_loan and frappe.get_all(
