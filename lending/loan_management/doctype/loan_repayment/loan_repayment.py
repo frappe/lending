@@ -1853,10 +1853,21 @@ def process_amount_for_loan(loan, posting_date, demands, amounts, loan_disbursem
 
 @frappe.whitelist()
 def get_bulk_due_details(loans, posting_date):
+	from lending.loan_management.doctype.loan_repayment.utils import (
+		get_disbursement_map,
+		get_last_demand_date,
+		get_pending_principal_amount_for_loans,
+		get_unbooked_interest_for_loans,
+		process_amount_for_bulk_loans,
+	)
+
+	last_demand_date = get_last_demand_date(posting_date)
+
 	loan_details = frappe.db.get_all(
 		"Loan",
 		fields=[
 			"name",
+			"repayment_schedule_type",
 			"company",
 			"rate_of_interest",
 			"is_term_loan",
@@ -1873,19 +1884,43 @@ def get_bulk_due_details(loans, posting_date):
 		filters={"name": ("in", loans)},
 	)
 
+	disbursement_map = get_disbursement_map(loan_details)
+	principal_amount_map = get_pending_principal_amount_for_loans(loan_details, disbursement_map)
+	unbooked_interest_map = get_unbooked_interest_for_loans(
+		loan_details, posting_date, last_demand_date=last_demand_date
+	)
 	loan_demands = get_all_demands(loans, posting_date)
+
 	demand_map = {}
 	for loan in loan_demands:
 		demand_map.setdefault(loan.loan, [])
 		demand_map[loan.loan].append(loan)
 
+	# Get unbooked interest for all loans
+
 	due_details = []
 	for loan in loan_details:
-		amounts = init_amounts()
-		demands = demand_map.get(loan.name, [])
-		amounts = process_amount_for_loan(loan, posting_date, demands, amounts)
-		amounts["loan"] = loan.name
-		due_details.append(amounts)
+		if loan.repayment_schedule_type == "Line of Credit":
+			demands = demand_map.get(loan.name, [])
+			for disbursement in disbursement_map.get(loan.name, []):
+				print(disbursement, "###########")
+				amounts = init_amounts()
+				principal_amount = principal_amount_map.get((loan.name, disbursement), 0)
+				unbooked_interest = unbooked_interest_map.get((loan.name, disbursement), 0)
+				filtered_demands = list(d for d in demands if d.loan_disbursement == disbursement)
+				amounts = process_amount_for_bulk_loans(
+					loan, filtered_demands, disbursement, principal_amount, unbooked_interest, amounts
+				)
+				due_details.append(amounts)
+		else:
+			amounts = init_amounts()
+			principal_amount = principal_amount_map.get(loan.name, 0)
+			unbooked_interest = unbooked_interest_map.get(loan.name, 0)
+			demands = demand_map.get(loan.name, [])
+			amounts = process_amount_for_bulk_loans(
+				loan, demands, None, principal_amount, unbooked_interest, amounts
+			)
+			due_details.append(amounts)
 
 	return due_details
 
