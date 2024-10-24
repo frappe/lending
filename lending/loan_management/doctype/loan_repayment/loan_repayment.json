@@ -414,6 +414,7 @@
    "fieldname": "excess_amount",
    "fieldtype": "Currency",
    "label": "Excess Amount",
+   "no_copy": 1,
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -505,7 +506,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-09 22:21:16.665653",
+ "modified": "2024-10-24 22:06:00.967932",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
