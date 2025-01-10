@@ -12,6 +12,8 @@
   "applicant",
   "applicant_name",
   "loan_application",
+  "from_foreclosed_loan",
+  "amount_disbursed_in_foreclosed_loan",
   "column_break_3",
   "company",
   "posting_date",
@@ -661,12 +663,25 @@
    "fieldtype": "Date",
    "label": "Settlement Date",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "from_foreclosed_loan",
+   "fieldtype": "Check",
+   "label": "From Foreclosed Loan"
+  },
+  {
+   "depends_on": "from_foreclosed_loan",
+   "fieldname": "amount_disbursed_in_foreclosed_loan",
+   "fieldtype": "Currency",
+   "label": "Amount Disbursed In Foreclosed Loan",
+   "mandatory_depends_on": "from_foreclosed_loan"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-31 22:50:42.962589",
+ "modified": "2025-01-10 13:02:11.868319",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
