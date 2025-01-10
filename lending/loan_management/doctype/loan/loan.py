@@ -486,6 +486,8 @@ def make_loan_disbursement(
 	disbursement_date=None,
 	bank_account=None,
 	is_term_loan=None,
+	from_foreclosed_loan=False,
+	amount_disbursed_in_foreclosed_loan=0,
 ):
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
@@ -498,9 +500,14 @@ def make_loan_disbursement(
 	disbursement_entry.bank_account = bank_account
 	disbursement_entry.repayment_start_date = repayment_start_date
 	disbursement_entry.repayment_frequency = repayment_frequency
-	disbursement_entry.disbursed_amount = disbursement_amount
 	disbursement_entry.is_term_loan = is_term_loan
 	disbursement_entry.repayment_schedule_type = loan_doc.repayment_schedule_type
+
+	if from_foreclosed_loan:
+		disbursement_entry.disbursed_amount = flt(disbursement_amount) - flt(amount_disbursed_in_foreclosed_loan)
+		disbursement_entry.current_disbursed_amount = amount_disbursed_in_foreclosed_loan
+	else:
+		disbursement_entry.disbursed_amount = disbursement_amount
 
 	if loan_doc.repayment_schedule_type != "Line of Credit":
 		disbursement_entry.repayment_method = loan_doc.repayment_method

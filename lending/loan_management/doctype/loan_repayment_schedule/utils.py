@@ -27,7 +27,14 @@ def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_period
 
 
 def get_frequency(frequency):
-	return {"Monthly": 12, "Bi-Weekly": 26, "Weekly": 52, "Daily": 365, "Quarterly": 4, "One Time": 1}.get(frequency)
+	return {
+		"Monthly": 12,
+		"Bi-Weekly": 26,
+		"Weekly": 52,
+		"Daily": 365,
+		"Quarterly": 4,
+		"One Time": 1,
+	}.get(frequency)
 
 
 def set_demand(row_name):
