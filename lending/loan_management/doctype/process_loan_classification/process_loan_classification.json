@@ -32,6 +32,7 @@
   {
    "fieldname": "loan",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Loan ",
    "options": "Loan"
@@ -69,7 +70,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-13 16:41:34.462122",
+ "modified": "2025-01-20 15:04:20.700403",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Classification",

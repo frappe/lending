@@ -3,6 +3,7 @@
 
 
 import json
+from datetime import date, timedelta
 
 import frappe
 from frappe import _
@@ -725,7 +726,7 @@ def update_days_past_due_in_loans(
 	)
 
 	for disbursement in disbursements:
-		if posting_date == add_days(getdate(), -1) or force_update_dpd_in_loan:
+		if getdate(posting_date) > add_days(getdate(), -1) or force_update_dpd_in_loan:
 			demand = get_unpaid_demands(
 				loan_name,
 				posting_date=posting_date,
@@ -735,24 +736,24 @@ def update_days_past_due_in_loans(
 				loan_disbursement=disbursement,
 			)
 		else:
-			demand_date = get_oldest_outstanding_demand_date(
-				loan_name,
-				posting_date=posting_date,
-				loan_product=loan_product,
-				loan_disbursement=disbursement,
-			)
-
-			dpd_date = posting_date
-
-			if posting_date == add_days(getdate(), -1):
-				days_past_due = date_diff(getdate(dpd_date), getdate(demand_date)) + 1
+			if frappe.flags.in_test or frappe.flags.in_import:
+				repost_days_past_due_log(
+					loan_name,
+					posting_date=posting_date,
+					loan_product=loan_product,
+					loan_disbursement=disbursement,
+				)
 			else:
-				days_past_due = date_diff(getdate(dpd_date), getdate(demand_date))
+				frappe.enqueue(
+					repost_days_past_due_log,
+					loan=loan_name,
+					posting_date=posting_date,
+					loan_product=loan_product,
+					loan_disbursement=disbursement,
+					queue="long",
+					enqueue_after_commit=True,
+				)
 
-			if days_past_due < 0:
-				days_past_due = 0
-
-			create_dpd_record(loan_name, disbursement, posting_date, days_past_due)
 			return
 
 		threshold_map = get_dpd_threshold_map()
@@ -832,11 +833,18 @@ def update_days_past_due_in_loans(
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
 
-def get_oldest_outstanding_demand_date(loan, posting_date, loan_product, loan_disbursement):
+def daterange(start_date: date, end_date: date):
+	days = int((end_date - start_date).days)
+	for n in range(days):
+		yield start_date + timedelta(n)
+
+
+def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement):
 	"""Get outstanding demands for a loan"""
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	where_conditions = ""
 	payment_conditions = ""
+
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if loan_product:
 		where_conditions += f"AND loan_product = '{loan_product}'"
@@ -846,25 +854,22 @@ def get_oldest_outstanding_demand_date(loan, posting_date, loan_product, loan_di
 
 	demands = frappe.db.sql(
 		"""
-		SELECT demand_date, demand_subtype, sum(demand_amount) as demand_amount, sum(outstanding_amount) as outstanding_amount
+		SELECT demand_date, loan_disbursement, demand_subtype, sum(demand_amount) as demand_amount, sum(outstanding_amount) as outstanding_amount
 		FROM `tabLoan Demand`
 		WHERE loan = %s
 			AND docstatus = 1
 			AND demand_type = "EMI"
-			AND demand_date <= %s
 			{0}
 		GROUP BY demand_date, demand_subtype
 		ORDER BY demand_date
 	""".format(
 			where_conditions
 		),
-		(loan, posting_date),
+		(loan),
 		as_dict=1,
 	)
 
 	if demands:
-		first_demand_date = demands[0].demand_date
-
 		if loan_product:
 			payment_conditions += f"AND loan_product = '{loan_product}'"
 
@@ -873,37 +878,58 @@ def get_oldest_outstanding_demand_date(loan, posting_date, loan_product, loan_di
 
 		payment_against_demand = frappe.db.sql(
 			"""
-			SELECT SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
+			SELECT posting_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
 			FROM `tabLoan Repayment`
 			WHERE against_loan = %s
 				and docstatus = 1
-				and posting_date BETWEEN %s AND %s
 				{0}
+			GROUP BY posting_date
+			ORDER BY posting_date
 		""".format(
 				payment_conditions
 			),
-			(loan, first_demand_date, posting_date),
+			(loan),
 			as_dict=1,
 		)
 
-		paid_principal_amount = 0
-		paid_interest_amount = 0
-		if payment_against_demand:
-			paid_principal_amount = flt(payment_against_demand[0].total_principal_paid)
-			paid_interest_amount = flt(payment_against_demand[0].total_interest_paid)
+		for idx, payment in enumerate(payment_against_demand):
+			next_payment_date = (
+				payment_against_demand[idx + 1].posting_date
+				if idx + 1 < len(payment_against_demand)
+				else getdate()
+			)
+			for demand in demands:
+				if demand.demand_date <= getdate(payment.posting_date):
+					if demand.demand_subtype == "Interest" and flt(payment.total_interest_paid, precision) > 0:
+						paid_interest = min(
+							flt(payment.total_interest_paid, precision), flt(demand.demand_amount, precision)
+						)
+						demand.demand_amount -= paid_interest
+						payment.total_interest_paid -= paid_interest
 
-		for demand in demands:
-			if demand.demand_subtype == "Interest":
-				paid_interest_amount -= demand.demand_amount
-			elif demand.demand_subtype == "Principal":
-				paid_principal_amount -= demand.demand_amount
+					if demand.demand_subtype == "Principal" and flt(payment.total_principal_paid, precision) > 0:
+						paid_principal = min(
+							flt(payment.total_principal_paid, precision), flt(demand.demand_amount, precision)
+						)
+						demand.demand_amount -= paid_principal
+						payment.total_principal_paid -= paid_principal
 
-			if (
-				flt(paid_principal_amount, precision) < 0
-				or flt(paid_interest_amount, precision) < 0
-				or flt(demand.outstanding_amount, precision) > 0
-			):
-				return demand.demand_date
+			start_date = getdate(payment.posting_date)
+			end_date = getdate(next_payment_date)
+
+			for current_date in daterange(start_date, end_date):
+				if current_date >= getdate(posting_date):
+					matching_demand_found = False
+					for d in demands:
+						demand_amount = flt(d.demand_amount, precision)
+						if d.demand_date <= current_date and demand_amount > 0:
+							dpd_counter = date_diff(current_date, d.demand_date) + 1
+							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
+							matching_demand_found = True
+							break
+
+					if not matching_demand_found:
+						create_dpd_record(loan, demand.loan_disbursement, current_date, 0)
 
 
 def create_loan_write_off(loan, posting_date):

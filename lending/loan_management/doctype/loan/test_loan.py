@@ -2,6 +2,7 @@
 # See license.txt
 
 import unittest
+from datetime import datetime
 
 import frappe
 from frappe.utils import (
@@ -119,7 +120,7 @@ class TestLoan(unittest.TestCase):
 			25,
 			1,
 			5,
-			"Cash",
+			"Cash - _TC",
 			"Disbursement Account - _TC",
 			"Payment Account - _TC",
 			"Loan Account - _TC",
@@ -136,7 +137,7 @@ class TestLoan(unittest.TestCase):
 			25,
 			0,
 			5,
-			"Cash",
+			"Cash - _TC",
 			"Disbursement Account - _TC",
 			"Payment Account - _TC",
 			"Loan Account - _TC",
@@ -1463,6 +1464,89 @@ class TestLoan(unittest.TestCase):
 			loan.name, "2024-09-26", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
+
+	def test_dpd_calculation(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			30,
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
+		)
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
+
+		for date in ["2024-10-05", "2024-10-06", "2024-10-07", "2024-10-08", "2024-10-09", "2024-10-10"]:
+			create_process_loan_classification(posting_date=date, loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 3000)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-09", 782)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-05", 3000)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-10", 782)
+		repayment_entry.submit()
+
+		frappe.db.sql(
+			"""
+		update `tabDays Past Due Log` set days_past_due = -1 where loan = %s """,
+			loan.name,
+		)
+
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
+
+		dpd_logs = frappe.db.sql(
+			"""
+			SELECT posting_date, days_past_due
+			FROM `tabDays Past Due Log`
+			WHERE loan = %s
+			ORDER BY posting_date
+			""",
+			(loan.name),
+			as_dict=1,
+		)
+
+		expected_dpd_values = {
+			"2024-10-05": 1,
+			"2024-10-06": 2,
+			"2024-10-07": 3,
+			"2024-10-08": 4,
+			"2024-10-09": 0,  # Fully repaid
+			"2024-10-10": 0,
+			"2024-11-04": 0,
+			"2024-11-05": 1,  # DPD starts again after repayment
+			"2024-11-06": 2,
+			"2024-11-07": 3,
+			"2024-11-08": 4,
+			"2024-11-09": 5,
+			"2024-11-10": 0,  # Fully repaid
+		}
+
+		for log in dpd_logs:
+			posting_date = log["posting_date"]
+			dpd_value = log["days_past_due"]
+
+			posting_date_str = posting_date.strftime("%Y-%m-%d")
+
+			expected_dpd = expected_dpd_values.get(posting_date_str, 0)
+			self.assertEqual(
+				dpd_value,
+				expected_dpd,
+				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
+			)
 
 
 def create_secured_demand_loan(applicant, disbursement_amount=None):
