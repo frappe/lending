@@ -17,7 +17,7 @@ frappe.ui.form.on('Loan Disbursement', {
 				}
 			}
 		})
-		if (frm.doc.docstatus == 1 && frm.doc.repayment_schedule_type) {
+		if (frm.doc.docstatus == 1 && frm.doc.repayment_schedule_type && frm.doc.status != "Closed") {
 			frm.add_custom_button(__('Loan Repayment'), function() {
 				frm.trigger("make_repayment_entry");
 			},__('Create'));
