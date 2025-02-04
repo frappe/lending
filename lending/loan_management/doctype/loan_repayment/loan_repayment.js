@@ -44,7 +44,16 @@ frappe.ui.form.on('Loan Repayment', {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
-
+	against_loan: function(frm) {
+		frm.set_query('loan_disbursement', function() {
+			return {
+				'filters': {
+					'docstatus': 1,
+					'against_loan': frm.doc.against_loan
+				}
+			};
+		});
+	},
 	repayment_type: function(frm) {
 		if (frm.doc.posting_date) {
 			frm.trigger('calculate_repayment_amounts');
