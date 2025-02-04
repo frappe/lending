@@ -52,6 +52,7 @@ class LoanRepayment(AccountsController):
 		self.set_partner_payment_ratio()
 		self.validate_amount(amounts)
 		self.allocate_amount_against_demands(amounts)
+		self.validate_open_disbursement()
 
 	def on_update(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -670,6 +671,14 @@ class LoanRepayment(AccountsController):
 						}.get(self.repayment_type)
 					)
 				)
+
+	def validate_open_disbursement(self):
+		loan_disbursement_status = frappe.get_value(
+			"Loan Disbursement", self.loan_disbursement, "status"
+		)
+		print(loan_disbursement_status)
+		if loan_disbursement_status == "Closed":
+			frappe.throw(_(f"The Loan Disbursement {self.loan_disbursement} has been closed."))
 
 	def get_waiver_amount(self, amounts):
 		if self.repayment_type == "Interest Waiver":
