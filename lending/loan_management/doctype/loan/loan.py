@@ -522,7 +522,9 @@ def make_loan_disbursement(
 
 
 @frappe.whitelist()
-def make_repayment_entry(loan, applicant_type, applicant, loan_product, company, as_dict=0):
+def make_repayment_entry(
+	loan, applicant_type, applicant, loan_product, company, loan_disbursement=None, as_dict=0
+):
 	repayment_entry = frappe.new_doc("Loan Repayment")
 	repayment_entry.against_loan = loan
 	repayment_entry.applicant_type = applicant_type
@@ -530,6 +532,7 @@ def make_repayment_entry(loan, applicant_type, applicant, loan_product, company,
 	repayment_entry.company = company
 	repayment_entry.loan_product = loan_product
 	repayment_entry.posting_date = nowdate()
+	repayment_entry.loan_disbursement = loan_disbursement
 
 	if as_dict:
 		return repayment_entry.as_dict()

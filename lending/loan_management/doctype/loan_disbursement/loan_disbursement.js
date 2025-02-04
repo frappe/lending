@@ -17,5 +17,29 @@ frappe.ui.form.on('Loan Disbursement', {
 				}
 			}
 		})
-	}
+		if (frm.doc.docstatus == 1 && frm.doc.repayment_schedule_type) {
+			frm.add_custom_button(__('Loan Repayment'), function() {
+				frm.trigger("make_repayment_entry");
+			},__('Create'));
+		}
+	},
+	make_repayment_entry: function(frm) {
+		frappe.call({
+			args: {
+				"loan": frm.doc.against_loan,
+				"applicant_type": frm.doc.applicant_type,
+				"applicant": frm.doc.applicant,
+				"loan_product": frm.doc.loan_product,
+				"company": frm.doc.company,
+				"loan_disbursement": frm.doc.name,
+				"as_dict": 1
+			},
+			method: "lending.loan_management.doctype.loan.loan.make_repayment_entry",
+			callback: function (r) {
+				if (r.message)
+					var doc = frappe.model.sync(r.message)[0];
+				frappe.set_route("Form", doc.doctype, doc.name);
+			}
+		})
+	},
 });
