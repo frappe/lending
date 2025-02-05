@@ -9,8 +9,15 @@ from frappe.utils import add_days, getdate
 
 class ProcessLoanClassification(Document):
 	def validate(self):
-		if getdate(self.posting_date) < add_days(getdate(), -1) and not self.loan:
-			frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
+		if getdate(self.posting_date) < add_days(getdate(), -1):
+			if not self.loan:
+				frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
+
+			loan_product = frappe.get_value("Loan", self.loan, "loan_product")
+			loc_loan_product = frappe.get_value("Loan Product", loan_product, "repayment_schedule_type")
+
+			if not self.loan_disbursement and loc_loan_product == "Line of Credit":
+				frappe.throw(_("For Line of Credit Loan, Loan Disbursement is mandatory."))
 
 		if self.force_update_dpd_in_loan and not self.loan:
 			frappe.throw(_("For force update DPD, a Loan account is mandatory."))
@@ -39,6 +46,7 @@ class ProcessLoanClassification(Document):
 				self.posting_date,
 				self.loan_product,
 				self.name,
+				self.loan_disbursement,
 				self.payment_reference,
 				self.is_backdated,
 				self.force_update_dpd_in_loan,
@@ -53,6 +61,7 @@ class ProcessLoanClassification(Document):
 					posting_date=self.posting_date,
 					loan_product=self.loan_product,
 					classification_process=self.name,
+					loan_disbursement=self.loan_disbursement,
 					payment_reference=self.payment_reference,
 					is_backdated=self.is_backdated,
 					force_update_dpd_in_loan=self.force_update_dpd_in_loan,
@@ -67,6 +76,7 @@ def process_loan_classification_batch(
 	posting_date,
 	loan_product,
 	classification_process,
+	loan_disbursement,
 	payment_reference,
 	is_backdated,
 	force_update_dpd_in_loan=False,
@@ -81,6 +91,7 @@ def process_loan_classification_batch(
 				posting_date=posting_date,
 				loan_product=loan_product,
 				process_loan_classification=classification_process,
+				loan_disbursement=loan_disbursement,
 				ignore_freeze=True if payment_reference else False,
 				is_backdated=is_backdated,
 				via_background_job=via_scheduler,
