@@ -723,16 +723,18 @@ def update_days_past_due_in_loans(
 	if not loan_product:
 		loan_product = frappe.get_value("Loan", loan_name, "loan_product")
 
-	disbursements = frappe.db.get_all(
-		"Loan Repayment Schedule",
-		{"loan": loan_name, "status": ("in", ["Active", "Closed"]), "docstatus": 1},
-		pluck="loan_disbursement",
-	)
+	filters = {
+		"loan": loan_name,
+		"status": ("in", ["Active", "Closed"]),
+		"docstatus": 1,
+	}
+
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
+	disbursements = frappe.db.get_all("Loan Repayment Schedule", filters, pluck="loan_disbursement")
 
 	for disbursement in disbursements:
-		if loan_disbursement and disbursement != loan_disbursement:
-			continue
-
 		if getdate(posting_date) >= add_days(getdate(), -1) or force_update_dpd_in_loan:
 			demand = get_unpaid_demands(
 				loan_name,
@@ -856,11 +858,8 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 	if loan_product:
 		where_conditions += f"AND loan_product = '{loan_product}'"
 
-		repayment_schedule_type = frappe.get_value(
-			"Loan Product", loan_product, "repayment_schedule_type"
-		)
-		if repayment_schedule_type == "Line of Credit":
-			where_conditions += f"AND loan_disbursement = '{loan_disbursement}'"
+	if loan_disbursement:
+		where_conditions += f"AND loan_disbursement = '{loan_disbursement}'"
 
 	demands = frappe.db.sql(
 		"""
@@ -883,8 +882,10 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 		if loan_product:
 			payment_conditions += f"AND loan_product = '{loan_product}'"
 
-			if repayment_schedule_type == "Line of Credit":
-				payment_conditions += f"AND loan_disbursement = '{loan_disbursement}'"
+		if loan_disbursement:
+			payment_conditions += (
+				f"AND (loan_disbursement = '{loan_disbursement}' OR loan_disbursement IS NULL)"
+			)
 
 		payment_against_demand = frappe.db.sql(
 			"""

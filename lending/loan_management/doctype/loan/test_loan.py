@@ -1628,6 +1628,107 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	def test_dpd_calculation_for_loc_loan(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2024-10-10",
+			posting_date="2024-10-01",
+			rate_of_interest=20,
+			applicant_type="Customer",
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2025-12-05",
+		)
+		loan.submit()
+
+		disbursement_1 = make_loan_disbursement_entry(
+			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
+
+		create_process_loan_classification(
+			posting_date="2024-10-10", loan=loan.name, loan_disbursement=disbursement_1.name
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-10", 10000, loan_disbursement=disbursement_1.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-18", 592, loan_disbursement=disbursement_1.name
+		)
+		repayment_entry.submit()
+
+		disbursement_2 = make_loan_disbursement_entry(
+			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
+
+		create_process_loan_classification(
+			posting_date="2024-10-15", loan=loan.name, loan_disbursement=disbursement_2.name
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
+		)
+		repayment_entry.submit()
+
+		frappe.db.sql(
+			"""
+		update `tabDays Past Due Log` set days_past_due = -1 where loan = %s """,
+			loan.name,
+		)
+
+		create_process_loan_classification(
+			posting_date="2024-10-10", loan=loan.name, loan_disbursement=disbursement_1.name
+		)
+		create_process_loan_classification(
+			posting_date="2024-10-15", loan=loan.name, loan_disbursement=disbursement_2.name
+		)
+
+		dpd_logs = frappe.db.sql(
+			"""
+			SELECT posting_date, loan_disbursement, days_past_due
+			FROM `tabDays Past Due Log`
+			WHERE loan = %s
+			ORDER BY posting_date
+			""",
+			(loan.name,),
+			as_dict=1,
+		)
+
+		expected_dpd_values = {
+			("2024-10-15", disbursement_1.name): 6,
+			("2024-10-24", disbursement_2.name): 10,
+		}
+
+		for log in dpd_logs:
+			posting_date = log["posting_date"].strftime("%Y-%m-%d")
+			disbursement = log["loan_disbursement"]
+			dpd_value = log["days_past_due"]
+
+			if (posting_date, disbursement) not in expected_dpd_values:
+				continue
+
+			expected_dpd = expected_dpd_values[(posting_date, disbursement)]
+
+			self.assertEqual(
+				dpd_value,
+				expected_dpd,
+				f"DPD mismatch for {posting_date} (Disbursement: {disbursement}): Expected {expected_dpd}, got {dpd_value}",
+			)
+
 	def test_charges_payment(self):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 
