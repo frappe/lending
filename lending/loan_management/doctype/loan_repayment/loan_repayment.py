@@ -46,7 +46,8 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
-		self.validate_open_disbursement()
+		if self.loan_disbursement:
+			self.validate_open_disbursement()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
