@@ -46,13 +46,14 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
+		self.validate_open_disbursement()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
 		self.validate_amount(amounts)
 		self.allocate_amount_against_demands(amounts)
-		self.validate_open_disbursement()
+		self.validate_amount_paid_for_security_deposit_adjustment()
 
 	def on_update(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -676,9 +677,18 @@ class LoanRepayment(AccountsController):
 		loan_disbursement_status = frappe.get_value(
 			"Loan Disbursement", self.loan_disbursement, "status"
 		)
-		print(loan_disbursement_status)
 		if loan_disbursement_status == "Closed":
 			frappe.throw(_(f"The Loan Disbursement {self.loan_disbursement} has been closed."))
+
+	def validate_amount_paid_for_security_deposit_adjustment(self):
+		if (
+			self.payable_amount < self.amount_paid and self.repayment_type == "Security Deposit Adjustment"
+		):
+			frappe.throw(
+				_(
+					"The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
+				)
+			)
 
 	def get_waiver_amount(self, amounts):
 		if self.repayment_type == "Interest Waiver":
