@@ -54,7 +54,6 @@ class LoanRepayment(AccountsController):
 		self.set_partner_payment_ratio()
 		self.validate_amount(amounts)
 		self.allocate_amount_against_demands(amounts)
-		self.validate_amount_paid_for_security_deposit_adjustment()
 
 	def on_update(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
