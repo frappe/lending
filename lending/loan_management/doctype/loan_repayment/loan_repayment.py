@@ -623,6 +623,12 @@ class LoanRepayment(AccountsController):
 
 			if flt(self.amount_paid) > flt(available_deposit):
 				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
+			if flt(self.amount_paid) < flt(self.available_deposit):
+				frappe.throw(
+					_(
+						"The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
+					)
+				)
 
 	def validate_repayment_type(self):
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
@@ -679,16 +685,6 @@ class LoanRepayment(AccountsController):
 		)
 		if loan_disbursement_status == "Closed":
 			frappe.throw(_(f"The Loan Disbursement {self.loan_disbursement} has been closed."))
-
-	def validate_amount_paid_for_security_deposit_adjustment(self):
-		if (
-			self.payable_amount < self.amount_paid and self.repayment_type == "Security Deposit Adjustment"
-		):
-			frappe.throw(
-				_(
-					"The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-				)
-			)
 
 	def get_waiver_amount(self, amounts):
 		if self.repayment_type == "Interest Waiver":
