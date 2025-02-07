@@ -942,7 +942,8 @@ class LoanRepayment(AccountsController):
 
 	def set_excess_amount_for_waiver(self, total_payable):
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			self.excess_amount = self.amount_paid - total_payable
+			if not self.excess_amount:
+				self.excess_amount = self.amount_paid - total_payable
 
 	def mark_as_unpaid(self):
 		if self.repayment_type in (
@@ -1282,6 +1283,7 @@ class LoanRepayment(AccountsController):
 			"Write Off Settlement",
 			"Write Off Recovery",
 			"Charges Waiver",
+			"Interest Waiver",
 		):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount

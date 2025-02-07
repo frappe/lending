@@ -1576,6 +1576,35 @@ class TestLoan(IntegrationTestCase):
 			flt(outstanding_demand), 0, "There are still outstanding amounts in the loan demand."
 		)
 
+	def test_interest_amount_for_waiver(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-01-16", 106338.99, repayment_type="Principal Adjustment"
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-01-16", 300, repayment_type="Interest Waiver"
+		)
+		repayment_entry.submit()
+
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2052,6 +2081,7 @@ def create_loan_product(
 	penalty_receivable_account="Penalty Receivable - _TC",
 	charges_receivable_account="Charges Receivable - _TC",
 	suspense_interest_income="Suspense Income Account - _TC",
+	interest_waiver_account="Interest Waiver Account - _TC",
 	repayment_method=None,
 	repayment_periods=None,
 	repayment_schedule_type="Monthly as per repayment start date",
