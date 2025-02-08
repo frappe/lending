@@ -882,7 +882,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 		if loan_product:
 			payment_conditions += f"AND loan_product = '{loan_product}'"
 
-		if loan_disbursement:
+		if loan_disbursement and loan_product == "Line of Credit":
 			payment_conditions += (
 				f"AND (loan_disbursement = '{loan_disbursement}' OR loan_disbursement IS NULL)"
 			)
