@@ -9,18 +9,8 @@ from frappe.utils import add_days, getdate
 
 class ProcessLoanClassification(Document):
 	def validate(self):
-		if getdate(self.posting_date) < add_days(getdate(), -1):
-			if not self.loan:
-				frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
-
-			loan_product = frappe.get_value("Loan", self.loan, "loan_product")
-			loc_loan_product = frappe.get_value("Loan Product", loan_product, "repayment_schedule_type")
-
-			if not self.loan_disbursement and loc_loan_product == "Line of Credit":
-				frappe.throw(_("For Line of Credit Loan, Loan Disbursement is mandatory."))
-
-		if self.force_update_dpd_in_loan and not self.loan:
-			frappe.throw(_("For force update DPD, a Loan account is mandatory."))
+		if getdate(self.posting_date) < add_days(getdate(), -1) and not self.loan:
+			frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
 
 	def on_submit(self):
 		filters = {
