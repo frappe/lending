@@ -3,6 +3,13 @@ from frappe.utils import now_datetime
 
 from erpnext.setup.utils import enable_all_roles_and_domains
 
+from lending.loan_management.doctype.loan.utils import (
+	create_loan_accounts,
+	set_loan_accrual_frequency,
+	set_loan_settings_in_company,
+	setup_loan_demand_offset_order,
+)
+
 
 def before_tests():
 	frappe.clear_cache()
@@ -36,4 +43,9 @@ def before_tests():
 		)
 
 	enable_all_roles_and_domains()
+	set_loan_settings_in_company()
+	create_loan_accounts()
+	setup_loan_demand_offset_order()
+	set_loan_accrual_frequency("Monthly")
+
 	frappe.db.commit()  # nosemgrep
