@@ -18,10 +18,26 @@ from frappe.utils import (
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-from lending.loan_management.doctype.loan.loan import (
-	make_loan_write_off,
-	request_loan_closure,
-	unpledge_security,
+from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
+from lending.loan_management.doctype.loan.utils import (
+	add_or_update_loan_charges,
+	create_demand_loan,
+	create_loan,
+	create_loan_accounts,
+	create_loan_application,
+	create_loan_product,
+	create_loan_security,
+	create_loan_security_price,
+	create_loan_security_type,
+	create_loan_with_security,
+	create_loan_write_off,
+	create_repayment_entry,
+	create_secured_demand_loan,
+	get_loan_interest_accrual,
+	make_loan_disbursement_entry,
+	set_loan_accrual_frequency,
+	set_loan_settings_in_company,
+	setup_loan_demand_offset_order,
 )
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
@@ -1657,36 +1673,6 @@ class TestLoan(IntegrationTestCase):
 		expected_dates = [getdate(i) for i in expected_dates]
 
 		self.assertEqual(loan_interest_accruals, expected_dates)
-
-
-def add_or_update_loan_charges(product_name):
-	loan_product = frappe.get_doc("Loan Product", product_name)
-
-	charge_type = "Processing Fee"
-
-	if not frappe.db.exists("Item", charge_type):
-		frappe.get_doc(
-			{
-				"doctype": "Item",
-				"item_code": charge_type,
-				"item_group": "Services",
-				"is_stock_item": 0,
-				"income_account": "Processing Fee Income Account - _TC",
-			}
-		).insert()
-
-	loan_product.loan_charges = []
-
-	loan_product.append(
-		"loan_charges",
-		{
-			"charge_type": charge_type,
-			"income_account": "Processing Fee Income Account - _TC",
-			"receivable_account": "Processing Fee Receivable Account - _TC",
-			"waiver_account": "Processing Fee Waiver Account - _TC",
-		},
-	)
-	loan_product.save()
 
 
 def create_secured_demand_loan(applicant, disbursement_amount=None):
