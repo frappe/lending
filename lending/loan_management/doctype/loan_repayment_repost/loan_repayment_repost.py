@@ -60,26 +60,38 @@ class LoanRepaymentRepost(Document):
 			reverse_demands(self.loan, self.repost_date, demand_type="Penalty")
 
 	def clear_demand_allocation(self):
-		demands = frappe.get_all(
-			"Loan Demand",
-			{
-				"loan": self.loan,
-				"docstatus": 1,
-				"demand_type": "EMI",
-				"demand_date": (">=", self.repost_date),
-			},
-			["name", "demand_amount"],
-		)
+		# demands = frappe.get_all(
+		# 	"Loan Demand",
+		# 	{
+		# 		"loan": self.loan,
+		# 		"docstatus": 1,
+		# 		"demand_type": "EMI",
+		# 		"demand_date": (">=", self.repost_date),
+		# 	},
+		# 	["name", "demand_amount"],
+		# )
+		#
+		# for demand in demands:
+		# 	frappe.db.set_value(
+		# 		"Loan Demand",
+		# 		demand.name,
+		# 		{
+		# 			"paid_amount": 0,
+		# 			"outstanding_amount": demand.demand_amount,
+		# 		},
+		# 	)
 
-		for demand in demands:
-			frappe.db.set_value(
-				"Loan Demand",
-				demand.name,
-				{
-					"paid_amount": 0,
-					"outstanding_amount": demand.demand_amount,
-				},
-			)
+		demand_doc = frappe.qb.DocType("Loan Demand")
+		query = (
+			frappe.qb.update(demand_doc)
+			.set(demand_doc.paid_amount, 0)
+			.set(demand_doc.outstanding_amount, demand_doc.demand_amount)
+			.where(demand_doc.loan == self.loan)
+			.where(demand_doc.demand_type == "EMI")
+			.where(demand_doc.demand_date >= self.repost_date)
+			.where(demand_doc.docstatus == 1)
+		)
+		query.run()
 
 		for entry in self.get("repayment_entries"):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)

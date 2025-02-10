@@ -45,7 +45,6 @@ from lending.loan_management.doctype.process_loan_demand.process_loan_demand imp
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
-	schedule_accrual,
 )
 from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,

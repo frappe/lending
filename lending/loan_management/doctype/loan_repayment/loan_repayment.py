@@ -48,7 +48,8 @@ class LoanRepayment(AccountsController):
 		self.validate_disbursement_link()
 		if self.loan_disbursement:
 			self.validate_open_disbursement()
-		self.check_future_entries()
+		if self.repayment_type != "In-Between Payment":
+			self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
@@ -160,6 +161,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				"Charges Waiver",
 				"Normal Repayment",
+				"In-Between Payment",
 			)
 			and not self.flags.from_repost
 		):
@@ -223,6 +225,11 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+		if self.repayment_type == "In-Between Payments":
+			loan_repayment_repost = frappe.new_doc("Loan Repayment Repost")
+			loan_repayment_repost.loan = self.loan
+			loan_repayment_repost.clear_demand_allocation_before_repost = True
+			loan_repayment_repost.delete_gl_entries = True
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -658,7 +665,7 @@ class LoanRepayment(AccountsController):
 				and not self.is_write_off_waiver
 			):
 				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
-		elif self.repayment_type == "Normal Repayment":
+		elif self.repayment_type in ("Normal Repayment", "In-Between Payment"):
 			validate_repayment = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "validate_normal_repayment"
 			)
@@ -779,6 +786,7 @@ class LoanRepayment(AccountsController):
 
 		elif self.auto_close_loan() and self.repayment_type in (
 			"Normal Repayment",
+			"In-Between Payment",
 			"Pre Payment",
 			"Advance Payment",
 			"Security Deposit Adjustment",
@@ -965,6 +973,7 @@ class LoanRepayment(AccountsController):
 	def mark_as_unpaid(self):
 		if self.repayment_type in (
 			"Normal Repayment",
+			"In-Between Payment",
 			"Pre Payment",
 			"Advance Payment",
 			"Loan Closure",
@@ -1809,6 +1818,7 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type in (
 			"Normal Repayment",
+			"In-Between Payment",
 			"Loan Closure",
 			"Pre Payment",
 			"Advance Payment",
@@ -2019,7 +2029,9 @@ def get_demand_query():
 	)
 
 
-def get_pending_principal_amount(loan, loan_disbursement=None):
+def get_pending_principal_amount(
+	loan, posting_date=None, loan_disbursement=None, is_in_between=False
+):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if loan_disbursement and loan.repayment_schedule_type == "Line of Credit":
@@ -2032,14 +2044,30 @@ def get_pending_principal_amount(loan, loan_disbursement=None):
 		loan.status in ("Disbursed", "Closed", "Active", "Written Off")
 		and loan.repayment_schedule_type != "Line of Credit"
 	):
-		pending_principal_amount = flt(
-			flt(loan.total_payment)
-			+ flt(loan.debit_adjustment_amount)
-			- flt(loan.credit_adjustment_amount)
-			- flt(loan.total_principal_paid)
-			- flt(loan.total_interest_payable),
-			precision,
-		)
+		if is_in_between:
+			loan_repayment_doc = frappe.qb.DocType("Loan Repayment")
+			query = (
+				frappe.qb.from_(loan_repayment_doc)
+				.where(loan_repayment_doc.against_loan == loan.name)
+				.where(loan_repayment_doc.docstatus == 1)
+				.where(loan_repayment_doc.posting_date <= posting_date)
+			)
+			if loan_disbursement:
+				query = query.where(loan_repayment_doc.loan_disbursement == loan_disbursement)
+			query = query.select(Sum(loan_repayment_doc.principal_amount_paid).as_("total_principal_paid"))
+			q = query.run(as_dict=True)[0]
+			total_principal_paid = q.total_principal_paid
+			pending_principal_amount = loan.loan_amount - total_principal_paid
+
+		else:
+			pending_principal_amount = flt(
+				flt(loan.total_payment)
+				+ flt(loan.debit_adjustment_amount)
+				- flt(loan.credit_adjustment_amount)
+				- flt(loan.total_principal_paid)
+				- flt(loan.total_interest_payable),
+				precision,
+			)
 	else:
 		pending_principal_amount = flt(
 			flt(loan.disbursed_amount)
@@ -2134,9 +2162,12 @@ def process_amount_for_loan(
 	latest_accrual_date = get_latest_accrual_date(
 		loan.name, posting_date, loan_disbursement=loan_disbursement
 	)
-
+	is_in_between = False
 	if latest_accrual_date and getdate(latest_accrual_date) > getdate(posting_date):
 		is_backdated = 1
+
+	if payment_type == "In-Between Payment":
+		is_in_between = True
 
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
@@ -2148,7 +2179,9 @@ def process_amount_for_loan(
 		elif demand.demand_type == "Charges":
 			charges += demand.outstanding_amount
 
-	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
+	pending_principal_amount = get_pending_principal_amount(
+		loan, posting_date=posting_date, loan_disbursement=loan_disbursement, is_in_between=is_in_between
+	)
 	unbooked_interest, accrued_interest = get_unbooked_interest(
 		loan.name,
 		posting_date,
