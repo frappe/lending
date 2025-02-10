@@ -100,7 +100,12 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.docstatus = 2
 
 				repayment_doc.update_demands(cancel=1)
-				repayment_doc.update_limits(cancel=1)
+
+				loan_doc = frappe.qb.DocType("Loan")
+				query = frappe.qb.update(loan_doc)
+				repayment_doc.update_limits(query=query, loan=self.loan, cancel=1)
+				query.run()
+
 				repayment_doc.update_security_deposit_amount(cancel=1)
 
 				if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment"):
@@ -231,7 +236,10 @@ class LoanRepaymentRepost(Document):
 			# Run on_submit events
 			repayment_doc.update_paid_amounts()
 			repayment_doc.update_demands()
-			repayment_doc.update_limits()
+			loan_doc = frappe.qb.DocType("Loan")
+			query = frappe.qb.update(loan_doc)
+			repayment_doc.update_limits(query=query, loan=self.loan)
+			query.run()
 			repayment_doc.update_security_deposit_amount()
 			repayment_doc.db_update_all()
 			repayment_doc.make_gl_entries()
