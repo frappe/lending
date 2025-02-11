@@ -15,17 +15,13 @@ from frappe.utils import (
 	nowdate,
 )
 
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
 from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
 from lending.loan_management.doctype.loan.utils import (
-	add_or_update_loan_charges,
 	create_demand_loan,
 	create_loan,
-	create_loan_accounts,
 	create_loan_application,
-	create_loan_product,
 	create_loan_security,
 	create_loan_security_price,
 	create_loan_security_type,
@@ -34,10 +30,11 @@ from lending.loan_management.doctype.loan.utils import (
 	create_repayment_entry,
 	create_secured_demand_loan,
 	get_loan_interest_accrual,
+	init_customers,
+	init_loan_products,
 	make_loan_disbursement_entry,
+	master_init,
 	set_loan_accrual_frequency,
-	set_loan_settings_in_company,
-	setup_loan_demand_offset_order,
 )
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
@@ -69,88 +66,9 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 
 class TestLoan(IntegrationTestCase):
 	def setUp(self):
-		simple_terms_loans = [
-			["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
-			["Term Loan Product 1", 12000, 7.5, "Monthly as per repayment start date"],
-		]
-
-		pro_rated_term_loans = [
-			["Term Loan Product 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
-			["Term Loan Product 3", 1200, 25, "Pro-rated calendar months", "End of the current month"],
-		]
-
-		cyclic_date_term_loans = [
-			["Term Loan Product 4", 3000000, 25, "Monthly as per cycle date"],
-		]
-
-		loc_loans = [
-			["Term Loan Product 5", 3000000, 25, "Line of Credit"],
-		]
-
-		for loan_product in simple_terms_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-			)
-
-		for loan_product in cyclic_date_term_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-			)
-			add_or_update_loan_charges(loan_product[0])
-
-		for loan_product in loc_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-			)
-
-		for loan_product in pro_rated_term_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-				repayment_date_on=loan_product[4],
-			)
-
-		create_loan_product(
-			"Stock Loan",
-			"Stock Loan",
-			2000000,
-			13.5,
-			25,
-			1,
-			5,
-			repayment_schedule_type="Monthly as per repayment start date",
-			collection_offset_sequence_for_standard_asset="Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		create_loan_product(
-			"Demand Loan",
-			"Demand Loan",
-			2000000,
-			13.5,
-			25,
-			0,
-			5,
-			collection_offset_sequence_for_standard_asset="Test Demand Loan Loan Demand Offset Order",
-			collection_offset_sequence_for_sub_standard_asset=None,
-			collection_offset_sequence_for_written_off_asset=None,
-			collection_offset_sequence_for_settlement_collection=None,
-		)
-
+		master_init()
+		init_loan_products()
+		init_customers()
 		create_loan_security_type()
 		create_loan_security()
 
@@ -162,12 +80,6 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.applicant1 = make_employee("robert_loan@loan.com")
-		if not frappe.db.exists("Customer", "_Test Loan Customer"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
-
-		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
-
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
 
@@ -612,7 +524,6 @@ class TestLoan(IntegrationTestCase):
 				"haircut": 50,
 			}
 		]
-
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)

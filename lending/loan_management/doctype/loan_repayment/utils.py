@@ -173,3 +173,32 @@ def get_latest_accrual_date(posting_date, interest_type="Interest"):
 	)
 
 	return latest_accrual_date
+
+
+def cancel_entries_after_date(loan, posting_date):
+	cancelled_entries_details = frappe.get_all(
+		"Loan Repayment",
+		{"against_loan": loan, "posting_date": (">=", posting_date), "docstatus": 1},
+		["name", "posting_date", "amount_paid", "against_loan"],
+		order_by="posting_date DESC",
+	)
+	demands = []
+	for cancelled_entry_details in cancelled_entries_details:
+		cancelled_entry_details_doc = frappe.get_doc("Loan Repayment", cancelled_entry_details.name)
+		cancelled_entry_details_doc.cancel()
+		demands.extend([x.loan_demand for x in cancelled_entry_details_doc.repayment_details])
+	return cancelled_entries_details, demands
+
+
+def redo_cancelled_entries(cancelled_entries_details):
+	cancelled_entries_details.sort(key=lambda i: i.posting_date)
+	if len(cancelled_entries_details) == 0:
+		return
+
+	for cancelled_entry_details in cancelled_entries_details:
+		repayment_entry = frappe.new_doc("Loan Repayment")
+		repayment_entry.posting_date = cancelled_entry_details.posting_date
+		repayment_entry.amount_paid = cancelled_entry_details.amount_paid
+		repayment_entry.against_loan = cancelled_entry_details.against_loan
+
+		repayment_entry.submit()

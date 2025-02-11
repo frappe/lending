@@ -18,10 +18,6 @@ def before_tests():
 
 	year = now_datetime().year
 
-	frappe.defaults.set_global_defaults("default_company", "_Test Company")
-	frappe.defaults.set_global_defaults("default_currency", "INR")
-	frappe.defaults.set_global_defaults("country", "India")
-
 	if not frappe.get_list("Company"):
 		setup_complete(
 			{
@@ -41,6 +37,10 @@ def before_tests():
 				"chart_of_accounts": "Standard",
 			}
 		)
+
+	frappe.defaults.set_global_defaults("default_company", "_Test Company")
+	frappe.defaults.set_global_defaults("default_currency", "INR")
+	frappe.defaults.set_global_defaults("country", "India")
 
 	enable_all_roles_and_domains()
 	set_loan_settings_in_company()

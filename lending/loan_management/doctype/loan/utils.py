@@ -1,6 +1,8 @@
 import frappe
 from frappe.utils import add_days, nowdate
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
@@ -707,3 +709,105 @@ def get_loan_interest_accrual(loan, from_date, to_date):
 		order_by="posting_date",
 	)
 	return loan_interest_accruals
+
+
+def master_init():
+	set_loan_settings_in_company()
+	create_loan_accounts()
+	setup_loan_demand_offset_order()
+	set_loan_accrual_frequency("Weekly")
+
+
+def init_loan_products():
+	simple_terms_loans = [
+		["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
+		["Term Loan Product 1", 12000, 7.5, "Monthly as per repayment start date"],
+	]
+
+	pro_rated_term_loans = [
+		["Term Loan Product 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
+		["Term Loan Product 3", 1200, 25, "Pro-rated calendar months", "End of the current month"],
+	]
+
+	cyclic_date_term_loans = [
+		["Term Loan Product 4", 3000000, 25, "Monthly as per cycle date"],
+	]
+
+	loc_loans = [
+		["Term Loan Product 5", 3000000, 25, "Line of Credit"],
+	]
+
+	for loan_product in simple_terms_loans:
+		create_loan_product(
+			loan_product[0],
+			loan_product[0],
+			loan_product[1],
+			loan_product[2],
+			repayment_schedule_type=loan_product[3],
+		)
+
+	for loan_product in cyclic_date_term_loans:
+		create_loan_product(
+			loan_product[0],
+			loan_product[0],
+			loan_product[1],
+			loan_product[2],
+			repayment_schedule_type=loan_product[3],
+		)
+		add_or_update_loan_charges(loan_product[0])
+
+	for loan_product in loc_loans:
+		create_loan_product(
+			loan_product[0],
+			loan_product[0],
+			loan_product[1],
+			loan_product[2],
+			repayment_schedule_type=loan_product[3],
+		)
+
+	for loan_product in pro_rated_term_loans:
+		create_loan_product(
+			loan_product[0],
+			loan_product[0],
+			loan_product[1],
+			loan_product[2],
+			repayment_schedule_type=loan_product[3],
+			repayment_date_on=loan_product[4],
+		)
+
+	create_loan_product(
+		"Stock Loan",
+		"Stock Loan",
+		2000000,
+		13.5,
+		25,
+		1,
+		5,
+		repayment_schedule_type="Monthly as per repayment start date",
+		collection_offset_sequence_for_standard_asset="Test EMI Based Standard Loan Demand Offset Order",
+	)
+
+	create_loan_product(
+		"Demand Loan",
+		"Demand Loan",
+		2000000,
+		13.5,
+		25,
+		0,
+		5,
+		collection_offset_sequence_for_standard_asset="Test Demand Loan Loan Demand Offset Order",
+		collection_offset_sequence_for_sub_standard_asset=None,
+		collection_offset_sequence_for_written_off_asset=None,
+		collection_offset_sequence_for_settlement_collection=None,
+	)
+
+
+def init_customers():
+	make_customer("_Test Loan Customer")
+
+	make_customer("_Test Loan Customer 1")
+
+
+def make_customer(customer_name):
+	if not frappe.db.exists("Customer", customer_name):
+		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)

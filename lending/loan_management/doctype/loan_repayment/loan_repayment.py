@@ -18,6 +18,10 @@ from erpnext.controllers.accounts_controller import AccountsController
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
+from lending.loan_management.doctype.loan_repayment.utils import (
+	cancel_entries_after_date,
+	redo_cancelled_entries,
+)
 from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
 	update_loan_securities_values,
 )
@@ -95,6 +99,20 @@ class LoanRepayment(AccountsController):
 		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 			process_loan_interest_accrual_for_loans,
 		)
+
+		if self.repayment_type == "In-Between Payment":
+			cancelled_entries_details, demands = cancel_entries_after_date(
+				self.against_loan, self.posting_date
+			)
+			for demand in demands:
+				demand_doc = frappe.get_doc("Loan Demand", demand)
+				make_reverse_gl_entries(voucher_type="Loan Demand", voucher_no=demand)
+				demand_doc.cancel()
+
+			if len(cancelled_entries_details):
+				last_entry = cancelled_entries_details[0]
+				process_daily_loan_demands(posting_date=last_entry.posting_date, loan=self.against_loan)
+				redo_cancelled_entries(cancelled_entries_details=cancelled_entries_details)
 
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
@@ -225,11 +243,15 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
-		if self.repayment_type == "In-Between Payments":
-			loan_repayment_repost = frappe.new_doc("Loan Repayment Repost")
-			loan_repayment_repost.loan = self.loan
-			loan_repayment_repost.clear_demand_allocation_before_repost = True
-			loan_repayment_repost.delete_gl_entries = True
+		if self.repayment_type == "In-Between Payment":
+			pass
+			# loan_repayment_repost = frappe.new_doc("Loan Repayment Repost")
+			# loan_repayment_repost.loan = self.against_loan
+			# loan_repayment_repost.clear_demand_allocation_before_repost = True
+			# loan_repayment_repost.delete_gl_entries = True
+			# loan_repayment_repost.repost_date = self.posting_date
+			# loan_repayment_repost.save()
+			# loan_repayment_repost.submit()
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -2044,13 +2066,12 @@ def get_pending_principal_amount(
 		loan.status in ("Disbursed", "Closed", "Active", "Written Off")
 		and loan.repayment_schedule_type != "Line of Credit"
 	):
-		if is_in_between:
+		if is_in_between and False:
 			loan_repayment_doc = frappe.qb.DocType("Loan Repayment")
 			query = (
 				frappe.qb.from_(loan_repayment_doc)
 				.where(loan_repayment_doc.against_loan == loan.name)
-				.where(loan_repayment_doc.docstatus == 1)
-				.where(loan_repayment_doc.posting_date <= posting_date)
+				.where(loan_repayment_doc.posting_date < posting_date)
 			)
 			if loan_disbursement:
 				query = query.where(loan_repayment_doc.loan_disbursement == loan_disbursement)

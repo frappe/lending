@@ -114,9 +114,10 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.update_demands(cancel=1)
 
 				loan_doc = frappe.qb.DocType("Loan")
-				query = frappe.qb.update(loan_doc)
-				repayment_doc.update_limits(query=query, loan=self.loan, cancel=1)
-				query.run()
+				if repayment_doc.repayment_type == "Line of Credit":
+					query = frappe.qb.update(loan_doc)
+					query = repayment_doc.update_limits(query=query, loan=self.loan, cancel=1)
+					query.run()
 
 				repayment_doc.update_security_deposit_amount(cancel=1)
 
@@ -217,14 +218,12 @@ class LoanRepaymentRepost(Document):
 				loan_disbursement=repayment_doc.loan_disbursement,
 				for_update=True,
 			)
-
 			repayment_doc.set_missing_values(amounts)
 
 			loan = frappe.get_doc("Loan", repayment_doc.against_loan)
 			pending_principal_amount = get_pending_principal_amount(
-				loan, loan_disbursement=self.loan_disbursement
+				loan, loan_disbursement=self.loan_disbursement, posting_date=repayment_doc.posting_date
 			)
-
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
@@ -249,9 +248,10 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.update_paid_amounts()
 			repayment_doc.update_demands()
 			loan_doc = frappe.qb.DocType("Loan")
-			query = frappe.qb.update(loan_doc)
-			repayment_doc.update_limits(query=query, loan=self.loan)
-			query.run()
+			if repayment_doc.repayment_type == "Line of Credit":
+				query = frappe.qb.update(loan_doc)
+				query = repayment_doc.update_limits(query=query, loan=self.loan)
+				query.run()
 			repayment_doc.update_security_deposit_amount()
 			repayment_doc.db_update_all()
 			repayment_doc.make_gl_entries()
