@@ -112,6 +112,11 @@ class LoanRepayment(AccountsController):
 			if len(cancelled_entries_details):
 				last_entry = cancelled_entries_details[0]
 				process_daily_loan_demands(posting_date=last_entry.posting_date, loan=self.against_loan)
+				# frappe.enqueue(
+				# 	redo_cancelled_entries,
+				# 	cancelled_entries_details=cancelled_entries_details,
+				# 	enqueue_after_commit=True
+				# )
 				redo_cancelled_entries(cancelled_entries_details=cancelled_entries_details)
 
 		reversed_accruals = []
