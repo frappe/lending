@@ -2734,3 +2734,11 @@ def group_by_loan_and_disbursement(data):
 		grouped_data.setdefault((row.get("against_loan"), row.get("loan_disbursement")), []).append(row)
 
 	return grouped_data
+
+def create_repost(repayment):
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = repayment.against_loan
+	repost.delete_gl_entries = True
+	repost.repost_date = repayment.posting_date
+
+	repost.submit()
