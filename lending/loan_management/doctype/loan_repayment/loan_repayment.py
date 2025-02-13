@@ -499,6 +499,8 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.is_backdated:
+			return
 		self.flags.ignore_links = True
 
 		if self.repayment_type == "Full Settlement":

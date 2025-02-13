@@ -21,6 +21,12 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
+from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+	process_daily_loan_demands,
+)
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+	process_loan_interest_accrual_for_loans,
+)
 
 
 class TestLoanRepayment(IntegrationTestCase):
@@ -195,5 +201,5 @@ class TestLoanRepayment(IntegrationTestCase):
 			)
 
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
-			# self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
-			# self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
+			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
+			self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
