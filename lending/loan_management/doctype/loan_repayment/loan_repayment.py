@@ -783,16 +783,21 @@ class LoanRepayment(AccountsController):
 					query = query.set(loan.settlement_date, self.posting_date)
 				self.update_repayment_schedule_status()
 
-		elif self.auto_close_loan() and self.repayment_type in (
-			"Normal Repayment",
-			"Pre Payment",
-			"Advance Payment",
-			"Security Deposit Adjustment",
-			"Loan Closure",
-			"Principal Adjustment",
-			"Penalty Waiver",
-			"Interest Waiver",
-			"Charges Waiver",
+		elif (
+			self.auto_close_loan()
+			and self.repayment_type
+			in (
+				"Normal Repayment",
+				"Pre Payment",
+				"Advance Payment",
+				"Security Deposit Adjustment",
+				"Loan Closure",
+				"Principal Adjustment",
+				"Penalty Waiver",
+				"Interest Waiver",
+				"Charges Waiver",
+			)
+			and not self.is_write_off_waiver
 		):
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Closed")
