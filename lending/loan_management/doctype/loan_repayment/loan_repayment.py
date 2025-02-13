@@ -99,6 +99,9 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.is_backdated:
+			frappe.enqueue()
+
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -649,9 +652,8 @@ class LoanRepayment(AccountsController):
 		)
 
 		if future_repayment_date:
-			frappe.throw(
-				_("Repayment already made till date {0}").format(get_datetime(future_repayment_date))
-			)
+			self.is_backdated = True
+			# frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
@@ -2667,3 +2669,12 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_di
 
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
+
+
+def create_repost(repayment):
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = repayment.against_loan
+	repost.delete_gl_entries = True
+	repost.repost_date = repayment.posting_date
+
+	repost.submit()
