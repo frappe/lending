@@ -560,7 +560,7 @@ class LoanRepayment(AccountsController):
 			restructure.flags.ignore_links = True
 			restructure.cancel()
 
-	def set_missing_values(self, amounts):
+	def set_missing_values(self, amounts, repost=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if not self.posting_date:
@@ -569,18 +569,18 @@ class LoanRepayment(AccountsController):
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
-		if not self.interest_payable:
+		if not self.interest_payable or repost:
 			self.interest_payable = flt(amounts["interest_amount"], precision)
 
-		if not self.penalty_amount:
+		if not self.penalty_amount or repost:
 			self.penalty_amount = flt(amounts["penalty_amount"], precision)
 
 		self.pending_principal_amount = flt(amounts["pending_principal_amount"], precision)
 
-		if not self.payable_principal_amount and self.is_term_loan:
+		if not self.payable_principal_amount and self.is_term_loan or repost:
 			self.payable_principal_amount = flt(amounts["payable_principal_amount"], precision)
 
-		if not self.payable_amount:
+		if not self.payable_amount or repost:
 			self.payable_amount = flt(amounts["payable_amount"], precision)
 
 		shortfall_amount = flt(
@@ -637,7 +637,6 @@ class LoanRepayment(AccountsController):
 
 		if future_repayment_date:
 			self.is_backdated = True
-			# frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
 		else:
 			self.is_backdated = False
 
@@ -2109,7 +2108,6 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		for_update=for_update,
 	)
-
 	amounts = process_amount_for_loan(
 		against_loan_doc,
 		posting_date,
@@ -2558,5 +2556,7 @@ def create_repost(repayment):
 	repost.loan = repayment.against_loan
 	repost.delete_gl_entries = True
 	repost.repost_date = repayment.posting_date
-
+	repost.clear_demand_allocation_before_repost = True
+	repost.cancel_future_penal_accruals_and_demands = True
+	repost.cancel_future_emi_demands = True
 	repost.submit()
