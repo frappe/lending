@@ -96,8 +96,15 @@ class LoanRepayment(AccountsController):
 		)
 
 		if self.is_backdated:
-			frappe.enqueue()
-
+			if frappe.flags.in_test:
+				create_repost(self)
+			else:
+				frappe.enqueue(
+					create_repost,
+					repayment=self,
+					enqueue_after_commit=True,
+				)
+				return
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -482,6 +489,8 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.is_backdated:
+			return
 		self.flags.ignore_links = True
 		self.check_future_accruals()
 		self.mark_as_unpaid()
@@ -629,6 +638,8 @@ class LoanRepayment(AccountsController):
 		if future_repayment_date:
 			self.is_backdated = True
 			# frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
+		else:
+			self.is_backdated = False
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
