@@ -208,8 +208,7 @@ class LoanRepaymentRepost(Document):
 				loan_disbursement=repayment_doc.loan_disbursement,
 				for_update=True,
 			)
-
-			repayment_doc.set_missing_values(amounts)
+			repayment_doc.set_missing_values(amounts, repost=True)
 
 			loan = frappe.get_doc("Loan", repayment_doc.against_loan)
 			pending_principal_amount = get_pending_principal_amount(

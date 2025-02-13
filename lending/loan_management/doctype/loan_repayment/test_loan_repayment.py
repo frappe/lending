@@ -100,7 +100,6 @@ class TestLoanRepayment(IntegrationTestCase):
 		create_repayment_entry(
 			loan=loan_b.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
-		from pprint import pprint
 
 		dates = [add_months(repayment_start_date, i) for i in range(5)]
 		for date in dates:
@@ -111,9 +110,6 @@ class TestLoanRepayment(IntegrationTestCase):
 				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "posting_date": date}
 			)
 
-			_, diff = compare_two_docs("Loan Repayment", repayment_a, repayment_b)
-			del diff["repayment_details"]
-			pprint(diff)
 			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
 			self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)

@@ -581,7 +581,7 @@ class LoanRepayment(AccountsController):
 			restructure.flags.ignore_links = True
 			restructure.cancel()
 
-	def set_missing_values(self, amounts):
+	def set_missing_values(self, amounts, repost=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if not self.posting_date:
@@ -662,7 +662,6 @@ class LoanRepayment(AccountsController):
 
 		if future_repayment_date:
 			self.is_backdated = True
-			# frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
 		else:
 			self.is_backdated = False
 
@@ -2244,7 +2243,6 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		for_update=for_update,
 	)
-
 	amounts = process_amount_for_loan(
 		against_loan_doc,
 		posting_date,
@@ -2687,5 +2685,7 @@ def create_repost(repayment):
 	repost.loan = repayment.against_loan
 	repost.delete_gl_entries = True
 	repost.repost_date = repayment.posting_date
-
+	repost.clear_demand_allocation_before_repost = True
+	repost.cancel_future_penal_accruals_and_demands = True
+	repost.cancel_future_emi_demands = True
 	repost.submit()

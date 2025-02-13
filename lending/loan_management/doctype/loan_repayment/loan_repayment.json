@@ -528,8 +528,8 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
-   ,
-   {
+  },
+  {
    "default": "0",
    "fieldname": "is_backdated",
    "fieldtype": "Check",
