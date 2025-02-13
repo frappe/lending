@@ -1452,6 +1452,63 @@ class TestLoan(IntegrationTestCase):
 			flt(outstanding_demand), 0, "There are still outstanding amounts in the loan demand."
 		)
 
+	def test_excess_amount_for_interest_waiver(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-01-16", 100000, repayment_type="Principal Adjustment"
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-01-16", 2600.00, repayment_type="Interest Waiver"
+		)
+		repayment_entry.submit()
+
+	def test_excess_amount_for_penal_waiver(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			"2023-06-05",
+			"2023-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-05-02", repayment_start_date="2023-06-05"
+		)
+		process_daily_loan_demands(posting_date="2025-02-07", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2025-02-07", 1348682.67)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-02-07", 1900, repayment_type="Penalty Waiver"
+		)
+		repayment_entry.submit()
+
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -1791,6 +1848,14 @@ def create_loan_accounts():
 	)
 
 	create_account(
+		"Additional Interest Waiver",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
+	)
+
+	create_account(
 		"Penalty Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
 	)
 	create_account(
@@ -1952,10 +2017,12 @@ def create_loan_product(
 	min_days_bw_disbursement_first_repayment=None,
 	interest_accrued_account="Interest Accrued Account - _TC",
 	penalty_accrued_account="Penalty Accrued Account - _TC",
+	penalty_waiver_account="Penalty Waiver Account - _TC",
 	broken_period_interest_recovery_account="Broken Period Interest - _TC",
 	additional_interest_income="Additional Interest Income Account - _TC",
 	additional_interest_accrued="Additional Interest Accrued Account - _TC",
 	additional_interest_receivable="Additional Interest Receivable - _TC",
+	additional_interest_waiver="Additional Interest Waiver - _TC",
 	cyclic_day_of_the_month=5,
 	collection_offset_sequence_for_standard_asset=None,
 	collection_offset_sequence_for_sub_standard_asset=None,
