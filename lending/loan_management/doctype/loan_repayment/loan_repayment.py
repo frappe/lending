@@ -2678,3 +2678,12 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_di
 
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
+
+
+def create_repost(repayment):
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = repayment.against_loan
+	repost.delete_gl_entries = True
+	repost.repost_date = repayment.posting_date
+
+	repost.submit()
