@@ -516,7 +516,7 @@
    "label": "Accounting"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "ceil_monthly_repayment",
    "fieldtype": "Check",
    "label": "Ceil Monthly Repayment"
@@ -524,7 +524,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-14 16:13:11.987363",
+ "modified": "2025-02-14 17:27:05.719913",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
