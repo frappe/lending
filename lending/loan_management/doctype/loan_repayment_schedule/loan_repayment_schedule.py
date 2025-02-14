@@ -29,6 +29,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 
 class LoanRepaymentSchedule(Document):
 	def validate(self):
+		self.set_ceil_monthly_repayment()
 		self.set_repayment_period()
 		self.set_repayment_start_date()
 		self.validate_repayment_method()
@@ -36,7 +37,6 @@ class LoanRepaymentSchedule(Document):
 		self.make_co_lender_schedule()
 		self.reset_index()
 		self.set_maturity_date()
-		self.set_ceil_monthly_repayment()
 
 	def reset_index(self):
 		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
