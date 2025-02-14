@@ -146,7 +146,10 @@ class LoanRepayment(AccountsController):
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		if self.repayment_type == "Full Settlement":
-			frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+			if not frappe.flags.in_test:
+				frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+			else:
+				self.post_write_off_settlements()
 
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
@@ -809,6 +812,7 @@ class LoanRepayment(AccountsController):
 
 		elif self.repayment_type == "Full Settlement":
 			if self.repayment_schedule_type != "Line of Credit":
+				print("ininininin")
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.posting_date)
 			self.update_repayment_schedule_status()

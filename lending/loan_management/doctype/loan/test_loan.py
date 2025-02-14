@@ -358,7 +358,10 @@ class TestLoan(IntegrationTestCase):
 
 		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * 34) / (36500)
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_daily_loan_demands(posting_date=add_days(last_date, 5), loan=loan)
+		process_loan_interest_accrual_for_loans(
+			posting_date=add_days(last_date, 4), loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=add_days(last_date, 5), loan=loan.name)
 		repayment_entry = create_repayment_entry(
 			loan.name,
 			add_days(last_date, 5),
@@ -732,9 +735,11 @@ class TestLoan(IntegrationTestCase):
 		loan = create_secured_demand_loan(self.applicant2)
 		self.assertEqual(loan.loan_amount, 1000000)
 		repayment_date = "2019-11-01"
-		no_of_days = date_diff(repayment_date, "2019-10-01")
-		# no_of_days = 34
+
 		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * 31) / (36500)
+		process_loan_interest_accrual_for_loans(
+			posting_date=add_days("2019-11-01", -1), loan=loan.name, company="_Test Company"
+		)
 		process_daily_loan_demands(posting_date="2019-11-01", loan=loan.name)
 		# repay 50 less so that it can be automatically written off
 		repayment_entry = create_repayment_entry(
@@ -1342,6 +1347,8 @@ class TestLoan(IntegrationTestCase):
 			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
 		)
 		repayment_entry.submit()
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
 
 	def test_backdated_pre_payment(self):
 		loan = create_loan(

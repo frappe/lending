@@ -141,7 +141,7 @@ class LoanWriteOff(AccountsController):
 
 		update_values = {"written_off_amount": written_off_amount}
 
-		if not (self.is_settlement_write_off or cancel) or write_off_count >= 1:
+		if not (self.is_settlement_write_off or cancel) or write_off_count > 1:
 			update_values["status"] = "Written Off"
 		elif not self.is_settlement_write_off:
 			update_values["status"] = "Disbursed"

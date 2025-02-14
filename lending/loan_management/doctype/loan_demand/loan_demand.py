@@ -308,7 +308,6 @@ def make_loan_demand_for_demand_loans(
 	loan=None,
 	process_loan_demand=None,
 ):
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	filters = {
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
