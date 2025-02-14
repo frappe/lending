@@ -812,7 +812,6 @@ class LoanRepayment(AccountsController):
 
 		elif self.repayment_type == "Full Settlement":
 			if self.repayment_schedule_type != "Line of Credit":
-				print("ininininin")
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.posting_date)
 			self.update_repayment_schedule_status()
