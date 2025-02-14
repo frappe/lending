@@ -122,3 +122,22 @@ def get_loan_partner_details(loan_partner):
 	)
 
 	return loan_partner_details
+
+
+def get_ceil_monthly_repayment(loan=None, loan_product=None):
+	# The below query fetches the flag from Loan Product directly.
+	# I think this is easier and more straightforward than creating
+	# a chain of docs with redundant values
+	# (Loan Product -> Loan -> Loan Repayment)
+
+	loan_product_doc = frappe.query_builder.DocType("Loan Product")
+	loan_doc = frappe.query_builder.DocType("Loan")
+
+	query = frappe.qb.from_(loan_product_doc).select(loan_product_doc.ceil_monthly_repayment)
+	if loan:
+		loan_query = frappe.qb.from_(loan_doc).where(loan_doc.name == loan).select(loan_doc.loan_product)
+		query = query.where(loan_product_doc.name == loan_query)
+	if loan_product:
+		query = query.where(loan_product_doc.name == loan_product)
+	ceil_monthly_repayment = query.run()[0][0]
+	return ceil_monthly_repayment

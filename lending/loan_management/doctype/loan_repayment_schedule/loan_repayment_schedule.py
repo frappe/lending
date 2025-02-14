@@ -21,6 +21,7 @@ from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
 	get_amounts,
+	get_ceil_monthly_repayment,
 	get_loan_partner_details,
 	get_monthly_repayment_amount,
 	set_demand,
@@ -46,24 +47,7 @@ class LoanRepaymentSchedule(Document):
 		self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
 	def set_ceil_monthly_repayment(self):
-		# The below query fetches the flag from Loan Product directly.
-		# I think this is easier and more straightforward than creating
-		# a chain of docs with redundant values
-		# (Loan Product -> Loan -> Loan Repayment)
-
-		loan_product_doc = frappe.query_builder.DocType("Loan Product")
-		loan_doc = frappe.query_builder.DocType("Loan")
-
-		loan_query = (
-			frappe.qb.from_(loan_doc).where(loan_doc.name == self.loan).select(loan_doc.loan_product)
-		)
-		query = (
-			frappe.qb.from_(loan_product_doc)
-			.where(loan_product_doc.name == loan_query)
-			.select(loan_product_doc.ceil_monthly_repayment)
-		)
-		ceil_monthly_repayment = query.run()[0][0]
-		self.ceil_monthly_repayment = ceil_monthly_repayment
+		self.ceil_monthly_repayment = get_ceil_monthly_repayment(loan=self.loan)
 
 	def on_submit(self):
 		self.make_demand_for_advance_payment()

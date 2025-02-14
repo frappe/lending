@@ -18,6 +18,9 @@ from lending.loan_management.doctype.loan.loan import (
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.utils import (
+	get_ceil_monthly_repayment,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
@@ -115,8 +118,13 @@ class LoanApplication(Document):
 
 		if self.is_term_loan:
 			if self.repayment_method == "Repay Over Number of Periods":
+				ceil_monthly_repayment = get_ceil_monthly_repayment(loan_product=self.loan_product)
 				self.repayment_amount = get_monthly_repayment_amount(
-					self.loan_amount, self.rate_of_interest, self.repayment_periods, "Monthly"
+					self.loan_amount,
+					self.rate_of_interest,
+					self.repayment_periods,
+					"Monthly",
+					ceil_monthly_repayment=ceil_monthly_repayment,
 				)
 
 			if self.repayment_method == "Repay Fixed Amount per Period":

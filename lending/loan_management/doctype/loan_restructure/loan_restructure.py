@@ -18,6 +18,9 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.utils import (
+	get_ceil_monthly_repayment,
+)
 
 
 class LoanRestructure(AccountsController):
@@ -366,8 +369,13 @@ class LoanRestructure(AccountsController):
 			)
 
 		if self.new_repayment_method == "Repay Over Number of Periods":
+			ceil_monthly_repayment = get_ceil_monthly_repayment(loan=self.loan)
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
-				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months, "Monthly"
+				self.new_loan_amount,
+				self.new_rate_of_interest,
+				self.new_repayment_period_in_months,
+				"Monthly",
+				ceil_monthly_repayment=ceil_monthly_repayment,
 			)
 
 	def restructure_loan(self):
