@@ -347,7 +347,7 @@ class LoanRepaymentSchedule(Document):
 							rate_of_interest,
 							self.repayment_periods,
 							self.repayment_frequency,
-							self.ceil_monthly_repayment,
+							ceil_monthly_repayment=self.ceil_monthly_repayment,
 						)
 						moratorium_interest = 0
 
