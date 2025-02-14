@@ -36,6 +36,7 @@ class LoanRepaymentSchedule(Document):
 		self.make_co_lender_schedule()
 		self.reset_index()
 		self.set_maturity_date()
+		self.set_ceil_monthly_repayment()
 
 	def reset_index(self):
 		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
@@ -43,6 +44,26 @@ class LoanRepaymentSchedule(Document):
 
 	def set_maturity_date(self):
 		self.maturity_date = self.get("repayment_schedule")[-1].payment_date
+
+	def set_ceil_monthly_repayment(self):
+		# The below query fetches the flag from Loan Product directly.
+		# I think this is easier and more straightforward than creating
+		# a chain of docs with redundant values
+		# (Loan Product -> Loan -> Loan Repayment)
+
+		loan_product_doc = frappe.query_builder.DocType("Loan Product")
+		loan_doc = frappe.query_builder.DocType("Loan")
+
+		loan_query = (
+			frappe.qb.from_(loan_doc).where(loan_doc.name == self.loan).select(loan_doc.loan_product)
+		)
+		query = (
+			frappe.qb.from_(loan_product_doc)
+			.where(loan_product_doc.name == loan_query)
+			.select(loan_product_doc.ceil_monthly_repayment)
+		)
+		ceil_monthly_repayment = query.run()[0][0]
+		self.ceil_monthly_repayment = ceil_monthly_repayment
 
 	def on_submit(self):
 		self.make_demand_for_advance_payment()
@@ -281,7 +302,11 @@ class LoanRepaymentSchedule(Document):
 
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
-				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+				balance_amount,
+				rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
+				ceil_monthly_repayment=self.ceil_monthly_repayment,
 			)
 		else:
 			monthly_repayment_amount = self.monthly_repayment_amount
@@ -318,7 +343,11 @@ class LoanRepaymentSchedule(Document):
 					):
 						balance_amount = self.loan_amount + moratorium_interest
 						monthly_repayment_amount = get_monthly_repayment_amount(
-							balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+							balance_amount,
+							rate_of_interest,
+							self.repayment_periods,
+							self.repayment_frequency,
+							self.ceil_monthly_repayment,
 						)
 						moratorium_interest = 0
 
@@ -574,6 +603,7 @@ class LoanRepaymentSchedule(Document):
 							self.rate_of_interest,
 							self.repayment_periods,
 							self.repayment_frequency,
+							ceil_monthly_repayment=self.ceil_monthly_repayment,
 						)
 						return (
 							previous_interest_amount,
@@ -661,6 +691,7 @@ class LoanRepaymentSchedule(Document):
 						self.rate_of_interest,
 						self.repayment_periods - completed_tenure,
 						self.repayment_frequency,
+						ceil_monthly_repayment=self.ceil_monthly_repayment,
 					)
 
 				if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":

@@ -22,6 +22,7 @@
   "is_term_loan",
   "validate_normal_repayment",
   "disabled",
+  "ceil_monthly_repayment",
   "limits_section",
   "min_days_bw_disbursement_first_repayment",
   "excess_amount_acceptance_limit",
@@ -513,11 +514,17 @@
    "fieldname": "accounting_tab",
    "fieldtype": "Tab Break",
    "label": "Accounting"
+  },
+  {
+   "default": "0",
+   "fieldname": "ceil_monthly_repayment",
+   "fieldtype": "Check",
+   "label": "Ceil Monthly Repayment"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-09 16:16:25.371953",
+ "modified": "2025-02-14 16:13:11.987363",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

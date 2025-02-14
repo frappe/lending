@@ -18,6 +18,7 @@
   "repayment_frequency",
   "repayment_start_date",
   "maturity_date",
+  "ceil_monthly_repayment",
   "repayment_schedule_section",
   "repayment_schedule",
   "term_details_section",
@@ -376,12 +377,19 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
+  },
+  {
+   "default": "0",
+   "fieldname": "ceil_monthly_repayment",
+   "fieldtype": "Check",
+   "label": "Ceil Monthly Repayment",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-09 16:31:11.170120",
+ "modified": "2025-02-14 16:34:47.294351",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
