@@ -19,6 +19,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 	get_monthly_repayment_amount,
 )
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
+	add_single_month,
 	get_ceil_monthly_repayment,
 )
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
@@ -119,12 +120,18 @@ class LoanApplication(Document):
 		if self.is_term_loan:
 			if self.repayment_method == "Repay Over Number of Periods":
 				ceil_monthly_repayment = get_ceil_monthly_repayment(loan_product=self.loan_product)
+				interest_day_count_convention = frappe.get_cached_value(
+					"Company", self.company, "interest_day_count_convention"
+				)
 				self.repayment_amount = get_monthly_repayment_amount(
 					self.loan_amount,
 					self.rate_of_interest,
 					self.repayment_periods,
 					"Monthly",
 					ceil_monthly_repayment=ceil_monthly_repayment,
+					interest_day_count_convention=interest_day_count_convention,
+					disbursement_date=self.posting_date,
+					repayment_start_date=add_single_month(self.posting_date),
 				)
 
 			if self.repayment_method == "Repay Fixed Amount per Period":

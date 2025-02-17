@@ -280,10 +280,14 @@ class LoanRepaymentSchedule(Document):
 		partner_schedule_type=None,
 	):
 		payment_date = self.repayment_start_date
+		prev_payment_date = self.posting_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		row = 0
 
+		interest_day_count_convention = frappe.get_cached_value(
+			"Company", self.company, "interest_day_count_convention"
+		)
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
 				balance_amount,
@@ -291,6 +295,9 @@ class LoanRepaymentSchedule(Document):
 				self.repayment_periods,
 				self.repayment_frequency,
 				ceil_monthly_repayment=self.ceil_monthly_repayment,
+				interest_day_count_convention=interest_day_count_convention,
+				disbursement_date=self.posting_date,
+				repayment_start_date=self.repayment_start_date,
 			)
 		else:
 			monthly_repayment_amount = self.monthly_repayment_amount
@@ -332,6 +339,9 @@ class LoanRepaymentSchedule(Document):
 							self.repayment_periods,
 							self.repayment_frequency,
 							ceil_monthly_repayment=self.ceil_monthly_repayment,
+							interest_day_count_convention=interest_day_count_convention,
+							disbursement_date=self.posting_date,
+							repayment_start_date=self.repayment_start_date,
 						)
 						moratorium_interest = 0
 
@@ -339,6 +349,7 @@ class LoanRepaymentSchedule(Document):
 
 			payment_days, months = self.get_days_and_months(
 				payment_date,
+				prev_payment_date,
 				additional_days,
 				balance_amount,
 				rate_of_interest,
@@ -365,6 +376,7 @@ class LoanRepaymentSchedule(Document):
 				additional_principal_amount,
 				pending_prev_days,
 			)
+			prev_payment_date = payment_date
 
 			if (
 				schedule_field == "colender_schedule"
@@ -582,12 +594,18 @@ class LoanRepaymentSchedule(Document):
 						and getdate(self.posting_date) <= getdate(self.moratorium_end_date)
 						and self.restructure_type
 					):
+						interest_day_count_convention = frappe.get_cached_value(
+							"Company", self.company, "interest_day_count_convention"
+						)
 						self.monthly_repayment_amount = get_monthly_repayment_amount(
 							self.current_principal_amount,
 							self.rate_of_interest,
 							self.repayment_periods,
 							self.repayment_frequency,
 							ceil_monthly_repayment=self.ceil_monthly_repayment,
+							interest_day_count_convention=interest_day_count_convention,
+							disbursement_date=self.posting_date,
+							repayment_start_date=self.repayment_start_date,
 						)
 						return (
 							previous_interest_amount,
@@ -676,6 +694,9 @@ class LoanRepaymentSchedule(Document):
 						self.repayment_periods - completed_tenure,
 						self.repayment_frequency,
 						ceil_monthly_repayment=self.ceil_monthly_repayment,
+						interest_day_count_convention=interest_day_count_convention,
+						disbursement_date=self.posting_date,
+						repayment_start_date=self.repayment_start_date,
 					)
 
 				if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":
@@ -755,6 +776,7 @@ class LoanRepaymentSchedule(Document):
 	def get_days_and_months(
 		self,
 		payment_date,
+		prev_payment_date,
 		additional_days,
 		balance_amount,
 		rate_of_interest,
@@ -774,7 +796,8 @@ class LoanRepaymentSchedule(Document):
 				"Monthly as per repayment start date",
 				"Pro-rated calendar months",
 			):
-				days = date_diff(payment_date, add_months(payment_date, -1))
+				days = date_diff(payment_date, prev_payment_date)
+				print(days, "meow")
 				if (
 					additional_days < 0
 					or (additional_days > 0 and self.moratorium_tenure and not self.restructure_type)

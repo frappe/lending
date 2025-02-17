@@ -1,7 +1,11 @@
 import math
 
 import frappe
-from frappe.utils import add_months, cint, flt, get_last_day, getdate
+from frappe.utils import add_months, cint, date_diff, flt, get_last_day, getdate
+
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	days_in_year,
+)
 
 
 def add_single_month(date):
@@ -12,16 +16,44 @@ def add_single_month(date):
 
 
 def get_monthly_repayment_amount(
-	loan_amount, rate_of_interest, repayment_periods, frequency, ceil_monthly_repayment=False
+	loan_amount,
+	rate_of_interest,
+	repayment_periods,
+	frequency,
+	ceil_monthly_repayment=False,
+	disbursement_date=None,
+	repayment_start_date=None,
+	interest_day_count_convention=False,
 ):
 	if frequency == "One Time":
 		repayment_periods = 1
 
 	if rate_of_interest:
 		monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
-		monthly_repayment_amount = (
-			loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods
-		) / ((1 + monthly_interest_rate) ** repayment_periods - 1)
+		if frequency == "Monthly":
+			if interest_day_count_convention.startswith("30"):
+				if interest_day_count_convention.endswith("365"):
+					monthly_interest_rate = flt(rate_of_interest) * 30 / 365
+				elif interest_day_count_convention.endswith("360"):
+					monthly_interest_rate = flt(rate_of_interest) * 30 / 360
+
+				monthly_repayment_amount = (
+					loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods
+				) / ((1 + monthly_interest_rate) ** repayment_periods - 1)
+			elif interest_day_count_convention.startswith("Actual"):
+				monthly_repayment_amount = binary_search_monthly_repayment_amount_for_fixed_number_of_periods(
+					principal=loan_amount,
+					repayment_periods=repayment_periods,
+					rate_of_interest=rate_of_interest,
+					disbursement_date=disbursement_date,
+					repayment_start_date=repayment_start_date,
+					interest_day_count_convention=interest_day_count_convention,
+				)
+		else:
+
+			monthly_repayment_amount = (
+				loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods
+			) / ((1 + monthly_interest_rate) ** repayment_periods - 1)
 	else:
 		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
 
@@ -141,3 +173,107 @@ def get_ceil_monthly_repayment(loan=None, loan_product=None):
 		query = query.where(loan_product_doc.name == loan_product)
 	ceil_monthly_repayment = query.run()[0][0]
 	return ceil_monthly_repayment
+
+
+def binary_search_monthly_repayment_amount_for_fixed_number_of_periods(
+	principal,
+	repayment_periods,
+	rate_of_interest,
+	disbursement_date,
+	repayment_start_date,
+	interest_day_count_convention,
+):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	l = 0
+	h = principal**2  # just to be safe
+	while True:
+		print(l, h)
+		x = (l + h) / 2
+		remaining_principal = repayment_simulator_for_fixed_number_of_periods(
+			x,
+			principal,
+			repayment_periods,
+			rate_of_interest,
+			disbursement_date,
+			repayment_start_date,
+			interest_day_count_convention,
+		)
+		if abs(remaining_principal) < 0.0001:
+			repayment_simulator_for_fixed_number_of_periods(
+				x,
+				principal,
+				repayment_periods,
+				rate_of_interest,
+				disbursement_date,
+				repayment_start_date,
+				interest_day_count_convention,
+				prnt=True,
+			)
+			print(x)
+			break
+		if remaining_principal < 0:
+			h = x
+		else:
+			l = x
+	return x
+
+
+def repayment_simulator_for_fixed_number_of_periods(
+	monthly_repayment_amount,
+	principal,
+	repayment_periods,
+	rate_of_interest,
+	disbursement_date,
+	repayment_start_date,
+	interest_day_count_convention,
+	prnt=False,
+):
+	prev_date = disbursement_date
+	current_date = repayment_start_date
+	for _ in range(repayment_periods):
+
+		# separate interest for each month based on the number of days
+		# Assuming this function is only use for 'Actual/...' day count interests
+		if interest_day_count_convention.startswith("Actual"):
+			monthly_interest_rate = rate_of_interest / 100
+			if interest_day_count_convention == ("Actual/Actual"):
+				year_a = getdate(prev_date).year
+				year_b = getdate(current_date).year
+				if days_in_year(year_a) == days_in_year(year_b):
+					monthly_interest_rate *= date_diff(current_date, prev_date) / days_in_year(year_a)
+				else:
+					first_year_interest_rate = date_diff(getdate(f"31-12-{year_a}"), prev_date) / days_in_year(
+						year_a
+					)
+					second_year_interest_rate = date_diff(
+						current_date, getdate(f"31-12-{year_a}")
+					) / days_in_year(year_b)
+					# first_year_interest_rate = date_diff(getdate(f'1-1-{year_b}'), prev_date)
+					# second_year_interest_rate = date_diff(current_date, getdate(f'1-1-{year_b}'))
+					print(first_year_interest_rate, second_year_interest_rate)
+
+					monthly_interest_rate *= first_year_interest_rate + second_year_interest_rate
+			else:
+				monthly_interest_rate *= frappe.utils.date_diff(current_date, prev_date) / 365
+		elif interest_day_count_convention.startswith("30"):
+			monthly_interest_rate = rate_of_interest * 30
+
+		if interest_day_count_convention.endswith("365"):
+			monthly_interest_rate /= 365
+		elif interest_day_count_convention.endswith("360"):
+			monthly_interest_rate /= 360
+
+		interest_amount = principal * monthly_interest_rate
+		principal -= monthly_repayment_amount - interest_amount
+		if prnt:
+			print(
+				current_date,
+				monthly_repayment_amount - interest_amount,
+				interest_amount,
+				monthly_repayment_amount,
+				principal,
+				frappe.utils.date_diff(current_date, prev_date),
+			)
+		prev_date = current_date
+		current_date = add_months(current_date, 1)
+	return principal

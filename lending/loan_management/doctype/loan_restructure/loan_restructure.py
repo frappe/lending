@@ -370,12 +370,18 @@ class LoanRestructure(AccountsController):
 
 		if self.new_repayment_method == "Repay Over Number of Periods":
 			ceil_monthly_repayment = get_ceil_monthly_repayment(loan=self.loan)
+			interest_day_count_convention = frappe.get_cached_value(
+				"Company", self.company, "interest_day_count_convention"
+			)
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
 				self.new_loan_amount,
 				self.new_rate_of_interest,
 				self.new_repayment_period_in_months,
 				"Monthly",
 				ceil_monthly_repayment=ceil_monthly_repayment,
+				interest_day_count_convention=interest_day_count_convention,
+				disbursement_date=self.restructure_date,
+				repayment_start_date=self.repayment_start_date,
 			)
 
 	def restructure_loan(self):
