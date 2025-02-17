@@ -1650,10 +1650,6 @@ class TestLoan(IntegrationTestCase):
 
 		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
 
-		create_process_loan_classification(
-			posting_date="2024-10-10", loan=loan.name, loan_disbursement=disbursement_1.name
-		)
-
 		repayment_entry = create_repayment_entry(
 			loan.name, "2024-10-10", 10000, loan_disbursement=disbursement_1.name
 		)
@@ -1669,10 +1665,6 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
-
-		create_process_loan_classification(
-			posting_date="2024-10-15", loan=loan.name, loan_disbursement=disbursement_2.name
-		)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name

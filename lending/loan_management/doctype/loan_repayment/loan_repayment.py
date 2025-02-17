@@ -161,6 +161,7 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				"Penalty Waiver",
 				"Charges Waiver",
+				"Normal Repayment",
 			)
 			and not self.flags.from_repost
 		):
