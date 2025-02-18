@@ -1,18 +1,11 @@
 import math
 
 import frappe
-from frappe.utils import add_months, cint, date_diff, flt, get_last_day, getdate
+from frappe.utils import add_months, cint, date_diff, flt, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-
-
-def add_single_month(date):
-	if getdate(date) == get_last_day(date):
-		return get_last_day(add_months(date, 1))
-	else:
-		return add_months(date, 1)
 
 
 def get_monthly_repayment_amount(
@@ -250,11 +243,11 @@ def repayment_simulator_for_fixed_number_of_periods(
 					) / days_in_year(year_b)
 					# first_year_interest_rate = date_diff(getdate(f'1-1-{year_b}'), prev_date)
 					# second_year_interest_rate = date_diff(current_date, getdate(f'1-1-{year_b}'))
-					print(first_year_interest_rate, second_year_interest_rate)
 
 					monthly_interest_rate *= first_year_interest_rate + second_year_interest_rate
 			else:
-				monthly_interest_rate *= frappe.utils.date_diff(current_date, prev_date) / 365
+				monthly_interest_rate *= date_diff(current_date, prev_date)
+
 		elif interest_day_count_convention.startswith("30"):
 			monthly_interest_rate = rate_of_interest * 30
 

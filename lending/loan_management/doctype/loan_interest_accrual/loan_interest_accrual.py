@@ -10,9 +10,9 @@ from frappe.utils import (
 	cint,
 	date_diff,
 	flt,
-	get_datetime,
 	get_first_day,
 	get_first_day_of_week,
+	get_last_day,
 	getdate,
 	nowdate,
 )
@@ -264,11 +264,11 @@ def calculate_accrual_amount_for_loans(
 		pending_principal_amount = get_pending_principal_amount(loan)
 
 		payable_interest = get_interest_amount(
-			no_of_days,
 			principal_amount=pending_principal_amount,
 			rate_of_interest=loan.rate_of_interest,
 			company=loan.company,
-			posting_date=posting_date,
+			from_date=last_accrual_date,
+			to_date=posting_date,
 		)
 
 		if payable_interest > 0:
@@ -394,11 +394,11 @@ def is_posting_date_accrual_day(loan_accrual_frequency, posting_date):
 def get_interest_for_term(company, rate_of_interest, pending_principal_amount, from_date, to_date):
 	no_of_days = date_diff(to_date, from_date) + 1
 	payable_interest = get_interest_amount(
-		no_of_days,
-		principal_amount=pending_principal_amount,
-		rate_of_interest=rate_of_interest,
-		company=company,
-		posting_date=to_date,
+		pending_principal_amount,
+		rate_of_interest,
+		company,
+		from_date=from_date,
+		to_date=add_days(to_date, 1),
 	)
 
 	return payable_interest
@@ -557,10 +557,11 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
-			no_of_days = date_diff(posting_date, from_date)
+			# no_of_days = date_diff(posting_date, from_date)
 
-			penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate * no_of_days / 36500
-
+			penal_interest_amount = get_interest_amount(
+				demand.pending_amount, penal_interest_amount, loan.company, from_date, posting_date
+			)
 			if flt(penal_interest_amount, precision) > 0:
 				total_penal_interest += penal_interest_amount
 
@@ -578,10 +579,9 @@ def calculate_penal_interest_for_loans(
 				if not principal_amount:
 					continue
 
-				per_day_interest = get_per_day_interest(
-					principal_amount, loan.rate_of_interest, loan.company, posting_date
+				additional_interest_amount = get_interest_amount(
+					principal_amount, loan.rate_of_interest, loan.company, from_date, posting_date
 				)
-				additional_interest = flt(per_day_interest * no_of_days, precision)
 
 				if not is_future_accrual:
 					if flt(penal_interest_amount, precision) > 0:
@@ -596,7 +596,7 @@ def calculate_penal_interest_for_loans(
 							"Penal Interest",
 							penal_interest_rate,
 							loan_demand=demand.name,
-							additional_interest=additional_interest,
+							additional_interest=additional_interest_amount,
 							accrual_date=accrual_date,
 							loan_repayment_schedule_detail=demand.repayment_schedule_detail,
 						)
@@ -872,49 +872,73 @@ def days_in_year(year):
 	return days
 
 
-def get_per_day_interest(
-	principal_amount, rate_of_interest, company, posting_date=None, interest_day_count_convention=None
-):
-	if not posting_date:
-		posting_date = getdate()
-
-	if not interest_day_count_convention:
-		interest_day_count_convention = frappe.get_cached_value(
-			"Company", company, "interest_day_count_convention"
-		)
-
-	if interest_day_count_convention == "Actual/365" or interest_day_count_convention == "30/365":
-		year_divisor = 365
-	elif interest_day_count_convention == "30/360" or interest_day_count_convention == "Actual/360":
-		year_divisor = 360
-	else:
-		# Default is Actual/Actual
-		year_divisor = days_in_year(get_datetime(posting_date).year)
-
-	return flt((principal_amount * rate_of_interest) / (year_divisor * 100))
-
-
 def get_interest_amount(
-	no_of_days,
-	principal_amount=None,
-	rate_of_interest=None,
-	company=None,
-	posting_date=None,
-	interest_per_day=None,
+	principal_amount,
+	rate_of_interest,
+	company,
+	from_date,
+	to_date,
 ):
 	interest_day_count_convention = frappe.get_cached_value(
 		"Company", company, "interest_day_count_convention"
 	)
 
-	if not interest_per_day:
-		interest_per_day = get_per_day_interest(
-			principal_amount, rate_of_interest, company, posting_date, interest_day_count_convention
-		)
+	interest_for_duration = rate_of_interest / 100
+	if interest_day_count_convention == "Actual/Actual":
+		year_a = getdate(from_date)
+		year_b = getdate(to_date)
+		if days_in_year(year_a) != days_in_year(year_b):
+			first_year_interest_rate = date_diff(getdate(f"31-12-{year_a}"), from_date) / days_in_year(
+				year_a
+			)
+			second_year_interest_rate = date_diff(to_date, getdate(f"31-12-{year_a}")) / days_in_year(
+				year_b
+			)
+			interest_for_duration *= first_year_interest_rate + second_year_interest_rate
+		else:
+			interest_for_duration *= date_diff(getdate(to_date, from_date)) / days_in_year(year_a)
+	else:
+		if interest_day_count_convention.startswith("Actual"):
+			interest_for_duration *= date_diff(getdate(to_date, from_date))
+		elif interest_day_count_convention.startswith("30"):
+			# complex logic; don't even try
+			# tldr; treats all months as 30 days long
+			no_of_months = 0
+			cur_date = from_date
+			while True:
+				if add_single_month(cur_date) <= to_date:
+					no_of_months += 1
+					cur_date = add_single_month(cur_date)
+				elif cur_date <= to_date:
+					last_day_of_cur_date = get_last_day(cur_date)
+					last_day_of_to_date = get_last_day(to_date)
+					if last_day_of_cur_date == last_day_of_to_date:
+						no_of_months += date_diff(to_date, cur_date) / get_days_in_month(cur_date)
+					else:
+						no_of_months += date_diff(last_day_of_cur_date, cur_date) / get_days_in_month(cur_date)
+						no_of_months += date_diff(to_date, last_day_of_cur_date) / get_days_in_month(to_date)
+					break
+				else:
+					break
+		interest_for_duration *= no_of_months * 30
 
-	if interest_day_count_convention == "30/365" or interest_day_count_convention == "30/360":
-		no_of_days = 30
+		if interest_day_count_convention.endswith("360"):
+			interest_for_duration /= 360
+		if interest_day_count_convention.endswith("365"):
+			interest_for_duration /= 365
 
-	return interest_per_day * no_of_days
+	return interest_for_duration * principal_amount
+
+
+def get_days_in_month(date):
+	return date_diff(get_last_day(date), get_first_day(date)) + 1
+
+
+def add_single_month(date):
+	if getdate(date) == get_last_day(date):
+		return get_last_day(add_months(date, 1))
+	else:
+		return add_months(date, 1)
 
 
 def reverse_loan_interest_accruals(

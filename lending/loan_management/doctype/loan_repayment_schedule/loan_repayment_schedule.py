@@ -18,8 +18,10 @@ from frappe.utils import (
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.loan_management.doctype.loan_repayment_schedule.utils import (
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	add_single_month,
+)
+from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_amounts,
 	get_ceil_monthly_repayment,
 	get_loan_partner_details,
