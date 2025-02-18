@@ -266,9 +266,9 @@ def calculate_accrual_amount_for_loans(
 		payable_interest = get_interest_amount(
 			principal_amount=pending_principal_amount,
 			rate_of_interest=loan.rate_of_interest,
-			company=loan.company,
 			from_date=last_accrual_date,
 			to_date=posting_date,
+			company=loan.company,
 		)
 
 		if payable_interest > 0:
@@ -394,11 +394,11 @@ def is_posting_date_accrual_day(loan_accrual_frequency, posting_date):
 def get_interest_for_term(company, rate_of_interest, pending_principal_amount, from_date, to_date):
 	no_of_days = date_diff(to_date, from_date) + 1
 	payable_interest = get_interest_amount(
-		pending_principal_amount,
-		rate_of_interest,
-		company,
+		principal_amount=pending_principal_amount,
+		rate_of_interest=rate_of_interest,
 		from_date=from_date,
 		to_date=add_days(to_date, 1),
+		company=company,
 	)
 
 	return payable_interest
@@ -560,7 +560,11 @@ def calculate_penal_interest_for_loans(
 			# no_of_days = date_diff(posting_date, from_date)
 
 			penal_interest_amount = get_interest_amount(
-				demand.pending_amount, penal_interest_amount, loan.company, from_date, posting_date
+				principal_amount=demand.pending_amount,
+				rate_of_interest=penal_interest_amount,
+				from_date=from_date,
+				to_date=posting_date,
+				company=loan.company,
 			)
 			if flt(penal_interest_amount, precision) > 0:
 				total_penal_interest += penal_interest_amount
@@ -580,7 +584,11 @@ def calculate_penal_interest_for_loans(
 					continue
 
 				additional_interest_amount = get_interest_amount(
-					principal_amount, loan.rate_of_interest, loan.company, from_date, posting_date
+					principal_amount=principal_amount,
+					rate_of_interest=loan.rate_of_interest,
+					from_date=from_date,
+					to_date=posting_date,
+					company=loan.company,
 				)
 
 				if not is_future_accrual:
@@ -875,13 +883,15 @@ def days_in_year(year):
 def get_interest_amount(
 	principal_amount,
 	rate_of_interest,
-	company,
 	from_date,
 	to_date,
+	company=None,
+	interest_day_count_convention=None,
 ):
-	interest_day_count_convention = frappe.get_cached_value(
-		"Company", company, "interest_day_count_convention"
-	)
+	if not interest_day_count_convention:
+		interest_day_count_convention = frappe.get_cached_value(
+			"Company", company, "interest_day_count_convention"
+		)
 
 	interest_for_duration = rate_of_interest / 100
 	if interest_day_count_convention == "Actual/Actual":
