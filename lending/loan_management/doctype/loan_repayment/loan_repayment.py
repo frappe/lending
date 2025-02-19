@@ -512,6 +512,11 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		self.flags.ignore_links = True
+		self.check_future_entries()
+		self.mark_as_unpaid()
+		self.update_demands(cancel=1)
+		self.update_security_deposit_amount(cancel=1)
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -520,6 +525,7 @@ class LoanRepayment(AccountsController):
 					self.create_repost,
 					enqueue_after_commit=True,
 				)
+<<<<<<< HEAD
 		self.flags.ignore_links = True
 		# frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		if self.repayment_type == "Full Settlement":
@@ -531,6 +537,8 @@ class LoanRepayment(AccountsController):
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
+=======
+>>>>>>> 710a103 (fix: remove redundant method for checking future repayments)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
@@ -1151,19 +1159,6 @@ class LoanRepayment(AccountsController):
 			).where(
 				loan_security_deposit.loan == self.against_loan
 			).run()
-
-	def check_future_accruals(self):
-		if self.flags.from_repost:
-			return
-
-		filters = {
-			"posting_date": (">", self.posting_date),
-			"docstatus": 1,
-			"against_loan": self.against_loan,
-		}
-
-		if self.loan_disbursement:
-			filters["loan_disbursement"] = self.loan_disbursement
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
