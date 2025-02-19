@@ -19,6 +19,7 @@ from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
 from lending.loan_management.doctype.loan.loan import (
+	DuplicateLoanError,
 	make_loan_write_off,
 	request_loan_closure,
 	unpledge_security,
@@ -940,6 +941,62 @@ class TestLoan(unittest.TestCase):
 		self.assertEqual(format_date(schedule[0].payment_date, "dd-MM-yyyy"), "31-10-2022")
 		self.assertEqual(format_date(schedule[1].payment_date, "dd-MM-yyyy"), "30-11-2022")
 		self.assertEqual(format_date(schedule[-1].payment_date, "dd-MM-yyyy"), "30-09-2023")
+
+	def test_validate_loan_application(self):
+		pledge = [
+			{
+				"loan_security": "Test Security 1",
+				"qty": 4000.00,
+			}
+		]
+
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledge, "Repay Over Number of Periods", 12
+		)
+		create_pledge(loan_application)
+		loan1 = frappe.get_doc(
+			{
+				"doctype": "Loan",
+				"company": "_Test Company",
+				"applicant_type": "Customer",
+				"posting_date": nowdate(),
+				"loan_application": loan_application,
+				"applicant": self.applicant2,
+				"loan_product": "Stock Loan",
+				"is_term_loan": 1,
+				"is_secured_loan": 1,
+				"repayment_method": "Repay Over Number of Periods",
+				"repayment_periods": 12,
+				"repayment_start_date": nowdate(),
+				"payment_account": "Payment Account - _TC",
+				"loan_account": "Loan Account - _TC",
+				"interest_income_account": "Interest Income Account - _TC",
+				"penalty_income_account": "Penalty Income Account - _TC",
+			}
+		)
+		loan1.save().submit()
+		loan2 = frappe.get_doc(
+			{
+				"doctype": "Loan",
+				"company": "_Test Company",
+				"applicant_type": "Customer",
+				"posting_date": nowdate(),
+				"loan_application": loan_application,
+				"applicant": self.applicant2,
+				"loan_product": "Stock Loan",
+				"is_term_loan": 1,
+				"is_secured_loan": 1,
+				"repayment_method": "Repay Over Number of Periods",
+				"repayment_periods": 12,
+				"repayment_start_date": nowdate(),
+				"payment_account": "Payment Account - _TC",
+				"loan_account": "Loan Account - _TC",
+				"interest_income_account": "Interest Income Account - _TC",
+				"penalty_income_account": "Penalty Income Account - _TC",
+			}
+		)
+
+		self.assertRaises(DuplicateLoanError, loan2.save)
 
 
 def create_loan_scenario_for_penalty(doc):
