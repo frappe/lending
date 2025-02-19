@@ -108,7 +108,6 @@ class LoanRepayment(AccountsController):
 					enqueue_after_commit=True,
 				)
 			return
-
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -500,7 +499,13 @@ class LoanRepayment(AccountsController):
 		)
 
 		if self.is_backdated:
-			return
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
 		self.flags.ignore_links = True
 
 		if self.repayment_type == "Full Settlement":
