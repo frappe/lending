@@ -27,6 +27,10 @@ from lending.loan_management.doctype.loan_security_unpledge.loan_security_unpled
 )
 
 
+class DuplicateLoanError(frappe.ValidationError):
+	pass
+
+
 class Loan(AccountsController):
 	def validate(self):
 		self.set_loan_amount()
@@ -36,6 +40,7 @@ class Loan(AccountsController):
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
+		self.validate_loan_application()
 
 		if self.is_term_loan and not self.is_new():
 			self.update_draft_schedule()
@@ -47,6 +52,15 @@ class Loan(AccountsController):
 		if self.is_term_loan:
 			self.make_draft_schedule()
 			self.calculate_totals(on_insert=True)
+
+	def validate_loan_application(self):
+		if self.loan_application and frappe.db.get_value(
+			"Loan", {"name": ["!=", self.name], "loan_application": self.loan_application}
+		):
+			frappe.throw(
+				_("Loan Application {0} is already linked another Loan").format(self.loan_application),
+				exc=DuplicateLoanError,
+			)
 
 	def validate_accounts(self):
 		for fieldname in [
