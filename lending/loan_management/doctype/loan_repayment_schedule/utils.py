@@ -1,35 +1,11 @@
+from math import ceil
+
 import frappe
-from frappe.utils import add_months, cint, flt
+from frappe.utils import add_days, add_months, add_years, cint, flt, get_last_day
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_amount,
 )
-
-
-def get_monthly_repayment_schedule(
-	loan_amount,
-	rate_of_interest,
-	repayment_periods,
-	frequency,
-	ceil_monthly_repayment=False,
-	disbursement_date=None,
-	repayment_start_date=None,
-	interest_day_count_convention=False,
-):
-	if frequency == "One Time":
-		repayment_periods = 1
-
-	monthly_repayment_schedule = binary_search_monthly_repayment_schedule_for_fixed_number_of_periods(
-		principal=loan_amount,
-		repayment_periods=repayment_periods,
-		rate_of_interest=rate_of_interest,
-		disbursement_date=disbursement_date,
-		repayment_start_date=repayment_start_date,
-		interest_day_count_convention=interest_day_count_convention,
-		ceil_monthly_repayment=ceil_monthly_repayment,
-	)
-
-	return monthly_repayment_schedule
 
 
 def get_frequency(frequency):
@@ -143,40 +119,51 @@ def get_ceil_monthly_repayment(loan=None, loan_product=None):
 	return ceil_monthly_repayment
 
 
-def binary_search_monthly_repayment_schedule_for_fixed_number_of_periods(
+def get_repayment_schedule(
 	principal,
-	repayment_periods,
 	rate_of_interest,
+	repayment_method,
+	frequency,
 	disbursement_date,
 	repayment_start_date,
 	interest_day_count_convention,
 	ceil_monthly_repayment=False,
+	repayment_periods=-1,
 ):
+	if frequency == "One Time":
+		repayment_periods = 1
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	l = 0
 	h = principal**2  # just to be safe
-	for i in range(300):
+	for _ in range(300):
 		x = (l + h) / 2
 		remaining_principal = repayment_simulator(
-			x,
-			principal,
-			repayment_periods,
-			rate_of_interest,
-			disbursement_date,
-			repayment_start_date,
-			interest_day_count_convention,
-			ceil_monthly_repayment,
+			monthly_repayment_amount=x,
+			principal=principal,
+			rate_of_interest=rate_of_interest,
+			repayment_method=repayment_method,
+			frequency=frequency,
+			disbursement_date=disbursement_date,
+			repayment_start_date=repayment_start_date,
+			interest_day_count_convention=interest_day_count_convention,
+			ceil_monthly_repayment=ceil_monthly_repayment,
+			repayment_periods=repayment_periods,
+			precision=precision,
 		)
-		if abs(remaining_principal) < 0.0001:
+		if flt(remaining_principal, precision):
 			_, schedule = repayment_simulator(
-				x,
-				principal,
-				repayment_periods,
-				rate_of_interest,
-				disbursement_date,
-				repayment_start_date,
-				interest_day_count_convention,
+				monthly_repayment_amount=x,
+				principal=principal,
+				rate_of_interest=rate_of_interest,
+				frequency=frequency,
+				repayment_method=repayment_method,
+				disbursement_date=disbursement_date,
+				repayment_start_date=repayment_start_date,
+				interest_day_count_convention=interest_day_count_convention,
+				repayment_periods=repayment_periods,
+				ceil_monthly_repayment=ceil_monthly_repayment,
 				generate_schedule=True,
+				precision=precision,
 			)
 			return x, schedule
 		if remaining_principal < 0:
@@ -190,22 +177,25 @@ def repayment_simulator(
 	monthly_repayment_amount,
 	principal,
 	repayment_method,
+	frequency,
 	rate_of_interest,
 	disbursement_date,
 	repayment_start_date,
 	interest_day_count_convention,
-	repayment_periods=None,
+	repayment_periods=-1,
+	ceil_monthly_repayment=False,
 	generate_schedule=False,
+	precision=2,
 ):
 	# list initialisation takes up resources
 	if generate_schedule:
 		schedule = []
+	is_last_day = get_last_day(repayment_start_date) == repayment_start_date
 	prev_date = disbursement_date
 	current_date = repayment_start_date
 	i = 0
 	repay_over_number_of_periods = repayment_method == "Repay Over Number of Periods"
 	while True:
-		i += 1
 		interest_amount = get_interest_amount(
 			principal_amount=principal,
 			rate_of_interest=rate_of_interest,
@@ -214,7 +204,15 @@ def repayment_simulator(
 			interest_day_count_convention=interest_day_count_convention,
 		)
 
-		principal -= monthly_repayment_amount - interest_amount
+		if ceil_monthly_repayment:
+			monthly_repayment_amount = ceil(monthly_repayment_amount)
+		diff = monthly_repayment_amount - interest_amount
+
+		if flt(diff - principal, precision) > 0:
+			monthly_repayment_amount = principal
+			principal = 0
+		else:
+			principal -= diff
 
 		if generate_schedule:
 			schedule.append(
@@ -223,15 +221,40 @@ def repayment_simulator(
 						"principal_amount": principal,
 						"posting_date": current_date,
 						"interest_amount": interest_amount,
+						"repayment_amount": monthly_repayment_amount,
 					}
 				)
 			)
 
+		i += 1
 		if repay_over_number_of_periods:
 			if i == repayment_periods:
 				break
+		else:
+			if principal == 0:
+				break
+
 		prev_date = current_date
-		current_date = add_months(current_date, 1)
+
+		# ideally, for "One Time" frequency, the loop should have broken by now
+		# so not defined here
+		match frequency:
+			case "Daily":
+				current_date = add_days(current_date, 1)
+			case "Weekly":
+				current_date = add_days(current_date, 7)
+			case "Monthly":
+				if is_last_day:
+					current_date = get_last_day(add_months(current_date, 1))
+				else:
+					current_date = add_months(current_date, 1)
+			case "Quarterly":
+				if is_last_day:
+					current_date = get_last_day(add_months(current_date, 3))
+				else:
+					current_date = add_months(current_date, 3)
+			case "Yearly":
+				current_date = add_years(current_date, 1)
 
 	if generate_schedule:
 		return principal, schedule
