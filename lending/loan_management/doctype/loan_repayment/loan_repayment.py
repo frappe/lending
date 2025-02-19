@@ -687,6 +687,7 @@ class LoanRepayment(AccountsController):
 			self.is_backdated = True
 		else:
 			self.is_backdated = False
+		self.db_set("is_backdated", self.is_backdated)
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
