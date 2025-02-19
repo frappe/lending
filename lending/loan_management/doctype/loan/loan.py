@@ -55,7 +55,7 @@ class Loan(AccountsController):
 
 	def validate_loan_application(self):
 		if self.loan_application and frappe.db.get_value(
-			"Loan", {"name": ["!=", self.name], "loan_application": self.loan_application}
+			"Loan", {"name": ["!=", self.name], "loan_application": self.loan_application, "docstatus": 1}
 		):
 			frappe.throw(
 				_("Loan Application {0} is already linked another Loan").format(self.loan_application),
