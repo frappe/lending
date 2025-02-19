@@ -101,14 +101,13 @@ class LoanRepayment(AccountsController):
 
 		if self.is_backdated:
 			if frappe.flags.in_test:
-				create_repost(self)
+				self.create_repost()
 			else:
 				frappe.enqueue(
-					create_repost,
-					repayment=self,
+					self.create_repost,
 					enqueue_after_commit=True,
 				)
-				return
+			return
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -242,6 +241,16 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+
+	def create_repost(self):
+		repost = frappe.new_doc("Loan Repayment Repost")
+		repost.loan = self.against_loan
+		repost.delete_gl_entries = True
+		repost.repost_date = self.posting_date
+		repost.clear_demand_allocation_before_repost = True
+		repost.cancel_future_penal_accruals_and_demands = True
+		repost.cancel_future_emi_demands = True
+		repost.submit()
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -504,7 +513,13 @@ class LoanRepayment(AccountsController):
 		)
 
 		if self.is_backdated:
-			return
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
 		self.flags.ignore_links = True
 		# frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		if self.repayment_type == "Full Settlement":
@@ -1149,17 +1164,6 @@ class LoanRepayment(AccountsController):
 
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
-
-		future_repayment = frappe.db.get_value(
-			"Loan Repayment",
-			filters,
-			"posting_date",
-		)
-
-		if future_repayment:
-			frappe.throw(
-				_("Cannot cancel. Repayments made till date {0}").format(get_datetime(future_repayment))
-			)
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -2678,14 +2682,3 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_di
 
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
-
-
-def create_repost(repayment):
-	repost = frappe.new_doc("Loan Repayment Repost")
-	repost.loan = repayment.against_loan
-	repost.delete_gl_entries = True
-	repost.repost_date = repayment.posting_date
-	repost.clear_demand_allocation_before_repost = True
-	repost.cancel_future_penal_accruals_and_demands = True
-	repost.cancel_future_emi_demands = True
-	repost.submit()
