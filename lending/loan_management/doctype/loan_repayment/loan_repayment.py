@@ -250,6 +250,7 @@ class LoanRepayment(AccountsController):
 				"disbursed_amount",
 				"total_interest_payable",
 				"written_off_amount",
+				"applicant_type",
 			],
 			as_dict=1,
 		)
