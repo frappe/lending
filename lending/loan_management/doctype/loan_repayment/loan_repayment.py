@@ -1072,6 +1072,7 @@ def regenerate_repayment_schedule(loan, cancel=0):
 
 
 def get_pending_principal_amount(loan):
+    precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if loan.status in ("Disbursed", "Closed") or loan.disbursed_amount >= loan.loan_amount:
 		pending_principal_amount = (
 			flt(loan.total_payment)
@@ -1093,7 +1094,7 @@ def get_pending_principal_amount(loan):
 			+ flt(loan.refund_amount)
 		)
 
-	return pending_principal_amount
+    return flt(pending_principal_amount, precision)
 
 
 # This function returns the amounts that are payable at the time of loan repayment based on posting date
