@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt
@@ -16,7 +17,7 @@ class LoanTransfer(Document):
 			loans = get_loans(self.from_branch, self.applicant)
 
 			if not loans:
-				frappe.throw("No loans found for this applicant or branch")
+				frappe.throw(_("No loans found for this applicant or branch"))
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
