@@ -725,7 +725,7 @@ class TestLoan(IntegrationTestCase):
 		)
 		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-07-07", loan=loan.name, company="_Test Company"
+			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
