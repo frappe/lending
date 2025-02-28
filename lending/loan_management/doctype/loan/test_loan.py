@@ -1086,16 +1086,17 @@ class TestLoan(IntegrationTestCase):
 		loan.freeze_account = 0
 		loan.save()
 
-	def test_loan_write_off_entry(self):
+	def test_loan_write_off_recovery(self):
 		frappe.db.set_value(
 			"Loan Product", "Term Loan Product 4", "write_off_recovery_account", "Write Off Recovery - _TC"
 		)
 		loan = create_loan(
-			self.applicant1,
+			"_Test Customer 1",
 			"Term Loan Product 4",
 			2500000,
 			"Repay Over Number of Periods",
 			24,
+			"Customer",
 			repayment_start_date="2024-11-05",
 			posting_date="2024-10-05",
 			rate_of_interest=25,
@@ -1113,8 +1114,72 @@ class TestLoan(IntegrationTestCase):
 		repayment = create_repayment_entry(
 			loan.name, "2024-12-05", 1000000, repayment_type="Write Off Recovery"
 		)
-
 		repayment.submit()
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Written Off")
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry",
+			filters={"voucher_no": repayment.name},
+			fields=["account", "debit", "credit"],
+		)
+
+		expected_entries = [
+			{"account": "Payment Account - _TC", "debit": 1000000, "credit": 0},
+			{"account": "Write Off Recovery - _TC", "debit": 0, "credit": 1000000},
+		]
+
+		for expected in expected_entries:
+			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
+
+	def test_loan_write_off_settlement(self):
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "write_off_recovery_account", "Write Off Recovery - _TC"
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment = create_repayment_entry(
+			loan.name, "2025-01-05", 1500000, repayment_type="Write Off Settlement"
+		)
+		repayment.submit()
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Settled")
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry",
+			filters={"voucher_no": repayment.name},
+			fields=["account", "debit", "credit"],
+		)
+
+		expected_entries = [
+			{"account": "Payment Account - _TC", "debit": 1500000, "credit": 0},
+			{"account": "Write Off Recovery - _TC", "debit": 0, "credit": 1500000},
+		]
+
+		for expected in expected_entries:
+			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_interest_accrual_overlap(self):
 		loan = create_loan(
