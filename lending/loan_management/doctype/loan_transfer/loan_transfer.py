@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt
@@ -17,7 +16,7 @@ class LoanTransfer(Document):
 			loans = get_loans(self.from_branch, self.applicant)
 
 			if not loans:
-				frappe.throw(_("No loans found for this applicant or branch"))
+				frappe.throw("No loans found for this applicant or branch")
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
@@ -95,13 +94,21 @@ class LoanTransfer(Document):
 
 		for balance in balances:
 			if flt(abs(balance.bal_in_account_currency)) > 0.01:
+				account_type = frappe.get_cached_value("Account", balance.account, "account_type")
+				party = ""
+				party_type = ""
+
+				if account_type in ("Receivable", "Payable"):
+					party = balance.party
+					party_type = balance.party_type
+
 				je_doc.append(
 					"accounts",
 					{
 						"account": balance.account,
 						"debit_in_account_currency": balance.bal_in_account_currency,
-						"party_type": balance.party_type,
-						"party": balance.party,
+						"party_type": party_type,
+						"party": party,
 						"reference_type": balance.against_voucher_type,
 						"reference_name": balance.against_voucher,
 						branch_fieldname: self.to_branch,
@@ -113,8 +120,8 @@ class LoanTransfer(Document):
 					{
 						"account": balance.account,
 						"credit_in_account_currency": balance.bal_in_account_currency,
-						"party_type": balance.party_type,
-						"party": balance.party,
+						"party_type": party_type,
+						"party": party,
 						"reference_type": balance.against_voucher_type,
 						"reference_name": balance.against_voucher,
 						branch_fieldname: self.from_branch,
