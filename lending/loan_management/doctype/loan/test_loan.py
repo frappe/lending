@@ -762,7 +762,6 @@ class TestLoan(IntegrationTestCase):
 			"Loan Interest Accrual", {"loan": loan.name}, ["start_date", "posting_date"]
 		)
 		for i in accruals:
-			print(i.start_date, i.posting_date, i)
 			self.assertEqual(i.start_date, i.posting_date)
 
 	def test_loan_write_off_limit(self):
