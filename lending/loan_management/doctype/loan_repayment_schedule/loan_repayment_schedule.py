@@ -71,7 +71,7 @@ class LoanRepaymentSchedule(Document):
 
 		prepayment_details = frappe.db.get_value(
 			"Loan Restructure",
-			self.loan_restructure,
+			{"loan": self.loan, "name": self.loan_restructure},
 			["unaccrued_interest", "principal_adjusted", "balance_principal"],
 			as_dict=1,
 		)
