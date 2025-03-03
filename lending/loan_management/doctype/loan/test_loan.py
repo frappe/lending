@@ -731,6 +731,40 @@ class TestLoan(IntegrationTestCase):
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
 
+	def test_same_date_for_daily_accruals(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			self.applicant1,
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
+			penalty_charges_rate=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-07-07", loan=loan.name, company="_Test Company"
+		)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
+
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
+
+		accruals = frappe.get_all(
+			"Loan Interest Accrual", {"loan": loan.name}, ["start_date", "posting_date"]
+		)
+		for i in accruals:
+			print(i.start_date, i.posting_date, i)
+			self.assertEqual(i.start_date, i.posting_date)
+
 	def test_loan_write_off_limit(self):
 		loan = create_secured_demand_loan(self.applicant2)
 		self.assertEqual(loan.loan_amount, 1000000)
