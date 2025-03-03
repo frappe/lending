@@ -934,6 +934,8 @@ class LoanRepayment(AccountsController):
 	def auto_close_loan(self):
 		auto_close = False
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
 			"Loan Product",
 			self.loan_product,
@@ -963,7 +965,7 @@ class LoanRepayment(AccountsController):
 			auto_write_off_amount
 			and shortfall_amount > 0
 			and shortfall_amount <= auto_write_off_amount
-			and flt(total_payable - self.amount_paid) <= flt(shortfall_amount)
+			and flt(total_payable - self.amount_paid, precision) <= flt(shortfall_amount, precision)
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
@@ -977,7 +979,7 @@ class LoanRepayment(AccountsController):
 			self.principal_amount_paid >= self.pending_principal_amount
 			and not flt(shortfall_amount)
 			and flt(self.excess_amount) <= flt(excess_amount_limit)
-			and flt(total_payable - self.amount_paid) <= flt(auto_write_off_amount)
+			and flt(total_payable - self.amount_paid, precision) <= flt(auto_write_off_amount, precision)
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
