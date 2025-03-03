@@ -961,6 +961,9 @@ class LoanRepayment(AccountsController):
 		else:
 			total_payable = self.payable_amount
 
+		if self.excess_amount > 0 and self.repayment_schedule_type == "Line of Credit":
+			auto_close = True
+
 		if (
 			auto_write_off_amount
 			and shortfall_amount > 0
