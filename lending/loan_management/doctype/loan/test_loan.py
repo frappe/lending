@@ -1745,6 +1745,126 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
 
+<<<<<<< HEAD
+=======
+	def test_accrual_background_job(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		set_loan_accrual_frequency("Daily")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-20", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+		)
+		expected_dates = [
+			"2024-08-16",
+			"2024-08-17",
+			"2024-08-18",
+			"2024-08-19",
+			"2024-08-20",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+		set_loan_accrual_frequency("Weekly")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-31", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-08-21", to_date="2024-08-31"
+		)
+		expected_dates = [
+			"2024-08-25",
+			"2024-08-31",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+		set_loan_accrual_frequency("Monthly")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-10-31", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-09-01", to_date="2024-11-05"
+		)
+		expected_dates = [
+			"2024-09-15",
+			"2024-09-30",
+			"2024-10-15",
+			"2024-10-31",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+	def test_loc_loan_pre_payment_closure(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-10-28",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			335533,
+			disbursement_date="2024-11-25",
+			repayment_start_date="2025-01-24",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
+		)
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2025-01-23",
+			344890,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		disbursement.load_from_db()
+		self.assertEqual(disbursement.status, "Closed")
+
+		repayment_schedule_status = frappe.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "loan_disbursement": disbursement.name, "docstatus": 1},
+			"status",
+		)
+
+		self.assertEqual(repayment_schedule_status, "Closed")
+
+>>>>>>> 7bd4856 (fix: LOC loan closure)
 
 def add_or_update_loan_charges(product_name):
 	loan_product = frappe.get_doc("Loan Product", product_name)
@@ -2023,6 +2143,7 @@ def create_loan_product(
 	suspense_interest_income="Suspense Income Account - _TC",
 	interest_waiver_account="Interest Waiver Account - _TC",
 	write_off_account="Write Off Account - _TC",
+	customer_refund_account="Customer Refund Account - _TC",
 	repayment_method=None,
 	repayment_periods=None,
 	repayment_schedule_type="Monthly as per repayment start date",
@@ -2068,6 +2189,7 @@ def create_loan_product(
 	loan_product_doc.additional_interest_income = additional_interest_income
 	loan_product_doc.additional_interest_accrued = additional_interest_accrued
 	loan_product_doc.additional_interest_receivable = additional_interest_receivable
+	loan_product_doc.customer_refund_account = customer_refund_account
 	loan_product_doc.repayment_method = repayment_method
 	loan_product_doc.repayment_periods = repayment_periods
 	loan_product_doc.write_off_amount = 100
@@ -2190,7 +2312,9 @@ def create_loan_security():
 		).insert(ignore_permissions=True)
 
 
-def make_loan_disbursement_entry(loan, amount, disbursement_date=None, repayment_start_date=None):
+def make_loan_disbursement_entry(
+	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
 	loan_disbursement_entry.disbursement_date = disbursement_date or nowdate()
@@ -2200,6 +2324,7 @@ def make_loan_disbursement_entry(loan, amount, disbursement_date=None, repayment
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
+	loan_disbursement_entry.repayment_frequency = repayment_frequency
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
