@@ -559,7 +559,7 @@ def calculate_penal_interest_for_loans(
 			from_date_for_entry = from_date
 			for current_date in get_accrual_frequency_breaks(from_date, posting_date, "Daily"):
 				# no_of_days = date_diff(posting_date, from_date)
-				from_date_for_entry = add_days(current_date, -1)
+				from_date_for_entry = current_date
 				# just here for daily penal accruals
 				no_of_days = 1
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate * no_of_days / 36500
