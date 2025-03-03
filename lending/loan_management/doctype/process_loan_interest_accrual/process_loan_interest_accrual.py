@@ -23,6 +23,7 @@ class ProcessLoanInterestAccrual(Document):
 			accrual_type=self.accrual_type,
 			accrual_date=self.posting_date,
 			company=self.company,
+			from_demand=self.flags.from_demand,
 		)
 
 
@@ -36,7 +37,12 @@ def schedule_accrual():
 
 
 def process_loan_interest_accrual_for_loans(
-	posting_date=None, loan_product=None, loan=None, accrual_type="Regular", company=None
+	posting_date=None,
+	loan_product=None,
+	loan=None,
+	accrual_type="Regular",
+	company=None,
+	from_demand=False,
 ):
 	loan_process = frappe.new_doc("Process Loan Interest Accrual")
 	loan_process.posting_date = posting_date or add_days(nowdate(), -1)
@@ -44,6 +50,7 @@ def process_loan_interest_accrual_for_loans(
 	loan_process.loan = loan
 	loan_process.accrual_type = accrual_type
 	loan_process.company = company
+	loan_process.flags.from_demand = from_demand
 	loan_process.submit()
 
 	return loan_process.name
