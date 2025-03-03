@@ -2023,6 +2023,7 @@ def create_loan_product(
 	suspense_interest_income="Suspense Income Account - _TC",
 	interest_waiver_account="Interest Waiver Account - _TC",
 	write_off_account="Write Off Account - _TC",
+	customer_refund_account="Customer Refund Account - _TC",
 	repayment_method=None,
 	repayment_periods=None,
 	repayment_schedule_type="Monthly as per repayment start date",
@@ -2068,6 +2069,7 @@ def create_loan_product(
 	loan_product_doc.additional_interest_income = additional_interest_income
 	loan_product_doc.additional_interest_accrued = additional_interest_accrued
 	loan_product_doc.additional_interest_receivable = additional_interest_receivable
+	loan_product_doc.customer_refund_account = customer_refund_account
 	loan_product_doc.repayment_method = repayment_method
 	loan_product_doc.repayment_periods = repayment_periods
 	loan_product_doc.write_off_amount = 100
@@ -2190,7 +2192,9 @@ def create_loan_security():
 		).insert(ignore_permissions=True)
 
 
-def make_loan_disbursement_entry(loan, amount, disbursement_date=None, repayment_start_date=None):
+def make_loan_disbursement_entry(
+	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
 	loan_disbursement_entry.disbursement_date = disbursement_date or nowdate()
@@ -2200,6 +2204,7 @@ def make_loan_disbursement_entry(loan, amount, disbursement_date=None, repayment
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
+	loan_disbursement_entry.repayment_frequency = repayment_frequency
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
