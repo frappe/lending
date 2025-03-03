@@ -1691,7 +1691,7 @@ class LoanRepayment(AccountsController):
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
-			against_account = self.payment_account
+			against_account = account_details.write_off_recovery_account
 			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
 		for repayment in self.get("repayment_details"):
