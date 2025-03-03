@@ -86,6 +86,7 @@ class LoanDisbursement(AccountsController):
 		return draft_schedule
 
 	def make_update_draft_schedule(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		draft_schedule = self.get_draft_schedule()
 		loan_product = frappe.db.get_value("Loan", self.against_loan, "loan_product")
 		loan_details = frappe.db.get_value(
@@ -109,7 +110,7 @@ class LoanDisbursement(AccountsController):
 
 		self.db_set("monthly_repayment_amount", schedule.monthly_repayment_amount)
 		if loan_details.status == "Sanctioned":
-			self.db_set("broken_period_interest", schedule.broken_period_interest)
+			self.db_set("broken_period_interest", flt(schedule.broken_period_interest, precision))
 
 	def on_submit(self):
 		if self.is_term_loan:
