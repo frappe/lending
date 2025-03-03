@@ -644,6 +644,7 @@ def make_accrual_interest_entry_for_loans(
 	accrual_date=None,
 	limit=0,
 	company=None,
+	from_demand=False,
 ):
 
 	loan_doc = frappe.qb.DocType("Loan")
@@ -697,7 +698,12 @@ def make_accrual_interest_entry_for_loans(
 	open_loans = query.run(as_dict=1)
 	if loan:
 		process_interest_accrual_batch(
-			open_loans, posting_date, process_loan_interest, accrual_type, accrual_date
+			open_loans,
+			posting_date,
+			process_loan_interest,
+			accrual_type,
+			accrual_date,
+			from_demand=from_demand,
 		)
 	else:
 		BATCH_SIZE = 5000
@@ -722,19 +728,26 @@ def get_batches(open_loans, batch_size):
 
 
 def process_interest_accrual_batch(
-	loans, posting_date, process_loan_interest, accrual_type, accrual_date, via_background_job=False
+	loans,
+	posting_date,
+	process_loan_interest,
+	accrual_type,
+	accrual_date,
+	via_background_job=False,
+	from_demand=False,
 ):
 	for loan in loans:
 		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
 		try:
-			calculate_penal_interest_for_loans(
-				loan,
-				posting_date,
-				process_loan_interest=process_loan_interest,
-				accrual_type=accrual_type,
-				accrual_date=accrual_date,
-				via_background_job=via_background_job,
-			)
+			if not from_demand:
+				calculate_penal_interest_for_loans(
+					loan,
+					posting_date,
+					process_loan_interest=process_loan_interest,
+					accrual_type=accrual_type,
+					accrual_date=accrual_date,
+					via_background_job=via_background_job,
+				)
 			calculate_accrual_amount_for_loans(
 				loan,
 				posting_date,
