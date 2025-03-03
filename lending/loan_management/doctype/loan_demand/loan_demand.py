@@ -45,7 +45,10 @@ class LoanDemand(AccountsController):
 			and self.demand_subtype == "Interest"
 		):
 			process_loan_interest_accrual_for_loans(
-				posting_date=add_days(self.demand_date, -1), loan=self.loan, company=self.company
+				posting_date=add_days(self.demand_date, -1),
+				loan=self.loan,
+				company=self.company,
+				from_demand=True,
 			)
 
 	def update_repayment_schedule(self, cancel=0):
