@@ -906,7 +906,6 @@ class LoanRepayment(AccountsController):
 			frappe.db.set_value("Loan Repayment Schedule", repayment_schedule, "status", status)
 
 	def auto_close_loan(self):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		auto_close = False
 
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
@@ -917,25 +916,22 @@ class LoanRepayment(AccountsController):
 
 		shortfall_amount = self.pending_principal_amount - self.principal_amount_paid
 
-		if not hasattr(self, "_total_payable"):
-			if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-				self._total_payable = (
-					frappe.db.get_value(
-						"Loan Demand",
-						{
-							"loan": self.against_loan,
-							"docstatus": 1,
-							"outstanding_amount": (">", 0),
-							"demand_date": ("<=", self.posting_date),
-						},
-						"sum(outstanding_amount)",
-					)
-					or 0
+		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			total_payable = (
+				frappe.db.get_value(
+					"Loan Demand",
+					{
+						"loan": self.against_loan,
+						"docstatus": 1,
+						"outstanding_amount": (">", 0),
+						"demand_date": ("<=", self.posting_date),
+					},
+					"sum(outstanding_amount)",
 				)
-			else:
-				self._total_payable = self.payable_amount
-
-		total_payable = flt(self._total_payable, precision)
+				or 0
+			)
+		else:
+			total_payable = self.payable_amount
 
 		if (
 			auto_write_off_amount
