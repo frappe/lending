@@ -12,9 +12,6 @@ class ProcessLoanClassification(Document):
 		if getdate(self.posting_date) < add_days(getdate(), -1) and not self.loan:
 			frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
 
-		if self.force_update_dpd_in_loan and not self.loan:
-			frappe.throw(_("For force update DPD, a Loan account is mandatory."))
-
 	def on_submit(self):
 		filters = {
 			"docstatus": 1,
@@ -39,6 +36,7 @@ class ProcessLoanClassification(Document):
 				self.posting_date,
 				self.loan_product,
 				self.name,
+				self.loan_disbursement,
 				self.payment_reference,
 				self.is_backdated,
 				self.force_update_dpd_in_loan,
@@ -53,6 +51,7 @@ class ProcessLoanClassification(Document):
 					posting_date=self.posting_date,
 					loan_product=self.loan_product,
 					classification_process=self.name,
+					loan_disbursement=self.loan_disbursement,
 					payment_reference=self.payment_reference,
 					is_backdated=self.is_backdated,
 					force_update_dpd_in_loan=self.force_update_dpd_in_loan,
@@ -67,6 +66,7 @@ def process_loan_classification_batch(
 	posting_date,
 	loan_product,
 	classification_process,
+	loan_disbursement,
 	payment_reference,
 	is_backdated,
 	force_update_dpd_in_loan=False,
@@ -81,6 +81,7 @@ def process_loan_classification_batch(
 				posting_date=posting_date,
 				loan_product=loan_product,
 				process_loan_classification=classification_process,
+				loan_disbursement=loan_disbursement,
 				ignore_freeze=True if payment_reference else False,
 				is_backdated=is_backdated,
 				via_background_job=via_scheduler,
@@ -111,6 +112,7 @@ def create_process_loan_classification(
 	posting_date=None,
 	loan_product=None,
 	loan=None,
+	loan_disbursement=None,
 	payment_reference=None,
 	is_backdated=0,
 	force_update_dpd_in_loan=0,
@@ -120,6 +122,7 @@ def create_process_loan_classification(
 	process_loan_classification.posting_date = posting_date
 	process_loan_classification.loan_product = loan_product
 	process_loan_classification.loan = loan
+	process_loan_classification.loan_disbursement = loan_disbursement
 	process_loan_classification.payment_reference = payment_reference
 	process_loan_classification.is_backdated = is_backdated
 	process_loan_classification.force_update_dpd_in_loan = force_update_dpd_in_loan

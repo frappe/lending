@@ -190,6 +190,7 @@ class LoanRepayment(AccountsController):
 					posting_date=self.posting_date,
 					loan_product=self.loan_product,
 					loan=self.against_loan,
+					loan_disbursement=self.loan_disbursement,
 					payment_reference=self.name,
 					is_backdated=1,
 				)
@@ -199,6 +200,7 @@ class LoanRepayment(AccountsController):
 					posting_date=self.posting_date,
 					loan_product=self.loan_product,
 					loan=self.against_loan,
+					loan_disbursement=self.loan_disbursement,
 					is_backdated=0,
 					enqueue_after_commit=True,
 				)
@@ -523,6 +525,7 @@ class LoanRepayment(AccountsController):
 				posting_date=max_demand_date,
 				loan_product=self.loan_product,
 				loan=self.against_loan,
+				loan_disbursement=self.loan_disbursement,
 				is_backdated=1,
 			)
 

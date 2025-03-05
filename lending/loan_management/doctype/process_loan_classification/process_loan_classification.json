@@ -10,6 +10,7 @@
   "posting_date",
   "loan_product",
   "loan",
+  "loan_disbursement",
   "payment_reference",
   "is_backdated",
   "force_update_dpd_in_loan",
@@ -65,12 +66,21 @@
    "fieldname": "force_update_dpd_in_loan",
    "fieldtype": "Check",
    "label": "Force Update DPD in Loan"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loan Disbursement",
+   "link_filters": "[[\"Loan Disbursement\",\"against_loan\",\"=\",\"eval: doc.loan\"]]",
+   "options": "Loan Disbursement"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-10 13:24:29.700403",
+ "modified": "2025-02-05 14:26:01.401741",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Classification",
