@@ -42,7 +42,8 @@ class LoanRepaymentSchedule(Document):
 			row.idx = idx
 
 	def set_maturity_date(self):
-		self.maturity_date = self.get("repayment_schedule")[-1].payment_date
+		if self.get("repayment_schedule"):
+			self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
 	def on_submit(self):
 		self.make_demand_for_advance_payment()
