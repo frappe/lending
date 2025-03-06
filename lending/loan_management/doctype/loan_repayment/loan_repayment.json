@@ -14,11 +14,14 @@
   "applicant",
   "loan_product",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "repayment_type",
   "loan_restructure",
 =======
   "parent_repayment",
 >>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
+=======
+>>>>>>> 99a9c4e (fix: remove parent field (DB speed concerns))
   "column_break_3",
   "company",
   "posting_date",
@@ -521,6 +524,7 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
+<<<<<<< HEAD
   },
   {
    "fieldname": "parent_repayment",
@@ -528,10 +532,13 @@
    "label": "Parent Repayment",
    "options": "Loan Repayment"
 >>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
+=======
+>>>>>>> 99a9c4e (fix: remove parent field (DB speed concerns))
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
+<<<<<<< HEAD
 <<<<<<< HEAD
  "links": [],
  "modified": "2024-12-23 19:34:44.246290",
@@ -544,6 +551,10 @@
  ],
  "modified": "2025-03-06 15:45:10.015841",
 >>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
+=======
+ "links": [],
+ "modified": "2025-03-06 17:13:10.181835",
+>>>>>>> 99a9c4e (fix: remove parent field (DB speed concerns))
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
