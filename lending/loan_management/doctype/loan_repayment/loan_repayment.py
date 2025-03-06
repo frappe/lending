@@ -480,7 +480,12 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
-		frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+		# frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+		if self.repayment_type == "Full Settlement":
+			if frappe.flags.in_test:
+				self.cancel_linked_repayments()
+			else:
+				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -1866,7 +1871,22 @@ class LoanRepayment(AccountsController):
 
 	def cancel_linked_repayments(self):
 		repayment_names = frappe.db.get_all(
-			"Loan Repayment", {"parent_repayment": self.name}, "name", order_by="posting_date"
+			"Loan Repayment",
+			{
+				"posting_date": (">=", self.posting_date),
+				"against_loan": self.against_loan,
+				"docstatus": 1,
+				"repayment_type": (
+					"in",
+					[
+						"Interest Waiver",
+						"Penalty Waiver",
+						"Charges Waiver",
+					],
+				),
+			},
+			"name",
+			order_by="posting_date",
 		)
 		for repayment_name in repayment_names:
 			repayment = frappe.get_doc("Loan Repayment", repayment_name)
