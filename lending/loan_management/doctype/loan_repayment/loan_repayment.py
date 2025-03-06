@@ -1870,6 +1870,11 @@ class LoanRepayment(AccountsController):
 		return allocation_order
 
 	def cancel_linked_repayments(self):
+		# Any repayment made after a Full Settlement is bound to be made
+		# by the Full Settlement repayment itself because the Loan closes
+		# after that. The fields posting_date and against_loan are indexed
+		# This is an optimization of sorts.
+
 		repayment_names = frappe.db.get_all(
 			"Loan Repayment",
 			{
