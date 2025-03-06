@@ -480,6 +480,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
+		frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -1847,6 +1848,35 @@ class LoanRepayment(AccountsController):
 
 		return remarks
 
+<<<<<<< HEAD
+=======
+	def get_allocation_order(self, offset_name):
+		offset_mapping = {
+			"Collection Offset Sequence for Standard Asset": "collection_offset_sequence_for_standard_asset",
+			"Collection Offset Sequence for Sub Standard Asset": "collection_offset_sequence_for_sub_standard_asset",
+			"Collection Offset Sequence for Written Off Asset": "collection_offset_sequence_for_written_off_asset",
+			"Collection Offset Sequence for Settlement Collection": "collection_offset_sequence_for_settlement_collection",
+		}
+		offset_field = offset_mapping[offset_name]
+
+		allocation_order = frappe.db.get_value("Loan Product", self.loan_product, offset_field)
+		if not allocation_order:
+			allocation_order = frappe.db.get_value("Company", self.company, offset_field)
+
+		if not allocation_order:
+			frappe.throw(_("Please set {0} in either Company or Loan Product").format(offset_name))
+
+		return allocation_order
+
+	def cancel_linked_repayments(self):
+		repayment_names = frappe.db.get_all(
+			"Loan Repayment", {"parent_repayment": self.name}, "name", order_by="posting_date"
+		)
+		for repayment_name in repayment_names:
+			repayment = frappe.get_doc("Loan Repayment", repayment_name)
+			repayment.cancel()
+
+>>>>>>> 167961b (fix: cancel linked repayments)
 
 def create_repayment_entry(
 	loan,
