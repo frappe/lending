@@ -1480,6 +1480,50 @@ class TestLoan(IntegrationTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
 
+	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-08-05", 100000, repayment_type="Full Settlement"
+		)
+		repayment_entry.submit()
+		repayment_entry.cancel()
+		closed_docs = frappe.db.get_all(
+			"Loan Repayment",
+			{
+				"posting_date": (">=", repayment_entry.posting_date),
+				"against_loan": repayment_entry.against_loan,
+				"repayment_type": (
+					"in",
+					[
+						"Interest Waiver",
+						"Penalty Waiver",
+						"Charges Waiver",
+					],
+				),
+			},
+			"docstatus",
+			order_by="posting_date",
+		)
+		for closed_doc in closed_docs:
+			self.assertEqual(2, closed_doc.docstatus)
+
 	def test_backdated_pre_payment(self):
 		loan = create_loan(
 			"_Test Customer 1",
