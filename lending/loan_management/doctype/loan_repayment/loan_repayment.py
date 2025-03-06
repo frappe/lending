@@ -490,6 +490,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
+		frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -1975,6 +1976,14 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Please set {0} in either Company or Loan Product").format(offset_name))
 
 		return allocation_order
+
+	def cancel_linked_repayments(self):
+		repayment_names = frappe.db.get_all(
+			"Loan Repayment", {"parent_repayment": self.name}, "name", order_by="posting_date"
+		)
+		for repayment_name in repayment_names:
+			repayment = frappe.get_doc("Loan Repayment", repayment_name)
+			repayment.cancel()
 
 
 def create_repayment_entry(
