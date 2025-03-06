@@ -13,8 +13,12 @@
   "applicant_type",
   "applicant",
   "loan_product",
+<<<<<<< HEAD
   "repayment_type",
   "loan_restructure",
+=======
+  "parent_repayment",
+>>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
   "column_break_3",
   "company",
   "posting_date",
@@ -510,12 +514,36 @@
    "fieldtype": "Percent",
    "label": "Loan Partner Interest Rate",
    "read_only": 1
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "co_lending_tab",
+   "fieldtype": "Tab Break",
+   "label": "Co Lending"
+  },
+  {
+   "fieldname": "parent_repayment",
+   "fieldtype": "Link",
+   "label": "Parent Repayment",
+   "options": "Loan Repayment"
+>>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
+<<<<<<< HEAD
  "links": [],
  "modified": "2024-12-23 19:34:44.246290",
+=======
+ "links": [
+  {
+   "link_doctype": "Loan Repayment",
+   "link_fieldname": "parent_repayment"
+  }
+ ],
+ "modified": "2025-03-06 15:45:10.015841",
+>>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

@@ -626,6 +626,7 @@ def create_loan_repayment(
 	restructure_name=None,
 	is_write_off_waiver=0,
 	payment_account=None,
+	parent_repayment=None,
 ):
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.offset_based_on_npa = 1
@@ -637,8 +638,10 @@ def create_loan_repayment(
 	repayment.loan_restructure = restructure_name
 	repayment.is_write_off_waiver = is_write_off_waiver
 	repayment.payment_account = payment_account
+	repayment.parent_repayment = parent_repayment
 	repayment.save()
 	repayment.submit()
+	return repayment
 
 
 def create_update_loan_reschedule(

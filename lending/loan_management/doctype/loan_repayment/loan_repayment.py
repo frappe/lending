@@ -853,6 +853,7 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				interest_amount,
 				is_write_off_waiver=1,
+				parent_repayment=self.name,
 			)
 
 		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
@@ -863,6 +864,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
+				parent_repayment=self.name,
 			)
 
 		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
@@ -873,6 +875,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				charges_amount,
 				is_write_off_waiver=1,
+				parent_repayment=self.name,
 			)
 
 		if (
@@ -1521,6 +1524,18 @@ class LoanRepayment(AccountsController):
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if self.repayment_type == "Charges Waiver":
+<<<<<<< HEAD
+=======
+			payable_charges = self.total_charges_payable - self.total_charges_paid
+			if self.excess_amount < 0 and payable_charges > 0:
+				create_loan_repayment(
+					self.against_loan,
+					self.posting_date,
+					"Charges Waiver",
+					payable_charges,
+					parent_repayment=self.name,
+				)
+>>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
 			return
 
 		if cancel:
