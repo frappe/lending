@@ -1120,9 +1120,6 @@ class TestLoan(IntegrationTestCase):
 		loan.save()
 
 	def test_loan_write_off_recovery(self):
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "write_off_recovery_account", "Write Off Recovery - _TC"
-		)
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -1167,10 +1164,6 @@ class TestLoan(IntegrationTestCase):
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_loan_write_off_settlement(self):
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "write_off_recovery_account", "Write Off Recovery - _TC"
-		)
-
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2072,6 +2065,14 @@ def create_loan_accounts():
 	)
 
 	create_account(
+		"Security Deposit Account",
+		"Loans and Advances (Assets) - _TC",
+		"Liability",
+		"Receivable",
+		"Balance Sheet",
+	)
+
+	create_account(
 		"Penalty Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
 	)
 	create_account(
@@ -2220,6 +2221,9 @@ def create_loan_product(
 	loan_account="Loan Account - _TC",
 	interest_income_account="Interest Income Account - _TC",
 	penalty_income_account="Penalty Income Account - _TC",
+	penalty_waiver_account="Penalty Waiver Account - _TC",
+	security_deposit_account="Security Deposit Account - _TC",
+	write_off_recovery_account="Write Off Recovery - _TC",
 	interest_receivable_account="Interest Receivable - _TC",
 	penalty_receivable_account="Penalty Receivable - _TC",
 	charges_receivable_account="Charges Receivable - _TC",
@@ -2267,6 +2271,9 @@ def create_loan_product(
 	loan_product_doc.loan_account = loan_account
 	loan_product_doc.interest_income_account = interest_income_account
 	loan_product_doc.penalty_income_account = penalty_income_account
+	loan_product_doc.penalty_waiver_account = penalty_waiver_account
+	loan_product_doc.security_deposit_account = security_deposit_account
+	loan_product_doc.write_off_recovery_account = write_off_recovery_account
 	loan_product_doc.interest_receivable_account = interest_receivable_account
 	loan_product_doc.penalty_receivable_account = penalty_receivable_account
 	loan_product_doc.charges_receivable_account = charges_receivable_account

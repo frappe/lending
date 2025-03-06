@@ -1618,11 +1618,20 @@ class LoanRepayment(AccountsController):
 		if flt(self.total_interest_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
 			else:
 				against_account = account_details.interest_receivable_account
+				if not against_account:
+					frappe.throw(_("Interest Receivable Account is mandatory"))
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
 			if self.repayment_type == "Interest Waiver" and not self.is_npa:
+				if not account_details.interest_income_account:
+					frappe.throw(_("Interest Income Account is mandatory"))
+				if not self.payment_account:
+					frappe.throw(_("Payment Account is mandatory"))
+
 				self.add_gl_entry(
 					account_details.interest_income_account,
 					self.payment_account,
@@ -1639,11 +1648,18 @@ class LoanRepayment(AccountsController):
 		if flt(total_penalty_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
 			else:
 				against_account = account_details.penalty_receivable_account
+				if not against_account:
+					frappe.throw(_("Penalty Receivable Account is mandatory"))
+
 			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
 
 			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				if not account_details.penalty_income_account:
+					frappe.throw(_("Penalty Income Account is mandatory"))
 				self.add_gl_entry(
 					account_details.penalty_income_account,
 					self.payment_account,
@@ -1655,15 +1671,28 @@ class LoanRepayment(AccountsController):
 		if flt(additional_interest, precision) > 0:
 			if self.repayment_type == "Penalty Waiver":
 				payment_account = account_details.additional_interest_waiver
+				if not payment_account:
+					frappe.throw(_("Addition Interest Waiver Account is mandatory"))
 
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
+
 			else:
 				against_account = account_details.additional_interest_receivable
+				if not against_account:
+					frappe.throw(_("Additional Interest Receivable Account is mandatory"))
 
 			self.add_gl_entry(payment_account, against_account, additional_interest, gle_map)
 
 			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				if not account_details.additional_interest_income:
+					frappe.throw(_("Additional Interest Income Account is mandatory"))
+
+				if not account_details.additional_interest_waiver:
+					frappe.throw(_("Additional Interest Waiver Account is mandatory"))
+
 				self.add_gl_entry(
 					account_details.additional_interest_income,
 					account_details.additional_interest_waiver,
@@ -1675,9 +1704,13 @@ class LoanRepayment(AccountsController):
 		if flt(self.excess_amount, precision):
 			if self.auto_close_loan():
 				against_account = account_details.interest_waiver_account
+				if not against_account:
+					frappe.throw(_("Interest Waiver Account is mandatory"))
 				is_waiver_entry = True
 			else:
 				against_account = account_details.customer_refund_account
+				if not against_account:
+					frappe.throw(_("Customer Refund Account is mandatory"))
 				is_waiver_entry = False
 				if not against_account:
 					frappe.throw(
@@ -1697,11 +1730,16 @@ class LoanRepayment(AccountsController):
 			"Write Off Settlement",
 		):
 			against_account = account_details.write_off_recovery_account
+			if not against_account:
+				frappe.throw(_("Write Off Recovery Account is mandatory"))
+
 			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
 				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
+				if not against_account:
+					frappe.throw(_("Against Account is mandatory"))
 				self.add_gl_entry(
 					payment_account,
 					against_account,
@@ -1732,6 +1770,10 @@ class LoanRepayment(AccountsController):
 
 		if 0 < abs(diff) < 1:
 			round_off_account = frappe.db.get_value("Company", self.company, "round_off_account")
+			if not payment_account:
+				frappe.throw(_("Payment Account is mandatory"))
+			if not round_off_account:
+				frappe.throw(_("Round Off Account is mandatory"))
 			self.add_gl_entry(payment_account, round_off_account, -1 * diff, gle_map, is_waiver_entry=True)
 
 	def add_loan_partner_gl_entries(self, gle_map):
@@ -1747,7 +1789,15 @@ class LoanRepayment(AccountsController):
 			],
 			as_dict=1,
 		)
+
 		if self.get("loan_partner") and partner_details.enable_partner_accounting:
+			if not partner_details.credit_account:
+				frappe.throw(_("Credit Account is mandatory"))
+			if not partner_details.payable_account:
+				frappe.throw(_("Payable Account is mandatory"))
+			if not partner_details.partner_interest_share:
+				frappe.throw(_("Partner Interest Share is mandatory"))
+
 			if flt(self.total_partner_principal_share, precision) > 0:
 				self.add_gl_entry(
 					partner_details.credit_account,
@@ -1860,7 +1910,8 @@ class LoanRepayment(AccountsController):
 				self.loan_product,
 				payment_account_field_map.get(self.repayment_type),
 			)
-
+		if not payment_account:
+			frappe.throw(_("Payment Account is mandatory"))
 		return payment_account
 
 	def get_charges_waiver_account(self, loan_product, charge):
