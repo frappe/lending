@@ -876,7 +876,6 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				interest_amount,
 				is_write_off_waiver=1,
-				parent_repayment=self.name,
 			)
 
 		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
@@ -887,7 +886,6 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
-				parent_repayment=self.name,
 			)
 
 		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
@@ -898,7 +896,6 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				charges_amount,
 				is_write_off_waiver=1,
-				parent_repayment=self.name,
 			)
 
 		if (
@@ -1587,7 +1584,6 @@ class LoanRepayment(AccountsController):
 					self.posting_date,
 					"Charges Waiver",
 					payable_charges,
-					parent_repayment=self.name,
 				)
 			return
 

@@ -14,7 +14,6 @@
   "repayment_schedule_type",
   "applicant_type",
   "loan_product",
-  "parent_repayment",
   "column_break_3",
   "company",
   "posting_date",
@@ -528,23 +527,12 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
-  },
-  {
-   "fieldname": "parent_repayment",
-   "fieldtype": "Link",
-   "label": "Parent Repayment",
-   "options": "Loan Repayment"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "link_doctype": "Loan Repayment",
-   "link_fieldname": "parent_repayment"
-  }
- ],
- "modified": "2025-03-06 15:45:10.015841",
+ "links": [],
+ "modified": "2025-03-06 17:13:10.181835",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
