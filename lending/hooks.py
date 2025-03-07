@@ -177,11 +177,6 @@ scheduler_events = {
 	],
 }
 
-# Testing
-# -------
-
-before_tests = "lending.utils.before_tests"
-
 bank_reconciliation_doctypes = [
 	"Loan Repayment",
 	"Loan Disbursement",

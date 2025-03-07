@@ -5,19 +5,19 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_months
 
-from lending.loan_management.doctype.loan.test_utils import (
+from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+	process_daily_loan_demands,
+)
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+	process_loan_interest_accrual_for_loans,
+)
+from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
 	make_loan_disbursement_entry,
 	master_init,
-)
-from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
-	process_daily_loan_demands,
-)
-from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_loans,
 )
 
 
