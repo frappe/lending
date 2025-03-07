@@ -21,12 +21,6 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
-from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
-	process_daily_loan_demands,
-)
-from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-	process_loan_interest_accrual_for_loans,
-)
 
 
 class TestLoanRepayment(IntegrationTestCase):

@@ -511,7 +511,6 @@ class LoanRepayment(AccountsController):
 					self.create_repost,
 					enqueue_after_commit=True,
 				)
-<<<<<<< HEAD
 		self.flags.ignore_links = True
 
 		if self.repayment_type == "Full Settlement":
@@ -523,8 +522,6 @@ class LoanRepayment(AccountsController):
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
-=======
->>>>>>> 710a103 (fix: remove redundant method for checking future repayments)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
