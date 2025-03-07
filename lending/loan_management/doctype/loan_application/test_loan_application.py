@@ -26,12 +26,6 @@ class TestLoanApplication(unittest.TestCase):
 			0,
 			1,
 			0,
-			"Cash - _TC",
-			"Disbursement Account - _TC",
-			"Payment Account - _TC",
-			"Loan Account - _TC",
-			"Interest Income Account - _TC",
-			"Penalty Income Account - _TC",
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
 		self.applicant = make_employee("kate_loan@loan.com", "_Test Company")
