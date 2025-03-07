@@ -1704,14 +1704,16 @@ class TestLoan(IntegrationTestCase):
 		)
 		sales_invoice.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, "2025-01-16", 106684.69)
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-01-16 00:03:10"), 106684.69
+		)
 		repayment_entry.submit()
 
 		loan_adjustment = frappe.get_doc(
 			{
 				"doctype": "Loan Adjustment",
 				"loan": loan.name,
-				"posting_date": "2025-01-16",
+				"posting_date": get_datetime("2025-01-16 00:06:10"),
 				"adjustments": [{"loan_repayment_type": "Charges Waiver", "amount": 4900}],
 			}
 		)
