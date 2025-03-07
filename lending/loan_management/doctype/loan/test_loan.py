@@ -759,7 +759,9 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
 
 		accruals = frappe.get_all(
-			"Loan Interest Accrual", {"loan": loan.name}, ["start_date", "posting_date"]
+			"Loan Interest Accrual",
+			{"loan": loan.name, "accrual_type": "Normal Interest"},
+			["start_date", "posting_date"],
 		)
 		for i in accruals:
 			self.assertEqual(i.start_date, i.posting_date)
