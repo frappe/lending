@@ -5,7 +5,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_months
 
-from lending.loan_management.doctype.loan.utils import (
+from lending.loan_management.doctype.loan.test_utils import (
 	create_loan,
 	create_repayment_entry,
 	init_customers,

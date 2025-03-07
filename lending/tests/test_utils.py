@@ -3,7 +3,7 @@ from frappe.utils import now_datetime
 
 from erpnext.setup.utils import enable_all_roles_and_domains
 
-from lending.loan_management.doctype.loan.utils import (
+from lending.loan_management.doctype.loan.test_utils import (
 	create_loan_accounts,
 	set_loan_accrual_frequency,
 	set_loan_settings_in_company,

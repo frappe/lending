@@ -19,7 +19,7 @@ from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
 from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
-from lending.loan_management.doctype.loan.utils import (
+from lending.loan_management.doctype.loan.test_utils import (
 	add_or_update_loan_charges,
 	create_demand_loan,
 	create_loan,
