@@ -154,6 +154,9 @@ class LoanRepaymentRepost(Document):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
 		)
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
+		)
 
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
 
@@ -246,3 +249,11 @@ class LoanRepaymentRepost(Document):
 		frappe.get_doc(
 			{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": getdate()}
 		).submit()
+
+		loan = frappe.db.get_value("Loan", self.loan, "status")
+		if loan == "Closed":
+			create_process_loan_classification(
+				posting_date=self.repost_date,
+				loan=self.loan,
+				loan_disbursement=self.loan_disbursement,
+			)
