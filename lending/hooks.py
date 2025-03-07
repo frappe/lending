@@ -5,7 +5,17 @@ app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
 required_apps = ["erpnext"]
-app_logo_url = "/assets/lending/images/lending.png"
+app_logo_url = "/assets/lending/images/frappe-lending-logo.svg"
+
+add_to_apps_screen = [
+	{
+		"name": "lending",
+		"logo": "/assets/lending/images/frappe-lending-logo.svg",
+		"title": "Lending",
+		"route": "/app/lending",
+		"has_permission": "lending.utils.check_app_permission",
+	}
+]
 
 audit_trail_doctypes = [
 	# doctypes that make GL entries require Audit Trail to be maintained
