@@ -3,7 +3,6 @@
 
 
 import json
-from datetime import date, timedelta
 
 import frappe
 from frappe import _
@@ -30,6 +29,7 @@ from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
+from lending.utils import daterange
 
 
 # nosemgrep
@@ -857,12 +857,6 @@ def update_days_past_due_in_loans(
 				via_background_job=via_background_job,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
-
-
-def daterange(start_date: date, end_date: date):
-	days = int((end_date - start_date).days)
-	for n in range(days):
-		yield start_date + timedelta(n)
 
 
 def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement):
