@@ -171,7 +171,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		create_repayment_entry(
 			loan=loan_a.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
-
+		entry_to_bo_deleted.load_from_db()
 		entry_to_bo_deleted.cancel()
 
 		create_repayment_entry(
