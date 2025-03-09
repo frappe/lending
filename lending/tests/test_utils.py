@@ -24,14 +24,6 @@ def before_tests():
 
 	year = now_datetime().year
 
-	set_global_defaults(
-		{
-			"currency": "INR",
-			"company_name": "_Test Company",
-			"country": "India",
-		}
-	)
-
 	if not frappe.get_list("Company"):
 		setup_complete(
 			{
@@ -51,6 +43,14 @@ def before_tests():
 				"chart_of_accounts": "Standard",
 			}
 		)
+
+	set_global_defaults(
+		{
+			"currency": "INR",
+			"company_name": "_Test Company",
+			"country": "India",
+		}
+	)
 
 	enable_all_roles_and_domains()
 	set_loan_settings_in_company()
@@ -266,6 +266,13 @@ def create_loan_accounts():
 		"Direct Expenses - _TC",
 		"Expense",
 		"Expense Account",
+		"Profit and Loss",
+	)
+	create_account(
+		"Security Deposit Account",
+		"Loans (Liabilities) - _TC",
+		"Liability",
+		"Payable",
 		"Profit and Loss",
 	)
 
