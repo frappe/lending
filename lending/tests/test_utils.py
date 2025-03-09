@@ -485,13 +485,16 @@ def create_loan_security():
 		).insert(ignore_permissions=True)
 
 
-def make_loan_disbursement_entry(loan, amount, disbursement_date=None, repayment_start_date=None):
+def make_loan_disbursement_entry(
+	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
 	loan_disbursement_entry.disbursement_date = disbursement_date or nowdate()
 	loan_disbursement_entry.repayment_start_date = (
 		repayment_start_date or disbursement_date or nowdate()
 	)
+	loan_disbursement_entry.repayment_frequency = repayment_frequency
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
