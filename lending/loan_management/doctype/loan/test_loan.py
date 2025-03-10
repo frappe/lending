@@ -1524,6 +1524,99 @@ class TestLoan(IntegrationTestCase):
 		for closed_doc in closed_docs:
 			self.assertEqual(2, closed_doc.docstatus)
 
+	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements_for_loc(self):
+		# makes two disbursements and corresponding full settlements and cancels one of them
+		# checks if only the waivers for the cancelled full settlement are cancelled
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2024-10-10",
+			posting_date="2024-10-01",
+			rate_of_interest=20,
+			applicant_type="Customer",
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2025-12-05",
+		)
+		loan.submit()
+
+		disbursement_1 = make_loan_disbursement_entry(
+			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-10", 10000, loan_disbursement=disbursement_1.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-18", 10000, loan_disbursement=disbursement_1.name
+		)
+		repayment_entry.submit()
+
+		disbursement_2 = make_loan_disbursement_entry(
+			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-10-25",
+			4000,
+			repayment_type="Full Settlement",
+			loan_disbursement=disbursement_1.name,
+		)
+		repayment_entry.submit()
+		repayment_entry.cancel()
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-10-25",
+			4000,
+			repayment_type="Full Settlement",
+			loan_disbursement=disbursement_2.name,
+		)
+		repayment_entry.submit()
+
+		docs = frappe.db.get_all(
+			"Loan Repayment",
+			{
+				"posting_date": (">=", repayment_entry.posting_date),
+				"against_loan": repayment_entry.against_loan,
+				"repayment_type": (
+					"in",
+					[
+						"Interest Waiver",
+						"Penalty Waiver",
+						"Charges Waiver",
+					],
+				),
+			},
+			["docstatus", "loan_disbursement"],
+			order_by="posting_date",
+		)
+		for doc in docs:
+			if doc.loan_disbursement == disbursement_1.name:
+				self.assertEqual(2, doc.docstatus)
+			else:
+				self.assertEqual(1, doc.docstatus)
+
 	def test_backdated_pre_payment(self):
 		loan = create_loan(
 			"_Test Customer 1",
