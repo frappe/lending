@@ -132,7 +132,7 @@ class LoanRepayment(AccountsController):
 				self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid >= self.pending_principal_amount
+			self.principal_amount_paid > self.pending_principal_amount
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
@@ -568,18 +568,18 @@ class LoanRepayment(AccountsController):
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
-		if not self.interest_payable:
+		if not self.interest_payable or self.flags.from_repost:
 			self.interest_payable = flt(amounts["interest_amount"], precision)
 
-		if not self.penalty_amount:
+		if not self.penalty_amount or self.flags.from_repost:
 			self.penalty_amount = flt(amounts["penalty_amount"], precision)
 
 		self.pending_principal_amount = flt(amounts["pending_principal_amount"], precision)
 
-		if not self.payable_principal_amount and self.is_term_loan:
+		if not self.payable_principal_amount or self.flags.from_repost:
 			self.payable_principal_amount = flt(amounts["payable_principal_amount"], precision)
 
-		if not self.payable_amount:
+		if not self.payable_amount or self.flags.from_repost:
 			self.payable_amount = flt(amounts["payable_amount"], precision)
 
 		shortfall_amount = flt(
