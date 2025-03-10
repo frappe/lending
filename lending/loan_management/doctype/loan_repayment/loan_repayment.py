@@ -46,7 +46,11 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
-		if self.loan_disbursement:
+		if self.loan_disbursement and self.repayment_type not in [
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+		]:
 			self.validate_open_disbursement()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
@@ -859,6 +863,7 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				interest_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
@@ -869,6 +874,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
@@ -879,6 +885,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				charges_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if (
@@ -904,6 +911,7 @@ class LoanRepayment(AccountsController):
 
 		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
 
+		# For LoC loans
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 			if cancel:
@@ -1874,22 +1882,26 @@ class LoanRepayment(AccountsController):
 		# by the Full Settlement repayment itself because the Loan closes
 		# after that. The fields posting_date and against_loan are indexed
 		# This is an optimization of sorts.
+		filters = {
+			"posting_date": (">=", (self.posting_date)),
+			"against_loan": self.against_loan,
+			"docstatus": 1,
+			"repayment_type": (
+				"in",
+				[
+					"Interest Waiver",
+					"Penalty Waiver",
+					"Charges Waiver",
+				],
+			),
+		}
+
+		if self.repayment_schedule_type == "Line of Credit":
+			filters["loan_disbursement"] = self.loan_disbursement
 
 		repayment_names = frappe.db.get_all(
 			"Loan Repayment",
-			{
-				"posting_date": (">=", self.posting_date),
-				"against_loan": self.against_loan,
-				"docstatus": 1,
-				"repayment_type": (
-					"in",
-					[
-						"Interest Waiver",
-						"Penalty Waiver",
-						"Charges Waiver",
-					],
-				),
-			},
+			filters,
 			"name",
 			order_by="posting_date",
 		)
