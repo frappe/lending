@@ -1887,6 +1887,66 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertEqual(loan_interest_accruals, expected_dates)
 
+	def test_npa_settlement_suspense_accounting(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-04-05", repayment_start_date="2024-05-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-05-05", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-06-05", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-07-05", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-05", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
+
+		create_process_loan_classification(
+			posting_date="2024-08-06", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-07", company="_Test Company"
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-08", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-08-08", 10000, repayment_type="Full Settlement"
+		)
+		repayment_entry.submit()
+
+		interest_waiver_entry_name = frappe.db.get_value(
+			"Loan Repayment", {"against_loan": loan.name}, "name"
+		)
+		interest_waiver_entry = frappe.get_doc("Loan Repayment", interest_waiver_entry_name)
+
+		interest_waiver_entry.cancel()
+
 	def test_loc_loan_pre_payment_closure(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2237,7 +2297,7 @@ def create_loan_product(
 	repayment_periods=None,
 	repayment_schedule_type="Monthly as per repayment start date",
 	repayment_date_on=None,
-	days_past_due_threshold_for_npa=None,
+	days_past_due_threshold_for_npa=90,
 	min_days_bw_disbursement_first_repayment=None,
 	interest_accrued_account="Interest Accrued Account - _TC",
 	penalty_accrued_account="Penalty Accrued Account - _TC",
