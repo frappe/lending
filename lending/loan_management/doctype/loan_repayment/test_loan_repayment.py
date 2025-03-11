@@ -156,12 +156,12 @@ class TestLoanRepayment(IntegrationTestCase):
 		create_repayment_entry(
 			loan=loan_a.name, posting_date=repayment_start_date, paid_amount=178025
 		).submit()
-		entry_to_bo_deleted = create_repayment_entry(
+		entry_to_be_deleted = create_repayment_entry(
 			loan=loan_a.name,
 			posting_date=add_months(repayment_start_date, 1),
 			paid_amount=178025,
 		)
-		entry_to_bo_deleted.submit()
+		entry_to_be_deleted.submit()
 		create_repayment_entry(
 			loan=loan_a.name, posting_date=add_months(repayment_start_date, 2), paid_amount=178025
 		).submit()
@@ -171,8 +171,8 @@ class TestLoanRepayment(IntegrationTestCase):
 		create_repayment_entry(
 			loan=loan_a.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
-		entry_to_bo_deleted.load_from_db()
-		entry_to_bo_deleted.cancel()
+		entry_to_be_deleted.load_from_db()
+		entry_to_be_deleted.cancel()
 
 		create_repayment_entry(
 			loan=loan_b.name, posting_date=repayment_start_date, paid_amount=178025
