@@ -252,6 +252,7 @@ class LoanRepayment(AccountsController):
 		repost.cancel_future_penal_accruals_and_demands = True
 		repost.cancel_future_emi_demands = True
 		repost.submit()
+		self.reverse_future_accruals_and_demands()
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
