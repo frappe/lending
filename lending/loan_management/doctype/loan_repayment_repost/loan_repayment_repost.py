@@ -239,6 +239,13 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.reverse_future_accruals_and_demands()
 				repayment_doc.process_reschedule()
 
+			if repayment_doc.repayment_type not in ("Advance Payment", "Pre Payment") or (
+				repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
+			):
+				repayment_doc.book_interest_accrued_not_demanded()
+				if repayment_doc.is_term_loan:
+					repayment_doc.book_pending_principal()
+
 			# Run on_submit events
 			repayment_doc.update_paid_amounts()
 			repayment_doc.update_demands()
