@@ -21,29 +21,46 @@ class ProcessLoanDemand(Document):
 			is_term_loan=0, loan_product=self.loan_product, loan=self.loan
 		)
 
-		for batch in get_batches(open_term_loans, BATCH_SIZE):
-			frappe.enqueue(
-				make_loan_demand_for_term_loans,
+		if self.loan:
+			make_loan_demand_for_term_loans(
 				posting_date=self.posting_date,
 				loan_product=self.loan_product,
 				loan=self.loan,
 				process_loan_demand=self.name,
 				loan_disbursement=self.loan_disbursement,
-				loans=batch,
-				queue="long",
-				enqueue_after_commit=True,
+				loans=open_term_loans,
 			)
 
-		for batch in get_batches(open_demand_loans, BATCH_SIZE):
-			frappe.enqueue(
-				make_loan_demand_for_demand_loans,
+			make_loan_demand_for_demand_loans(
 				posting_date=self.posting_date,
 				loan=self.loan,
 				process_loan_demand=self.name,
-				loans=batch,
-				queue="long",
-				enqueue_after_commit=True,
+				loans=open_demand_loans,
 			)
+		else:
+			for batch in get_batches(open_term_loans, BATCH_SIZE):
+				frappe.enqueue(
+					make_loan_demand_for_term_loans,
+					posting_date=self.posting_date,
+					loan_product=self.loan_product,
+					loan=None,
+					process_loan_demand=self.name,
+					loan_disbursement=self.loan_disbursement,
+					loans=batch,
+					queue="long",
+					enqueue_after_commit=True,
+				)
+
+			for batch in get_batches(open_demand_loans, BATCH_SIZE):
+				frappe.enqueue(
+					make_loan_demand_for_demand_loans,
+					posting_date=self.posting_date,
+					loan=None,
+					process_loan_demand=self.name,
+					loans=batch,
+					queue="long",
+					enqueue_after_commit=True,
+				)
 
 
 def get_batches(open_loans, batch_size):
