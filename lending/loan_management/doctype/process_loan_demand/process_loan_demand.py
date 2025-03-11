@@ -6,6 +6,7 @@ from frappe.model.document import Document
 from frappe.utils import nowdate
 
 from lending.loan_management.doctype.loan_demand.loan_demand import (
+	get_open_loans,
 	make_loan_demand_for_demand_loans,
 	make_loan_demand_for_term_loans,
 )
@@ -13,73 +14,36 @@ from lending.loan_management.doctype.loan_demand.loan_demand import (
 
 class ProcessLoanDemand(Document):
 	def on_submit(self):
-		filters = {
-			"docstatus": 1,
-			"status": ("in", ["Disbursed", "Partially Disbursed", "Active", "Written Off", "Settled"]),
-		}
+		BATCH_SIZE = 5000
 
-		if self.loan:
-			filters["name"] = self.loan
-			filters["status"] = (
-				"in",
-				["Disbursed", "Partially Disbursed", "Active", "Written Off", "Settled"],
-			)
+		open_term_loans = get_open_loans(is_term_loan=1, loan_product=self.loan_product, loan=self.loan)
+		open_demand_loans = get_open_loans(
+			is_term_loan=0, loan_product=self.loan_product, loan=self.loan
+		)
 
-		if self.loan_product:
-			filters["loan_product"] = self.loan_product
-
-		open_loans = frappe.get_all("Loan", filters=filters, pluck="name", order_by="applicant")
-
-		if self.loan:
-			process_loan_demand_batch(
-				open_loans=open_loans,
+		for batch in get_batches(open_term_loans, BATCH_SIZE):
+			frappe.enqueue(
+				make_loan_demand_for_term_loans,
 				posting_date=self.posting_date,
 				loan_product=self.loan_product,
+				loan=self.loan,
 				process_loan_demand=self.name,
 				loan_disbursement=self.loan_disbursement,
-			)
-		else:
-			BATCH_SIZE = 5000
-			batch_list = list(get_batches(open_loans, BATCH_SIZE))
-
-			for batch in batch_list:
-				frappe.enqueue(
-					process_loan_demand_batch,
-					open_loans=batch,
-					posting_date=self.posting_date,
-					loan_product=self.loan_product,
-					process_loan_demand=self.name,
-					loan_disbursement=self.loan_disbursement,
-					queue="long",
-					enqueue_after_commit=True,
-				)
-
-
-def process_loan_demand_batch(
-	open_loans,
-	posting_date,
-	loan_product,
-	process_loan_demand,
-	loan_disbursement,
-):
-
-	for loan in open_loans:
-		try:
-			make_loan_demand_for_term_loans(
-				posting_date,
-				loan_product=loan_product,
-				loan=loan,
-				process_loan_demand=process_loan_demand,
-				loan_disbursement=loan_disbursement,
+				loans=batch,
+				queue="long",
+				enqueue_after_commit=True,
 			)
 
-			make_loan_demand_for_demand_loans(
-				posting_date,
-				loan=loan,
-				process_loan_demand=process_loan_demand,
+		for batch in get_batches(open_demand_loans, BATCH_SIZE):
+			frappe.enqueue(
+				make_loan_demand_for_demand_loans,
+				posting_date=self.posting_date,
+				loan=self.loan,
+				process_loan_demand=self.name,
+				loans=batch,
+				queue="long",
+				enqueue_after_commit=True,
 			)
-		except Exception as e:
-			frappe.log_error(f"Error processing loan {loan}: {str(e)}")
 
 
 def get_batches(open_loans, batch_size):

@@ -178,20 +178,20 @@ class LoanDemand(AccountsController):
 		return gl_entries
 
 
-def make_loan_demand_for_term_loans(
-	posting_date, loan_product=None, loan=None, process_loan_demand=None, loan_disbursement=None
-):
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
+def get_open_loans(is_term_loan, loan_product=None, loan=None):
 	filters = {
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
-		"is_term_loan": 1,
+		"is_term_loan": is_term_loan,
 	}
 
-	or_filters = {
-		"excess_amount_paid": ("<=", 0),
-		"repayment_schedule_type": "Line of Credit",
-	}
+	or_filters = {}
+
+	if is_term_loan:
+		or_filters = {
+			"excess_amount_paid": ("<=", 0),
+			"repayment_schedule_type": "Line of Credit",
+		}
 
 	if loan_product:
 		filters["loan_product"] = loan_product
@@ -199,7 +199,22 @@ def make_loan_demand_for_term_loans(
 	if loan:
 		filters["name"] = loan
 
-	open_loans = frappe.db.get_all("Loan", filters=filters, or_filters=or_filters, pluck="name")
+	return frappe.db.get_all(
+		"Loan", filters=filters, or_filters=or_filters, pluck="name", order_by="applicant"
+	)
+
+
+def make_loan_demand_for_term_loans(
+	posting_date,
+	loan_product=None,
+	loan=None,
+	process_loan_demand=None,
+	loan_disbursement=None,
+	loans=None,
+):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+	open_loans = loans
 
 	freeze_dates = get_freeze_date_map(open_loans)
 
@@ -310,20 +325,9 @@ def make_loan_demand_for_demand_loans(
 	loan_product=None,
 	loan=None,
 	process_loan_demand=None,
+	loans=None,
 ):
-	filters = {
-		"docstatus": 1,
-		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
-		"is_term_loan": 0,
-	}
-
-	if loan_product:
-		filters["loan_product"] = loan_product
-
-	if loan:
-		filters["name"] = loan
-
-	open_loans = frappe.db.get_all("Loan", filters=filters, pluck="name")
+	open_loans = loans
 
 	for loan in open_loans:
 		make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand)
