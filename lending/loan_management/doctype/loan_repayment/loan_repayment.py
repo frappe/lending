@@ -378,15 +378,9 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals,
 		)
 
-		on_back_dated_prepayment = False
-
-		loan_repayment_schedule = ""
-		if self.repayment_type in ("Pre Payment", "Advance Payment"):
-			loan_restructure = frappe.db.get_value("Loan Restructure", {"loan_repayment": self.name})
-			loan_repayment_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
-			)
-			on_back_dated_prepayment = True
+		loan_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_disbursement": self.loan_disbursement}, "name"
+		)
 
 		accruals = reverse_loan_interest_accruals(
 			self.against_loan,
@@ -396,7 +390,7 @@ class LoanRepayment(AccountsController):
 			on_payment_allocation=True,
 			loan_disbursement=self.loan_disbursement,
 			loan_repayment_schedule=loan_repayment_schedule,
-			future_accruals=on_back_dated_prepayment,
+			future_accruals=True,
 		)
 
 		reverse_demands(
@@ -406,7 +400,7 @@ class LoanRepayment(AccountsController):
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
 			loan_repayment_schedule=loan_repayment_schedule,
-			future_demands=on_back_dated_prepayment,
+			future_demands=True,
 		)
 
 		return accruals
