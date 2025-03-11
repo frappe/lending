@@ -176,20 +176,20 @@ class LoanDemand(AccountsController):
 		return gl_entries
 
 
-def make_loan_demand_for_term_loans(
-	posting_date, loan_product=None, loan=None, process_loan_demand=None, loan_disbursement=None
-):
-	precision = cint(frappe.db.get_default("currency_precision")) or 2
+def get_open_loans(is_term_loan, loan_product=None, loan=None):
 	filters = {
 		"docstatus": 1,
 		"status": ("in", ("Disbursed", "Partially Disbursed", "Active")),
-		"is_term_loan": 1,
+		"is_term_loan": is_term_loan,
 	}
 
-	or_filters = {
-		"excess_amount_paid": ("<=", 0),
-		"repayment_schedule_type": "Line of Credit",
-	}
+	or_filters = {}
+
+	if is_term_loan:
+		or_filters = {
+			"excess_amount_paid": ("<=", 0),
+			"repayment_schedule_type": "Line of Credit",
+		}
 
 	if loan_product:
 		filters["loan_product"] = loan_product
@@ -197,7 +197,22 @@ def make_loan_demand_for_term_loans(
 	if loan:
 		filters["name"] = loan
 
-	open_loans = frappe.db.get_all("Loan", filters=filters, or_filters=or_filters, pluck="name")
+	return frappe.db.get_all(
+		"Loan", filters=filters, or_filters=or_filters, pluck="name", order_by="applicant"
+	)
+
+
+def make_loan_demand_for_term_loans(
+	posting_date,
+	loan_product=None,
+	loan=None,
+	process_loan_demand=None,
+	loan_disbursement=None,
+	loans=None,
+):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+	open_loans = loans
 
 	freeze_dates = get_freeze_date_map(open_loans)
 
@@ -303,6 +318,67 @@ def make_loan_demand_for_term_loans(
 				frappe.db.rollback()
 
 
+<<<<<<< HEAD
+=======
+def make_loan_demand_for_demand_loans(
+	posting_date,
+	loan_product=None,
+	loan=None,
+	process_loan_demand=None,
+	loans=None,
+):
+	open_loans = loans
+
+	for loan in open_loans:
+		make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand)
+
+
+def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
+	# get last demand date
+	loan_demands = frappe.qb.DocType("Loan Demand")
+	query = (
+		frappe.qb.from_(loan_demands)
+		.select(loan_demands.demand_date)
+		.where(loan_demands.docstatus == 1)
+		.where(loan_demands.loan == loan)
+		.where(loan_demands.demand_date <= posting_date)
+		.orderby(loan_demands.demand_date, order=frappe.qb.desc)
+		.limit(1)
+	)
+
+	last_demand_date = query.run()
+	if len(last_demand_date):
+		last_demand_date = last_demand_date[0][0]
+	else:
+		last_demand_date = None
+
+	interest_accruals = frappe.qb.DocType("Loan Interest Accrual")
+	query = (
+		frappe.qb.from_(interest_accruals)
+		.select(frappe.query_builder.functions.Sum(interest_accruals.interest_amount))
+		.where(interest_accruals.docstatus == 1)
+		.where(interest_accruals.loan == loan)
+	)
+	if last_demand_date:
+		query = query.where(interest_accruals.posting_date > last_demand_date)
+
+	total_pending_interest = query.run()
+	if len(total_pending_interest):
+		total_pending_interest = total_pending_interest[0][0]
+	else:
+		total_pending_interest = 0
+
+	create_loan_demand(
+		loan,
+		posting_date,
+		"Normal",
+		"Interest",
+		total_pending_interest,
+		process_loan_demand=process_loan_demand,
+	)
+
+
+>>>>>>> cce62bc (fix: Add Batch Processing to Process Loan Demand)
 def create_loan_demand(
 	loan,
 	demand_date,
