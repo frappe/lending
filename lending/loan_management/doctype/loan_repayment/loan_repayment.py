@@ -1508,6 +1508,8 @@ class LoanRepayment(AccountsController):
 
 	def adjust_component(self, amount_to_adjust, demand_type, demands, demand_subtype=None):
 		partner_share = 0
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if self.get("loan_partner"):
 			partner_share = self.get_overall_partner_share(amount_to_adjust) or 0
 
@@ -1534,7 +1536,7 @@ class LoanRepayment(AccountsController):
 							)
 							partner_share -= partner_share_paid
 
-					if paid_amount > 0:
+					if flt(paid_amount, precision) > 0:
 						self.append(
 							"repayment_details",
 							{
