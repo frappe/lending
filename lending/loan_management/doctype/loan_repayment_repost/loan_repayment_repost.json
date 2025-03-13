@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format: Repost on {timestamp} for {loan}",
  "creation": "2024-10-28 13:03:00.901376",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -119,10 +120,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-25 18:09:28.227848",
+ "modified": "2025-03-12 12:17:38.159126",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Repost",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
