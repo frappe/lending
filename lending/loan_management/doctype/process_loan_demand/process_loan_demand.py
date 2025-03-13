@@ -9,7 +9,6 @@ from frappe.utils import nowdate
 from lending.loan_management.doctype.loan_demand.loan_demand import make_loan_demand_for_term_loans
 =======
 from lending.loan_management.doctype.loan_demand.loan_demand import (
-	get_open_loans,
 	make_loan_demand_for_demand_loans,
 	make_loan_demand_for_term_loans,
 )
@@ -20,6 +19,9 @@ class ProcessLoanDemand(Document):
 	def on_submit(self):
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a80ee7b (fix: Add Batch Processing to Process Loan Demand)
 		make_loan_demand_for_term_loans(
 			self.posting_date,
 			loan_product=self.loan_product,
@@ -27,6 +29,7 @@ class ProcessLoanDemand(Document):
 			process_loan_demand=self.name,
 			loan_disbursement=self.loan_disbursement,
 		)
+<<<<<<< HEAD
 =======
 		filters = {
 			"docstatus": 1,
@@ -87,6 +90,13 @@ def get_batches(open_loans, batch_size):
 	for i in range(0, len(open_loans), batch_size):
 		yield open_loans[i : i + batch_size]
 >>>>>>> 47fdbdf (fix: Add Batch Processing to Process Loan Demand)
+=======
+		make_loan_demand_for_demand_loans(
+			self.posting_date,
+			loan=self.loan,
+			process_loan_demand=self.name,
+		)
+>>>>>>> a80ee7b (fix: Add Batch Processing to Process Loan Demand)
 
 
 def process_daily_loan_demands(posting_date=None, loan_product=None, loan=None):
