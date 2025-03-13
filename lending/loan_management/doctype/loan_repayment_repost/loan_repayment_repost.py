@@ -125,9 +125,6 @@ class LoanRepaymentRepost(Document):
 
 			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
 
-			if self.loan_disbursement:
-				filters["loan_disbursement"] = self.loan_disbursement
-
 			totals = frappe.db.get_value(
 				"Loan Repayment",
 				filters,
