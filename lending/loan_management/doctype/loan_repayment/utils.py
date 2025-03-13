@@ -140,12 +140,15 @@ def get_unbooked_interest_for_loans(
 	return accrued_interest_map
 
 
-def get_last_demand_date(posting_date, demand_subtype="Interest"):
+def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 	filters = {
 		"docstatus": 1,
 		"demand_subtype": demand_subtype,
 		"demand_date": ("<=", posting_date),
 	}
+
+	if loan:
+		filters["loan"] = loan
 
 	last_demand_date = frappe.db.get_value(
 		"Loan Demand",

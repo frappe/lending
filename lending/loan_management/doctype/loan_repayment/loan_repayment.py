@@ -2283,7 +2283,7 @@ def get_bulk_due_details(loans, posting_date):
 		process_amount_for_bulk_loans,
 	)
 
-	last_demand_date = get_last_demand_date(posting_date)
+	last_demand_date = get_last_demand_date(posting_date, loan=loans[0])
 
 	loan_details = frappe.db.get_all(
 		"Loan",
