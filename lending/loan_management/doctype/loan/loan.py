@@ -921,7 +921,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 				else getdate()
 			)
 			for demand in demands:
-				if demand.demand_date <= getdate(payment.posting_date):
+				if getdate(demand.demand_date) <= getdate(payment.posting_date):
 					if demand.demand_subtype == "Interest" and flt(payment.total_interest_paid, precision) > 0:
 						paid_interest = min(
 							flt(payment.total_interest_paid, precision), flt(demand.demand_amount, precision)
@@ -944,7 +944,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 					matching_demand_found = False
 					for d in demands:
 						demand_amount = flt(d.demand_amount, precision)
-						if d.demand_date <= current_date and demand_amount > 0:
+						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
 							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
 							matching_demand_found = True
