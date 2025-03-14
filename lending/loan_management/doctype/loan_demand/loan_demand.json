@@ -191,7 +191,7 @@
   {
    "fetch_from": "loan_repayment_schedule.posting_date",
    "fieldname": "disbursement_date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "hidden": 1,
    "label": "Disbursement Date"
   },
