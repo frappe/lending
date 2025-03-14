@@ -53,7 +53,7 @@
   },
   {
    "fieldname": "posting_date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Posting Date (End Date)",
    "search_index": 1
@@ -161,7 +161,7 @@
   },
   {
    "fieldname": "start_date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "label": "Start Date"
   },
   {
@@ -261,7 +261,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-09 18:27:48.657160",
+ "modified": "2025-03-13 16:27:19.673281",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

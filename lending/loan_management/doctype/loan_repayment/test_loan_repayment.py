@@ -5,7 +5,7 @@ from collections import Counter
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_months
+from frappe.utils import add_months, get_datetime, nowdate
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -31,8 +31,8 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_in_between_payments(self):
-		posting_date = "2024-04-18"
-		repayment_start_date = "2024-05-05"
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
 		loan_a = create_loan(
 			self.applicant2,
 			"Term Loan Product 4",
@@ -117,8 +117,8 @@ class TestLoanRepayment(IntegrationTestCase):
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
 
 	def test_in_between_cancellations(self):
-		posting_date = "2024-04-18"
-		repayment_start_date = "2024-05-05"
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
 		loan_a = create_loan(
 			self.applicant2,
 			"Term Loan Product 4",
@@ -224,7 +224,7 @@ class TestLoanRepayment(IntegrationTestCase):
 			repayment_start_date=repayment_start_date,
 		)
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+			loan=loan.name, posting_date=nowdate(), company="_Test Company"
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
 		create_repayment_entry(
@@ -259,17 +259,5 @@ class TestLoanRepayment(IntegrationTestCase):
 			for posting_date in reversed_entries_stack:
 				self.assertEqual(reversed_entries_stack[posting_date], 0)
 
-		reversed_accruals = frappe.get_all(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "posting_date": (">=", entry_to_be_deleted.posting_date)},
-			["posting_date", "docstatus"],
-			order_by="docstatus",
-		)
-		reversed_demands = frappe.get_all(
-			"Loan Demand",
-			{"loan": loan.name, "posting_date": (">=", entry_to_be_deleted.posting_date)},
-			["demand_date AS posting_date", "docstatus"],
-			order_by="docstatus",
-		)
 		check_reversed_entries(reversed_accruals)
-		# check_reversed_entries(reversed_demands)
+		check_reversed_entries(reversed_demands)
