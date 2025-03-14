@@ -191,7 +191,7 @@
   {
    "fetch_from": "loan_repayment_schedule.posting_date",
    "fieldname": "disbursement_date",
-   "fieldtype": "Datetime",
+   "fieldtype": "Date",
    "hidden": 1,
    "label": "Disbursement Date"
   },
@@ -282,7 +282,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-13 16:29:13.313377",
+ "modified": "2025-03-14 18:26:38.411483",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
@@ -317,6 +317,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

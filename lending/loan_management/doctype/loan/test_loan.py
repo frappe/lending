@@ -35,7 +35,6 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 	create_process_loan_classification,
 )
-from lending.loan_management.doctype.process_loan_demand import process_loan_demand
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -2177,3 +2176,31 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(repayment_schedule_status, "Closed")
+
+	def test_pre_payment_demand_booking(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			285000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-12-05",
+			posting_date="2024-11-07",
+			rate_of_interest=17,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-11-07", repayment_start_date="2024-12-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+
+		repayment = create_repayment_entry(
+			loan.name,
+			"2024-12-05",
+			27321,
+			repayment_type="Pre Payment",
+		)
+		repayment.submit()
