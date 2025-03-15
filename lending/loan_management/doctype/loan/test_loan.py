@@ -183,7 +183,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 	def test_loan_with_repayment_periods(self):
-		posting_date = get_datetime("2025-01-27")
+		posting_date = "2025-01-27"
 		loan = create_loan(
 			self.applicant1,
 			"Personal Loan",
@@ -223,7 +223,7 @@ class TestLoan(IntegrationTestCase):
 			self.assertEqual(flt(schedule[idx].balance_loan_amount, 0), balance_loan_amount)
 
 	def test_loan_with_fixed_amount_per_period(self):
-		disbursement_date = get_datetime("2020-10-01")
+		disbursement_date = "2020-10-01"
 		loan = create_loan(
 			self.applicant1,
 			"Personal Loan",
@@ -342,7 +342,7 @@ class TestLoan(IntegrationTestCase):
 		)
 		create_loan_security_assignment(loan_application)
 		loan = create_demand_loan(
-			self.applicant3, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant3, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
@@ -360,14 +360,14 @@ class TestLoan(IntegrationTestCase):
 		)
 		create_loan_security_assignment(loan_application)
 		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
 		self.assertEqual(loan.loan_amount, 1000000)
 
-		first_date = get_datetime("2019-10-01")
-		last_date = get_datetime("2019-10-30")
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
 
 		# Adding 5 since repayment is made 5 days late after due date
 		# and since payment type is loan closure so interest should be considered for those
@@ -405,7 +405,7 @@ class TestLoan(IntegrationTestCase):
 			{"loan_security": "Test Security 2", "qty": 4000.00},
 			{"loan_security": "Test Security 1", "qty": 2000.00},
 		]
-		posting_date = get_datetime("2025-01-30")
+		posting_date = "2025-01-30"
 		loan_application = create_loan_application(
 			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
 		)
@@ -506,14 +506,14 @@ class TestLoan(IntegrationTestCase):
 		create_loan_security_assignment(loan_application)
 
 		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
 		self.assertEqual(loan.loan_amount, 1000000)
 
-		first_date = get_datetime("2019-10-01")
-		last_date = get_datetime("2019-10-30")
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
 
 		no_of_days = date_diff(last_date, first_date) + 1
 
@@ -567,14 +567,14 @@ class TestLoan(IntegrationTestCase):
 		create_loan_security_assignment(loan_application)
 
 		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
 		self.assertEqual(loan.loan_amount, 1000000)
 
-		first_date = get_datetime("2019-10-01")
-		last_date = get_datetime("2019-10-30")
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
 		process_loan_interest_accrual_for_loans(posting_date=last_date, company="_Test Company")
@@ -601,7 +601,7 @@ class TestLoan(IntegrationTestCase):
 		create_loan_security_assignment(loan_application)
 
 		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
@@ -687,14 +687,14 @@ class TestLoan(IntegrationTestCase):
 		create_loan_security_assignment(loan_application)
 
 		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date=get_datetime("2019-10-01")
+			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
 		)
 		loan.submit()
 
 		self.assertEqual(loan.loan_amount, 1000000)
 
-		first_date = get_datetime("2019-10-01")
-		last_date = get_datetime("2019-10-30")
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
 
 		no_of_days = date_diff(last_date, first_date) + 1
 
@@ -730,25 +730,22 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-05-05"),
-			posting_date=get_datetime("2024-04-01"),
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
 			penalty_charges_rate=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-04-01"),
-			repayment_start_date=get_datetime("2024-05-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-07-07"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-07-06"), loan=loan.name, company="_Test Company"
+			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date=get_datetime("2024-07-07"))
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
 
 	def test_same_date_for_daily_accruals(self):
@@ -759,25 +756,22 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-05-05"),
-			posting_date=get_datetime("2024-04-01"),
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
 			penalty_charges_rate=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-04-01"),
-			repayment_start_date=get_datetime("2024-05-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-07-07"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-07-06"), loan=loan.name, company="_Test Company"
+			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date=get_datetime("2024-07-07"))
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
 
@@ -792,13 +786,13 @@ class TestLoan(IntegrationTestCase):
 	def test_loan_write_off_limit(self):
 		loan = create_secured_demand_loan(self.applicant2)
 		self.assertEqual(loan.loan_amount, 1000000)
-		repayment_date = get_datetime("2019-11-01")
+		repayment_date = "2019-11-01"
 
 		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * 31) / (36500)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime(add_days("2019-11-01", -1)), loan=loan.name, company="_Test Company"
+			posting_date=add_days("2019-11-01", -1), loan=loan.name, company="_Test Company"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2019-11-01"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2019-11-01", loan=loan.name)
 		# repay 50 less so that it can be automatically written off
 		repayment_entry = create_repayment_entry(
 			loan.name,
@@ -831,9 +825,7 @@ class TestLoan(IntegrationTestCase):
 		loan.load_from_db()
 
 		self.assertEqual(loan.status, "Partially Disbursed")
-		create_repayment_entry(
-			loan.name, add_days(get_datetime("2019-10-30"), 5), flt(loan.loan_amount / 3)
-		)
+		create_repayment_entry(loan.name, add_days("2019-10-30", 5), flt(loan.loan_amount / 3))
 
 	def test_term_loan_schedule_types(self):
 		def _create_loan_for_schedule(loan_product, repayment_method, monthly_repayment_amount=None):
@@ -843,17 +835,17 @@ class TestLoan(IntegrationTestCase):
 				12000,
 				repayment_method,
 				12,
-				repayment_start_date=get_datetime("2022-10-17"),
+				repayment_start_date="2022-10-17",
 				monthly_repayment_amount=monthly_repayment_amount,
 			)
 
-			loan.posting_date = get_datetime("2022-10-17")
+			loan.posting_date = "2022-10-17"
 			loan.submit()
 			make_loan_disbursement_entry(
 				loan.name,
 				loan.loan_amount,
 				disbursement_date=loan.posting_date,
-				repayment_start_date=get_datetime("2022-10-17"),
+				repayment_start_date="2022-10-17",
 			)
 
 			loan_repayment_schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": loan.name})
@@ -864,26 +856,26 @@ class TestLoan(IntegrationTestCase):
 		schedule = _create_loan_for_schedule("Term Loan Product 1", "Repay Over Number of Periods")
 
 		# Check for first, second and last installment date
-		self.assertEqual(schedule[0].payment_date, get_datetime("2022-10-17"))
-		self.assertEqual(schedule[1].payment_date, get_datetime("2022-11-17"))
-		self.assertEqual(schedule[-1].payment_date, get_datetime("2023-09-17"))
+		self.assertEqual(schedule[0].payment_date, getdate("2022-10-17"))
+		self.assertEqual(schedule[1].payment_date, getdate("2022-11-17"))
+		self.assertEqual(schedule[-1].payment_date, getdate("2023-09-17"))
 
 		schedule = _create_loan_for_schedule("Term Loan Product 2", "Repay Over Number of Periods")
 		# Check for first, second and last installment date
-		self.assertEqual(schedule[0].payment_date, get_datetime("2022-11-01"))
-		self.assertEqual(schedule[1].payment_date, get_datetime("2022-12-01"))
-		self.assertEqual(schedule[-1].payment_date, get_datetime("2023-10-01"))
+		self.assertEqual(schedule[0].payment_date, getdate("2022-11-01"))
+		self.assertEqual(schedule[1].payment_date, getdate("2022-12-01"))
+		self.assertEqual(schedule[-1].payment_date, getdate("2023-10-01"))
 
 		schedule = _create_loan_for_schedule("Term Loan Product 3", "Repay Over Number of Periods")
 		# Check for first, second and last installment date
-		self.assertEqual(schedule[0].payment_date, get_datetime("2022-10-31"))
-		self.assertEqual(schedule[1].payment_date, get_datetime("2022-11-30"))
-		self.assertEqual(schedule[-1].payment_date, get_datetime("2023-09-30"))
+		self.assertEqual(schedule[0].payment_date, getdate("2022-10-31"))
+		self.assertEqual(schedule[1].payment_date, getdate("2022-11-30"))
+		self.assertEqual(schedule[-1].payment_date, getdate("2023-09-30"))
 
 		schedule = _create_loan_for_schedule("Term Loan Product 3", "Repay Over Number of Periods")
-		self.assertEqual(schedule[0].payment_date, get_datetime("2022-10-31"))
-		self.assertEqual(schedule[1].payment_date, get_datetime("2022-11-30"))
-		self.assertEqual(schedule[-1].payment_date, get_datetime("2023-09-30"))
+		self.assertEqual(schedule[0].payment_date, getdate("2022-10-31"))
+		self.assertEqual(schedule[1].payment_date, getdate("2022-11-30"))
+		self.assertEqual(schedule[-1].payment_date, getdate("2023-09-30"))
 
 	def test_advance_payment(self):
 		frappe.db.set_value(
@@ -899,26 +891,23 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-05-05"),
-			posting_date=get_datetime("2024-04-01"),
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-04-01"),
-			repayment_start_date=get_datetime("2024-05-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-05-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
 		# Make a scheduled loan repayment
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-05-05"), 47523)
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 47523)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-05-29"), 47523, repayment_type="Advance Payment"
+			loan.name, "2024-05-29", 47523, repayment_type="Advance Payment"
 		)
 		repayment_entry.submit()
 
@@ -937,8 +926,8 @@ class TestLoan(IntegrationTestCase):
 			1000000,
 			"Repay Over Number of Periods",
 			6,
-			repayment_start_date=get_datetime("2024-05-05"),
-			posting_date=get_datetime("2024-04-18"),
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-18",
 			rate_of_interest=23,
 		)
 
@@ -947,8 +936,8 @@ class TestLoan(IntegrationTestCase):
 		make_loan_disbursement_entry(
 			loan.name,
 			500000,
-			disbursement_date=getdate(get_datetime("2024-04-18")),
-			repayment_start_date=getdate(get_datetime("2024-05-05")),
+			disbursement_date=getdate("2024-04-18"),
+			repayment_start_date=getdate("2024-05-05"),
 		)
 
 		make_loan_disbursement_entry(
@@ -979,27 +968,24 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-01"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-01",
 			rate_of_interest=28,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-01"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-01", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-04-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
 		# Make a scheduled loan repayment
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-05-05"), 8253)
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 8253)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-05-29"), 50000, repayment_type="Pre Payment"
+			loan.name, "2024-05-29", 50000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
@@ -1021,42 +1007,39 @@ class TestLoan(IntegrationTestCase):
 			1200000,
 			"Repay Over Number of Periods",
 			36,
-			repayment_start_date=get_datetime("2024-06-05"),
-			posting_date=get_datetime("2024-05-03"),
+			repayment_start_date="2024-06-05",
+			posting_date="2024-05-03",
 			rate_of_interest=29,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-05-03"),
-			repayment_start_date=get_datetime("2024-06-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-06-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
 
 		# Make a scheduled loan repayment
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-06-05"), 50287)
+		repayment_entry = create_repayment_entry(loan.name, "2024-06-05", 50287)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-06-18"), 50287, repayment_type="Advance Payment"
+			loan.name, "2024-06-18", 50287, repayment_type="Advance Payment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-12-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-12-05"), 251435)
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-05", 251435)
 		repayment_entry.submit()
 
 		repayment_entry1 = create_repayment_entry(
-			loan.name, get_datetime("2024-12-21"), 150287, repayment_type="Pre Payment"
+			loan.name, "2024-12-21", 150287, repayment_type="Pre Payment"
 		)
 		repayment_entry1.submit()
 
 		repayment_entry2 = create_repayment_entry(
-			loan.name, get_datetime("2024-12-21"), 150287, repayment_type="Pre Payment"
+			loan.name, "2024-12-21", 150287, repayment_type="Pre Payment"
 		)
 		repayment_entry2.submit()
 
@@ -1105,30 +1088,26 @@ class TestLoan(IntegrationTestCase):
 			1200000,
 			"Repay Over Number of Periods",
 			36,
-			repayment_start_date=get_datetime("2024-06-05"),
-			posting_date=get_datetime("2024-05-03"),
+			repayment_start_date="2024-06-05",
+			posting_date="2024-05-03",
 			rate_of_interest=29,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-05-03"),
-			repayment_start_date=get_datetime("2024-06-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-06-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
 
 		# Make a scheduled loan repayment
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-06-04"), 50287, repayment_type="Advance Payment"
+			loan.name, "2024-06-04", 50287, repayment_type="Advance Payment"
 		)
 		repayment_entry.submit()
 
 		demands = frappe.db.get_all(
-			"Loan Demand",
-			{"loan": loan.name, "docstatus": 2, "demand_date": (">", get_datetime("2024-06-04"))},
+			"Loan Demand", {"loan": loan.name, "docstatus": 2, "demand_date": (">", "2024-06-04")}
 		)
 		self.assertTrue(demands)
 
@@ -1139,24 +1118,21 @@ class TestLoan(IntegrationTestCase):
 			2500000,
 			"Repay Over Number of Periods",
 			24,
-			repayment_start_date=get_datetime("2024-11-05"),
-			posting_date=get_datetime("2024-10-05"),
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-10-05"),
-			repayment_start_date=get_datetime("2024-11-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-11-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
 		loan.load_from_db()
 		loan.freeze_account = 1
-		loan.freeze_date = get_datetime("2024-11-10")
+		loan.freeze_date = "2024-11-10"
 		loan.save()
 
 		loan.freeze_account = 0
@@ -1170,25 +1146,22 @@ class TestLoan(IntegrationTestCase):
 			"Repay Over Number of Periods",
 			24,
 			"Customer",
-			repayment_start_date=get_datetime("2024-11-05"),
-			posting_date=get_datetime("2024-10-05"),
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-10-05"),
-			repayment_start_date=get_datetime("2024-11-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-11-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		create_loan_write_off(loan.name, get_datetime("2024-11-05"), write_off_amount=250000)
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
 
 		repayment = create_repayment_entry(
-			loan.name, get_datetime("2024-12-05"), 1000000, repayment_type="Write Off Recovery"
+			loan.name, "2024-12-05", 1000000, repayment_type="Write Off Recovery"
 		)
 		repayment.submit()
 
@@ -1217,25 +1190,22 @@ class TestLoan(IntegrationTestCase):
 			"Repay Over Number of Periods",
 			24,
 			"Customer",
-			repayment_start_date=get_datetime("2024-11-05"),
-			posting_date=get_datetime("2024-10-05"),
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-10-05"),
-			repayment_start_date=get_datetime("2024-11-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-11-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		create_loan_write_off(loan.name, get_datetime("2024-11-05"), write_off_amount=250000)
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
 
 		repayment = create_repayment_entry(
-			loan.name, get_datetime("2025-01-05"), 1500000, repayment_type="Write Off Settlement"
+			loan.name, "2025-01-05", 1500000, repayment_type="Write Off Settlement"
 		)
 		repayment.submit()
 
@@ -1263,50 +1233,43 @@ class TestLoan(IntegrationTestCase):
 			1500000,
 			"Repay Over Number of Periods",
 			30,
-			repayment_start_date=get_datetime("2025-01-05"),
-			posting_date=get_datetime("2024-11-28"),
+			repayment_start_date="2025-01-05",
+			posting_date="2024-11-28",
 			rate_of_interest=28,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-11-28"),
-			repayment_start_date=get_datetime("2025-01-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-11-28", repayment_start_date="2025-01-05"
 		)
 
 		# Process Loan Interest Accrual
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-12-03"), loan=loan.name, company="_Test Company"
+			posting_date="2024-12-03", loan=loan.name, company="_Test Company"
 		)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-12-04"), loan=loan.name, company="_Test Company"
+			posting_date="2024-12-04", loan=loan.name, company="_Test Company"
 		)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-12-05"), loan=loan.name, company="_Test Company"
+			posting_date="2024-12-05", loan=loan.name, company="_Test Company"
 		)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-12-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
 
-		repayment = create_repayment_entry(
-			loan.name, get_datetime("2024-12-05"), 1150, repayment_type="Pre Payment"
-		)
+		repayment = create_repayment_entry(loan.name, "2024-12-05", 1150, repayment_type="Pre Payment")
 
 		repayment.submit()
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-12-08"), loan=loan.name, company="_Test Company"
+			posting_date="2024-12-08", loan=loan.name, company="_Test Company"
 		)
 
-		process_daily_loan_demands(posting_date=get_datetime("2025-01-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2025-01-10"), loan=loan.name, company="_Test Company"
+			posting_date="2025-01-10", loan=loan.name, company="_Test Company"
 		)
 
-		repayment = create_repayment_entry(
-			loan.name, get_datetime("2025-01-03"), 10000, repayment_type="Pre Payment"
-		)
+		repayment = create_repayment_entry(loan.name, "2025-01-03", 10000, repayment_type="Pre Payment")
 
 		repayment.submit()
 
@@ -1324,24 +1287,21 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-04-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
 		# Make a scheduled loan repayment
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-04-05"), 60000, repayment_type="Pre Payment"
+			loan.name, "2024-04-05", 60000, repayment_type="Pre Payment"
 		)
 
 		repayment_entry.submit()
@@ -1363,26 +1323,23 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-04-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-05-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
 		# Process Loan Interest Accrual
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-05-10"), loan=loan.name, company="_Test Company"
+			posting_date="2024-05-10", loan=loan.name, company="_Test Company"
 		)
 
 	def test_npa_loan(self):
@@ -1392,8 +1349,8 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 			applicant_type="Customer",
 		)
@@ -1401,22 +1358,19 @@ class TestLoan(IntegrationTestCase):
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-04-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2024-04-10"), loan=loan.name, company="_Test Company"
+			posting_date="2024-04-10", loan=loan.name, company="_Test Company"
 		)
 
-		create_process_loan_classification(posting_date=get_datetime("2024-10-05"), loan=loan.name)
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
-		create_process_loan_classification(posting_date=get_datetime("2024-11-05"), loan=loan.name)
+		create_process_loan_classification(posting_date="2024-11-05", loan=loan.name)
 
-		# repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-10-05"), 47523)
+		# repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
 		# repayment_entry.submit()
 
 	def test_npa_for_loc(self):
@@ -1426,21 +1380,18 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 			applicant_type="Customer",
-			limit_applicable_start=get_datetime("2024-01-05"),
-			limit_applicable_end=get_datetime("2024-12-05"),
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2024-12-05",
 		)
 
 		loan.submit()
 
 		disbursement = make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
 
 		# Test Limit Update
@@ -1448,12 +1399,12 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(loan.utilized_limit_amount, 500000)
 		self.assertEqual(loan.available_limit_amount, 0)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-04-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
 
-		create_process_loan_classification(posting_date=get_datetime("2024-10-05"), loan=loan.name)
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-10-05"), 47523, loan_disbursement=disbursement.name
+			loan.name, "2024-10-05", 47523, loan_disbursement=disbursement.name
 		)
 		repayment_entry.submit()
 
@@ -1469,25 +1420,22 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			2,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 			applicant_type="Customer",
 		)
 
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-05-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-04-05"), 257840)
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-05-05"), 257320.97)
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 257320.97)
 		repayment_entry.submit()
 
 	def test_excess_loan_close_limit(self):
@@ -1503,26 +1451,23 @@ class TestLoan(IntegrationTestCase):
 			500000,
 			"Repay Over Number of Periods",
 			2,
-			repayment_start_date=get_datetime("2024-04-05"),
-			posting_date=get_datetime("2024-03-06"),
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
 			rate_of_interest=25,
 			applicant_type="Customer",
 		)
 
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-03-06"),
-			repayment_start_date=get_datetime("2024-04-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-05-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-04-05"), 257840)
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-05-05"), 257950.97, repayment_type="Pre Payment"
+			loan.name, "2024-05-05", 257950.97, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
@@ -1533,23 +1478,20 @@ class TestLoan(IntegrationTestCase):
 			2000000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date=get_datetime("2024-08-05"),
-			posting_date=get_datetime("2024-07-05"),
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
 			rate_of_interest=22,
 			applicant_type="Customer",
 		)
 
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-07-05"),
-			repayment_start_date=get_datetime("2024-08-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
 		)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-09-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-08-05"), 1000000, repayment_type="Full Settlement"
+			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
 		)
 		repayment_entry.submit()
 		loan.load_from_db()
@@ -1699,8 +1641,8 @@ class TestLoan(IntegrationTestCase):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date=get_datetime("2024-08-16"),
-			posting_date=get_datetime("2024-08-16"),
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 			moratorium_tenure=1,
@@ -1709,28 +1651,25 @@ class TestLoan(IntegrationTestCase):
 
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-08-16"),
-			repayment_start_date=get_datetime("2024-08-16"),
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
 		)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-08-25"), 15000, repayment_type="Pre Payment"
+			loan.name, "2024-08-25", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-09-01"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-09-01"), 138.90, repayment_type="Normal Repayment"
+			loan.name, "2024-09-01", 138.90, repayment_type="Normal Repayment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-10-01"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-10-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-09-26"), 15000, repayment_type="Pre Payment"
+			loan.name, "2024-09-26", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
@@ -1742,19 +1681,16 @@ class TestLoan(IntegrationTestCase):
 			"Repay Over Number of Periods",
 			6,
 			"Customer",
-			get_datetime("2024-07-15"),
-			get_datetime("2024-06-25"),
+			"2024-07-15",
+			"2024-06-25",
 			10,
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-06-25"),
-			repayment_start_date=get_datetime("2024-07-15"),
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2025-01-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
 
 		sales_invoice = frappe.get_doc(
 			{
@@ -1762,7 +1698,7 @@ class TestLoan(IntegrationTestCase):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": get_datetime("2025-01-15"),
+				"posting_date": "2025-01-15",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
@@ -1816,42 +1752,32 @@ class TestLoan(IntegrationTestCase):
 			100000,
 			"Repay Over Number of Periods",
 			30,
-			repayment_start_date=get_datetime("2024-10-05"),
-			posting_date=get_datetime("2024-09-15"),
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
 			rate_of_interest=10,
 			applicant_type="Customer",
 		)
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-09-15"),
-			repayment_start_date=get_datetime("2024-10-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
 		)
-		process_daily_loan_demands(posting_date=get_datetime("2024-10-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
 
-		for date in [
-			get_datetime("2024-10-05"),
-			get_datetime("2024-10-06"),
-			get_datetime("2024-10-07"),
-			get_datetime("2024-10-08"),
-			get_datetime("2024-10-09"),
-			get_datetime("2024-10-10"),
-		]:
+		for date in ["2024-10-05", "2024-10-06", "2024-10-07", "2024-10-08", "2024-10-09", "2024-10-10"]:
 			create_process_loan_classification(posting_date=date, loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-10-05"), 3000)
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 3000)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-10-09"), 782)
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-09", 782)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-11-05"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-11-05"), 3000)
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-05", 3000)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, get_datetime("2024-11-10"), 782)
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-10", 782)
 		repayment_entry.submit()
 
 		frappe.db.sql(
@@ -1860,7 +1786,7 @@ class TestLoan(IntegrationTestCase):
 			loan.name,
 		)
 
-		create_process_loan_classification(posting_date=get_datetime("2024-10-05"), loan=loan.name)
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
 		dpd_logs = frappe.db.sql(
 			"""
@@ -1874,19 +1800,19 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		expected_dpd_values = {
-			get_datetime("2024-10-05"): 1,
-			get_datetime("2024-10-06"): 2,
-			get_datetime("2024-10-07"): 3,
-			get_datetime("2024-10-08"): 4,
-			get_datetime("2024-10-09"): 0,  # Fully repaid
-			get_datetime("2024-10-10"): 0,
-			get_datetime("2024-11-04"): 0,
-			get_datetime("2024-11-05"): 1,  # DPD starts again after repayment
-			get_datetime("2024-11-06"): 2,
-			get_datetime("2024-11-07"): 3,
-			get_datetime("2024-11-08"): 4,
-			get_datetime("2024-11-09"): 5,
-			get_datetime("2024-11-10"): 0,  # Fully repaid
+			"2024-10-05": 1,
+			"2024-10-06": 2,
+			"2024-10-07": 3,
+			"2024-10-08": 4,
+			"2024-10-09": 0,  # Fully repaid
+			"2024-10-10": 0,
+			"2024-11-04": 0,
+			"2024-11-05": 1,  # DPD starts again after repayment
+			"2024-11-06": 2,
+			"2024-11-07": 3,
+			"2024-11-08": 4,
+			"2024-11-09": 5,
+			"2024-11-10": 0,  # Fully repaid
 		}
 
 		for log in dpd_logs:
@@ -1909,50 +1835,44 @@ class TestLoan(IntegrationTestCase):
 			100000,
 			"Repay Over Number of Periods",
 			6,
-			repayment_start_date=get_datetime("2024-10-10"),
-			posting_date=get_datetime("2024-10-01"),
+			repayment_start_date="2024-10-10",
+			posting_date="2024-10-01",
 			rate_of_interest=20,
 			applicant_type="Customer",
-			limit_applicable_start=get_datetime("2024-01-05"),
-			limit_applicable_end=get_datetime("2025-12-05"),
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2025-12-05",
 		)
 		loan.submit()
 
 		disbursement_1 = make_loan_disbursement_entry(
-			loan.name,
-			60000,
-			disbursement_date=get_datetime("2024-10-01"),
-			repayment_start_date=get_datetime("2024-10-10"),
+			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
 		)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-10-10"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-10-10"), 10000, loan_disbursement=disbursement_1.name
+			loan.name, "2024-10-10", 10000, loan_disbursement=disbursement_1.name
 		)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-10-18"), 592, loan_disbursement=disbursement_1.name
+			loan.name, "2024-10-18", 592, loan_disbursement=disbursement_1.name
 		)
 		repayment_entry.submit()
 
 		disbursement_2 = make_loan_disbursement_entry(
-			loan.name,
-			40000,
-			disbursement_date=get_datetime("2024-10-05"),
-			repayment_start_date=get_datetime("2024-10-15"),
+			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
 		)
 
-		process_daily_loan_demands(posting_date=get_datetime("2024-10-15"), loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-10-15"), 7000, loan_disbursement=disbursement_2.name
+			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
 		)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-10-25"), 61, loan_disbursement=disbursement_2.name
+			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
 		)
 		repayment_entry.submit()
 
@@ -1963,10 +1883,10 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		create_process_loan_classification(
-			posting_date=get_datetime("2024-10-10"), loan=loan.name, loan_disbursement=disbursement_1.name
+			posting_date="2024-10-10", loan=loan.name, loan_disbursement=disbursement_1.name
 		)
 		create_process_loan_classification(
-			posting_date=get_datetime("2024-10-15"), loan=loan.name, loan_disbursement=disbursement_2.name
+			posting_date="2024-10-15", loan=loan.name, loan_disbursement=disbursement_2.name
 		)
 
 		dpd_logs = frappe.db.sql(
@@ -1981,8 +1901,8 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		expected_dpd_values = {
-			(get_datetime("2024-10-15"), disbursement_1.name): 6,
-			(get_datetime("2024-10-24"), disbursement_2.name): 10,
+			("2024-10-15", disbursement_1.name): 6,
+			("2024-10-24", disbursement_2.name): 10,
 		}
 
 		for log in dpd_logs:
@@ -2010,27 +1930,20 @@ class TestLoan(IntegrationTestCase):
 			100000,
 			"Repay Over Number of Periods",
 			30,
-			repayment_start_date=get_datetime("2024-10-05"),
-			posting_date=get_datetime("2024-09-15"),
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
 			rate_of_interest=10,
 			applicant_type="Customer",
 		)
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-09-15"),
-			repayment_start_date=get_datetime("2024-10-05"),
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
 		)
 
 		# Create Charges Demand to simulate charge creation
 		for i in range(0, 2):
 			sales_invoice = create_sales_invoice(
-				posting_date=get_datetime("2024-09-15"),
-				item_code="Processing Fee",
-				qty=1,
-				rate=1000,
-				do_not_submit=1,
+				posting_date="2024-09-15", item_code="Processing Fee", qty=1, rate=1000, do_not_submit=1
 			)
 			sales_invoice.loan = loan.name
 			sales_invoice.save()
@@ -2038,7 +1951,7 @@ class TestLoan(IntegrationTestCase):
 
 		repayment = create_repayment_entry(
 			loan.name,
-			get_datetime("2024-09-15"),
+			"2024-09-15",
 			1000,
 			repayment_type="Charge Payment",
 			payable_charges=[{"charge_code": "Processing Fee", "amount": 1000}],
@@ -2050,7 +1963,7 @@ class TestLoan(IntegrationTestCase):
 
 		repayment = create_repayment_entry(
 			loan.name,
-			get_datetime("2024-09-15"),
+			"2024-09-15",
 			500,
 			repayment_type="Charge Payment",
 			payable_charges=[{"charge_code": "Processing Fee", "amount": 500}],
@@ -2067,49 +1980,46 @@ class TestLoan(IntegrationTestCase):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date=get_datetime("2024-08-16"),
-			posting_date=get_datetime("2024-08-16"),
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 		)
 		loan.submit()
 		# Daily accrual
 		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date=get_datetime("2024-08-16"),
-			repayment_start_date=get_datetime("2024-08-16"),
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
 		)
 
 		set_loan_accrual_frequency("Daily")
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date=get_datetime("2024-08-20"), company="_Test Company"
+			loan=loan.name, posting_date="2024-08-20", company="_Test Company"
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date=get_datetime("2024-08-16"), to_date=get_datetime("2024-08-20")
+			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
 		)
 		expected_dates = [
-			get_datetime("2024-08-16"),
-			get_datetime("2024-08-17"),
-			get_datetime("2024-08-18"),
-			get_datetime("2024-08-19"),
-			get_datetime("2024-08-20"),
+			"2024-08-16",
+			"2024-08-17",
+			"2024-08-18",
+			"2024-08-19",
+			"2024-08-20",
 		]
-		expected_dates = [i for i in expected_dates]
+		expected_dates = [getdate(i) for i in expected_dates]
 		self.assertEqual(loan_interest_accruals, expected_dates)
 
 		set_loan_accrual_frequency("Weekly")
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date=get_datetime("2024-08-31"), company="_Test Company"
+			loan=loan.name, posting_date="2024-08-31", company="_Test Company"
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date=get_datetime("2024-08-21"), to_date=get_datetime("2024-08-31")
+			loan=loan, from_date="2024-08-21", to_date="2024-08-31"
 		)
 		expected_dates = [
-			get_datetime("2024-08-25"),
-			get_datetime("2024-08-31"),
+			"2024-08-25",
+			"2024-08-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 
@@ -2117,17 +2027,17 @@ class TestLoan(IntegrationTestCase):
 
 		set_loan_accrual_frequency("Monthly")
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date=get_datetime("2024-10-31"), company="_Test Company"
+			loan=loan.name, posting_date="2024-10-31", company="_Test Company"
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date=get_datetime("2024-09-01"), to_date=get_datetime("2024-11-05")
+			loan=loan, from_date="2024-09-01", to_date="2024-11-05"
 		)
 		expected_dates = [
-			get_datetime("2024-09-15"),
-			get_datetime("2024-09-30"),
-			get_datetime("2024-10-15"),
-			get_datetime("2024-10-31"),
+			"2024-09-15",
+			"2024-09-30",
+			"2024-10-15",
+			"2024-10-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 
@@ -2140,29 +2050,29 @@ class TestLoan(IntegrationTestCase):
 			2700000,
 			"Repay Over Number of Periods",
 			1,
-			posting_date=get_datetime("2024-10-30"),
+			posting_date="2024-10-30",
 			rate_of_interest=17.25,
 			applicant_type="Customer",
-			limit_applicable_start=get_datetime("2024-10-28"),
-			limit_applicable_end=get_datetime("2025-10-28"),
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-10-28",
 		)
 		loan.submit()
 
 		disbursement = make_loan_disbursement_entry(
 			loan.name,
 			335533,
-			disbursement_date=get_datetime("2024-11-25"),
-			repayment_start_date=get_datetime("2025-01-24"),
+			disbursement_date="2024-11-25",
+			repayment_start_date="2025-01-24",
 			repayment_frequency="One Time",
 		)
 		disbursement.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date=get_datetime("2025-01-23"), loan=loan.name, company="_Test Company"
+			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
 		)
 		repayment_entry = create_repayment_entry(
 			loan.name,
-			get_datetime("2025-01-23"),
+			"2025-01-23",
 			344890,
 			loan_disbursement=disbursement.name,
 			repayment_type="Pre Payment",
