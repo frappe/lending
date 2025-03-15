@@ -1034,12 +1034,12 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.submit()
 
 		repayment_entry1 = create_repayment_entry(
-			loan.name, "2024-12-21", 150287, repayment_type="Pre Payment"
+			loan.name, "2024-12-21 00:00:00", 150287, repayment_type="Pre Payment"
 		)
 		repayment_entry1.submit()
 
 		repayment_entry2 = create_repayment_entry(
-			loan.name, "2024-12-21", 150287, repayment_type="Pre Payment"
+			loan.name, "2024-12-21 00:00:20", 150287, repayment_type="Pre Payment"
 		)
 		repayment_entry2.submit()
 
@@ -2007,7 +2007,8 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-20",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
-		self.assertEqual(loan_interest_accruals, expected_dates)
+		accrual_dates = [getdate(i) for i in loan_interest_accruals]
+		self.assertEqual(accrual_dates, expected_dates)
 
 		set_loan_accrual_frequency("Weekly")
 		process_loan_interest_accrual_for_loans(
@@ -2022,8 +2023,8 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
-
-		self.assertEqual(loan_interest_accruals, expected_dates)
+		accrual_dates = [getdate(i) for i in loan_interest_accruals]
+		self.assertEqual(accrual_dates, expected_dates)
 
 		set_loan_accrual_frequency("Monthly")
 		process_loan_interest_accrual_for_loans(
@@ -2040,8 +2041,8 @@ class TestLoan(IntegrationTestCase):
 			"2024-10-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
-
-		self.assertEqual(loan_interest_accruals, expected_dates)
+		accrual_dates = [getdate(i) for i in loan_interest_accruals]
+		self.assertEqual(accrual_dates, expected_dates)
 
 	def test_loc_loan_pre_payment_closure(self):
 		loan = create_loan(
