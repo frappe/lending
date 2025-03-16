@@ -669,6 +669,10 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
 	def check_future_entries(self):
+
+		if self.is_write_off_waiver:
+			return
+
 		filters = {
 			"posting_date": (">=", self.posting_date),
 			"docstatus": 1,
@@ -1606,10 +1610,7 @@ class LoanRepayment(AccountsController):
 			payable_charges = self.total_charges_payable - self.total_charges_paid
 			if self.excess_amount < 0 and payable_charges > 0:
 				create_loan_repayment(
-					self.against_loan,
-					self.posting_date,
-					"Charges Waiver",
-					payable_charges,
+					self.against_loan, self.posting_date, "Charges Waiver", payable_charges, is_write_off_waiver=1
 				)
 			return
 
