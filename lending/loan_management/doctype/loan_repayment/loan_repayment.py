@@ -666,7 +666,7 @@ class LoanRepayment(AccountsController):
 			return
 
 		filters = {
-			"posting_date": (">", self.posting_date),
+			"posting_date": (">=", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
