@@ -419,10 +419,9 @@ def reverse_demands(
 	# on settlement or closure, demand should be cleared from next day
 	# as other demands also get passed on the same day
 	if on_settlement_or_closure:
-		posting_date = add_days(posting_date, 1)
+		posting_date = add_days(getdate(posting_date), 1)
 
-	filters = {"loan": loan, "demand_date": (">", posting_date), "docstatus": 1}
-	or_filters = {}
+	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
 
 	if demand_type:
 		filters["demand_type"] = demand_type

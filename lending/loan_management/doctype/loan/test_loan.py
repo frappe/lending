@@ -1044,7 +1044,20 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry2.submit()
 
 		# Cancel the entry to check if correct schedule becomes active
-		repayment_entry1.cancel()
+		repayment_entry2.cancel()
+
+		# Check only the demands related to repayment_entry1 are only cancelled
+		loan_restructure = frappe.db.get_value(
+			"Loan Restructure", {"loan_repayment": repayment_entry2.name}
+		)
+		loan_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
+		)
+		loan_demands = frappe.db.get_all(
+			"Loan Demand",
+			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
+		)
+		self.assertFalse(loan_demands)
 
 		# Check only the demands related to repayment_entry1 are only cancelled
 		loan_restructure = frappe.db.get_value(
@@ -1057,22 +1070,7 @@ class TestLoan(IntegrationTestCase):
 			"Loan Demand",
 			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
 		)
-		self.assertFalse(loan_demands)
-
-		# Check only the demands related to repayment_entry2 are only cancelled
-		loan_restructure = frappe.db.get_value(
-			"Loan Restructure", {"loan_repayment": repayment_entry2.name}
-		)
-		loan_repayment_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
-		)
-		loan_demands = frappe.db.get_all(
-			"Loan Demand",
-			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
-		)
 		self.assertTrue(loan_demands)
-
-		repayment_entry2.cancel()
 
 	def test_future_demand_cancellation(self):
 		frappe.db.set_value(

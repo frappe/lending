@@ -504,6 +504,7 @@ class LoanRepayment(AccountsController):
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
+<<<<<<< HEAD
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -526,6 +527,8 @@ class LoanRepayment(AccountsController):
 		self.update_security_deposit_amount(cancel=1)
 =======
 >>>>>>> 710a103 (fix: remove redundant method for checking future repayments)
+=======
+>>>>>>> 301bdd9 (test: Update pending tests)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
@@ -553,6 +556,17 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+
+		self.check_future_entries()
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
 
 		max_demand_date = frappe.db.get_value(
 			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
@@ -656,7 +670,7 @@ class LoanRepayment(AccountsController):
 
 	def check_future_entries(self):
 		filters = {
-			"posting_date": (">", self.posting_date),
+			"posting_date": (">=", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
