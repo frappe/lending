@@ -639,7 +639,6 @@ def make_accrual_interest_entry_for_loans(
 	company=None,
 	from_demand=False,
 ):
-
 	loan_doc = frappe.qb.DocType("Loan")
 
 	query = (
@@ -800,14 +799,16 @@ def get_last_accrual_date(
 			dates = frappe.db.get_value(
 				"Loan Repayment Schedule",
 				loan_repayment_schedule,
-				["moratorium_end_date", "posting_date", "moratorium_type"],
+				["moratorium_end_date", "posting_date", "moratorium_type", "loan_disbursement"],
 				as_dict=1,
 			)
 
 			if dates.moratorium_type == "EMI" and dates.moratorium_end_date:
 				final_date = dates.moratorium_end_date
 			else:
-				final_date = dates.posting_date
+				final_date = get_last_disbursement_date(
+					loan, posting_date, loan_disbursement=dates.loan_disbursement
+				)
 
 			return final_date
 
