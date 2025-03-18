@@ -99,6 +99,16 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
+
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -168,7 +178,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				"Normal Repayment",
 			)
-			and not self.flags.from_repost
+			and not (self.flags.from_repost or self.flags.from_repost)
 		):
 			max_date = None
 			reversed_accruals += reverse_loan_interest_accruals(
@@ -232,6 +242,16 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+
+	def create_repost(self):
+		repost = frappe.new_doc("Loan Repayment Repost")
+		repost.loan = self.against_loan
+		repost.delete_gl_entries = True
+		repost.repost_date = self.posting_date
+		repost.clear_demand_allocation_before_repost = True
+		repost.cancel_future_accruals_and_demands = True
+		repost.cancel_future_emi_demands = True
+		repost.submit()
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -358,16 +378,6 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals,
 		)
 
-		on_back_dated_prepayment = False
-
-		loan_repayment_schedule = ""
-		if self.repayment_type in ("Pre Payment", "Advance Payment"):
-			loan_restructure = frappe.db.get_value("Loan Restructure", {"loan_repayment": self.name})
-			loan_repayment_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
-			)
-			on_back_dated_prepayment = True
-
 		accruals = reverse_loan_interest_accruals(
 			self.against_loan,
 			self.posting_date,
@@ -375,8 +385,6 @@ class LoanRepayment(AccountsController):
 			is_npa=self.is_npa,
 			on_payment_allocation=True,
 			loan_disbursement=self.loan_disbursement,
-			loan_repayment_schedule=loan_repayment_schedule,
-			future_accruals=on_back_dated_prepayment,
 		)
 
 		reverse_demands(
@@ -385,8 +393,6 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
-			loan_repayment_schedule=loan_repayment_schedule,
-			future_demands=on_back_dated_prepayment,
 		)
 
 		return accruals
@@ -494,20 +500,31 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
-		# frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+		self.check_future_entries()
+		self.mark_as_unpaid()
+		self.update_demands(cancel=1)
+		self.update_security_deposit_amount(cancel=1)
+
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+		self.flags.ignore_links = True
 		if self.repayment_type == "Full Settlement":
 			if frappe.flags.in_test:
 				self.cancel_linked_repayments()
 			else:
 				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
-		self.check_future_accruals()
+
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
-
-		# self.cancel_charge_demands()
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			self.cancel_loan_restructure()
@@ -531,6 +548,17 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+
+		self.check_future_entries()
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
 
 		max_demand_date = frappe.db.get_value(
 			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
@@ -569,7 +597,7 @@ class LoanRepayment(AccountsController):
 			restructure.flags.ignore_links = True
 			restructure.cancel()
 
-	def set_missing_values(self, amounts):
+	def set_missing_values(self, amounts, repost=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if not self.posting_date:
@@ -633,8 +661,12 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
 	def check_future_entries(self):
+
+		if self.is_write_off_waiver:
+			return
+
 		filters = {
-			"posting_date": (">", self.posting_date),
+			"posting_date": (">=", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
@@ -649,9 +681,10 @@ class LoanRepayment(AccountsController):
 		)
 
 		if future_repayment_date:
-			frappe.throw(
-				_("Repayment already made till date {0}").format(get_datetime(future_repayment_date))
-			)
+			self.is_backdated = True
+		else:
+			self.is_backdated = False
+		self.db_set("is_backdated", self.is_backdated)
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
@@ -829,7 +862,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.closure_date, self.posting_date)
 			self.update_repayment_schedule_status()
 
-			if not self.flags.from_repost:
+			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		elif self.repayment_type == "Full Settlement":
@@ -838,7 +871,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.settlement_date, self.posting_date)
 			self.update_repayment_schedule_status()
 
-			if not self.flags.from_repost:
+			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		query = self.update_limits(query, loan)
@@ -1124,30 +1157,6 @@ class LoanRepayment(AccountsController):
 			).where(
 				loan_security_deposit.loan == self.against_loan
 			).run()
-
-	def check_future_accruals(self):
-		if self.flags.from_repost:
-			return
-
-		filters = {
-			"posting_date": (">", self.posting_date),
-			"docstatus": 1,
-			"against_loan": self.against_loan,
-		}
-
-		if self.loan_disbursement:
-			filters["loan_disbursement"] = self.loan_disbursement
-
-		future_repayment = frappe.db.get_value(
-			"Loan Repayment",
-			filters,
-			"posting_date",
-		)
-
-		if future_repayment:
-			frappe.throw(
-				_("Cannot cancel. Repayments made till date {0}").format(get_datetime(future_repayment))
-			)
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -1593,10 +1602,7 @@ class LoanRepayment(AccountsController):
 			payable_charges = self.total_charges_payable - self.total_charges_paid
 			if self.excess_amount < 0 and payable_charges > 0:
 				create_loan_repayment(
-					self.against_loan,
-					self.posting_date,
-					"Charges Waiver",
-					payable_charges,
+					self.against_loan, self.posting_date, "Charges Waiver", payable_charges, is_write_off_waiver=1
 				)
 			return
 
@@ -2231,7 +2237,6 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		for_update=for_update,
 	)
-
 	amounts = process_amount_for_loan(
 		against_loan_doc,
 		posting_date,
@@ -2667,3 +2672,77 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_di
 
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
+
+
+def post_bulk_payments(data):
+	from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+		reverse_loan_interest_accruals,
+	)
+	from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+		create_process_loan_classification,
+	)
+	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+		process_daily_loan_demands,
+	)
+	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		process_loan_interest_accrual_for_loans,
+	)
+
+	# sort data by posting date
+	data = sorted(data, key=lambda x: x["posting_date"])
+
+	grouped_data = group_by_loan_and_disbursement(data)
+	for key, rows in grouped_data.items():
+		from_date = getdate(rows[0]["posting_date"])
+		to_date = getdate(rows[-1]["posting_date"])
+		loan = key[0]
+		loan_disbursement = key[1]
+
+		reversed_accruals = reverse_loan_interest_accruals(
+			loan, from_date, interest_type="Normal Interest", loan_disbursement=loan_disbursement
+		)
+
+		reverse_demands(loan, from_date, demand_type="EMI", loan_disbursement=loan_disbursement)
+
+		for payment in rows:
+			loan_repayment = frappe.get_doc(payment)
+			loan_repayment.flags.in_bulk = True
+			loan_repayment.submit()
+
+			frappe.get_doc(
+				{
+					"doctype": "Process Loan Interest Accrual",
+					"loan": loan,
+					"posting_date": getdate(payment.get("posting_date")),
+				}
+			).submit()
+
+			frappe.get_doc(
+				{
+					"doctype": "Process Loan Demand",
+					"loan": loan,
+					"posting_date": getdate(payment.get("posting_date")),
+				}
+			).submit()
+
+			loan_repayment.flags.in_bulk = False
+
+		create_process_loan_classification(
+			posting_date=to_date, loan=loan, loan_disbursement=loan_disbursement
+		)
+
+		if reversed_accruals:
+			dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
+			max_date = max(dates)
+			if getdate(max_date) > getdate(to_date):
+				process_loan_interest_accrual_for_loans(posting_date=max_date, loan=loan)
+				process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=loan)
+
+
+def group_by_loan_and_disbursement(data):
+	grouped_data = {}
+	for row in data:
+		grouped_data.setdefault((row.get("against_loan"), row.get("loan_disbursement")), []).append(row)
+
+	return grouped_data

@@ -57,11 +57,10 @@ class LoanRepaymentRepost(Document):
 				self.loan, self.repost_date, demand_type="EMI", loan_disbursement=self.loan_disbursement
 			)
 
-		if self.cancel_future_penal_accruals_and_demands:
+		if self.cancel_future_accruals_and_demands:
 			reverse_loan_interest_accruals(
 				self.loan,
 				self.repost_date,
-				interest_type="Penal Interest",
 				loan_disbursement=self.loan_disbursement,
 			)
 			reverse_demands(
@@ -208,7 +207,6 @@ class LoanRepaymentRepost(Document):
 				loan_disbursement=repayment_doc.loan_disbursement,
 				for_update=True,
 			)
-
 			repayment_doc.set_missing_values(amounts)
 
 			loan = frappe.get_doc("Loan", repayment_doc.against_loan)

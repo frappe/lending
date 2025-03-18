@@ -530,7 +530,7 @@ def calculate_penal_interest_for_loans(
 		additional_interest = 0
 		on_migrate = False
 
-		if getdate(posting_date) >= add_days(demand.demand_date, grace_period_days):
+		if getdate(posting_date) >= add_days(getdate(demand.demand_date), grace_period_days):
 			last_accrual_date = get_last_accrual_date(
 				loan.name,
 				posting_date,
@@ -558,7 +558,7 @@ def calculate_penal_interest_for_loans(
 				from_date = add_days(last_accrual_date, 1)
 
 			from_date_for_entry = from_date
-			for current_date in daterange(from_date, getdate(posting_date)):
+			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 

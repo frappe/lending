@@ -25,6 +25,7 @@
   "is_term_loan",
   "is_npa",
   "is_write_off_waiver",
+  "is_backdated",
   "payment_details_section",
   "due_date",
   "pending_principal_amount",
@@ -527,6 +528,13 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_backdated",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Backdated"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -570,6 +578,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
