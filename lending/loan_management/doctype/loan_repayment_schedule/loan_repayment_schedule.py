@@ -452,6 +452,8 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 			if self.repayment_frequency == "Monthly" and self.moratorium_tenure:
 				tenure += cint(self.moratorium_tenure)
+		elif self.restructure_type in ("Advance Payment", "Pre Payment") and self.moratorium_tenure:
+			tenure = self.repayment_periods + self.moratorium_tenure
 		elif loan_status == "Partially Disbursed":
 			prev_schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
