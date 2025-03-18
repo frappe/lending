@@ -13,6 +13,7 @@
   "loan_category",
   "maximum_loan_amount",
   "penalty_interest_rate",
+  "bpi_recovery_method",
   "column_break_2",
   "company",
   "cyclic_day_of_the_month",
@@ -520,11 +521,18 @@
    "fieldname": "accounting_tab",
    "fieldtype": "Tab Break",
    "label": "Accounting"
+  },
+  {
+   "default": "Upfront Deduction",
+   "fieldname": "bpi_recovery_method",
+   "fieldtype": "Select",
+   "label": "BPI Recovery Method",
+   "options": "\nUpfront Deduction\nAmortized Over Tenure\nAdd to First EMI"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 12:11:11.782317",
+ "modified": "2025-03-13 12:18:12.163347",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

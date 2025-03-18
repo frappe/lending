@@ -309,6 +309,30 @@ class LoanRepaymentSchedule(Document):
 		if additional_days < 0:
 			self.broken_period_interest_days = 0
 
+		bpi_recovery_method = frappe.db.get_value(
+			"Loan Product", self.loan_product, "bpi_recovery_method"
+		)
+
+		amortized_bpi = 0
+		first_emi_adjustment = 0
+
+		if bpi_recovery_method in ["Amortized Over Tenure", "Add to First EMI"]:
+			broken_period_interest = self.add_broken_period_interest(
+				balance_amount,
+				rate_of_interest,
+				self.broken_period_interest_days,
+				payment_date,
+				schedule_field,
+				principal_share_percentage,
+				interest_share_percentage,
+			)
+		if bpi_recovery_method == "Amortized Over Tenure":
+			amortized_bpi = flt(broken_period_interest) / self.repayment_periods
+		elif bpi_recovery_method == "Add to First EMI":
+			first_emi_adjustment = broken_period_interest
+
+		is_first_emi = True
+
 		while balance_amount > 0:
 			if self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				if getdate(payment_date) > getdate(self.moratorium_end_date):
@@ -385,6 +409,14 @@ class LoanRepaymentSchedule(Document):
 					interest_amount += moratorium_interest
 					total_payment = principal_amount + interest_amount
 					moratorium_interest = 0
+
+			if bpi_recovery_method == "Amortized Over Tenure":
+				interest_amount += amortized_bpi
+				total_payment += amortized_bpi
+			elif bpi_recovery_method == "Add to First EMI" and is_first_emi:
+				interest_amount += first_emi_adjustment
+				total_payment += first_emi_adjustment
+				is_first_emi = False
 
 			self.add_repayment_schedule_row(
 				payment_date,
@@ -825,21 +857,28 @@ class LoanRepaymentSchedule(Document):
 	):
 		interest_amount = flt(balance_amount * flt(rate_of_interest) * additional_days / (365 * 100))
 
-		if schedule_field == "repayment_schedule":
-			self.broken_period_interest += interest_amount
-
-		payment_date = add_months(payment_date, -1)
-		self.add_repayment_schedule_row(
-			payment_date,
-			0,
-			interest_amount,
-			interest_amount,
-			balance_amount,
-			additional_days,
-			repayment_schedule_field=schedule_field,
-			principal_share_percentage=principal_share_percentage,
-			interest_share_percentage=interest_share_percentage,
+		bpi_recovery_method = frappe.db.get_value(
+			"Loan Product", self.loan_product, "bpi_recovery_method"
 		)
+
+		if bpi_recovery_method == "Upfront Deduction":
+			if schedule_field == "repayment_schedule":
+				self.broken_period_interest += interest_amount
+
+			payment_date = add_months(payment_date, -1)
+			self.add_repayment_schedule_row(
+				payment_date,
+				0,
+				interest_amount,
+				interest_amount,
+				balance_amount,
+				additional_days,
+				repayment_schedule_field=schedule_field,
+				principal_share_percentage=principal_share_percentage,
+				interest_share_percentage=interest_share_percentage,
+			)
+		self.broken_period_interest = interest_amount
+		return interest_amount
 
 	def add_repayment_schedule_row(
 		self,

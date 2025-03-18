@@ -1371,6 +1371,99 @@ class TestLoan(IntegrationTestCase):
 		# repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
 		# repayment_entry.submit()
 
+	def test_broken_period_interest_for_amortized_over_tenure(self):
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Amortized Over Tenure"
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2023-11-03",
+			rate_of_interest=14.5,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-11-03", repayment_start_date="2023-12-05"
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
+		)
+
+		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
+
+		self.assertEqual(calculated_bpi_amount_1, 1198.40)
+		self.assertEqual(calculated_bpi_amount_2, 1141.93)
+
+	def test_broken_period_interest_for_add_to_first_emi(self):
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Add to First EMI"
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2023-11-03",
+			rate_of_interest=14.5,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-11-03", repayment_start_date="2023-12-05"
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
+		)
+
+		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
+
+		self.assertEqual(calculated_bpi_amount_1, 1271.23)
+		self.assertEqual(calculated_bpi_amount_2, 1135.31)
+
+	def test_broken_period_interest_for_upfront_deduction(self):
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Upfront Deduction"
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2023-11-03",
+			rate_of_interest=14.5,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-11-03", repayment_start_date="2023-12-05"
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
+		)
+
+		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
+
+		self.assertEqual(calculated_bpi_amount_1, 79.45)
+		self.assertEqual(calculated_bpi_amount_2, 1191.78)
+
 	def test_npa_for_loc(self):
 		loan = create_loan(
 			"_Test Customer 1",
