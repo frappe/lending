@@ -519,7 +519,7 @@ class LoanRepayment(AccountsController):
 				self.cancel_linked_repayments()
 			else:
 				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
-		self.check_future_accruals()
+
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
