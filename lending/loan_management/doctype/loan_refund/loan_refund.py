@@ -13,6 +13,29 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import get_ne
 
 
 class LoanRefund(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		cost_center: DF.Link | None
+		is_excess_amount_refund: DF.Check
+		is_security_amount_refund: DF.Check
+		loan: DF.Link
+		loan_product: DF.Link | None
+		posting_date: DF.Date
+		reference_number: DF.Data | None
+		refund_account: DF.Link
+		refund_amount: DF.Currency
+	# end: auto-generated types
+
 	"""
 	Add refund if total repayment is more than that is owed.
 	"""

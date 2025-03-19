@@ -8,6 +8,20 @@ from frappe.model.document import Document
 
 
 class SanctionedLoanAmount(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		applicant: DF.DynamicLink
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		sanctioned_amount_limit: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		sanctioned_doc = frappe.db.exists(
 			"Sanctioned Loan Amount", {"applicant": self.applicant, "company": self.company}

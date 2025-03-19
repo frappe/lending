@@ -10,6 +10,28 @@ from frappe.utils import flt, get_datetime, getdate
 
 
 class LoanSecurityRelease(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.unpledge.unpledge import Unpledge
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		description: DF.Text | None
+		loan: DF.Link
+		reference_no: DF.Data | None
+		securities: DF.Table[Unpledge]
+		status: DF.Literal["Requested", "Approved"]
+		unpledge_time: DF.Datetime | None
+	# end: auto-generated types
+
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()

@@ -15,6 +15,31 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 
 
 class LoanBalanceAdjustment(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		adjustment_account: DF.Link
+		adjustment_receivable_account: DF.Link | None
+		adjustment_type: DF.Literal["Credit Adjustment", "Debit Adjustment"]
+		amended_from: DF.Link | None
+		amount: DF.Currency
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		cost_center: DF.Link | None
+		loan: DF.Link
+		posting_date: DF.Date
+		reference_document_type: DF.Literal["Loan Repayment", "Loan Restructure"]
+		reference_name: DF.DynamicLink | None
+		reference_number: DF.Data | None
+		remarks: DF.Data | None
+	# end: auto-generated types
+
 	"""
 	Add credit/debit adjustments to loan ledger.
 	"""
