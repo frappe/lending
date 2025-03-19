@@ -9,6 +9,27 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_transfer_detail.loan_transfer_detail import (
+			LoanTransferDetail,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.Link | None
+		company: DF.Link
+		from_branch: DF.Link
+		loans: DF.Table[LoanTransferDetail]
+		to_branch: DF.Link
+		transfer_date: DF.Date
+	# end: auto-generated types
+
 	def after_insert(self):
 		self.get_balances_and_make_journal_entry()
 

@@ -7,6 +7,18 @@ from frappe.utils import flt, getdate
 
 
 class ProcessLoanRestructureLimit(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		posting_date: DF.Date | None
+	# end: auto-generated types
+
 	def on_submit(self):
 		calculate_monthly_restructure_limit(posting_date=self.posting_date)
 

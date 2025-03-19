@@ -32,6 +32,8 @@ voucher_subtypes = "lending.loan_management.doctype.loan.loan.get_voucher_subtyp
 
 before_tests = "lending.tests.test_utils.before_tests"
 
+export_python_type_annotations = True
+
 # Includes in <head>
 # ------------------
 

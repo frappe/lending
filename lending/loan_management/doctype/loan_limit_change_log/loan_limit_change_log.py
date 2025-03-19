@@ -6,6 +6,21 @@ from frappe.model.document import Document
 
 
 class LoanLimitChangeLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		change_date: DF.Date | None
+		event: DF.Literal["Loan Booking", "Limit Renewal", "Disbursement", "Repayment"]
+		loan: DF.Link | None
+		value_change: DF.Currency
+		value_type: DF.Literal["Maximum Limit Amount", "Utilized Limit Amount", "Available Limit Amount"]
+	# end: auto-generated types
+
 	pass
 
 

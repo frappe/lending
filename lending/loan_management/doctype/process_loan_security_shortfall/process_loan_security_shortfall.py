@@ -12,6 +12,18 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 
 class ProcessLoanSecurityShortfall(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		update_time: DF.Datetime
+	# end: auto-generated types
+
 	def onload(self):
 		self.set_onload("update_time", get_datetime())
 

@@ -16,6 +16,28 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 
 
 class LoanWriteOff(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		cost_center: DF.Link | None
+		is_npa: DF.Check
+		is_settlement_write_off: DF.Check
+		loan: DF.Link
+		loan_product: DF.Link | None
+		posting_date: DF.Date
+		write_off_account: DF.Link | None
+		write_off_amount: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.set_missing_values()
 		self.validate_write_off_amount()
