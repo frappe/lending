@@ -1534,9 +1534,11 @@ class LoanRepayment(AccountsController):
 			return flt(self.loan_partner_share_percentage * paid_amount)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_loan_repayment,
+		)
+
 		if self.repayment_type == "Charges Waiver":
-<<<<<<< HEAD
-=======
 			payable_charges = self.total_charges_payable - self.total_charges_paid
 			if self.excess_amount < 0 and payable_charges > 0:
 				create_loan_repayment(
@@ -1545,7 +1547,6 @@ class LoanRepayment(AccountsController):
 					"Charges Waiver",
 					payable_charges,
 				)
->>>>>>> f8b72ed (fix: if repayments originate from other repayments, they should have links pointing to them)
 			return
 
 		if cancel:
@@ -1857,8 +1858,6 @@ class LoanRepayment(AccountsController):
 
 		return remarks
 
-<<<<<<< HEAD
-=======
 	def get_allocation_order(self, offset_name):
 		offset_mapping = {
 			"Collection Offset Sequence for Standard Asset": "collection_offset_sequence_for_standard_asset",
@@ -1909,7 +1908,6 @@ class LoanRepayment(AccountsController):
 			repayment = frappe.get_doc("Loan Repayment", repayment_name)
 			repayment.cancel()
 
->>>>>>> 167961b (fix: cancel linked repayments)
 
 def create_repayment_entry(
 	loan,
