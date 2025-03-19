@@ -1065,8 +1065,10 @@ def update_loan_and_customer_status(
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
 		elif cint(is_previous_npa) and not cint(current_npa):
-			frappe.db.set_value("Loan", loan, "is_npa", 1)
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
+			update_all_linked_loan_customer_npa_status(
+				1, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
+			)
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
 			move_unpaid_interest_to_suspense_ledger(loan, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
