@@ -8,6 +8,24 @@ from frappe.utils import add_days, getdate
 
 
 class ProcessLoanClassification(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		force_update_dpd_in_loan: DF.Check
+		is_backdated: DF.Check
+		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
+		loan_product: DF.Link | None
+		payment_reference: DF.Link | None
+		posting_date: DF.Date
+	# end: auto-generated types
+
 	def validate(self):
 		if getdate(self.posting_date) < add_days(getdate(), -1) and not self.loan:
 			frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))

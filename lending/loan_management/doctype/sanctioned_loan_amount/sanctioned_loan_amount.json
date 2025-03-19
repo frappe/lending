@@ -51,7 +51,7 @@
   }
  ],
  "links": [],
- "modified": "2020-02-25 05:10:52.421193",
+ "modified": "2025-03-19 11:46:47.316646",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Sanctioned Loan Amount",
@@ -84,5 +84,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

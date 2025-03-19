@@ -16,6 +16,40 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 
 class LoanSecurityAssignment(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.pledge.pledge import Pledge
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		description: DF.Text | None
+		loan: DF.Link | None
+		loan_application: DF.Link | None
+		maximum_loan_value: DF.Currency
+		pledge_time: DF.Datetime | None
+		reference_no: DF.Data | None
+		release_time: DF.Datetime | None
+		securities: DF.Table[Pledge]
+		status: DF.Literal[
+			"Pledge Requested",
+			"Unpledged",
+			"Pledged",
+			"Release Requested",
+			"Released",
+			"Repossessed",
+			"Cancelled",
+		]
+		total_security_value: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.validate_securities()
 		self.validate_loan_security_type()

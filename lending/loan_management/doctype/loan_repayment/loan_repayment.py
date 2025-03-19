@@ -27,6 +27,98 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 
 
 class LoanRepayment(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_repayment_charges.loan_repayment_charges import (
+			LoanRepaymentCharges,
+		)
+		from lending.loan_management.doctype.loan_repayment_detail.loan_repayment_detail import (
+			LoanRepaymentDetail,
+		)
+		from lending.loan_management.doctype.prepayment_charges.prepayment_charges import (
+			PrepaymentCharges,
+		)
+
+		against_loan: DF.Link
+		amended_from: DF.Link | None
+		amount_paid: DF.Currency
+		applicant: DF.DynamicLink
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		bank_account: DF.Link | None
+		clearance_date: DF.Date | None
+		company: DF.Link | None
+		cost_center: DF.Link | None
+		days_past_due: DF.Int
+		due_date: DF.Date | None
+		excess_amount: DF.Currency
+		interest_payable: DF.Currency
+		is_backdated: DF.Check
+		is_npa: DF.Check
+		is_term_loan: DF.Check
+		is_write_off_waiver: DF.Check
+		loan_account: DF.Link | None
+		loan_adjustment: DF.Link | None
+		loan_disbursement: DF.Link | None
+		loan_partner: DF.Link | None
+		loan_partner_interest_rate: DF.Percent
+		loan_partner_payment_ratio: DF.Percent
+		loan_partner_repayment_schedule_type: DF.Data | None
+		loan_partner_share_percentage: DF.Percent
+		loan_product: DF.Link | None
+		loan_restructure: DF.Link | None
+		manual_remarks: DF.SmallText | None
+		mode_of_payment: DF.Link | None
+		payable_amount: DF.Currency
+		payable_charges: DF.Table[LoanRepaymentCharges]
+		payable_principal_amount: DF.Currency
+		payment_account: DF.Link | None
+		penalty_amount: DF.Currency
+		penalty_income_account: DF.Link | None
+		pending_principal_amount: DF.Currency
+		posting_date: DF.Datetime
+		prepayment_charges: DF.Table[PrepaymentCharges]
+		principal_amount_paid: DF.Currency
+		rate_of_interest: DF.Percent
+		reference_date: DF.Date | None
+		reference_number: DF.Data | None
+		repayment_details: DF.Table[LoanRepaymentDetail]
+		repayment_schedule_type: DF.Data | None
+		repayment_type: DF.Literal[
+			"Normal Repayment",
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+			"Principal Capitalization",
+			"Principal Adjustment",
+			"Interest Carry Forward",
+			"Write Off Recovery",
+			"Security Deposit Adjustment",
+			"Advance Payment",
+			"Pre Payment",
+			"Subsidy Adjustments",
+			"Loan Closure",
+			"Partial Settlement",
+			"Full Settlement",
+			"Write Off Settlement",
+			"Charge Payment",
+		]
+		shortfall_amount: DF.Currency
+		total_charges_paid: DF.Currency
+		total_charges_payable: DF.Currency
+		total_interest_paid: DF.Currency
+		total_partner_interest_share: DF.Currency
+		total_partner_principal_share: DF.Currency
+		total_penalty_paid: DF.Currency
+		unbooked_interest_paid: DF.Currency
+		unbooked_penalty_paid: DF.Currency
+	# end: auto-generated types
+
 	def before_validate(self):
 		self.set_repayment_account()
 

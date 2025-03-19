@@ -12,6 +12,24 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 
 
 class LoanSecurity(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		available_security_value: DF.Currency
+		disabled: DF.Check
+		haircut: DF.Percent
+		loan_security_code: DF.Data
+		loan_security_name: DF.Data
+		loan_security_type: DF.Link
+		original_security_value: DF.Currency
+		utilized_security_value: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.update_available_security_value()
 

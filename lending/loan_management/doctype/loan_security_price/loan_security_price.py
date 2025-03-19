@@ -9,6 +9,22 @@ from frappe.utils import get_datetime
 
 
 class LoanSecurityPrice(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		loan_security: DF.Link
+		loan_security_name: DF.Data | None
+		loan_security_price: DF.Currency
+		loan_security_type: DF.Link | None
+		valid_from: DF.Datetime
+		valid_upto: DF.Datetime
+	# end: auto-generated types
+
 	def validate(self):
 		self.validate_dates()
 
