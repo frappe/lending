@@ -60,6 +60,7 @@ class LoanTransfer(Document):
 		self.update_branch()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		frappe.enqueue(
 			self.on_submit_actions,
 			enqueue_after_commit=True,
@@ -75,6 +76,13 @@ class LoanTransfer(Document):
 		else:
 			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries()
 >>>>>>> 96e208f (fix: move GL heavy tasks to background job)
+=======
+		frappe.enqueue(
+			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
+			enqueue_after_commit=True,
+			queue="long",
+		)
+>>>>>>> 21cbe2c (fix: all jobs in the background)
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -90,7 +98,10 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
+<<<<<<< HEAD
 		self.flag.ignore_links = True
+=======
+>>>>>>> 21cbe2c (fix: all jobs in the background)
 		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
 
 	def cancel_functions(self):
