@@ -55,6 +55,7 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
+		self.flag.ignore_links = True
 		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
 
 	def cancel_functions(self):
