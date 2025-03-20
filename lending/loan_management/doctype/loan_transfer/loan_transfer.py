@@ -10,7 +10,7 @@ from frappe.utils import flt
 
 class LoanTransfer(Document):
 	def after_insert(self):
-		self.get_balances_and_make_journal_entry()
+		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
 
 	def validate(self):
 		if not self.get("loans"):
@@ -21,9 +21,6 @@ class LoanTransfer(Document):
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
-
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
 
 	def get_balances_and_make_journal_entry(self):
 		loans = [d.loan for d in self.loans]
@@ -39,9 +36,13 @@ class LoanTransfer(Document):
 		self.update_branch()
 
 		if len(self.loans) > 10:
-			frappe.enqueue(self.submit_cancel_journal_entries, queue="long")
+			frappe.enqueue(
+				self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
+				enqueue_after_commit=True,
+				queue="long",
+			)
 		else:
-			self.submit_cancel_journal_entries()
+			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries()
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -131,6 +132,11 @@ class LoanTransfer(Document):
 
 		if je_doc.get("accounts"):
 			je_doc.save()
+
+	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
+		if not self.is_new():
+			self.get_balances_and_make_journal_entry()
+		self.submit_cancel_journal_entries()
 
 
 @frappe.whitelist()
