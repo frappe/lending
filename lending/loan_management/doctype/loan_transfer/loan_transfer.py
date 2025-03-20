@@ -9,6 +9,33 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_transfer_detail.loan_transfer_detail import (
+			LoanTransferDetail,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.Link | None
+		company: DF.Link
+		from_branch: DF.Link
+		loans: DF.Table[LoanTransferDetail]
+		to_branch: DF.Link
+		transfer_date: DF.Date
+	# end: auto-generated types
+
+	def after_insert(self):
+		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
+
+>>>>>>> 96e208f (fix: move GL heavy tasks to background job)
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -32,11 +59,22 @@ class LoanTransfer(Document):
 	def on_submit(self):
 		self.update_branch()
 
+<<<<<<< HEAD
 		frappe.enqueue(
 			self.on_submit_actions,
 			enqueue_after_commit=True,
 			queue="long",
 		)
+=======
+		if len(self.loans) > 10:
+			frappe.enqueue(
+				self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
+				enqueue_after_commit=True,
+				queue="long",
+			)
+		else:
+			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries()
+>>>>>>> 96e208f (fix: move GL heavy tasks to background job)
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -131,8 +169,14 @@ class LoanTransfer(Document):
 		if je_doc.get("accounts"):
 			je_doc.save()
 
+<<<<<<< HEAD
 	def on_submit_actions(self):
 		self.get_balances_and_make_journal_entry()
+=======
+	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
+		if not self.is_new():
+			self.get_balances_and_make_journal_entry()
+>>>>>>> 96e208f (fix: move GL heavy tasks to background job)
 		self.submit_cancel_journal_entries()
 
 
