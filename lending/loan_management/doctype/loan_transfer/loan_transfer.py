@@ -78,7 +78,7 @@ class LoanTransfer(Document):
 >>>>>>> 96e208f (fix: move GL heavy tasks to background job)
 =======
 		frappe.enqueue(
-			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
+			self.on_submit_actions,
 			enqueue_after_commit=True,
 			queue="long",
 		)
@@ -185,10 +185,14 @@ class LoanTransfer(Document):
 			je_doc.save()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	def on_submit_actions(self):
 		self.get_balances_and_make_journal_entry()
 =======
 	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
+=======
+	def on_submit_actions(self):
+>>>>>>> 01268a8 (fix: rq jobs hate huge function names)
 		if not self.is_new():
 			self.get_balances_and_make_journal_entry()
 >>>>>>> 96e208f (fix: move GL heavy tasks to background job)
