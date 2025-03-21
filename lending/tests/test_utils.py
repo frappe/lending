@@ -489,7 +489,12 @@ def create_loan_security():
 
 
 def make_loan_disbursement_entry(
-	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+	loan,
+	amount,
+	disbursement_date=None,
+	repayment_start_date=None,
+	repayment_frequency=None,
+	withhold_security_deposit=False,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
