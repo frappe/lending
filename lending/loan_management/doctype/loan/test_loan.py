@@ -1653,21 +1653,21 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-25", 15000, repayment_type="Pre Payment"
+			loan.name, "2024-10-25", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-01", 138.90, repayment_type="Normal Repayment"
+			loan.name, "2024-11-16", 138.90, repayment_type="Normal Repayment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date="2024-10-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-12-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-26", 15000, repayment_type="Pre Payment"
+			loan.name, "2024-11-26", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
