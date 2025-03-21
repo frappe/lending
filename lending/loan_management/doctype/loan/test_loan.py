@@ -1838,8 +1838,6 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
 
-<<<<<<< HEAD
-=======
 	def test_accrual_background_job(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2015,7 +2013,6 @@ class TestLoan(IntegrationTestCase):
 			posting_date="2024-07-07", loan=loan1.name, force_update_dpd_in_loan=1
 		)
 
->>>>>>> e9e3b7e (fix: Subsequent loans not being marked as NPA)
 
 def add_or_update_loan_charges(product_name):
 	loan_product = frappe.get_doc("Loan Product", product_name)
