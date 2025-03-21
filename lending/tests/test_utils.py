@@ -273,8 +273,8 @@ def create_loan_accounts():
 		"Security Deposit Account",
 		"Loans (Liabilities) - _TC",
 		"Liability",
-		"Payable",
-		"Profit and Loss",
+		"",
+		"Balance Sheet",
 	)
 
 

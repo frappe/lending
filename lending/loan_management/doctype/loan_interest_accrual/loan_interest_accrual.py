@@ -1105,10 +1105,11 @@ def add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date):
 	maturity_map = {}
 	for schedule in schedules_details:
 		parent_wise_schedules.setdefault(schedule.name, [])
+		to_accrual_date = posting_date
 		maturity_date = schedule.get("maturity_date")
 		maturity_map[schedule.name] = maturity_date
 		if maturity_date and getdate(maturity_date) <= getdate(posting_date):
 			to_accrual_date = add_days(maturity_date, -1)
-			parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
+		parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
 
 	return maturity_map
