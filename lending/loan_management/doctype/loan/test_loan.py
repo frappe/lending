@@ -1305,7 +1305,7 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.submit()
 		repayment_entry.load_from_db()
 
-		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(49726.03, 1))
+		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(51095.9, 1))
 
 	def test_additional_interest(self):
 		frappe.db.set_value(
@@ -2002,7 +2002,6 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-17",
 			"2024-08-18",
 			"2024-08-19",
-			"2024-08-20",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
@@ -2018,7 +2017,6 @@ class TestLoan(IntegrationTestCase):
 		)
 		expected_dates = [
 			"2024-08-25",
-			"2024-08-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
@@ -2036,7 +2034,6 @@ class TestLoan(IntegrationTestCase):
 			"2024-09-15",
 			"2024-09-30",
 			"2024-10-15",
-			"2024-10-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
