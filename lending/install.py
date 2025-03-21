@@ -214,10 +214,14 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "naming_series",
 			"options": "Loan Transfer",
 <<<<<<< HEAD
+<<<<<<< HEAD
 			"search_index": 1,
 =======
 			"index": 1,
 >>>>>>> 256ed3e (chore: add indexes to loan and loan_transfer fields in journal entries)
+=======
+			"search_index": 1,
+>>>>>>> f7b157d (chore: add patch)
 		},
 		{
 			"fieldname": "loan",
@@ -226,10 +230,14 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_transfer",
 			"options": "Loan",
 <<<<<<< HEAD
+<<<<<<< HEAD
 			"search_index": 1,
 =======
 			"index": 1,
 >>>>>>> 256ed3e (chore: add indexes to loan and loan_transfer fields in journal entries)
+=======
+			"search_index": 1,
+>>>>>>> f7b157d (chore: add patch)
 		},
 	],
 }
