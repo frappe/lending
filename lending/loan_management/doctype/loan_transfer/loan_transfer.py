@@ -57,7 +57,7 @@ class LoanTransfer(Document):
 		self.update_branch()
 
 		frappe.enqueue(
-			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
+			self.on_submit_actions,
 			enqueue_after_commit=True,
 			queue="long",
 		)
@@ -155,7 +155,7 @@ class LoanTransfer(Document):
 		if je_doc.get("accounts"):
 			je_doc.save()
 
-	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
+	def on_submit_actions(self):
 		if not self.is_new():
 			self.get_balances_and_make_journal_entry()
 		self.submit_cancel_journal_entries()
