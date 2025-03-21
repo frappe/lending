@@ -506,6 +506,7 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
+	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
