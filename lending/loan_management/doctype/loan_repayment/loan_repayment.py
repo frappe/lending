@@ -796,7 +796,6 @@ class LoanRepayment(AccountsController):
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Closed")
 				query = query.set(loan.closure_date, self.posting_date)
-			self.update_repayment_schedule_status()
 
 			if not self.flags.from_repost:
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
@@ -805,10 +804,12 @@ class LoanRepayment(AccountsController):
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.posting_date)
-			self.update_repayment_schedule_status()
 
 			if not self.flags.from_repost:
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
+
+		if self.principal_amount_paid >= self.pending_principal_amount:
+			self.update_repayment_schedule_status()
 
 		query = self.update_limits(query, loan)
 		query.run()
