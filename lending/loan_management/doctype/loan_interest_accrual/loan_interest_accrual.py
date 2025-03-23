@@ -292,7 +292,6 @@ def get_accrual_frequency_breaks(last_accrual_date, accrual_date, loan_accrual_f
 	last_accrual_date = getdate(last_accrual_date)
 	accrual_date = getdate(accrual_date)
 	out = []
-
 	if loan_accrual_frequency == "Daily":
 		current_date = add_days(last_accrual_date, 1)
 		day_delta = 1
@@ -450,14 +449,13 @@ def get_overlapping_dates(
 	)
 
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
-		add_days(last_accrual_date, -1), posting_date, loan_accrual_frequency
+		add_days(last_accrual_date, -1), add_days(posting_date, -1), loan_accrual_frequency
 	)
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
 		parent_wise_schedules[schedule_parent].extend(accrual_frequency_breaks)
 		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
 		parent_wise_schedules[schedule_parent].sort()
-
 	return parent_wise_schedules
 
 
@@ -558,8 +556,8 @@ def calculate_penal_interest_for_loans(
 				from_date = add_days(last_accrual_date, 1)
 
 			from_date_for_entry = from_date
+      
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
-
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 
 				if flt(penal_interest_amount, precision) > 0:
@@ -1051,7 +1049,6 @@ def get_parent_wise_dates(loan, last_accrual_date, posting_date, loan_disburseme
 		parent_wise_schedules.setdefault(schedule_date.parent, [])
 		parent_wise_schedules[schedule_date.parent].append(add_days(schedule_date.payment_date, -1))
 	maturity_map = add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date)
-
 	return parent_wise_schedules, maturity_map
 
 
@@ -1059,11 +1056,10 @@ def add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date):
 	maturity_map = {}
 	for schedule in schedules_details:
 		parent_wise_schedules.setdefault(schedule.name, [])
-		to_accrual_date = posting_date
 		maturity_date = schedule.get("maturity_date")
 		maturity_map[schedule.name] = maturity_date
 		if maturity_date and getdate(maturity_date) <= getdate(posting_date):
 			to_accrual_date = add_days(maturity_date, -1)
-		parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
+			parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
 
 	return maturity_map
