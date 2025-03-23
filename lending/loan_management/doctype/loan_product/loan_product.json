@@ -221,13 +221,15 @@
    "fieldname": "interest_waiver_account",
    "fieldtype": "Link",
    "label": "Interest Waiver Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "penalty_waiver_account",
    "fieldtype": "Link",
    "label": "Penalty Waiver Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "suspense_interest_income",
@@ -272,7 +274,8 @@
    "fieldname": "security_deposit_account",
    "fieldtype": "Link",
    "label": "Security Deposit Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
@@ -333,7 +336,8 @@
    "fieldname": "broken_period_interest_recovery_account",
    "fieldtype": "Link",
    "label": "Broken Period Interest Recovery Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_nuqr",
@@ -412,7 +416,8 @@
    "fieldname": "write_off_account",
    "fieldtype": "Link",
    "label": "Write Off Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ehnt",
@@ -423,7 +428,8 @@
    "fieldname": "write_off_recovery_account",
    "fieldtype": "Link",
    "label": "Write Off Recovery Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "loan_category",
@@ -447,7 +453,8 @@
    "fieldname": "customer_refund_account",
    "fieldtype": "Link",
    "label": "Customer Refund Account",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -517,7 +524,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-09 16:16:25.371953",
+ "modified": "2025-03-04 12:11:11.782317",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

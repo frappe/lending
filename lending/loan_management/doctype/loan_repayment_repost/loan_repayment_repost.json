@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format: Repost on {timestamp} for {loan}",
  "creation": "2024-10-28 13:03:00.901376",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,7 +13,7 @@
   "delete_gl_entries",
   "column_break_bmnx",
   "repost_date",
-  "cancel_future_penal_accruals_and_demands",
+  "cancel_future_accruals_and_demands",
   "ignore_on_cancel_amount_update",
   "cancel_future_emi_demands",
   "loan_repayment_entries_section",
@@ -81,12 +82,6 @@
   },
   {
    "default": "0",
-   "fieldname": "cancel_future_penal_accruals_and_demands",
-   "fieldtype": "Check",
-   "label": "Cancel Future Penal Accruals and Demands "
-  },
-  {
-   "default": "0",
    "fieldname": "ignore_on_cancel_amount_update",
    "fieldtype": "Check",
    "label": "Ignore On Cancel Amount Update"
@@ -114,15 +109,22 @@
    "fieldname": "delete_gl_entries",
    "fieldtype": "Check",
    "label": "Delete GL Entries"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel_future_accruals_and_demands",
+   "fieldtype": "Check",
+   "label": "Cancel Future Accruals and Demands "
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-25 18:09:28.227848",
+ "modified": "2025-03-13 15:31:44.140499",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Repost",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

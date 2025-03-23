@@ -46,8 +46,13 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
-		if self.loan_disbursement:
+		if self.loan_disbursement and self.repayment_type not in [
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+		]:
 			self.validate_open_disbursement()
+		self.no_repayments_during_moratorium()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
@@ -95,6 +100,16 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
+
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -132,7 +147,7 @@ class LoanRepayment(AccountsController):
 				self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid >= self.pending_principal_amount
+			self.principal_amount_paid > self.pending_principal_amount
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
@@ -164,7 +179,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				"Normal Repayment",
 			)
-			and not self.flags.from_repost
+			and not (self.flags.from_repost or self.flags.from_repost)
 		):
 			max_date = None
 			reversed_accruals += reverse_loan_interest_accruals(
@@ -228,6 +243,16 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+
+	def create_repost(self):
+		repost = frappe.new_doc("Loan Repayment Repost")
+		repost.loan = self.against_loan
+		repost.delete_gl_entries = True
+		repost.repost_date = self.posting_date
+		repost.clear_demand_allocation_before_repost = True
+		repost.cancel_future_accruals_and_demands = True
+		repost.cancel_future_emi_demands = True
+		repost.submit()
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -354,16 +379,6 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals,
 		)
 
-		on_back_dated_prepayment = False
-
-		loan_repayment_schedule = ""
-		if self.repayment_type in ("Pre Payment", "Advance Payment"):
-			loan_restructure = frappe.db.get_value("Loan Restructure", {"loan_repayment": self.name})
-			loan_repayment_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
-			)
-			on_back_dated_prepayment = True
-
 		accruals = reverse_loan_interest_accruals(
 			self.against_loan,
 			self.posting_date,
@@ -371,8 +386,6 @@ class LoanRepayment(AccountsController):
 			is_npa=self.is_npa,
 			on_payment_allocation=True,
 			loan_disbursement=self.loan_disbursement,
-			loan_repayment_schedule=loan_repayment_schedule,
-			future_accruals=on_back_dated_prepayment,
 		)
 
 		reverse_demands(
@@ -381,8 +394,6 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
-			loan_repayment_schedule=loan_repayment_schedule,
-			future_demands=on_back_dated_prepayment,
 		)
 
 		return accruals
@@ -490,14 +501,31 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
-		self.check_future_accruals()
+		self.check_future_entries()
+		self.mark_as_unpaid()
+		self.update_demands(cancel=1)
+		self.update_security_deposit_amount(cancel=1)
+
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+		self.flags.ignore_links = True
+		if self.repayment_type == "Full Settlement":
+			if frappe.flags.in_test:
+				self.cancel_linked_repayments()
+			else:
+				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
 		self.update_security_deposit_amount(cancel=1)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
-
-		# self.cancel_charge_demands()
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			self.cancel_loan_restructure()
@@ -521,6 +549,17 @@ class LoanRepayment(AccountsController):
 		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+
+		self.check_future_entries()
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
 
 		max_demand_date = frappe.db.get_value(
 			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
@@ -559,7 +598,7 @@ class LoanRepayment(AccountsController):
 			restructure.flags.ignore_links = True
 			restructure.cancel()
 
-	def set_missing_values(self, amounts):
+	def set_missing_values(self, amounts, repost=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if not self.posting_date:
@@ -568,18 +607,18 @@ class LoanRepayment(AccountsController):
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
-		if not self.interest_payable:
+		if not self.interest_payable or self.flags.from_repost:
 			self.interest_payable = flt(amounts["interest_amount"], precision)
 
-		if not self.penalty_amount:
+		if not self.penalty_amount or self.flags.from_repost:
 			self.penalty_amount = flt(amounts["penalty_amount"], precision)
 
 		self.pending_principal_amount = flt(amounts["pending_principal_amount"], precision)
 
-		if not self.payable_principal_amount and self.is_term_loan:
+		if not self.payable_principal_amount or self.flags.from_repost:
 			self.payable_principal_amount = flt(amounts["payable_principal_amount"], precision)
 
-		if not self.payable_amount:
+		if not self.payable_amount or self.flags.from_repost:
 			self.payable_amount = flt(amounts["payable_amount"], precision)
 
 		shortfall_amount = flt(
@@ -623,8 +662,12 @@ class LoanRepayment(AccountsController):
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
 	def check_future_entries(self):
+
+		if self.is_write_off_waiver:
+			return
+
 		filters = {
-			"posting_date": (">", self.posting_date),
+			"posting_date": (">=", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
@@ -639,9 +682,10 @@ class LoanRepayment(AccountsController):
 		)
 
 		if future_repayment_date:
-			frappe.throw(
-				_("Repayment already made till date {0}").format(get_datetime(future_repayment_date))
-			)
+			self.is_backdated = True
+		else:
+			self.is_backdated = False
+		self.db_set("is_backdated", self.is_backdated)
 
 	def validate_security_deposit_amount(self):
 		if self.repayment_type == "Security Deposit Adjustment":
@@ -819,7 +863,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.closure_date, self.posting_date)
 			self.update_repayment_schedule_status()
 
-			if not self.flags.from_repost:
+			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		elif self.repayment_type == "Full Settlement":
@@ -828,7 +872,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.settlement_date, self.posting_date)
 			self.update_repayment_schedule_status()
 
-			if not self.flags.from_repost:
+			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		query = self.update_limits(query, loan)
@@ -875,6 +919,7 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				interest_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
@@ -885,6 +930,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
@@ -895,6 +941,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				charges_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if (
@@ -920,6 +967,7 @@ class LoanRepayment(AccountsController):
 
 		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
 
+		# For LoC loans
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 			if cancel:
@@ -933,6 +981,8 @@ class LoanRepayment(AccountsController):
 
 	def auto_close_loan(self):
 		auto_close = False
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
 			"Loan Product",
@@ -959,11 +1009,14 @@ class LoanRepayment(AccountsController):
 		else:
 			total_payable = self.payable_amount
 
+		if self.excess_amount > 0 and self.repayment_schedule_type == "Line of Credit":
+			auto_close = True
+
 		if (
 			auto_write_off_amount
 			and shortfall_amount > 0
 			and shortfall_amount <= auto_write_off_amount
-			and flt(total_payable - self.amount_paid) <= flt(shortfall_amount)
+			and flt(total_payable - self.amount_paid, precision) <= flt(shortfall_amount, precision)
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
@@ -977,7 +1030,7 @@ class LoanRepayment(AccountsController):
 			self.principal_amount_paid >= self.pending_principal_amount
 			and not flt(shortfall_amount)
 			and flt(self.excess_amount) <= flt(excess_amount_limit)
-			and flt(total_payable - self.amount_paid) <= flt(auto_write_off_amount)
+			and flt(total_payable - self.amount_paid, precision) <= flt(auto_write_off_amount, precision)
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
@@ -1105,30 +1158,6 @@ class LoanRepayment(AccountsController):
 			).where(
 				loan_security_deposit.loan == self.against_loan
 			).run()
-
-	def check_future_accruals(self):
-		if self.flags.from_repost:
-			return
-
-		filters = {
-			"posting_date": (">", self.posting_date),
-			"docstatus": 1,
-			"against_loan": self.against_loan,
-		}
-
-		if self.loan_disbursement:
-			filters["loan_disbursement"] = self.loan_disbursement
-
-		future_repayment = frappe.db.get_value(
-			"Loan Repayment",
-			filters,
-			"posting_date",
-		)
-
-		if future_repayment:
-			frappe.throw(
-				_("Cannot cancel. Repayments made till date {0}").format(get_datetime(future_repayment))
-			)
 
 	def allocate_amount_against_demands(self, amounts, on_submit=False):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -1503,6 +1532,8 @@ class LoanRepayment(AccountsController):
 
 	def adjust_component(self, amount_to_adjust, demand_type, demands, demand_subtype=None):
 		partner_share = 0
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if self.get("loan_partner"):
 			partner_share = self.get_overall_partner_share(amount_to_adjust) or 0
 
@@ -1529,7 +1560,7 @@ class LoanRepayment(AccountsController):
 							)
 							partner_share -= partner_share_paid
 
-					if paid_amount > 0:
+					if flt(paid_amount, precision) > 0:
 						self.append(
 							"repayment_details",
 							{
@@ -1571,7 +1602,9 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type == "Charges Waiver":
 			payable_charges = self.total_charges_payable - self.total_charges_paid
 			if self.excess_amount < 0 and payable_charges > 0:
-				create_loan_repayment(self.against_loan, self.posting_date, "Charges Waiver", payable_charges)
+				create_loan_repayment(
+					self.against_loan, self.posting_date, "Charges Waiver", payable_charges, is_write_off_waiver=1
+				)
 			return
 
 		if cancel:
@@ -1613,11 +1646,20 @@ class LoanRepayment(AccountsController):
 		if flt(self.total_interest_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
 			else:
 				against_account = account_details.interest_receivable_account
+				if not against_account:
+					frappe.throw(_("Interest Receivable Account is mandatory"))
 			self.add_gl_entry(payment_account, against_account, self.total_interest_paid, gle_map)
 
 			if self.repayment_type == "Interest Waiver" and not self.is_npa:
+				if not account_details.interest_income_account:
+					frappe.throw(_("Interest Income Account is mandatory"))
+				if not self.payment_account:
+					frappe.throw(_("Payment Account is mandatory"))
+
 				self.add_gl_entry(
 					account_details.interest_income_account,
 					self.payment_account,
@@ -1634,11 +1676,18 @@ class LoanRepayment(AccountsController):
 		if flt(total_penalty_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
 			else:
 				against_account = account_details.penalty_receivable_account
+				if not against_account:
+					frappe.throw(_("Penalty Receivable Account is mandatory"))
+
 			self.add_gl_entry(payment_account, against_account, total_penalty_paid, gle_map)
 
 			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				if not account_details.penalty_income_account:
+					frappe.throw(_("Penalty Income Account is mandatory"))
 				self.add_gl_entry(
 					account_details.penalty_income_account,
 					self.payment_account,
@@ -1650,15 +1699,28 @@ class LoanRepayment(AccountsController):
 		if flt(additional_interest, precision) > 0:
 			if self.repayment_type == "Penalty Waiver":
 				payment_account = account_details.additional_interest_waiver
+				if not payment_account:
+					frappe.throw(_("Addition Interest Waiver Account is mandatory"))
 
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				against_account = self.loan_account
+				if not against_account:
+					frappe.throw(_("Loan Account is mandatory"))
+
 			else:
 				against_account = account_details.additional_interest_receivable
+				if not against_account:
+					frappe.throw(_("Additional Interest Receivable Account is mandatory"))
 
 			self.add_gl_entry(payment_account, against_account, additional_interest, gle_map)
 
 			if self.repayment_type == "Penalty Waiver" and not self.is_npa:
+				if not account_details.additional_interest_income:
+					frappe.throw(_("Additional Interest Income Account is mandatory"))
+
+				if not account_details.additional_interest_waiver:
+					frappe.throw(_("Additional Interest Waiver Account is mandatory"))
+
 				self.add_gl_entry(
 					account_details.additional_interest_income,
 					account_details.additional_interest_waiver,
@@ -1670,9 +1732,13 @@ class LoanRepayment(AccountsController):
 		if flt(self.excess_amount, precision):
 			if self.auto_close_loan():
 				against_account = account_details.interest_waiver_account
+				if not against_account:
+					frappe.throw(_("Interest Waiver Account is mandatory"))
 				is_waiver_entry = True
 			else:
 				against_account = account_details.customer_refund_account
+				if not against_account:
+					frappe.throw(_("Customer Refund Account is mandatory"))
 				is_waiver_entry = False
 				if not against_account:
 					frappe.throw(
@@ -1691,12 +1757,17 @@ class LoanRepayment(AccountsController):
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
-			against_account = self.payment_account
+			against_account = account_details.write_off_recovery_account
+			if not against_account:
+				frappe.throw(_("Write Off Recovery Account is mandatory"))
+
 			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
 				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
+				if not against_account:
+					frappe.throw(_("Against Account is mandatory"))
 				self.add_gl_entry(
 					payment_account,
 					against_account,
@@ -1727,6 +1798,10 @@ class LoanRepayment(AccountsController):
 
 		if 0 < abs(diff) < 1:
 			round_off_account = frappe.db.get_value("Company", self.company, "round_off_account")
+			if not payment_account:
+				frappe.throw(_("Payment Account is mandatory"))
+			if not round_off_account:
+				frappe.throw(_("Round Off Account is mandatory"))
 			self.add_gl_entry(payment_account, round_off_account, -1 * diff, gle_map, is_waiver_entry=True)
 
 	def add_loan_partner_gl_entries(self, gle_map):
@@ -1742,7 +1817,15 @@ class LoanRepayment(AccountsController):
 			],
 			as_dict=1,
 		)
+
 		if self.get("loan_partner") and partner_details.enable_partner_accounting:
+			if not partner_details.credit_account:
+				frappe.throw(_("Credit Account is mandatory"))
+			if not partner_details.payable_account:
+				frappe.throw(_("Payable Account is mandatory"))
+			if not partner_details.partner_interest_share:
+				frappe.throw(_("Partner Interest Share is mandatory"))
+
 			if flt(self.total_partner_principal_share, precision) > 0:
 				self.add_gl_entry(
 					partner_details.credit_account,
@@ -1855,7 +1938,8 @@ class LoanRepayment(AccountsController):
 				self.loan_product,
 				payment_account_field_map.get(self.repayment_type),
 			)
-
+		if not payment_account:
+			frappe.throw(_("Payment Account is mandatory"))
 		return payment_account
 
 	def get_charges_waiver_account(self, loan_product, charge):
@@ -1908,6 +1992,51 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Please set {0} in either Company or Loan Product").format(offset_name))
 
 		return allocation_order
+
+	def cancel_linked_repayments(self):
+		# Any repayment made after a Full Settlement is bound to be made
+		# by the Full Settlement repayment itself because the Loan closes
+		# after that. The fields posting_date and against_loan are indexed
+		# This is an optimization of sorts.
+		filters = {
+			"posting_date": (">=", (self.posting_date)),
+			"against_loan": self.against_loan,
+			"docstatus": 1,
+			"repayment_type": (
+				"in",
+				[
+					"Interest Waiver",
+					"Penalty Waiver",
+					"Charges Waiver",
+				],
+			),
+		}
+
+		if self.repayment_schedule_type == "Line of Credit":
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		repayment_names = frappe.db.get_all(
+			"Loan Repayment",
+			filters,
+			"name",
+			order_by="posting_date",
+		)
+		for repayment_name in repayment_names:
+			repayment = frappe.get_doc("Loan Repayment", repayment_name)
+			repayment.cancel()
+
+	def no_repayments_during_moratorium(self):
+		if self.repayment_type in ("Pre Payment", "Advance Payment"):
+			moratorium_end_date = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 1}, "moratorium_end_date"
+			)
+			if moratorium_end_date:
+				if get_datetime(moratorium_end_date) >= get_datetime(self.posting_date):
+					frappe.throw(
+						_(
+							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
+						).format(moratorium_end_date, self.posting_date)
+					)
 
 
 def create_repayment_entry(
@@ -2122,7 +2251,6 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		for_update=for_update,
 	)
-
 	amounts = process_amount_for_loan(
 		against_loan_doc,
 		posting_date,
@@ -2225,7 +2353,7 @@ def get_bulk_due_details(loans, posting_date):
 		process_amount_for_bulk_loans,
 	)
 
-	last_demand_date = get_last_demand_date(posting_date)
+	last_demand_date = get_last_demand_date(posting_date, loan=loans[0])
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2558,3 +2686,77 @@ def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_di
 
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
+
+
+def post_bulk_payments(data):
+	from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+		reverse_loan_interest_accruals,
+	)
+	from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+		create_process_loan_classification,
+	)
+	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+		process_daily_loan_demands,
+	)
+	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		process_loan_interest_accrual_for_loans,
+	)
+
+	# sort data by posting date
+	data = sorted(data, key=lambda x: x["posting_date"])
+
+	grouped_data = group_by_loan_and_disbursement(data)
+	for key, rows in grouped_data.items():
+		from_date = getdate(rows[0]["posting_date"])
+		to_date = getdate(rows[-1]["posting_date"])
+		loan = key[0]
+		loan_disbursement = key[1]
+
+		reversed_accruals = reverse_loan_interest_accruals(
+			loan, from_date, interest_type="Normal Interest", loan_disbursement=loan_disbursement
+		)
+
+		reverse_demands(loan, from_date, demand_type="EMI", loan_disbursement=loan_disbursement)
+
+		for payment in rows:
+			loan_repayment = frappe.get_doc(payment)
+			loan_repayment.flags.in_bulk = True
+			loan_repayment.submit()
+
+			frappe.get_doc(
+				{
+					"doctype": "Process Loan Interest Accrual",
+					"loan": loan,
+					"posting_date": getdate(payment.get("posting_date")),
+				}
+			).submit()
+
+			frappe.get_doc(
+				{
+					"doctype": "Process Loan Demand",
+					"loan": loan,
+					"posting_date": getdate(payment.get("posting_date")),
+				}
+			).submit()
+
+			loan_repayment.flags.in_bulk = False
+
+		create_process_loan_classification(
+			posting_date=to_date, loan=loan, loan_disbursement=loan_disbursement
+		)
+
+		if reversed_accruals:
+			dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
+			max_date = max(dates)
+			if getdate(max_date) > getdate(to_date):
+				process_loan_interest_accrual_for_loans(posting_date=max_date, loan=loan)
+				process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=loan)
+
+
+def group_by_loan_and_disbursement(data):
+	grouped_data = {}
+	for row in data:
+		grouped_data.setdefault((row.get("against_loan"), row.get("loan_disbursement")), []).append(row)
+
+	return grouped_data

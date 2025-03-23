@@ -42,7 +42,8 @@ class LoanRepaymentSchedule(Document):
 			row.idx = idx
 
 	def set_maturity_date(self):
-		self.maturity_date = self.get("repayment_schedule")[-1].payment_date
+		if self.get("repayment_schedule"):
+			self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
 	def on_submit(self):
 		self.make_demand_for_advance_payment()
@@ -57,7 +58,6 @@ class LoanRepaymentSchedule(Document):
 		advance_payment = ""
 		if not self.restructure_type in ("Advance Payment", "Pre Payment"):
 			return
-
 		for row in self.repayment_schedule:
 			if not row.demand_generated:
 				advance_payment = row
@@ -71,7 +71,7 @@ class LoanRepaymentSchedule(Document):
 
 		prepayment_details = frappe.db.get_value(
 			"Loan Restructure",
-			self.loan_restructure,
+			{"loan": self.loan, "name": self.loan_restructure},
 			["unaccrued_interest", "principal_adjusted", "balance_principal"],
 			as_dict=1,
 		)
@@ -211,16 +211,17 @@ class LoanRepaymentSchedule(Document):
 			pending_prev_days,
 		) = self.add_rows_from_prev_disbursement("repayment_schedule", 100, 100)
 
-		self.make_repayment_schedule(
-			"repayment_schedule",
-			previous_interest_amount,
-			balance_amount,
-			additional_principal_amount,
-			pending_prev_days,
-			self.rate_of_interest,
-			100,
-			100,
-		)
+		if flt(balance_amount, self.precision) > 0:
+			self.make_repayment_schedule(
+				"repayment_schedule",
+				previous_interest_amount,
+				balance_amount,
+				additional_principal_amount,
+				pending_prev_days,
+				self.rate_of_interest,
+				100,
+				100,
+			)
 
 	def make_co_lender_schedule(self):
 		if not self.loan_partner:
@@ -292,7 +293,8 @@ class LoanRepaymentSchedule(Document):
 				and self.repayment_frequency == "Monthly"
 				and self.repayment_schedule_type == "Monthly as per cycle date"
 			):
-				payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
+				payment_date = self.repayment_start_date
+				self.repayment_start_date = add_months(payment_date, self.moratorium_tenure)
 				self.moratorium_end_date = add_months(self.repayment_start_date, -1)
 			elif self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
@@ -397,10 +399,16 @@ class LoanRepaymentSchedule(Document):
 				interest_share_percentage=interest_share_percentage,
 			)
 
+			# All the residue amount is added to the last row for "Repay Over Number of Periods"
+			#
+			# Also, when such a Repayment Schedule is rescheduled, its repayment_method changes to Repay Fixed Amount per Period
+			# Here, the tenure shouldn't change. Thus, if this is a restructed repayment schedule, the last row is all the residue amount left.
+			# This is a special case.
+
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
-				and len(self.get(schedule_field)) >= tenure
-			):
+				or (self.restructure_type and self.repayment_method == "Repay Fixed Amount per Period")
+			) and len(self.get(schedule_field)) >= tenure:
 				self.get(schedule_field)[-1].principal_amount += balance_amount
 				self.get(schedule_field)[-1].balance_loan_amount = 0
 				self.get(schedule_field)[-1].total_payment = (
@@ -452,6 +460,8 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 			if self.repayment_frequency == "Monthly" and self.moratorium_tenure:
 				tenure += cint(self.moratorium_tenure)
+		elif self.restructure_type in ("Advance Payment", "Pre Payment") and self.moratorium_tenure:
+			tenure = self.repayment_periods + self.moratorium_tenure
 		elif loan_status == "Partially Disbursed":
 			prev_schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}

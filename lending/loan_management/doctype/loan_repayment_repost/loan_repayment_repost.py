@@ -53,11 +53,19 @@ class LoanRepaymentRepost(Document):
 		)
 
 		if self.cancel_future_emi_demands:
-			reverse_demands(self.loan, self.repost_date, demand_type="EMI")
+			reverse_demands(
+				self.loan, self.repost_date, demand_type="EMI", loan_disbursement=self.loan_disbursement
+			)
 
-		if self.cancel_future_penal_accruals_and_demands:
-			reverse_loan_interest_accruals(self.loan, self.repost_date, interest_type="Penal Interest")
-			reverse_demands(self.loan, self.repost_date, demand_type="Penalty")
+		if self.cancel_future_accruals_and_demands:
+			reverse_loan_interest_accruals(
+				self.loan,
+				self.repost_date,
+				loan_disbursement=self.loan_disbursement,
+			)
+			reverse_demands(
+				self.loan, self.repost_date, demand_type="Penalty", loan_disbursement=self.loan_disbursement
+			)
 
 	def clear_demand_allocation(self):
 		demands = frappe.get_all(
@@ -116,9 +124,6 @@ class LoanRepaymentRepost(Document):
 
 			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
 
-			if self.loan_disbursement:
-				filters["loan_disbursement"] = self.loan_disbursement
-
 			totals = frappe.db.get_value(
 				"Loan Repayment",
 				filters,
@@ -153,6 +158,9 @@ class LoanRepaymentRepost(Document):
 		)
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
 			create_update_loan_reschedule,
+		)
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
 		)
 
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
@@ -199,7 +207,6 @@ class LoanRepaymentRepost(Document):
 				loan_disbursement=repayment_doc.loan_disbursement,
 				for_update=True,
 			)
-
 			repayment_doc.set_missing_values(amounts)
 
 			loan = frappe.get_doc("Loan", repayment_doc.against_loan)
@@ -227,6 +234,13 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.reverse_future_accruals_and_demands()
 				repayment_doc.process_reschedule()
 
+			if repayment_doc.repayment_type not in ("Advance Payment", "Pre Payment") or (
+				repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
+			):
+				repayment_doc.book_interest_accrued_not_demanded()
+				if repayment_doc.is_term_loan:
+					repayment_doc.book_pending_principal()
+
 			# Run on_submit events
 			repayment_doc.update_paid_amounts()
 			repayment_doc.update_demands()
@@ -246,3 +260,11 @@ class LoanRepaymentRepost(Document):
 		frappe.get_doc(
 			{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": getdate()}
 		).submit()
+
+		loan = frappe.db.get_value("Loan", self.loan, "status")
+		if loan == "Closed":
+			create_process_loan_classification(
+				posting_date=self.repost_date,
+				loan=self.loan,
+				loan_disbursement=self.loan_disbursement,
+			)

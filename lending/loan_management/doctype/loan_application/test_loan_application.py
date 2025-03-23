@@ -7,7 +7,7 @@ import frappe
 
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-from lending.loan_management.doctype.loan.test_loan import (
+from lending.tests.test_utils import (
 	create_loan_accounts,
 	create_loan_product,
 	set_loan_settings_in_company,
@@ -26,12 +26,6 @@ class TestLoanApplication(unittest.TestCase):
 			0,
 			1,
 			0,
-			"Cash - _TC",
-			"Disbursement Account - _TC",
-			"Payment Account - _TC",
-			"Loan Account - _TC",
-			"Interest Income Account - _TC",
-			"Penalty Income Account - _TC",
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
 		self.applicant = make_employee("kate_loan@loan.com", "_Test Company")

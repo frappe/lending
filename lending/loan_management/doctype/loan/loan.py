@@ -3,7 +3,6 @@
 
 
 import json
-from datetime import date, timedelta
 
 import frappe
 from frappe import _
@@ -30,6 +29,7 @@ from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
+from lending.utils import daterange
 
 
 # nosemgrep
@@ -859,12 +859,6 @@ def update_days_past_due_in_loans(
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
 
-def daterange(start_date: date, end_date: date):
-	days = int((end_date - start_date).days)
-	for n in range(days):
-		yield start_date + timedelta(n)
-
-
 def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement):
 	"""Get outstanding demands for a loan"""
 	where_conditions = ""
@@ -927,7 +921,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 				else getdate()
 			)
 			for demand in demands:
-				if demand.demand_date <= getdate(payment.posting_date):
+				if getdate(demand.demand_date) <= getdate(payment.posting_date):
 					if demand.demand_subtype == "Interest" and flt(payment.total_interest_paid, precision) > 0:
 						paid_interest = min(
 							flt(payment.total_interest_paid, precision), flt(demand.demand_amount, precision)
@@ -950,7 +944,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 					matching_demand_found = False
 					for d in demands:
 						demand_amount = flt(d.demand_amount, precision)
-						if d.demand_date <= current_date and demand_amount > 0:
+						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
 							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
 							matching_demand_found = True

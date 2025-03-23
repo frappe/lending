@@ -9,9 +9,6 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
-	def after_insert(self):
-		self.get_balances_and_make_journal_entry()
-
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -21,9 +18,6 @@ class LoanTransfer(Document):
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
-
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
 
 	def get_balances_and_make_journal_entry(self):
 		loans = [d.loan for d in self.loans]
@@ -38,10 +32,11 @@ class LoanTransfer(Document):
 	def on_submit(self):
 		self.update_branch()
 
-		if len(self.loans) > 10:
-			frappe.enqueue(self.submit_cancel_journal_entries, queue="long")
-		else:
-			self.submit_cancel_journal_entries()
+		frappe.enqueue(
+			self.on_submit_actions,
+			enqueue_after_commit=True,
+			queue="long",
+		)
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -57,6 +52,10 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
+		self.flag.ignore_links = True
+		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
+
+	def cancel_functions(self):
 		self.update_branch(cancel=1)
 		self.submit_cancel_journal_entries(cancel=1)
 
@@ -95,13 +94,21 @@ class LoanTransfer(Document):
 
 		for balance in balances:
 			if flt(abs(balance.bal_in_account_currency)) > 0.01:
+				account_type = frappe.get_cached_value("Account", balance.account, "account_type")
+				party = ""
+				party_type = ""
+
+				if account_type in ("Receivable", "Payable"):
+					party = balance.party
+					party_type = balance.party_type
+
 				je_doc.append(
 					"accounts",
 					{
 						"account": balance.account,
 						"debit_in_account_currency": balance.bal_in_account_currency,
-						"party_type": balance.party_type,
-						"party": balance.party,
+						"party_type": party_type,
+						"party": party,
 						"reference_type": balance.against_voucher_type,
 						"reference_name": balance.against_voucher,
 						branch_fieldname: self.to_branch,
@@ -113,8 +120,8 @@ class LoanTransfer(Document):
 					{
 						"account": balance.account,
 						"credit_in_account_currency": balance.bal_in_account_currency,
-						"party_type": balance.party_type,
-						"party": balance.party,
+						"party_type": party_type,
+						"party": party,
 						"reference_type": balance.against_voucher_type,
 						"reference_name": balance.against_voucher,
 						branch_fieldname: self.from_branch,
@@ -123,6 +130,10 @@ class LoanTransfer(Document):
 
 		if je_doc.get("accounts"):
 			je_doc.save()
+
+	def on_submit_actions(self):
+		self.get_balances_and_make_journal_entry()
+		self.submit_cancel_journal_entries()
 
 
 @frappe.whitelist()
