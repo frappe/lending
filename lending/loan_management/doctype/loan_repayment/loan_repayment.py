@@ -1833,8 +1833,6 @@ class LoanRepayment(AccountsController):
 
 		return remarks
 
-<<<<<<< HEAD
-=======
 	def get_allocation_order(self, offset_name):
 		offset_mapping = {
 			"Collection Offset Sequence for Standard Asset": "collection_offset_sequence_for_standard_asset",
@@ -1898,7 +1896,6 @@ class LoanRepayment(AccountsController):
 						).format(moratorium_end_date, self.posting_date)
 					)
 
->>>>>>> abd43ca (fix: validation against making advance and pre payments during moratorium period)
 
 def create_repayment_entry(
 	loan,
