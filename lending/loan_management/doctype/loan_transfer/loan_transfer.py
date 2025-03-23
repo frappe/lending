@@ -9,8 +9,31 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
+<<<<<<< HEAD
 	def after_insert(self):
 		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_transfer_detail.loan_transfer_detail import (
+			LoanTransferDetail,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.Link | None
+		company: DF.Link
+		from_branch: DF.Link
+		loans: DF.Table[LoanTransferDetail]
+		to_branch: DF.Link
+		transfer_date: DF.Date
+	# end: auto-generated types
+>>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 
 	def validate(self):
 		if not self.get("loans"):
@@ -135,8 +158,7 @@ class LoanTransfer(Document):
 			je_doc.save()
 
 	def on_submit_actions(self):
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
+		self.get_balances_and_make_journal_entry()
 		self.submit_cancel_journal_entries()
 
 
