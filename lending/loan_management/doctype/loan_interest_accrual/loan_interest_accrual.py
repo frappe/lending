@@ -556,7 +556,6 @@ def calculate_penal_interest_for_loans(
 				from_date = add_days(last_accrual_date, 1)
 
 			from_date_for_entry = from_date
-      
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 
