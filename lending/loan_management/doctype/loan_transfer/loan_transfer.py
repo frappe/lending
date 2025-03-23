@@ -9,9 +9,6 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
-	def after_insert(self):
-		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
-
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -135,8 +132,7 @@ class LoanTransfer(Document):
 			je_doc.save()
 
 	def on_submit_actions(self):
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
+		self.get_balances_and_make_journal_entry()
 		self.submit_cancel_journal_entries()
 
 
