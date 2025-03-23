@@ -32,10 +32,13 @@ class LoanTransfer(Document):
 		transfer_date: DF.Date
 	# end: auto-generated types
 
+<<<<<<< HEAD
 	def after_insert(self):
 		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
 
 >>>>>>> 96e208f (fix: move GL heavy tasks to background job)
+=======
+>>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -188,6 +191,7 @@ class LoanTransfer(Document):
 <<<<<<< HEAD
 	def on_submit_actions(self):
 		self.get_balances_and_make_journal_entry()
+<<<<<<< HEAD
 =======
 	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
 =======
@@ -196,6 +200,8 @@ class LoanTransfer(Document):
 		if not self.is_new():
 			self.get_balances_and_make_journal_entry()
 >>>>>>> 96e208f (fix: move GL heavy tasks to background job)
+=======
+>>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 		self.submit_cancel_journal_entries()
 
 
