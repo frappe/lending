@@ -988,8 +988,8 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
-	loan_status, repayment_schedule_type, loan_product = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type", "loan_product"]
+	loan_status, repayment_schedule_type, loan_product, unmark_npa = frappe.db.get_value(
+		"Loan", loan, ["status", "repayment_schedule_type", "loan_product", "unmark_npa"]
 	)
 
 	if loan_status == "Written Off":
@@ -1047,7 +1047,7 @@ def update_loan_and_customer_status(
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
-		elif cint(is_previous_npa) and not cint(current_npa):
+		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
 			update_all_linked_loan_customer_npa_status(
 				1, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
@@ -1056,7 +1056,7 @@ def update_loan_and_customer_status(
 			move_unpaid_interest_to_suspense_ledger(loan, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
 
-	elif is_npa:
+	elif is_npa and not cint(unmark_npa):
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
@@ -1302,19 +1302,43 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		amount = abs(amounts.get(accounts.interest_receivable_account, 0)) + unbooked_interest
 		debit_account = accounts.interest_income_account
 		credit_account = accounts.get("suspense_interest_income")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue normal interest to suspense ledger",
+		)
 
 	if abs(amounts.get(accounts.penalty_receivable_account, 0)) > 0:
 		amount = abs(amounts.get(accounts.penalty_receivable_account, 0))
 		debit_account = accounts.penalty_income_account
 		credit_account = accounts.get("penalty_suspense_account")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue penal interest to suspense ledger",
+		)
 
 	if abs(amounts.get(accounts.additional_interest_receivable, 0)) > 0:
 		amount = abs(amounts.get(accounts.additional_interest_receivable, 0))
 		debit_account = accounts.additional_interest_income
 		credit_account = accounts.get("additional_interest_suspense")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue additional interest to suspense ledger",
+		)
 
 
 def make_suspense_journal_entry(
@@ -1334,6 +1358,9 @@ def make_suspense_journal_entry(
 		as_dict=1,
 	)
 
+	normal_penal_interest_jv = None
+	additional_interest_jv = None
+
 	if account_details:
 		if is_penal:
 			debit_account = account_details.penalty_income_account
@@ -1344,10 +1371,12 @@ def make_suspense_journal_entry(
 
 		if amount:
 			amount = amount - additional_interest
-			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+			normal_penal_interest_jv = make_journal_entry(
+				posting_date, company, loan, amount, debit_account, credit_account
+			)
 
 		if additional_interest > 0:
-			make_journal_entry(
+			additional_interest_jv = make_journal_entry(
 				posting_date,
 				company,
 				loan,
@@ -1355,6 +1384,8 @@ def make_suspense_journal_entry(
 				account_details.additional_interest_income,
 				account_details.additional_interest_suspense,
 			)
+
+	return normal_penal_interest_jv, additional_interest_jv
 
 
 def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invoice=None):
@@ -1431,7 +1462,7 @@ def get_base_charge_amount(
 
 
 def make_journal_entry(
-	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0
+	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0, remark=None
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -1466,11 +1497,14 @@ def make_journal_entry(
 					"cost_center": erpnext.get_default_cost_center(company),
 				},
 			],
+			"remarks": remark,
 		}
 	)
 
 	jv.flags.ignore_validate = True
 	jv.submit()
+
+	return jv.name
 
 
 def get_unpaid_interest_amount(loan, posting_date, demand_subtype):
