@@ -2013,7 +2013,6 @@ class TestLoan(IntegrationTestCase):
 			posting_date="2024-07-07", loan=loan1.name, force_update_dpd_in_loan=1
 		)
 
-<<<<<<< HEAD
 
 def add_or_update_loan_charges(product_name):
 	loan_product = frappe.get_doc("Loan Product", product_name)
@@ -2719,62 +2718,3 @@ def create_loan_write_off(loan, posting_date, write_off_amount=None):
 	loan_write_off.submit()
 
 	return loan_write_off
-=======
-	def test_normal_loan_repayment_schedule_close(self):
-		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-05",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		# Daily accrual
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
-		)
-
-		sales_invoice = frappe.get_doc(
-			{
-				"doctype": "Sales Invoice",
-				"customer": "_Test Customer 1",
-				"company": "_Test Company",
-				"loan": loan.name,
-				"posting_date": "2025-01-15",
-				"posting_time": "00:06:10",
-				"set_posting_time": 1,
-				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 500}],
-			}
-		)
-		sales_invoice.submit()
-
-		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
-
-		repayment = create_repayment_entry(
-			loan.name,
-			"2024-04-05",
-			104925,
-		)
-
-		repayment.submit()
-
-		closed_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule",
-			{"loan": loan.name, "docstatus": 1, "status": "Closed"},
-			"name",
-		)
-
-		self.assertTrue(closed_schedule, "Repayment Schedule not closed")
-		loan.load_from_db()
-
-		# Loan will remain open because of pending charge
-		self.assertEqual(loan.status, "Disbursed")
->>>>>>> f2a3848 (test: Add unit test)
