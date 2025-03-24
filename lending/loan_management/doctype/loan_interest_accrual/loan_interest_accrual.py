@@ -10,7 +10,6 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.utils import daterange
 
 
 class LoanInterestAccrual(AccountsController):
@@ -504,14 +503,7 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
-<<<<<<< HEAD
 			no_of_days = date_diff(posting_date, from_date)
-=======
-			from_date_for_entry = from_date
-			for current_date in daterange(from_date, getdate(posting_date)):
-
-				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
->>>>>>> e36432d (fix: Missing penal interest accrual)
 
 			penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate * no_of_days / 36500
 
@@ -529,15 +521,8 @@ def calculate_penal_interest_for_loans(
 					"outstanding_amount",
 				)
 
-<<<<<<< HEAD
 				if not principal_amount:
 					continue
-=======
-					per_day_interest = get_per_day_interest(
-						principal_amount, loan.rate_of_interest, loan.company, current_date
-					)
-					additional_interest = flt(per_day_interest, precision)
->>>>>>> e36432d (fix: Missing penal interest accrual)
 
 				per_day_interest = get_per_day_interest(
 					principal_amount, loan.rate_of_interest, loan.company, posting_date
@@ -579,7 +564,6 @@ def calculate_penal_interest_for_loans(
 								loan_disbursement=demand.loan_disbursement,
 							)
 
-<<<<<<< HEAD
 						if flt(additional_interest, precision) > 0:
 							create_loan_demand(
 								loan.name,
@@ -590,30 +574,6 @@ def calculate_penal_interest_for_loans(
 								loan_repayment_schedule=demand.loan_repayment_schedule,
 								loan_disbursement=demand.loan_disbursement,
 							)
-=======
-						if loan_status != "Written Off":
-							if penal_interest_amount > additional_interest:
-								create_loan_demand(
-									loan.name,
-									add_days(current_date, 1),
-									"Penalty",
-									"Penalty",
-									penal_interest_amount - additional_interest,
-									loan_repayment_schedule=demand.loan_repayment_schedule,
-									loan_disbursement=demand.loan_disbursement,
-								)
-
-							if flt(additional_interest, precision) > 0:
-								create_loan_demand(
-									loan.name,
-									add_days(current_date, 1),
-									"Additional Interest",
-									"Additional Interest",
-									additional_interest,
-									loan_repayment_schedule=demand.loan_repayment_schedule,
-									loan_disbursement=demand.loan_disbursement,
-								)
->>>>>>> e36432d (fix: Missing penal interest accrual)
 
 	if is_future_accrual:
 		return total_penal_interest
