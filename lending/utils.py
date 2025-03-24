@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import frappe
 from frappe.utils import now_datetime
 
@@ -32,3 +34,9 @@ def before_tests():
 
 	enable_all_roles_and_domains()
 	frappe.db.commit()  # nosemgrep
+
+
+def daterange(start_date: date, end_date: date):
+	days = int((end_date - start_date).days)
+	for n in range(days):
+		yield start_date + timedelta(n)
