@@ -72,7 +72,11 @@ def process_amount_for_bulk_loans(
 	unbooked_interest,
 	amounts,
 	posting_date,
+<<<<<<< HEAD
 	available_security_deposit_map,
+=======
+	status,
+>>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
 ):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -81,7 +85,13 @@ def process_amount_for_bulk_loans(
 	penalty_amount = 0
 	payable_principal_amount = 0
 
+<<<<<<< HEAD
 	last_demand_date = get_last_demand_date(posting_date, loan=loan.name)
+=======
+	last_demand_date = get_last_demand_date(
+		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
+	)
+>>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
