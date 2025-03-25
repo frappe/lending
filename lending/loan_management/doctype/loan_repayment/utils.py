@@ -119,12 +119,21 @@ def get_unbooked_interest_for_loans(
 	loan_list = [loan.name for loan in loans]
 	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
 
+<<<<<<< HEAD
 	filters = [
 		["loan", "in", loan_list],
 		["docstatus", "=", 1],
 		["posting_date", "<", posting_date],
 		["interest_type", "=", interest_type],
 	]
+=======
+	filters = {
+		"loan": ("in", loan_list),
+		"docstatus": 1,
+		"posting_date": ("<", posting_date),
+		"interest_type": interest_type,
+	}
+>>>>>>> f9e6230 (fix: interests till posting_date)
 
 	if last_demand_date:
 		filters.append(["posting_date", ">", last_demand_date])
