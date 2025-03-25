@@ -2238,7 +2238,18 @@ def get_bulk_due_details(loans, posting_date):
 				unbooked_interest = unbooked_interest_map.get((loan.name, disbursement), 0)
 				filtered_demands = list(d for d in demands if d.loan_disbursement == disbursement)
 				amounts = process_amount_for_bulk_loans(
+<<<<<<< HEAD
 					loan, filtered_demands, disbursement, principal_amount, unbooked_interest, amounts
+=======
+					loan,
+					filtered_demands,
+					disbursement,
+					principal_amount,
+					unbooked_interest,
+					amounts,
+					posting_date,
+					loan.status,
+>>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
 				)
 				due_details.append(amounts)
 		else:
@@ -2247,7 +2258,7 @@ def get_bulk_due_details(loans, posting_date):
 			unbooked_interest = unbooked_interest_map.get(loan.name, 0)
 			demands = demand_map.get(loan.name, [])
 			amounts = process_amount_for_bulk_loans(
-				loan, demands, None, principal_amount, unbooked_interest, amounts
+				loan, demands, None, principal_amount, unbooked_interest, amounts, posting_date, loan.status
 			)
 			due_details.append(amounts)
 
