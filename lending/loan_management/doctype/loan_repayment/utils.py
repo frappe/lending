@@ -112,7 +112,7 @@ def get_unbooked_interest_for_loans(
 	filters = {
 		"loan": ("in", loan_list),
 		"docstatus": 1,
-		"posting_date": ("<=", posting_date),
+		"posting_date": ("<", posting_date),
 		"interest_type": interest_type,
 	}
 
