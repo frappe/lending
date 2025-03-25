@@ -2487,6 +2487,8 @@ def get_bulk_due_details(loans, posting_date):
 					principal_amount,
 					unbooked_interest,
 					amounts,
+					posting_date,
+					loan.status,
 				)
 				due_details.append(amounts)
 		else:
@@ -2495,7 +2497,7 @@ def get_bulk_due_details(loans, posting_date):
 			unbooked_interest = unbooked_interest_map.get(loan.name, 0)
 			demands = demand_map.get(loan.name, [])
 			amounts = process_amount_for_bulk_loans(
-				loan, demands, None, principal_amount, unbooked_interest, amounts
+				loan, demands, None, principal_amount, unbooked_interest, amounts, posting_date, loan.status
 			)
 			due_details.append(amounts)
 

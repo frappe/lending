@@ -65,7 +65,14 @@ def get_disbursement_map(loans):
 
 
 def process_amount_for_bulk_loans(
-	loan, demands, disbursement, pending_principal_amount, unbooked_interest, amounts
+	loan,
+	demands,
+	loan_disbursement,
+	pending_principal_amount,
+	unbooked_interest,
+	amounts,
+	posting_date,
+	status,
 ):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -74,6 +81,9 @@ def process_amount_for_bulk_loans(
 	penalty_amount = 0
 	payable_principal_amount = 0
 
+	last_demand_date = get_last_demand_date(
+		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
+	)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
@@ -85,7 +95,7 @@ def process_amount_for_bulk_loans(
 			charges += demand.outstanding_amount
 
 	amounts["loan"] = loan.name
-	amounts["loan_disbursement"] = disbursement
+	amounts["loan_disbursement"] = loan_disbursement
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
 	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
@@ -97,6 +107,7 @@ def process_amount_for_bulk_loans(
 	amounts["unbooked_interest"] = flt(unbooked_interest, precision)
 	amounts["written_off_amount"] = flt(loan.written_off_amount, precision)
 	amounts["unpaid_demands"] = demands
+	amounts["due_date"] = last_demand_date
 	amounts["excess_amount_paid"] = flt(loan.excess_amount_paid, precision)
 
 	return amounts
