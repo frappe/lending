@@ -9,8 +9,6 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
-<<<<<<< HEAD
-=======
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -32,13 +30,6 @@ class LoanTransfer(Document):
 		transfer_date: DF.Date
 	# end: auto-generated types
 
-<<<<<<< HEAD
-	def after_insert(self):
-		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
-
->>>>>>> 96e208f (fix: move GL heavy tasks to background job)
-=======
->>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -62,30 +53,11 @@ class LoanTransfer(Document):
 	def on_submit(self):
 		self.update_branch()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		frappe.enqueue(
 			self.on_submit_actions,
 			enqueue_after_commit=True,
 			queue="long",
 		)
-=======
-		if len(self.loans) > 10:
-			frappe.enqueue(
-				self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries,
-				enqueue_after_commit=True,
-				queue="long",
-			)
-		else:
-			self.get_balances_and_make_journal_entry_and_submit_cancel_journal_entries()
->>>>>>> 96e208f (fix: move GL heavy tasks to background job)
-=======
-		frappe.enqueue(
-			self.on_submit_actions,
-			enqueue_after_commit=True,
-			queue="long",
-		)
->>>>>>> 21cbe2c (fix: all jobs in the background)
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -101,17 +73,6 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-		self.flag.ignore_links = True
-=======
->>>>>>> 21cbe2c (fix: all jobs in the background)
-=======
-		self.flag.ignore_links = True
->>>>>>> 7bcd343 (fix: delete GLs in the background)
-=======
->>>>>>> 25b11ca (fix: remove ignore_links)
 		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
 
 	def cancel_functions(self):
@@ -190,21 +151,8 @@ class LoanTransfer(Document):
 		if je_doc.get("accounts"):
 			je_doc.save()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	def on_submit_actions(self):
 		self.get_balances_and_make_journal_entry()
-<<<<<<< HEAD
-=======
-	def get_balances_and_make_journal_entry_and_submit_cancel_journal_entries(self):
-=======
-	def on_submit_actions(self):
->>>>>>> 01268a8 (fix: rq jobs hate huge function names)
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
->>>>>>> 96e208f (fix: move GL heavy tasks to background job)
-=======
->>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 		self.submit_cancel_journal_entries()
 
 
