@@ -315,8 +315,6 @@ def process_term_loan_batch(
 				frappe.db.rollback()
 
 
-<<<<<<< HEAD
-=======
 def make_loan_demand_for_demand_loans(
 	posting_date,
 	loan_product=None,
@@ -400,14 +398,6 @@ def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
 	)
 
 
-<<<<<<< HEAD
->>>>>>> cce62bc (fix: Add Batch Processing to Process Loan Demand)
-=======
-def get_batches(open_loans, batch_size):
-	for i in range(0, len(open_loans), batch_size):
-		yield open_loans[i : i + batch_size]
-
-
 def get_open_loans(is_term_loan, loan_product=None, loan=None):
 	filters = {
 		"docstatus": 1,
@@ -434,7 +424,6 @@ def get_open_loans(is_term_loan, loan_product=None, loan=None):
 	)
 
 
->>>>>>> a80ee7b (fix: Add Batch Processing to Process Loan Demand)
 def create_loan_demand(
 	loan,
 	demand_date,
