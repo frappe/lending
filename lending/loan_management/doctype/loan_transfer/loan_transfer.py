@@ -9,10 +9,6 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
-<<<<<<< HEAD
-	def after_insert(self):
-		frappe.enqueue(self.get_balances_and_make_journal_entry, queue="long", enqueue_after_commit=True)
-=======
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -33,7 +29,6 @@ class LoanTransfer(Document):
 		to_branch: DF.Link
 		transfer_date: DF.Date
 	# end: auto-generated types
->>>>>>> adaee37 (perf: remove duplicate GL entries (happening in the background, so two different transactions for after_insert and submit.))
 
 	def validate(self):
 		if not self.get("loans"):
