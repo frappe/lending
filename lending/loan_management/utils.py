@@ -29,7 +29,7 @@ def get_payment_entries_for_bank_clearance(
 		.where(loan_disbursement.docstatus == 1)
 		.where(loan_disbursement.disbursement_date >= from_date)
 		.where(loan_disbursement.disbursement_date <= to_date)
-		.where(loan_disbursement.disbursement_account.isin([bank_account, account]))
+		.where(loan_disbursement.disbursement_account == account)
 		.orderby(loan_disbursement.disbursement_date)
 		.orderby(loan_disbursement.name, order=frappe.qb.desc)
 	)
@@ -57,7 +57,7 @@ def get_payment_entries_for_bank_clearance(
 		.where(loan_repayment.docstatus == 1)
 		.where(loan_repayment.posting_date >= from_date)
 		.where(loan_repayment.posting_date <= to_date)
-		.where(loan_repayment.payment_account.isin([bank_account, account]))
+		.where(loan_repayment.payment_account == account)
 	)
 
 	if not include_reconciled_entries:
