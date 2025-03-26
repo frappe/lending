@@ -589,7 +589,7 @@ def calculate_penal_interest_for_loans(
 								penal_interest_amount,
 								process_loan_interest,
 								current_date,
-								add_days(current_date, 1),
+								current_date,
 								accrual_type,
 								"Penal Interest",
 								penal_interest_rate,
