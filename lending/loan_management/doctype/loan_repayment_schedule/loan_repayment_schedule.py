@@ -29,6 +29,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 
 class LoanRepaymentSchedule(Document):
 	def validate(self):
+		self.number_of_rows = 0
 		self.set_repayment_period()
 		self.set_repayment_start_date()
 		self.validate_repayment_method()
@@ -46,6 +47,7 @@ class LoanRepaymentSchedule(Document):
 			self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
 	def on_submit(self):
+		self.number_of_rows = 0
 		self.make_demand_for_advance_payment()
 
 	def make_demand_for_advance_payment(self):
@@ -134,6 +136,7 @@ class LoanRepaymentSchedule(Document):
 				self.rate_of_interest,
 				loan_repayment_schedule=self.name,
 			)
+		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
@@ -279,7 +282,6 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		row = 0
-
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
 				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
@@ -427,6 +429,8 @@ class LoanRepaymentSchedule(Document):
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
 			else:
 				self.monthly_repayment_amount = monthly_repayment_amount
+		else:
+			self.repayment_periods = self.number_of_rows
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -892,3 +896,7 @@ class LoanRepaymentSchedule(Document):
 				"demand_generated": demand_generated,
 			},
 		)
+		self.increment_number_of_rows(payment_date)
+
+	def increment_number_of_rows(self, payment_date):
+		self.number_of_rows += 1
