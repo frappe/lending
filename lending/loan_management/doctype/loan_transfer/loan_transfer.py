@@ -103,12 +103,15 @@ class LoanTransfer(Document):
 	def on_cancel(self):
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		self.flag.ignore_links = True
 =======
 >>>>>>> 21cbe2c (fix: all jobs in the background)
 =======
 		self.flag.ignore_links = True
 >>>>>>> 7bcd343 (fix: delete GLs in the background)
+=======
+>>>>>>> 25b11ca (fix: remove ignore_links)
 		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
 
 	def cancel_functions(self):
