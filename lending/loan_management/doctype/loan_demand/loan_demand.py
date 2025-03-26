@@ -398,6 +398,11 @@ def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
 	)
 
 
+def get_batches(open_loans, batch_size):
+	for i in range(0, len(open_loans), batch_size):
+		yield open_loans[i : i + batch_size]
+
+
 def get_open_loans(is_term_loan, loan_product=None, loan=None):
 	filters = {
 		"docstatus": 1,
