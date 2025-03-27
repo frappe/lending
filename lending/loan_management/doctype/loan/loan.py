@@ -675,6 +675,7 @@ def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict
 	write_off.posting_date = posting_date
 	write_off.write_off_account = write_off_account
 	write_off.write_off_amount = amount
+	write_off.is_settlement_write_off = 1
 	write_off.save()
 
 	if as_dict:
