@@ -2555,10 +2555,14 @@ def get_bulk_due_details(loans, posting_date):
 					amounts,
 					posting_date,
 <<<<<<< HEAD
+<<<<<<< HEAD
 					available_security_deposit_map,
 =======
 					loan.status,
 >>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
+=======
+					available_security_deposit_map,
+>>>>>>> d8eec80 (fix: add available security deposit to get_bulk_due_details)
 				)
 				due_details.append(amounts)
 		else:
@@ -2568,6 +2572,9 @@ def get_bulk_due_details(loans, posting_date):
 			demands = demand_map.get(loan.name, [])
 			amounts = process_amount_for_bulk_loans(
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8eec80 (fix: add available security deposit to get_bulk_due_details)
 				loan,
 				demands,
 				None,
@@ -2576,9 +2583,12 @@ def get_bulk_due_details(loans, posting_date):
 				amounts,
 				posting_date,
 				available_security_deposit_map,
+<<<<<<< HEAD
 =======
 				loan, demands, None, principal_amount, unbooked_interest, amounts, posting_date, loan.status
 >>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
+=======
+>>>>>>> d8eec80 (fix: add available security deposit to get_bulk_due_details)
 			)
 			due_details.append(amounts)
 
