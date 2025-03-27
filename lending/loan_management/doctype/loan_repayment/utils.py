@@ -72,7 +72,7 @@ def process_amount_for_bulk_loans(
 	unbooked_interest,
 	amounts,
 	posting_date,
-	status,
+	available_security_deposit_map,
 ):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -81,9 +81,7 @@ def process_amount_for_bulk_loans(
 	penalty_amount = 0
 	payable_principal_amount = 0
 
-	last_demand_date = get_last_demand_date(
-		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
-	)
+	last_demand_date = get_last_demand_date(loan.name, posting_date)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
@@ -109,6 +107,7 @@ def process_amount_for_bulk_loans(
 	amounts["unpaid_demands"] = demands
 	amounts["due_date"] = last_demand_date
 	amounts["excess_amount_paid"] = flt(loan.excess_amount_paid, precision)
+	amounts["available_security_deposit"] = available_security_deposit_map[loan.name]
 
 	return amounts
 
@@ -120,15 +119,15 @@ def get_unbooked_interest_for_loans(
 	loan_list = [loan.name for loan in loans]
 	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
 
-	filters = {
-		"loan": ("in", loan_list),
-		"docstatus": 1,
-		"posting_date": ("<", posting_date),
-		"interest_type": interest_type,
-	}
+	filters = [
+		["loan", "in", loan_list],
+		["docstatus", "=", 1],
+		["posting_date", "<", posting_date],
+		["interest_type", "=", interest_type],
+	]
 
 	if last_demand_date:
-		filters["posting_date"] = (">", last_demand_date)
+		filters.append(["posting_date", ">", last_demand_date])
 
 	accrued_interests = frappe.db.get_all(
 		"Loan Interest Accrual",
