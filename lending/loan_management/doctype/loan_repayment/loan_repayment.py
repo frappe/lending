@@ -4,7 +4,7 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Round, Sum
+from frappe.query_builder.functions import Coalesce, Round, Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 import erpnext
@@ -2228,6 +2228,21 @@ def get_bulk_due_details(loans, posting_date):
 
 	# Get unbooked interest for all loans
 
+	loan_security_deposit_doc = frappe.qb.DocType("Loan Security Deposit")
+	loan_doc = frappe.qb.DocType("Loan")
+	query = (
+		frappe.qb.from_(loan_doc)
+		.select(loan_doc.name, Coalesce(Sum(loan_security_deposit_doc.available_amount), 0))
+		.left_join(loan_security_deposit_doc)
+		.on(loan_security_deposit_doc.loan == loan_doc.name)
+		.where(loan_doc.name.isin(loans))
+		.groupby(loan_doc.name)
+	)
+	available_security_deposit_list = query.run(as_list=1)
+	available_security_deposit_map = {
+		available_security_deposit_item[0]: available_security_deposit_item[1]
+		for available_security_deposit_item in available_security_deposit_list
+	}
 	due_details = []
 	for loan in loan_details:
 		if loan.repayment_schedule_type == "Line of Credit":
@@ -2248,8 +2263,12 @@ def get_bulk_due_details(loans, posting_date):
 					unbooked_interest,
 					amounts,
 					posting_date,
+<<<<<<< HEAD
 					loan.status,
 >>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
+=======
+					available_security_deposit_map,
+>>>>>>> d8eec80 (fix: add available security deposit to get_bulk_due_details)
 				)
 				due_details.append(amounts)
 		else:
@@ -2258,7 +2277,14 @@ def get_bulk_due_details(loans, posting_date):
 			unbooked_interest = unbooked_interest_map.get(loan.name, 0)
 			demands = demand_map.get(loan.name, [])
 			amounts = process_amount_for_bulk_loans(
-				loan, demands, None, principal_amount, unbooked_interest, amounts, posting_date, loan.status
+				loan,
+				demands,
+				None,
+				principal_amount,
+				unbooked_interest,
+				amounts,
+				posting_date,
+				available_security_deposit_map,
 			)
 			due_details.append(amounts)
 
