@@ -73,10 +73,14 @@ def process_amount_for_bulk_loans(
 	amounts,
 	posting_date,
 <<<<<<< HEAD
+<<<<<<< HEAD
 	available_security_deposit_map,
 =======
 	status,
 >>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
+=======
+	available_security_deposit_map,
+>>>>>>> 759f1df (fix: fix filters for bulk_due_details)
 ):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -86,12 +90,16 @@ def process_amount_for_bulk_loans(
 	payable_principal_amount = 0
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	last_demand_date = get_last_demand_date(posting_date, loan=loan.name)
 =======
 	last_demand_date = get_last_demand_date(
 		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
 	)
 >>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
+=======
+	last_demand_date = get_last_demand_date(loan.name, posting_date)
+>>>>>>> 759f1df (fix: fix filters for bulk_due_details)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
@@ -130,12 +138,16 @@ def get_unbooked_interest_for_loans(
 	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 759f1df (fix: fix filters for bulk_due_details)
 	filters = [
 		["loan", "in", loan_list],
 		["docstatus", "=", 1],
 		["posting_date", "<", posting_date],
 		["interest_type", "=", interest_type],
 	]
+<<<<<<< HEAD
 =======
 	filters = {
 		"loan": ("in", loan_list),
@@ -144,6 +156,8 @@ def get_unbooked_interest_for_loans(
 		"interest_type": interest_type,
 	}
 >>>>>>> f9e6230 (fix: interests till posting_date)
+=======
+>>>>>>> 759f1df (fix: fix filters for bulk_due_details)
 
 	if last_demand_date:
 		filters.append(["posting_date", ">", last_demand_date])
