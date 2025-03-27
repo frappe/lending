@@ -423,7 +423,7 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
-		write_off = make_loan_write_off(loan)
+		write_off = make_loan_write_off(loan, posting_date=posting_date)
 		write_off.submit()
 	elif flt(pending_amount, precision) > 0:
 		frappe.throw(_("Cannot close loan as there is an outstanding of {0}").format(pending_amount))
