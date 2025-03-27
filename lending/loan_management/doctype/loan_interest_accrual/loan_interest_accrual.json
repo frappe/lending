@@ -240,37 +240,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "accrual_details_section",
-   "fieldtype": "Section Break",
-   "label": "Accrual Details"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "accounting_dimensions_section",
-   "fieldtype": "Section Break",
-   "label": "Accounting Dimension"
-  },
-  {
-   "fetch_from": "loan.cost_center",
-   "fieldname": "cost_center",
-   "fieldtype": "Link",
-   "label": "Cost Center",
-   "options": "Cost Center"
-  },
-  {
-   "fieldname": "column_break_wrcw",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "references_section",
-   "fieldtype": "Section Break",
-   "label": "References"
-  },
-  {
-   "fieldname": "column_break_idqd",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_svgc",
    "fieldtype": "Column Break"
   },
@@ -337,7 +306,6 @@
   }
  ],
  "quick_entry": 1,
- "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
