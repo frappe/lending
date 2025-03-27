@@ -540,11 +540,9 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
  "modified": "2025-03-06 17:13:10.181835",
-=======
  "modified": "2025-03-19 11:46:46.079233",
->>>>>>> 5ef2f7e (chore: add type hints using the export_python_type_annotations hook)
+ "modified": "2025-03-26 15:26:11.110153",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

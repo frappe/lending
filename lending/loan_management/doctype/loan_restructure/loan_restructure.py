@@ -570,7 +570,11 @@ class LoanRestructure(AccountsController):
 	def make_waiver_and_capitalization_for_penalty(self):
 		if self.penal_interest_waiver:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Penalty Waiver", self.penal_interest_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Penalty Waiver",
+				self.penal_interest_waiver,
+				restructure_name=self.name,
 			)
 
 		if self.balance_penalty_amount and self.treatment_of_penal_interest == "Capitalize":
@@ -579,13 +583,17 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Penalty Capitalization",
 				self.balance_penalty_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_repayment_for_adjustment(self):
 		if self.principal_adjusted:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Principal Adjustment", self.principal_adjusted, self.name
+				self.loan,
+				self.restructure_date,
+				"Principal Adjustment",
+				self.principal_adjusted,
+				restructure_name=self.name,
 			)
 
 		if self.adjusted_interest_amount:
@@ -594,7 +602,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Adjustment",
 				self.adjusted_interest_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_repayment_for_waiver(self):
@@ -602,7 +610,11 @@ class LoanRestructure(AccountsController):
 
 		if self.interest_waiver_amount:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Interest Waiver", self.interest_waiver_amount, self.name
+				self.loan,
+				self.restructure_date,
+				"Interest Waiver",
+				self.interest_waiver_amount,
+				restructure_name=self.name,
 			)
 
 		if self.unaccrued_interest_waiver:
@@ -615,12 +627,20 @@ class LoanRestructure(AccountsController):
 			)
 
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Interest Waiver", self.unaccrued_interest_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Interest Waiver",
+				self.unaccrued_interest_waiver,
+				restructure_name=self.name,
 			)
 
 		if self.other_charges_waiver:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Charges Waiver", self.other_charges_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Charges Waiver",
+				self.other_charges_waiver,
+				restructure_name=self.name,
 			)
 
 	def cancel_loan_adjustments(self):
@@ -635,7 +655,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Capitalization",
 				self.balance_interest_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_unaccrued_interest and self.unaccrued_interest_treatment == "Capitalize":
@@ -644,7 +664,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Capitalization",
 				self.balance_unaccrued_interest,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_charges and self.treatment_of_other_charges == "Capitalize":
@@ -653,7 +673,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Charges Capitalization",
 				self.balance_charges,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_principal:
@@ -662,7 +682,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Principal Capitalization",
 				self.balance_principal,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_adjustment_for_carry_forward(self):
@@ -673,7 +693,7 @@ class LoanRestructure(AccountsController):
 					self.restructure_date,
 					"Interest Carry Forward",
 					self.balance_interest_amount,
-					self.name,
+					restructure_name=self.name,
 				)
 
 			if self.balance_unaccrued_interest and self.unaccrued_interest_treatment == "Add To First EMI":
@@ -682,7 +702,7 @@ class LoanRestructure(AccountsController):
 					self.restructure_date,
 					"Interest Carry Forward",
 					self.balance_unaccrued_interest,
-					self.name,
+					restructure_name=self.name,
 				)
 
 
@@ -691,8 +711,8 @@ def create_loan_repayment(
 	posting_date,
 	repayment_type,
 	waiver_amount,
-	adjustment_name=None,
 	restructure_name=None,
+	adjustment_name=None,
 	is_write_off_waiver=0,
 	payment_account=None,
 	loan_disbursement=None,

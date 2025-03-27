@@ -27,6 +27,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 )
 
 
+# nosemgrep
 class LoanRepaymentSchedule(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -97,6 +98,7 @@ class LoanRepaymentSchedule(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.number_of_rows = 0
 		self.set_repayment_period()
 		self.set_repayment_start_date()
 		self.validate_repayment_method()
@@ -113,7 +115,9 @@ class LoanRepaymentSchedule(Document):
 		if self.get("repayment_schedule"):
 			self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
+	# nosemgrep
 	def on_submit(self):
+		self.number_of_rows = 0
 		self.make_demand_for_advance_payment()
 
 	def make_demand_for_advance_payment(self):
@@ -126,7 +130,6 @@ class LoanRepaymentSchedule(Document):
 		advance_payment = ""
 		if not self.restructure_type in ("Advance Payment", "Pre Payment"):
 			return
-
 		for row in self.repayment_schedule:
 			if not row.demand_generated:
 				advance_payment = row
@@ -203,6 +206,7 @@ class LoanRepaymentSchedule(Document):
 				self.rate_of_interest,
 				loan_repayment_schedule=self.name,
 			)
+		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
@@ -280,16 +284,17 @@ class LoanRepaymentSchedule(Document):
 			pending_prev_days,
 		) = self.add_rows_from_prev_disbursement("repayment_schedule", 100, 100)
 
-		self.make_repayment_schedule(
-			"repayment_schedule",
-			previous_interest_amount,
-			balance_amount,
-			additional_principal_amount,
-			pending_prev_days,
-			self.rate_of_interest,
-			100,
-			100,
-		)
+		if flt(balance_amount, self.precision) > 0:
+			self.make_repayment_schedule(
+				"repayment_schedule",
+				previous_interest_amount,
+				balance_amount,
+				additional_principal_amount,
+				pending_prev_days,
+				self.rate_of_interest,
+				100,
+				100,
+			)
 
 	def make_co_lender_schedule(self):
 		if not self.loan_partner:
@@ -347,7 +352,6 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		row = 0
-
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
 				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
@@ -361,7 +365,8 @@ class LoanRepaymentSchedule(Document):
 				and self.repayment_frequency == "Monthly"
 				and self.repayment_schedule_type == "Monthly as per cycle date"
 			):
-				payment_date = add_months(self.repayment_start_date, -1 * self.moratorium_tenure)
+				payment_date = self.repayment_start_date
+				self.repayment_start_date = add_months(payment_date, self.moratorium_tenure)
 				self.moratorium_end_date = add_months(self.repayment_start_date, -1)
 			elif self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
@@ -466,10 +471,16 @@ class LoanRepaymentSchedule(Document):
 				interest_share_percentage=interest_share_percentage,
 			)
 
+			# All the residue amount is added to the last row for "Repay Over Number of Periods"
+			#
+			# Also, when such a Repayment Schedule is rescheduled, its repayment_method changes to Repay Fixed Amount per Period
+			# Here, the tenure shouldn't change. Thus, if this is a restructed repayment schedule, the last row is all the residue amount left.
+			# This is a special case.
+
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
-				and len(self.get(schedule_field)) >= tenure
-			):
+				or (self.restructure_type and self.repayment_method == "Repay Fixed Amount per Period")
+			) and len(self.get(schedule_field)) >= tenure:
 				self.get(schedule_field)[-1].principal_amount += balance_amount
 				self.get(schedule_field)[-1].balance_loan_amount = 0
 				self.get(schedule_field)[-1].total_payment = (
@@ -488,6 +499,8 @@ class LoanRepaymentSchedule(Document):
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
 			else:
 				self.monthly_repayment_amount = monthly_repayment_amount
+		else:
+			self.repayment_periods = self.number_of_rows
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -521,6 +534,8 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 			if self.repayment_frequency == "Monthly" and self.moratorium_tenure:
 				tenure += cint(self.moratorium_tenure)
+		elif self.restructure_type in ("Advance Payment", "Pre Payment") and self.moratorium_tenure:
+			tenure = self.repayment_periods + self.moratorium_tenure
 		elif loan_status == "Partially Disbursed":
 			prev_schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
@@ -951,3 +966,7 @@ class LoanRepaymentSchedule(Document):
 				"demand_generated": demand_generated,
 			},
 		)
+		self.increment_number_of_rows(payment_date)
+
+	def increment_number_of_rows(self, payment_date):
+		self.number_of_rows += 1

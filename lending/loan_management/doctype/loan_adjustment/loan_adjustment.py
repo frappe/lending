@@ -51,6 +51,6 @@ class LoanAdjustment(Document):
 					self.posting_date,
 					repayment.loan_repayment_type,
 					repayment.amount,
-					self.name,
+					adjustment_name=self.name,
 					payment_account=self.payment_account,
 				)
