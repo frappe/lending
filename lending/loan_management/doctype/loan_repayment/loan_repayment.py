@@ -52,6 +52,7 @@ class LoanRepayment(AccountsController):
 			"Charges Waiver",
 		]:
 			self.validate_open_disbursement()
+		self.no_repayments_during_moratorium()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
@@ -860,7 +861,6 @@ class LoanRepayment(AccountsController):
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Closed")
 				query = query.set(loan.closure_date, self.posting_date)
-			self.update_repayment_schedule_status()
 
 			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
@@ -869,10 +869,12 @@ class LoanRepayment(AccountsController):
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.posting_date)
-			self.update_repayment_schedule_status()
 
 			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
+
+		if self.principal_amount_paid >= self.pending_principal_amount:
+			self.update_repayment_schedule_status()
 
 		query = self.update_limits(query, loan)
 		query.run()
@@ -2023,6 +2025,19 @@ class LoanRepayment(AccountsController):
 		for repayment_name in repayment_names:
 			repayment = frappe.get_doc("Loan Repayment", repayment_name)
 			repayment.cancel()
+
+	def no_repayments_during_moratorium(self):
+		if self.repayment_type in ("Pre Payment", "Advance Payment"):
+			moratorium_end_date = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 1}, "moratorium_end_date"
+			)
+			if moratorium_end_date:
+				if get_datetime(moratorium_end_date) >= get_datetime(self.posting_date):
+					frappe.throw(
+						_(
+							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
+						).format(moratorium_end_date, self.posting_date)
+					)
 
 
 def create_repayment_entry(

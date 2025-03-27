@@ -39,7 +39,7 @@ class LoanInterestAccrual(AccountsController):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
 
 		self.make_gl_entries()
-		if self.is_npa:
+		if self.is_npa and not self.unmark_npa:
 			if self.interest_type == "Normal Interest":
 				is_penal = False
 			else:
@@ -48,7 +48,7 @@ class LoanInterestAccrual(AccountsController):
 			loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 			if loan_status != "Written Off":
-				make_suspense_journal_entry(
+				normal_interest_jv, additional_interest_jv = make_suspense_journal_entry(
 					self.loan,
 					self.company,
 					self.loan_product,
@@ -58,8 +58,18 @@ class LoanInterestAccrual(AccountsController):
 					additional_interest=self.additional_interest_amount,
 				)
 
+			self.db_set("normal_interest_journal_entry", normal_interest_jv)
+			self.db_set("additional_interest_suspense_entry", additional_interest_jv)
+
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
+
+		if self.normal_interest_journal_entry:
+			frappe.get_doc("Journal Entry", self.normal_interest_journal_entry).cancel()
+
+		if self.additional_interest_suspense_entry:
+			frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry).cancel()
+
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
@@ -292,7 +302,6 @@ def get_accrual_frequency_breaks(last_accrual_date, accrual_date, loan_accrual_f
 	last_accrual_date = getdate(last_accrual_date)
 	accrual_date = getdate(accrual_date)
 	out = []
-
 	if loan_accrual_frequency == "Daily":
 		current_date = add_days(last_accrual_date, 1)
 		day_delta = 1
@@ -450,14 +459,13 @@ def get_overlapping_dates(
 	)
 
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
-		add_days(last_accrual_date, -1), posting_date, loan_accrual_frequency
+		add_days(last_accrual_date, -1), add_days(posting_date, -1), loan_accrual_frequency
 	)
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
 		parent_wise_schedules[schedule_parent].extend(accrual_frequency_breaks)
 		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
 		parent_wise_schedules[schedule_parent].sort()
-
 	return parent_wise_schedules
 
 
@@ -559,7 +567,6 @@ def calculate_penal_interest_for_loans(
 
 			from_date_for_entry = from_date
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
-
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 
 				if flt(penal_interest_amount, precision) > 0:
@@ -591,7 +598,7 @@ def calculate_penal_interest_for_loans(
 								demand.pending_amount,
 								penal_interest_amount,
 								process_loan_interest,
-								from_date_for_entry,
+								current_date,
 								current_date,
 								accrual_type,
 								"Penal Interest",
@@ -1051,7 +1058,6 @@ def get_parent_wise_dates(loan, last_accrual_date, posting_date, loan_disburseme
 		parent_wise_schedules.setdefault(schedule_date.parent, [])
 		parent_wise_schedules[schedule_date.parent].append(add_days(schedule_date.payment_date, -1))
 	maturity_map = add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date)
-
 	return parent_wise_schedules, maturity_map
 
 
@@ -1059,11 +1065,10 @@ def add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date):
 	maturity_map = {}
 	for schedule in schedules_details:
 		parent_wise_schedules.setdefault(schedule.name, [])
-		to_accrual_date = posting_date
 		maturity_date = schedule.get("maturity_date")
 		maturity_map[schedule.name] = maturity_date
 		if maturity_date and getdate(maturity_date) <= getdate(posting_date):
 			to_accrual_date = add_days(maturity_date, -1)
-		parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
+			parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
 
 	return maturity_map
