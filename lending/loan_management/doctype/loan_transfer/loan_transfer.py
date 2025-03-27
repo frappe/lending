@@ -9,6 +9,27 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_transfer_detail.loan_transfer_detail import (
+			LoanTransferDetail,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.Link | None
+		company: DF.Link
+		from_branch: DF.Link
+		loans: DF.Table[LoanTransferDetail]
+		to_branch: DF.Link
+		transfer_date: DF.Date
+	# end: auto-generated types
+
 	def validate(self):
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
@@ -52,7 +73,6 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
-		self.flag.ignore_links = True
 		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
 
 	def cancel_functions(self):
