@@ -28,6 +28,7 @@
   "disbursement_date",
   "clearance_date",
   "bpi_difference_date",
+  "broken_period_interest_days",
   "column_break_8",
   "disbursed_amount",
   "broken_period_interest",
@@ -363,12 +364,21 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "broken_period_interest_days",
+   "fieldtype": "Int",
+   "label": "Broken Period Interest Days"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-02-09 16:19:36.800394",
+=======
+ "modified": "2025-03-27 15:29:37.464398",
+>>>>>>> 1a692e7 (chore: Add BPI days column in disbursement)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
@@ -406,6 +416,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
