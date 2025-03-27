@@ -24,16 +24,7 @@
   "interest_type",
   "is_term_loan",
   "is_npa",
-<<<<<<< HEAD
-=======
   "unmark_npa",
-  "references_section",
-  "loan_disbursement",
-  "accrual_type",
-  "column_break_idqd",
-  "loan_repayment_schedule",
-  "accrual_date",
->>>>>>> f1236a3 (fix: Misc NPA related issues)
   "section_break_7",
   "base_amount",
   "additional_interest_amount",
@@ -43,15 +34,11 @@
   "loan_repayment_schedule_detail",
   "section_break_15",
   "process_loan_interest_accrual",
-<<<<<<< HEAD
   "last_accrual_date",
-  "amended_from"
-=======
   "amended_from",
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry"
->>>>>>> f1236a3 (fix: Misc NPA related issues)
  ],
  "fields": [
   {
@@ -251,8 +238,6 @@
    "label": "Loan Disbursement",
    "options": "Loan Disbursement",
    "search_index": 1
-<<<<<<< HEAD
-=======
   },
   {
    "fieldname": "accrual_details_section",
@@ -307,18 +292,13 @@
    "fieldname": "unmark_npa",
    "fieldtype": "Check",
    "label": "Unmark NPA"
->>>>>>> f1236a3 (fix: Misc NPA related issues)
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-11-26 21:37:19.672292",
-=======
  "modified": "2025-03-23 17:52:40.723839",
->>>>>>> f1236a3 (fix: Misc NPA related issues)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
