@@ -74,6 +74,10 @@ def process_amount_for_bulk_loans(
 	penalty_amount = 0
 	payable_principal_amount = 0
 
+<<<<<<< HEAD
+=======
+	last_demand_date = get_last_demand_date(posting_date, loan=loan.name)
+>>>>>>> 11221b7 (fix: parameters)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
