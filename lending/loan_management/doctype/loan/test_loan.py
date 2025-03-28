@@ -2433,7 +2433,6 @@ def create_loan_security_type():
 			}
 		).insert(ignore_permissions=True)
 
-<<<<<<< HEAD
 
 def create_loan_security():
 	if not frappe.db.exists("Loan Security", "Test Security 1"):
@@ -2719,32 +2718,3 @@ def create_loan_write_off(loan, posting_date, write_off_amount=None):
 	loan_write_off.submit()
 
 	return loan_write_off
-=======
-		# Loan will remain open because of pending charge
-		self.assertEqual(loan.status, "Disbursed")
-
-	def test_broken_period_interest_update(self):
-		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		# Daily accrual
-		disbursement = make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
-		)
-
-		self.assertTrue(disbursement.broken_period_interest, "BPI not set in disbursement")
-		self.assertTrue(disbursement.broken_period_interest_days, "BPI not set in disbursement")
->>>>>>> 1a692e7 (chore: Add BPI days column in disbursement)
