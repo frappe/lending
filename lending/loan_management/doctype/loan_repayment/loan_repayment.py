@@ -141,6 +141,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries()
 
 		self.update_paid_amounts()
+		self.handle_auto_demand_write_off()
 		self.update_demands()
 		self.update_security_deposit_amount()
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
@@ -321,7 +322,10 @@ class LoanRepayment(AccountsController):
 			if d.demand_subtype == "Principal":
 				overdue_principal_paid += d.paid_amount
 
-		if self.principal_amount_paid - overdue_principal_paid > 0:
+		if (
+			self.principal_amount_paid - overdue_principal_paid > 0
+			and overdue_principal_paid >= self.payable_principal_amount
+		):
 			amount = self.principal_amount_paid - overdue_principal_paid
 			create_loan_demand(
 				self.against_loan,
@@ -815,6 +819,33 @@ class LoanRepayment(AccountsController):
 		query.run()
 
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
+
+	def handle_auto_demand_write_off(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		overdue_principal_paid = sum(
+			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
+		)
+		if (
+			self.auto_close_loan()
+			and overdue_principal_paid > 0
+			and overdue_principal_paid < self.payable_principal_amount
+			and self.principal_amount_paid - overdue_principal_paid > 0
+		):
+			# Get last principal demand
+			principal_demands = [
+				d for d in self.get("repayment_details") if d.demand_subtype == "Principal"
+			]
+			last_demand = principal_demands[-1] if principal_demands else []
+			if last_demand:
+				written_off_amount = flt(self.principal_amount_paid - overdue_principal_paid, precision)
+				last_demand.paid_amount = last_demand.paid_amount + written_off_amount
+				frappe.db.set_value(
+					"Loan Repayment Detail",
+					last_demand.name,
+					"paid_amount",
+					last_demand.paid_amount + written_off_amount,
+				)
 
 	def post_write_off_settlements(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
