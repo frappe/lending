@@ -2284,6 +2284,7 @@ class TestLoan(IntegrationTestCase):
 		# Loan will remain open because of pending charge
 		self.assertEqual(loan.status, "Disbursed")
 
+<<<<<<< HEAD
 	def test_broken_period_interest_update(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -2308,3 +2309,44 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertTrue(disbursement.broken_period_interest, "BPI not set in disbursement")
 		self.assertTrue(disbursement.broken_period_interest_days, "BPI not set in disbursement")
+=======
+	def test_loc_loan_auto_waiver_demand_update(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-10-28",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			390547,
+			disbursement_date="2024-10-30",
+			repayment_start_date="2024-12-29",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		process_daily_loan_demands(posting_date="2024-12-29", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-29", 401621, loan_disbursement=disbursement.name
+		)
+
+		repayment_entry.submit()
+
+		outstanding_demand = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan.name, "loan_disbursement": disbursement.name},
+			"sum(outstanding_amount)",
+		)
+
+		self.assertEqual(outstanding_demand, 0)
+>>>>>>> b1f5eda (fix: Auto write off demand within limit)
