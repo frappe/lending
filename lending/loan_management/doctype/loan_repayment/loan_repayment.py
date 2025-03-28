@@ -2326,7 +2326,6 @@ def process_amount_for_loan(
 			loan_disbursement=loan_disbursement,
 		)
 
-	amounts["interest_accrued"] = accrued_interest
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
 	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
@@ -2526,7 +2525,6 @@ def init_amounts():
 		"pending_principal_amount": 0.0,
 		"payable_principal_amount": 0.0,
 		"payable_amount": 0.0,
-		"interest_accrued": 0.0,
 		"unaccrued_interest": 0.0,
 		"unbooked_interest": 0.0,
 		"unbooked_penalty": 0.0,
