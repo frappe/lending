@@ -110,6 +110,7 @@ class LoanDisbursement(AccountsController):
 		self.db_set("monthly_repayment_amount", schedule.monthly_repayment_amount)
 		if loan_details.status == "Sanctioned":
 			self.db_set("broken_period_interest", flt(schedule.broken_period_interest, precision))
+			self.db_set("broken_period_interest_days", flt(schedule.broken_period_interest_days, precision))
 
 	def on_submit(self):
 		if self.is_term_loan:
