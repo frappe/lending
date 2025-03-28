@@ -2530,25 +2530,5 @@ def get_accrued_interest(
 	return flt(accrued_interest)
 
 
-def get_demanded_interest(loan, posting_date, demand_subtype="Interest", loan_disbursement=None):
-	filters = {
-		"loan": loan,
-		"docstatus": 1,
-		"demand_date": ("<=", posting_date),
-		"demand_subtype": demand_subtype,
-	}
-
-	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
-
-	demand_interest = frappe.db.get_value(
-		"Loan Demand",
-		filters,
-		"SUM(demand_amount)",
-	)
-
-	return flt(demand_interest)
-
-
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
