@@ -48,6 +48,7 @@ class LoanRepayment(AccountsController):
 		self.validate_disbursement_link()
 		if self.loan_disbursement:
 			self.validate_open_disbursement()
+		self.no_repayments_during_moratorium()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
@@ -1832,6 +1833,51 @@ class LoanRepayment(AccountsController):
 			remarks += " with reference no. {}".format(self.reference_number)
 
 		return remarks
+
+	def cancel_linked_repayments(self):
+		# Any repayment made after a Full Settlement is bound to be made
+		# by the Full Settlement repayment itself because the Loan closes
+		# after that. The fields posting_date and against_loan are indexed
+		# This is an optimization of sorts.
+		filters = {
+			"posting_date": (">=", (self.posting_date)),
+			"against_loan": self.against_loan,
+			"docstatus": 1,
+			"repayment_type": (
+				"in",
+				[
+					"Interest Waiver",
+					"Penalty Waiver",
+					"Charges Waiver",
+				],
+			),
+		}
+
+		if self.repayment_schedule_type == "Line of Credit":
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		repayment_names = frappe.db.get_all(
+			"Loan Repayment",
+			filters,
+			"name",
+			order_by="posting_date",
+		)
+		for repayment_name in repayment_names:
+			repayment = frappe.get_doc("Loan Repayment", repayment_name)
+			repayment.cancel()
+
+	def no_repayments_during_moratorium(self):
+		if self.repayment_type in ("Pre Payment", "Advance Payment"):
+			moratorium_end_date = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 1}, "moratorium_end_date"
+			)
+			if moratorium_end_date:
+				if get_datetime(moratorium_end_date) >= get_datetime(self.posting_date):
+					frappe.throw(
+						_(
+							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
+						).format(moratorium_end_date, self.posting_date)
+					)
 
 
 def create_repayment_entry(
