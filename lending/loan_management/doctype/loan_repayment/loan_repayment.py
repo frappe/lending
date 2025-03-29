@@ -2252,9 +2252,6 @@ def get_bulk_due_details(loans, posting_date):
 				unbooked_interest = unbooked_interest_map.get((loan.name, disbursement), 0)
 				filtered_demands = list(d for d in demands if d.loan_disbursement == disbursement)
 				amounts = process_amount_for_bulk_loans(
-<<<<<<< HEAD
-					loan, filtered_demands, disbursement, principal_amount, unbooked_interest, amounts
-=======
 					loan,
 					filtered_demands,
 					disbursement,
@@ -2262,12 +2259,7 @@ def get_bulk_due_details(loans, posting_date):
 					unbooked_interest,
 					amounts,
 					posting_date,
-<<<<<<< HEAD
-					loan.status,
->>>>>>> bf15b3f (fix: add missing fields to get_bulk_due_details)
-=======
 					available_security_deposit_map,
->>>>>>> d8eec80 (fix: add available security deposit to get_bulk_due_details)
 				)
 				due_details.append(amounts)
 		else:
