@@ -94,8 +94,8 @@ class LoanInterestAccrual(AccountsController):
 					additional_interest=self.additional_interest_amount,
 				)
 
-			self.db_set("normal_interest_journal_entry", normal_interest_jv)
-			self.db_set("additional_interest_suspense_entry", additional_interest_jv)
+				self.db_set("normal_interest_journal_entry", normal_interest_jv)
+				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
 
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
