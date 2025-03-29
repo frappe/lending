@@ -42,6 +42,57 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 
 # nosemgrep
 class LoanDisbursement(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_disbursement_charge.loan_disbursement_charge import (
+			LoanDisbursementCharge,
+		)
+
+		against_loan: DF.Link
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		bank_account: DF.Link | None
+		bpi_amount_difference: DF.Currency
+		bpi_difference_date: DF.Date | None
+		broken_period_interest: DF.Currency
+		clearance_date: DF.Date | None
+		company: DF.Link
+		cost_center: DF.Link | None
+		current_disbursed_amount: DF.Currency
+		days_past_due: DF.Int
+		disbursed_amount: DF.Currency
+		disbursement_account: DF.Link | None
+		disbursement_date: DF.Date
+		is_term_loan: DF.Check
+		loan_account: DF.Link | None
+		loan_disbursement_charges: DF.Table[LoanDisbursementCharge]
+		loan_partner: DF.Link | None
+		loan_product: DF.Link | None
+		monthly_repayment_amount: DF.Currency
+		posting_date: DF.Date | None
+		principal_amount_paid: DF.Currency
+		reference_date: DF.Date | None
+		reference_number: DF.Data | None
+		refund_account: DF.Link | None
+		repayment_frequency: DF.Literal[
+			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
+		]
+		repayment_method: DF.Literal["", "Repay Over Number of Periods", "Repay Fixed Amount per Period"]
+		repayment_schedule_type: DF.Data | None
+		repayment_start_date: DF.Date | None
+		sanctioned_loan_amount: DF.Currency
+		status: DF.Literal["", "Draft", "Submitted", "Cancelled", "Closed"]
+		tenure: DF.Int
+		withhold_security_deposit: DF.Check
+	# end: auto-generated types
+
 	def validate(self):
 		self.set_status()
 		self.set_missing_values()

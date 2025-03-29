@@ -34,6 +34,97 @@ from lending.utils import daterange
 
 # nosemgrep
 class Loan(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_disbursement_charge.loan_disbursement_charge import (
+			LoanDisbursementCharge,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_name: DF.Data | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		available_limit_amount: DF.Currency
+		cancellation_date: DF.Date | None
+		classification_code: DF.Link | None
+		classification_name: DF.Data | None
+		closure_date: DF.Date | None
+		company: DF.Link
+		cost_center: DF.Link | None
+		credit_adjustment_amount: DF.Currency
+		days_past_due: DF.Int
+		debit_adjustment_amount: DF.Currency
+		disbursed_amount: DF.Currency
+		disbursement_account: DF.Link
+		disbursement_date: DF.Date | None
+		excess_amount_paid: DF.Currency
+		fldg_trigger_date: DF.Date | None
+		fldg_triggered: DF.Check
+		freeze_account: DF.Check
+		freeze_date: DF.Date | None
+		interest_income_account: DF.Link
+		is_npa: DF.Check
+		is_secured_loan: DF.Check
+		is_term_loan: DF.Check
+		limit_applicable_end: DF.Date | None
+		limit_applicable_start: DF.Date | None
+		loan_account: DF.Link
+		loan_amount: DF.Currency
+		loan_application: DF.Link | None
+		loan_category: DF.Link | None
+		loan_charges: DF.Table[LoanDisbursementCharge]
+		loan_partner: DF.Link | None
+		loan_product: DF.Link
+		loan_restructure_count: DF.Int
+		manual_npa: DF.Check
+		maximum_limit_amount: DF.Currency
+		maximum_loan_amount: DF.Currency
+		monthly_repayment_amount: DF.Currency
+		moratorium_tenure: DF.Int
+		moratorium_type: DF.Literal["", "EMI", "Principal"]
+		payment_account: DF.Link
+		penalty_charges_rate: DF.Percent
+		penalty_income_account: DF.Link
+		posting_date: DF.Date
+		rate_of_interest: DF.Percent
+		refund_amount: DF.Currency
+		repayment_frequency: DF.Literal[
+			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
+		]
+		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
+		repayment_periods: DF.Int
+		repayment_schedule_type: DF.Data | None
+		repayment_start_date: DF.Date | None
+		settlement_date: DF.Date | None
+		status: DF.Literal[
+			"Draft",
+			"Sanctioned",
+			"Partially Disbursed",
+			"Disbursed",
+			"Active",
+			"Loan Closure Requested",
+			"Closed",
+			"Written Off",
+			"Settled",
+		]
+		tenure_post_restructure: DF.Int
+		total_amount_paid: DF.Currency
+		total_interest_payable: DF.Currency
+		total_payment: DF.Currency
+		total_principal_paid: DF.Currency
+		treatment_of_interest: DF.Literal["", "Capitalize", "Add to first repayment"]
+		unmark_npa: DF.Check
+		utilized_limit_amount: DF.Currency
+		watch_period_end_date: DF.Date | None
+		written_off_amount: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.set_status()
 		self.set_loan_amount()

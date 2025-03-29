@@ -7,6 +7,22 @@ from frappe.utils import getdate
 
 
 class LoanNPALog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		delinked: DF.Check
+		event: DF.Data | None
+		loan: DF.Link | None
+		manual_npa: DF.Check
+		npa: DF.Check
+		npa_date: DF.Date | None
+	# end: auto-generated types
+
 	pass
 
 

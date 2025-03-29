@@ -288,6 +288,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+ "modified": "2025-03-19 11:46:48.771267",
  "modified": "2025-03-23 17:52:40.723839",
  "modified_by": "Administrator",
  "module": "Loan Management",
@@ -327,7 +328,6 @@
   }
  ],
  "quick_entry": 1,
- "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

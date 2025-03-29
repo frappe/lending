@@ -9,6 +9,26 @@ from lending.loan_management.doctype.loan_restructure.loan_restructure import cr
 
 
 class LoanAdjustment(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_adjustment_detail.loan_adjustment_detail import (
+			LoanAdjustmentDetail,
+		)
+
+		adjustments: DF.Table[LoanAdjustmentDetail]
+		amended_from: DF.Link | None
+		foreclosure_type: DF.Literal["", "Manual Foreclosure", "Internal Foreclosure"]
+		loan: DF.Link | None
+		payment_account: DF.Link | None
+		posting_date: DF.Datetime | None
+	# end: auto-generated types
+
 	def validate(self):
 		amounts = calculate_amounts(self.loan, self.posting_date)
 
