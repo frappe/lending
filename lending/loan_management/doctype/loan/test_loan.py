@@ -2334,10 +2334,10 @@ class TestLoan(IntegrationTestCase):
 		)
 		disbursement.submit()
 
-		process_daily_loan_demands(posting_date="2024-12-29", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-12-29 00:00:00", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-12-29", 401621, loan_disbursement=disbursement.name
+			loan.name, "2024-12-29 00:00:10", 401621, loan_disbursement=disbursement.name
 		)
 
 		repayment_entry.submit()
