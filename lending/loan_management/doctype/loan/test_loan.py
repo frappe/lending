@@ -2340,6 +2340,7 @@ class TestLoan(IntegrationTestCase):
 			loan.name, "2024-12-29 00:00:10", 401621, loan_disbursement=disbursement.name
 		)
 
+		repayment_entry.save()
 		repayment_entry.submit()
 
 		outstanding_demand = frappe.db.get_value(
