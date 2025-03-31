@@ -46,7 +46,11 @@ class LoanRepayment(AccountsController):
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
-		if self.loan_disbursement:
+		if self.loan_disbursement and self.repayment_type not in [
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+		]:
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
 		self.check_future_entries()
@@ -485,6 +489,12 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
+		# frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+		if self.repayment_type == "Full Settlement":
+			if frappe.flags.in_test:
+				self.cancel_linked_repayments()
+			else:
+				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
 		self.check_future_accruals()
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -886,6 +896,7 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				interest_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.penalty_amount - self.total_penalty_paid, precision) > 0:
@@ -896,6 +907,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				penalty_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if flt(self.total_charges_payable - self.total_charges_paid, precision) > 0:
@@ -906,6 +918,7 @@ class LoanRepayment(AccountsController):
 				"Charges Waiver",
 				charges_amount,
 				is_write_off_waiver=1,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 		if (
@@ -931,6 +944,7 @@ class LoanRepayment(AccountsController):
 
 		filters = {"loan": self.against_loan, "docstatus": 1, "status": current_status}
 
+		# For LoC loans
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 			if cancel:
@@ -1553,7 +1567,19 @@ class LoanRepayment(AccountsController):
 			return flt(self.loan_partner_share_percentage * paid_amount)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_loan_repayment,
+		)
+
 		if self.repayment_type == "Charges Waiver":
+			payable_charges = self.total_charges_payable - self.total_charges_paid
+			if self.excess_amount < 0 and payable_charges > 0:
+				create_loan_repayment(
+					self.against_loan,
+					self.posting_date,
+					"Charges Waiver",
+					payable_charges,
+				)
 			return
 
 		if cancel:
@@ -1909,7 +1935,6 @@ class LoanRepayment(AccountsController):
 							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 						).format(moratorium_end_date, self.posting_date)
 					)
-
 
 def create_repayment_entry(
 	loan,

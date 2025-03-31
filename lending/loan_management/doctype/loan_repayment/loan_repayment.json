@@ -510,12 +510,17 @@
    "fieldtype": "Percent",
    "label": "Loan Partner Interest Rate",
    "read_only": 1
+  },
+  {
+   "fieldname": "co_lending_tab",
+   "fieldtype": "Tab Break",
+   "label": "Co Lending"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-23 19:34:44.246290",
+ "modified": "2025-03-06 17:13:10.181835",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
