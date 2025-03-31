@@ -5,7 +5,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
-from lending.loan_management.doctype.loan_demand.loan_demand import make_loan_demand_for_term_loans
+from lending.loan_management.doctype.loan_demand.loan_demand import (
+	make_loan_demand_for_demand_loans,
+	make_loan_demand_for_term_loans,
+)
 
 
 class ProcessLoanDemand(Document):
@@ -16,6 +19,11 @@ class ProcessLoanDemand(Document):
 			loan=self.loan,
 			process_loan_demand=self.name,
 			loan_disbursement=self.loan_disbursement,
+		)
+		make_loan_demand_for_demand_loans(
+			self.posting_date,
+			loan=self.loan,
+			process_loan_demand=self.name,
 		)
 
 

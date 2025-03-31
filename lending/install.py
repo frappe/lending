@@ -206,6 +206,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Loan Transfer",
 			"insert_after": "naming_series",
 			"options": "Loan Transfer",
+			"search_index": 1,
 		},
 		{
 			"fieldname": "loan",
@@ -213,6 +214,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Loan",
 			"insert_after": "loan_transfer",
 			"options": "Loan",
+			"search_index": 1,
 		},
 	],
 }

@@ -53,11 +53,20 @@ class LoanRepaymentRepost(Document):
 		)
 
 		if self.cancel_future_emi_demands:
-			reverse_demands(self.loan, self.repost_date, demand_type="EMI")
+			reverse_demands(
+				self.loan, self.repost_date, demand_type="EMI", loan_disbursement=self.loan_disbursement
+			)
 
 		if self.cancel_future_penal_accruals_and_demands:
-			reverse_loan_interest_accruals(self.loan, self.repost_date, interest_type="Penal Interest")
-			reverse_demands(self.loan, self.repost_date, demand_type="Penalty")
+			reverse_loan_interest_accruals(
+				self.loan,
+				self.repost_date,
+				interest_type="Penal Interest",
+				loan_disbursement=self.loan_disbursement,
+			)
+			reverse_demands(
+				self.loan, self.repost_date, demand_type="Penalty", loan_disbursement=self.loan_disbursement
+			)
 
 	def clear_demand_allocation(self):
 		demands = frappe.get_all(

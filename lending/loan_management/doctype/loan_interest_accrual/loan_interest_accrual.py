@@ -27,7 +27,7 @@ class LoanInterestAccrual(AccountsController):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
 
 		self.make_gl_entries()
-		if self.is_npa:
+		if self.is_npa and not self.unmark_npa:
 			if self.interest_type == "Normal Interest":
 				is_penal = False
 			else:
@@ -36,7 +36,7 @@ class LoanInterestAccrual(AccountsController):
 			loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 			if loan_status != "Written Off":
-				make_suspense_journal_entry(
+				normal_interest_jv, additional_interest_jv = make_suspense_journal_entry(
 					self.loan,
 					self.company,
 					self.loan_product,
@@ -46,8 +46,18 @@ class LoanInterestAccrual(AccountsController):
 					additional_interest=self.additional_interest_amount,
 				)
 
+				self.db_set("normal_interest_journal_entry", normal_interest_jv)
+				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
+
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
+
+		if self.normal_interest_journal_entry:
+			frappe.get_doc("Journal Entry", self.normal_interest_journal_entry).cancel()
+
+		if self.additional_interest_suspense_entry:
+			frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry).cancel()
+
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):

@@ -1729,21 +1729,21 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-25", 15000, repayment_type="Pre Payment"
+			loan.name, "2024-10-25", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-01", 138.90, repayment_type="Normal Repayment"
+			loan.name, "2024-11-16", 138.90, repayment_type="Normal Repayment"
 		)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date="2024-10-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-12-01", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-26", 15000, repayment_type="Pre Payment"
+			loan.name, "2024-11-26", 15000, repayment_type="Pre Payment"
 		)
 		repayment_entry.submit()
 
@@ -1974,6 +1974,181 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
+
+	def test_accrual_background_job(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		set_loan_accrual_frequency("Daily")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-20", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+		)
+		expected_dates = [
+			"2024-08-16",
+			"2024-08-17",
+			"2024-08-18",
+			"2024-08-19",
+			"2024-08-20",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+		set_loan_accrual_frequency("Weekly")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-31", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-08-21", to_date="2024-08-31"
+		)
+		expected_dates = [
+			"2024-08-25",
+			"2024-08-31",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+		set_loan_accrual_frequency("Monthly")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-10-31", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-09-01", to_date="2024-11-05"
+		)
+		expected_dates = [
+			"2024-09-15",
+			"2024-09-30",
+			"2024-10-15",
+			"2024-10-31",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+
+		self.assertEqual(loan_interest_accruals, expected_dates)
+
+	def test_loc_loan_pre_payment_closure(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-10-28",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			335533,
+			disbursement_date="2024-11-25",
+			repayment_start_date="2025-01-24",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
+		)
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2025-01-23",
+			344890,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		disbursement.load_from_db()
+		self.assertEqual(disbursement.status, "Closed")
+
+		repayment_schedule_status = frappe.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "loan_disbursement": disbursement.name, "docstatus": 1},
+			"status",
+		)
+
+		self.assertEqual(repayment_schedule_status, "Closed")
+
+	def test_npa_marking_for_customer(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("NPA Customer 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan1 = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan1.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan1.name, loan1.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+
+		loan2 = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-07-05",
+			posting_date="2024-06-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan2.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan2.name, loan2.loan_amount, disbursement_date="2024-06-05", repayment_start_date="2024-07-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan1.name)
+		create_process_loan_classification(
+			posting_date="2024-07-06", loan=loan1.name, force_update_dpd_in_loan=1
+		)
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
+		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
+		self.assertTrue(customer_npa, "Customer not marked as NPA")
+
+		create_process_loan_classification(
+			posting_date="2024-07-07", loan=loan1.name, force_update_dpd_in_loan=1
+		)
 
 
 def add_or_update_loan_charges(product_name):
