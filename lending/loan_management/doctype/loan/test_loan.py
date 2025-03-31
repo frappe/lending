@@ -1919,6 +1919,61 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date} (Disbursement: {disbursement}): Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	def test_total_interest_paid_demand_generate_after_rescheduling(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			30,
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-10-05",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 800}],
+			}
+		)
+		sales_invoice.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 3782)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-10-10", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-11", 850, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
+
+		demand_amount = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan.name, "demand_date": "2024-10-11", "demand_subtype": "Interest"},
+			"demand_amount",
+			order_by="demand_date desc",
+		)
+
+		self.assertEqual(demand_amount, repayment_entry.total_interest_paid)
+
 	def test_charges_payment(self):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 

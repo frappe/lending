@@ -144,11 +144,23 @@ class LoanRepaymentSchedule(Document):
 		prepayment_details = frappe.db.get_value(
 			"Loan Restructure",
 			{"loan": self.loan, "name": self.loan_restructure},
-			["unaccrued_interest", "principal_adjusted", "balance_principal"],
+			["unaccrued_interest", "principal_adjusted", "balance_principal", "loan_repayment"],
 			as_dict=1,
 		)
 
+		total_interest_paid = frappe.db.get_value(
+			"Loan Repayment",
+			{"name": prepayment_details.loan_repayment},
+			"total_interest_paid",
+		)
+
 		interest_amount = prepayment_details.unaccrued_interest
+
+		if interest_amount == total_interest_paid:
+			interest_amount = prepayment_details.unaccrued_interest
+		else:
+			interest_amount = total_interest_paid
+
 		principal_amount = abs(prepayment_details.balance_principal)
 		principal_balance = prepayment_details.balance_principal
 		paid_interest_amount = interest_amount
