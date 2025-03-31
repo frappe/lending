@@ -1920,6 +1920,7 @@ class TestLoan(IntegrationTestCase):
 			)
 
 	def test_total_interest_paid_demand_generate_after_rescheduling(self):
+		set_loan_accrual_frequency("Daily")
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
