@@ -2227,8 +2227,6 @@ class TestLoan(IntegrationTestCase):
 		)
 
 	def test_normal_loan_repayment_schedule_close(self):
-		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2285,8 +2283,6 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(loan.status, "Disbursed")
 
 	def test_broken_period_interest_update(self):
-		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2308,3 +2304,64 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertTrue(disbursement.broken_period_interest, "BPI not set in disbursement")
 		self.assertTrue(disbursement.broken_period_interest_days, "BPI not set in disbursement")
+
+	def test_advance_payment_unbooked_interest(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			36,
+			repayment_start_date="2024-12-05",
+			posting_date="2024-10-21",
+			rate_of_interest=24,
+			applicant_type="Customer",
+		)
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-21", repayment_start_date="2024-12-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-05", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-05", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		repayment = create_repayment_entry(
+			loan.name,
+			"2025-01-05",
+			39234,
+		)
+
+		repayment.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-07", loan=loan.name, company="_Test Company"
+		)
+
+		repayment = create_repayment_entry(
+			loan.name,
+			"2025-01-07",
+			19617,
+			repayment_type="Advance Payment",
+		)
+
+		repayment.submit()
+
+		unbooked_interest = frappe.db.get_value(
+			"Loan Repayment",
+			{"name": repayment.name, "docstatus": 1},
+			"unbooked_interest_paid",
+		)
+
+		self.assertTrue(unbooked_interest)
+		set_loan_accrual_frequency("Monthly")
