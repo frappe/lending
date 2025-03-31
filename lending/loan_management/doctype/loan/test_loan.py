@@ -2284,7 +2284,6 @@ class TestLoan(IntegrationTestCase):
 		# Loan will remain open because of pending charge
 		self.assertEqual(loan.status, "Disbursed")
 
-<<<<<<< HEAD
 	def test_broken_period_interest_update(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -2309,7 +2308,7 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertTrue(disbursement.broken_period_interest, "BPI not set in disbursement")
 		self.assertTrue(disbursement.broken_period_interest_days, "BPI not set in disbursement")
-=======
+
 	def test_loc_loan_auto_waiver_demand_update(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2350,4 +2349,3 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(outstanding_demand, 0)
->>>>>>> b1f5eda (fix: Auto write off demand within limit)
