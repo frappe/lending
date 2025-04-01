@@ -224,6 +224,23 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans(
 				posting_date=self.posting_date, loan=self.against_loan, loan_product=self.loan_product
 			)
+<<<<<<< HEAD
+=======
+			process_daily_loan_demands(
+				posting_date=self.posting_date,
+				loan_product=self.loan_product,
+				loan=self.against_loan,
+			)
+
+	def create_repost(self):
+		repost = frappe.new_doc("Loan Repayment Repost")
+		repost.loan = self.against_loan
+		repost.repost_date = self.posting_date
+		repost.clear_demand_allocation_before_repost = True
+		repost.cancel_future_accruals_and_demands = True
+		repost.cancel_future_emi_demands = True
+		repost.submit()
+>>>>>>> b981ecf (fix: don't delete GL Entries on repost during backdated payments)
 
 	def post_suspense_entries(self, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
