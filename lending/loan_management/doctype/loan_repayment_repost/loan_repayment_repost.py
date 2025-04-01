@@ -173,11 +173,21 @@ class LoanRepaymentRepost(Document):
 			)
 
 			if self.loan_disbursement:
+				total_principal_paid = frappe.db.get_value(
+					"Loan Repayment",
+					{
+						"against_loan": self.loan,
+						"loan_disbursement": self.loan_disbursement,
+						"docstatus": 1,
+					},
+					"sum(principal_amount_paid)",
+				)
+
 				frappe.db.set_value(
 					"Loan Disbursement",
 					self.loan_disbursement,
 					"principal_amount_paid",
-					flt(totals.total_principal_paid),
+					flt(total_principal_paid),
 				)
 
 	def trigger_on_submit_events(self):
