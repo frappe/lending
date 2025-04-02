@@ -7,6 +7,7 @@
  "field_order": [
   "section_break_md4g",
   "loan",
+  "loan_disbursement",
   "foreclosure_type",
   "column_break_lgju",
   "posting_date",
@@ -72,12 +73,18 @@
    "fieldtype": "Link",
    "label": "Payment Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:39.834713",
+ "modified": "2025-04-02 19:34:15.230143",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",
@@ -97,6 +104,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
