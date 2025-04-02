@@ -9,6 +9,30 @@ from lending.loan_management.doctype.loan_restructure.loan_restructure import cr
 
 
 class LoanAdjustment(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_adjustment_detail.loan_adjustment_detail import (
+			LoanAdjustmentDetail,
+		)
+
+		adjustments: DF.Table[LoanAdjustmentDetail]
+		amended_from: DF.Link | None
+		foreclosure_type: DF.Literal["", "Manual Foreclosure", "Internal Foreclosure"]
+		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
+		payment_account: DF.Link | None
+		posting_date: DF.Datetime | None
+	# end: auto-generated types
+
+>>>>>>> b3a9985 (fix: Add loan disbursement link in loan adjustment)
 	def validate(self):
 		amounts = calculate_amounts(self.loan, self.posting_date)
 
@@ -33,4 +57,5 @@ class LoanAdjustment(Document):
 					repayment.amount,
 					adjustment_name=self.name,
 					payment_account=self.payment_account,
+					loan_disbursement=self.loan_disbursement,
 				)
