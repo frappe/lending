@@ -33,4 +33,5 @@ class LoanAdjustment(Document):
 					repayment.amount,
 					adjustment_name=self.name,
 					payment_account=self.payment_account,
+					loan_disbursement=self.loan_disbursement,
 				)
