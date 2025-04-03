@@ -25,6 +25,7 @@ class LoanAdjustment(Document):
 		amended_from: DF.Link | None
 		foreclosure_type: DF.Literal["", "Manual Foreclosure", "Internal Foreclosure"]
 		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
 		payment_account: DF.Link | None
 		posting_date: DF.Datetime | None
 	# end: auto-generated types
@@ -53,4 +54,5 @@ class LoanAdjustment(Document):
 					repayment.amount,
 					adjustment_name=self.name,
 					payment_account=self.payment_account,
+					loan_disbursement=self.loan_disbursement,
 				)
