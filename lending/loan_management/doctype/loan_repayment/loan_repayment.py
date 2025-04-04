@@ -340,7 +340,6 @@ class LoanRepayment(AccountsController):
 	def create_repost(self):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
-		repost.delete_gl_entries = True
 		repost.repost_date = self.posting_date
 		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_accruals_and_demands = True
