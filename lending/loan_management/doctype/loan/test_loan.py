@@ -2349,3 +2349,120 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(outstanding_demand, 0)
+<<<<<<< HEAD
+=======
+
+	def test_broken_period_interest_update(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		# Daily accrual
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		self.assertTrue(disbursement.broken_period_interest, "BPI not set in disbursement")
+		self.assertTrue(disbursement.broken_period_interest_days, "BPI not set in disbursement")
+
+	def test_backdate_payments_with_daily_repayment_frequency(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200003,
+			"Repay Over Number of Periods",
+			270,
+			repayment_start_date="2025-04-01",
+			posting_date="2025-03-31",
+			rate_of_interest=27,
+			applicant_type="Customer",
+			repayment_frequency="Daily",
+		)
+
+		loan.submit()
+
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-03-31",
+			repayment_start_date="2025-04-01",
+			repayment_frequency="Daily",
+		)
+
+		for repayment_date in [
+			"2025-04-01",
+			"2025-04-02",
+			"2025-04-03",
+			"2025-04-04",
+			"2025-04-05",
+			"2025-04-06",
+			"2025-04-11",
+		]:
+			process_daily_loan_demands(posting_date=repayment_date, loan=loan.name)
+			repayment_entry = create_repayment_entry(loan.name, repayment_date, 818)
+			repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2025-04-11", 818)
+		repayment_entry.submit()
+
+	def test_loc_pre_payment_interest(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-10-28",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			486324,
+			disbursement_date="2024-11-27",
+			repayment_start_date="2025-01-26",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2025-01-23",
+			420568,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+
+		repayment_entry.save()
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		# Check Interest Amount
+		pending_principal = loan.disbursed_amount - repayment_entry.principal_amount_paid
+		interest_amount = flt((pending_principal * 17.25 * 3) / 36500, 2)
+
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}
+		)
+		schedule_details = frappe.db.get_all(
+			"Repayment Schedule", {"parent": repayment_schedule}, ["interest_amount"]
+		)
+
+		self.assertEqual(schedule_details[0].interest_amount, interest_amount)
+>>>>>>> 9bd8db7 (fix: Interest amount in one time schedule)

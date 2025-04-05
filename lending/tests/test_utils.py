@@ -596,6 +596,7 @@ def create_loan(
 	moratorium_tenure=None,
 	moratorium_type=None,
 	penalty_charges_rate=None,
+	repayment_frequency=None,
 ):
 
 	loan = frappe.get_doc(
@@ -619,6 +620,7 @@ def create_loan(
 			"moratorium_tenure": moratorium_tenure,
 			"moratorium_type": moratorium_type,
 			"penalty_charges_rate": penalty_charges_rate,
+			"repayment_frequency": repayment_frequency or "Monthly",
 		}
 	)
 
