@@ -281,6 +281,7 @@ class LoanRepaymentRepost(Document):
 
 			# Run on_submit events
 			repayment_doc.update_paid_amounts()
+			repayment_doc.handle_auto_demand_write_off()
 			repayment_doc.update_demands()
 			repayment_doc.update_security_deposit_amount()
 			repayment_doc.db_update_all()
