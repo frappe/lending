@@ -27,8 +27,78 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 )
 
 
+# nosemgrep
 class LoanRepaymentSchedule(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.co_lender_schedule.co_lender_schedule import (
+			CoLenderSchedule,
+		)
+		from lending.loan_management.doctype.repayment_schedule.repayment_schedule import (
+			RepaymentSchedule,
+		)
+
+		adjusted_interest: DF.Currency
+		amended_from: DF.Link | None
+		broken_period_interest: DF.Currency
+		broken_period_interest_days: DF.Int
+		colender_schedule: DF.Table[CoLenderSchedule]
+		company: DF.Link | None
+		current_principal_amount: DF.Currency
+		disbursed_amount: DF.Currency
+		loan: DF.Link
+		loan_amount: DF.Currency
+		loan_disbursement: DF.Link | None
+		loan_partner: DF.Link | None
+		loan_partner_rate_of_interest: DF.Float
+		loan_product: DF.Link | None
+		loan_restructure: DF.Link | None
+		maturity_date: DF.Date | None
+		monthly_repayment_amount: DF.Currency
+		moratorium_end_date: DF.Date | None
+		moratorium_tenure: DF.Int
+		moratorium_type: DF.Data | None
+		partner_base_interest_rate: DF.Percent
+		partner_loan_share_percentage: DF.Percent
+		partner_monthly_repayment_amount: DF.Currency
+		partner_repayment_schedule_type: DF.Data | None
+		posting_date: DF.Datetime | None
+		rate_of_interest: DF.Float
+		repayment_date_on: DF.Literal["Start of the next month", "End of the current month"]
+		repayment_frequency: DF.Literal[
+			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
+		]
+		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
+		repayment_periods: DF.Int
+		repayment_schedule: DF.Table[RepaymentSchedule]
+		repayment_schedule_type: DF.Data | None
+		repayment_start_date: DF.Date | None
+		restructure_type: DF.Literal["", "Normal Restructure", "Advance Payment", "Pre Payment"]
+		status: DF.Literal[
+			"Initiated",
+			"Rejected",
+			"Active",
+			"Restructured",
+			"Rescheduled",
+			"Outdated",
+			"Draft",
+			"Cancelled",
+			"Closed",
+		]
+		total_installments_overdue: DF.Int
+		total_installments_paid: DF.Int
+		total_installments_raised: DF.Int
+		treatment_of_interest: DF.Literal["Capitalize", "Add to first repayment"]
+	# end: auto-generated types
+
 	def validate(self):
+		self.number_of_rows = 0
 		self.set_repayment_period()
 		self.set_repayment_start_date()
 		self.validate_repayment_method()
@@ -45,7 +115,9 @@ class LoanRepaymentSchedule(Document):
 		if self.get("repayment_schedule"):
 			self.maturity_date = self.get("repayment_schedule")[-1].payment_date
 
+	# nosemgrep
 	def on_submit(self):
+		self.number_of_rows = 0
 		self.make_demand_for_advance_payment()
 
 	def make_demand_for_advance_payment(self):
@@ -134,6 +206,7 @@ class LoanRepaymentSchedule(Document):
 				self.rate_of_interest,
 				loan_repayment_schedule=self.name,
 			)
+		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
@@ -279,7 +352,6 @@ class LoanRepaymentSchedule(Document):
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		row = 0
-
 		if not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
 				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
@@ -427,6 +499,8 @@ class LoanRepaymentSchedule(Document):
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
 			else:
 				self.monthly_repayment_amount = monthly_repayment_amount
+		else:
+			self.repayment_periods = self.number_of_rows
 
 	def get_next_payment_date(self, payment_date):
 		if (
@@ -892,3 +966,7 @@ class LoanRepaymentSchedule(Document):
 				"demand_generated": demand_generated,
 			},
 		)
+		self.increment_number_of_rows(payment_date)
+
+	def increment_number_of_rows(self, payment_date):
+		self.number_of_rows += 1

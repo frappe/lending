@@ -12,6 +12,21 @@ from lending.loan_management.doctype.loan_demand.loan_demand import (
 
 
 class ProcessLoanDemand(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
+		loan_product: DF.Link | None
+		posting_date: DF.Date
+	# end: auto-generated types
+
 	def on_submit(self):
 		make_loan_demand_for_term_loans(
 			self.posting_date,

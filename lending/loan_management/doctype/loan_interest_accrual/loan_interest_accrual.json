@@ -19,6 +19,7 @@
   "interest_type",
   "is_term_loan",
   "is_npa",
+  "unmark_npa",
   "references_section",
   "loan_disbursement",
   "accrual_type",
@@ -38,7 +39,10 @@
   "column_break_wrcw",
   "section_break_15",
   "process_loan_interest_accrual",
-  "amended_from"
+  "amended_from",
+  "column_break_svgc",
+  "normal_interest_journal_entry",
+  "additional_interest_suspense_entry"
  ],
  "fields": [
   {
@@ -255,13 +259,37 @@
   {
    "fieldname": "column_break_idqd",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_svgc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "normal_interest_journal_entry",
+   "fieldtype": "Link",
+   "label": "Normal Interest Journal Entry",
+   "options": "Journal Entry"
+  },
+  {
+   "fieldname": "additional_interest_suspense_entry",
+   "fieldtype": "Link",
+   "label": "Additional Interest Suspense Entry",
+   "options": "Journal Entry"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan.unmark_npa",
+   "fieldname": "unmark_npa",
+   "fieldtype": "Check",
+   "label": "Unmark NPA"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-14 22:38:21.470997",
+ "modified": "2025-03-19 11:46:48.771267",
+ "modified": "2025-03-23 17:52:40.723839",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
@@ -300,7 +328,6 @@
   }
  ],
  "quick_entry": 1,
- "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

@@ -8,6 +8,56 @@ from frappe.model.document import Document
 
 
 class LoanPartner(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_partner_shareable.loan_partner_shareable import (
+			LoanPartnerShareable,
+		)
+
+		credit_account: DF.Link | None
+		effective_date: DF.Date
+		enable_partner_accounting: DF.Check
+		fldg_account: DF.Link | None
+		fldg_corporate_guarantee_percentage: DF.Percent
+		fldg_fixed_deposit_percentage: DF.Percent
+		fldg_limit_calculation_component: DF.Literal[
+			"", "Disbursement", "Outstanding Principal", "Outstanding Principal & Interest Accrued"
+		]
+		fldg_trigger_dpd: DF.Int
+		organization_type: DF.Literal["", "Centralized", "Decentralized"]
+		partial_payment_mechanism: DF.Data | None
+		partner_base_interest_rate: DF.Percent
+		partner_code: DF.Data
+		partner_interest_share: DF.Link | None
+		partner_loan_share_percentage: DF.Percent
+		partner_name: DF.Data
+		payable_account: DF.Link | None
+		primary_address: DF.Link | None
+		receivable_account: DF.Link | None
+		repayment_schedule_type: DF.Literal[
+			"",
+			"EMI (PMT) based",
+			"Collection at partner's percentage",
+			"POS reduction plus interest at partner ROI",
+		]
+		restructure_of_loans_applicable: DF.Check
+		servicer_fee: DF.Check
+		shareables: DF.Table[LoanPartnerShareable]
+		type_of_fldg_applicable: DF.Literal[
+			"",
+			"Fixed Deposit Only",
+			"Corporate Guarantee Only",
+			"Both Fixed Deposit and Corporate Guarantee",
+		]
+		waiving_of_charges_applicable: DF.Check
+	# end: auto-generated types
+
 	def onload(self):
 		"""Load address and contacts in `__onload`"""
 		load_address_and_contact(self)

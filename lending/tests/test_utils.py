@@ -62,13 +62,6 @@ def before_tests():
 
 
 def create_secured_demand_loan(applicant, disbursement_amount=None):
-	frappe.db.set_value(
-		"Company",
-		"_Test Company",
-		"collection_offset_sequence_for_standard_asset",
-		"Test Standard Loan Demand Offset Order 1",
-	)
-
 	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 	loan_application = create_loan_application("_Test Company", applicant, "Demand Loan", pledge)
@@ -706,9 +699,6 @@ def setup_loan_demand_offset_order(company=None):
 	create_demand_offset_order(
 		"Test EMI Based Standard Loan Demand Offset Order",
 		["EMI (Principal + Interest)", "Penalty", "Charges"],
-	)
-	create_demand_offset_order(
-		"Test Standard Loan Demand Offset Order 1", ["Penalty", "Interest", "Charges"]
 	)
 
 	doc = frappe.get_doc("Company", company)

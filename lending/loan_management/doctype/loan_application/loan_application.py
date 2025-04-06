@@ -24,6 +24,38 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 
 
 class LoanApplication(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.proposed_pledge.proposed_pledge import ProposedPledge
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_name: DF.Data | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		company: DF.Link
+		description: DF.SmallText | None
+		is_secured_loan: DF.Check
+		is_term_loan: DF.Check
+		loan_amount: DF.Currency
+		loan_product: DF.Link
+		maximum_loan_amount: DF.Currency
+		posting_date: DF.Date | None
+		proposed_pledges: DF.Table[ProposedPledge]
+		rate_of_interest: DF.Percent
+		repayment_amount: DF.Currency
+		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
+		repayment_periods: DF.Int
+		status: DF.Literal["Open", "Approved", "Rejected"]
+		total_payable_amount: DF.Currency
+		total_payable_interest: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.set_pledge_amount()
 		self.set_loan_amount()

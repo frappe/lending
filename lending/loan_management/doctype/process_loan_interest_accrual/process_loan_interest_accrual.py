@@ -14,6 +14,24 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 
 
 class ProcessLoanInterestAccrual(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		accrual_type: DF.Literal[
+			"Regular", "Repayment", "Disbursement", "Credit Adjustment", "Debit Adjustment", "Refund"
+		]
+		amended_from: DF.Link | None
+		company: DF.Link | None
+		loan: DF.Link | None
+		loan_product: DF.Link | None
+		posting_date: DF.Date
+	# end: auto-generated types
+
 	def on_submit(self):
 		make_accrual_interest_entry_for_loans(
 			self.posting_date,

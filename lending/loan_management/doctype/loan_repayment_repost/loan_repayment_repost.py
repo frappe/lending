@@ -12,6 +12,34 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 
 
 class LoanRepaymentRepost(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_repayment_repost_cancel_detail.loan_repayment_repost_cancel_detail import (
+			LoanRepaymentRepostCancelDetail,
+		)
+		from lending.loan_management.doctype.loan_repayment_repost_detail.loan_repayment_repost_detail import (
+			LoanRepaymentRepostDetail,
+		)
+
+		amended_from: DF.Link | None
+		cancel_future_accruals_and_demands: DF.Check
+		cancel_future_emi_demands: DF.Check
+		clear_demand_allocation_before_repost: DF.Check
+		delete_gl_entries: DF.Check
+		entries_to_cancel: DF.Table[LoanRepaymentRepostCancelDetail]
+		ignore_on_cancel_amount_update: DF.Check
+		loan: DF.Link
+		loan_disbursement: DF.Link | None
+		repayment_entries: DF.Table[LoanRepaymentRepostDetail]
+		repost_date: DF.Date
+	# end: auto-generated types
+
 	def validate(self):
 		self.get_repayment_entries()
 
@@ -145,11 +173,21 @@ class LoanRepaymentRepost(Document):
 			)
 
 			if self.loan_disbursement:
+				total_principal_paid = frappe.db.get_value(
+					"Loan Repayment",
+					{
+						"against_loan": self.loan,
+						"loan_disbursement": self.loan_disbursement,
+						"docstatus": 1,
+					},
+					"sum(principal_amount_paid)",
+				)
+
 				frappe.db.set_value(
 					"Loan Disbursement",
 					self.loan_disbursement,
 					"principal_amount_paid",
-					flt(totals.total_principal_paid),
+					flt(total_principal_paid),
 				)
 
 	def trigger_on_submit_events(self):
@@ -243,6 +281,7 @@ class LoanRepaymentRepost(Document):
 
 			# Run on_submit events
 			repayment_doc.update_paid_amounts()
+			repayment_doc.handle_auto_demand_write_off()
 			repayment_doc.update_demands()
 			repayment_doc.update_security_deposit_amount()
 			repayment_doc.db_update_all()

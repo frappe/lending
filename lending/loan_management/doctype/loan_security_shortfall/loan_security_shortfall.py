@@ -12,6 +12,26 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 
 
 class LoanSecurityShortfall(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		loan: DF.Link | None
+		loan_amount: DF.Currency
+		process_loan_security_shortfall: DF.Link | None
+		security_value: DF.Currency
+		shortfall_amount: DF.Currency
+		shortfall_percentage: DF.Percent
+		shortfall_time: DF.Datetime | None
+		status: DF.Literal["", "Pending", "Completed"]
+	# end: auto-generated types
+
 	pass
 
 
