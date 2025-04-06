@@ -2349,8 +2349,6 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(outstanding_demand, 0)
-<<<<<<< HEAD
-=======
 
 	def test_broken_period_interest_update(self):
 		loan = create_loan(
@@ -2465,4 +2463,3 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(schedule_details[0].interest_amount, interest_amount)
->>>>>>> 9bd8db7 (fix: Interest amount in one time schedule)
