@@ -5,7 +5,7 @@ from collections import Counter
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_months, get_datetime, nowdate
+from frappe.utils import add_days, add_months, get_datetime
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -197,3 +197,41 @@ class TestLoanRepayment(IntegrationTestCase):
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
 			# self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
 			# self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
+
+	def test_cancelled_penalties_on_timely_backdated_repayment(self):
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-18",
+			rate_of_interest=23,
+			penalty_charges_rate=12,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-04-18",
+			repayment_start_date="2024-05-05",
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-05-05")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date=add_days("2024-05-05", 6), company="_Test Company"
+		)
+		penal_interest = frappe.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
+			"SUM(interest_amount)",
+		)
+		self.assertGreater(penal_interest, 0)
+		create_repayment_entry(loan=loan.name, posting_date="2024-05-05", paid_amount=178025).submit()
+		penal_interest = frappe.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
+			"SUM(interest_amount)",
+		)
+		self.assertEqual(penal_interest, None)
