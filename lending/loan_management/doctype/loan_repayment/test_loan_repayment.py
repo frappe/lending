@@ -1,14 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-<<<<<<< HEAD
-# import frappe
-import unittest
-
-
-class TestLoanRepayment(unittest.TestCase):
-	pass
-=======
 from collections import Counter
 
 import frappe
@@ -243,4 +235,3 @@ class TestLoanRepayment(IntegrationTestCase):
 			"SUM(interest_amount)",
 		)
 		self.assertEqual(penal_interest, None)
->>>>>>> df9afdd (test: test for reversed accruals)
