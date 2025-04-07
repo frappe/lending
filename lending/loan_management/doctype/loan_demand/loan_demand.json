@@ -5,7 +5,19 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+<<<<<<< HEAD
   "loan_demand_details_section",
+=======
+  "applicant_details_section",
+  "applicant_type",
+  "applicant",
+  "loan_repayment",
+  "column_break_ymok",
+  "company",
+  "demand_date",
+  "posting_date",
+  "references_section",
+>>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
   "loan",
   "loan_repayment_schedule",
   "loan_disbursement",
@@ -224,13 +236,68 @@
    "fieldtype": "Currency",
    "label": "Partner Share Allocated",
    "options": "Company:company:default_currency"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "applicant_details_section",
+   "fieldtype": "Section Break",
+   "label": "Applicant Details"
+  },
+  {
+   "fieldname": "column_break_ymok",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  },
+  {
+   "fieldname": "column_break_hmrs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "co_lending_tab",
+   "fieldtype": "Tab Break",
+   "label": "Co Lending"
+  },
+  {
+   "fieldname": "loan_partner_share_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loan Partner Share Details"
+  },
+  {
+   "fieldname": "column_break_swqr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "references_section",
+   "fieldtype": "Section Break",
+   "label": "References"
+  },
+  {
+   "fieldname": "column_break_ssmc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loan_repayment",
+   "fieldtype": "Link",
+   "label": "Loan Repayment",
+   "options": "Loan Repayment"
+>>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-01-29 14:12:33.665969",
+=======
+ "modified": "2025-04-07 20:02:40.062137",
+>>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
@@ -265,6 +332,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

@@ -2697,6 +2697,7 @@ def create_loan_application(
 
 	return loan_application.name
 
+<<<<<<< HEAD
 
 def create_loan(
 	applicant,
@@ -2855,3 +2856,42 @@ def create_loan_write_off(loan, posting_date, write_off_amount=None):
 	loan_write_off.submit()
 
 	return loan_write_off
+=======
+		self.assertEqual(schedule_details[0].interest_amount, interest_amount)
+
+	def test_closure_payment_demand_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-04-01",
+			100945.80,
+		)
+		repayment_entry.submit()
+		repayment_entry.cancel()
+
+		demands = frappe.db.get_all(
+			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
+		)
+		self.assertEqual(len(demands), 2)
+>>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
