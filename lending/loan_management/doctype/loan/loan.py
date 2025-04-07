@@ -259,7 +259,6 @@ class Loan(AccountsController):
 				nowdate(),
 				loan=self.name,
 				manual_npa=self.manual_npa,
-				via_background_job=False,
 			)
 			if self.manual_npa:
 				move_unpaid_interest_to_suspense_ledger(self.name)
@@ -821,7 +820,6 @@ def update_days_past_due_in_loans(
 	loan_disbursement=None,
 	ignore_freeze=False,
 	is_backdated=0,
-	via_background_job=False,
 	force_update_dpd_in_loan=0,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
@@ -920,7 +918,6 @@ def update_days_past_due_in_loans(
 					loan_disbursement=disbursement,
 					is_backdated=is_backdated,
 					dpd_threshold=threshold,
-					via_background_job=via_background_job,
 				)
 
 			create_dpd_record(
@@ -946,7 +943,6 @@ def update_days_past_due_in_loans(
 				loan_disbursement=disbursement,
 				is_backdated=is_backdated,
 				dpd_threshold=threshold,
-				via_background_job=via_background_job,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
@@ -1090,7 +1086,6 @@ def update_loan_and_customer_status(
 	loan_disbursement=None,
 	is_backdated=0,
 	dpd_threshold=0,
-	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_charges,
@@ -1157,9 +1152,7 @@ def update_loan_and_customer_status(
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
 		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
-			update_all_linked_loan_customer_npa_status(
-				1, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
-			)
+			update_all_linked_loan_customer_npa_status(1, applicant_type, applicant, posting_date, loan)
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
 			move_unpaid_interest_to_suspense_ledger(loan, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
@@ -1171,9 +1164,7 @@ def update_loan_and_customer_status(
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date)
 
-		update_all_linked_loan_customer_npa_status(
-			is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
-		)
+		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
 		max_dpd = frappe.db.get_value(
 			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
@@ -1189,7 +1180,7 @@ def update_loan_and_customer_status(
 					write_off_charges(loan_id, posting_date, company)
 
 				update_all_linked_loan_customer_npa_status(
-					is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
+					is_npa, applicant_type, applicant, posting_date, loan
 				)
 
 	frappe.db.set_value(
@@ -1224,13 +1215,12 @@ def update_all_linked_loan_customer_npa_status(
 	posting_date,
 	loan=None,
 	manual_npa=False,
-	via_background_job=False,
 ):
 	"""Update NPA status of all linked customers"""
 
 	prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
-	if not via_background_job and prev_npa != is_npa:
+	if prev_npa != is_npa:
 		update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
 	else:
 		update_value = {

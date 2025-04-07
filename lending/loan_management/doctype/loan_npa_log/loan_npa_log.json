@@ -17,7 +17,8 @@
    "fieldname": "loan",
    "fieldtype": "Link",
    "label": "Loan",
-   "options": "Loan"
+   "options": "Loan",
+   "search_index": 1
   },
   {
    "default": "0",
@@ -51,7 +52,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-19 11:46:39.607504",
+ "modified": "2025-04-07 20:42:40.269436",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan NPA Log",
@@ -70,6 +71,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

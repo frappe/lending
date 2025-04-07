@@ -2440,3 +2440,68 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(schedule_details[0].interest_amount, interest_amount)
+
+	def test_npa_marking_for_customer_via_scheduler(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			process_loan_classification_batch,
+		)
+
+		customer = frappe.get_doc(get_customer_dict("NPA Customer 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan1 = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan1.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan1.name, loan1.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+
+		loan2 = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-07-05",
+			posting_date="2024-06-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan2.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan2.name, loan2.loan_amount, disbursement_date="2024-06-05", repayment_start_date="2024-07-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan1.name)
+		process_loan_classification_batch(
+			open_loans=[loan1.name],
+			posting_date="2024-07-06",
+			loan_product=loan1.loan_product,
+			classification_process=None,
+			loan_disbursement=None,
+			payment_reference=None,
+			is_backdated=0,
+			force_update_dpd_in_loan=1,
+		)
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
+		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
+		self.assertTrue(customer_npa, "Customer not marked as NPA")
