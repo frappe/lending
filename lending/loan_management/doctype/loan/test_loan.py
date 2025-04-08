@@ -2441,7 +2441,6 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertEqual(schedule_details[0].interest_amount, interest_amount)
 
-<<<<<<< HEAD
 	def test_npa_marking_for_customer_via_scheduler(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -2454,17 +2453,11 @@ class TestLoan(IntegrationTestCase):
 
 		loan1 = create_loan(
 			customer.name,
-=======
-	def test_closure_payment_demand_cancel(self):
-		loan = create_loan(
-			"_Test Customer 1",
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
 			"Term Loan Product 4",
 			100000,
 			"Repay Over Number of Periods",
 			22,
 			repayment_start_date="2024-04-05",
-<<<<<<< HEAD
 			posting_date="2024-03-05",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
@@ -2483,14 +2476,10 @@ class TestLoan(IntegrationTestCase):
 			22,
 			repayment_start_date="2024-07-05",
 			posting_date="2024-06-05",
-=======
-			posting_date="2024-02-20",
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 		)
 
-<<<<<<< HEAD
 		loan2.submit()
 		# Daily accrual
 		make_loan_disbursement_entry(
@@ -2516,7 +2505,20 @@ class TestLoan(IntegrationTestCase):
 		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
 		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
 		self.assertTrue(customer_npa, "Customer not marked as NPA")
-=======
+
+	def test_closure_payment_demand_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
 		loan.submit()
 
 		make_loan_disbursement_entry(
@@ -2539,4 +2541,3 @@ class TestLoan(IntegrationTestCase):
 			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
 		)
 		self.assertEqual(len(demands), 2)
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
