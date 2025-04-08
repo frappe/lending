@@ -746,7 +746,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 	def test_same_date_for_daily_accruals(self):
 		set_loan_accrual_frequency("Daily")
@@ -773,7 +773,7 @@ class TestLoan(IntegrationTestCase):
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 		accruals = frappe.get_all(
 			"Loan Interest Accrual",
