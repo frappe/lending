@@ -2002,6 +2002,7 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-17",
 			"2024-08-18",
 			"2024-08-19",
+			"2024-08-20",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
@@ -2034,6 +2035,7 @@ class TestLoan(IntegrationTestCase):
 			"2024-09-15",
 			"2024-09-30",
 			"2024-10-15",
+			"2024-10-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
