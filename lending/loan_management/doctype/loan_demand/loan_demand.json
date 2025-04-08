@@ -238,37 +238,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
-   "fieldname": "accounting_dimensions_section",
-   "fieldtype": "Section Break",
-   "label": "Accounting Dimensions"
-  },
-  {
-   "fieldname": "column_break_hmrs",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "co_lending_tab",
-   "fieldtype": "Tab Break",
-   "label": "Co Lending"
-  },
-  {
-   "fieldname": "loan_partner_share_details_section",
-   "fieldtype": "Section Break",
-   "label": "Loan Partner Share Details"
-  },
-  {
-   "fieldname": "column_break_swqr",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "references_section",
    "fieldtype": "Section Break",
    "label": "References"
-  },
-  {
-   "fieldname": "column_break_ssmc",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "loan_repayment",
