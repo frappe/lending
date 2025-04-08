@@ -459,6 +459,7 @@ class LoanRepayment(AccountsController):
 				flt(amount, precision),
 				paid_amount=flt(amount, precision),
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 	def process_reschedule(self):
@@ -467,7 +468,9 @@ class LoanRepayment(AccountsController):
 		loan_restructure.status = "Approved"
 		loan_restructure.submit()
 
-	def reverse_future_accruals_and_demands(self, on_settlement_or_closure=False):
+	def reverse_future_accruals_and_demands(
+		self, on_settlement_or_closure=False, loan_repayment=None
+	):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
@@ -488,6 +491,7 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
+			loan_repayment=loan_repayment,
 		)
 
 		return accruals
@@ -887,6 +891,7 @@ class LoanRepayment(AccountsController):
 				flt(self.unbooked_interest_paid, precision),
 				paid_amount=self.unbooked_interest_paid,
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 		if flt(self.unbooked_penalty_paid, precision) > 0:
@@ -898,6 +903,7 @@ class LoanRepayment(AccountsController):
 				flt(self.unbooked_penalty_paid, precision),
 				paid_amount=self.unbooked_penalty_paid,
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 	def update_paid_amounts(self):
@@ -1031,6 +1037,7 @@ class LoanRepayment(AccountsController):
 				"EMI" if self.is_term_loan else "Normal",
 				"Interest",
 				flt(unpaid_unbooked_interest, precision),
+				loan_repayment=self.name,
 			)
 
 		if flt(self.interest_payable - self.total_interest_paid, precision) > 0:
@@ -1201,15 +1208,19 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type == "Write Off Settlement":
 				query = query.set(loan.status, "Written Off")
 				self.update_repayment_schedule_status(cancel=1)
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif self.repayment_type == "Full Settlement":
 				query = query.set(loan.status, "Disbursed")
 				self.update_repayment_schedule_status(cancel=1)
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif loan_status == "Closed":
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:
 					query = query.set(loan.status, "Disbursed")
 					self.update_repayment_schedule_status(cancel=1)
+
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 
 			if self.repayment_schedule_type == "Line of Credit" and self.loan_disbursement:
 				self.update_repayment_schedule_status(cancel=1)
