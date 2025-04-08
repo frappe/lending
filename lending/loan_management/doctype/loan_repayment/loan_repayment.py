@@ -2217,11 +2217,6 @@ def process_amount_for_loan(
 
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
-<<<<<<< HEAD
-	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan.name, posting_date, loan_disbursement=loan_disbursement, last_demand_date=last_demand_date
-	)
-=======
 	if loan.status not in ("Closed", "Settled"):
 		unbooked_interest, accrued_interest = get_unbooked_interest(
 			loan.name,
@@ -2229,7 +2224,6 @@ def process_amount_for_loan(
 			loan_disbursement=loan_disbursement,
 			last_demand_date=last_demand_date,
 		)
->>>>>>> 3c64cbe (fix: Move classification process to background)
 
 	if getdate(posting_date) > getdate(latest_accrual_date) or is_backdated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
