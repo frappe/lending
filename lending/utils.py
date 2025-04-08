@@ -38,5 +38,5 @@ def before_tests():
 
 def daterange(start_date: date, end_date: date):
 	days = int((end_date - start_date).days)
-	for n in range(days):
+	for n in range(days + 1):
 		yield start_date + timedelta(n)
