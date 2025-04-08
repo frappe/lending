@@ -5,9 +5,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-<<<<<<< HEAD
-  "loan_demand_details_section",
-=======
   "applicant_details_section",
   "applicant_type",
   "applicant",
@@ -17,13 +14,10 @@
   "demand_date",
   "posting_date",
   "references_section",
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
   "loan",
   "loan_repayment_schedule",
   "loan_disbursement",
   "repayment_schedule_detail",
-  "applicant_type",
-  "applicant",
   "loan_product",
   "loan_partner",
   "demand_type",
@@ -32,9 +26,6 @@
   "cost_center",
   "process_loan_demand",
   "column_break_qrjm",
-  "company",
-  "demand_date",
-  "posting_date",
   "disbursement_date",
   "demand_amount",
   "partner_share",
@@ -236,8 +227,6 @@
    "fieldtype": "Currency",
    "label": "Partner Share Allocated",
    "options": "Company:company:default_currency"
-<<<<<<< HEAD
-=======
   },
   {
    "fieldname": "applicant_details_section",
@@ -286,18 +275,13 @@
    "fieldtype": "Link",
    "label": "Loan Repayment",
    "options": "Loan Repayment"
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-01-29 14:12:33.665969",
-=======
  "modified": "2025-04-07 20:02:40.062137",
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
@@ -332,7 +316,6 @@
    "write": 1
   }
  ],
- "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

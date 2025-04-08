@@ -382,12 +382,9 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
-<<<<<<< HEAD
 			loan_repayment_schedule=loan_repayment_schedule,
 			future_demands=on_back_dated_prepayment,
-=======
 			loan_repayment=loan_repayment,
->>>>>>> ee1de56 (fix: Loan Demand reversal on closure and settlement cancellation)
 		)
 
 		return accruals
@@ -1948,6 +1945,7 @@ class LoanRepayment(AccountsController):
 							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 						).format(moratorium_end_date, self.posting_date)
 					)
+
 
 def create_repayment_entry(
 	loan,
