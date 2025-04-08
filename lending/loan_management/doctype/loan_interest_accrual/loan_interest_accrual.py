@@ -372,6 +372,7 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disburseme
 		fields=["name", "maturity_date"],
 	)
 
+<<<<<<< HEAD
 	schedules = [d.name for d in schedules_details]
 
 	freeze_date = frappe.db.get_value("Loan", loan, "freeze_date")
@@ -394,6 +395,10 @@ def get_overlapping_dates(loan, last_accrual_date, posting_date, loan_disburseme
 			order_by="payment_date",
 		)
 		or []
+=======
+	accrual_frequency_breaks = get_accrual_frequency_breaks(
+		add_days(last_accrual_date, -1), posting_date, loan_accrual_frequency
+>>>>>>> 001f547 (fix: loan interest accruals till posting_date of Process Loan Interest Accrual)
 	)
 
 	for schedule_date in schedule_dates:
