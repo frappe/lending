@@ -442,6 +442,7 @@ def create_loan_demand(
 	process_loan_demand=None,
 	paid_amount=0,
 	posting_date=None,
+	loan_repayment=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if amount:
@@ -458,6 +459,7 @@ def create_loan_demand(
 		demand.sales_invoice = sales_invoice
 		demand.process_loan_demand = process_loan_demand
 		demand.paid_amount = paid_amount
+		demand.loan_repayment = loan_repayment
 		demand.save()
 		demand.submit()
 
@@ -470,6 +472,7 @@ def reverse_demands(
 	loan_disbursement=None,
 	on_settlement_or_closure=False,
 	future_demands=False,
+	loan_repayment=None,
 ):
 
 	# on settlement or closure, demand should be cleared from next day
@@ -479,6 +482,9 @@ def reverse_demands(
 
 	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
 	or_filters = {}
+
+	if loan_repayment:
+		filters["loan_repayment"] = loan_repayment
 
 	if demand_type:
 		filters["demand_type"] = demand_type
