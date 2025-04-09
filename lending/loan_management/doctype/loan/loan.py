@@ -1249,7 +1249,7 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 			& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (_loan.applicant_type == applicant_type)
 			& (_loan.applicant == applicant)
-			& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
+			& (_loan.watch_period_end_date.isnull() | (_loan.watch_period_end_date < posting_date))
 		)
 	)
 
