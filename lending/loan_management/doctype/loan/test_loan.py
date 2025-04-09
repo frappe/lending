@@ -430,7 +430,7 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-09-05", loan=loan.name, company="_Test Company"
+			posting_date="2024-10-05", loan=loan.name, company="_Test Company"
 		)
 
 		loan.load_from_db()
@@ -461,6 +461,16 @@ class TestLoan(IntegrationTestCase):
 			}
 		)
 		loan_adjustment.submit()
+
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"accrual_date",
+			order_by="accrual_date desc",
+		)
+
+		freeze_date = loan.freeze_date
+		self.assertEqual(str(last_accrual_date), freeze_date)
 
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Closed")
