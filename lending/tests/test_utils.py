@@ -710,8 +710,8 @@ def setup_loan_demand_offset_order(company=None):
 		)
 
 	if not doc.get("collection_offset_sequence_for_sub_standard_asset"):
-		doc.collection_offset_sequence_for_non_standard_asset = (
-			"Test Demand Loan Loan Demand Offset Order"
+		doc.collection_offset_sequence_for_sub_standard_asset = (
+			"Test EMI Based Standard Loan Demand Offset Order"
 		)
 
 	if not doc.get("collection_offset_sequence_for_written_off_asset"):
