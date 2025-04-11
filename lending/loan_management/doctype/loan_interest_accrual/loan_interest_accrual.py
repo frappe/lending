@@ -73,7 +73,7 @@ class LoanInterestAccrual(AccountsController):
 		self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
-		if getdate(self.start_date) <= getdate(self.last_accrual_date):
+		if getdate(self.start_date) < getdate(self.last_accrual_date):
 			frappe.throw(
 				_(
 					"There are already Loan Interest Accruals made till {}. Your accrual has the starting date {}"
