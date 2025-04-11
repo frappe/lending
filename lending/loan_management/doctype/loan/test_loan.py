@@ -1830,6 +1830,9 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
+		dpd_in_loan = frappe.db.get_value("Loan", loan.name, "days_past_due")
+		self.assertEqual(dpd_in_loan, 0)
+
 	def test_dpd_calculation_for_loc_loan(self):
 		loan = create_loan(
 			"_Test Customer 1",
