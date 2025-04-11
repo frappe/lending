@@ -744,7 +744,7 @@ def create_demand_offset_order(order_name, components):
 		order.insert()
 
 
-def create_loan_write_off(loan, posting_date, write_off_amount=None):
+def create_loan_write_off(loan, posting_date):
 	loan_write_off = frappe.new_doc("Loan Write Off")
 	loan_write_off.loan = loan
 	loan_write_off.posting_date = posting_date

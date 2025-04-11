@@ -928,10 +928,12 @@ class LoanRepayment(AccountsController):
 				self.update_repayment_schedule_status()
 			else:
 				if self.repayment_schedule_type != "Line of Credit":
-					query = query.set(loan.status, "Active")
 					query = query.set(loan.status, "Settled")
 					query = query.set(loan.settlement_date, self.posting_date)
 				self.update_repayment_schedule_status()
+
+			if not (self.flags.from_repost or self.flags.in_bulk):
+				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		elif (
 			self.auto_close_loan()

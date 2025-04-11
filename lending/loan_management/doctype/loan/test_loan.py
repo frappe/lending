@@ -2466,6 +2466,7 @@ class TestLoan(IntegrationTestCase):
 
 		repayment_entry = create_repayment_entry(loan.name, "2025-04-11", 818)
 		repayment_entry.submit()
+		set_loan_accrual_frequency("Monthly")
 
 	def test_loc_pre_payment_interest(self):
 		loan = create_loan(
@@ -2616,3 +2617,38 @@ class TestLoan(IntegrationTestCase):
 			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
 		)
 		self.assertEqual(len(demands), 2)
+
+	def test_back_dated_write_off_recovery(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+		create_loan_write_off(loan.name, "2024-04-05")
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-15", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-04-10",
+			100223.10,
+			repayment_type="Write Off Settlement",
+		)
+
+		repayment_entry.submit()
+
+		set_loan_accrual_frequency("Monthly")
