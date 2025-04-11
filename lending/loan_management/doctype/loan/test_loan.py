@@ -2778,26 +2778,9 @@ def create_loan_with_security(
 
 	loan.save()
 
-<<<<<<< HEAD
 	return loan
-=======
-		process_daily_loan_demands(posting_date="2024-07-05", loan=loan1.name)
-		process_daily_loan_demands(posting_date="2024-07-05", loan=loan2.name)
-
-		process_loan_classification_batch(
-			open_loans=[loan1.name],
-			posting_date="2024-07-06",
-			loan_product=loan1.loan_product,
-			classification_process=None,
-			loan_disbursement=None,
-			payment_reference=None,
-			is_backdated=0,
-			force_update_dpd_in_loan=1,
-		)
->>>>>>> e84ee3f (fix: Customer not getting unmarked)
 
 
-<<<<<<< HEAD
 def create_demand_loan(applicant, loan_product, loan_application, posting_date=None):
 	loan = frappe.new_doc("Loan")
 	loan.company = "_Test Company"
@@ -2875,48 +2858,3 @@ def create_loan_write_off(loan, posting_date, write_off_amount=None):
 	loan_write_off.submit()
 
 	return loan_write_off
-=======
-		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
-		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
-		self.assertTrue(customer_npa, "Customer not marked as NPA")
-
-		# Repay one loan and check, loans should still be marked as NPA
-		amount1 = calculate_amounts(against_loan=loan1.name, posting_date="2024-07-06")
-		repayment = create_repayment_entry(loan1.name, "2024-07-06", amount1.get("payable_amount"))
-
-		repayment.submit()
-
-		loan1.load_from_db()
-		loan2.load_from_db()
-		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
-
-		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
-		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
-		self.assertTrue(customer_npa, "Customer not marked as NPA")
-
-		# Repay second loan and check, loans should be marked as non NPA this time
-		amount2 = calculate_amounts(against_loan=loan2.name, posting_date="2024-07-06")
-
-		repayment = create_repayment_entry(loan2.name, "2024-07-06", amount2.get("payable_amount"))
-
-		repayment.submit()
-
-		process_loan_classification_batch(
-			open_loans=[loan1.name],
-			posting_date="2024-07-06",
-			loan_product=loan1.loan_product,
-			classification_process=None,
-			loan_disbursement=None,
-			payment_reference=None,
-			is_backdated=0,
-			force_update_dpd_in_loan=1,
-		)
-
-		loan1.load_from_db()
-		loan2.load_from_db()
-		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
-
-		self.assertFalse(loan1.is_npa, "Loan 1 not unmarked as NPA")
-		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
-		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
->>>>>>> e84ee3f (fix: Customer not getting unmarked)
