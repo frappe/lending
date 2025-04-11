@@ -2513,43 +2513,6 @@ class TestLoan(IntegrationTestCase):
 		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
 		self.assertTrue(customer_npa, "Customer not marked as NPA")
 
-<<<<<<< HEAD
-	def test_closure_payment_demand_cancel(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
-		)
-
-		repayment_entry = create_repayment_entry(
-			loan.name,
-			"2024-04-01",
-			100945.80,
-		)
-		repayment_entry.submit()
-		repayment_entry.cancel()
-
-		demands = frappe.db.get_all(
-			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
-		)
-		self.assertEqual(len(demands), 2)
-=======
 		# Repay one loan and check, loans should still be marked as NPA
 		amount1 = calculate_amounts(against_loan=loan1.name, posting_date="2024-07-06")
 		repayment = create_repayment_entry(loan1.name, "2024-07-06", amount1.get("payable_amount"))
@@ -2589,4 +2552,39 @@ class TestLoan(IntegrationTestCase):
 		self.assertFalse(loan1.is_npa, "Loan 1 not unmarked as NPA")
 		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
 		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
->>>>>>> e84ee3f (fix: Customer not getting unmarked)
+
+	def test_closure_payment_demand_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-04-01",
+			100945.80,
+		)
+		repayment_entry.submit()
+		repayment_entry.cancel()
+
+		demands = frappe.db.get_all(
+			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
+		)
+		self.assertEqual(len(demands), 2)
