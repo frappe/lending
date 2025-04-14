@@ -1054,6 +1054,7 @@ def repost_days_past_due_log(
 
 			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
+
 def create_loan_write_off(loan, posting_date):
 	if frappe.db.get_value("Loan", loan, "status") != "Written Off":
 		loan_write_off = frappe.new_doc("Loan Write Off")
