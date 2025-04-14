@@ -265,8 +265,8 @@ def create_loan_accounts():
 		"Security Deposit Account",
 		"Loans (Liabilities) - _TC",
 		"Liability",
-		"Payable",
-		"Profit and Loss",
+		"",
+		"Balance Sheet",
 	)
 
 
@@ -479,7 +479,12 @@ def create_loan_security():
 
 
 def make_loan_disbursement_entry(
-	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+	loan,
+	amount,
+	disbursement_date=None,
+	repayment_start_date=None,
+	repayment_frequency=None,
+	withhold_security_deposit=False,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
@@ -491,6 +496,7 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
+	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
@@ -710,8 +716,8 @@ def setup_loan_demand_offset_order(company=None):
 		)
 
 	if not doc.get("collection_offset_sequence_for_sub_standard_asset"):
-		doc.collection_offset_sequence_for_non_standard_asset = (
-			"Test Demand Loan Loan Demand Offset Order"
+		doc.collection_offset_sequence_for_sub_standard_asset = (
+			"Test EMI Based Standard Loan Demand Offset Order"
 		)
 
 	if not doc.get("collection_offset_sequence_for_written_off_asset"):

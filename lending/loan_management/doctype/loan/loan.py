@@ -1032,6 +1032,7 @@ def repost_days_past_due_log(
 			end_date = getdate(next_payment_date)
 
 			for current_date in daterange(start_date, end_date):
+        final_dpd = 0
 				if current_date >= getdate(posting_date):
 					matching_demand_found = False
 					for d in demands:
@@ -1041,14 +1042,17 @@ def repost_days_past_due_log(
 							create_dpd_record(
 								loan, demand.loan_disbursement, current_date, dpd_counter, process_loan_classification
 							)
+              final_dpd = dpd_counter
 							matching_demand_found = True
 							break
 
 					if not matching_demand_found:
+            final_dpd = 0
 						create_dpd_record(
 							loan, demand.loan_disbursement, current_date, 0, process_loan_classification
 						)
 
+			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
 def create_loan_write_off(loan, posting_date):
 	if frappe.db.get_value("Loan", loan, "status") != "Written Off":

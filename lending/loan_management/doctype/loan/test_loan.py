@@ -400,6 +400,81 @@ class TestLoan(IntegrationTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Loan Closure Requested")
 
+	def test_foreclosure_loan_process(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2024-03-25",
+			rate_of_interest=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-03-25",
+			repayment_start_date="2024-04-01",
+			withhold_security_deposit=1,
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-09-01")
+		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-09-01", payable_amount)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-10-05", loan=loan.name, company="_Test Company"
+		)
+
+		loan.load_from_db()
+		loan.freeze_account = 1
+		loan.freeze_date = "2024-09-03"
+		loan.save()
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-09-05")
+		total_net_payable = round(
+			float(amounts["unaccrued_interest"] or 0.0)
+			+ float(amounts["interest_amount"] or 0.0)
+			+ float(amounts["penalty_amount"] or 0.0)
+			+ float(amounts["total_charges_payable"] or 0.0)
+			- float(amounts["available_security_deposit"] or 0.0)
+			+ float(amounts["unbooked_interest"] or 0.0)
+			+ float(amounts["unbooked_penalty"] or 0.0)
+			+ float(amounts["pending_principal_amount"] or 0.0),
+			2,
+		)
+
+		loan_adjustment = frappe.get_doc(
+			{
+				"doctype": "Loan Adjustment",
+				"loan": loan.name,
+				"posting_date": "2024-09-05",
+				"foreclosure_type": "Internal Foreclosure",
+				"adjustments": [{"loan_repayment_type": "Normal Repayment", "amount": total_net_payable}],
+			}
+		)
+		loan_adjustment.submit()
+
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"accrual_date",
+			order_by="accrual_date desc",
+		)
+
+		freeze_date = loan.freeze_date
+		self.assertEqual(str(last_accrual_date), freeze_date)
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Closed")
+
 	def test_loan_repayment_for_term_loan(self):
 		pledges = [
 			{"loan_security": "Test Security 2", "qty": 4000.00},
@@ -746,7 +821,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 	def test_same_date_for_daily_accruals(self):
 		set_loan_accrual_frequency("Daily")
@@ -773,7 +848,7 @@ class TestLoan(IntegrationTestCase):
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.70)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 		accruals = frappe.get_all(
 			"Loan Interest Accrual",
@@ -1826,6 +1901,9 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
+		dpd_in_loan = frappe.db.get_value("Loan", loan.name, "days_past_due")
+		self.assertEqual(dpd_in_loan, 0)
+
 	def test_dpd_calculation_for_loc_loan(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2002,6 +2080,7 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-17",
 			"2024-08-18",
 			"2024-08-19",
+			"2024-08-20",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
@@ -2034,6 +2113,7 @@ class TestLoan(IntegrationTestCase):
 			"2024-09-15",
 			"2024-09-30",
 			"2024-10-15",
+			"2024-10-31",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
@@ -2485,6 +2565,8 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		process_daily_loan_demands(posting_date="2024-07-05", loan=loan1.name)
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan2.name)
+
 		process_loan_classification_batch(
 			open_loans=[loan1.name],
 			posting_date="2024-07-06",
@@ -2503,6 +2585,46 @@ class TestLoan(IntegrationTestCase):
 		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
 		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
 		self.assertTrue(customer_npa, "Customer not marked as NPA")
+
+		# Repay one loan and check, loans should still be marked as NPA
+		amount1 = calculate_amounts(against_loan=loan1.name, posting_date="2024-07-06")
+		repayment = create_repayment_entry(loan1.name, "2024-07-06", amount1.get("payable_amount"))
+
+		repayment.submit()
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
+		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
+		self.assertTrue(customer_npa, "Customer not marked as NPA")
+
+		# Repay second loan and check, loans should be marked as non NPA this time
+		amount2 = calculate_amounts(against_loan=loan2.name, posting_date="2024-07-06")
+
+		repayment = create_repayment_entry(loan2.name, "2024-07-06", amount2.get("payable_amount"))
+
+		repayment.submit()
+
+		process_loan_classification_batch(
+			open_loans=[loan1.name],
+			posting_date="2024-07-06",
+			loan_product=loan1.loan_product,
+			classification_process=None,
+			loan_disbursement=None,
+			payment_reference=None,
+			is_backdated=0,
+			force_update_dpd_in_loan=1,
+		)
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertFalse(loan1.is_npa, "Loan 1 not unmarked as NPA")
+		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
+		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
 
 	def test_closure_payment_demand_cancel(self):
 		loan = create_loan(
