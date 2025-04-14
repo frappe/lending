@@ -1039,14 +1039,18 @@ def repost_days_past_due_log(
 						demand_amount = flt(d.demand_amount, precision)
 						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
-							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter, process_loan_classification)
+							create_dpd_record(
+								loan, demand.loan_disbursement, current_date, dpd_counter, process_loan_classification
+							)
 							final_dpd = dpd_counter
 							matching_demand_found = True
 							break
 
 					if not matching_demand_found:
 						final_dpd = 0
-						create_dpd_record(loan, demand.loan_disbursement, current_date, 0, process_loan_classification)
+						create_dpd_record(
+							loan, demand.loan_disbursement, current_date, 0, process_loan_classification
+						)
 
 			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
