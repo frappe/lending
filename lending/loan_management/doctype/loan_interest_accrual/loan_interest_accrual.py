@@ -53,10 +53,14 @@ class LoanInterestAccrual(AccountsController):
 		self.make_gl_entries(cancel=1)
 
 		if self.normal_interest_journal_entry:
-			frappe.get_doc("Journal Entry", self.normal_interest_journal_entry).cancel()
+			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 		if self.additional_interest_suspense_entry:
-			frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry).cancel()
+			doc = frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
