@@ -858,6 +858,7 @@ def update_days_past_due_in_loans(
 					posting_date=posting_date,
 					loan_product=loan_product,
 					loan_disbursement=disbursement,
+					process_loan_classification=process_loan_classification,
 				)
 			else:
 				frappe.enqueue(
@@ -866,6 +867,7 @@ def update_days_past_due_in_loans(
 					posting_date=posting_date,
 					loan_product=loan_product,
 					loan_disbursement=disbursement,
+					process_loan_classification=process_loan_classification,
 					queue="long",
 					enqueue_after_commit=True,
 				)
@@ -947,7 +949,9 @@ def update_days_past_due_in_loans(
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
 
-def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement):
+def repost_days_past_due_log(
+	loan, posting_date, loan_product, loan_disbursement, process_loan_classification
+):
 	"""Get outstanding demands for a loan"""
 	where_conditions = ""
 	payment_conditions = ""
@@ -1028,18 +1032,27 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 			end_date = getdate(next_payment_date)
 
 			for current_date in daterange(start_date, end_date):
+				final_dpd = 0
 				if current_date >= getdate(posting_date):
 					matching_demand_found = False
 					for d in demands:
 						demand_amount = flt(d.demand_amount, precision)
 						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
-							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
+							create_dpd_record(
+								loan, demand.loan_disbursement, current_date, dpd_counter, process_loan_classification
+							)
+							final_dpd = dpd_counter
 							matching_demand_found = True
 							break
 
 					if not matching_demand_found:
-						create_dpd_record(loan, demand.loan_disbursement, current_date, 0)
+						final_dpd = 0
+						create_dpd_record(
+							loan, demand.loan_disbursement, current_date, 0, process_loan_classification
+						)
+
+			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
 
 def create_loan_write_off(loan, posting_date):
