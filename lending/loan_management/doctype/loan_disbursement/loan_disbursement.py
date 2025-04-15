@@ -167,7 +167,9 @@ class LoanDisbursement(AccountsController):
 			)
 			if bpi_recovery_method == "Upfront Deduction":
 				self.db_set("broken_period_interest", flt(schedule.broken_period_interest, precision))
-				self.db_set("broken_period_interest_days", flt(schedule.broken_period_interest_days, precision))
+				self.db_set(
+					"broken_period_interest_days", flt(schedule.broken_period_interest_days, precision)
+				)
 
 	def on_submit(self):
 		if self.is_term_loan:
