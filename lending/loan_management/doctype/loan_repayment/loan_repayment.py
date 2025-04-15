@@ -514,8 +514,6 @@ class LoanRepayment(AccountsController):
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
 
-		# self.cancel_charge_demands()
-
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			self.cancel_loan_restructure()
 

@@ -497,11 +497,12 @@ def reverse_demands(
 	elif loan_repayment_schedule and future_demands:
 		or_filters["loan_repayment_schedule"] = loan_repayment_schedule
 		or_filters["demand_date"] = (">", posting_date)
+		del or_filters["posting_date"]
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	for demand in frappe.get_all("Loan Demand", filters=filters):
+	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
 		doc = frappe.get_doc("Loan Demand", demand.name)
 		doc.flags.ignore_links = True
 		doc.cancel()
