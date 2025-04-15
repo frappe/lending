@@ -9,6 +9,16 @@ frappe.ui.form.on('Loan Application', {
 			'Loan': function() { frm.trigger('create_loan') },
 			'Loan Security Assignment': function() { frm.trigger('create_loan_security_assignment_from_loan_application') },
 		}
+
+		frm.can_make_methods = {
+			'Loan': function(frm) {
+				return frm.doc.status === "Approved" && frm.doc.docstatus === 1;
+			},
+			'Loan Security Assignment': function(frm) {
+				return frm.doc.status === "Approved" && frm.doc.docstatus === 1;
+			}
+		};
+
 	},
 	refresh: function(frm) {
 		frm.trigger("toggle_fields");
@@ -35,7 +45,7 @@ frappe.ui.form.on('Loan Application', {
 		frm.toggle_reqd("repayment_periods", cint(frm.doc.repayment_method=='Repay Over Number of Periods'))
 	},
 	add_toolbar_buttons: function(frm) {
-		if (frm.doc.status == "Approved") {
+		if (frm.doc.status == "Approved" && frm.doc.docstatus == 1) {
 
 			if (frm.doc.is_secured_loan) {
 				frm.add_custom_button(__('Loan Security Assignment'), function() {
@@ -43,7 +53,7 @@ frappe.ui.form.on('Loan Application', {
 				},__('Create'))
 			}
 
-			frappe.db.get_value("Loan", {"loan_application": frm.doc.name, "docstatus": 1}, "name", (r) => {
+			frappe.db.get_value("Loan", {"loan_application": frm.doc.name}, "name", (r) => {
 				if (Object.keys(r).length === 0) {
 					frm.add_custom_button(__('Loan'), function() {
 						frm.trigger('create_loan');
