@@ -8,6 +8,24 @@ from frappe.utils import add_days, getdate
 
 
 class ProcessLoanClassification(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		force_update_dpd_in_loan: DF.Check
+		is_backdated: DF.Check
+		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
+		loan_product: DF.Link | None
+		payment_reference: DF.Link | None
+		posting_date: DF.Date
+	# end: auto-generated types
+
 	def validate(self):
 		if getdate(self.posting_date) < add_days(getdate(), -1) and not self.loan:
 			frappe.throw(_("For backdated process loan classification, a Loan account is mandatory."))
@@ -55,7 +73,6 @@ class ProcessLoanClassification(Document):
 					payment_reference=self.payment_reference,
 					is_backdated=self.is_backdated,
 					force_update_dpd_in_loan=self.force_update_dpd_in_loan,
-					via_scheduler=True,
 					queue="long",
 					enqueue_after_commit=True,
 				)
@@ -70,7 +87,6 @@ def process_loan_classification_batch(
 	payment_reference,
 	is_backdated,
 	force_update_dpd_in_loan=False,
-	via_scheduler=False,
 ):
 	from lending.loan_management.doctype.loan.loan import update_days_past_due_in_loans
 
@@ -84,7 +100,6 @@ def process_loan_classification_batch(
 				loan_disbursement=loan_disbursement,
 				ignore_freeze=True if payment_reference else False,
 				is_backdated=is_backdated,
-				via_background_job=via_scheduler,
 				force_update_dpd_in_loan=force_update_dpd_in_loan,
 			)
 

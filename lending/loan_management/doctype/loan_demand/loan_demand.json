@@ -8,6 +8,7 @@
   "applicant_details_section",
   "applicant_type",
   "applicant",
+  "loan_repayment",
   "column_break_ymok",
   "company",
   "demand_date",
@@ -276,13 +277,19 @@
   {
    "fieldname": "column_break_ssmc",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loan_repayment",
+   "fieldtype": "Link",
+   "label": "Loan Repayment",
+   "options": "Loan Repayment"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-14 18:26:38.411483",
+ "modified": "2025-04-07 20:02:40.062137",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

@@ -9,8 +9,26 @@ from frappe.utils import flt
 
 
 class LoanTransfer(Document):
-	def after_insert(self):
-		self.get_balances_and_make_journal_entry()
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_transfer_detail.loan_transfer_detail import (
+			LoanTransferDetail,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.Link | None
+		company: DF.Link
+		from_branch: DF.Link
+		loans: DF.Table[LoanTransferDetail]
+		to_branch: DF.Link
+		transfer_date: DF.Date
+	# end: auto-generated types
 
 	def validate(self):
 		if not self.get("loans"):
@@ -21,9 +39,6 @@ class LoanTransfer(Document):
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
-
-		if not self.is_new():
-			self.get_balances_and_make_journal_entry()
 
 	def get_balances_and_make_journal_entry(self):
 		loans = [d.loan for d in self.loans]
@@ -38,10 +53,11 @@ class LoanTransfer(Document):
 	def on_submit(self):
 		self.update_branch()
 
-		if len(self.loans) > 10:
-			frappe.enqueue(self.submit_cancel_journal_entries, queue="long")
-		else:
-			self.submit_cancel_journal_entries()
+		frappe.enqueue(
+			self.on_submit_actions,
+			enqueue_after_commit=True,
+			queue="long",
+		)
 
 	def update_branch(self, cancel=0):
 		branch_fieldname = frappe.db.get_value(
@@ -57,6 +73,9 @@ class LoanTransfer(Document):
 			frappe.db.set_value("Loan", loan.loan, branch_fieldname, branch)
 
 	def on_cancel(self):
+		frappe.enqueue(self.cancel_functions, enqueue_after_commit=True, queue="long")
+
+	def cancel_functions(self):
 		self.update_branch(cancel=1)
 		self.submit_cancel_journal_entries(cancel=1)
 
@@ -131,6 +150,10 @@ class LoanTransfer(Document):
 
 		if je_doc.get("accounts"):
 			je_doc.save()
+
+	def on_submit_actions(self):
+		self.get_balances_and_make_journal_entry()
+		self.submit_cancel_journal_entries()
 
 
 @frappe.whitelist()

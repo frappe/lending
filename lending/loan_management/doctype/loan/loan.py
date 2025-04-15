@@ -34,6 +34,97 @@ from lending.utils import daterange
 
 # nosemgrep
 class Loan(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		from lending.loan_management.doctype.loan_disbursement_charge.loan_disbursement_charge import (
+			LoanDisbursementCharge,
+		)
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink
+		applicant_name: DF.Data | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		available_limit_amount: DF.Currency
+		cancellation_date: DF.Date | None
+		classification_code: DF.Link | None
+		classification_name: DF.Data | None
+		closure_date: DF.Date | None
+		company: DF.Link
+		cost_center: DF.Link | None
+		credit_adjustment_amount: DF.Currency
+		days_past_due: DF.Int
+		debit_adjustment_amount: DF.Currency
+		disbursed_amount: DF.Currency
+		disbursement_account: DF.Link
+		disbursement_date: DF.Date | None
+		excess_amount_paid: DF.Currency
+		fldg_trigger_date: DF.Date | None
+		fldg_triggered: DF.Check
+		freeze_account: DF.Check
+		freeze_date: DF.Date | None
+		interest_income_account: DF.Link
+		is_npa: DF.Check
+		is_secured_loan: DF.Check
+		is_term_loan: DF.Check
+		limit_applicable_end: DF.Date | None
+		limit_applicable_start: DF.Date | None
+		loan_account: DF.Link
+		loan_amount: DF.Currency
+		loan_application: DF.Link | None
+		loan_category: DF.Link | None
+		loan_charges: DF.Table[LoanDisbursementCharge]
+		loan_partner: DF.Link | None
+		loan_product: DF.Link
+		loan_restructure_count: DF.Int
+		manual_npa: DF.Check
+		maximum_limit_amount: DF.Currency
+		maximum_loan_amount: DF.Currency
+		monthly_repayment_amount: DF.Currency
+		moratorium_tenure: DF.Int
+		moratorium_type: DF.Literal["", "EMI", "Principal"]
+		payment_account: DF.Link
+		penalty_charges_rate: DF.Percent
+		penalty_income_account: DF.Link
+		posting_date: DF.Date
+		rate_of_interest: DF.Percent
+		refund_amount: DF.Currency
+		repayment_frequency: DF.Literal[
+			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
+		]
+		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
+		repayment_periods: DF.Int
+		repayment_schedule_type: DF.Data | None
+		repayment_start_date: DF.Date | None
+		settlement_date: DF.Date | None
+		status: DF.Literal[
+			"Draft",
+			"Sanctioned",
+			"Partially Disbursed",
+			"Disbursed",
+			"Active",
+			"Loan Closure Requested",
+			"Closed",
+			"Written Off",
+			"Settled",
+		]
+		tenure_post_restructure: DF.Int
+		total_amount_paid: DF.Currency
+		total_interest_payable: DF.Currency
+		total_payment: DF.Currency
+		total_principal_paid: DF.Currency
+		treatment_of_interest: DF.Literal["", "Capitalize", "Add to first repayment"]
+		unmark_npa: DF.Check
+		utilized_limit_amount: DF.Currency
+		watch_period_end_date: DF.Date | None
+		written_off_amount: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.set_status()
 		self.set_loan_amount()
@@ -168,7 +259,6 @@ class Loan(AccountsController):
 				nowdate(),
 				loan=self.name,
 				manual_npa=self.manual_npa,
-				via_background_job=False,
 			)
 			if self.manual_npa:
 				move_unpaid_interest_to_suspense_ledger(self.name)
@@ -440,7 +530,7 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
-		write_off = make_loan_write_off(loan)
+		write_off = make_loan_write_off(loan, posting_date=posting_date)
 		write_off.submit()
 	elif flt(pending_amount, precision) > 0:
 		frappe.throw(_("Cannot close loan as there is an outstanding of {0}").format(pending_amount))
@@ -584,6 +674,7 @@ def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict
 	write_off.posting_date = posting_date
 	write_off.write_off_account = write_off_account
 	write_off.write_off_amount = amount
+	write_off.is_settlement_write_off = 1
 	write_off.save()
 
 	if as_dict:
@@ -729,7 +820,6 @@ def update_days_past_due_in_loans(
 	loan_disbursement=None,
 	ignore_freeze=False,
 	is_backdated=0,
-	via_background_job=False,
 	force_update_dpd_in_loan=0,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
@@ -828,7 +918,6 @@ def update_days_past_due_in_loans(
 					loan_disbursement=disbursement,
 					is_backdated=is_backdated,
 					dpd_threshold=threshold,
-					via_background_job=via_background_job,
 				)
 
 			create_dpd_record(
@@ -854,7 +943,6 @@ def update_days_past_due_in_loans(
 				loan_disbursement=disbursement,
 				is_backdated=is_backdated,
 				dpd_threshold=threshold,
-				via_background_job=via_background_job,
 			)
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
@@ -940,6 +1028,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 			end_date = getdate(next_payment_date)
 
 			for current_date in daterange(start_date, end_date):
+				final_dpd = 0
 				if current_date >= getdate(posting_date):
 					matching_demand_found = False
 					for d in demands:
@@ -947,11 +1036,15 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
 							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
+							final_dpd = dpd_counter
 							matching_demand_found = True
 							break
 
 					if not matching_demand_found:
+						final_dpd = 0
 						create_dpd_record(loan, demand.loan_disbursement, current_date, 0)
+
+			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
 
 def create_loan_write_off(loan, posting_date):
@@ -998,15 +1091,14 @@ def update_loan_and_customer_status(
 	loan_disbursement=None,
 	is_backdated=0,
 	dpd_threshold=0,
-	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 		write_off_charges,
 		write_off_suspense_entries,
 	)
 
-	loan_status, repayment_schedule_type, loan_product = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type", "loan_product"]
+	loan_status, repayment_schedule_type, loan_product, unmark_npa, current_npa = frappe.db.get_value(
+		"Loan", loan, ["status", "repayment_schedule_type", "loan_product", "unmark_npa", "is_npa"]
 	)
 
 	if loan_status == "Written Off":
@@ -1050,7 +1142,6 @@ def update_loan_and_customer_status(
 			order_by="npa_date desc",
 		)
 		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
-		current_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -1064,23 +1155,21 @@ def update_loan_and_customer_status(
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
-		elif cint(is_previous_npa) and not cint(current_npa):
-			frappe.db.set_value("Loan", loan, "is_npa", 1)
+		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
 			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
+			update_all_linked_loan_customer_npa_status(1, applicant_type, applicant, posting_date, loan)
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
 			move_unpaid_interest_to_suspense_ledger(loan, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
 
-	elif is_npa:
+	elif is_npa and not cint(unmark_npa) and not cint(current_npa):
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date)
 
-		update_all_linked_loan_customer_npa_status(
-			is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
-		)
+		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
 		max_dpd = frappe.db.get_value(
 			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
@@ -1096,7 +1185,7 @@ def update_loan_and_customer_status(
 					write_off_charges(loan_id, posting_date, company)
 
 				update_all_linked_loan_customer_npa_status(
-					is_npa, applicant_type, applicant, posting_date, loan, via_background_job=via_background_job
+					is_npa, applicant_type, applicant, posting_date, loan
 				)
 
 	frappe.db.set_value(
@@ -1131,13 +1220,12 @@ def update_all_linked_loan_customer_npa_status(
 	posting_date,
 	loan=None,
 	manual_npa=False,
-	via_background_job=False,
 ):
 	"""Update NPA status of all linked customers"""
 
 	prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
-	if not via_background_job and prev_npa != is_npa:
+	if prev_npa != is_npa:
 		update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
 	else:
 		update_value = {
@@ -1166,7 +1254,7 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 			& (_loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
 			& (_loan.applicant_type == applicant_type)
 			& (_loan.applicant == applicant)
-			& (_loan.watch_period_end_date.isnull() | _loan.watch_period_end_date < posting_date)
+			& (_loan.watch_period_end_date.isnull() | (_loan.watch_period_end_date < posting_date))
 		)
 	)
 
@@ -1317,19 +1405,43 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		amount = abs(amounts.get(accounts.interest_receivable_account, 0)) + unbooked_interest
 		debit_account = accounts.interest_income_account
 		credit_account = accounts.get("suspense_interest_income")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue normal interest to suspense ledger",
+		)
 
 	if abs(amounts.get(accounts.penalty_receivable_account, 0)) > 0:
 		amount = abs(amounts.get(accounts.penalty_receivable_account, 0))
 		debit_account = accounts.penalty_income_account
 		credit_account = accounts.get("penalty_suspense_account")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue penal interest to suspense ledger",
+		)
 
 	if abs(amounts.get(accounts.additional_interest_receivable, 0)) > 0:
 		amount = abs(amounts.get(accounts.additional_interest_receivable, 0))
 		debit_account = accounts.additional_interest_income
 		credit_account = accounts.get("additional_interest_suspense")
-		make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+		make_journal_entry(
+			posting_date,
+			company,
+			loan,
+			amount,
+			debit_account,
+			credit_account,
+			remark="Move overdue additional interest to suspense ledger",
+		)
 
 
 def make_suspense_journal_entry(
@@ -1349,6 +1461,9 @@ def make_suspense_journal_entry(
 		as_dict=1,
 	)
 
+	normal_penal_interest_jv = None
+	additional_interest_jv = None
+
 	if account_details:
 		if is_penal:
 			debit_account = account_details.penalty_income_account
@@ -1359,10 +1474,12 @@ def make_suspense_journal_entry(
 
 		if amount:
 			amount = amount - additional_interest
-			make_journal_entry(posting_date, company, loan, amount, debit_account, credit_account)
+			normal_penal_interest_jv = make_journal_entry(
+				posting_date, company, loan, amount, debit_account, credit_account
+			)
 
 		if additional_interest > 0:
-			make_journal_entry(
+			additional_interest_jv = make_journal_entry(
 				posting_date,
 				company,
 				loan,
@@ -1370,6 +1487,8 @@ def make_suspense_journal_entry(
 				account_details.additional_interest_income,
 				account_details.additional_interest_suspense,
 			)
+
+	return normal_penal_interest_jv, additional_interest_jv
 
 
 def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invoice=None):
@@ -1446,7 +1565,7 @@ def get_base_charge_amount(
 
 
 def make_journal_entry(
-	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0
+	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0, remark=None
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -1481,11 +1600,14 @@ def make_journal_entry(
 					"cost_center": erpnext.get_default_cost_center(company),
 				},
 			],
+			"remarks": remark,
 		}
 	)
 
 	jv.flags.ignore_validate = True
 	jv.submit()
+
+	return jv.name
 
 
 def get_unpaid_interest_amount(loan, posting_date, demand_subtype):

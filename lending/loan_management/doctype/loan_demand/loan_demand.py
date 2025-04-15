@@ -12,6 +12,43 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import update
 
 
 class LoanDemand(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Link | None
+		company: DF.Link | None
+		cost_center: DF.Link | None
+		demand_amount: DF.Currency
+		demand_date: DF.Datetime | None
+		demand_subtype: DF.Data | None
+		demand_type: DF.Literal["EMI", "Penalty", "Normal", "Charges", "BPI", "Additional Interest"]
+		disbursement_date: DF.Date | None
+		invoice_date: DF.Date | None
+		is_term_loan: DF.Check
+		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
+		loan_partner: DF.Link | None
+		loan_product: DF.Link | None
+		loan_repayment: DF.Link | None
+		loan_repayment_schedule: DF.Link | None
+		outstanding_amount: DF.Currency
+		paid_amount: DF.Currency
+		partner_share: DF.Currency
+		partner_share_allocated: DF.Currency
+		posting_date: DF.Datetime | None
+		process_loan_demand: DF.Link | None
+		repayment_schedule_detail: DF.Data | None
+		sales_invoice: DF.Link | None
+		waived_amount: DF.Currency
+	# end: auto-generated types
+
 	def validate(self):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 		self.partner_share_allocated = 0
@@ -444,6 +481,7 @@ def create_loan_demand(
 	process_loan_demand=None,
 	paid_amount=0,
 	posting_date=None,
+	loan_repayment=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if amount:
@@ -460,6 +498,7 @@ def create_loan_demand(
 		demand.sales_invoice = sales_invoice
 		demand.process_loan_demand = process_loan_demand
 		demand.paid_amount = paid_amount
+		demand.loan_repayment = loan_repayment
 		demand.save()
 		demand.submit()
 
@@ -471,6 +510,7 @@ def reverse_demands(
 	loan_repayment_schedule=None,
 	loan_disbursement=None,
 	on_settlement_or_closure=False,
+	loan_repayment=None,
 ):
 
 	# on settlement or closure, demand should be cleared from next day
@@ -479,6 +519,9 @@ def reverse_demands(
 		posting_date = add_days(getdate(posting_date), 1)
 
 	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
+
+	if loan_repayment:
+		filters["loan_repayment"] = loan_repayment
 
 	if demand_type:
 		filters["demand_type"] = demand_type

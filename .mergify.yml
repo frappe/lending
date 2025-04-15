@@ -1,0 +1,37 @@
+pull_request_rules:
+  - name: backport to develop
+    conditions:
+      - label="backport develop"
+    actions:
+      backport:
+        branches:
+          - develop
+        assignees:
+          - "{{ author }}"
+  - name: backport to version-15-hotfix
+    conditions:
+      - label="backport version-15-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-15-hotfix
+        assignees:
+          - "{{ author }}"
+  - name: backport to version-1-hotfix
+    conditions:
+      - label="backport version-1-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-1-hotfix
+        assignees:
+          - "{{ author }}"
+  - name: backport to poc-staging
+    conditions:
+      - label="backport poc-staging"
+    actions:
+      backport:
+        branches:
+          - poc-staging
+        assignees:
+          - "{{ author }}"

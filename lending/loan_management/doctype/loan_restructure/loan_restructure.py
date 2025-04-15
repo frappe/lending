@@ -21,6 +21,75 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 
 
 class LoanRestructure(AccountsController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		adjusted_interest_amount: DF.Currency
+		adjusted_unaccrued_interest: DF.Currency
+		amended_from: DF.Link | None
+		applicant: DF.DynamicLink | None
+		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		available_security_deposit: DF.Currency
+		balance_charges: DF.Currency
+		balance_interest_amount: DF.Currency
+		balance_penalty_amount: DF.Currency
+		balance_principal: DF.Currency
+		balance_unaccrued_interest: DF.Currency
+		charges_overdue: DF.Currency
+		company: DF.Link | None
+		completed_tenure: DF.Int
+		current_restructure_count: DF.Int
+		disbursed_amount: DF.Currency
+		interest_overdue: DF.Currency
+		interest_waiver_amount: DF.Currency
+		loan: DF.Link
+		loan_disbursement: DF.Link | None
+		loan_product: DF.Link | None
+		loan_repayment: DF.Link | None
+		moratorium_end_date: DF.Date | None
+		new_loan_amount: DF.Currency
+		new_monthly_repayment_amount: DF.Currency
+		new_rate_of_interest: DF.Percent
+		new_repayment_method: DF.Literal[
+			"", "Repay Fixed Amount per Period", "Repay Over Number of Periods"
+		]
+		new_repayment_period_in_months: DF.Int
+		old_emi: DF.Currency
+		old_loan_amount: DF.Currency
+		old_rate_of_interest: DF.Percent
+		old_repayment_frequency: DF.Data | None
+		old_tenure: DF.Int
+		other_charges_waiver: DF.Currency
+		penal_interest_waiver: DF.Currency
+		penalty_overdue: DF.Currency
+		pending_principal_amount: DF.Currency
+		pre_restructure_dpd: DF.Int
+		principal_adjusted: DF.Currency
+		principal_overdue: DF.Currency
+		reason_for_restructure: DF.SmallText | None
+		repayment_method: DF.Data | None
+		repayment_start_date: DF.Date | None
+		restructure_charges: DF.Currency
+		restructure_date: DF.Datetime
+		restructure_type: DF.Literal["Normal Restructure", "Pre Payment", "Advance Payment"]
+		status: DF.Literal["", "Initiated", "Approved", "Rejected"]
+		total_amount_paid: DF.Currency
+		total_overdue_amount: DF.Currency
+		total_principal_paid: DF.Currency
+		treatment_of_normal_interest: DF.Literal["Capitalize", "Add To First EMI"]
+		treatment_of_other_charges: DF.Literal["Capitalize", "Carry Forward"]
+		treatment_of_penal_interest: DF.Literal["Capitalize", "Carry Forward"]
+		unaccrued_interest: DF.Currency
+		unaccrued_interest_treatment: DF.Literal["Capitalize", "Add To First EMI"]
+		unaccrued_interest_waiver: DF.Currency
+		waive_off_restructure_charges: DF.Check
+	# end: auto-generated types
+
 	def validate(self):
 		self.validate_against_initiated_restructure()
 		self.validate_restructure_date()
@@ -501,7 +570,11 @@ class LoanRestructure(AccountsController):
 	def make_waiver_and_capitalization_for_penalty(self):
 		if self.penal_interest_waiver:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Penalty Waiver", self.penal_interest_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Penalty Waiver",
+				self.penal_interest_waiver,
+				restructure_name=self.name,
 			)
 
 		if self.balance_penalty_amount and self.treatment_of_penal_interest == "Capitalize":
@@ -510,13 +583,17 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Penalty Capitalization",
 				self.balance_penalty_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_repayment_for_adjustment(self):
 		if self.principal_adjusted:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Principal Adjustment", self.principal_adjusted, self.name
+				self.loan,
+				self.restructure_date,
+				"Principal Adjustment",
+				self.principal_adjusted,
+				restructure_name=self.name,
 			)
 
 		if self.adjusted_interest_amount:
@@ -525,7 +602,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Adjustment",
 				self.adjusted_interest_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_repayment_for_waiver(self):
@@ -533,7 +610,11 @@ class LoanRestructure(AccountsController):
 
 		if self.interest_waiver_amount:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Interest Waiver", self.interest_waiver_amount, self.name
+				self.loan,
+				self.restructure_date,
+				"Interest Waiver",
+				self.interest_waiver_amount,
+				restructure_name=self.name,
 			)
 
 		if self.unaccrued_interest_waiver:
@@ -546,12 +627,20 @@ class LoanRestructure(AccountsController):
 			)
 
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Interest Waiver", self.unaccrued_interest_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Interest Waiver",
+				self.unaccrued_interest_waiver,
+				restructure_name=self.name,
 			)
 
 		if self.other_charges_waiver:
 			create_loan_repayment(
-				self.loan, self.restructure_date, "Charges Waiver", self.other_charges_waiver, self.name
+				self.loan,
+				self.restructure_date,
+				"Charges Waiver",
+				self.other_charges_waiver,
+				restructure_name=self.name,
 			)
 
 	def cancel_loan_adjustments(self):
@@ -566,7 +655,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Capitalization",
 				self.balance_interest_amount,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_unaccrued_interest and self.unaccrued_interest_treatment == "Capitalize":
@@ -575,7 +664,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Interest Capitalization",
 				self.balance_unaccrued_interest,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_charges and self.treatment_of_other_charges == "Capitalize":
@@ -584,7 +673,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Charges Capitalization",
 				self.balance_charges,
-				self.name,
+				restructure_name=self.name,
 			)
 
 		if self.balance_principal:
@@ -593,7 +682,7 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				"Principal Capitalization",
 				self.balance_principal,
-				self.name,
+				restructure_name=self.name,
 			)
 
 	def make_loan_adjustment_for_carry_forward(self):
@@ -604,7 +693,7 @@ class LoanRestructure(AccountsController):
 					self.restructure_date,
 					"Interest Carry Forward",
 					self.balance_interest_amount,
-					self.name,
+					restructure_name=self.name,
 				)
 
 			if self.balance_unaccrued_interest and self.unaccrued_interest_treatment == "Add To First EMI":
@@ -613,7 +702,7 @@ class LoanRestructure(AccountsController):
 					self.restructure_date,
 					"Interest Carry Forward",
 					self.balance_unaccrued_interest,
-					self.name,
+					restructure_name=self.name,
 				)
 
 
@@ -622,8 +711,8 @@ def create_loan_repayment(
 	posting_date,
 	repayment_type,
 	waiver_amount,
-	adjustment_name=None,
 	restructure_name=None,
+	adjustment_name=None,
 	is_write_off_waiver=0,
 	payment_account=None,
 	loan_disbursement=None,
