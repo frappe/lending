@@ -904,12 +904,16 @@ def reverse_loan_interest_accruals(
 	elif loan_repayment_schedule and future_accruals:
 		or_filters["loan_repayment_schedule"] = loan_repayment_schedule
 		or_filters["posting_date"] = (">", posting_date)
+		del filters["posting_date"]
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
 	accruals = (
-		frappe.get_all("Loan Interest Accrual", filters=filters, fields=["name", "posting_date"]) or []
+		frappe.get_all(
+			"Loan Interest Accrual", filters=filters, fields=["name", "posting_date"], or_filters=or_filters
+		)
+		or []
 	)
 
 	for accrual in accruals:
