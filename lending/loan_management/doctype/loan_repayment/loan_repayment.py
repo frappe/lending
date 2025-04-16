@@ -215,7 +215,7 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			reversed_accruals += self.reverse_future_accruals_and_demands()
 
-		if not self.principal_amount_paid >= self.pending_principal_amount:
+		if self.principal_amount_paid < self.pending_principal_amount:
 			if self.is_term_loan and self.repayment_type in ("Advance Payment", "Pre Payment"):
 				amounts = calculate_amounts(
 					self.against_loan,
@@ -239,7 +239,7 @@ class LoanRepayment(AccountsController):
 				self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid > self.pending_principal_amount
+			self.principal_amount_paid >= self.pending_principal_amount
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
