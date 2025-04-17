@@ -156,6 +156,14 @@ def create_loan_accounts():
 	)
 
 	create_account(
+		"Additional Interest Waiver",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
+	)
+
+	create_account(
 		"Penalty Income Account", "Direct Income - _TC", "Income", "Income Account", "Profit and Loss"
 	)
 	create_account(
@@ -333,6 +341,7 @@ def create_loan_product(
 	additional_interest_income="Additional Interest Income Account - _TC",
 	additional_interest_accrued="Additional Interest Accrued Account - _TC",
 	additional_interest_receivable="Additional Interest Receivable - _TC",
+	additional_interest_waiver="Additional Interest Waiver - _TC",
 	cyclic_day_of_the_month=5,
 	collection_offset_sequence_for_standard_asset=None,
 	collection_offset_sequence_for_sub_standard_asset=None,
@@ -376,6 +385,7 @@ def create_loan_product(
 	loan_product_doc.additional_interest_income = additional_interest_income
 	loan_product_doc.additional_interest_accrued = additional_interest_accrued
 	loan_product_doc.additional_interest_receivable = additional_interest_receivable
+	loan_product_doc.additional_interest_waiver = additional_interest_waiver
 	loan_product_doc.customer_refund_account = customer_refund_account
 	loan_product_doc.repayment_method = repayment_method
 	loan_product_doc.repayment_periods = repayment_periods

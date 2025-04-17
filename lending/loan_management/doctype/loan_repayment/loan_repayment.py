@@ -1495,6 +1495,8 @@ class LoanRepayment(AccountsController):
 			"Write Off Settlement",
 			"Write Off Recovery",
 			"Charges Waiver",
+			"Interest Waiver",
+			"Penalty Waiver",
 		):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
