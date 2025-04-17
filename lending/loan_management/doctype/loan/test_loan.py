@@ -1487,25 +1487,31 @@ class TestLoan(IntegrationTestCase):
 			"Term Loan Product 4",
 			1000000,
 			"Repay Over Number of Periods",
-			12,
+			2,
 			"Customer",
-			"2023-06-05",
-			"2023-05-02",
+			"2024-06-05",
+			"2024-05-02",
 			rate_of_interest=29,
 			penalty_charges_rate=36,
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2023-05-02", repayment_start_date="2023-06-05"
+			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
 		)
-		process_daily_loan_demands(posting_date="2025-02-07", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2025-02-07", 1348682.67)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-07-07", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-07-07 00:05:10"), 1052079.26
+		)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2025-02-07", 1900, repayment_type="Penalty Waiver"
+			loan.name, get_datetime("2024-07-07 00:06:10"), 13217.10, repayment_type="Penalty Waiver"
 		)
 		repayment_entry.submit()
 
