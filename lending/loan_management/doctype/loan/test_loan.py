@@ -740,12 +740,12 @@ class TestLoan(IntegrationTestCase):
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
 		)
-		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-07-06", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-06")
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 	def test_same_date_for_daily_accruals(self):
