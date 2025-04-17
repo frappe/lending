@@ -581,6 +581,7 @@ def calculate_penal_interest_for_loans(
 								loan_disbursement=demand.loan_disbursement,
 							)
 
+<<<<<<< HEAD
 						if flt(additional_interest, precision) > 0:
 							create_loan_demand(
 								loan.name,
@@ -591,6 +592,30 @@ def calculate_penal_interest_for_loans(
 								loan_repayment_schedule=demand.loan_repayment_schedule,
 								loan_disbursement=demand.loan_disbursement,
 							)
+=======
+						if loan_status != "Written Off":
+							if penal_interest_amount > additional_interest:
+								create_loan_demand(
+									loan.name,
+									current_date,
+									"Penalty",
+									"Penalty",
+									penal_interest_amount - additional_interest,
+									loan_repayment_schedule=demand.loan_repayment_schedule,
+									loan_disbursement=demand.loan_disbursement,
+								)
+
+							if flt(additional_interest, precision) > 0:
+								create_loan_demand(
+									loan.name,
+									current_date,
+									"Additional Interest",
+									"Additional Interest",
+									additional_interest,
+									loan_repayment_schedule=demand.loan_repayment_schedule,
+									loan_disbursement=demand.loan_disbursement,
+								)
+>>>>>>> 36ba04a (fix: penal demands and additional interest had an off-by-one posting_date)
 
 	if is_future_accrual:
 		return total_penal_interest
