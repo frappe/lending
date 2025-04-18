@@ -291,7 +291,7 @@ class LoanRepayment(AccountsController):
 					on_payment_allocation=True,
 				)
 
-			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
+			reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
 
 			if reversed_accruals:
 				create_process_loan_classification(
