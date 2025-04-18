@@ -1889,6 +1889,9 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
+		dpd_in_loan = frappe.db.get_value("Loan", loan.name, "days_past_due")
+		self.assertEqual(dpd_in_loan, 0)
+
 	def test_dpd_calculation_for_loc_loan(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2552,6 +2555,8 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		process_daily_loan_demands(posting_date="2024-07-05", loan=loan1.name)
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan2.name)
+
 		process_loan_classification_batch(
 			open_loans=[loan1.name],
 			posting_date="2024-07-06",
@@ -2570,6 +2575,46 @@ class TestLoan(IntegrationTestCase):
 		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
 		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
 		self.assertTrue(customer_npa, "Customer not marked as NPA")
+
+		# Repay one loan and check, loans should still be marked as NPA
+		amount1 = calculate_amounts(against_loan=loan1.name, posting_date="2024-07-06")
+		repayment = create_repayment_entry(loan1.name, "2024-07-06", amount1.get("payable_amount"))
+
+		repayment.submit()
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertTrue(loan1.is_npa, "Loan 1 not marked as NPA")
+		self.assertTrue(loan2.is_npa, "Loan 2 not marked as NPA")
+		self.assertTrue(customer_npa, "Customer not marked as NPA")
+
+		# Repay second loan and check, loans should be marked as non NPA this time
+		amount2 = calculate_amounts(against_loan=loan2.name, posting_date="2024-07-06")
+
+		repayment = create_repayment_entry(loan2.name, "2024-07-06", amount2.get("payable_amount"))
+
+		repayment.submit()
+
+		process_loan_classification_batch(
+			open_loans=[loan1.name],
+			posting_date="2024-07-06",
+			loan_product=loan1.loan_product,
+			classification_process=None,
+			loan_disbursement=None,
+			payment_reference=None,
+			is_backdated=0,
+			force_update_dpd_in_loan=1,
+		)
+
+		loan1.load_from_db()
+		loan2.load_from_db()
+		customer_npa = frappe.get_value("Customer", customer.name, "is_npa")
+
+		self.assertFalse(loan1.is_npa, "Loan 1 not unmarked as NPA")
+		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
+		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
 
 	def test_closure_payment_demand_cancel(self):
 		loan = create_loan(

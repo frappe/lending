@@ -303,15 +303,24 @@ class LoanRepayment(AccountsController):
 					is_backdated=1,
 				)
 			else:
-				frappe.enqueue(
-					create_process_loan_classification,
-					posting_date=self.posting_date,
-					loan_product=self.loan_product,
-					loan=self.against_loan,
-					loan_disbursement=self.loan_disbursement,
-					is_backdated=0,
-					enqueue_after_commit=True,
-				)
+				if frappe.flags.in_test:
+					create_process_loan_classification(
+						posting_date=self.posting_date,
+						loan_product=self.loan_product,
+						loan=self.against_loan,
+						loan_disbursement=self.loan_disbursement,
+						is_backdated=0,
+					)
+				else:
+					frappe.enqueue(
+						create_process_loan_classification,
+						posting_date=self.posting_date,
+						loan_product=self.loan_product,
+						loan=self.against_loan,
+						loan_disbursement=self.loan_disbursement,
+						is_backdated=0,
+						enqueue_after_commit=True,
+					)
 
 			if reversed_accruals:
 				dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
