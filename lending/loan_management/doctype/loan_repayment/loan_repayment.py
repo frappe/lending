@@ -679,12 +679,15 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 			)
 			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
-			create_process_loan_classification(
+
+			frappe.enqueue(
+				create_process_loan_classification,
 				posting_date=max_demand_date,
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 				loan_disbursement=self.loan_disbursement,
 				is_backdated=1,
+				enqueue_after_commit=True,
 			)
 
 	def cancel_charge_demands(self):
@@ -2425,6 +2428,7 @@ def process_amount_for_loan(
 	penalty_amount = 0
 	payable_principal_amount = 0
 	is_backdated = 0
+	unbooked_interest = 0
 
 	last_demand_date = get_last_demand_date(
 		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
@@ -2447,12 +2451,15 @@ def process_amount_for_loan(
 			charges += demand.outstanding_amount
 
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
-	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan.name,
-		posting_date,
-		loan_disbursement=loan_disbursement,
-		last_demand_date=last_demand_date,
-	)
+
+	if loan.status not in ("Closed", "Settled"):
+		unbooked_interest, accrued_interest = get_unbooked_interest(
+			loan.name,
+			posting_date,
+			loan_disbursement=loan_disbursement,
+			last_demand_date=last_demand_date,
+		)
+
 	if getdate(posting_date) > getdate(latest_accrual_date) or is_backdated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
