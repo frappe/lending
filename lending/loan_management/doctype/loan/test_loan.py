@@ -1847,6 +1847,9 @@ class TestLoan(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Closed")
+
 	def test_excess_amount_for_penal_waiver(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -1880,6 +1883,9 @@ class TestLoan(IntegrationTestCase):
 			loan.name, get_datetime("2024-07-07 00:06:10"), 13217.10, repayment_type="Penalty Waiver"
 		)
 		repayment_entry.submit()
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Closed")
 
 	def test_dpd_calculation(self):
 		loan = create_loan(
