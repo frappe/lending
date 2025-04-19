@@ -215,7 +215,7 @@ class LoanRepayment(AccountsController):
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			reversed_accruals += self.reverse_future_accruals_and_demands()
 
-		if not self.principal_amount_paid >= self.pending_principal_amount:
+		if self.principal_amount_paid < self.pending_principal_amount:
 			if self.is_term_loan and self.repayment_type in ("Advance Payment", "Pre Payment"):
 				amounts = calculate_amounts(
 					self.against_loan,
@@ -239,7 +239,7 @@ class LoanRepayment(AccountsController):
 				self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid > self.pending_principal_amount
+			self.principal_amount_paid >= self.pending_principal_amount
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
@@ -248,6 +248,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries()
 
 		self.update_paid_amounts()
+		self.handle_auto_demand_write_off()
 		self.update_demands()
 		self.update_security_deposit_amount()
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
@@ -269,7 +270,6 @@ class LoanRepayment(AccountsController):
 				"Interest Waiver",
 				"Penalty Waiver",
 				"Charges Waiver",
-				"Normal Repayment",
 			)
 			and not (self.flags.from_repost or self.flags.from_repost)
 		):
@@ -291,7 +291,7 @@ class LoanRepayment(AccountsController):
 					on_payment_allocation=True,
 				)
 
-			reverse_demands(self.against_loan, add_days(self.posting_date, 1), demand_type="Penalty")
+			reverse_demands(self.against_loan, self.posting_date, demand_type="Penalty")
 
 			if reversed_accruals:
 				create_process_loan_classification(
@@ -303,15 +303,24 @@ class LoanRepayment(AccountsController):
 					is_backdated=1,
 				)
 			else:
-				frappe.enqueue(
-					create_process_loan_classification,
-					posting_date=self.posting_date,
-					loan_product=self.loan_product,
-					loan=self.against_loan,
-					loan_disbursement=self.loan_disbursement,
-					is_backdated=0,
-					enqueue_after_commit=True,
-				)
+				if frappe.flags.in_test:
+					create_process_loan_classification(
+						posting_date=self.posting_date,
+						loan_product=self.loan_product,
+						loan=self.against_loan,
+						loan_disbursement=self.loan_disbursement,
+						is_backdated=0,
+					)
+				else:
+					frappe.enqueue(
+						create_process_loan_classification,
+						posting_date=self.posting_date,
+						loan_product=self.loan_product,
+						loan=self.against_loan,
+						loan_disbursement=self.loan_disbursement,
+						is_backdated=0,
+						enqueue_after_commit=True,
+					)
 
 			if reversed_accruals:
 				dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
@@ -339,7 +348,6 @@ class LoanRepayment(AccountsController):
 	def create_repost(self):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
-		repost.delete_gl_entries = True
 		repost.repost_date = self.posting_date
 		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_accruals_and_demands = True
@@ -447,7 +455,10 @@ class LoanRepayment(AccountsController):
 			if d.demand_subtype == "Principal":
 				overdue_principal_paid += d.paid_amount
 
-		if self.principal_amount_paid - overdue_principal_paid > 0:
+		if (
+			self.principal_amount_paid - overdue_principal_paid > 0
+			and overdue_principal_paid >= self.payable_principal_amount
+		):
 			amount = self.principal_amount_paid - overdue_principal_paid
 			create_loan_demand(
 				self.against_loan,
@@ -457,6 +468,7 @@ class LoanRepayment(AccountsController):
 				flt(amount, precision),
 				paid_amount=flt(amount, precision),
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 	def process_reschedule(self):
@@ -465,7 +477,9 @@ class LoanRepayment(AccountsController):
 		loan_restructure.status = "Approved"
 		loan_restructure.submit()
 
-	def reverse_future_accruals_and_demands(self, on_settlement_or_closure=False):
+	def reverse_future_accruals_and_demands(
+		self, on_settlement_or_closure=False, loan_repayment=None
+	):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 			reverse_loan_interest_accruals,
@@ -486,6 +500,7 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
+			loan_repayment=loan_repayment,
 		)
 
 		return accruals
@@ -664,12 +679,15 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 			)
 			process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
-			create_process_loan_classification(
+
+			frappe.enqueue(
+				create_process_loan_classification,
 				posting_date=max_demand_date,
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 				loan_disbursement=self.loan_disbursement,
 				is_backdated=1,
+				enqueue_after_commit=True,
 			)
 
 	def cancel_charge_demands(self):
@@ -885,6 +903,7 @@ class LoanRepayment(AccountsController):
 				flt(self.unbooked_interest_paid, precision),
 				paid_amount=self.unbooked_interest_paid,
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 		if flt(self.unbooked_penalty_paid, precision) > 0:
@@ -896,6 +915,7 @@ class LoanRepayment(AccountsController):
 				flt(self.unbooked_penalty_paid, precision),
 				paid_amount=self.unbooked_penalty_paid,
 				loan_disbursement=self.loan_disbursement,
+				loan_repayment=self.name,
 			)
 
 	def update_paid_amounts(self):
@@ -973,6 +993,33 @@ class LoanRepayment(AccountsController):
 
 		update_shortfall_status(self.against_loan, self.principal_amount_paid)
 
+	def handle_auto_demand_write_off(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		overdue_principal_paid = sum(
+			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
+		)
+		if (
+			self.auto_close_loan()
+			and overdue_principal_paid > 0
+			and overdue_principal_paid < self.payable_principal_amount
+			and self.principal_amount_paid - overdue_principal_paid > 0
+		):
+			# Get last principal demand
+			principal_demands = [
+				d for d in self.get("repayment_details") if d.demand_subtype == "Principal"
+			]
+			last_demand = principal_demands[-1] if principal_demands else []
+			if last_demand:
+				written_off_amount = flt(self.principal_amount_paid - overdue_principal_paid, precision)
+				last_demand.paid_amount = last_demand.paid_amount + written_off_amount
+				frappe.db.set_value(
+					"Loan Repayment Detail",
+					last_demand.name,
+					"paid_amount",
+					last_demand.paid_amount + written_off_amount,
+				)
+
 	def post_write_off_settlements(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -1002,6 +1049,7 @@ class LoanRepayment(AccountsController):
 				"EMI" if self.is_term_loan else "Normal",
 				"Interest",
 				flt(unpaid_unbooked_interest, precision),
+				loan_repayment=self.name,
 			)
 
 		if flt(self.interest_payable - self.total_interest_paid, precision) > 0:
@@ -1172,15 +1220,19 @@ class LoanRepayment(AccountsController):
 			if self.repayment_type == "Write Off Settlement":
 				query = query.set(loan.status, "Written Off")
 				self.update_repayment_schedule_status(cancel=1)
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif self.repayment_type == "Full Settlement":
 				query = query.set(loan.status, "Disbursed")
 				self.update_repayment_schedule_status(cancel=1)
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif loan_status == "Closed":
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:
 					query = query.set(loan.status, "Disbursed")
 					self.update_repayment_schedule_status(cancel=1)
+
+				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 
 			if self.repayment_schedule_type == "Line of Credit" and self.loan_disbursement:
 				self.update_repayment_schedule_status(cancel=1)
@@ -1455,6 +1507,8 @@ class LoanRepayment(AccountsController):
 			"Write Off Settlement",
 			"Write Off Recovery",
 			"Charges Waiver",
+			"Interest Waiver",
+			"Penalty Waiver",
 		):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
@@ -2374,6 +2428,7 @@ def process_amount_for_loan(
 	penalty_amount = 0
 	payable_principal_amount = 0
 	is_backdated = 0
+	unbooked_interest = 0
 
 	last_demand_date = get_last_demand_date(
 		loan.name, posting_date, loan_disbursement=loan_disbursement, status=status
@@ -2396,12 +2451,15 @@ def process_amount_for_loan(
 			charges += demand.outstanding_amount
 
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
-	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan.name,
-		posting_date,
-		loan_disbursement=loan_disbursement,
-		last_demand_date=last_demand_date,
-	)
+
+	if loan.status not in ("Closed", "Settled"):
+		unbooked_interest, accrued_interest = get_unbooked_interest(
+			loan.name,
+			posting_date,
+			loan_disbursement=loan_disbursement,
+			last_demand_date=last_demand_date,
+		)
+
 	if getdate(posting_date) > getdate(latest_accrual_date) or is_backdated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,

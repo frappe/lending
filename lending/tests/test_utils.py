@@ -62,13 +62,6 @@ def before_tests():
 
 
 def create_secured_demand_loan(applicant, disbursement_amount=None):
-	frappe.db.set_value(
-		"Company",
-		"_Test Company",
-		"collection_offset_sequence_for_standard_asset",
-		"Test Standard Loan Demand Offset Order 1",
-	)
-
 	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
 	loan_application = create_loan_application("_Test Company", applicant, "Demand Loan", pledge)
@@ -160,6 +153,14 @@ def create_loan_accounts():
 		"Asset",
 		"",
 		"Balance Sheet",
+	)
+
+	create_account(
+		"Additional Interest Waiver",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
 	)
 
 	create_account(
@@ -340,6 +341,7 @@ def create_loan_product(
 	additional_interest_income="Additional Interest Income Account - _TC",
 	additional_interest_accrued="Additional Interest Accrued Account - _TC",
 	additional_interest_receivable="Additional Interest Receivable - _TC",
+	additional_interest_waiver="Additional Interest Waiver - _TC",
 	cyclic_day_of_the_month=5,
 	collection_offset_sequence_for_standard_asset=None,
 	collection_offset_sequence_for_sub_standard_asset=None,
@@ -383,6 +385,7 @@ def create_loan_product(
 	loan_product_doc.additional_interest_income = additional_interest_income
 	loan_product_doc.additional_interest_accrued = additional_interest_accrued
 	loan_product_doc.additional_interest_receivable = additional_interest_receivable
+	loan_product_doc.additional_interest_waiver = additional_interest_waiver
 	loan_product_doc.customer_refund_account = customer_refund_account
 	loan_product_doc.repayment_method = repayment_method
 	loan_product_doc.repayment_periods = repayment_periods
@@ -603,6 +606,7 @@ def create_loan(
 	moratorium_tenure=None,
 	moratorium_type=None,
 	penalty_charges_rate=None,
+	repayment_frequency=None,
 ):
 
 	loan = frappe.get_doc(
@@ -626,6 +630,7 @@ def create_loan(
 			"moratorium_tenure": moratorium_tenure,
 			"moratorium_type": moratorium_type,
 			"penalty_charges_rate": penalty_charges_rate,
+			"repayment_frequency": repayment_frequency or "Monthly",
 		}
 	)
 
@@ -707,9 +712,6 @@ def setup_loan_demand_offset_order(company=None):
 		"Test EMI Based Standard Loan Demand Offset Order",
 		["EMI (Principal + Interest)", "Penalty", "Charges"],
 	)
-	create_demand_offset_order(
-		"Test Standard Loan Demand Offset Order 1", ["Penalty", "Interest", "Charges"]
-	)
 
 	doc = frappe.get_doc("Company", company)
 	if not doc.get("collection_offset_sequence_for_standard_asset"):
@@ -718,8 +720,8 @@ def setup_loan_demand_offset_order(company=None):
 		)
 
 	if not doc.get("collection_offset_sequence_for_sub_standard_asset"):
-		doc.collection_offset_sequence_for_non_standard_asset = (
-			"Test Demand Loan Loan Demand Offset Order"
+		doc.collection_offset_sequence_for_sub_standard_asset = (
+			"Test EMI Based Standard Loan Demand Offset Order"
 		)
 
 	if not doc.get("collection_offset_sequence_for_written_off_asset"):
