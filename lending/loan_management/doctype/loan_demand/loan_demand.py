@@ -510,15 +510,17 @@ def reverse_demands(
 	loan_repayment_schedule=None,
 	loan_disbursement=None,
 	on_settlement_or_closure=False,
+	future_demands=False,
 	loan_repayment=None,
 ):
 
 	# on settlement or closure, demand should be cleared from next day
 	# as other demands also get passed on the same day
 	if on_settlement_or_closure:
-		posting_date = add_days(getdate(posting_date), 1)
+		posting_date = add_days(posting_date, 1)
 
 	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
+	or_filters = {}
 
 	if loan_repayment:
 		filters["loan_repayment"] = loan_repayment
@@ -529,13 +531,17 @@ def reverse_demands(
 	if demand_type == "Penalty":
 		filters["demand_type"] = ("in", ("Penalty", "Additional Interest"))
 
-	if loan_repayment_schedule:
+	if loan_repayment_schedule and not future_demands:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
+	elif loan_repayment_schedule and future_demands:
+		or_filters["loan_repayment_schedule"] = loan_repayment_schedule
+		or_filters["demand_date"] = (">", posting_date)
+		del filters["demand_date"]
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	for demand in frappe.get_all("Loan Demand", filters=filters):
+	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
 		doc = frappe.get_doc("Loan Demand", demand.name)
 		doc.flags.ignore_links = True
 		doc.cancel()
