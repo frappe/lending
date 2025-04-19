@@ -173,8 +173,6 @@ class LoanRepaymentRepost(Document):
 			)
 
 			if self.loan_disbursement:
-<<<<<<< HEAD
-=======
 				total_principal_paid = frappe.db.get_value(
 					"Loan Repayment",
 					{
@@ -186,12 +184,11 @@ class LoanRepaymentRepost(Document):
 					"sum(principal_amount_paid)",
 				)
 
->>>>>>> 2475301 (fix: Pending principal amount for LOC loans)
 				frappe.db.set_value(
 					"Loan Disbursement",
 					self.loan_disbursement,
 					"principal_amount_paid",
-					flt(totals.total_principal_paid),
+					flt(total_principal_paid),
 				)
 
 	def trigger_on_submit_events(self):
