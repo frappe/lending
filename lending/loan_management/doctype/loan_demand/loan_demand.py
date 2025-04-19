@@ -533,8 +533,9 @@ def reverse_demands(
 
 	if loan_repayment_schedule and not future_demands:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
-	elif loan_repayment_schedule and future_demands:
-		or_filters["loan_repayment_schedule"] = loan_repayment_schedule
+	elif future_demands:
+		if loan_repayment_schedule:
+			or_filters["loan_repayment_schedule"] = loan_repayment_schedule
 		or_filters["demand_date"] = (">", posting_date)
 		del filters["demand_date"]
 
