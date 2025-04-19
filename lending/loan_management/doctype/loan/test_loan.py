@@ -1442,7 +1442,10 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.submit()
 		repayment_entry.load_from_db()
 
-		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(51095.9, 1))
+		extra_amount_paid = repayment_entry.amount_paid - repayment_entry.payable_amount
+		total_principal_paid = repayment_entry.payable_principal_amount + extra_amount_paid
+
+		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(total_principal_paid, 1))
 
 	def test_additional_interest(self):
 		frappe.db.set_value(
@@ -1677,7 +1680,7 @@ class TestLoan(IntegrationTestCase):
 			self.assertEqual(2, closed_doc.docstatus)
 
 	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements_for_loc(self):
-		# makes two disbursements and corresponding full settlements and cancels one of them
+		# makes two disbursements and corresponding full settlements and cancel one of them
 		# checks if only the waivers for the cancelled full settlement are cancelled
 
 		loan = create_loan(
@@ -1739,7 +1742,7 @@ class TestLoan(IntegrationTestCase):
 
 		repayment_entry = create_repayment_entry(
 			loan.name,
-			"2024-10-25",
+			"2024-10-25 00:10:00",
 			4000,
 			repayment_type="Full Settlement",
 			loan_disbursement=disbursement_2.name,

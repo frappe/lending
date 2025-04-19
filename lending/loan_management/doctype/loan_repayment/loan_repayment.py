@@ -354,6 +354,7 @@ class LoanRepayment(AccountsController):
 	def create_repost(self):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
+		repost.loan_disbursement = self.loan_disbursement
 		repost.repost_date = self.posting_date
 		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_accruals_and_demands = True
@@ -496,9 +497,10 @@ class LoanRepayment(AccountsController):
 		loan_repayment_schedule = ""
 		if self.repayment_type in ("Pre Payment", "Advance Payment"):
 			loan_restructure = frappe.db.get_value("Loan Restructure", {"loan_repayment": self.name})
-			loan_repayment_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
-			)
+			if loan_restructure:
+				loan_repayment_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
+				)
 			on_back_dated_prepayment = True
 
 		accruals = reverse_loan_interest_accruals(
@@ -797,7 +799,7 @@ class LoanRepayment(AccountsController):
 			return
 
 		filters = {
-			"posting_date": (">=", self.posting_date),
+			"posting_date": (">", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}

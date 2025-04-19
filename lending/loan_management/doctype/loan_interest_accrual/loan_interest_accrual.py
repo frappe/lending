@@ -1023,8 +1023,9 @@ def reverse_loan_interest_accruals(
 
 	if loan_repayment_schedule and not future_accruals:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
-	elif loan_repayment_schedule and future_accruals:
-		or_filters["loan_repayment_schedule"] = loan_repayment_schedule
+	elif future_accruals:
+		if loan_repayment_schedule:
+			or_filters["loan_repayment_schedule"] = loan_repayment_schedule
 		or_filters["posting_date"] = (">", posting_date)
 		del filters["posting_date"]
 
