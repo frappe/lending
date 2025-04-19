@@ -69,8 +69,16 @@ class LoanInterestAccrual(AccountsController):
 			frappe.throw(_("Interest Amount is mandatory"))
 
 		if not self.last_accrual_date:
-			self.last_accrual_date = get_last_accrual_date(self.loan, self.posting_date, self.interest_type)
-		self.validate_last_accrual_date_before_current_posting_date()
+			self.last_accrual_date = get_last_accrual_date(
+				self.loan,
+				self.posting_date,
+				self.interest_type,
+				loan_repayment_schedule=self.loan_repayment_schedule,
+				loan_disbursement=self.loan_disbursement,
+			)
+
+		if self.interest_type == "Normal Interest":
+			self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
 		if getdate(self.start_date) < getdate(self.last_accrual_date):
