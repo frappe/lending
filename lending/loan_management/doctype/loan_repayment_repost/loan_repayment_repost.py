@@ -179,6 +179,7 @@ class LoanRepaymentRepost(Document):
 						"against_loan": self.loan,
 						"loan_disbursement": self.loan_disbursement,
 						"docstatus": 1,
+						"posting_date": ("<", self.repost_date),
 					},
 					"sum(principal_amount_paid)",
 				)
