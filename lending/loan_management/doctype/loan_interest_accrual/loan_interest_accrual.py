@@ -101,10 +101,14 @@ class LoanInterestAccrual(AccountsController):
 		self.make_gl_entries(cancel=1)
 
 		if self.normal_interest_journal_entry:
-			frappe.get_doc("Journal Entry", self.normal_interest_journal_entry).cancel()
+			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 		if self.additional_interest_suspense_entry:
-			frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry).cancel()
+			doc = frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
@@ -495,7 +499,7 @@ def get_overlapping_dates(
 	)
 
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
-		add_days(last_accrual_date, -1), add_days(posting_date, -1), loan_accrual_frequency
+		add_days(last_accrual_date, -1), posting_date, loan_accrual_frequency
 	)
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
@@ -648,7 +652,7 @@ def calculate_penal_interest_for_loans(
 							if penal_interest_amount > additional_interest:
 								create_loan_demand(
 									loan.name,
-									add_days(current_date, 1),
+									current_date,
 									"Penalty",
 									"Penalty",
 									penal_interest_amount - additional_interest,
@@ -659,7 +663,7 @@ def calculate_penal_interest_for_loans(
 							if flt(additional_interest, precision) > 0:
 								create_loan_demand(
 									loan.name,
-									add_days(current_date, 1),
+									current_date,
 									"Additional Interest",
 									"Additional Interest",
 									additional_interest,

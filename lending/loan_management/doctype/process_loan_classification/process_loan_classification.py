@@ -73,7 +73,6 @@ class ProcessLoanClassification(Document):
 					payment_reference=self.payment_reference,
 					is_backdated=self.is_backdated,
 					force_update_dpd_in_loan=self.force_update_dpd_in_loan,
-					via_scheduler=True,
 					queue="long",
 					enqueue_after_commit=True,
 				)
@@ -88,7 +87,6 @@ def process_loan_classification_batch(
 	payment_reference,
 	is_backdated,
 	force_update_dpd_in_loan=False,
-	via_scheduler=False,
 ):
 	from lending.loan_management.doctype.loan.loan import update_days_past_due_in_loans
 
@@ -102,7 +100,6 @@ def process_loan_classification_batch(
 				loan_disbursement=loan_disbursement,
 				ignore_freeze=True if payment_reference else False,
 				is_backdated=is_backdated,
-				via_background_job=via_scheduler,
 				force_update_dpd_in_loan=force_update_dpd_in_loan,
 			)
 
