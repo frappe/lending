@@ -118,6 +118,7 @@ def get_unbooked_interest_for_loans(
 
 	loan_list = [loan.name for loan in loans]
 	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
+	loan_status_map = {loan.name: loan.status for loan in loans}
 
 	filters = [
 		["loan", "in", loan_list],
@@ -139,7 +140,9 @@ def get_unbooked_interest_for_loans(
 	accrued_interest_map = {}
 
 	for accrued_interest in accrued_interests:
-		if loan_type_map.get(accrued_interest.loan) == "Line of Credit":
+		if loan_status_map.get(accrued_interest.loan) in ("Closed", "Settled"):
+			accrued_interest_map[accrued_interest.loan] = 0
+		elif loan_type_map.get(accrued_interest.loan) == "Line of Credit":
 			accrued_interest_map[
 				(accrued_interest.loan, accrued_interest.loan_disbursement)
 			] = accrued_interest.unbooked_interest
