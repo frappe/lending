@@ -279,6 +279,7 @@ class LoanRepayment(AccountsController):
 				self.posting_date,
 				interest_type="Penal Interest",
 				is_npa=self.is_npa,
+				loan_disbursement=self.loan_disbursement,
 				on_payment_allocation=True,
 			)
 
