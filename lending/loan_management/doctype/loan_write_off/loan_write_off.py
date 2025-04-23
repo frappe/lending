@@ -74,7 +74,7 @@ class LoanWriteOff(AccountsController):
 
 		pending_principal_amount = flt(get_pending_principal_amount(loan_details), precision)
 
-		if not self.write_off_amount:
+		if not self.write_off_amount and not self.is_settlement_write_off:
 			self.write_off_amount = pending_principal_amount
 
 		if self.write_off_amount != pending_principal_amount and not self.is_settlement_write_off:
@@ -172,7 +172,9 @@ class LoanWriteOff(AccountsController):
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
-		loan_details = frappe.get_doc("Loan", self.loan)
+		loan_details = frappe.db.get_value(
+			"Loan", self.loan, ["loan_acount", "applicant_type", "applicant"], as_dict=1
+		)
 
 		gl_entries.append(
 			self.get_gl_dict(
