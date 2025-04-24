@@ -1841,12 +1841,12 @@ class TestLoan(IntegrationTestCase):
 		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2025-01-16", 100000, repayment_type="Principal Adjustment"
+			loan.name, get_datetime("2025-01-16 00:06:10"), 100000, repayment_type="Principal Adjustment"
 		)
 		repayment_entry.submit()
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2025-01-16", 2600.00, repayment_type="Interest Waiver"
+			loan.name, get_datetime("2025-01-16 00:10:10"), 2600.00, repayment_type="Interest Waiver"
 		)
 		repayment_entry.submit()
 
