@@ -400,8 +400,6 @@ class TestLoan(IntegrationTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Loan Closure Requested")
 
-<<<<<<< HEAD
-=======
 	def test_foreclosure_loan_process(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -520,7 +518,6 @@ class TestLoan(IntegrationTestCase):
 		freeze_date = loan.freeze_date
 		self.assertEqual(str(last_accrual_date), freeze_date)
 
->>>>>>> a0b2c28 (fix: Interest Accrual stop after freeze loan (#545))
 	def test_loan_repayment_for_term_loan(self):
 		pledges = [
 			{"loan_security": "Test Security 2", "qty": 4000.00},
