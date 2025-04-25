@@ -797,6 +797,13 @@ def process_interest_accrual_batch(
 	from_demand=False,
 ):
 	for loan in loans:
+
+		freeze_date = frappe.db.get_value("Loan", loan.name, "freeze_date")
+		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
+
+		if freeze_date and getdate(freeze_date) < getdate(posting_date):
+			posting_date = freeze_date
+
 		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
 		try:
 			if not from_demand:
