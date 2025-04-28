@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, now_datetime, nowdate
+from frappe.utils import add_days, date_diff, now_datetime, nowdate
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.setup_wizard.operations.install_fixtures import set_global_defaults
@@ -885,3 +885,10 @@ def init_customers():
 def make_customer(customer_name):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
+
+
+def get_penalty_amount(penalty_date, emi_date, pending_amount, penalty_rate):
+	no_of_days = date_diff(penalty_date, emi_date)
+	penal_interest = (pending_amount * no_of_days * penalty_rate) / 36500
+
+	return penal_interest

@@ -867,6 +867,8 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
 
 	def test_same_date_for_daily_accruals(self):
+		from lending.tests.test_utils import get_penalty_amount
+
 		set_loan_accrual_frequency("Daily")
 		loan = create_loan(
 			self.applicant1,
@@ -889,9 +891,26 @@ class TestLoan(IntegrationTestCase):
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
+		# Calculate expected penal amount
+		expected_penalty_amount = 0
+
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}
+		)
+
+		for amount in frappe.db.get_all(
+			"Repayment Schedule",
+			{"parent": repayment_schedule, "principal_amount": (">", 0), "demand_generated": 1},
+			["payment_date", "total_payment"],
+		):
+
+			expected_penalty_amount += get_penalty_amount(
+				"2024-07-07", amount.payment_date, amount.total_payment, 25
+			)
+
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), expected_penalty_amount)
 
 		accruals = frappe.get_all(
 			"Loan Interest Accrual",
