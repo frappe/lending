@@ -475,6 +475,49 @@ class TestLoan(IntegrationTestCase):
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Closed")
 
+	def test_interest_accrual_stop_after_freeze_loan(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2025-01-01",
+			rate_of_interest=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-01-01",
+			repayment_start_date="2025-01-05",
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-02-05", loan=loan.name, company="_Test Company"
+		)
+
+		loan.load_from_db()
+		loan.freeze_account = 1
+		loan.freeze_date = "2025-01-25"
+		loan.save()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-02-05", loan=loan.name, company="_Test Company"
+		)
+
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"accrual_date",
+			order_by="accrual_date desc",
+		)
+
+		freeze_date = loan.freeze_date
+		self.assertEqual(str(last_accrual_date), freeze_date)
+
 	def test_loan_repayment_for_term_loan(self):
 		pledges = [
 			{"loan_security": "Test Security 2", "qty": 4000.00},
