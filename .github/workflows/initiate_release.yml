@@ -22,7 +22,7 @@ jobs:
         with:
           route: POST /repos/{owner}/{repo}/pulls
           owner: frappe
-          repo: hrms
+          repo: lending
           title: |-
             "chore: release v${{ matrix.version }}"
           body: "Automated Release."
