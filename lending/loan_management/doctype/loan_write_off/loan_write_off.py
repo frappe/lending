@@ -173,7 +173,7 @@ class LoanWriteOff(AccountsController):
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
 		loan_details = frappe.db.get_value(
-			"Loan", self.loan, ["loan_acount", "applicant_type", "applicant"], as_dict=1
+			"Loan", self.loan, ["loan_account", "applicant_type", "applicant"], as_dict=1
 		)
 
 		gl_entries.append(
