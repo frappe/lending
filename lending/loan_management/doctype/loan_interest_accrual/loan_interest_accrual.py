@@ -468,6 +468,7 @@ def make_loan_interest_accrual_entry(
 	additional_interest=0,
 	accrual_date=None,
 	loan_repayment_schedule_detail=None,
+	loan_disbursement=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -486,6 +487,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.additional_interest_amount = additional_interest
 		loan_interest_accrual.accrual_date = accrual_date
 		loan_interest_accrual.loan_repayment_schedule_detail = loan_repayment_schedule_detail
+		loan_interest_accrual.loan_disbursement = loan_disbursement
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -642,7 +644,7 @@ def calculate_penal_interest_for_loans(
 								penal_interest_rate,
 								loan_demand=demand.name,
 								additional_interest=additional_interest,
-								loan_repayment_schedule=demand.loan_repayment_schedule,
+								loan_disbursement=demand.loan_disbursement,
 								loan_repayment_schedule_detail=demand.repayment_schedule_detail,
 							)
 
