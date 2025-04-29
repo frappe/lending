@@ -484,6 +484,7 @@ def make_loan_interest_accrual_entry(
 	additional_interest=0,
 	accrual_date=None,
 	loan_repayment_schedule_detail=None,
+	loan_disbursement=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -502,6 +503,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.additional_interest_amount = additional_interest
 		loan_interest_accrual.accrual_date = accrual_date
 		loan_interest_accrual.loan_repayment_schedule_detail = loan_repayment_schedule_detail
+		loan_interest_accrual.loan_disbursement = loan_disbursement
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -557,9 +559,7 @@ def calculate_penal_interest_for_loans(
 	process_loan_interest=None,
 	accrual_type=None,
 	is_future_accrual=0,
-	accrual_date=None,
 	loan_disbursement=None,
-	via_background_job=False,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
@@ -621,7 +621,6 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
-			from_date_for_entry = from_date
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 
@@ -661,6 +660,7 @@ def calculate_penal_interest_for_loans(
 								penal_interest_rate,
 								loan_demand=demand.name,
 								additional_interest=additional_interest,
+								loan_disbursement=demand.loan_disbursement,
 								loan_repayment_schedule_detail=demand.repayment_schedule_detail,
 							)
 
@@ -793,6 +793,13 @@ def process_interest_accrual_batch(
 	from_demand=False,
 ):
 	for loan in loans:
+
+		freeze_date = frappe.db.get_value("Loan", loan.name, "freeze_date")
+		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
+
+		if freeze_date and getdate(freeze_date) < getdate(posting_date):
+			posting_date = freeze_date
+
 		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
 		try:
 			if not from_demand:
@@ -801,8 +808,6 @@ def process_interest_accrual_batch(
 					posting_date,
 					process_loan_interest=process_loan_interest,
 					accrual_type=accrual_type,
-					accrual_date=accrual_date,
-					via_background_job=via_background_job,
 				)
 			calculate_accrual_amount_for_loans(
 				loan,
@@ -1117,7 +1122,15 @@ def get_parent_wise_dates(loan, last_accrual_date, posting_date, loan_disburseme
 	parent_wise_schedules = frappe._dict()
 	for schedule_date in schedule_dates:
 		parent_wise_schedules.setdefault(schedule_date.parent, [])
-		parent_wise_schedules[schedule_date.parent].append(add_days(schedule_date.payment_date, -1))
+		accrual_date = add_days(schedule_date.payment_date, -1)
+		parent_wise_schedules[schedule_date.parent].append(accrual_date)
+
+	if freeze_date and last_accrual_date and getdate(last_accrual_date) < getdate(freeze_date):
+		freeze_accrual_date = freeze_date
+		parent_wise_schedules.setdefault(schedules[0], [])
+		if freeze_accrual_date not in parent_wise_schedules[schedules[0]]:
+			parent_wise_schedules[schedules[0]].append(freeze_accrual_date)
+
 	maturity_map = add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date)
 	return parent_wise_schedules, maturity_map
 

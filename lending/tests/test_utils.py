@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, now_datetime, nowdate
+from frappe.utils import add_days, date_diff, now_datetime, nowdate
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.setup_wizard.operations.install_fixtures import set_global_defaults
@@ -273,8 +273,8 @@ def create_loan_accounts():
 		"Security Deposit Account",
 		"Loans (Liabilities) - _TC",
 		"Liability",
-		"Payable",
-		"Profit and Loss",
+		"",
+		"Balance Sheet",
 	)
 
 
@@ -489,7 +489,12 @@ def create_loan_security():
 
 
 def make_loan_disbursement_entry(
-	loan, amount, disbursement_date=None, repayment_start_date=None, repayment_frequency=None
+	loan,
+	amount,
+	disbursement_date=None,
+	repayment_start_date=None,
+	repayment_frequency=None,
+	withhold_security_deposit=False,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
@@ -501,6 +506,7 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.company = "_Test Company"
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
+	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
@@ -879,3 +885,10 @@ def init_customers():
 def make_customer(customer_name):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
+
+
+def get_penalty_amount(penalty_date, emi_date, pending_amount, penalty_rate):
+	no_of_days = date_diff(penalty_date, emi_date)
+	penal_interest = (pending_amount * no_of_days * penalty_rate) / 36500
+
+	return penal_interest

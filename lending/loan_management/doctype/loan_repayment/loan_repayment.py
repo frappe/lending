@@ -1215,6 +1215,8 @@ class LoanRepayment(AccountsController):
 			"Partial Settlement",
 			"Principal Adjustment",
 			"Security Deposit Adjustment",
+			"Interest Waiver",
+			"Penalty Waiver",
 		):
 			loan = frappe.qb.DocType("Loan")
 
