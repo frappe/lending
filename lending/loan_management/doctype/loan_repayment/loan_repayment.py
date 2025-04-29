@@ -354,6 +354,7 @@ class LoanRepayment(AccountsController):
 	def create_repost(self):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
+		repost.loan_disbursement = self.loan_disbursement
 		repost.repost_date = self.posting_date
 		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_accruals_and_demands = True
@@ -491,6 +492,17 @@ class LoanRepayment(AccountsController):
 			reverse_loan_interest_accruals,
 		)
 
+		on_back_dated_prepayment = False
+
+		loan_repayment_schedule = ""
+		if self.repayment_type in ("Pre Payment", "Advance Payment"):
+			loan_restructure = frappe.db.get_value("Loan Restructure", {"loan_repayment": self.name})
+			if loan_restructure:
+				loan_repayment_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
+				)
+			on_back_dated_prepayment = True
+
 		accruals = reverse_loan_interest_accruals(
 			self.against_loan,
 			self.posting_date,
@@ -498,6 +510,8 @@ class LoanRepayment(AccountsController):
 			is_npa=self.is_npa,
 			on_payment_allocation=True,
 			loan_disbursement=self.loan_disbursement,
+			loan_repayment_schedule=loan_repayment_schedule,
+			future_accruals=on_back_dated_prepayment,
 		)
 
 		reverse_demands(
@@ -506,6 +520,8 @@ class LoanRepayment(AccountsController):
 			demand_type="EMI",
 			loan_disbursement=self.loan_disbursement,
 			on_settlement_or_closure=on_settlement_or_closure,
+			loan_repayment_schedule=loan_repayment_schedule,
+			future_demands=on_back_dated_prepayment,
 			loan_repayment=loan_repayment,
 		)
 
@@ -783,7 +799,7 @@ class LoanRepayment(AccountsController):
 			return
 
 		filters = {
-			"posting_date": (">=", self.posting_date),
+			"posting_date": (">", self.posting_date),
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
