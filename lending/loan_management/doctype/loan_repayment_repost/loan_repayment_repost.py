@@ -326,6 +326,8 @@ class LoanRepaymentRepost(Document):
 			.select(repayment_details.loan_demand)
 		)
 		loan_demands_to_be_corrected = [i[0] for i in query.run(as_list=True)]
+		if len(loan_demands_to_be_corrected) == 0:
+			return
 		repayment = frappe.qb.DocType("Loan Repayment")
 		query = (
 			frappe.qb.from_(repayment)
