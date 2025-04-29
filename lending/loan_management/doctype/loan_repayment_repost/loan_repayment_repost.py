@@ -2,8 +2,10 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate
+from frappe.query_builder.functions import Sum
+from frappe.utils import cint, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -71,6 +73,9 @@ class LoanRepaymentRepost(Document):
 			self.clear_demand_allocation()
 
 		self.trigger_on_cancel_events()
+		self.recalculate_allocated_demands(
+			[entry.loan_repayment for entry in self.get("repayment_entries")]
+		)
 		self.cancel_demands()
 		self.trigger_on_submit_events()
 
@@ -256,7 +261,7 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
-			repayment_doc.allocate_amount_against_demands(amounts)
+			repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
@@ -308,3 +313,60 @@ class LoanRepaymentRepost(Document):
 				loan=self.loan,
 				loan_disbursement=self.loan_disbursement,
 			)
+
+	def recalculate_allocated_demands(self, loan_repayments):
+		# gets all the demands for the repayment, goes back, and recalculates
+		# the outstanding and paid amounts up until the reposting date
+		repayment_details = frappe.qb.DocType("Loan Repayment Detail")
+
+		# get all child tables from the loan_repayments
+		query = (
+			frappe.qb.from_(repayment_details)
+			.where(repayment_details.parent.isin(loan_repayments))
+			.select(repayment_details.loan_demand)
+		)
+		loan_demands_to_be_corrected = [i[0] for i in query.run(as_list=True)]
+		repayment = frappe.qb.DocType("Loan Repayment")
+		query = (
+			frappe.qb.from_(repayment)
+			.join(repayment_details)
+			.on(repayment_details.parent == repayment.name)
+			.where(repayment.docstatus == 1)
+			.where(repayment.posting_date < get_datetime(self.repost_date))
+			.where(repayment_details.loan_demand.isin(loan_demands_to_be_corrected))
+			.select(repayment_details.loan_demand, Sum(repayment_details.paid_amount).as_("paid_amount"))
+			.groupby(repayment_details.loan_demand)
+		)
+
+		# separate queries for waived off and repaid amounts
+		query1 = query.where(
+			repayment.repayment_type.notin(["Interest Waiver", "Penalty Waiver", "Charges Waiver"])
+		)
+		paid_amounts = {i.loan_demand: i.paid_amount for i in query1.run(as_dict=True)}
+		query2 = query.where(
+			repayment.repayment_type.isin(["Interest Waiver", "Penalty Waiver", "Charges Waiver"])
+		)
+		waived_amounts = {i.loan_demand: i.paid_amount for i in query2.run(as_dict=True)}
+
+		for loan_demand in set(paid_amounts.keys()).union(set(waived_amounts.keys())):
+			demand_amount = frappe.db.get_value("Loan Demand", loan_demand, "demand_amount")
+			paid_amount = 0
+			waived_amount = 0
+			if loan_demand in paid_amounts:
+				paid_amount += paid_amounts[loan_demand]
+			if loan_demand in waived_amounts:
+				waived_amount += waived_amounts[loan_demand]
+
+			if paid_amount + waived_amount > demand_amount or 0 > paid_amount or 0 > waived_amount:
+				frappe.throw(
+					_(
+						"There are problems with the allocation amounts before this reposting date (Demand Amount: {0}, Paid Amount: {1}, Waived Amount: {2})"
+					).format(demand_amount, paid_amount, waived_amount)
+				)
+			else:
+				# set amounts
+				frappe.db.set_value("Loan Demand", loan_demand, "paid_amount", paid_amount)
+				frappe.db.set_value("Loan Demand", loan_demand, "waived_amount", waived_amount)
+				frappe.db.set_value(
+					"Loan Demand", loan_demand, "outstanding_amount", demand_amount - waived_amount - paid_amount
+				)
