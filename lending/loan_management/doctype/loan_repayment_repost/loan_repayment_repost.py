@@ -390,7 +390,7 @@ class LoanRepaymentRepost(Document):
 		)
 		waived_amounts = {i.loan_demand: i.paid_amount for i in query2.run(as_dict=True)}
 
-		for loan_demand in set(paid_amounts.keys()).union(set(waived_amounts.keys())):
+		for loan_demand in loan_demands_to_be_corrected:
 			demand_amount = frappe.db.get_value("Loan Demand", loan_demand, "demand_amount")
 			paid_amount = 0
 			waived_amount = 0
