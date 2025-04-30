@@ -266,7 +266,7 @@ class LoanRepaymentRepost(Document):
 
 			repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
 			while True:
-				new_allocations = {i.loan_demand for i in self.get("repayment_details")}
+				new_allocations = {i.loan_demand for i in repayment_doc.get("repayment_details")}
 				repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
 				if len(new_allocations.difference(self.loan_demands_to_be_corrected)):
 					self.loan_demands_to_be_corrected.update(
