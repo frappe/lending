@@ -73,7 +73,8 @@ class LoanRepaymentRepost(Document):
 			self.clear_demand_allocation()
 
 		self.trigger_on_cancel_events()
-		self.loan_demands_to_be_corrected = set(
+		self.loan_demands_to_be_corrected = set()
+		self.loan_demands_to_be_corrected.update(
 			self.recalculate_allocated_demands(
 				[entry.loan_repayment for entry in self.get("repayment_entries")]
 			)
@@ -264,7 +265,6 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.run_method("before_validate")
 
 			while True:
-				repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
 				new_allocations = {i.loan_demand for i in self.get("repayment_details")}
 				if len(new_allocations.difference(self.loan_demands_to_be_corrected)):
 					self.loan_demands_to_be_corrected.update(
@@ -272,6 +272,7 @@ class LoanRepaymentRepost(Document):
 					)
 				else:
 					break
+				repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
@@ -335,9 +336,13 @@ class LoanRepaymentRepost(Document):
 			.where(repayment_details.parent.isin(loan_repayments))
 			.select(repayment_details.loan_demand)
 		)
-		loan_demands_to_be_corrected = [i[0] for i in query.run(as_list=True)]
+
+		loan_demands_to_be_corrected = {i[0] for i in query.run(as_list=True)}.difference(
+			self.loan_demands_to_be_corrected
+		)
+
 		if len(loan_demands_to_be_corrected) == 0:
-			return
+			return set()
 		repayment = frappe.qb.DocType("Loan Repayment")
 		query = (
 			frappe.qb.from_(repayment)
