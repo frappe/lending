@@ -73,8 +73,10 @@ class LoanRepaymentRepost(Document):
 			self.clear_demand_allocation()
 
 		self.trigger_on_cancel_events()
-		self.recalculate_allocated_demands(
-			[entry.loan_repayment for entry in self.get("repayment_entries")]
+		self.loan_demands_to_be_corrected = set(
+			self.recalculate_allocated_demands(
+				[entry.loan_repayment for entry in self.get("repayment_entries")]
+			)
 		)
 		self.cancel_demands()
 		self.trigger_on_submit_events()
@@ -267,7 +269,15 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
-			repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
+			while True:
+				repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
+				new_allocations = {i.loan_demand for i in self.get("repayment_details")}
+				if len(new_allocations.difference(self.loan_demands_to_be_corrected)):
+					self.loan_demands_to_be_corrected.update(
+						self.recalculate_allocated_demands([repayment_doc.name])
+					)
+				else:
+					break
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
@@ -399,7 +409,7 @@ class LoanRepaymentRepost(Document):
 			if loan_demand in waived_amounts:
 				waived_amount += waived_amounts[loan_demand]
 
-			if paid_amount + waived_amount > demand_amount or 0 > paid_amount or 0 > waived_amount:
+			if paid_amount + waived_amount > demand_amount:
 				frappe.throw(
 					_(
 						"There are problems with the allocation amounts before this reposting date (Demand Amount: {0}, Paid Amount: {1}, Waived Amount: {2})"
@@ -412,3 +422,4 @@ class LoanRepaymentRepost(Document):
 				frappe.db.set_value(
 					"Loan Demand", loan_demand, "outstanding_amount", demand_amount - waived_amount - paid_amount
 				)
+		return loan_demands_to_be_corrected
