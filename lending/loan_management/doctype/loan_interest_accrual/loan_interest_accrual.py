@@ -80,12 +80,23 @@ class LoanInterestAccrual(AccountsController):
 			self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
-		if getdate(self.start_date) < getdate(self.last_accrual_date):
-			frappe.throw(
-				_(
-					"There are already Loan Interest Accruals made till {}. Your accrual has the starting date {}"
-				).format(getdate(self.last_accrual_date), getdate(self.start_date))
-			)
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"docstatus": 1,
+				"loan": self.loan,
+				"loan_disbursement": self.loan_disbursement,
+				"interest_type": self.interest_type,
+			},
+			"MAX(posting_date)",
+		)
+		if last_accrual_date:
+			if getdate(self.start_date) < getdate(last_accrual_date):
+				frappe.throw(
+					_(
+						"There are already Loan Interest Accruals made till {}. Your accrual has the starting date {}"
+					).format(getdate(last_accrual_date), getdate(self.start_date))
+				)
 
 	def on_submit(self):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
@@ -1038,7 +1049,6 @@ def reverse_loan_interest_accruals(
 		)
 		or []
 	)
-
 	for accrual in accruals:
 		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name, for_update=True)
 		if accrual_doc.docstatus == 1:
