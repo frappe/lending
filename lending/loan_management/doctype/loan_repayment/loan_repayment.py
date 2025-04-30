@@ -1358,7 +1358,6 @@ class LoanRepayment(AccountsController):
 		self.total_partner_interest_share = 0
 		self.excess_amount = 0
 		settlement_date = None
-
 		for demand in amounts.get("unpaid_demands"):
 			if demand.get("demand_subtype") == "Principal":
 				total_demanded_principal += demand.get("outstanding_amount")
@@ -2523,11 +2522,10 @@ def get_bulk_due_details(loans, posting_date):
 		get_disbursement_map,
 		get_last_demand_date,
 		get_pending_principal_amount_for_loans,
-		get_unbooked_interest_for_loans,
 		process_amount_for_bulk_loans,
 	)
 
-	last_demand_date = get_last_demand_date(posting_date, loan=loans[0])
+	last_demand_dates = {loan: get_last_demand_date(posting_date, loan=loan) for loan in loans}
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2552,9 +2550,15 @@ def get_bulk_due_details(loans, posting_date):
 
 	disbursement_map = get_disbursement_map(loan_details)
 	principal_amount_map = get_pending_principal_amount_for_loans(loan_details, disbursement_map)
-	unbooked_interest_map = get_unbooked_interest_for_loans(
-		loan_details, posting_date, last_demand_date=last_demand_date
-	)
+	# unbooked_interest_map = get_unbooked_interest_for_loans(
+	# 	loan_details, posting_date, last_demand_date=last_demand_date
+	# )
+	unbooked_interest_map = {
+		loan: get_unbooked_interest(
+			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
+		)
+		for loan in loans
+	}
 	loan_demands = get_all_demands(loans, posting_date)
 
 	demand_map = {}
