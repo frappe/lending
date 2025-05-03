@@ -1358,6 +1358,7 @@ class LoanRepayment(AccountsController):
 		self.total_partner_interest_share = 0
 		self.excess_amount = 0
 		settlement_date = None
+
 		for demand in amounts.get("unpaid_demands"):
 			if demand.get("demand_subtype") == "Principal":
 				total_demanded_principal += demand.get("outstanding_amount")
