@@ -546,7 +546,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 
 def create_repayment_entry(
 	loan,
-	posting_date,
+	value_date,
 	paid_amount,
 	repayment_type="Normal Repayment",
 	loan_disbursement=None,
@@ -555,7 +555,8 @@ def create_repayment_entry(
 	lr = frappe.new_doc("Loan Repayment")
 	lr.against_loan = loan
 	lr.company = "_Test Company"
-	lr.posting_date = posting_date or nowdate()
+	lr.posting_date = nowdate()
+	lr.value_date = value_date
 	lr.amount_paid = paid_amount
 	lr.repayment_type = repayment_type
 	lr.loan_disbursement = loan_disbursement
