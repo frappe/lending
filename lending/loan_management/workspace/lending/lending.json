@@ -14,7 +14,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "loan",
- "idx": 0,
+ "idx": 2,
  "indicator_color": "",
  "is_hidden": 0,
  "label": "Lending",
@@ -562,7 +562,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-02-10 19:09:09.075062",
+ "modified": "2025-05-07 15:23:01.851142",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending",
@@ -573,7 +573,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 15.0,
+ "sequence_id": 0.0,
  "shortcuts": [
   {
    "color": "Grey",
