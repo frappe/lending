@@ -2131,6 +2131,68 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date} (Disbursement: {disbursement}): Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	def test_migrated_repayment_schedule(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			posting_date="2025-01-01",
+			repayment_start_date="2025-01-05",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-01", repayment_start_date="2025-01-05"
+		)
+
+		parent_schedule_name = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}
+		)
+
+		payment_dates = [
+			"2025-01-05",
+			"2025-02-05",
+			"2025-03-10",
+			"2025-04-10",
+			"2025-05-10",
+			"2025-06-10",
+		]
+
+		rows = frappe.db.get_all(
+			"Repayment Schedule",
+			filters={"parent": parent_schedule_name},
+			fields=["name"],
+			order_by="idx asc",
+		)
+
+		for i, row in enumerate(rows):
+			if i < len(payment_dates):
+				frappe.db.set_value("Repayment Schedule", row.get("name"), "payment_date", payment_dates[i])
+
+		process_daily_loan_demands(posting_date="2025-03-10", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2025-03-10", 51471)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-03-10", 15000, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
+
+		updated_rows = frappe.db.get_all(
+			"Repayment Schedule",
+			filters={"parent": parent_schedule_name},
+			fields=["payment_date"],
+			order_by="idx asc",
+		)
+
+		for i, row in enumerate(updated_rows):
+			self.assertEqual(str(row.get("payment_date")), payment_dates[i])
+
 	def test_charges_payment(self):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 
