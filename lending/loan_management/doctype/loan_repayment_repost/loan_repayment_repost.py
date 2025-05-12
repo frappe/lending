@@ -290,6 +290,30 @@ class LoanRepaymentRepost(Document):
 
 			update_installment_counts(self.loan)
 
+			if repayment_doc.repayment_type == "Full Settlement":
+				loan_write_off = frappe.db.get_value(
+					"Loan Write Off",
+					{"loan": self.loan, "docstatus": 1, "is_settlement_write_off": 1},
+					["name", "write_off_amount"],
+					as_dict=1,
+				)
+
+				if loan_write_off:
+					write_off_amount = flt(
+						repayment_doc.payable_principal_amount - repayment_doc.principal_amount_paid, 2
+					)
+					if flt(loan_write_off.write_off_amount, 2) != write_off_amount:
+						doc = frappe.get_doc("Loan Write Off", loan_write_off.name)
+						doc.make_gl_entries(cancel=1)
+
+						frappe.db.set_value(
+							"Loan Write Off", loan_write_off.name, "write_off_amount", write_off_amount
+						)
+						doc.load_from_db()
+						doc.make_gl_entries()
+
+					frappe.db.set_value("Loan", self.loan, "written_off_amount", write_off_amount)
+
 			repayment_doc.flags.from_repost = False
 			frappe.flags.on_repost = False
 
