@@ -38,6 +38,7 @@ class LoanRepaymentRepost(Document):
 		ignore_on_cancel_amount_update: DF.Check
 		loan: DF.Link
 		loan_disbursement: DF.Link | None
+		recalculate_allocated_charges: DF.Check
 		repayment_entries: DF.Table[LoanRepaymentRepostDetail]
 		repost_date: DF.Date
 	# end: auto-generated types
@@ -73,12 +74,13 @@ class LoanRepaymentRepost(Document):
 			self.clear_demand_allocation()
 
 		self.trigger_on_cancel_events()
-		self.loan_demands_to_be_corrected = set()
-		self.loan_demands_to_be_corrected.update(
-			self.recalculate_allocated_demands(
-				[entry.loan_repayment for entry in self.get("repayment_entries")]
+		if self.recalculate_allocated_charges:
+			self.loan_demands_to_be_corrected = set()
+			self.loan_demands_to_be_corrected.update(
+				self.recalculate_allocated_demands(
+					[entry.loan_repayment for entry in self.get("repayment_entries")]
+				)
 			)
-		)
 		self.cancel_demands()
 		self.trigger_on_submit_events()
 
@@ -271,15 +273,16 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.run_method("before_validate")
 
 			repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
-			while True:
-				new_allocations = {i.loan_demand for i in repayment_doc.get("repayment_details")}
-				repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
-				if len(new_allocations.difference(self.loan_demands_to_be_corrected)):
-					self.loan_demands_to_be_corrected.update(
-						self.recalculate_allocated_demands([repayment_doc.name])
-					)
-				else:
-					break
+			if self.recalculate_allocated_charges:
+				while True:
+					new_allocations = {i.loan_demand for i in repayment_doc.get("repayment_details")}
+					repayment_doc.allocate_amount_against_demands(amounts, on_submit=True)
+					if len(new_allocations.difference(self.loan_demands_to_be_corrected)):
+						self.loan_demands_to_be_corrected.update(
+							self.recalculate_allocated_demands([repayment_doc.name])
+						)
+					else:
+						break
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
@@ -375,6 +378,7 @@ class LoanRepaymentRepost(Document):
 		query = (
 			frappe.qb.from_(repayment_details)
 			.where(repayment_details.parent.isin(loan_repayments))
+			.where(repayment_details.demand_type == "Charges")
 			.select(repayment_details.loan_demand)
 		)
 

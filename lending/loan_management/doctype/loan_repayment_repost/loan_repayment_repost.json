@@ -11,6 +11,7 @@
   "loan_disbursement",
   "clear_demand_allocation_before_repost",
   "delete_gl_entries",
+  "recalculate_allocated_charges",
   "column_break_bmnx",
   "repost_date",
   "cancel_future_accruals_and_demands",
@@ -115,12 +116,18 @@
    "fieldname": "cancel_future_accruals_and_demands",
    "fieldtype": "Check",
    "label": "Cancel Future Accruals and Demands "
+  },
+  {
+   "default": "0",
+   "fieldname": "recalculate_allocated_charges",
+   "fieldtype": "Check",
+   "label": "Recalculate allocated charges"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:37.007942",
+ "modified": "2025-05-13 15:28:00.215043",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Repost",
@@ -141,6 +148,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
