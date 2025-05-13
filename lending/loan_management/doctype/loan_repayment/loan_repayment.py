@@ -630,20 +630,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
-		self.check_future_entries()
-		self.mark_as_unpaid()
-		self.update_demands(cancel=1)
-		self.update_security_deposit_amount(cancel=1)
 
-		if self.is_backdated:
-			if frappe.flags.in_test:
-				self.create_repost()
-			else:
-				frappe.enqueue(
-					self.create_repost,
-					enqueue_after_commit=True,
-				)
-		self.flags.ignore_links = True
 		if self.repayment_type == "Full Settlement":
 			if frappe.flags.in_test:
 				self.cancel_linked_repayments()
