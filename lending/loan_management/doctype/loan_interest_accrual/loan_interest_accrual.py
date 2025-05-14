@@ -536,7 +536,7 @@ def get_overlapping_dates(
 	for schedule_parent in parent_wise_schedules:
 		# accruals only till maturity_date
 		maturity_date = maturity_map[schedule_parent]
-		accrual_frequency_breaks = filter(lambda x: x < maturity_date, accrual_frequency_breaks)
+		accrual_frequency_breaks = [x for x in accrual_frequency_breaks if x < maturity_date]
 
 		parent_wise_schedules[schedule_parent].extend((accrual_frequency_breaks))
 		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
