@@ -2861,7 +2861,7 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(len(demands), 2)
 
 	def test_loan_interest_accruals_after_maturity_date(self):
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2878,7 +2878,7 @@ class TestLoan(IntegrationTestCase):
 			loan.name,
 			loan.loan_amount,
 			disbursement_date="2024-03-25",
-			repayment_start_date="2024-04-01",
+			repayment_start_date="2024-04-07",
 			withhold_security_deposit=1,
 		)
 
