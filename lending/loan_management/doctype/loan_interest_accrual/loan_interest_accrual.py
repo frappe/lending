@@ -532,8 +532,12 @@ def get_overlapping_dates(
 	)
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
+		# accruals only till maturity_date
+		maturity_date = frappe.db.get_value("Loan Repayment Schedule", schedule_parent, "maturity_date")
+		accrual_frequency_breaks = set(filter(lambda x: x < maturity_date, accrual_frequency_breaks))
+
 		parent_wise_schedules[schedule_parent].extend(accrual_frequency_breaks)
-		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
+		parent_wise_schedules[schedule_parent] = list(parent_wise_schedules[schedule_parent])
 		parent_wise_schedules[schedule_parent].sort()
 	return parent_wise_schedules
 
