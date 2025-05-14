@@ -5,9 +5,13 @@ from datetime import timedelta
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, add_months, date_diff, get_datetime
+from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
 
-from lending.loan_management.doctype.loan_repayment.loan_repayment import get_amounts, init_amounts
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	calculate_amounts,
+	get_amounts,
+	init_amounts,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -378,3 +382,81 @@ class TestLoanRepayment(IntegrationTestCase):
 			self.assertEqual(demand_dates[idx], generated_additional_demand)
 		for idx, generated_penal_accrual in enumerate(generated_penal_accruals):
 			self.assertEqual(accrual_dates[idx], generated_penal_accrual)
+
+	def test_backdated_correct_demand_amounts(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-05-05",
+			posting_date="2025-04-11",
+			penalty_charges_rate=25,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			500000,
+			repayment_start_date="2025-05-05",
+			disbursement_date="2025-04-11",
+		)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-05", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2025-06-05", loan=loan.name)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-05-05")[
+			"payable_amount"
+		]
+		repayment1 = create_repayment_entry(
+			loan=loan.name, posting_date="2025-05-05", paid_amount=payable_amount
+		)
+		repayment1.submit()
+
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["demand_amount", "outstanding_amount", "paid_amount", "demand_date"],
+		)
+		for demand in demands:
+			if demand.demand_date > get_datetime("2025-05-05"):
+				self.assertEqual(demand.outstanding_amount, demand.demand_amount)
+				self.assertEqual(demand.paid_amount, 0)
+			else:
+				self.assertEqual(demand.outstanding_amount, 0)
+				self.assertEqual(demand.paid_amount, demand.demand_amount)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-06-05")[
+			"payable_amount"
+		]
+		repayment2 = create_repayment_entry(
+			loan=loan.name, posting_date="2025-06-05", paid_amount=payable_amount
+		)
+		repayment2.submit()
+
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["demand_amount", "outstanding_amount", "paid_amount", "demand_date"],
+		)
+		for demand in demands:
+			self.assertEqual(demand.outstanding_amount, 0)
+			self.assertEqual(demand.paid_amount, demand.demand_amount)
+
+		repayment1.cancel()
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["demand_amount", "outstanding_amount", "paid_amount", "demand_date"],
+		)
+		for demand in demands:
+			if demand.demand_date > get_datetime("2025-05-05"):
+				self.assertEqual(demand.outstanding_amount, demand.demand_amount)
+				self.assertEqual(demand.paid_amount, 0)
+			else:
+				self.assertEqual(demand.outstanding_amount, 0)
+				self.assertEqual(demand.paid_amount, demand.demand_amount)
