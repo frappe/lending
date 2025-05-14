@@ -80,13 +80,15 @@ class LoanInterestAccrual(AccountsController):
 			self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
+		if self.interest_type != "Normal Interest":
+			return
 		last_accrual_date = frappe.db.get_value(
 			"Loan Interest Accrual",
 			{
 				"docstatus": 1,
 				"loan": self.loan,
 				"loan_disbursement": self.loan_disbursement,
-				"interest_type": self.interest_type,
+				"interest_type": "Normal Interest",
 			},
 			"MAX(posting_date)",
 		)
