@@ -460,3 +460,72 @@ class TestLoanRepayment(IntegrationTestCase):
 			else:
 				self.assertEqual(demand.outstanding_amount, 0)
 				self.assertEqual(demand.paid_amount, demand.demand_amount)
+
+	def test_on_time_penal_cancellations(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-05-05",
+			posting_date="2025-04-11",
+			penalty_charges_rate=25,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			500000,
+			repayment_start_date="2025-05-05",
+			disbursement_date="2025-04-11",
+		)
+		process_daily_loan_demands(posting_date="2025-06-04", loan=loan.name)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-04", loan=loan.name, company="_Test Company"
+		)
+		dates = []
+		current_date = get_datetime("2025-05-05")
+
+		while getdate(current_date) < getdate("2025-06-05"):
+			dates.append(current_date)
+			current_date = add_days(current_date, 1)
+
+		penal_accrual_dates = frappe.db.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
+			pluck="posting_date",
+			order_by="posting_date",
+		)
+		penal_demand_dates = frappe.db.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "demand_type": "Penalty", "docstatus": 1},
+			pluck="demand_date",
+			order_by="demand_date",
+		)
+		self.assertEqual(dates, penal_accrual_dates)
+		self.assertEqual(dates, penal_demand_dates)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-05-05")[
+			"payable_amount"
+		]
+		repayment = create_repayment_entry(
+			loan=loan.name, posting_date="2025-05-05", paid_amount=payable_amount
+		)
+		repayment.submit()
+		penal_accrual_dates = frappe.db.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 2},
+			pluck="posting_date",
+			order_by="posting_date",
+		)
+		penal_demand_dates = frappe.db.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "demand_type": "Penalty", "docstatus": 2},
+			pluck="demand_date",
+			order_by="demand_date",
+		)
+		self.assertEqual(dates, penal_accrual_dates)
+		self.assertEqual(dates, penal_demand_dates)
