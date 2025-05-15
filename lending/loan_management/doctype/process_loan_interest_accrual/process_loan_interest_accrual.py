@@ -28,6 +28,7 @@ class ProcessLoanInterestAccrual(Document):
 		amended_from: DF.Link | None
 		company: DF.Link | None
 		loan: DF.Link | None
+		loan_disbursement: DF.Link | None
 		loan_product: DF.Link | None
 		posting_date: DF.Date
 	# end: auto-generated types
@@ -42,6 +43,7 @@ class ProcessLoanInterestAccrual(Document):
 			accrual_date=self.posting_date,
 			company=self.company,
 			from_demand=self.flags.from_demand,
+			loan_disbursement=self.loan_disbursement,
 		)
 
 
@@ -61,11 +63,13 @@ def process_loan_interest_accrual_for_loans(
 	accrual_type="Regular",
 	company=None,
 	from_demand=False,
+	loan_disbursement=None,
 ):
 	loan_process = frappe.new_doc("Process Loan Interest Accrual")
 	loan_process.posting_date = posting_date or add_days(nowdate(), -1)
 	loan_process.loan_product = loan_product
 	loan_process.loan = loan
+	loan_process.loan_disbursement = loan_disbursement
 	loan_process.accrual_type = accrual_type
 	loan_process.company = company
 	loan_process.flags.from_demand = from_demand
