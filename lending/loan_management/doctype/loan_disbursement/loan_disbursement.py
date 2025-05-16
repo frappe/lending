@@ -192,7 +192,8 @@ class LoanDisbursement(AccountsController):
 					"party_type": self.applicant_type,
 					"party": self.applicant,
 					"posting_date": self.disbursement_date,
-				}
+				},
+				item=self,
 			)
 		)
 
@@ -208,7 +209,8 @@ class LoanDisbursement(AccountsController):
 					"remarks": _("Disbursement against loan:") + self.against_loan,
 					"cost_center": self.cost_center,
 					"posting_date": self.disbursement_date,
-				}
+				},
+				item=self,
 			)
 		)
 
@@ -230,7 +232,8 @@ class LoanDisbursement(AccountsController):
 						"party_type": self.applicant_type,
 						"party": self.applicant,
 						"posting_date": self.disbursement_date,
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -246,7 +249,8 @@ class LoanDisbursement(AccountsController):
 						"remarks": _("Disbursement against loan:") + self.against_loan,
 						"cost_center": self.cost_center,
 						"posting_date": self.disbursement_date,
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -265,7 +269,8 @@ class LoanDisbursement(AccountsController):
 						"party_type": self.applicant_type,
 						"party": self.applicant,
 						"posting_date": self.disbursement_date,
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -281,7 +286,8 @@ class LoanDisbursement(AccountsController):
 						"remarks": _("Disbursement against loan:") + self.against_loan,
 						"cost_center": self.cost_center,
 						"posting_date": self.disbursement_date,
-					}
+					},
+					item=self,
 				)
 			)
 

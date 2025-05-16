@@ -73,7 +73,8 @@ class LoanRefund(AccountsController):
 					"remarks": _("Against Loan:") + self.loan,
 					"cost_center": self.cost_center,
 					"posting_date": getdate(self.posting_date),
-				}
+				},
+				item=self,
 			)
 		)
 
@@ -91,7 +92,8 @@ class LoanRefund(AccountsController):
 					"remarks": _("Against Loan:") + self.loan,
 					"cost_center": self.cost_center,
 					"posting_date": getdate(self.posting_date),
-				}
+				},
+				item=self,
 			)
 		)
 

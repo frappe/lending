@@ -250,7 +250,7 @@ class LoanRepayment(AccountsController):
 				"disbursed_amount",
 				"total_interest_payable",
 				"written_off_amount",
-				"applicant_type"
+				"applicant_type",
 			],
 			as_dict=1,
 		)
@@ -665,7 +665,8 @@ class LoanRepayment(AccountsController):
 						"party_type": self.applicant_type,
 						"party": self.applicant,
 						"posting_date": getdate(self.posting_date),
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -683,7 +684,8 @@ class LoanRepayment(AccountsController):
 						"remarks": _("Penalty against loan:") + self.against_loan,
 						"cost_center": self.cost_center,
 						"posting_date": getdate(self.posting_date),
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -703,7 +705,8 @@ class LoanRepayment(AccountsController):
 							"posting_date": getdate(self.posting_date),
 							"party_type": payment_party_type,
 							"party": payment_party,
-						}
+						},
+						item=self,
 					)
 				)
 
@@ -721,7 +724,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
-						}
+						},
+						item=self,
 					)
 				)
 
@@ -739,7 +743,8 @@ class LoanRepayment(AccountsController):
 								"against_voucher": self.against_loan,
 								"cost_center": self.cost_center,
 								"posting_date": getdate(self.posting_date),
-							}
+							},
+							item=self,
 						)
 					)
 
@@ -756,7 +761,8 @@ class LoanRepayment(AccountsController):
 								"against_voucher": self.against_loan,
 								"cost_center": self.cost_center,
 								"posting_date": getdate(self.posting_date),
-							}
+							},
+							item=self,
 						)
 					)
 
@@ -768,7 +774,8 @@ class LoanRepayment(AccountsController):
 								"credit": repayment.paid_interest_amount,
 								"cost_center": self.cost_center,
 								"against": account_details.suspense_interest_income,
-							}
+							},
+							item=self,
 						)
 					)
 
@@ -780,7 +787,8 @@ class LoanRepayment(AccountsController):
 								"debit_in_account_currency": repayment.paid_interest_amount,
 								"cost_center": self.cost_center,
 								"against": account_details.interest_income_account,
-							}
+							},
+							item=self,
 						)
 					)
 
@@ -799,7 +807,8 @@ class LoanRepayment(AccountsController):
 							"posting_date": getdate(self.posting_date),
 							"party_type": payment_party_type,
 							"party": payment_party,
-						}
+						},
+						item=self,
 					)
 				)
 
@@ -817,7 +826,8 @@ class LoanRepayment(AccountsController):
 							"remarks": _(remarks),
 							"cost_center": self.cost_center,
 							"posting_date": getdate(self.posting_date),
-						}
+						},
+						item=self,
 					)
 				)
 
@@ -844,7 +854,8 @@ class LoanRepayment(AccountsController):
 						"posting_date": getdate(self.posting_date),
 						"party_type": payment_party_type,
 						"party": payment_party,
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -862,7 +873,8 @@ class LoanRepayment(AccountsController):
 						"remarks": _(remarks),
 						"cost_center": self.cost_center,
 						"posting_date": getdate(self.posting_date),
-					}
+					},
+					item=self,
 				)
 			)
 
