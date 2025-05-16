@@ -1024,6 +1024,8 @@ def reverse_loan_interest_accruals(
 		write_off_suspense_entries,
 	)
 
+	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
+	posting_date = get_datetime(getdate(posting_date))
 	filters = {
 		"loan": loan,
 		"posting_date": (">=", posting_date),

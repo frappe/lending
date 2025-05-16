@@ -1939,13 +1939,22 @@ class TestLoan(IntegrationTestCase):
 			loan=loan.name, posting_date="2024-07-07", company="_Test Company"
 		)
 
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")[
+			"payable_amount"
+		]
+
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-07-07 00:05:10"), 1053101.76
+			loan.name, get_datetime("2024-07-07 00:05:10"), payable_amount
 		)
 		repayment_entry.submit()
 
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
+		payable_penalty_amount = amounts["unbooked_penalty"] + amounts["penalty_amount"]
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-07-07 00:06:10"), 14050.00, repayment_type="Penalty Waiver"
+			loan.name,
+			get_datetime("2024-07-07 00:06:10"),
+			payable_penalty_amount,
+			repayment_type="Penalty Waiver",
 		)
 		repayment_entry.submit()
 
