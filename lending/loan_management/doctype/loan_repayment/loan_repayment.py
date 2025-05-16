@@ -630,20 +630,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.flags.ignore_links = True
-		self.check_future_entries()
-		self.mark_as_unpaid()
-		self.update_demands(cancel=1)
-		self.update_security_deposit_amount(cancel=1)
 
-		if self.is_backdated:
-			if frappe.flags.in_test:
-				self.create_repost()
-			else:
-				frappe.enqueue(
-					self.create_repost,
-					enqueue_after_commit=True,
-				)
-		self.flags.ignore_links = True
 		if self.repayment_type == "Full Settlement":
 			if frappe.flags.in_test:
 				self.cancel_linked_repayments()
@@ -2522,11 +2509,10 @@ def get_bulk_due_details(loans, posting_date):
 		get_disbursement_map,
 		get_last_demand_date,
 		get_pending_principal_amount_for_loans,
-		get_unbooked_interest_for_loans,
 		process_amount_for_bulk_loans,
 	)
 
-	last_demand_date = get_last_demand_date(posting_date, loan=loans[0])
+	last_demand_dates = {loan: get_last_demand_date(posting_date, loan=loan) for loan in loans}
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2551,9 +2537,15 @@ def get_bulk_due_details(loans, posting_date):
 
 	disbursement_map = get_disbursement_map(loan_details)
 	principal_amount_map = get_pending_principal_amount_for_loans(loan_details, disbursement_map)
-	unbooked_interest_map = get_unbooked_interest_for_loans(
-		loan_details, posting_date, last_demand_date=last_demand_date
-	)
+	# unbooked_interest_map = get_unbooked_interest_for_loans(
+	# 	loan_details, posting_date, last_demand_date=last_demand_date
+	# )
+	unbooked_interest_map = {
+		loan: get_unbooked_interest(
+			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
+		)
+		for loan in loans
+	}
 	loan_demands = get_all_demands(loans, posting_date)
 
 	demand_map = {}

@@ -80,13 +80,15 @@ class LoanInterestAccrual(AccountsController):
 			self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
+		if self.interest_type != "Normal Interest":
+			return
 		last_accrual_date = frappe.db.get_value(
 			"Loan Interest Accrual",
 			{
 				"docstatus": 1,
 				"loan": self.loan,
 				"loan_disbursement": self.loan_disbursement,
-				"interest_type": self.interest_type,
+				"interest_type": "Normal Interest",
 			},
 			"MAX(posting_date)",
 		)
@@ -528,11 +530,15 @@ def get_overlapping_dates(
 	)
 
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
-		add_days(last_accrual_date, -1), posting_date, loan_accrual_frequency
+		last_accrual_date, posting_date, loan_accrual_frequency
 	)
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
-		parent_wise_schedules[schedule_parent].extend(accrual_frequency_breaks)
+		# accruals only till maturity_date
+		maturity_date = maturity_map[schedule_parent]
+		accrual_frequency_breaks = [x for x in accrual_frequency_breaks if x < maturity_date]
+
+		parent_wise_schedules[schedule_parent].extend((accrual_frequency_breaks))
 		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
 		parent_wise_schedules[schedule_parent].sort()
 	return parent_wise_schedules

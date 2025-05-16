@@ -12,15 +12,14 @@ def get_pending_principal_amount_for_loans(loans, disbursement_map):
 		frappe.db.get_all(
 			"Loan Disbursement",
 			{"against_loan": ["in", loan_list]},
-			["name", "sum(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
+			["name", "(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
 			as_list=1,
 		)
 	)
-
 	for loan in loans:
 		if loan.repayment_schedule_type == "Line of Credit":
 			for disbursement in disbursement_map.get(loan.name, []):
-				principal_amount_map[(loan.name, disbursement)] = disbursement_details.get(disbursement, 0)
+				principal_amount_map[(loan.name, disbursement)] = disbursement_details[disbursement]
 		elif loan.status == "Cancelled":
 			pending_principal_amount = 0
 			principal_amount_map[loan.name] = pending_principal_amount
