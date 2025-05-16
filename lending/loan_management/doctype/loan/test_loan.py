@@ -1961,6 +1961,60 @@ class TestLoan(IntegrationTestCase):
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Closed")
 
+	def test_auto_waiver_after_auto_close_loan(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2024-06-05",
+			"2024-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-07-07", company="_Test Company"
+		)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
+		total_net_payable = round(
+			float(amounts["unaccrued_interest"] or 0.0)
+			+ float(amounts["interest_amount"] or 0.0)
+			+ float(amounts["penalty_amount"] or 0.0)
+			+ float(amounts["total_charges_payable"] or 0.0)
+			- float(amounts["available_security_deposit"] or 0.0)
+			+ float(amounts["unbooked_interest"] or 0.0)
+			+ float(amounts["unbooked_penalty"] or 0.0)
+			+ float(amounts["pending_principal_amount"] or 0.0),
+			2,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-07-07 00:05:10"), 1055005.00
+		)
+		repayment_entry.submit()
+
+		auto_waiver_amount = total_net_payable - repayment_entry.amount_paid
+
+		loan_repayment_detail = frappe.db.get_value(
+			"Loan Repayment",
+			{"against_loan", loan.name},
+			["repayment_type", "amount_paid"],
+			order_by="creation desc",
+			as_dict=1,
+		)
+		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
+		self.assertEqual(loan_repayment_detail.repayment_type, "Penalty Waiver")
+
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
