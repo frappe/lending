@@ -1178,17 +1178,13 @@ class LoanRepayment(AccountsController):
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
-
-			self.flags.auto_waiver_needed = True
-			self.set_auto_waiver_type()
+			self.enable_auto_waiver_if_normal_repayment()
 
 		excess_amount = self.principal_amount_paid - self.pending_principal_amount
 		if excess_amount > 0 and excess_amount <= excess_amount_limit:
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
-
-			self.flags.auto_waiver_needed = True
-			self.set_auto_waiver_type()
+			self.enable_auto_waiver_if_normal_repayment()
 
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
@@ -1198,20 +1194,18 @@ class LoanRepayment(AccountsController):
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
-
-			self.flags.auto_waiver_needed = True
-			self.set_auto_waiver_type()
+			self.enable_auto_waiver_if_normal_repayment()
 
 		return auto_close
 
 	def set_excess_amount_for_waiver(self, total_payable):
-		if self.repayment_type in (
-			"Interest Waiver",
-			"Penalty Waiver",
-			"Charges Waiver",
-			"Normal Repayment",
-		):
+		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 			self.excess_amount = self.amount_paid - total_payable
+
+	def enable_auto_waiver_if_normal_repayment(self):
+		if self.repayment_type == "Normal Repayment":
+			self.flags.auto_waiver_needed = True
+			self.set_auto_waiver_type()
 
 	def set_auto_waiver_type(self):
 		amounts = self.get_pending_amounts()
@@ -1581,7 +1575,6 @@ class LoanRepayment(AccountsController):
 			"Charges Waiver",
 			"Interest Waiver",
 			"Penalty Waiver",
-			"Normal Repayment",
 		):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
