@@ -2000,7 +2000,7 @@ class TestLoan(IntegrationTestCase):
 
 		loan_repayment_detail = frappe.db.get_value(
 			"Loan Repayment",
-			{"against_loan", loan.name},
+			{"against_loan": loan.name},
 			["repayment_type", "amount_paid"],
 			order_by="creation desc",
 			as_dict=1,
