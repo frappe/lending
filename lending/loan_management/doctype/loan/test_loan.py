@@ -1964,6 +1964,13 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(loan.status, "Closed")
 
 	def test_auto_waiver_after_auto_close_loan(self):
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Standard Loan Demand Offset Order",
+		)
+
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
