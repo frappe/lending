@@ -1180,7 +1180,7 @@ class LoanRepayment(AccountsController):
 			self.set_excess_amount_for_waiver(total_payable)
 
 			self.flags.auto_waiver_needed = True
-			self.waiver_type_based_on_remaining_amounts()
+			self.set_auto_waiver_type()
 
 		excess_amount = self.principal_amount_paid - self.pending_principal_amount
 		if excess_amount > 0 and excess_amount <= excess_amount_limit:
@@ -1188,7 +1188,7 @@ class LoanRepayment(AccountsController):
 			self.set_excess_amount_for_waiver(total_payable)
 
 			self.flags.auto_waiver_needed = True
-			self.waiver_type_based_on_remaining_amounts()
+			self.set_auto_waiver_type()
 
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
@@ -1200,7 +1200,7 @@ class LoanRepayment(AccountsController):
 			self.set_excess_amount_for_waiver(total_payable)
 
 			self.flags.auto_waiver_needed = True
-			self.waiver_type_based_on_remaining_amounts()
+			self.set_auto_waiver_type()
 
 		return auto_close
 
@@ -1213,7 +1213,7 @@ class LoanRepayment(AccountsController):
 		):
 			self.excess_amount = self.amount_paid - total_payable
 
-	def waiver_type_based_on_remaining_amounts(self):
+	def set_auto_waiver_type(self):
 		amounts = self.get_pending_amounts()
 
 		if amounts["penalty"] > 0:
