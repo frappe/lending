@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, flt, getdate
+from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
@@ -513,6 +513,9 @@ def reverse_demands(
 	future_demands=False,
 	loan_repayment=None,
 ):
+
+	# Datetime adaptations
+	posting_date = get_datetime(getdate(posting_date))
 
 	# on settlement or closure, demand should be cleared from next day
 	# as other demands also get passed on the same day

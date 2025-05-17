@@ -80,13 +80,15 @@ class LoanInterestAccrual(AccountsController):
 			self.validate_last_accrual_date_before_current_posting_date()
 
 	def validate_last_accrual_date_before_current_posting_date(self):
+		if self.interest_type != "Normal Interest":
+			return
 		last_accrual_date = frappe.db.get_value(
 			"Loan Interest Accrual",
 			{
 				"docstatus": 1,
 				"loan": self.loan,
 				"loan_disbursement": self.loan_disbursement,
-				"interest_type": self.interest_type,
+				"interest_type": "Normal Interest",
 			},
 			"MAX(posting_date)",
 		)
@@ -716,6 +718,7 @@ def make_accrual_interest_entry_for_loans(
 	limit=0,
 	company=None,
 	from_demand=False,
+	loan_disbursement=None,
 ):
 
 	loan_doc = frappe.qb.DocType("Loan")
@@ -775,6 +778,7 @@ def make_accrual_interest_entry_for_loans(
 			accrual_type,
 			accrual_date,
 			from_demand=from_demand,
+			loan_disbursement=loan_disbursement,
 		)
 	else:
 		BATCH_SIZE = 5000
@@ -787,9 +791,9 @@ def make_accrual_interest_entry_for_loans(
 				process_loan_interest=process_loan_interest,
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
-				via_background_job=True,
 				queue="long",
 				enqueue_after_commit=True,
+				loan_disbursement=loan_disbursement,
 			)
 
 
@@ -804,8 +808,8 @@ def process_interest_accrual_batch(
 	process_loan_interest,
 	accrual_type,
 	accrual_date,
-	via_background_job=False,
 	from_demand=False,
+	loan_disbursement=None,
 ):
 	for loan in loans:
 
@@ -823,6 +827,7 @@ def process_interest_accrual_batch(
 					posting_date,
 					process_loan_interest=process_loan_interest,
 					accrual_type=accrual_type,
+					loan_disbursement=loan_disbursement,
 				)
 			calculate_accrual_amount_for_loans(
 				loan,
@@ -831,6 +836,7 @@ def process_interest_accrual_batch(
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
 				loan_accrual_frequency=loan_accrual_frequency,
+				loan_disbursement=loan_disbursement,
 			)
 
 			if len(loans) > 1:
@@ -1022,6 +1028,8 @@ def reverse_loan_interest_accruals(
 		write_off_suspense_entries,
 	)
 
+	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
+	posting_date = get_datetime(getdate(posting_date))
 	filters = {
 		"loan": loan,
 		"posting_date": (">=", posting_date),
