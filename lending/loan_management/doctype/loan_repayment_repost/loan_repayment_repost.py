@@ -217,11 +217,17 @@ class LoanRepaymentRepost(Document):
 					"doctype": "Process Loan Interest Accrual",
 					"loan": self.loan,
 					"posting_date": entry.posting_date,
+					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
 
 			frappe.get_doc(
-				{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": entry.posting_date}
+				{
+					"doctype": "Process Loan Demand",
+					"loan": self.loan,
+					"posting_date": entry.posting_date,
+					"loan_disbursement": self.loan_disbursement,
+				}
 			).submit()
 
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
@@ -318,11 +324,21 @@ class LoanRepaymentRepost(Document):
 			frappe.flags.on_repost = False
 
 		frappe.get_doc(
-			{"doctype": "Process Loan Interest Accrual", "loan": self.loan, "posting_date": getdate()}
+			{
+				"doctype": "Process Loan Interest Accrual",
+				"loan": self.loan,
+				"posting_date": getdate(),
+				"loan_disbursement": self.loan_disbursement,
+			}
 		).submit()
 
 		frappe.get_doc(
-			{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": getdate()}
+			{
+				"doctype": "Process Loan Demand",
+				"loan": self.loan,
+				"posting_date": getdate(),
+				"loan_disbursement": self.loan_disbursement,
+			}
 		).submit()
 
 		loan = frappe.db.get_value("Loan", self.loan, "status")
