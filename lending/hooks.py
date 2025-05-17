@@ -119,6 +119,16 @@ doc_events = {
 	}
 }
 
+accounting_dimension_doctypes = [
+	"Loan",
+	"Loan Disbursement",
+	"Loan Interest Accrual",
+	"Loan Repayment",
+	"Loan Refund",
+	"Sales Invoice",
+	"Journal Entry",
+]
+
 # Scheduled Tasks
 # ---------------
 

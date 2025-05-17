@@ -75,7 +75,8 @@ class LoanInterestAccrual(AccountsController):
 						),
 						"cost_center": cost_center,
 						"posting_date": self.posting_date,
-					}
+					},
+					item=self,
 				)
 			)
 
@@ -93,7 +94,8 @@ class LoanInterestAccrual(AccountsController):
 						),
 						"cost_center": cost_center,
 						"posting_date": self.posting_date,
-					}
+					},
+					item=self,
 				)
 			)
 
