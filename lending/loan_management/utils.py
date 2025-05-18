@@ -55,8 +55,8 @@ def get_payment_entries_for_bank_clearance(
 			loan_repayment.posting_date,
 		)
 		.where(loan_repayment.docstatus == 1)
-		.where(loan_repayment.posting_date >= from_date)
-		.where(loan_repayment.posting_date <= to_date)
+		.where(loan_repayment.value_date >= from_date)
+		.where(loan_repayment.value_date <= to_date)
 		.where(loan_repayment.payment_account == account)
 	)
 
@@ -162,7 +162,7 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 			loan_repayment.reference_number,
 			loan_repayment.reference_date,
 			loan_repayment.applicant_type,
-			loan_repayment.posting_date,
+			loan_repayment.value_date,
 		)
 		.where(loan_repayment.docstatus == 1)
 		.where(loan_repayment.clearance_date.isnull())
@@ -225,8 +225,8 @@ def get_entries_for_bank_clearance_summary(filters):
 			loan_repayment.amount_paid.as_("amount"),
 		)
 		.where(loan_repayment.docstatus == 1)
-		.where(loan_repayment.posting_date >= filters["from_date"])
-		.where(loan_repayment.posting_date <= filters["to_date"])
+		.where(loan_repayment.value_date >= filters["from_date"])
+		.where(loan_repayment.value_date <= filters["to_date"])
 		.where(loan_repayment.payment_account == filters["account"])
 		.orderby(loan_repayment.posting_date, order=frappe.qb.desc)
 		.orderby(loan_repayment.name, order=frappe.qb.desc)

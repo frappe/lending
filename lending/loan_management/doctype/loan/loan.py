@@ -656,6 +656,7 @@ def make_repayment_entry(
 	repayment_entry.company = company
 	repayment_entry.loan_product = loan_product
 	repayment_entry.posting_date = nowdate()
+	repayment_entry.value_date = nowdate()
 	repayment_entry.loan_disbursement = loan_disbursement
 
 	if as_dict:
@@ -1009,13 +1010,13 @@ def repost_days_past_due_log(
 
 		payment_against_demand = frappe.db.sql(
 			"""
-			SELECT posting_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
+			SELECT value_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
 			FROM `tabLoan Repayment`
 			WHERE against_loan = %s
 				and docstatus = 1
 				{0}
-			GROUP BY posting_date
-			ORDER BY posting_date
+			GROUP BY value_date
+			ORDER BY value_date
 		""".format(
 				payment_conditions
 			),
@@ -1025,12 +1026,12 @@ def repost_days_past_due_log(
 
 		for idx, payment in enumerate(payment_against_demand):
 			next_payment_date = (
-				payment_against_demand[idx + 1].posting_date
+				payment_against_demand[idx + 1].value_date
 				if idx + 1 < len(payment_against_demand)
 				else getdate()
 			)
 			for demand in demands:
-				if getdate(demand.demand_date) <= getdate(payment.posting_date):
+				if getdate(demand.demand_date) <= getdate(payment.value_date):
 					if demand.demand_subtype == "Interest" and flt(payment.total_interest_paid, precision) > 0:
 						paid_interest = min(
 							flt(payment.total_interest_paid, precision), flt(demand.demand_amount, precision)
@@ -1045,7 +1046,7 @@ def repost_days_past_due_log(
 						demand.demand_amount -= paid_principal
 						payment.total_principal_paid -= paid_principal
 
-			start_date = getdate(payment.posting_date)
+			start_date = getdate(payment.value_date)
 			end_date = getdate(next_payment_date)
 
 			for current_date in daterange(start_date, end_date):
