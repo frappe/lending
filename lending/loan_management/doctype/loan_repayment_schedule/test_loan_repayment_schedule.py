@@ -53,7 +53,7 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 		loan_demand_amount = 181958
 		repayment_entry = create_repayment_entry(
 			loan=loan.name,
-			posting_date="2025-12-05",
+			value_date="2025-12-05",
 			paid_amount=loan_demand_amount + 1000,
 			repayment_type="Pre Payment",
 		)

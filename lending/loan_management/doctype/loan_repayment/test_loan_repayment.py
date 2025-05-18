@@ -113,10 +113,10 @@ class TestLoanRepayment(FrappeTestCase):
 		dates = [add_months(repayment_start_date, i) for i in range(5)]
 		for date in dates:
 			repayment_a = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "posting_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "value_date": date}
 			)
 			repayment_b = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "posting_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "value_date": date}
 			)
 
 			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
@@ -195,10 +195,10 @@ class TestLoanRepayment(FrappeTestCase):
 		dates = [add_months("2024-05-05", i) for i in [0, 2, 3, 4]]
 		for date in dates:
 			repayment_a = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "posting_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "value_date": date}
 			)
 			repayment_b = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "posting_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "value_date": date}
 			)
 
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
