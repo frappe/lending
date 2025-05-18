@@ -77,37 +77,37 @@ class TestLoanRepayment(FrappeTestCase):
 			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
 
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=repayment_start_date, paid_amount=178025
+			loan=loan_a.name, value_date=repayment_start_date, paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months(repayment_start_date, 2), paid_amount=178025
+			loan=loan_a.name, value_date=add_months(repayment_start_date, 2), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months(repayment_start_date, 3), paid_amount=178025
+			loan=loan_a.name, value_date=add_months(repayment_start_date, 3), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
+			loan=loan_a.name, value_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
 		create_repayment_entry(
 			loan=loan_a.name,
-			posting_date=add_months(repayment_start_date, 1),
+			value_date=add_months(repayment_start_date, 1),
 			paid_amount=178025,
 		).submit()
 
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=repayment_start_date, paid_amount=178025
+			loan=loan_b.name, value_date=repayment_start_date, paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months(repayment_start_date, 1), paid_amount=178025
+			loan=loan_b.name, value_date=add_months(repayment_start_date, 1), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months(repayment_start_date, 2), paid_amount=178025
+			loan=loan_b.name, value_date=add_months(repayment_start_date, 2), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months(repayment_start_date, 3), paid_amount=178025
+			loan=loan_b.name, value_date=add_months(repayment_start_date, 3), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
+			loan=loan_b.name, value_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
 
 		dates = [add_months(repayment_start_date, i) for i in range(5)]
@@ -162,34 +162,34 @@ class TestLoanRepayment(FrappeTestCase):
 			)
 			process_daily_loan_demands(loan=loan.name, posting_date=add_months("2024-05-05", 6))
 
-		create_repayment_entry(loan=loan_a.name, posting_date="2024-05-05", paid_amount=178025).submit()
+		create_repayment_entry(loan=loan_a.name, value_date="2024-05-05", paid_amount=178025).submit()
 		entry_to_be_deleted = create_repayment_entry(
 			loan=loan_a.name,
-			posting_date=add_months("2024-05-05", 1),
+			value_date=add_months("2024-05-05", 1),
 			paid_amount=178025,
 		)
 		entry_to_be_deleted.submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months("2024-05-05", 2), paid_amount=178025
+			loan=loan_a.name, value_date=add_months("2024-05-05", 2), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months("2024-05-05", 3), paid_amount=178025
+			loan=loan_a.name, value_date=add_months("2024-05-05", 3), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_a.name, posting_date=add_months("2024-05-05", 4), paid_amount=178025
+			loan=loan_a.name, value_date=add_months("2024-05-05", 4), paid_amount=178025
 		).submit()
 		entry_to_be_deleted.load_from_db()
 		entry_to_be_deleted.cancel()
 
-		create_repayment_entry(loan=loan_b.name, posting_date="2024-05-05", paid_amount=178025).submit()
+		create_repayment_entry(loan=loan_b.name, value_date="2024-05-05", paid_amount=178025).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months("2024-05-05", 2), paid_amount=178025
+			loan=loan_b.name, value_date=add_months("2024-05-05", 2), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months("2024-05-05", 3), paid_amount=178025
+			loan=loan_b.name, value_date=add_months("2024-05-05", 3), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, posting_date=add_months("2024-05-05", 4), paid_amount=178025
+			loan=loan_b.name, value_date=add_months("2024-05-05", 4), paid_amount=178025
 		).submit()
 
 		dates = [add_months("2024-05-05", i) for i in [0, 2, 3, 4]]
@@ -235,7 +235,7 @@ class TestLoanRepayment(FrappeTestCase):
 			"SUM(interest_amount)",
 		)
 		self.assertGreater(penal_interest, 0)
-		create_repayment_entry(loan=loan.name, posting_date="2024-05-05", paid_amount=178025).submit()
+		create_repayment_entry(loan=loan.name, value_date="2024-05-05", paid_amount=178025).submit()
 		penal_interest = frappe.get_value(
 			"Loan Interest Accrual",
 			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
@@ -419,7 +419,7 @@ class TestLoanRepayment(FrappeTestCase):
 			"payable_amount"
 		]
 		repayment1 = create_repayment_entry(
-			loan=loan.name, posting_date="2025-05-05", paid_amount=payable_amount
+			loan=loan.name, value_date="2025-05-05", paid_amount=payable_amount
 		)
 		repayment1.submit()
 
@@ -440,7 +440,7 @@ class TestLoanRepayment(FrappeTestCase):
 			"payable_amount"
 		]
 		repayment2 = create_repayment_entry(
-			loan=loan.name, posting_date="2025-06-05", paid_amount=payable_amount
+			loan=loan.name, value_date="2025-06-05", paid_amount=payable_amount
 		)
 		repayment2.submit()
 
@@ -520,7 +520,7 @@ class TestLoanRepayment(FrappeTestCase):
 			"payable_amount"
 		]
 		repayment = create_repayment_entry(
-			loan=loan.name, posting_date="2025-05-05", paid_amount=payable_amount
+			loan=loan.name, value_date="2025-05-05", paid_amount=payable_amount
 		)
 		repayment.submit()
 		penal_accrual_dates = frappe.db.get_all(
