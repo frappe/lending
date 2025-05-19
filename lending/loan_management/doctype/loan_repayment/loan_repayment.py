@@ -676,26 +676,13 @@ class LoanRepayment(AccountsController):
 					enqueue_after_commit=True,
 				)
 			return
-<<<<<<< HEAD
-
-		max_demand_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
-		)
-		if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
-			delink_npa_logs(self.against_loan, self.posting_date)
-			process_loan_interest_accrual_for_loans(
-				posting_date=max_demand_date,
-				loan=self.against_loan,
-				loan_product=self.loan_product,
-=======
 		else:
 			# No need to do this in case of backdated prepayment as will be handled in repost
 			max_demand_date = frappe.db.get_value(
 				"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
->>>>>>> 13483c7 (fix: Backdate repayment cancellation and repost conflict)
 			)
-			if max_demand_date and getdate(max_demand_date) > getdate(self.value_date):
-				delink_npa_logs(self.against_loan, self.value_date)
+			if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
+				delink_npa_logs(self.against_loan, self.posting_date)
 				process_loan_interest_accrual_for_loans(
 					posting_date=max_demand_date,
 					loan=self.against_loan,
