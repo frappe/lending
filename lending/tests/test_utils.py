@@ -719,6 +719,11 @@ def setup_loan_demand_offset_order(company=None):
 		["EMI (Principal + Interest)", "Penalty", "Charges"],
 	)
 
+	create_demand_offset_order(
+		"Test Standard Loan Demand Offset Order",
+		["EMI (Principal + Interest)", "Additional Interest", "Penalty", "Charges"],
+	)
+
 	doc = frappe.get_doc("Company", company)
 	if not doc.get("collection_offset_sequence_for_standard_asset"):
 		doc.collection_offset_sequence_for_standard_asset = (

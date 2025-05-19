@@ -351,6 +351,9 @@ class LoanRepayment(AccountsController):
 				loan=self.against_loan,
 			)
 
+		if getattr(self.flags, "auto_waiver_needed", False):
+			self.create_auto_waiver()
+
 	def create_repost(self):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
@@ -827,7 +830,12 @@ class LoanRepayment(AccountsController):
 	def validate_repayment_type(self):
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
-		if loan_status == "Closed" and self.repayment_type != "Charges Waiver":
+		if loan_status == "Closed" and self.repayment_type not in [
+			"Charges Waiver",
+			"Penalty Waiver",
+			"Interest Waiver",
+			"Principal Adjustment",
+		]:
 			frappe.throw(_("Repayment cannot be made for closed loan"))
 
 		if loan_status == "Written Off":
@@ -1170,11 +1178,13 @@ class LoanRepayment(AccountsController):
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
+			self.enable_auto_waiver_if_normal_repayment()
 
 		excess_amount = self.principal_amount_paid - self.pending_principal_amount
 		if excess_amount > 0 and excess_amount <= excess_amount_limit:
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
+			self.enable_auto_waiver_if_normal_repayment()
 
 		if (
 			self.principal_amount_paid >= self.pending_principal_amount
@@ -1184,12 +1194,58 @@ class LoanRepayment(AccountsController):
 		):
 			auto_close = True
 			self.set_excess_amount_for_waiver(total_payable)
+			self.enable_auto_waiver_if_normal_repayment()
 
 		return auto_close
 
 	def set_excess_amount_for_waiver(self, total_payable):
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 			self.excess_amount = self.amount_paid - total_payable
+
+	def enable_auto_waiver_if_normal_repayment(self):
+		if self.repayment_type == "Normal Repayment":
+			self.flags.auto_waiver_needed = True
+			self.set_auto_waiver_type()
+
+	def set_auto_waiver_type(self):
+		amounts = self.get_pending_amounts()
+
+		if amounts["penalty"] > 0:
+			self.flags.waiver_type = "Penalty Waiver"
+		elif amounts["interest"] > 0:
+			self.flags.waiver_type = "Interest Waiver"
+		else:
+			self.flags.waiver_type = "Principal Adjustment"
+
+		return amounts["penalty"], amounts["interest"], amounts["principal"]
+
+	def get_pending_amounts(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		return {
+			"penalty": flt(self.penalty_amount, precision) - flt(self.total_penalty_paid, precision),
+			"interest": flt(self.interest_payable, precision) - flt(self.total_interest_paid, precision),
+			"principal": flt(self.pending_principal_amount, precision)
+			- flt(self.principal_amount_paid, precision),
+		}
+
+	def create_auto_waiver(self):
+		waiver_type = getattr(self.flags, "waiver_type", None)
+		if not waiver_type:
+			return
+
+		amounts = self.get_pending_amounts()
+		waiver_amount = amounts.get(waiver_type.split()[0].lower(), 0)
+
+		if waiver_amount <= 0:
+			return
+
+		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
+			create_loan_repayment,
+		)
+
+		create_loan_repayment(
+			self.against_loan, self.posting_date, waiver_type, waiver_amount, is_write_off_waiver=1
+		)
 
 	def mark_as_unpaid(self):
 		if self.repayment_type in (
