@@ -2984,7 +2984,7 @@ class TestLoan(IntegrationTestCase):
 		)
 		# weird bug where a two day difference in remaining accrual (18-16=2) creates a consolidated entry
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-08-18", company="_Test Company"
+			loan=loan.name, posting_date="2024-08-19", company="_Test Company"
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
@@ -2994,6 +2994,7 @@ class TestLoan(IntegrationTestCase):
 			"2024-08-16",
 			"2024-08-17",
 			"2024-08-18",
+			"2024-08-19",
 		]
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
