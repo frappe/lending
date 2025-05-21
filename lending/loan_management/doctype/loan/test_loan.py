@@ -2959,3 +2959,42 @@ class TestLoan(IntegrationTestCase):
 			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, "MAX(posting_date)"
 		)
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
+
+	def test_two_day_break_up_in_accrual_frequency(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		set_loan_accrual_frequency("Daily")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-16", company="_Test Company"
+		)
+		# weird bug where a two day difference in remaining accrual (18-16=2) creates a consolidated entry
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-18", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+		)
+		expected_dates = [
+			"2024-08-16",
+			"2024-08-17",
+			"2024-08-18",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+		accrual_dates = [getdate(i) for i in loan_interest_accruals]
+		self.assertEqual(accrual_dates, expected_dates)
