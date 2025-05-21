@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 
+from itertools import groupby
+
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce, Round, Sum
@@ -194,6 +196,8 @@ class LoanRepayment(AccountsController):
 			process_loan_interest_accrual_for_loans,
 		)
 
+		if self.flags.from_bulk_payment:
+			return
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -678,6 +682,8 @@ class LoanRepayment(AccountsController):
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		self.check_future_entries()
+		if self.flags.from_bulk_payment:
+			return
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -1018,7 +1024,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Closed")
 				query = query.set(loan.closure_date, self.value_date)
 
-			if not (self.flags.from_repost or self.flags.in_bulk):
+			if not (self.flags.from_repost):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		elif self.repayment_type == "Full Settlement":
@@ -1026,7 +1032,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.value_date)
 
-			if not (self.flags.from_repost or self.flags.in_bulk):
+			if not (self.flags.from_repost):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		if (
@@ -2982,14 +2988,8 @@ def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
 
 
+@frappe.whitelist()
 def post_bulk_payments(data):
-	from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
-	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-		reverse_loan_interest_accruals,
-	)
-	from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-		create_process_loan_classification,
-	)
 	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 		process_daily_loan_demands,
 	)
@@ -2998,59 +2998,36 @@ def post_bulk_payments(data):
 	)
 
 	# sort data by posting date
-	data = sorted(data, key=lambda x: x["posting_date"])
+	data = sorted(data, key=lambda x: x["value_date"])
 
-	grouped_data = group_by_loan_and_disbursement(data)
-	for key, rows in grouped_data.items():
-		from_date = getdate(rows[0]["posting_date"])
-		to_date = getdate(rows[-1]["posting_date"])
-		loan = key[0]
-		loan_disbursement = key[1]
-
-		reversed_accruals = reverse_loan_interest_accruals(
-			loan, from_date, interest_type="Normal Interest", loan_disbursement=loan_disbursement
-		)
-
-		reverse_demands(loan, from_date, demand_type="EMI", loan_disbursement=loan_disbursement)
-
+	repost_funcs = []
+	grouped_by_loan = groupby(data, lambda x: x["against_loan"])
+	for loan, rows in grouped_by_loan:
+		rows = list(rows)
+		from_date = getdate(rows[0]["value_date"])
+		to_date = getdate(rows[1]["value_date"])
 		for payment in rows:
+			payment["doctype"] = "Loan Repayment"
 			loan_repayment = frappe.get_doc(payment)
-			loan_repayment.flags.in_bulk = True
+			loan_repayment.flags.from_bulk_payment = True
 			loan_repayment.submit()
+		repost = frappe.new_doc("Loan Repayment Repost")
+		repost.loan = loan
+		repost.repost_date = getdate(from_date)
+		repost.cancel_future_accruals_and_demands = True
+		repost.clear_demand_allocation_before_repost = True
+		repost.cancel_future_emi_demands = True
 
-			frappe.get_doc(
-				{
-					"doctype": "Process Loan Interest Accrual",
-					"loan": loan,
-					"posting_date": getdate(payment.get("posting_date")),
-				}
-			).submit()
+		def loan_wise_submit():
+			process_daily_loan_demands(posting_date=to_date, loan=loan)
+			process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
+			repost.submit()
 
-			frappe.get_doc(
-				{
-					"doctype": "Process Loan Demand",
-					"loan": loan,
-					"posting_date": getdate(payment.get("posting_date")),
-				}
-			).submit()
+		repost_funcs.append(loan_wise_submit)
 
-			loan_repayment.flags.in_bulk = False
-
-		create_process_loan_classification(
-			posting_date=to_date, loan=loan, loan_disbursement=loan_disbursement
+	if frappe.flags.in_test:
+		[repost_func() for repost_func in repost_funcs]
+	else:
+		frappe.enqueue(
+			lambda: [repost_func() for repost_func in repost_funcs], enqueue_after_commit=True
 		)
-
-		if reversed_accruals:
-			dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
-			max_date = max(dates)
-			if getdate(max_date) > getdate(to_date):
-				process_loan_interest_accrual_for_loans(posting_date=max_date, loan=loan)
-				process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=loan)
-
-
-def group_by_loan_and_disbursement(data):
-	grouped_data = {}
-	for row in data:
-		grouped_data.setdefault((row.get("against_loan"), row.get("loan_disbursement")), []).append(row)
-
-	return grouped_data
