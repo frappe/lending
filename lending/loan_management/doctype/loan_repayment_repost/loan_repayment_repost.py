@@ -120,8 +120,7 @@ class LoanRepaymentRepost(Document):
 		for entry in self.get("repayment_entries"):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			for repayment_detail in repayment_doc.get("repayment_details"):
-				if repayment_detail.demand_type == "EMI":
-					frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
+				frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
 
 	def trigger_on_cancel_events(self):
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
