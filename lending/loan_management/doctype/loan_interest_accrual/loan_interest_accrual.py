@@ -625,7 +625,7 @@ def calculate_penal_interest_for_loans(
 					loan.name,
 					posting_date,
 					"Penal Interest",
-					loan_repayment_schedule=demand.loan_repayment_schedule,
+					demand=demand.name,
 				)
 				on_migrate = True
 
@@ -871,9 +871,6 @@ def get_last_accrual_date(
 
 	if repayment_schedule_detail:
 		filters["loan_repayment_schedule_detail"] = repayment_schedule_detail
-
-	if loan_repayment_schedule:
-		filters["loan_repayment_schedule"] = loan_repayment_schedule
 
 	if is_future_accrual:
 		filters["posting_date"] = ("<=", posting_date)
