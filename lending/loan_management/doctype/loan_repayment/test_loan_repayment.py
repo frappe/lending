@@ -529,3 +529,160 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		self.assertEqual(dates, penal_accrual_dates)
 		self.assertEqual(dates, penal_demand_dates)
+<<<<<<< HEAD
+=======
+
+	def test_value_dated_loan_repayment(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-04-01",
+			100945.80,
+		)
+		repayment_entry.submit()
+
+		self.assertEqual(repayment_entry.value_date, "2024-04-01")
+
+		dates = frappe.get_all(
+			"GL Entry",
+			{
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+			},
+			pluck="posting_date",
+		)
+
+		for posting_date in dates:
+			self.assertEqual(posting_date, getdate())
+
+	def test_loc_loan_unbooked_interest(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			500000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-17",
+			rate_of_interest=17,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-16",
+			limit_applicable_end="2026-10-16",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			171000,
+			disbursement_date="2024-11-30",
+			repayment_start_date="2025-02-28",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-02",
+			loan=loan.name,
+			company="_Test Company",
+			loan_disbursement=disbursement.name,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-12-02",
+			3859,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-03",
+			loan=loan.name,
+			company="_Test Company",
+			loan_disbursement=disbursement.name,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-12-03",
+			1930,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-04",
+			loan=loan.name,
+			company="_Test Company",
+			loan_disbursement=disbursement.name,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-12-04",
+			1930,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-05",
+			loan=loan.name,
+			company="_Test Company",
+			loan_disbursement=disbursement.name,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-12-05",
+			1930,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-06",
+			loan=loan.name,
+			company="_Test Company",
+			loan_disbursement=disbursement.name,
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-12-06",
+			1947,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+		accrual_dates = frappe.get_all(
+			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, ["posting_date", "start_date"]
+		)
+		for accrual_date in accrual_dates:
+			self.assertEqual(accrual_date.start_date, accrual_date.posting_date)
+>>>>>>> 6f4cee4 (test: overlapping accruals due to pre payments)
