@@ -2594,9 +2594,7 @@ def get_bulk_due_details(loans, posting_date):
 
 	disbursement_map = get_disbursement_map(loan_details)
 	principal_amount_map = get_pending_principal_amount_for_loans(loan_details, disbursement_map)
-	# unbooked_interest_map = get_unbooked_interest_for_loans(
-	# 	loan_details, posting_date, last_demand_date=last_demand_date
-	# )
+
 	unbooked_interest_map = {
 		loan: get_unbooked_interest(
 			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
@@ -2611,7 +2609,6 @@ def get_bulk_due_details(loans, posting_date):
 		demand_map[loan.loan].append(loan)
 
 	# Get unbooked interest for all loans
-
 	loan_security_deposit_doc = frappe.qb.DocType("Loan Security Deposit")
 	loan_doc = frappe.qb.DocType("Loan")
 	query = (
@@ -2838,13 +2835,12 @@ def get_last_demand_date(
 		"MAX(demand_date)",
 	)
 
-	# if demand_subtype == "Interest" and last_demand_date and status != "Closed":
-	# 	last_demand_date = add_days(last_demand_date, -1)
-
 	if not last_demand_date:
 		last_demand_date = get_last_disbursement_date(
 			loan, posting_date, loan_disbursement=loan_disbursement
 		)
+
+		last_demand_date = add_days(last_demand_date, -1)
 
 	return last_demand_date
 

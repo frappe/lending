@@ -634,3 +634,25 @@ class TestLoanRepayment(IntegrationTestCase):
 			repayment_type="Pre Payment",
 		)
 		repayment_entry.submit()
+<<<<<<< HEAD
+=======
+
+		accrual_dates = frappe.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			["posting_date", "start_date", "interest_amount"],
+		)
+
+		interest_amount = sum(accrual_date.interest_amount for accrual_date in accrual_dates)
+
+		demands_amount = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest"},
+			"SUM(demand_amount)",
+		)
+
+		self.assertEqual(interest_amount, demands_amount)
+
+		for accrual_date in accrual_dates:
+			self.assertEqual(accrual_date.start_date, accrual_date.posting_date)
+>>>>>>> 11c7f25 (fix: unbooked interest accrual for loc loans)
