@@ -625,7 +625,7 @@ def calculate_penal_interest_for_loans(
 					loan.name,
 					posting_date,
 					"Penal Interest",
-					loan_repayment_schedule=demand.loan_repayment_schedule,
+					demand=demand.name,
 				)
 				on_migrate = True
 
