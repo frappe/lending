@@ -2838,8 +2838,8 @@ def get_last_demand_date(
 		"MAX(demand_date)",
 	)
 
-	if demand_subtype == "Interest" and last_demand_date and status != "Closed":
-		last_demand_date = add_days(last_demand_date, -1)
+	# if demand_subtype == "Interest" and last_demand_date and status != "Closed":
+	# 	last_demand_date = add_days(last_demand_date, -1)
 
 	if not last_demand_date:
 		last_demand_date = get_last_disbursement_date(
@@ -2890,7 +2890,7 @@ def get_accrued_interest(
 	filters = [
 		["loan", "=", loan],
 		["docstatus", "=", 1],
-		["posting_date", "<", posting_date],
+		["posting_date", "<=", posting_date],
 		["interest_type", "=", interest_type],
 	]
 

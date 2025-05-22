@@ -634,14 +634,3 @@ class TestLoanRepayment(IntegrationTestCase):
 			repayment_type="Pre Payment",
 		)
 		repayment_entry.submit()
-
-		frappe.get_doc(
-			{
-				"doctype": "Loan Repayment Repost",
-				"loan": loan.name,
-				"loan_disbursement": disbursement.name,
-				"repost_date": "2024-12-02",
-				"cancel_future_emi_demands": 1,
-				"cancel_future_accruals_and_demands": 1,
-			}
-		).submit()
