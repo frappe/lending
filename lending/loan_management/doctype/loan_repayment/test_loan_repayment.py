@@ -635,13 +635,21 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 
-		frappe.get_doc(
-			{
-				"doctype": "Loan Repayment Repost",
-				"loan": loan.name,
-				"loan_disbursement": disbursement.name,
-				"repost_date": "2024-12-02",
-				"cancel_future_emi_demands": 1,
-				"cancel_future_accruals_and_demands": 1,
-			}
-		).submit()
+		accrual_dates = frappe.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			["posting_date", "start_date", "interest_amount"],
+		)
+
+		interest_amount = sum(accrual_date.interest_amount for accrual_date in accrual_dates)
+
+		demands_amount = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest"},
+			"SUM(demand_amount)",
+		)
+
+		self.assertEqual(interest_amount, demands_amount)
+
+		for accrual_date in accrual_dates:
+			self.assertEqual(accrual_date.start_date, accrual_date.posting_date)
