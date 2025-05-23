@@ -556,23 +556,23 @@ class TestLoanRepayment(IntegrationTestCase):
 		disbursement.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-02",
+			posting_date="2024-12-01",
 			loan=loan.name,
 			company="_Test Company",
 			loan_disbursement=disbursement.name,
 		)
 
-		repayment_entry = create_repayment_entry(
+		repayment_entry1 = create_repayment_entry(
 			loan.name,
 			"2024-12-02",
 			3859,
 			loan_disbursement=disbursement.name,
 			repayment_type="Pre Payment",
 		)
-		repayment_entry.submit()
+		repayment_entry1.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-03",
+			posting_date="2024-12-02",
 			loan=loan.name,
 			company="_Test Company",
 			loan_disbursement=disbursement.name,
@@ -588,7 +588,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		repayment_entry.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-04",
+			posting_date="2024-12-03",
 			loan=loan.name,
 			company="_Test Company",
 			loan_disbursement=disbursement.name,
@@ -604,7 +604,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		repayment_entry.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-05",
+			posting_date="2024-12-04",
 			loan=loan.name,
 			company="_Test Company",
 			loan_disbursement=disbursement.name,
@@ -620,7 +620,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		repayment_entry.submit()
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-06",
+			posting_date="2024-12-05",
 			loan=loan.name,
 			company="_Test Company",
 			loan_disbursement=disbursement.name,
@@ -641,15 +641,31 @@ class TestLoanRepayment(IntegrationTestCase):
 			["posting_date", "start_date", "interest_amount"],
 		)
 
-		interest_amount = sum(accrual_date.interest_amount for accrual_date in accrual_dates)
-
-		demands_amount = frappe.db.get_value(
-			"Loan Demand",
-			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest"},
-			"SUM(demand_amount)",
-		)
-
-		self.assertEqual(interest_amount, demands_amount)
+		self.assertEqual(repayment_entry1.unbooked_interest_paid, 159.28)
 
 		for accrual_date in accrual_dates:
 			self.assertEqual(accrual_date.start_date, accrual_date.posting_date)
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"loan_disbursement": disbursement.name,
+				"repost_date": "2024-12-02",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		interest_accrual_revised = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"posting_date": "2024-12-02",
+				"interest_type": "Normal Interest",
+			},
+			"interest_amount",
+		)
+
+		self.assertEqual(interest_accrual_revised, 77.92)
