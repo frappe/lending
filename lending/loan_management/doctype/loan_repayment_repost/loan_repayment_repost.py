@@ -229,7 +229,7 @@ class LoanRepaymentRepost(Document):
 				{
 					"doctype": "Process Loan Demand",
 					"loan": self.loan,
-					"posting_date": add_days(entry.posting_date, -1),
+					"posting_date": entry.posting_date,
 					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
