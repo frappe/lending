@@ -3,12 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-<<<<<<< HEAD
-from frappe.utils import cint, flt, getdate
-=======
-from frappe.query_builder.functions import Sum
-from frappe.utils import add_days, cint, flt, get_datetime, getdate
->>>>>>> b693bb2 (fix: Accruals during repost)
+from frappe.utils import add_days, cint, flt, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
