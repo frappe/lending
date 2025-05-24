@@ -685,7 +685,7 @@ class LoanRepayment(AccountsController):
 				"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
 			)
 			if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
-				delink_npa_logs(self.against_loan, self.value_date)
+				delink_npa_logs(self.against_loan, self.posting_date)
 
 				frappe.enqueue(
 					process_loan_interest_accrual_for_loans,
