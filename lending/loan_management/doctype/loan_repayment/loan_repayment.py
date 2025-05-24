@@ -686,12 +686,21 @@ class LoanRepayment(AccountsController):
 			)
 			if max_demand_date and getdate(max_demand_date) > getdate(self.posting_date):
 				delink_npa_logs(self.against_loan, self.posting_date)
-				process_loan_interest_accrual_for_loans(
+
+				frappe.enqueue(
+					process_loan_interest_accrual_for_loans,
 					posting_date=max_demand_date,
 					loan=self.against_loan,
 					loan_product=self.loan_product,
+					enqueue_after_commit=True,
 				)
-				process_daily_loan_demands(posting_date=max_demand_date, loan=self.against_loan)
+
+				frappe.enqueue(
+					process_daily_loan_demands,
+					posting_date=max_demand_date,
+					loan=self.against_loan,
+					enqueue_after_commit=True,
+				)
 
 				frappe.enqueue(
 					create_process_loan_classification,
