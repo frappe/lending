@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -101,7 +101,6 @@ class LoanRepaymentRepost(Document):
 			{
 				"loan": self.loan,
 				"docstatus": 1,
-				"demand_type": "EMI",
 				"demand_date": (">=", self.repost_date),
 			},
 			["name", "demand_amount"],
@@ -113,6 +112,7 @@ class LoanRepaymentRepost(Document):
 				demand.name,
 				{
 					"paid_amount": 0,
+					"waived_amount": 0,
 					"outstanding_amount": demand.demand_amount,
 				},
 			)
@@ -120,8 +120,7 @@ class LoanRepaymentRepost(Document):
 		for entry in self.get("repayment_entries"):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			for repayment_detail in repayment_doc.get("repayment_details"):
-				if repayment_detail.demand_type == "EMI":
-					frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
+				frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
 
 	def trigger_on_cancel_events(self):
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
@@ -216,7 +215,7 @@ class LoanRepaymentRepost(Document):
 				{
 					"doctype": "Process Loan Interest Accrual",
 					"loan": self.loan,
-					"posting_date": entry.posting_date,
+					"posting_date": add_days(entry.posting_date, -1),
 					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
@@ -327,7 +326,7 @@ class LoanRepaymentRepost(Document):
 			{
 				"doctype": "Process Loan Interest Accrual",
 				"loan": self.loan,
-				"posting_date": getdate(),
+				"posting_date": add_days(getdate(), -1),
 				"loan_disbursement": self.loan_disbursement,
 			}
 		).submit()

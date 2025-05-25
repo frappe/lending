@@ -189,7 +189,7 @@ class LoanRepaymentSchedule(Document):
 			self.company,
 			self.rate_of_interest,
 			self.current_principal_amount - principal_balance,
-			last_accrual_date,
+			add_days(last_accrual_date, 1),
 			add_days(self.posting_date, -1),
 		)
 
