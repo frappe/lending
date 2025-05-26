@@ -1064,4 +1064,73 @@ class TestLoanRepayment(FrappeTestCase):
 			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
 			self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
+<<<<<<< HEAD
 >>>>>>> ec297363 (test: bulk payments new test)
+=======
+
+	def test_bulk_repayment_logs(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+		loan_a = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan_b = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loans = [loan_a, loan_b]
+		for loan in loans:
+			loan.submit()
+			make_loan_disbursement_entry(
+				loan.name,
+				loan.loan_amount,
+				disbursement_date=posting_date,
+				repayment_start_date=repayment_start_date,
+			)
+			process_loan_interest_accrual_for_loans(
+				loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+			)
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+
+		data = []
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_a.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+				}
+			)
+		# This should fail (closed loan)
+		frappe.db.set_value("Loan", loan_b.name, "status", "Closed")
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_b.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+				}
+			)
+		post_bulk_payments(data)
+
+		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_a.name})
+		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_b.name})
+
+		self.assertEqual(successful_log.status, "Success")
+		self.assertEqual(failed_log.status, "Failure")
+>>>>>>> ead511fe (test: bulk repayment log status)
