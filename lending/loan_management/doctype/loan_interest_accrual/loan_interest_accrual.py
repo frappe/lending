@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Cast
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -85,23 +86,24 @@ class LoanInterestAccrual(AccountsController):
 	def validate_last_accrual_date_before_current_posting_date(self):
 		if self.interest_type != "Normal Interest":
 			return
-		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{
-				"docstatus": 1,
-				"loan": self.loan,
-				"loan_disbursement": self.loan_disbursement,
-				"interest_type": "Normal Interest",
-			},
-			"MAX(posting_date)",
+		loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
+		query = (
+			frappe.qb.from_(loan_interest_accrual_doc)
+			.where(loan_interest_accrual_doc.docstatus == 1)
+			.where(loan_interest_accrual_doc.loan == self.loan)
+			.where(loan_interest_accrual_doc.loan_disbursement == self.loan_disbursement)
+			.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
+			.where(
+				Cast(loan_interest_accrual_doc.posting_date, "date") >= getdate(self.start_date)
+			)  # checking for
+			.where(
+				Cast(loan_interest_accrual_doc.start_date, "date") <= getdate(self.posting_date)
+			)  # overlaps
+			.select(loan_interest_accrual_doc.name)
 		)
-		if last_accrual_date:
-			if getdate(self.start_date) < getdate(last_accrual_date):
-				frappe.throw(
-					_(
-						"There are already Loan Interest Accruals made till {}. Your accrual has the starting date {}"
-					).format(getdate(last_accrual_date), getdate(self.start_date))
-				)
+		overlapping_accruals = query.run()
+		if overlapping_accruals:
+			frappe.throw(_("There are overlapping accruals here {}").format(overlapping_accruals))
 
 	def on_submit(self):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
