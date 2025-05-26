@@ -914,6 +914,7 @@ def get_last_accrual_date(
 		return last_interest_accrual_date
 
 	if last_interest_accrual_date:
+		last_interest_accrual_date = add_days(last_interest_accrual_date, 1)
 		if last_disbursement_date and getdate(last_disbursement_date) > getdate(
 			last_interest_accrual_date
 		):
