@@ -991,7 +991,18 @@ class TestLoanRepayment(FrappeTestCase):
 			posting_date=posting_date,
 			rate_of_interest=23,
 		)
-		loans = [loan_a, loan_b]
+		loan_c = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loans = [loan_a, loan_b, loan_c]
 		for loan in loans:
 			loan.submit()
 			make_loan_disbursement_entry(
@@ -1014,8 +1025,15 @@ class TestLoanRepayment(FrappeTestCase):
 					"amount_paid": 178025,
 				}
 			)
-
-		print(data)
+		# Extra repayment because why not?
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_c.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025 + i,
+				}
+			)
 		post_bulk_payments(data)
 
 		create_repayment_entry(
