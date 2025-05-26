@@ -3030,8 +3030,8 @@ def post_bulk_payments(data):
 
 			# rollback if repayments fail for loan
 			savepoint = random_string(length=10)
+			frappe.db.savepoint(savepoint)
 			try:
-				frappe.db.savepoint(savepoint)
 				loan_wise_submit(loan, rows)
 				bulk_repayment_log.status = "Success"
 			except Exception as e:
