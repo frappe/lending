@@ -2,12 +2,12 @@
 # For license information, please see license.txt
 
 
-from itertools import groupby
+import traceback
 
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Coalesce, Round, Sum
-from frappe.utils import add_days, cint, flt, get_datetime, getdate
+from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
 import erpnext
 from erpnext.accounts.general_ledger import (
@@ -2997,37 +2997,64 @@ def post_bulk_payments(data):
 		process_loan_interest_accrual_for_loans,
 	)
 
-	# sort data by posting date
-	data = sorted(data, key=lambda x: x["value_date"])
-
-	repost_funcs = []
-	grouped_by_loan = groupby(data, lambda x: x["against_loan"])
-	for loan, rows in grouped_by_loan:
+	def loan_wise_submit(loan, rows):
 		rows = list(rows)
 		from_date = getdate(rows[0]["value_date"])
-		to_date = getdate(rows[1]["value_date"])
-		for payment in rows:
-			payment["doctype"] = "Loan Repayment"
-			loan_repayment = frappe.get_doc(payment)
-			loan_repayment.flags.from_bulk_payment = True
-			loan_repayment.submit()
+		to_date = getdate(rows[-1]["value_date"])
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = loan
 		repost.repost_date = getdate(from_date)
 		repost.cancel_future_accruals_and_demands = True
 		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_emi_demands = True
+		for payment in rows:
+			payment["doctype"] = "Loan Repayment"
+			loan_repayment = frappe.get_doc(payment)
+			loan_repayment.flags.from_bulk_payment = True
+			loan_repayment.submit()
+		process_daily_loan_demands(posting_date=to_date, loan=loan)
+		process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
+		repost.submit()
 
-		def loan_wise_submit():
-			process_daily_loan_demands(posting_date=to_date, loan=loan)
-			process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
-			repost.submit()
+	# sort data by loan and value date
+	data = sorted(data, key=lambda x: (x["against_loan"], x["value_date"]))
 
-		repost_funcs.append(loan_wise_submit)
+	loan_wise_details = []
+	grouped_by_loan = group_by_loan(data)
+
+	# Function that can be nicely enqueued
+	def bulk_repost():
+		for loan, rows in grouped_by_loan.items():
+			bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
+			bulk_repayment_log.loan = loan
+			bulk_repayment_log.timestamp = frappe.utils.get_datetime()
+			bulk_repayment_log.details = str(rows)
+
+			# rollback if repayments fail for loan
+			savepoint = random_string(length=10)
+			try:
+				frappe.db.savepoint(savepoint)
+				loan_wise_submit(loan, rows)
+				bulk_repayment_log.status = "Success"
+			except Exception as e:
+				frappe.db.rollback(save_point=savepoint)
+				traceback_per_loan = traceback.format_exc()
+
+				bulk_repayment_log.traceback = traceback_per_loan
+				bulk_repayment_log.status = "Failure"
+
+			bulk_repayment_log.submit()
 
 	if frappe.flags.in_test:
-		[repost_func() for repost_func in repost_funcs]
+		bulk_repost()
 	else:
-		frappe.enqueue(
-			lambda: [repost_func() for repost_func in repost_funcs], enqueue_after_commit=True
-		)
+		frappe.enqueue(bulk_repost, enqueue_after_commit=True)
+
+
+def group_by_loan(data):
+	grouped_by_loan = {}
+	for repayment in data:
+		loan = repayment["against_loan"]
+		grouped_by_loan.setdefault(loan, [])
+		grouped_by_loan[loan].append(repayment)
+	return grouped_by_loan
