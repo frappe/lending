@@ -2926,7 +2926,7 @@ def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def post_bulk_payments(data):
 	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 		process_daily_loan_demands,
