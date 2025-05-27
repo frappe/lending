@@ -781,7 +781,7 @@ def make_accrual_interest_entry_for_loans(
 			loan_disbursement=loan_disbursement,
 		)
 	else:
-		BATCH_SIZE = 5000
+		BATCH_SIZE = 3000
 		batch_list = list(get_batches(open_loans, BATCH_SIZE))
 		for batch in batch_list:
 			frappe.enqueue(
