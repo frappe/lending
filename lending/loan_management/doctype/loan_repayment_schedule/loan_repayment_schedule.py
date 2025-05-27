@@ -199,7 +199,7 @@ class LoanRepaymentSchedule(Document):
 				self.current_principal_amount - principal_balance,
 				flt(payable_interest, precision),
 				"",
-				last_accrual_date,
+				add_days(last_accrual_date, 1),
 				add_days(self.posting_date, -1),
 				"Regular",
 				"Normal Interest",

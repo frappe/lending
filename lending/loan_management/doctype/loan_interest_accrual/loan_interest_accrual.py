@@ -81,9 +81,9 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if self.interest_type == "Normal Interest":
-			self.validate_last_accrual_date_before_current_posting_date()
+			self.validate_overlapping_accruals()
 
-	def validate_last_accrual_date_before_current_posting_date(self):
+	def validate_overlapping_accruals(self):
 		if self.interest_type != "Normal Interest":
 			return
 		loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
@@ -99,11 +99,19 @@ class LoanInterestAccrual(AccountsController):
 			.where(
 				Cast(loan_interest_accrual_doc.start_date, "date") <= getdate(self.posting_date)
 			)  # overlaps
-			.select(loan_interest_accrual_doc.name)
+			.select(
+				loan_interest_accrual_doc.name,
+				loan_interest_accrual_doc.start_date,
+				loan_interest_accrual_doc.posting_date,
+			)
 		)
-		overlapping_accruals = query.run()
+		overlapping_accruals = query.run(as_list=True)
 		if overlapping_accruals:
-			frappe.throw(_("There are overlapping accruals here {}").format(overlapping_accruals))
+			frappe.throw(
+				_(
+					"There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
+				).format(overlapping_accruals, self.start_date, self.posting_date)
+			)
 
 	def on_submit(self):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
@@ -384,7 +392,8 @@ def get_accrual_frequency_breaks(last_accrual_date, accrual_date, loan_accrual_f
 		day_delta = 7
 	elif loan_accrual_frequency == "Monthly":
 		current_date = get_last_day(last_accrual_date)
-		day_delta = 1
+		if current_date == last_accrual_date:
+			current_date = add_months(current_date, 1)
 	else:
 		frappe.throw(_("Loan Accrual Frequency not set in the Company DocType."))
 
@@ -421,7 +430,6 @@ def process_loan_interest_accrual_per_schedule(
 					loan.name,
 					posting_date,
 					"Normal Interest",
-					loan_repayment_schedule=parent,
 					is_future_accrual=is_future_accrual,
 					loan_disbursement=loan_disbursement,
 				)
@@ -433,7 +441,7 @@ def process_loan_interest_accrual_per_schedule(
 				loan.company,
 				loan.rate_of_interest,
 				pending_principal_amount,
-				last_accrual_date_for_schedule,
+				add_days(last_accrual_date_for_schedule, 1),
 				payment_date,
 			)
 
@@ -445,7 +453,7 @@ def process_loan_interest_accrual_per_schedule(
 						pending_principal_amount,
 						flt(payable_interest, precision),
 						process_loan_interest,
-						last_accrual_date_for_schedule,
+						add_days(last_accrual_date_for_schedule, 1),
 						payment_date,
 						accrual_type,
 						"Normal Interest",
@@ -890,7 +898,7 @@ def get_last_accrual_date(
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
-			return add_days(last_interest_accrual_date, 1)
+			return last_interest_accrual_date
 		else:
 			dates = frappe.db.get_value(
 				"Loan Repayment Schedule",
@@ -902,7 +910,7 @@ def get_last_accrual_date(
 			if dates.moratorium_type == "EMI" and dates.moratorium_end_date:
 				final_date = dates.moratorium_end_date
 			else:
-				final_date = dates.posting_date
+				final_date = add_days(dates.posting_date, -1)
 
 			return final_date
 
@@ -914,7 +922,6 @@ def get_last_accrual_date(
 		return last_interest_accrual_date
 
 	if last_interest_accrual_date:
-		last_interest_accrual_date = add_days(last_interest_accrual_date, 1)
 		if last_disbursement_date and getdate(last_disbursement_date) > getdate(
 			last_interest_accrual_date
 		):
@@ -935,7 +942,7 @@ def get_last_accrual_date(
 			and moratorium_details.moratorium_type == "EMI"
 			and getdate(moratorium_details.moratorium_end_date) > getdate(last_disbursement_date)
 		):
-			last_interest_accrual_date = add_days(moratorium_details.moratorium_end_date, 1)
+			last_interest_accrual_date = moratorium_details.moratorium_end_date
 		else:
 			last_interest_accrual_date = add_days(last_disbursement_date, -1)
 
@@ -1130,7 +1137,7 @@ def get_parent_wise_dates(loan, last_accrual_date, posting_date, loan_disburseme
 		posting_date = freeze_date
 	schedule_filters = {
 		"parent": ("in", schedules),
-		"payment_date": ("between", [last_accrual_date, posting_date]),
+		"payment_date": ("between", [add_days(getdate(last_accrual_date), 1), posting_date]),
 	}
 
 	if len(schedules) == 1:
