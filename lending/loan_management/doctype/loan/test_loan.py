@@ -1963,7 +1963,10 @@ class TestLoan(IntegrationTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
 
-	def test_auto_waiver_after_auto_close_loan(self):
+	def test_auto_waiver_after_auto_close_loan_for_penal(self):
+		# This test verifies that when a normal repayment is made and the loan is auto-closed,
+		# any remaining penal charges are waived automatically by creating a penalty waiver entry.
+
 		frappe.db.set_value(
 			"Company",
 			"_Test Company",
@@ -2015,6 +2018,73 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
 		self.assertEqual(loan_repayment_detail.repayment_type, "Penalty Waiver")
+
+	def test_auto_waiver_after_auto_close_loan_for_charges(self):
+		# This test verifies that when a normal repayment is made and the loan is auto-closed,
+		# any remaining charges are waived automatically by creating a charges waiver entry.
+
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Standard Loan Demand Offset Order",
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2024-12-15", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-14",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+			}
+		)
+		sales_invoice.submit()
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-12-15")[
+			"payable_amount"
+		]
+
+		repayment_entry_amount = payable_amount - 90
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-12-15 00:07:10"), repayment_entry_amount
+		)
+		repayment_entry.submit()
+
+		auto_waiver_amount = payable_amount - repayment_entry.amount_paid
+
+		loan_repayment_detail = frappe.db.get_value(
+			"Loan Repayment",
+			{"against_loan": loan.name},
+			["repayment_type", "amount_paid"],
+			order_by="creation desc",
+			as_dict=1,
+		)
+
+		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
+		self.assertEqual(loan_repayment_detail.repayment_type, "Charges Waiver")
 
 	def test_loan_restructure_schedule_with_bpi_adjustment(self):
 		loan = create_loan(

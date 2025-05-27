@@ -762,6 +762,9 @@ class LoanRepayment(AccountsController):
 		if not self.payable_amount or self.flags.from_repost:
 			self.payable_amount = flt(amounts["payable_amount"], precision)
 
+		if not self.total_charges_payable or self.flags.from_repost:
+			self.total_charges_payable = flt(amounts["total_charges_payable"], precision)
+
 		shortfall_amount = flt(
 			frappe.db.get_value(
 				"Loan Security Shortfall",
@@ -1233,16 +1236,19 @@ class LoanRepayment(AccountsController):
 			self.flags.waiver_type = "Penalty Waiver"
 		elif amounts["interest"] > 0:
 			self.flags.waiver_type = "Interest Waiver"
+		elif amounts["charges"] > 0:
+			self.flags.waiver_type = "Charges Waiver"
 		else:
 			self.flags.waiver_type = "Principal Adjustment"
 
-		return amounts["penalty"], amounts["interest"], amounts["principal"]
+		return amounts["penalty"], amounts["interest"], amounts["charges"], amounts["principal"]
 
 	def get_pending_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		return {
 			"penalty": flt(self.penalty_amount, precision) - flt(self.total_penalty_paid, precision),
 			"interest": flt(self.interest_payable, precision) - flt(self.total_interest_paid, precision),
+			"charges": flt(self.total_charges_payable, precision) - flt(self.total_charges_paid, precision),
 			"principal": flt(self.pending_principal_amount, precision)
 			- flt(self.principal_amount_paid, precision),
 		}
