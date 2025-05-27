@@ -30,17 +30,17 @@ frappe.ui.form.on('Loan Repayment', {
 			};
 		});
 
-		if (frm.doc.against_loan && frm.doc.posting_date && frm.is_new()) {
+		if (frm.doc.against_loan && frm.doc.value_date && frm.is_new()) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
 
-	posting_date : function(frm) {
+	value_date : function(frm) {
 		frm.trigger('calculate_repayment_amounts');
 	},
 
 	against_loan: function(frm) {
-		if (frm.doc.posting_date) {
+		if (frm.doc.value_date) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
@@ -55,7 +55,7 @@ frappe.ui.form.on('Loan Repayment', {
 		});
 	},
 	repayment_type: function(frm) {
-		if (frm.doc.posting_date) {
+		if (frm.doc.value_date) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
@@ -65,7 +65,7 @@ frappe.ui.form.on('Loan Repayment', {
 			method: 'lending.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
 			args: {
 				'against_loan': frm.doc.against_loan,
-				'posting_date': frm.doc.posting_date,
+				'posting_date': frm.doc.value_date,
 				'payment_type': frm.doc.repayment_type
 			},
 			callback: function(r) {
