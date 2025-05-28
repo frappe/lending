@@ -85,6 +85,7 @@ class LoanDemand(AccountsController):
 				posting_date=add_days(self.demand_date, -1),
 				loan=self.loan,
 				company=self.company,
+				loan_disbursement=self.loan_disbursement,
 				from_demand=True,
 			)
 
