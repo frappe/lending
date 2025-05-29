@@ -1012,7 +1012,10 @@ class LoanRepayment(AccountsController):
 			if not (self.flags.from_repost or self.flags.in_bulk):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
-		if self.principal_amount_paid >= self.pending_principal_amount:
+		if (
+			self.pending_principal_amount > 0
+			and self.principal_amount_paid >= self.pending_principal_amount
+		):
 			self.update_repayment_schedule_status()
 
 		query = self.update_limits(query, loan)
@@ -1316,6 +1319,12 @@ class LoanRepayment(AccountsController):
 
 			if flt(self.excess_amount) > 0:
 				query = query.set(loan.excess_amount_paid, loan.excess_amount_paid - self.excess_amount)
+
+			if (
+				self.pending_principal_amount > 0
+				and self.principal_amount_paid >= self.pending_principal_amount
+			):
+				self.update_repayment_schedule_status(cancel=1)
 
 			query = self.update_limits(query, loan, cancel=1)
 			query.run()
