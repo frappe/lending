@@ -669,3 +669,39 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertEqual(interest_accrual_revised, 77.92)
+
+	def test_loan_repayment_cancel_with_amount_overlimit(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-05", loan=loan.name, company="_Test Company"
+		)
+
+		repayment = create_repayment_entry(loan.name, "2024-04-05", paid_amount=102000).submit()
+
+		repayment.cancel()
+
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
+		)
+
+		self.assertTrue(repayment_schedule)

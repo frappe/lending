@@ -149,6 +149,12 @@ class LoanRepaymentRepost(Document):
 					# cancel GL Entries
 					repayment_doc.make_gl_entries(cancel=1)
 
+				if (
+					repayment_doc.pending_principal_amount > 0
+					and repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
+				):
+					repayment_doc.update_repayment_schedule_status(cancel=1)
+
 			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
 
 			totals = frappe.db.get_value(
