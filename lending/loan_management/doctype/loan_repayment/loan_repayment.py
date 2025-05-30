@@ -1218,15 +1218,18 @@ class LoanRepayment(AccountsController):
 	def enable_auto_waiver_if_normal_repayment(self):
 		if self.repayment_type == "Normal Repayment":
 			self.flags.auto_waiver_needed = True
-			self.set_auto_waiver_type()
+			self.set_auto_waiver_type(self.against_loan, self.value_date, self.loan_disbursement)
 
-	def set_auto_waiver_type(self):
-		amounts = self.get_pending_amounts()
+	def set_auto_waiver_type(self, against_loan, value_date, loan_disbursement=None):
+		amounts = calculate_amounts(
+			against_loan=against_loan, posting_date=value_date, loan_disbursement=loan_disbursement
+		)
 
-		if amounts["penalty"] > 0:
-			self.flags.waiver_type = "Penalty Waiver"
-		elif amounts["interest"] > 0:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if flt(amounts.get("interest_amount", 0), precision) > 0:
 			self.flags.waiver_type = "Interest Waiver"
+<<<<<<< HEAD
 		else:
 			self.flags.waiver_type = "Principal Adjustment"
 
@@ -1240,14 +1243,44 @@ class LoanRepayment(AccountsController):
 			"principal": flt(self.pending_principal_amount, precision)
 			- flt(self.principal_amount_paid, precision),
 		}
+=======
+		if flt(amounts.get("penalty_amount", 0), precision) > 0:
+			self.flags.waiver_type = "Penalty Waiver"
+		if flt(amounts.get("total_charges_payable", 0), precision) > 0:
+			self.flags.waiver_type = "Charges Waiver"
+		if flt(amounts.get("pending_principal_amount", 0), precision) > 0:
+			self.flags.waiver_type = "Principal Adjustment"
+
+		return (
+			flt(amounts.get("interest_amount", 0), precision),
+			flt(amounts.get("penalty_amount", 0), precision),
+			flt(amounts.get("total_charges_payable", 0), precision),
+			flt(amounts.get("pending_principal_amount", 0), precision),
+		)
+>>>>>>> 6f00571 (refactor: auto waiver after auto close loan for penal, interest and principal (#656))
 
 	def create_auto_waiver(self):
 		waiver_type = getattr(self.flags, "waiver_type", None)
 		if not waiver_type:
 			return
 
-		amounts = self.get_pending_amounts()
-		waiver_amount = amounts.get(waiver_type.split()[0].lower(), 0)
+		amounts = calculate_amounts(
+			against_loan=self.against_loan,
+			posting_date=self.value_date,
+			loan_disbursement=self.loan_disbursement,
+			payment_type=self.repayment_type,
+		)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		key_map = {
+			"Interest Waiver": "interest_amount",
+			"Penalty Waiver": "penalty_amount",
+			"Charges Waiver": "total_charges_payable",
+			"Principal Adjustment": "pending_principal_amount",
+		}
+		amount_key = key_map.get(waiver_type)
+		waiver_amount = flt(amounts.get(amount_key, 0), precision)
 
 		if waiver_amount <= 0:
 			return
