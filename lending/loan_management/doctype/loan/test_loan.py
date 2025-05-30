@@ -2001,8 +2001,10 @@ class TestLoan(IntegrationTestCase):
 			"payable_amount"
 		]
 
+		repayment_entry_amount = payable_amount - 90
+
 		repayment_entry = create_repayment_entry(
-			loan.name, get_datetime("2024-07-07 00:05:10"), 1054000.00
+			loan.name, get_datetime("2024-07-07 00:05:10"), repayment_entry_amount
 		)
 		repayment_entry.submit()
 
