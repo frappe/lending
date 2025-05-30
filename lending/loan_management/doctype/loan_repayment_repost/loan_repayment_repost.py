@@ -153,6 +153,7 @@ class LoanRepaymentRepost(Document):
 					repayment_doc.pending_principal_amount > 0
 					and repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
 				):
+					frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
 			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
