@@ -155,7 +155,7 @@ class LoanRepaymentRepost(Document):
 				):
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
-			filters = {"against_loan": self.loan, "docstatus": 1, "value_date": ("<", self.repost_date)}
+			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
 
 			totals = frappe.db.get_value(
 				"Loan Repayment",
