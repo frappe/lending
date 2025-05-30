@@ -1111,40 +1111,43 @@ def get_parent_wise_dates(loan, last_accrual_date, posting_date, loan_disburseme
 		filters["loan_disbursement"] = loan_disbursement
 
 	schedules_details = frappe.db.get_all(
-		"Loan Repayment Schedule",
-		filters=filters,
-		fields=["name", "maturity_date"],
+		"Loan Repayment Schedule", filters=filters, fields=["name", "maturity_date"], order_by=None
 	)
 
 	schedules = [d.name for d in schedules_details]
+	schedule_dates = []
 
 	freeze_date = frappe.db.get_value("Loan", loan, "freeze_date")
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
 		posting_date = freeze_date
+
 	schedule_filters = {
 		"parent": ("in", schedules),
 		"payment_date": ("between", [last_accrual_date, posting_date]),
 	}
 
-	if len(schedules) == 1:
+	if schedules:
 		schedule_filters["parent"] = schedules[0]
 
-	schedule_dates = (
-		frappe.db.get_all(
+		schedule_dates = frappe.db.get_all(
 			"Repayment Schedule",
 			filters=schedule_filters,
 			fields=["payment_date", "parent"],
 			order_by="payment_date",
 		)
-		or []
-	)
+
 	parent_wise_schedules = frappe._dict()
 	for schedule_date in schedule_dates:
 		parent_wise_schedules.setdefault(schedule_date.parent, [])
 		accrual_date = add_days(schedule_date.payment_date, -1)
 		parent_wise_schedules[schedule_date.parent].append(accrual_date)
 
-	if freeze_date and last_accrual_date and getdate(last_accrual_date) < getdate(freeze_date):
+	if (
+		schedules
+		and freeze_date
+		and last_accrual_date
+		and getdate(last_accrual_date) < getdate(freeze_date)
+	):
 		freeze_accrual_date = freeze_date
 		parent_wise_schedules.setdefault(schedules[0], [])
 		if freeze_accrual_date not in parent_wise_schedules[schedules[0]]:
