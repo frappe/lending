@@ -80,6 +80,7 @@ class LoanDemand(AccountsController):
 			not frappe.flags.on_repost
 			and self.demand_type in ("EMI", "Normal")
 			and self.demand_subtype == "Interest"
+			and self.process_loan_demand
 		):
 			process_loan_interest_accrual_for_loans(
 				posting_date=add_days(self.demand_date, -1),
