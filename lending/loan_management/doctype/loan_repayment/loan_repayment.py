@@ -2634,7 +2634,7 @@ def get_bulk_due_details(loans, posting_date):
 	unbooked_interest_map = {
 		loan: get_unbooked_interest(
 			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
-		)
+		)[0]
 		for loan in loans
 	}
 	loan_demands = get_all_demands(loans, posting_date)

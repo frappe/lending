@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, cint, flt
+from frappe.utils import cint, flt
 
 
 def get_pending_principal_amount_for_loans(loans, disbursement_map):
@@ -167,9 +167,6 @@ def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 		filters,
 		"MAX(demand_date)",
 	)
-
-	if demand_subtype == "Interest" and last_demand_date:
-		last_demand_date = add_days(last_demand_date, -1)
 
 	return last_demand_date
 
