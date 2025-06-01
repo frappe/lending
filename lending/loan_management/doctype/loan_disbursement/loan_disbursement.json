@@ -35,6 +35,7 @@
   "bpi_amount_difference",
   "principal_amount_paid",
   "accounting_details",
+  "mode_of_payment",
   "disbursement_account",
   "refund_account",
   "column_break_16",
@@ -369,13 +370,18 @@
    "fieldname": "broken_period_interest_days",
    "fieldtype": "Int",
    "label": "Broken Period Interest Days"
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode Of Payment",
+   "options": "Mode of Payment"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:49.327153",
- "modified": "2025-03-27 15:29:37.464398",
+ "modified": "2025-05-30 15:04:22.609564",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
