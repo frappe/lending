@@ -582,11 +582,10 @@ def calculate_penal_interest_for_loans(
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	loan_product, freeze_date, loan_status, penal_interest_rate = frappe.get_value(
-		"Loan", loan.name, ["loan_product", "freeze_date", "status", "penalty_charges_rate"]
-	)
-
-	penal_interest_rate = frappe.db.get_value("Loan", loan.name, "penalty_charges_rate")
+	loan_product = loan.loan_product
+	freeze_date = loan.freeze_date
+	loan_status = loan.status
+	penal_interest_rate = loan.penalty_charges_rate
 
 	if not penal_interest_rate:
 		penal_interest_rate = frappe.get_value(
@@ -748,6 +747,10 @@ def make_accrual_interest_entry_for_loans(
 			loan_doc.total_principal_paid,
 			loan_doc.repayment_start_date,
 			loan_doc.company,
+			loan_doc.freeze_account,
+			loan_doc.freeze_date,
+			loan_doc.loan_product,
+			loan_doc.penalty_charges_rate,
 		)
 		.where(loan_doc.docstatus == 1)
 		.where(loan_doc.status.isin(["Disbursed", "Partially Disbursed", "Active", "Written Off"]))
@@ -812,26 +815,20 @@ def process_interest_accrual_batch(
 	loan_disbursement=None,
 ):
 	for loan in loans:
-
-		freeze_date = frappe.db.get_value("Loan", loan.name, "freeze_date")
 		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
 
-		if freeze_date and getdate(freeze_date) < getdate(posting_date):
-			posting_date = freeze_date
-
-		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
 		try:
 			if not from_demand:
 				calculate_penal_interest_for_loans(
 					loan,
-					posting_date,
+					loan.freeze_date or posting_date,
 					process_loan_interest=process_loan_interest,
 					accrual_type=accrual_type,
 					loan_disbursement=loan_disbursement,
 				)
 			calculate_accrual_amount_for_loans(
 				loan,
-				posting_date,
+				loan.freeze_date or posting_date,
 				process_loan_interest=process_loan_interest,
 				accrual_type=accrual_type,
 				accrual_date=accrual_date,
@@ -841,6 +838,7 @@ def process_interest_accrual_batch(
 
 			if len(loans) > 1:
 				frappe.db.commit()
+
 		except Exception as e:
 			if len(loans) > 1:
 				frappe.log_error(

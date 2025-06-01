@@ -75,6 +75,7 @@ class LoanDisbursement(AccountsController):
 		loan_disbursement_charges: DF.Table[LoanDisbursementCharge]
 		loan_partner: DF.Link | None
 		loan_product: DF.Link | None
+		mode_of_payment: DF.Link | None
 		monthly_repayment_amount: DF.Currency
 		posting_date: DF.Date | None
 		principal_amount_paid: DF.Currency
@@ -323,6 +324,13 @@ class LoanDisbursement(AccountsController):
 
 		if not self.disbursement_account and self.bank_account:
 			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
+		if self.mode_of_payment:
+			self.disbursement_account = frappe.db.get_value(
+				"Mode of Payment Account",
+				{"parent": self.mode_of_payment, "company": self.company},
+				"default_account",
+			)
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
 			self.monthly_repayment_amount = frappe.db.get_value(
