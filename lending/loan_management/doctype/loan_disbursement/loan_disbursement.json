@@ -381,12 +381,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-03-19 11:46:49.327153",
- "modified": "2025-03-27 15:29:37.464398",
-=======
  "modified": "2025-05-30 15:04:22.609564",
->>>>>>> 951d135 (feat: Add mode of payment to loan disbursement)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
