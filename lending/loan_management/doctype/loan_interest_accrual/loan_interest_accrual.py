@@ -66,6 +66,8 @@ class LoanInterestAccrual(AccountsController):
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
+		self.accrual_date = nowdate()
+
 		if not self.interest_amount:
 			frappe.throw(_("Interest Amount is mandatory"))
 
@@ -244,7 +246,7 @@ class LoanInterestAccrual(AccountsController):
 								self.last_accrual_date, self.posting_date, self.loan
 							),
 							"cost_center": cost_center,
-							"posting_date": self.accrual_date or self.posting_date,
+							"posting_date": self.accrual_date,
 						}
 					)
 				)
@@ -262,7 +264,7 @@ class LoanInterestAccrual(AccountsController):
 								self.last_accrual_date, self.posting_date, self.loan
 							),
 							"cost_center": cost_center,
-							"posting_date": self.accrual_date or self.posting_date,
+							"posting_date": self.accrual_date,
 						}
 					)
 				)
@@ -281,7 +283,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
+						"posting_date": self.accrual_date,
 					}
 				)
 			)
@@ -299,7 +301,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
+						"posting_date": self.accrual_date,
 					}
 				)
 			)
