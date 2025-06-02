@@ -474,7 +474,7 @@ class TestLoan(FrappeTestCase):
 		)
 
 		freeze_date = loan.freeze_date
-		self.assertEqual(str(last_accrual_date), freeze_date)
+		self.assertEqual(getdate(last_accrual_date), freeze_date)
 
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Closed")
@@ -520,7 +520,7 @@ class TestLoan(FrappeTestCase):
 		)
 
 		freeze_date = loan.freeze_date
-		self.assertEqual(str(last_accrual_date), freeze_date)
+		self.assertEqual(getdate(last_accrual_date), freeze_date)
 
 	def test_loan_repayment_for_term_loan(self):
 		pledges = [
