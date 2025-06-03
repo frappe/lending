@@ -5,13 +5,19 @@ from datetime import timedelta
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
+from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
+
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
 	get_amounts,
+	get_bulk_due_details,
 	init_amounts,
 	post_bulk_payments,
+)
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -24,6 +30,7 @@ from lending.tests.test_utils import (
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
+	make_customer,
 	make_loan_disbursement_entry,
 	master_init,
 	set_loan_accrual_frequency,
@@ -35,6 +42,9 @@ class TestLoanRepayment(IntegrationTestCase):
 		master_init()
 		init_loan_products()
 		init_customers()
+		self.applicant1 = make_customer("robert_loan@loan.com")
+		if not frappe.db.exists("Customer", "_Test Loan Customer"):
+			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_in_between_payments(self):
@@ -915,3 +925,135 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertTrue(repayment_schedule)
+
+	def test_bulk_due_details_for_normal_loans(self):
+		loan1 = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
+			penalty_charges_rate=25,
+		)
+
+		loan1.submit()
+
+		make_loan_disbursement_entry(
+			loan1.name, loan1.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-06", loan=loan1.name)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-07-06", loan=loan1.name, company="_Test Company"
+		)
+
+		loan2 = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2024-06-05",
+			"2024-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan2.submit()
+
+		make_loan_disbursement_entry(
+			loan2.name, loan2.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan2.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan2.name, posting_date="2024-07-07", company="_Test Company"
+		)
+
+		payable_amount = calculate_amounts(against_loan=loan2.name, posting_date="2024-07-07")[
+			"payable_amount"
+		]
+
+		first_normal_repayment = round(float(payable_amount), 2) - 2000  # partial payment
+
+		repayment_entry = create_repayment_entry(
+			loan2.name, get_datetime("2024-07-07 00:05:10"), first_normal_repayment
+		)
+		repayment_entry.submit()
+
+		for posting_date in ["2024-07-07", "2034-07-07"]:
+			due_details = dict()
+			for loan in [loan1, loan2]:
+				due_details[loan.name] = calculate_amounts(against_loan=loan.name, posting_date=posting_date)
+
+			bulk_due_details_unformatted = get_bulk_due_details(
+				[loan1.name, loan2.name], posting_date=posting_date
+			)
+
+			bulk_due_details = dict()
+
+			for bulk_due_detail in bulk_due_details_unformatted:
+				bulk_due_details[bulk_due_detail["loan"]] = bulk_due_detail
+
+			fields = init_amounts()
+
+			for loan in [loan1, loan2]:
+				for field in fields:
+					print(loan, field)
+					self.assertEqual(flt(due_details[loan.name][field]), flt(bulk_due_details[loan.name][field]))
+
+	def test_bulk_due_details_for_npa_loc_loans(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2024-12-05",
+		)
+
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+
+		# Test Limit Update
+		loan.load_from_db()
+		self.assertEqual(loan.utilized_limit_amount, 500000)
+		self.assertEqual(loan.available_limit_amount, 0)
+
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
+
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-05", 47523, loan_disbursement=disbursement.name
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+
+		fields = init_amounts()
+
+		due_details = dict()
+		due_details[loan.name] = calculate_amounts(against_loan=loan.name, posting_date="2025-11-27")
+
+		bulk_due_details_unformatted = get_bulk_due_details([loan.name], posting_date="2025-11-27")
+
+		bulk_due_details = dict()
+
+		for bulk_due_detail in bulk_due_details_unformatted:
+			bulk_due_details[bulk_due_detail["loan"]] = bulk_due_detail
+
+		fields = init_amounts()
+
+		for field in fields:
+			self.assertEqual(flt(due_details[loan.name][field]), flt(bulk_due_details[loan.name][field]))
