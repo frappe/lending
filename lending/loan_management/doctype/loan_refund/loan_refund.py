@@ -89,15 +89,7 @@ class LoanRefund(AccountsController):
 
 		if self.is_excess_amount_refund:
 			if not flt(refund_amount):
-				frappe.db.set_value(
-					"Loan", self.loan, {"status": "Closed", "closure_date": getdate(self.posting_date)}
-				)
-				schedule = frappe.db.get_value(
-					"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
-				)
-				if schedule:
-					frappe.db.set_value("Loan Repayment Schedule", schedule, "status", "Closed")
-
+				self.mark_loan_as_closed()
 			elif refund_amount < 0:
 				frappe.throw(_("Excess amount refund cannot be more than excess amount paid"))
 		elif self.is_security_amount_refund:
@@ -114,7 +106,20 @@ class LoanRefund(AccountsController):
 				loan_security_deposit.loan == self.loan
 			).run()
 
+			# if not flt(refund_amount):
+			# 	self.mark_loan_as_closed()
+
 		frappe.db.set_value("Loan", self.loan, fieldname, refund_amount)
+
+	def mark_loan_as_closed(self):
+		frappe.db.set_value(
+			"Loan", self.loan, {"status": "Closed", "closure_date": getdate(self.posting_date)}
+		)
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
+		)
+		if schedule:
+			frappe.db.set_value("Loan Repayment Schedule", schedule, "status", "Closed")
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
