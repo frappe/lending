@@ -209,9 +209,8 @@ global_search_doctypes = {
 	],
 }
 
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "lending.event.get_events"
-# }
+update_gl_dict_with_app_based_fields = ["lending.overrides.gl_entry.update_value_date_in_gl_dict"]
+
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
