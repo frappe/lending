@@ -897,3 +897,20 @@ def get_penalty_amount(penalty_date, emi_date, pending_amount, penalty_rate):
 	penal_interest = (pending_amount * no_of_days * penalty_rate) / 36500
 
 	return penal_interest
+
+
+def create_loan_refund(
+	loan, posting_date, refund_amount, is_excess_amount_refund=0, is_security_amount_refund=0
+):
+	doc = frappe.new_doc("Loan Refund")
+	doc.loan = loan
+	doc.posting_date = posting_date
+	doc.company = "_Test Company"
+	doc.is_excess_amount_refund = is_excess_amount_refund
+	doc.is_security_amount_refund = is_security_amount_refund
+	doc.refund_amount = refund_amount
+	doc.refund_account = "Payment Account - _TC"
+	doc.save()
+	doc.submit()
+
+	return doc
