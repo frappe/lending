@@ -271,7 +271,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				"Charges Waiver",
 			)
-			and not (self.flags.from_repost or self.flags.from_repost)
+			and not self.flags.from_repost
 		):
 			max_date = None
 			reversed_accruals += reverse_loan_interest_accruals(

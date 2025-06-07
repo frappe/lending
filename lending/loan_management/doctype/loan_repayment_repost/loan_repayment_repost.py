@@ -96,24 +96,40 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def clear_demand_allocation(self):
-		demands = frappe.get_all(
-			"Loan Demand",
-			{
-				"loan": self.loan,
-				"docstatus": 1,
-				"demand_date": (">=", self.repost_date),
-			},
-			["name", "demand_amount"],
+		demands = []
+
+		for repayment in self.get("repayment_entries"):
+			demands.extend(
+				frappe.get_all(
+					"Loan Repayment Detail",
+					{
+						"parent": repayment.loan_repayment,
+					},
+					pluck="loan_demand",
+				)
+			)
+
+		demand_amount_map = frappe._dict(
+			frappe.get_all(
+				"Loan Demand",
+				{
+					"loan": self.loan,
+					"docstatus": 1,
+					"name": ("in", demands),
+				},
+				["name", "demand_amount"],
+				as_list=1,
+			)
 		)
 
 		for demand in demands:
 			frappe.db.set_value(
 				"Loan Demand",
-				demand.name,
+				demand,
 				{
 					"paid_amount": 0,
 					"waived_amount": 0,
-					"outstanding_amount": demand.demand_amount,
+					"outstanding_amount": demand_amount_map.get(demand, 0),
 				},
 			)
 
@@ -265,6 +281,15 @@ class LoanRepaymentRepost(Document):
 				loan, loan_disbursement=self.loan_disbursement
 			)
 
+<<<<<<< HEAD
+=======
+			if is_written_off and repayment_doc.is_write_off_waiver:
+				if repayment_doc.repayment_type == "Interest Waiver":
+					repayment_doc.db_set(
+						"amount_paid", amounts.get("interest_amount", 0) + amounts.get("unbooked_interest", 0)
+					)
+
+>>>>>>> fbb17fe (fix: Repost tool fixes for written off accounts)
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
