@@ -720,7 +720,7 @@ def create_loan_repayment(
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.offset_based_on_npa = 1
 	repayment.against_loan = loan
-	repayment.posting_date = posting_date
+	repayment.value_date = posting_date
 	repayment.repayment_type = repayment_type
 	repayment.amount_paid = waiver_amount
 	repayment.loan_adjustment = adjustment_name
