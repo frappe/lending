@@ -1,5 +1,10 @@
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate
+
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	calculate_accrual_amount_for_loans,
+)
+from lending.loan_management.doctype.loan_repayment.loan_repayment import get_latest_accrual_date
 
 
 def get_pending_principal_amount_for_loans(loans, disbursement_map):
@@ -102,6 +107,17 @@ def process_amount_for_bulk_loans(
 		payable_principal_amount + total_pending_interest + penalty_amount + charges, precision
 	)
 	amounts["unbooked_interest"] = flt(unbooked_interest, precision)
+	latest_accrual_date = get_latest_accrual_date(
+		loan.name, posting_date, loan_disbursement=loan_disbursement
+	)
+	if getdate(posting_date) > getdate(latest_accrual_date):
+		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
+			loan,
+			posting_date=posting_date,
+			accrual_type="Regular",
+			is_future_accrual=1,
+			loan_disbursement=loan_disbursement,
+		)
 	amounts["written_off_amount"] = flt(loan.written_off_amount, precision)
 	amounts["unpaid_demands"] = demands
 	amounts["due_date"] = last_demand_date
@@ -169,19 +185,3 @@ def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 	)
 
 	return last_demand_date
-
-
-def get_latest_accrual_date(posting_date, interest_type="Interest"):
-	filters = {
-		"docstatus": 1,
-		"interest_type": interest_type,
-		"posting_date": (">", posting_date),
-	}
-
-	latest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual",
-		filters,
-		"MAX(posting_date)",
-	)
-
-	return latest_accrual_date
