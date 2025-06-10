@@ -3,6 +3,7 @@ from frappe.utils import cint, flt, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	calculate_accrual_amount_for_loans,
+	calculate_penal_interest_for_loans,
 )
 from lending.loan_management.doctype.loan_repayment.loan_repayment import get_latest_accrual_date
 
@@ -115,6 +116,12 @@ def process_amount_for_bulk_loans(
 			loan,
 			posting_date=posting_date,
 			accrual_type="Regular",
+			is_future_accrual=1,
+			loan_disbursement=loan_disbursement,
+		)
+		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
+			loan=loan,
+			posting_date=posting_date,
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
 		)
