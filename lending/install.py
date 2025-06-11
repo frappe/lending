@@ -326,12 +326,12 @@ def setup_initial_permissions():
 
 		module_profile.save(ignore_permissions=True)
 
-	user_email = frappe.db.get_value(
-		"User", {"enabled": 1, "email": ("!=", "Administrator"), "user_type": "System User"}, "email"
+	user_name = frappe.db.get_value(
+		"User", {"enabled": 1, "name": ("!=", "Administrator"), "user_type": "System User"}, "name"
 	)
 
-	if user_email:
-		user = frappe.get_doc("User", user_email)
+	if user_name:
+		user = frappe.get_doc("User", user_name)
 
 		if not any(role.role == role_name for role in user.roles):
 			user.append("roles", {"role": role_name})
