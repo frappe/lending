@@ -705,3 +705,42 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertTrue(repayment_schedule)
+
+	def test_advance_payment_before_first_payment(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-01-05",
+			posting_date="2024-12-26",
+			rate_of_interest=31,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-26", repayment_start_date="2025-01-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-02", loan=loan.name, company="_Test Company"
+		)
+
+		create_repayment_entry(
+			loan.name, "2025-01-03", paid_amount=19596, repayment_type="Advance Payment"
+		).submit()
+
+		repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+
+		self.assertEqual(
+			repayment_schedule.get("repayment_schedule")[0].payment_date, getdate("2025-01-05")
+		)
+
+		self.assertEqual(repayment_schedule.get("repayment_schedule")[0].demand_generated, 1)
