@@ -327,7 +327,7 @@ def setup_initial_permissions():
 		module_profile.save(ignore_permissions=True)
 
 	user_email = frappe.db.get_value(
-		"User", {"enabled": 1, "email": ("!=", "Administrator")}, "email"
+		"User", {"enabled": 1, "email": ("!=", "Administrator"), "user_type": "System User"}, "email"
 	)
 
 	if user_email:
