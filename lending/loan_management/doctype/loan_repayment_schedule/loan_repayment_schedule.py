@@ -589,37 +589,13 @@ class LoanRepaymentSchedule(Document):
 				if self.restructure_type:
 					self.loan_disbursement = prev_schedule.loan_disbursement
 
-				after_bpi = 0
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
 				self.monthly_repayment_amount = prev_schedule.monthly_repayment_amount
 				first_date = prev_schedule.get(schedule_field)[0].payment_date
+				previous_broken_period_interest = prev_schedule.broken_period_interest
 
-				if getdate(first_date) < prev_schedule.repayment_start_date:
-					after_bpi = 1
-
-				if (
-					after_bpi
-					and getdate(self.posting_date) <= getdate(prev_schedule.posting_date)
-					and self.repayment_frequency != "Daily"
-				):
-					row = prev_schedule.get(schedule_field)[0]
-					self.add_repayment_schedule_row(
-						row.payment_date,
-						row.principal_amount,
-						row.interest_amount,
-						row.total_payment,
-						row.balance_loan_amount,
-						row.number_of_days,
-						demand_generated=row.demand_generated,
-						repayment_schedule_field=schedule_field,
-					)
-
-					prev_repayment_date = row.payment_date
-
-				if (
-					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date) or after_bpi
-				):
+				if getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
 							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
@@ -645,7 +621,7 @@ class LoanRepaymentSchedule(Document):
 							prev_balance_amount = row.balance_loan_amount
 							if row.principal_amount:
 								completed_tenure += 1
-						elif not after_bpi and getdate(self.posting_date) > row.payment_date:
+						elif getdate(self.posting_date) > row.payment_date:
 							self.repayment_start_date = row.payment_date
 							prev_repayment_date = row.payment_date
 							break
@@ -673,7 +649,7 @@ class LoanRepaymentSchedule(Document):
 							completed_tenure - 1
 						].balance_loan_amount = self.current_principal_amount
 
-					if after_bpi and not self.restructure_type:
+					if not self.restructure_type:
 						self.broken_period_interest = prev_schedule.broken_period_interest
 
 					pending_prev_days = date_diff(self.posting_date, prev_repayment_date)
@@ -707,7 +683,14 @@ class LoanRepaymentSchedule(Document):
 					previous_interest_amount = 0
 
 					if self.repayment_schedule_type == "Monthly as per cycle date":
-						next_emi_date = get_cyclic_date(self.loan_product, prev_repayment_date, ignore_bpi=False)
+						if not previous_broken_period_interest:
+							ignore_bpi = True
+						else:
+							ignore_bpi = False
+
+						next_emi_date = get_cyclic_date(
+							self.loan_product, prev_repayment_date, ignore_bpi=ignore_bpi
+						)
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 

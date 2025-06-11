@@ -2405,7 +2405,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+			loan=loan.name, from_date="2024-08-16", to_date="2024-08-20"
 		)
 		expected_dates = [
 			"2024-08-16",
@@ -2424,7 +2424,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-08-21", to_date="2024-08-31"
+			loan=loan.name, from_date="2024-08-21", to_date="2024-08-31"
 		)
 		expected_dates = [
 			"2024-08-25",
@@ -2439,7 +2439,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-09-01", to_date="2024-11-05"
+			loan=loan.name, from_date="2024-09-01", to_date="2024-11-05"
 		)
 		expected_dates = [
 			"2024-09-15",
@@ -3060,7 +3060,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+			loan=loan.name, from_date="2024-08-16", to_date="2024-08-20"
 		)
 		expected_dates = [
 			"2024-08-16",
