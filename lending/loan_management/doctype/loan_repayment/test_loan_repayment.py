@@ -262,8 +262,8 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		process_daily_loan_demands(posting_date="2024-11-16", loan=loan.name)
 
-		payable_amount = get_amounts(init_amounts(), loan, "2024-09-01")["payable_amount"]
-		payable_principal_amount = get_amounts(init_amounts(), loan, "2024-09-01")[
+		payable_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")["payable_amount"]
+		payable_principal_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")[
 			"payable_principal_amount"
 		]
 		repayment_entry = create_repayment_entry(
@@ -271,7 +271,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 		pending_principal_amount = get_amounts(
-			init_amounts(), loan, timedelta(seconds=1) + get_datetime("2024-09-01")
+			init_amounts(), loan.name, timedelta(seconds=1) + get_datetime("2024-09-01")
 		)["pending_principal_amount"]
 		repayment_entry = create_repayment_entry(
 			loan.name,
