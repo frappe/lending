@@ -1862,8 +1862,14 @@ class LoanRepayment(AccountsController):
 			return
 
 		gle_map = self.get_gl_map()
+
+		merge_entries = True
+
+		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			merge_entries = False
+
 		if gle_map:
-			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+			make_gl_entries(gle_map, merge_entries=merge_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def get_gl_map(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -2030,7 +2036,13 @@ class LoanRepayment(AccountsController):
 		self.add_round_off_gl_entry(gle_map)
 
 		self.add_loan_partner_gl_entries(gle_map)
-		gle_map = process_gl_map(gle_map)
+
+		merge_entries = True
+
+		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			merge_entries = False
+
+		gle_map = process_gl_map(gle_map, merge_entries=merge_entries)
 
 		return gle_map
 
