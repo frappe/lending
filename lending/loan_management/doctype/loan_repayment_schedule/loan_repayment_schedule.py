@@ -951,7 +951,9 @@ class LoanRepaymentSchedule(Document):
 				"demand_generated": demand_generated,
 			},
 		)
-		self.increment_number_of_rows(payment_date)
+
+		if repayment_schedule_field != "colender_schedule":
+			self.increment_number_of_rows(payment_date)
 
 	def increment_number_of_rows(self, payment_date):
 		self.number_of_rows += 1
