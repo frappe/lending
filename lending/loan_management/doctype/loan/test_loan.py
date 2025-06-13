@@ -3117,3 +3117,35 @@ class TestLoan(IntegrationTestCase):
 		schedule = loan_repayment_schedule.repayment_schedule
 
 		self.assertEqual(len(schedule), loan_repayment_schedule.repayment_periods)
+
+	def test_interest_accrual_gl_before_write_off(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=250000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry", filters={"voucher_type": "Loan Interest Accrual", "against_voucher": loan.name}
+		)
+
+		self.assertEqual(len(gl_entries), 60)  # 30 days of interest accruals
