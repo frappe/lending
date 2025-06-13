@@ -3116,4 +3116,4 @@ class TestLoan(IntegrationTestCase):
 		)
 		schedule = loan_repayment_schedule.repayment_schedule
 
-		self.assertEqual(len(schedule), len(loan_repayment_schedule.repayment_schedule))
+		self.assertEqual(len(schedule), loan_repayment_schedule.repayment_periods)
