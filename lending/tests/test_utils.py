@@ -960,7 +960,7 @@ def create_loan_refund(
 ):
 	doc = frappe.new_doc("Loan Refund")
 	doc.loan = loan
-	doc.posting_date = posting_date
+	doc.value_date = posting_date
 	doc.company = "_Test Company"
 	doc.is_excess_amount_refund = is_excess_amount_refund
 	doc.is_security_amount_refund = is_security_amount_refund
