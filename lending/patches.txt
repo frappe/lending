@@ -41,4 +41,5 @@ lending.patches.v15_0.loan_disbursement_status_patch
 lending.patches.v1_0.create_custom_field_loan_accrual_rate_for_company #rerun
 lending.patches.v1_0.add_index_for_custom_fields_for_JE
 lending.patches.v1_0.update_value_date_in_loan_repayment
+lending.patches.v1_0.update_value_date_in_loan_refund
 
