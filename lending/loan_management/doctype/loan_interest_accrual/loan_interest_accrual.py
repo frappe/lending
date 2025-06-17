@@ -147,7 +147,15 @@ class LoanInterestAccrual(AccountsController):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 		if loan_status == "Written Off":
-			return
+			write_off_date = frappe.db.get_value(
+				"Loan Write Off",
+				{"loan": self.loan, "docstatus": 1},
+				"posting_date",
+				order_by="posting_date desc",
+			)
+
+			if write_off_date and self.posting_date >= write_off_date:
+				return
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 

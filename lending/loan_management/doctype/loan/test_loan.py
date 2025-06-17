@@ -53,6 +53,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_accounts,
 	create_loan_application,
+	create_loan_partner,
 	create_loan_product,
 	create_loan_security,
 	create_loan_security_price,
@@ -3071,3 +3072,80 @@ class TestLoan(IntegrationTestCase):
 		expected_dates = [getdate(i) for i in expected_dates]
 		accrual_dates = [getdate(i) for i in loan_interest_accruals]
 		self.assertEqual(accrual_dates, expected_dates)
+
+	def test_colender_loan_with_repayment_periods(self):
+		loan_partner = "Test Loan Partner 1"
+
+		if not frappe.db.exists("Loan Partner", loan_partner):
+			partner = create_loan_partner(
+				"Test Loan Partner 1",
+				"Test Loan Partner 1",
+				partner_loan_share_percentage=80,
+				effective_date="2025-01-27",
+				repayment_schedule_type="EMI (PMT) based",
+				partner_base_interest_rate=10,
+				organization_type="Centralized",
+				fldg_limit_calculation_component="Disbursement",
+				type_of_fldg_applicable="Fixed Deposit Only",
+				fldg_fixed_deposit_percentage=10,
+			)
+			partner.submit()
+
+		posting_date = "2025-01-27"
+		loan = create_loan(
+			self.applicant1,
+			"Personal Loan",
+			280000,
+			"Repay Over Number of Periods",
+			loan_partner=loan_partner,
+			repayment_periods=20,
+			repayment_start_date=add_months(posting_date, 1),
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			280000,
+			repayment_start_date=add_months(posting_date, 1),
+			disbursement_date=posting_date,
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
+		self.assertEqual(len(schedule), loan_repayment_schedule.repayment_periods)
+
+	def test_interest_accrual_gl_before_write_off(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=250000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry", filters={"voucher_type": "Loan Interest Accrual", "against_voucher": loan.name}
+		)
+
+		self.assertEqual(len(gl_entries), 60)  # 30 days of interest accruals

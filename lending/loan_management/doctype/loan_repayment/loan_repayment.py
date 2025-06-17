@@ -271,7 +271,7 @@ class LoanRepayment(AccountsController):
 				"Penalty Waiver",
 				"Charges Waiver",
 			)
-			and not (self.flags.from_repost or self.flags.from_repost)
+			and not self.flags.from_repost
 		):
 			max_date = None
 			reversed_accruals += reverse_loan_interest_accruals(
@@ -2815,6 +2815,7 @@ def update_installment_counts(against_loan, loan_disbursement=None):
 			(loan_demand.loan == against_loan)
 			& (loan_demand.docstatus == 1)
 			& (loan_demand.demand_type == "EMI")
+			& (loan_demand.repayment_schedule_detail.isnotnull())
 		)
 		.groupby(
 			loan_demand.repayment_schedule_detail,
