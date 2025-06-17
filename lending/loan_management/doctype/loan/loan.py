@@ -1467,6 +1467,7 @@ def make_suspense_journal_entry(
 			"additional_interest_suspense",
 		],
 		as_dict=1,
+		cache=True,
 	)
 
 	normal_penal_interest_jv = None
