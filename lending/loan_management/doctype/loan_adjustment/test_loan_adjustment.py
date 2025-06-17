@@ -14,6 +14,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_repayment_entry,
 	init_customers,
 	init_loan_products,
 	make_loan_disbursement_entry,

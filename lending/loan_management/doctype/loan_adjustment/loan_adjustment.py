@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_restructure.loan_restructure import create_loan_repayment
@@ -45,18 +46,20 @@ class LoanAdjustment(Document):
 					},
 				)
 
-		available_sd = float(amounts.get("available_security_deposit", 0))
+		available_sd = float(amounts.get("available_security_deposit") or 0)
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		total_net_payable = round(
-			float(amounts.get("unaccrued_interest", 0))
-			+ float(amounts.get("interest_amount", 0))
-			+ float(amounts.get("penalty_amount", 0))
-			+ float(amounts.get("total_charges_payable", 0))
-			- available_sd
-			+ float(amounts.get("unbooked_interest", 0))
-			+ float(amounts.get("unbooked_penalty", 0))
-			+ float(amounts.get("pending_principal_amount", 0)),
-			2,
+			float(amounts.get("unaccrued_interest") or 0)
+			+ float(amounts.get("interest_amount") or 0)
+			+ float(amounts.get("penalty_amount") or 0)
+			+ float(amounts.get("total_charges_payable") or 0)
+			- float(amounts.get("available_security_deposit") or 0)
+			+ float(amounts.get("unbooked_interest") or 0)
+			+ float(amounts.get("unbooked_penalty") or 0)
+			+ float(amounts.get("pending_principal_amount") or 0),
+			precision,
 		)
 
 		total_adjustment_amount = sum(float(row.amount) for row in self.adjustments if row.amount)
