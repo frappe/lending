@@ -62,21 +62,21 @@ class LoanAdjustment(Document):
 			precision,
 		)
 
-		total_adjustment_amount = sum(float(row.amount) for row in self.adjustments if row.amount)
+		total_adjustment_amount = 0.0
 
-		sd_adjustment = next(
-			(row for row in self.adjustments if row.loan_repayment_type == "Security Deposit Adjustment"),
-			None,
-		)
-		if sd_adjustment:
-			total_adjustment_amount -= float(sd_adjustment.amount or 0)
+		for row in self.adjustments:
+			if not row.amount:
+				continue
+
+			amount = float(row.amount)
+			if row.loan_repayment_type != "Security Deposit Adjustment":
+				total_adjustment_amount += amount
 
 		if total_adjustment_amount > total_net_payable:
 			frappe.throw(
 				_(
-					f"Total adjustment amount ({total_adjustment_amount}) exceeds the total net payable ({total_net_payable}). "
-					f"You can only adjust up to {total_net_payable}."
-				)
+					"Total adjustment amount ({0}) exceeds the total net payable ({1}). You can only adjust up to {1}."
+				).format(total_adjustment_amount, total_net_payable)
 			)
 
 	def on_submit(self):
