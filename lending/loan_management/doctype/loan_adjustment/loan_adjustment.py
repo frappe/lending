@@ -1,7 +1,8 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -43,6 +44,37 @@ class LoanAdjustment(Document):
 						"amount": amounts.get("available_security_deposit", 0),
 					},
 				)
+
+		available_sd = float(amounts.get("available_security_deposit", 0))
+
+		total_net_payable = round(
+			float(amounts.get("unaccrued_interest", 0))
+			+ float(amounts.get("interest_amount", 0))
+			+ float(amounts.get("penalty_amount", 0))
+			+ float(amounts.get("total_charges_payable", 0))
+			- available_sd
+			+ float(amounts.get("unbooked_interest", 0))
+			+ float(amounts.get("unbooked_penalty", 0))
+			+ float(amounts.get("pending_principal_amount", 0)),
+			2,
+		)
+
+		total_adjustment_amount = sum(float(row.amount) for row in self.adjustments if row.amount)
+
+		sd_adjustment = next(
+			(row for row in self.adjustments if row.loan_repayment_type == "Security Deposit Adjustment"),
+			None,
+		)
+		if sd_adjustment:
+			total_adjustment_amount -= float(sd_adjustment.amount or 0)
+
+		if total_adjustment_amount > total_net_payable:
+			frappe.throw(
+				_(
+					f"Total adjustment amount ({total_adjustment_amount}) exceeds the total net payable ({total_net_payable}). "
+					f"You can only adjust up to {total_net_payable}."
+				)
+			)
 
 	def on_submit(self):
 		for repayment in self.get("adjustments"):
