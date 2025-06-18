@@ -159,7 +159,7 @@ class LoanInterestAccrual(AccountsController):
 				order_by="posting_date desc",
 			)
 
-			if write_off_date and self.posting_date >= write_off_date:
+			if write_off_date and getdate(self.posting_date) >= write_off_date:
 				return
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
