@@ -320,10 +320,15 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		payable_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")["payable_amount"]
 
-		accrual_dates = demand_dates = [
+		accrual_dates = [
 			get_datetime(add_days("2024-09-01", i))
 			for i in range(date_diff("2024-10-01", "2024-09-01") + 1)
 		]  # one month's worth of dates. This is to cover the time period for the generated (and subsequently cancelled) demands
+
+		demand_dates = [
+			get_datetime(add_days(add_days("2024-09-01", i), 1))
+			for i in range(date_diff("2024-10-01", "2024-09-01") + 1)
+		]
 
 		generated_penal_demands = frappe.db.get_all(
 			"Loan Demand",
@@ -486,12 +491,14 @@ class TestLoanRepayment(IntegrationTestCase):
 		process_loan_interest_accrual_for_loans(
 			posting_date="2025-06-04", loan=loan.name, company="_Test Company"
 		)
-		dates = []
+		accrual_dates = []
+		demand_dates = []
 		current_date = get_datetime("2025-05-05")
 
 		while getdate(current_date) < getdate("2025-06-05"):
-			dates.append(current_date)
+			accrual_dates.append(current_date)
 			current_date = add_days(current_date, 1)
+			demand_dates.append(current_date)
 
 		penal_accrual_dates = frappe.db.get_all(
 			"Loan Interest Accrual",
@@ -505,8 +512,8 @@ class TestLoanRepayment(IntegrationTestCase):
 			pluck="demand_date",
 			order_by="demand_date",
 		)
-		self.assertEqual(dates, penal_accrual_dates)
-		self.assertEqual(dates, penal_demand_dates)
+		self.assertEqual(accrual_dates, penal_accrual_dates)
+		self.assertEqual(demand_dates, penal_demand_dates)
 
 		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-05-05")[
 			"payable_amount"
@@ -527,8 +534,8 @@ class TestLoanRepayment(IntegrationTestCase):
 			pluck="demand_date",
 			order_by="demand_date",
 		)
-		self.assertEqual(dates, penal_accrual_dates)
-		self.assertEqual(dates, penal_demand_dates)
+		self.assertEqual(accrual_dates, penal_accrual_dates)
+		self.assertEqual(demand_dates, penal_demand_dates)
 
 	def test_loc_loan_unbooked_interest(self):
 		set_loan_accrual_frequency("Daily")

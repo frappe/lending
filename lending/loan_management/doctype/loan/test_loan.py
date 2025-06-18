@@ -865,7 +865,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-06")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
 
 	def test_same_date_for_daily_accruals(self):
 		from lending.tests.test_utils import get_penalty_amount
@@ -1968,13 +1968,6 @@ class TestLoan(IntegrationTestCase):
 		# This test verifies that when a normal repayment is made and the loan is auto-closed,
 		# any remaining penal charges are waived automatically by creating a penalty waiver entry.
 
-		frappe.db.set_value(
-			"Company",
-			"_Test Company",
-			"collection_offset_sequence_for_standard_asset",
-			"Test Standard Loan Demand Offset Order",
-		)
-
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2013,7 +2006,7 @@ class TestLoan(IntegrationTestCase):
 
 		loan_repayment_detail = frappe.db.get_value(
 			"Loan Repayment",
-			{"against_loan": loan.name},
+			{"against_loan": loan.name, "repayment_type": "Penalty Waiver"},
 			["repayment_type", "amount_paid"],
 			order_by="creation desc",
 			as_dict=1,
