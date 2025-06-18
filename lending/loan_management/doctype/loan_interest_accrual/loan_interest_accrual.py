@@ -692,7 +692,7 @@ def calculate_penal_interest_for_loans(
 							if penal_interest_amount > additional_interest:
 								create_loan_demand(
 									loan.name,
-									current_date,
+									add_days(current_date, 1),
 									"Penalty",
 									"Penalty",
 									penal_interest_amount - additional_interest,
@@ -703,7 +703,7 @@ def calculate_penal_interest_for_loans(
 							if flt(additional_interest, precision) > 0:
 								create_loan_demand(
 									loan.name,
-									current_date,
+									add_days(current_date, 1),
 									"Additional Interest",
 									"Additional Interest",
 									additional_interest,
