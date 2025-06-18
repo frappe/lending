@@ -744,3 +744,45 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertEqual(repayment_schedule.get("repayment_schedule")[0].demand_generated, 1)
+
+	def test_back_date_closure_payment_with_penalty_cancel(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			1,
+			repayment_start_date="2025-06-05",
+			posting_date="2025-01-26",
+			rate_of_interest=19,
+			applicant_type="Customer",
+			penalty_charges_rate=36,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-27", repayment_start_date="2025-06-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-04", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-06-05")
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-05", loan=loan.name, company="_Test Company"
+		)
+
+		create_repayment_entry(
+			loan.name,
+			"2025-06-05",
+			paid_amount=2540342.47,
+		).submit()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.status, "Closed")
