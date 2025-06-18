@@ -3149,3 +3149,45 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		self.assertEqual(len(gl_entries), 60)  # 30 days of interest accruals
+
+	def test_interest_accrual_creates_suspense_jv_for_npa_loan(self):
+		set_loan_accrual_frequency("Daily")
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("NPA Customer 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-07-06", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
+		)
+
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"posting_date",
+			order_by="posting_date desc",
+		)
+
+		self.assertEqual(getdate(last_accrual_date), getdate("2024-07-06"))

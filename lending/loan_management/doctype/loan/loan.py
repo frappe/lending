@@ -1458,14 +1458,14 @@ def make_suspense_journal_entry(
 	account_details = frappe.get_value(
 		"Loan Product",
 		loan_product,
-		[
+		(
 			"suspense_interest_income",
 			"interest_income_account",
 			"penalty_suspense_account",
 			"penalty_income_account",
 			"additional_interest_income",
 			"additional_interest_suspense",
-		],
+		),
 		as_dict=1,
 		cache=True,
 	)
