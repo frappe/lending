@@ -223,6 +223,13 @@ LOAN_CUSTOM_FIELDS = {
 			"options": "Loan",
 			"search_index": 1,
 		},
+		{
+			"fieldname": "value_date",
+			"fieldtype": "Date",
+			"label": "Value Date",
+			"insert_after": "posting_date",
+			"search_index": 1,
+		},
 	],
 	"GL Entry": [
 		{
