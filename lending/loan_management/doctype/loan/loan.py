@@ -159,7 +159,7 @@ class Loan(AccountsController):
 			if employee_company != self.company:
 				frappe.throw(
 					_("Selected employee belongs to {0}. Please select an employee from company {1}.").format(
-						employee_company, self.company
+						frappe.bold(employee_company), frappe.bold(self.company)
 					)
 				)
 
