@@ -1363,51 +1363,53 @@ class TestLoan(IntegrationTestCase):
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_interest_accrual_overlap(self):
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			1500000,
-			"Repay Over Number of Periods",
-			30,
-			repayment_start_date="2025-01-05",
-			posting_date="2024-11-28",
-			rate_of_interest=28,
-		)
+		for frequency in ["Monthly", "Weekly", "Daily"]:
+			set_loan_accrual_frequency(frequency)
+			loan = create_loan(
+				self.applicant1,
+				"Term Loan Product 4",
+				1500000,
+				"Repay Over Number of Periods",
+				30,
+				repayment_start_date="2025-01-05",
+				posting_date="2024-11-28",
+				rate_of_interest=28,
+			)
 
-		loan.submit()
+			loan.submit()
 
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-11-28", repayment_start_date="2025-01-05"
-		)
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2024-11-28", repayment_start_date="2025-01-05"
+			)
 
-		# Process Loan Interest Accrual
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-03", loan=loan.name, company="_Test Company"
-		)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-04", loan=loan.name, company="_Test Company"
-		)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-05", loan=loan.name, company="_Test Company"
-		)
+			# Process Loan Interest Accrual
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-03", loan=loan.name, company="_Test Company"
+			)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-04", loan=loan.name, company="_Test Company"
+			)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-05", loan=loan.name, company="_Test Company"
+			)
 
-		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+			process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
 
-		repayment = create_repayment_entry(loan.name, "2024-12-05", 1150, repayment_type="Pre Payment")
+			repayment = create_repayment_entry(loan.name, "2024-12-05", 1150, repayment_type="Pre Payment")
 
-		repayment.submit()
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-08", loan=loan.name, company="_Test Company"
-		)
+			repayment.submit()
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-08", loan=loan.name, company="_Test Company"
+			)
 
-		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-10", loan=loan.name, company="_Test Company"
-		)
+			process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2025-01-10", loan=loan.name, company="_Test Company"
+			)
 
-		repayment = create_repayment_entry(loan.name, "2025-01-03", 10000, repayment_type="Pre Payment")
+			repayment = create_repayment_entry(loan.name, "2025-01-03", 10000, repayment_type="Pre Payment")
 
-		repayment.submit()
+			repayment.submit()
 
 	def test_principal_amount_paid(self):
 		frappe.db.set_value(
