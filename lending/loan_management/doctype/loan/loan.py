@@ -130,6 +130,8 @@ class Loan(AccountsController):
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
+		self.validate_loan_product()
+		self.validate_employee()
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
@@ -145,6 +147,21 @@ class Loan(AccountsController):
 		if self.docstatus == 1:
 			info = get_dashboard_info(self)
 			self.set_onload("dashboard_info", info)
+
+	def validate_loan_product(self):
+		company = frappe.get_value("Loan Product", self.loan_product, "company")
+		if company != self.company:
+			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
+
+	def validate_employee(self):
+		if self.applicant_type == "Employee":
+			employee_company = frappe.get_value("Employee", self.applicant, "company")
+			if employee_company != self.company:
+				frappe.throw(
+					_("Selected employee belongs to {0}. Please select an employee from company {1}.").format(
+						frappe.bold(employee_company), frappe.bold(self.company)
+					)
+				)
 
 	def validate_accounts(self):
 		for fieldname in [
