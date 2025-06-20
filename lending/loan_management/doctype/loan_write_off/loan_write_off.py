@@ -109,7 +109,7 @@ class LoanWriteOff(AccountsController):
 		self.update_outstanding_amount_and_status()
 
 		create_process_loan_classification(
-			posting_date=self.validate_value_date,
+			posting_date=self.value_date,
 			loan_product=self.loan_product,
 			loan=self.loan,
 		)
