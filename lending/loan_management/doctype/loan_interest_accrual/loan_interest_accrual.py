@@ -964,7 +964,7 @@ def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
 	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
 
 	if schedule_type == "Line of Credit":
-		field = "MIN(posting_date)"
+		field = "MIN(disbursement_date)"
 	else:
 		field = "MAX(disbursement_date)"
 
