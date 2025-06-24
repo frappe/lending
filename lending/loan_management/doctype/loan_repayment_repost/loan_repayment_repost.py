@@ -178,8 +178,8 @@ class LoanRepaymentRepost(Document):
 				"Loan Repayment",
 				filters,
 				[
-					"SUM(principal_amount_paid) as total_principal_paid",
-					"SUM(amount_paid) as total_amount_paid",
+					{"SUM": "principal_amount_paid", "as": "total_principal_paid"},
+					{"SUM": "amount_paid", "as": "total_amount_paid"},
 				],
 				as_dict=1,
 			)
@@ -203,7 +203,7 @@ class LoanRepaymentRepost(Document):
 						"docstatus": 1,
 						"value_date": ("<", self.repost_date),
 					},
-					"sum(principal_amount_paid)",
+					[{"SUM": "principal_amount_paid"}],
 				)
 
 				frappe.db.set_value(
