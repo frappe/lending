@@ -865,5 +865,5 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 def get_maximum_amount_as_per_pledged_security(loan):
 	return flt(
-		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, "sum(maximum_loan_value)")
+		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, [{"SUM": "maximum_loan_value"}])
 	)

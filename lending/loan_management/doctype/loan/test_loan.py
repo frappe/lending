@@ -2724,7 +2724,7 @@ class TestLoan(IntegrationTestCase):
 		outstanding_demand = frappe.db.get_value(
 			"Loan Demand",
 			{"loan": loan.name, "loan_disbursement": disbursement.name},
-			"sum(outstanding_amount)",
+			[{"SUM": "outstanding_amount"}],
 		)
 
 		self.assertEqual(outstanding_demand, 0)
@@ -3018,7 +3018,7 @@ class TestLoan(IntegrationTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
 		)
 		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, "MAX(posting_date)"
+			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, [{"MAX": "posting_date"}]
 		)
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 

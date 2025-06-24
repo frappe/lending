@@ -233,14 +233,14 @@ class TestLoanRepayment(IntegrationTestCase):
 		penal_interest = frappe.get_value(
 			"Loan Interest Accrual",
 			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			"SUM(interest_amount)",
+			[{"SUM": "interest_amount"}],
 		)
 		self.assertGreater(penal_interest, 0)
 		create_repayment_entry(loan=loan.name, value_date="2024-05-05", paid_amount=178025).submit()
 		penal_interest = frappe.get_value(
 			"Loan Interest Accrual",
 			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			"SUM(interest_amount)",
+			[{"SUM": "interest_amount"}],
 		)
 		self.assertEqual(penal_interest, None)
 

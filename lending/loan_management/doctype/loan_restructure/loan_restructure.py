@@ -114,7 +114,7 @@ class LoanRestructure(AccountsController):
 	def validate_restructure_date(self):
 		if self.restructure_type == "Normal Restructure":
 			max_due_date = frappe.db.get_value(
-				"Loan Interest Accrual", {"loan": self.loan, "docstatus": 1}, "max(posting_date)"
+				"Loan Interest Accrual", {"loan": self.loan, "docstatus": 1}, [{"MAX": "posting_date"}]
 			)
 			if max_due_date and getdate(self.restructure_date) < getdate(max_due_date):
 				frappe.throw(_("Restructure Date cannot be before last due date {0}").format(max_due_date))

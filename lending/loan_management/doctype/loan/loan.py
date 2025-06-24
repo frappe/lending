@@ -481,14 +481,14 @@ def get_total_loan_amount(applicant_type, applicant, company):
 		frappe.db.get_value(
 			"Loan Interest Accrual",
 			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			"sum(interest_amount)",
+			[{"SUM": "interest_amount"}],
 		)
 	)
 	paid_interest = flt(
 		frappe.db.get_value(
 			"Loan Repayment",
 			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			"sum(total_interest_paid)",
+			[{"SUM": "total_interest_paid"}],
 		)
 	)
 
@@ -1153,7 +1153,7 @@ def update_loan_and_customer_status(
 				"against_loan": loan,
 				"docstatus": 1,
 			},
-			"max(days_past_due)",
+			[{"MAX": "days_past_due"}],
 		)
 		days_past_due = max_dpd
 
@@ -1167,7 +1167,7 @@ def update_loan_and_customer_status(
 			"npa",
 			order_by="npa_date desc",
 		)
-		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
+		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, [{"MAX": "posting_date"}])
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -1198,7 +1198,7 @@ def update_loan_and_customer_status(
 		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
 		max_dpd = frappe.db.get_value(
-			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
+			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, [{"MAX": "days_past_due"}]
 		)
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""

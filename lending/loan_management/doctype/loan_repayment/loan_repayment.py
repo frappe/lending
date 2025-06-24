@@ -690,7 +690,7 @@ class LoanRepayment(AccountsController):
 		else:
 			# No need to do this in case of backdated prepayment as will be handled in repost
 			max_demand_date = frappe.db.get_value(
-				"Loan Interest Accrual", {"loan": self.against_loan}, "MAX(posting_date)"
+				"Loan Interest Accrual", {"loan": self.against_loan}, [{"MAX": "posting_date"}]
 			)
 			if max_demand_date and getdate(max_demand_date) > getdate(self.value_date):
 				delink_npa_logs(self.against_loan, self.value_date)
@@ -1186,7 +1186,7 @@ class LoanRepayment(AccountsController):
 						"outstanding_amount": (">", 0),
 						"demand_date": ("<=", self.value_date),
 					},
-					"sum(outstanding_amount)",
+					[{"SUM": "outstanding_amount"}],
 				)
 				or 0
 			)
@@ -2453,9 +2453,12 @@ def get_demand_query():
 def get_pending_principal_amount(loan, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
+	LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 	if loan_disbursement and loan.repayment_schedule_type == "Line of Credit":
 		pending_principal_amount = frappe.db.get_value(
-			"Loan Disbursement", loan_disbursement, "sum(disbursed_amount - principal_amount_paid)"
+			"Loan Disbursement",
+			loan_disbursement,
+			Sum(LoanDisbursement.disbursed_amount - LoanDisbursement.principal_amount_paid),
 		)
 	elif loan.status == "Cancelled":
 		pending_principal_amount = 0
@@ -2776,7 +2779,7 @@ def calculate_amounts(
 		)
 
 	amounts["available_security_deposit"] = frappe.db.get_value(
-		"Loan Security Deposit", {"loan": against_loan}, "sum(available_amount)"
+		"Loan Security Deposit", {"loan": against_loan}, [{"SUM": "available_amount"}]
 	)
 
 	# update values for closure
@@ -2895,7 +2898,7 @@ def get_last_demand_date(
 	last_demand_date = frappe.db.get_value(
 		"Loan Demand",
 		filters,
-		"MAX(demand_date)",
+		[{"MAX": "demand_date"}],
 	)
 
 	if not last_demand_date:
@@ -2920,7 +2923,7 @@ def get_latest_accrual_date(loan, posting_date, interest_type="Interest", loan_d
 	latest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual",
 		filters,
-		"MAX(posting_date)",
+		[{"MAX": "posting_date"}],
 	)
 
 	return latest_accrual_date
@@ -2960,7 +2963,7 @@ def get_accrued_interest(
 	accrued_interest = frappe.db.get_value(
 		"Loan Interest Accrual",
 		filters,
-		"SUM(interest_amount)",
+		[{"SUM": "interest_amount"}],
 	)
 
 	return flt(accrued_interest)

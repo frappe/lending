@@ -165,7 +165,7 @@ def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 	last_demand_date = frappe.db.get_value(
 		"Loan Demand",
 		filters,
-		"MAX(demand_date)",
+		[{"MAX": "demand_date"}],
 	)
 
 	return last_demand_date
@@ -181,7 +181,7 @@ def get_latest_accrual_date(posting_date, interest_type="Interest"):
 	latest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual",
 		filters,
-		"MAX(posting_date)",
+		[{"MAX": "posting_date"}],
 	)
 
 	return latest_accrual_date

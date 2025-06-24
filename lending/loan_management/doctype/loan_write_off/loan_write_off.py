@@ -548,10 +548,10 @@ def get_write_off_recovery_details(loan_name, posting_date, settlement_date=None
 		"Loan Repayment",
 		filters,
 		[
-			"sum(total_penalty_paid) as total_penalty",
-			"sum(total_interest_paid) as total_interest",
-			"sum(total_charges_paid) as total_charges",
-			"sum(principal_amount_paid) as total_principal",
+			{"SUM": "total_penalty_paid", "as": "total_penalty"},
+			{"SUM": "total_interest_paid", "as": "total_interest"},
+			{"SUM": "total_charges_paid", "as": "total_charges"},
+			{"SUM": "principal_amount_paid", "as": "total_principal"},
 		],
 		as_dict=1,
 	)
