@@ -4,7 +4,7 @@
 from datetime import timedelta
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -20,6 +20,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_loan_write_off,
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
@@ -29,7 +30,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepayment(IntegrationTestCase):
+class TestLoanRepayment(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -793,3 +794,43 @@ class TestLoanRepayment(IntegrationTestCase):
 		loan.load_from_db()
 
 		self.assertEqual(loan.status, "Closed")
+
+	def test_write_off_recovery_cancel(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=250000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-31", 10000, repayment_type="Write Off Recovery"
+		).submit()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.total_principal_paid, 10000)
+
+		repayment_entry.cancel()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.total_principal_paid, 0)

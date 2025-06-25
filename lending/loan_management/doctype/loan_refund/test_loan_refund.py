@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -22,7 +22,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRefund(IntegrationTestCase):
+class TestLoanRefund(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
