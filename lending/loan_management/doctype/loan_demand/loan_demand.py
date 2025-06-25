@@ -279,6 +279,9 @@ def process_term_loan_batch(
 
 	repayment_schedules = list(loan_repayment_schedule_map.keys())
 
+	if not repayment_schedules:
+		return
+
 	_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
 
 	query = (
