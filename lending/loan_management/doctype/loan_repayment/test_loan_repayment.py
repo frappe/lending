@@ -4,7 +4,7 @@
 from datetime import timedelta
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -30,7 +30,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepayment(IntegrationTestCase):
+class TestLoanRepayment(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()

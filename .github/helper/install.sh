@@ -10,7 +10,21 @@ sudo apt install libcups2-dev redis-server mariadb-client
 
 pip install frappe-bench
 
-git clone https://github.com/frappe/frappe --branch develop --depth 1
+LENDING_BRANCH=${BRANCH_TO_CLONE:-develop}
+
+if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" ]]; then
+    FRAPPE_BRANCH="version-15"
+    ERPNEXT_BRANCH="version-15"
+else
+    FRAPPE_BRANCH="develop"
+    ERPNEXT_BRANCH="develop"
+fi
+
+echo "Using Frappe branch: $FRAPPE_BRANCH"
+echo "Using ERPNext branch: $ERPNEXT_BRANCH"
+echo "Using Lending branch: $LENDING_BRANCH"
+
+git clone https://github.com/frappe/frappe --branch $FRAPPE_BRANCH --depth 1
 bench init --skip-assets --frappe-path ~/frappe --python "$(which python)" frappe-bench
 
 mkdir ~/frappe-bench/sites/test_site
@@ -41,7 +55,7 @@ sed -i 's/socketio:/# socketio:/g' Procfile
 sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
 
 bench get-app payments
-bench get-app https://github.com/frappe/erpnext --branch develop --resolve-deps
+bench get-app https://github.com/frappe/erpnext --branch $ERPNEXT_BRANCH --resolve-deps
 bench setup requirements --dev
 
 bench start &> bench_run_logs.txt &
