@@ -279,17 +279,27 @@ def process_term_loan_batch(
 
 	repayment_schedules = loan_repayment_schedule_map.keys()
 
-	emi_rows = frappe.db.get_all(
-		"Repayment Schedule",
-		filters={
-			"parent": ("in", repayment_schedules),
-			"payment_date": ("<=", posting_date),
-			"demand_generated": 0,
-		},
-		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
-		order_by="payment_date asc",
-		for_update=True,
+	_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
+	query = (
+		frappe.qb.from_(_repayment_schedule)
+		.select(
+			_repayment_schedule.name,
+			_repayment_schedule.parent,
+			_repayment_schedule.principal_amount,
+			_repayment_schedule.interest_amount,
+			_repayment_schedule.payment_date,
+		)
+		.where(
+			(_repayment_schedule.prarent.isin(repayment_schedules))
+			& (_repayment_schedule.payment_date <= posting_date)
+			& (_repayment_schedule.demand_generated == 0)
+		)
+		.orderby(_repayment_schedule.payment_date)
 	)
+
+	query = query.for_update()
+
+	emi_rows = query.run(as_dict=True)
 
 	for row in emi_rows:
 		try:
