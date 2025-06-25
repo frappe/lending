@@ -552,10 +552,15 @@ def get_overlapping_dates(
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
 		last_accrual_date, posting_date, loan_accrual_frequency
 	)
+
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
 		# accruals only till maturity_date
 		maturity_date = maturity_map[schedule_parent]
+
+		if not maturity_date:
+			continue
+
 		accrual_frequency_breaks = [x for x in accrual_frequency_breaks if x < maturity_date]
 
 		parent_wise_schedules[schedule_parent].extend((accrual_frequency_breaks))
