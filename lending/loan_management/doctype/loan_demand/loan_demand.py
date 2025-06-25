@@ -290,7 +290,7 @@ def process_term_loan_batch(
 			_repayment_schedule.payment_date,
 		)
 		.where(
-			(_repayment_schedule.prarent.isin(repayment_schedules))
+			(_repayment_schedule.parent.isin(repayment_schedules))
 			& (_repayment_schedule.payment_date <= posting_date)
 			& (_repayment_schedule.demand_generated == 0)
 		)
