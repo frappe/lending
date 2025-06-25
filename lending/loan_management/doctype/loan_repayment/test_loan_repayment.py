@@ -5,7 +5,7 @@ from datetime import timedelta
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
+from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -1044,3 +1044,81 @@ class TestLoanRepayment(IntegrationTestCase):
 		loan.load_from_db()
 
 		self.assertEqual(loan.total_principal_paid, 0)
+
+	def test_pre_payment_with_partial_unbooked_interest(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-02-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-02-05")
+
+		create_repayment_entry(loan.name, "2025-02-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-03-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-03-05")
+
+		create_repayment_entry(loan.name, "2025-03-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-04-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-04-05")
+
+		create_repayment_entry(loan.name, "2025-04-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-05-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-05-05")
+
+		create_repayment_entry(loan.name, "2025-05-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-05-20", company="_Test Company"
+		)
+
+		create_repayment_entry(loan.name, "2025-05-21", 3327, repayment_type="Pre Payment").submit()
+
+		demand_amount = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest", "demand_date": "2025-05-21"},
+			"paid_amount",
+		)
+
+		self.assertEqual(demand_amount, 3327)
+
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
+		)
+		principal_amount, interest_amount = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": repayment_schedule, "idx": 5},
+			["principal_amount", "interest_amount"],
+		)
+
+		self.assertEqual(flt(principal_amount, 2), 37593.01)
+		self.assertEqual(flt(interest_amount, 2), 17295.99)

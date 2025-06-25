@@ -144,7 +144,12 @@ class LoanRepaymentSchedule(Document):
 		prepayment_details = frappe.db.get_value(
 			"Loan Restructure",
 			{"loan": self.loan, "name": self.loan_restructure},
-			["unaccrued_interest", "principal_adjusted", "balance_principal"],
+			[
+				"unaccrued_interest",
+				"adjusted_unaccrued_interest",
+				"principal_adjusted",
+				"balance_principal",
+			],
 			as_dict=1,
 		)
 
@@ -153,6 +158,13 @@ class LoanRepaymentSchedule(Document):
 		principal_balance = prepayment_details.balance_principal
 		paid_interest_amount = interest_amount
 		paid_principal_amount = principal_amount
+
+		if (
+			prepayment_details.adjusted_unaccrued_interest
+			and prepayment_details.adjusted_unaccrued_interest < prepayment_details.unaccrued_interest
+		):
+			interest_amount = prepayment_details.adjusted_unaccrued_interest
+			paid_interest_amount = interest_amount
 
 		if flt(interest_amount) > 0:
 			create_loan_demand(
@@ -671,11 +683,11 @@ class LoanRepaymentSchedule(Document):
 					additional_principal_amount = self.disbursed_amount
 
 				if self.restructure_type == "Advance Payment":
-					unaccrued_interest = frappe.db.get_value(
-						"Loan Restructure", self.loan_restructure, "unaccrued_interest"
+					adjusted_unaccrued_interest = frappe.db.get_value(
+						"Loan Restructure", self.loan_restructure, "adjusted_unaccrued_interest"
 					)
 
-					interest_amount = unaccrued_interest
+					interest_amount = adjusted_unaccrued_interest
 
 					paid_principal_amount = self.monthly_repayment_amount - interest_amount
 					total_payment = paid_principal_amount + interest_amount
@@ -748,6 +760,16 @@ class LoanRepaymentSchedule(Document):
 						interest_amount = flt(
 							self.current_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
 						)
+
+						unaccrued_interest, adjusted_unaccrued_interest = frappe.db.get_value(
+							"Loan Restructure",
+							self.loan_restructure,
+							["unaccrued_interest", "adjusted_unaccrued_interest"],
+						)
+
+						if adjusted_unaccrued_interest and adjusted_unaccrued_interest < unaccrued_interest:
+							previous_interest_amount = unaccrued_interest - adjusted_unaccrued_interest
+							interest_amount += previous_interest_amount
 
 						if self.current_principal_amount > self.monthly_repayment_amount:
 							principal_amount = self.monthly_repayment_amount - interest_amount
