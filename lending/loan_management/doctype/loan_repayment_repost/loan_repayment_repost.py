@@ -314,6 +314,7 @@ class LoanRepaymentRepost(Document):
 					repayment_doc.name,
 					repayment_doc.repayment_type,
 					repayment_doc.principal_amount_paid,
+					repayment_doc.unbooked_interest_paid,
 					loan_disbursement=repayment_doc.loan_disbursement,
 				)
 
