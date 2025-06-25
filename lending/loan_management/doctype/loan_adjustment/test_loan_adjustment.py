@@ -4,7 +4,7 @@
 import frappe
 
 # import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import getdate
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -23,7 +23,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanAdjustment(IntegrationTestCase):
+class TestLoanAdjustment(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
