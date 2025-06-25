@@ -102,6 +102,7 @@ jobs:
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
+          FRAPPE_BRANCH: version-15
 
 
       - name: Run Tests
