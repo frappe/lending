@@ -288,6 +288,7 @@ def process_term_loan_batch(
 		},
 		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
 		order_by="payment_date asc",
+		for_update=True,
 	)
 
 	for row in emi_rows:
