@@ -277,9 +277,10 @@ def process_term_loan_batch(
 		disbursement_map[schedule.name] = schedule.loan_disbursement
 		start_date_map[schedule.name] = schedule.repayment_start_date
 
-	repayment_schedules = loan_repayment_schedule_map.keys()
+	repayment_schedules = list(loan_repayment_schedule_map.keys())
 
 	_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
+
 	query = (
 		frappe.qb.from_(_repayment_schedule)
 		.select(
@@ -295,9 +296,7 @@ def process_term_loan_batch(
 			& (_repayment_schedule.demand_generated == 0)
 		)
 		.orderby(_repayment_schedule.payment_date)
-	)
-
-	query = query.for_update()
+	).for_update()
 
 	emi_rows = query.run(as_dict=True)
 
