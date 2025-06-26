@@ -168,6 +168,7 @@ class LoanRepayment(AccountsController):
 					self.name,
 					self.repayment_type,
 					self.principal_amount_paid,
+					self.unbooked_interest_paid,
 					loan_disbursement=self.loan_disbursement,
 				)
 
@@ -234,6 +235,7 @@ class LoanRepayment(AccountsController):
 					self.name,
 					self.repayment_type,
 					self.principal_amount_paid,
+					self.unbooked_interest_paid,
 					loan_disbursement=self.loan_disbursement,
 				)
 
