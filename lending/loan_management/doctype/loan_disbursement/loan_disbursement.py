@@ -685,6 +685,7 @@ class LoanDisbursement(AccountsController):
 				self.against_loan,
 				"loan_disbursement",
 				self.name,
+				self.applicant if self.applicant_type == "Customer" else None,
 				self.disbursement_date,
 				self.company,
 				self.get("loan_disbursement_charges"),
@@ -734,7 +735,7 @@ class LoanDisbursement(AccountsController):
 
 
 def make_sales_invoice_for_charge(
-	loan, reference_fieldname, reference_doctype, disbursement_date, company, charges
+	loan, reference_fieldname, reference_doctype, applicant, disbursement_date, company, charges
 ):
 	if not charges:
 		return
@@ -742,6 +743,7 @@ def make_sales_invoice_for_charge(
 	si = frappe.get_doc(
 		{
 			"doctype": "Sales Invoice",
+			"customer": applicant,
 			"loan": loan,
 			reference_fieldname: reference_doctype,
 			"set_posting_time": 1,
