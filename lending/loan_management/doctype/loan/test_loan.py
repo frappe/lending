@@ -169,15 +169,18 @@ class TestLoan(IntegrationTestCase):
 			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
 		)
 
-		self.applicant1 = make_employee("robert_loan@loan.com")
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
 		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
 
+		if not frappe.db.exists("Customer", "_Test Loan Customer 2"):
+			frappe.get_doc(get_customer_dict("_Test Loan Customer 2")).insert(ignore_permissions=True)
+
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
+		self.applicant1 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 2"}, "name")
 
 		frappe.db.set_value(
 			"Loan Product", "Demand Loan", "customer_refund_account", "Customer Refund Account - _TC"
