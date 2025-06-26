@@ -247,6 +247,7 @@
    "label": "Charges"
   },
   {
+   "depends_on": "eval:doc.applicant_type==\"Customer\"",
    "fieldname": "loan_disbursement_charges",
    "fieldtype": "Table",
    "label": "Loan Disbursement Charges",
@@ -381,7 +382,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-30 15:04:22.609564",
+ "modified": "2025-06-23 16:14:49.609564",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

@@ -207,6 +207,7 @@ class LoanRepayment(AccountsController):
 			self.against_loan,
 			"loan_repayment",
 			self.name,
+			self.applicant if self.applicant_type == "Customer" else None,
 			self.posting_date,
 			self.company,
 			self.get("prepayment_charges"),
