@@ -2125,29 +2125,30 @@ class LoanRepayment(AccountsController):
 		payment_party_type = self.applicant_type
 		payment_party = self.applicant
 
-		if not (
+		if (
 			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
-			and self.process_payroll_accounting_entry_based_on_employee
-		):
+			and not self.process_payroll_accounting_entry_based_on_employee
+		) or self.applicant_type == "Customer":
 			payment_party_type = ""
 			payment_party = ""
-			gl_entries.append(
-				self.get_gl_dict(
-					{
-						"account": account,
-						"against": against_account,
-						"debit": amount,
-						"debit_in_account_currency": amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"party": payment_party if not is_waiver_entry else "",
-						"party_type": payment_party_type if not is_waiver_entry else "",
-						"posting_date": getdate(self.posting_date),
-					}
-				)
+
+		gl_entries.append(
+			self.get_gl_dict(
+				{
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
+					"against_voucher_type": "Loan",
+					"against_voucher": self.against_loan,
+					"remarks": _(remarks),
+					"cost_center": self.cost_center,
+					"party": payment_party if not is_waiver_entry else "",
+					"party_type": payment_party_type if not is_waiver_entry else "",
+					"posting_date": getdate(self.posting_date),
+				}
 			)
+		)
 		gl_entries.append(
 			self.get_gl_dict(
 				{
