@@ -41,6 +41,12 @@ export_python_type_annotations = True
 # app_include_css = "/assets/lending/css/lending.css"
 app_include_js = "lending.bundle.js"
 
+# fixtures
+fixtures = [
+	{"dt": "Role", "filters": [["role_name", "like", "Loan %"]]},
+]
+
+
 # include js, css files in header of web template
 # web_include_css = "/assets/lending/css/lending.css"
 # web_include_js = "/assets/lending/js/lending.js"
