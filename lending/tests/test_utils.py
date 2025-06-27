@@ -495,6 +495,7 @@ def make_loan_disbursement_entry(
 	repayment_start_date=None,
 	repayment_frequency=None,
 	withhold_security_deposit=False,
+	loan_disbursement_charges=None,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
@@ -507,6 +508,16 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
 	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
+
+	if loan_disbursement_charges:
+		for charge in loan_disbursement_charges:
+			loan_disbursement_entry.append(
+				"loan_disbursement_charges",
+				{
+					"charge": charge.get("charge"),
+					"amount": charge.get("amount"),
+				},
+			)
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
@@ -618,7 +629,7 @@ def create_loan(
 	loan = frappe.get_doc(
 		{
 			"doctype": "Loan",
-			"applicant_type": applicant_type or "Employee",
+			"applicant_type": "Customer",
 			"company": "_Test Company",
 			"applicant": applicant,
 			"loan_product": loan_product,
@@ -697,6 +708,50 @@ def create_demand_loan(applicant, loan_product, loan_application, posting_date=N
 	loan.save()
 
 	return loan
+
+
+def create_loan_partner(
+	partner_code,
+	partner_name,
+	partner_loan_share_percentage,
+	effective_date,
+	fldg_fixed_deposit_percentage,
+	partial_payment_mechanism=None,
+	repayment_schedule_type="EMI (PMT) based",
+	partner_base_interest_rate=10.0,
+	enable_partner_accounting=0,
+	organization_type="Centralized",
+	fldg_trigger_dpd=None,
+	fldg_limit_calculation_component="Disbursement",
+	type_of_fldg_applicable="Fixed Deposit Only",
+	servicer_fee=False,
+	restructure_of_loans_applicable=False,
+	waiving_of_charges_applicable=False,
+):
+	partner = frappe.get_doc(
+		{
+			"doctype": "Loan Partner",
+			"partner_code": "Test Loan Partner 1",
+			"partner_name": "Test Loan Partner 1",
+			"partner_loan_share_percentage": partner_loan_share_percentage,
+			"partial_payment_mechanism": partial_payment_mechanism,
+			"repayment_schedule_type": repayment_schedule_type,
+			"effective_date": effective_date or nowdate(),
+			"partner_base_interest_rate": partner_base_interest_rate,
+			"enable_partner_accounting": enable_partner_accounting,
+			"organization_type": organization_type,
+			"fldg_trigger_dpd": fldg_trigger_dpd,
+			"fldg_limit_calculation_component": fldg_limit_calculation_component,
+			"type_of_fldg_applicable": type_of_fldg_applicable,
+			"servicer_fee": servicer_fee,
+			"restructure_of_loans_applicable": restructure_of_loans_applicable,
+			"waiving_of_charges_applicable": waiving_of_charges_applicable,
+			"fldg_fixed_deposit_percentage": fldg_fixed_deposit_percentage,
+		}
+	)
+
+	partner.insert()
+	return partner
 
 
 def set_loan_settings_in_company(company=None):

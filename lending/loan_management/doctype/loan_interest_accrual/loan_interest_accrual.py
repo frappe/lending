@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Cast
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -77,28 +78,39 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if self.interest_type == "Normal Interest":
-			self.validate_last_accrual_date_before_current_posting_date()
+			self.validate_overlapping_accruals()
 
-	def validate_last_accrual_date_before_current_posting_date(self):
+	def validate_overlapping_accruals(self):
 		if self.interest_type != "Normal Interest":
 			return
-		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{
-				"docstatus": 1,
-				"loan": self.loan,
-				"loan_disbursement": self.loan_disbursement,
-				"interest_type": "Normal Interest",
-			},
-			"MAX(posting_date)",
+
+		loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
+		query = (
+			frappe.qb.from_(loan_interest_accrual_doc)
+			.where(loan_interest_accrual_doc.docstatus == 1)
+			.where(loan_interest_accrual_doc.loan == self.loan)
+			.where(loan_interest_accrual_doc.loan_disbursement == self.loan_disbursement)
+			.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
+			.where(
+				Cast(loan_interest_accrual_doc.posting_date, "date") >= getdate(self.start_date)
+			)  # checking for
+			.where(
+				Cast(loan_interest_accrual_doc.start_date, "date") <= getdate(self.posting_date)
+			)  # overlaps
+			.select(
+				loan_interest_accrual_doc.name,
+				loan_interest_accrual_doc.start_date,
+				loan_interest_accrual_doc.posting_date,
+			)
 		)
-		if last_accrual_date:
-			if getdate(self.start_date) < getdate(last_accrual_date):
-				frappe.throw(
-					_(
-						"There are already Loan Interest Accruals made till {}. Your accrual has the starting date {}"
-					).format(getdate(last_accrual_date), getdate(self.start_date))
-				)
+
+		overlapping_accruals = query.run(as_list=True)
+		if overlapping_accruals:
+			frappe.throw(
+				_(
+					"There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
+				).format(overlapping_accruals, self.start_date, self.posting_date)
+			)
 
 	def on_submit(self):
 		from lending.loan_management.doctype.loan.loan import make_suspense_journal_entry
@@ -147,7 +159,15 @@ class LoanInterestAccrual(AccountsController):
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 		if loan_status == "Written Off":
-			return
+			write_off_date = frappe.db.get_value(
+				"Loan Write Off",
+				{"loan": self.loan, "docstatus": 1},
+				"posting_date",
+				order_by="posting_date desc",
+			)
+
+			if write_off_date and getdate(self.posting_date) >= write_off_date:
+				return
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -532,10 +552,15 @@ def get_overlapping_dates(
 	accrual_frequency_breaks = get_accrual_frequency_breaks(
 		last_accrual_date, posting_date, loan_accrual_frequency
 	)
+
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
 	for schedule_parent in parent_wise_schedules:
 		# accruals only till maturity_date
 		maturity_date = maturity_map[schedule_parent]
+
+		if not maturity_date:
+			continue
+
 		accrual_frequency_breaks = [x for x in accrual_frequency_breaks if x < maturity_date]
 
 		parent_wise_schedules[schedule_parent].extend((accrual_frequency_breaks))
@@ -684,7 +709,7 @@ def calculate_penal_interest_for_loans(
 							if penal_interest_amount > additional_interest:
 								create_loan_demand(
 									loan.name,
-									current_date,
+									add_days(current_date, 1),
 									"Penalty",
 									"Penalty",
 									penal_interest_amount - additional_interest,
@@ -695,7 +720,7 @@ def calculate_penal_interest_for_loans(
 							if flt(additional_interest, precision) > 0:
 								create_loan_demand(
 									loan.name,
-									current_date,
+									add_days(current_date, 1),
 									"Additional Interest",
 									"Additional Interest",
 									additional_interest,

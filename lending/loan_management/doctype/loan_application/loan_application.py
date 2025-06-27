@@ -65,6 +65,7 @@ class LoanApplication(Document):
 			self.validate_repayment_method()
 
 		self.validate_loan_product()
+		self.validate_employee()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
@@ -83,6 +84,16 @@ class LoanApplication(Document):
 		company = frappe.get_value("Loan Product", self.loan_product, "company")
 		if company != self.company:
 			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
+
+	def validate_employee(self):
+		if self.applicant_type == "Employee":
+			employee_company = frappe.get_value("Employee", self.applicant, "company")
+			if employee_company != self.company:
+				frappe.throw(
+					_("Selected employee belongs to {0}. Please select an employee from company {1}.").format(
+						frappe.bold(employee_company), frappe.bold(self.company)
+					)
+				)
 
 	def validate_loan_amount(self):
 		if not self.loan_amount:

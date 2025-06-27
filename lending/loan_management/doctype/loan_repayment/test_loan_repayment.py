@@ -4,7 +4,7 @@
 from datetime import timedelta
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, date_diff, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -20,6 +20,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_loan_write_off,
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
@@ -29,7 +30,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepayment(IntegrationTestCase):
+class TestLoanRepayment(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -262,8 +263,8 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		process_daily_loan_demands(posting_date="2024-11-16", loan=loan.name)
 
-		payable_amount = get_amounts(init_amounts(), loan, "2024-09-01")["payable_amount"]
-		payable_principal_amount = get_amounts(init_amounts(), loan, "2024-09-01")[
+		payable_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")["payable_amount"]
+		payable_principal_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")[
 			"payable_principal_amount"
 		]
 		repayment_entry = create_repayment_entry(
@@ -271,7 +272,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 		pending_principal_amount = get_amounts(
-			init_amounts(), loan, timedelta(seconds=1) + get_datetime("2024-09-01")
+			init_amounts(), loan.name, timedelta(seconds=1) + get_datetime("2024-09-01")
 		)["pending_principal_amount"]
 		repayment_entry = create_repayment_entry(
 			loan.name,
@@ -320,10 +321,15 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		payable_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")["payable_amount"]
 
-		accrual_dates = demand_dates = [
+		accrual_dates = [
 			get_datetime(add_days("2024-09-01", i))
 			for i in range(date_diff("2024-10-01", "2024-09-01") + 1)
 		]  # one month's worth of dates. This is to cover the time period for the generated (and subsequently cancelled) demands
+
+		demand_dates = [
+			get_datetime(add_days(add_days("2024-09-01", i), 1))
+			for i in range(date_diff("2024-10-01", "2024-09-01") + 1)
+		]
 
 		generated_penal_demands = frappe.db.get_all(
 			"Loan Demand",
@@ -486,12 +492,14 @@ class TestLoanRepayment(IntegrationTestCase):
 		process_loan_interest_accrual_for_loans(
 			posting_date="2025-06-04", loan=loan.name, company="_Test Company"
 		)
-		dates = []
+		accrual_dates = []
+		demand_dates = []
 		current_date = get_datetime("2025-05-05")
 
 		while getdate(current_date) < getdate("2025-06-05"):
-			dates.append(current_date)
+			accrual_dates.append(current_date)
 			current_date = add_days(current_date, 1)
+			demand_dates.append(current_date)
 
 		penal_accrual_dates = frappe.db.get_all(
 			"Loan Interest Accrual",
@@ -505,8 +513,8 @@ class TestLoanRepayment(IntegrationTestCase):
 			pluck="demand_date",
 			order_by="demand_date",
 		)
-		self.assertEqual(dates, penal_accrual_dates)
-		self.assertEqual(dates, penal_demand_dates)
+		self.assertEqual(accrual_dates, penal_accrual_dates)
+		self.assertEqual(demand_dates, penal_demand_dates)
 
 		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-05-05")[
 			"payable_amount"
@@ -527,8 +535,8 @@ class TestLoanRepayment(IntegrationTestCase):
 			pluck="demand_date",
 			order_by="demand_date",
 		)
-		self.assertEqual(dates, penal_accrual_dates)
-		self.assertEqual(dates, penal_demand_dates)
+		self.assertEqual(accrual_dates, penal_accrual_dates)
+		self.assertEqual(demand_dates, penal_demand_dates)
 
 	def test_loc_loan_unbooked_interest(self):
 		set_loan_accrual_frequency("Daily")
@@ -705,3 +713,124 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertTrue(repayment_schedule)
+
+	def test_advance_payment_before_first_payment(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-01-05",
+			posting_date="2024-12-26",
+			rate_of_interest=31,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-26", repayment_start_date="2025-01-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-02", loan=loan.name, company="_Test Company"
+		)
+
+		create_repayment_entry(
+			loan.name, "2025-01-03", paid_amount=19596, repayment_type="Advance Payment"
+		).submit()
+
+		repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+
+		self.assertEqual(
+			repayment_schedule.get("repayment_schedule")[0].payment_date, getdate("2025-01-05")
+		)
+
+		self.assertEqual(repayment_schedule.get("repayment_schedule")[0].demand_generated, 1)
+
+	def test_back_date_closure_payment_with_penalty_cancel(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			1,
+			repayment_start_date="2025-06-05",
+			posting_date="2025-01-26",
+			rate_of_interest=19,
+			applicant_type="Customer",
+			penalty_charges_rate=36,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-27", repayment_start_date="2025-06-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-04", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-06-05")
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-06-05", loan=loan.name, company="_Test Company"
+		)
+
+		create_repayment_entry(
+			loan.name,
+			"2025-06-05",
+			paid_amount=2540342.47,
+		).submit()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.status, "Closed")
+
+	def test_write_off_recovery_cancel(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=250000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-31", 10000, repayment_type="Write Off Recovery"
+		).submit()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.total_principal_paid, 10000)
+
+		repayment_entry.cancel()
+
+		loan.load_from_db()
+
+		self.assertEqual(loan.total_principal_paid, 0)
