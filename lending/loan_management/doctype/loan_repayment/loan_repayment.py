@@ -1317,6 +1317,12 @@ class LoanRepayment(AccountsController):
 				"Loan", self.against_loan, ["status", "repayment_schedule_type"]
 			)
 
+			schedule_filters = {"loan": self.against_loan, "docstatus": 1, "status": "Closed"}
+			if self.loan_disbursement:
+				schedule_filters["loan_disbursement"] = self.loan_disbursement
+
+			is_closed = frappe.db.exists("Loan Repayment Schedule", schedule_filters)
+
 			if self.loan_disbursement:
 				loan_disbursement = frappe.qb.DocType("Loan Disbursement")
 				frappe.qb.update(loan_disbursement).set(
@@ -1342,7 +1348,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Disbursed")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
-			elif loan_status == "Closed":
+			elif is_closed:
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:

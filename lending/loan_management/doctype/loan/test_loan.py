@@ -2979,7 +2979,7 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry = create_repayment_entry(
 			loan.name,
 			"2024-04-01",
-			100945.80,
+			101945.80,
 		)
 		repayment_entry.submit()
 		repayment_entry.cancel()
