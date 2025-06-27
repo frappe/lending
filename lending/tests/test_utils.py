@@ -630,7 +630,7 @@ def create_loan(
 	loan = frappe.get_doc(
 		{
 			"doctype": "Loan",
-			"applicant_type": "Customer",
+			"applicant_type": applicant_type or "Customer",
 			"company": "_Test Company",
 			"applicant": applicant,
 			"loan_product": loan_product,
