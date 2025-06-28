@@ -367,6 +367,21 @@ class LoanRepaymentRepost(Document):
 		if is_written_off:
 			frappe.db.set_value("Loan", self.loan, "status", "Written Off")
 
+		if self.loan_disbursement:
+			filters = {"against_loan": self.loan, "docstatus": 1}
+			total_principal_paid = frappe.db.get_value(
+				"Loan Repayment",
+				filters,
+				[{"SUM": "principal_amount_paid"}],
+			)
+
+			frappe.db.set_value(
+				"Loan",
+				self.loan,
+				"total_principal_paid",
+				flt(total_principal_paid),
+			)
+
 		frappe.get_doc(
 			{
 				"doctype": "Process Loan Interest Accrual",
