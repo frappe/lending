@@ -3243,3 +3243,59 @@ class TestLoan(IntegrationTestCase):
 		for start_date, posting_date in non_overlapping_accruals:
 			accrual_entry = make_accrual_entry(start_date, posting_date)
 			accrual_entry.submit()
+
+	def test_demand_reversal_on_invoice_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2025-01-15",
+				"posting_time": "00:06:10",
+				"value_date": "2025-01-15",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+			}
+		)
+		sales_invoice.submit()
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
+		)
+		self.assertTrue(demand, "Demand not created for Sales Invoice")
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 2}
+		)
+		self.assertFalse(demand, "Demand should not be cancelled before Sales Invoice cancellation")
+
+		sales_invoice.load_from_db()
+		sales_invoice.cancel()
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 2}
+		)
+		self.assertTrue(demand, "Demand not cancelled on Sales Invoice cancellation")
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
+		)
+		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
