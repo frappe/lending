@@ -1843,7 +1843,6 @@ class TestLoan(FrappeTestCase):
 				"company": "_Test Company",
 				"loan": loan.name,
 				"posting_date": "2025-01-15",
-				"value_date": "2025-01-15",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
@@ -2057,7 +2056,6 @@ class TestLoan(FrappeTestCase):
 				"company": "_Test Company",
 				"loan": loan.name,
 				"posting_date": "2024-12-14",
-				"value_date": "2024-12-14",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
@@ -2355,7 +2353,6 @@ class TestLoan(FrappeTestCase):
 				posting_date="2024-09-15", item_code="Processing Fee", qty=1, rate=1000, do_not_submit=1
 			)
 			sales_invoice.loan = loan.name
-			sales_invoice.value_date = "2024-09-15"
 			sales_invoice.save()
 			sales_invoice.submit()
 
