@@ -372,7 +372,7 @@ class LoanRepaymentRepost(Document):
 			total_principal_paid = frappe.db.get_value(
 				"Loan Repayment",
 				filters,
-				[{"SUM": "principal_amount_paid"}],
+				"sum(principal_amount_paid)",
 			)
 
 			frappe.db.set_value(
