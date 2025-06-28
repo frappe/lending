@@ -377,8 +377,8 @@ class LoanRepaymentRepost(Document):
 			)
 
 			frappe.db.set_value(
-				"Loan Disbursement",
-				self.loan_disbursement,
+				"Loan",
+				self.loan,
 				"total_principal_paid",
 				flt(total_principal_paid),
 			)
