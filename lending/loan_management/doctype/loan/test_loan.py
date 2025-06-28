@@ -3189,8 +3189,6 @@ class TestLoan(FrappeTestCase):
 		)
 
 		self.assertEqual(getdate(last_accrual_date), getdate("2024-07-06"))
-<<<<<<< HEAD
-=======
 
 	def test_overlapping_accrual_validation(self):
 		loan = create_loan(
@@ -3307,4 +3305,3 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
 		)
 		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
->>>>>>> bad0b7a8 (test: Charge demand generaiton and cancel (#748))
