@@ -26,7 +26,7 @@ def generate_demand(self, method=None):
 
 			create_loan_demand(
 				self.loan,
-				self.posting_date,
+				self.value_date,
 				"Charges",
 				item.item_code,
 				flt(demand_amount, 2),
