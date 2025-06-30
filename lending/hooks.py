@@ -45,6 +45,7 @@ app_include_js = "lending.bundle.js"
 fixtures = [
 	{"dt": "Role", "filters": [["role_name", "like", "Loan %"]]},
 	{"dt": "Workflow", "filters": [["name", "=", "Loan Application Workflow"]]},
+	{"dt": "Workflow State", "filters": [["name", "not in", ("Rejected", "Approved", "Pending")]]},
 ]
 
 

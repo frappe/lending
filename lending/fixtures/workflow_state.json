@@ -1,0 +1,38 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 14:55:16.695882",
+  "name": "Initiated",
+  "style": "",
+  "workflow_state_name": "Initiated"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 16:12:41.379987",
+  "name": "Draft",
+  "style": "",
+  "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 16:18:38.530934",
+  "name": "KYC Pending",
+  "style": "",
+  "workflow_state_name": "KYC Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 16:27:34.607514",
+  "name": "KYC Complete",
+  "style": "",
+  "workflow_state_name": "KYC Complete"
+ }
+]
