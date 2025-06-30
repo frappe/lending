@@ -8,6 +8,7 @@ lending.patches.v15_0.rename_loan_type_to_loan_product
 execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
 execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 execute:frappe.delete_doc_if_exists("DocType", "Loan Buyback")
+lending.patches.v1_0.fix_invalid_loan_product_values
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
