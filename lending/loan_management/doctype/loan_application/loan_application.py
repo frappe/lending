@@ -36,7 +36,10 @@ class LoanApplication(Document):
 
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink
+		applicant_email_address: DF.Data | None
 		applicant_name: DF.Data | None
+		applicant_phone_number: DF.Phone | None
+		applicant_primary_address: DF.Link | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.SmallText | None
