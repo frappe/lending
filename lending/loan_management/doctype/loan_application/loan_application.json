@@ -9,7 +9,8 @@
   "applicant_details_section",
   "applicant_type",
   "applicant",
-  "applicant_name",
+  "first_name",
+  "last_name",
   "column_break_2",
   "company",
   "posting_date",
@@ -50,20 +51,13 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.applicant !== null",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type",
-   "reqd": 1
-  },
-  {
-   "depends_on": "applicant",
-   "fieldname": "applicant_name",
-   "fieldtype": "Data",
-   "in_global_search": 1,
-   "label": "Applicant Name",
    "read_only": 1
   },
   {
@@ -242,18 +236,31 @@
   {
    "fieldname": "applicant_email_address",
    "fieldtype": "Data",
-   "label": "Applicant Email Address"
+   "label": "Applicant Email Address",
+   "reqd": 1
   },
   {
    "fieldname": "applicant_phone_number",
    "fieldtype": "Phone",
-   "label": "Applicant Phone Number"
+   "label": "Applicant Phone Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "First Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-30 10:33:04.106502",
+ "modified": "2025-06-30 17:36:28.883937",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

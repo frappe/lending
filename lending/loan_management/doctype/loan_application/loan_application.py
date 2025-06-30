@@ -35,16 +35,17 @@ class LoanApplication(Document):
 		from lending.loan_management.doctype.proposed_pledge.proposed_pledge import ProposedPledge
 
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
-		applicant_email_address: DF.Data | None
-		applicant_name: DF.Data | None
-		applicant_phone_number: DF.Phone | None
+		applicant: DF.DynamicLink | None
+		applicant_email_address: DF.Data
+		applicant_phone_number: DF.Phone
 		applicant_primary_address: DF.Link | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.SmallText | None
+		first_name: DF.Data | None
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
+		last_name: DF.Data | None
 		loan_amount: DF.Currency
 		loan_product: DF.Link
 		maximum_loan_amount: DF.Currency
@@ -72,6 +73,48 @@ class LoanApplication(Document):
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
+
+	def on_update(self):
+		# check if there are customer entries with the same email and/or phone
+		customer_doc = frappe.qb.DocType("Customer")
+		phone_no = self.applicant_phone_number.split("-")[1]
+		query = (
+			frappe.qb.from_(customer_doc)
+			.where(
+				(phone_no == customer_doc.mobile_no) | (self.applicant_email_address == customer_doc.email_id)
+			)
+			.select(customer_doc.name)
+		)
+		duplicates = [i[0] for i in query.run(as_list=True)]
+		if len(duplicates):
+			if self.applicant not in duplicates:
+				frappe.msgprint(
+					msg=_("There already exists a borrower with this contact info, using the borrower's details"),
+					title=_("Duplicate Borrower"),
+				)
+				self.applicant = duplicates[0]
+		if not self.applicant:
+			customer = frappe.new_doc("Customer")
+			customer.customer_name = self.first_name + " " + self.last_name
+			customer.type = "Company"
+			customer.mobile_number = self.applicant_phone_number
+			customer.email_address = self.applicant_email_address
+			# TBD: Add address
+
+			contact = frappe.new_doc("Contact")
+			contact.first_name = self.first_name
+			contact.last_name = self.last_name
+			contact.append("email_ids", {"email_id": self.applicant_email_address, "is_primary": True})
+			contact.append(
+				"phone_nos", {"phone": self.applicant_phone_number, "is_primary_mobile_no": True}
+			)
+			contact.save()
+
+			customer.customer_primary_contact = contact.name
+
+			customer.save()
+
+			self.applicant = customer.name
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
