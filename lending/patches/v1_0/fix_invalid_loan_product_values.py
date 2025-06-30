@@ -25,6 +25,12 @@ def execute():
 		if field not in frappe.db.get_table_columns("Loan Product"):
 			continue
 
-		condition = f"""(`{field}` IS NULL OR `{field}` NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$')"""
-		query = f"""UPDATE `tabLoan Product` SET `{field}` = %s WHERE {condition}"""
+		condition = ("(`{field}` IS NULL OR `{field}` NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$')").format(
+			field=field
+		)
+
+		query = ("UPDATE `tabLoan Product` SET `{field}` = %s WHERE {condition}").format(
+			field=field, condition=condition
+		)
+
 		frappe.db.sql(query, (default,))
