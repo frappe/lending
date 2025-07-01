@@ -207,6 +207,7 @@ class LoanRepayment(AccountsController):
 			self.against_loan,
 			"loan_repayment",
 			self.name,
+			self.applicant if self.applicant_type == "Customer" else None,
 			self.posting_date,
 			self.company,
 			self.get("prepayment_charges"),
@@ -337,6 +338,7 @@ class LoanRepayment(AccountsController):
 						posting_date=max_date,
 						loan=self.against_loan,
 						loan_product=self.loan_product,
+						loan_disbursement=self.loan_disbursement,
 					)
 					process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=self.against_loan)
 
@@ -345,6 +347,7 @@ class LoanRepayment(AccountsController):
 				posting_date=self.posting_date,
 				loan=self.against_loan,
 				loan_product=self.loan_product,
+				loan_disbursement=self.loan_disbursement,
 			)
 			process_daily_loan_demands(
 				posting_date=self.posting_date,
@@ -693,6 +696,7 @@ class LoanRepayment(AccountsController):
 					posting_date=max_demand_date,
 					loan=self.against_loan,
 					loan_product=self.loan_product,
+					loan_disbursement=self.loan_disbursement,
 					enqueue_after_commit=True,
 				)
 
@@ -1300,6 +1304,12 @@ class LoanRepayment(AccountsController):
 				"Loan", self.against_loan, ["status", "repayment_schedule_type"]
 			)
 
+			schedule_filters = {"loan": self.against_loan, "docstatus": 1, "status": "Closed"}
+			if self.loan_disbursement:
+				schedule_filters["loan_disbursement"] = self.loan_disbursement
+
+			is_closed = frappe.db.exists("Loan Repayment Schedule", schedule_filters)
+
 			if self.loan_disbursement:
 				loan_disbursement = frappe.qb.DocType("Loan Disbursement")
 				frappe.qb.update(loan_disbursement).set(
@@ -1325,7 +1335,7 @@ class LoanRepayment(AccountsController):
 				query = query.set(loan.status, "Disbursed")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
-			elif loan_status == "Closed":
+			elif is_closed:
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:
@@ -2121,29 +2131,30 @@ class LoanRepayment(AccountsController):
 		payment_party_type = self.applicant_type
 		payment_party = self.applicant
 
-		if not (
+		if (
 			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
-			and self.process_payroll_accounting_entry_based_on_employee
-		):
+			and not self.process_payroll_accounting_entry_based_on_employee
+		) or self.applicant_type == "Customer":
 			payment_party_type = ""
 			payment_party = ""
-			gl_entries.append(
-				self.get_gl_dict(
-					{
-						"account": account,
-						"against": against_account,
-						"debit": amount,
-						"debit_in_account_currency": amount,
-						"against_voucher_type": "Loan",
-						"against_voucher": self.against_loan,
-						"remarks": _(remarks),
-						"cost_center": self.cost_center,
-						"party": payment_party if not is_waiver_entry else "",
-						"party_type": payment_party_type if not is_waiver_entry else "",
-						"posting_date": getdate(self.posting_date),
-					}
-				)
+
+		gl_entries.append(
+			self.get_gl_dict(
+				{
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
+					"against_voucher_type": "Loan",
+					"against_voucher": self.against_loan,
+					"remarks": _(remarks),
+					"cost_center": self.cost_center,
+					"party": payment_party if not is_waiver_entry else "",
+					"party_type": payment_party_type if not is_waiver_entry else "",
+					"posting_date": getdate(self.posting_date),
+				}
 			)
+		)
 		gl_entries.append(
 			self.get_gl_dict(
 				{
