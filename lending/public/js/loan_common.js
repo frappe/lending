@@ -25,7 +25,7 @@ lending.common = {
 			},
 
 			applicant: function(frm) {
-				if (!["Loan Application", "Loan"].includes(frm.doc.doctype)) {
+				if (!["Loan"].includes(frm.doc.doctype)) {
 					return;
 				}
 

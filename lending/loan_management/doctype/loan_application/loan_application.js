@@ -112,7 +112,35 @@ frappe.ui.form.on('Loan Application', {
 		if (flt(maximum_amount)) {
 			frm.set_value('maximum_loan_amount', flt(maximum_amount));
 		}
-	}
+	},
+
+	applicant_phone_number: function(frm) {
+		frm.trigger("check_applicant")
+		console.log("meowww")
+	},
+	applicant_email_address: function(frm) {
+		frm.trigger("check_applicant")
+	},
+	check_applicant: function(frm) {
+		if (!frm.doc.applicant) {
+			frappe.call({
+				method: "lending.loan_management.doctype.loan_application.loan_application.check_duplicate_customers",
+				args: {
+					applicant_phone_number: frm.doc.applicant_phone_number,
+					applicant_email_address: frm.doc.applicant_email_address
+				},
+				callback: function(r) {
+					const duplicates = r.message;
+					if (duplicates.length > 0) {
+						frappe.confirm(__("There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"),
+							() => frm.set_value("applicant", duplicates[0])
+						)
+					}
+				}
+			})
+		}
+	},
+
 });
 
 frappe.ui.form.on("Proposed Pledge", {
