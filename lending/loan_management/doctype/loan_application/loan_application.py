@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Criterion
 from frappe.utils import cint, flt, rounded
 
 from lending.loan_management.doctype.loan.loan import (
@@ -80,24 +81,11 @@ class LoanApplication(Document):
 		self.check_sanctioned_amount_limit()
 
 	def on_update(self):
-		# check if there are customer entries with the same email and/or phone
-		customer_doc = frappe.qb.DocType("Customer")
-		phone_no = self.applicant_phone_number.split("-")[1]
-		query = (
-			frappe.qb.from_(customer_doc)
-			.where(
-				(phone_no == customer_doc.mobile_no) | (self.applicant_email_address == customer_doc.email_id)
-			)
-			.select(customer_doc.name)
+		duplicates = check_duplicate_customers(
+			applicant_phone_number=self.applicant_phone_number,
+			applicant_email_address=self.applicant_email_address,
 		)
-		duplicates = [i[0] for i in query.run(as_list=True)]
-		if len(duplicates):
-			if self.applicant not in duplicates:
-				frappe.msgprint(
-					msg=_("There already exists a borrower with this contact info, using the borrower's details"),
-					title=_("Duplicate Borrower"),
-				)
-				self.applicant = duplicates[0]
+
 		if not self.applicant:
 			customer = frappe.new_doc("Customer")
 			customer.customer_name = self.first_name + " " + self.last_name
@@ -379,3 +367,24 @@ def get_proposed_pledge(securities):
 	proposed_pledges["maximum_loan_amount"] = maximum_loan_amount
 
 	return proposed_pledges
+
+
+@frappe.whitelist()
+def check_duplicate_customers(applicant_phone_number=None, applicant_email_address=None):
+	# check if there are customer entries with the same email and/or phone
+	customer_doc = frappe.qb.DocType("Customer")
+
+	# matching any one condition will suffice
+	conditions = []
+
+	if applicant_phone_number:
+		conditions.append((applicant_phone_number == customer_doc.mobile_no))
+
+	if applicant_email_address:
+		conditions.append(applicant_email_address == customer_doc.email_id)
+
+	if conditions:
+		query = frappe.qb.from_(customer_doc).where(Criterion.any(conditions)).select(customer_doc.name)
+		duplicates = [i[0] for i in query.run(as_list=True)]
+		return duplicates
+	return []
