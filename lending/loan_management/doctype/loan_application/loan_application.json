@@ -16,10 +16,17 @@
   "posting_date",
   "status",
   "applicant_contact_info_section",
-  "applicant_primary_address",
-  "column_break_dxiv",
   "applicant_email_address",
+  "column_break_dxiv",
   "applicant_phone_number",
+  "applicant_address_details_section",
+  "address_line_1",
+  "address_line_2",
+  "zip_code",
+  "column_break_axte",
+  "city",
+  "state",
+  "country",
   "section_break_4",
   "loan_product",
   "is_term_loan",
@@ -224,12 +231,6 @@
    "label": "Applicant Contact Info"
   },
   {
-   "fieldname": "applicant_primary_address",
-   "fieldtype": "Link",
-   "label": "Applicant Primary Address",
-   "options": "Address"
-  },
-  {
    "fieldname": "column_break_dxiv",
    "fieldtype": "Column Break"
   },
@@ -255,13 +256,52 @@
    "fieldname": "last_name",
    "fieldtype": "Data",
    "label": "Last Name"
+  },
+  {
+   "fieldname": "applicant_address_details_section",
+   "fieldtype": "Section Break",
+   "label": "Applicant Address Details"
+  },
+  {
+   "fieldname": "address_line_1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line_2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "zip_code",
+   "fieldtype": "Int",
+   "label": "ZIP Code"
+  },
+  {
+   "fieldname": "column_break_axte",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-30 17:36:28.883937",
- "modified_by": "Administrator",
+ "modified": "2025-07-01 12:35:46.995483",
+ "modified_by": "ayush@frappe.io",
  "module": "Loan Management",
  "name": "Loan Application",
  "naming_rule": "Expression (old style)",

@@ -34,13 +34,16 @@ class LoanApplication(Document):
 
 		from lending.loan_management.doctype.proposed_pledge.proposed_pledge import ProposedPledge
 
+		address_line_1: DF.Data | None
+		address_line_2: DF.Data | None
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink | None
 		applicant_email_address: DF.Data
 		applicant_phone_number: DF.Phone
-		applicant_primary_address: DF.Link | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		city: DF.Data | None
 		company: DF.Link
+		country: DF.Data | None
 		description: DF.SmallText | None
 		first_name: DF.Data | None
 		is_secured_loan: DF.Check
@@ -55,9 +58,11 @@ class LoanApplication(Document):
 		repayment_amount: DF.Currency
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
+		state: DF.Data | None
 		status: DF.Literal["Open", "Approved", "Rejected"]
 		total_payable_amount: DF.Currency
 		total_payable_interest: DF.Currency
+		zip_code: DF.Int
 	# end: auto-generated types
 
 	def validate(self):
@@ -99,8 +104,10 @@ class LoanApplication(Document):
 			customer.type = "Company"
 			customer.mobile_number = self.applicant_phone_number
 			customer.email_address = self.applicant_email_address
-			# TBD: Add address
+			# need to save customer first to link back from contact and address
+			customer.save()
 
+			# copying over contact details into the contact doctype
 			contact = frappe.new_doc("Contact")
 			contact.first_name = self.first_name
 			contact.last_name = self.last_name
@@ -108,9 +115,28 @@ class LoanApplication(Document):
 			contact.append(
 				"phone_nos", {"phone": self.applicant_phone_number, "is_primary_mobile_no": True}
 			)
+
+			# link back to customer
+			contact.append("links", {"link_doctype": "Customer", "link_name": customer.name})
 			contact.save()
 
+			address = frappe.new_doc("Address")
+			address.address_type = "Billing"
+
+			# two different naming conventions = chaos
+			address.address_line1 = self.address_line_1
+			address.address_line2 = self.address_line_2
+			address.city = self.city
+			address.state = self.state
+			address.country = self.country
+			address.pincode = self.zip_code
+			address.append("links", {"link_doctype": "Customer", "link_name": customer.name})
+
+			address.save()
+
+			# more linking
 			customer.customer_primary_contact = contact.name
+			customer.customer_primary_address = address.name
 
 			customer.save()
 
