@@ -77,7 +77,7 @@ class LoanWriteOff(AccountsController):
 		if not self.write_off_amount and not self.is_settlement_write_off:
 			self.write_off_amount = pending_principal_amount
 
-		if self.write_off_amount != pending_principal_amount and not self.is_settlement_write_off:
+		if self.write_off_amount != pending_principal_amount:
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
