@@ -595,7 +595,10 @@ class LoanRepaymentSchedule(Document):
 				first_date = prev_schedule.get(schedule_field)[0].payment_date
 				previous_broken_period_interest = prev_schedule.broken_period_interest
 
-				if getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date):
+				if (
+					getdate(self.repayment_start_date) > getdate(prev_schedule.repayment_start_date)
+					or getdate(first_date) < prev_schedule.repayment_start_date
+				):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
 							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type

@@ -68,3 +68,59 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 		self.assertTrue(
 			abs(repayment_schedule_rows[-1].total_payment - (monthly_repayment_amount + 1000) < 1000)
 		)
+
+	def test_payment_date_unchanged_with_same_day_prepayments(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		first_sched = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "name", order_by="creation asc"
+		)
+
+		first_sched_pay_date = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": first_sched, "idx": 1},
+			["payment_date"],
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-05-05")
+
+		create_repayment_entry(loan.name, "2025-05-05", 219556.00).submit()
+		create_repayment_entry(loan.name, "2025-05-21", 2000, repayment_type="Pre Payment").submit()
+		create_repayment_entry(loan.name, "2025-05-21", 1000, repayment_type="Pre Payment").submit()
+
+		last_sched, last_sched_start_date = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "status": "Active"},
+			["name", "repayment_start_date"],
+		)
+
+		active_sched_pay_date = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": last_sched, "idx": 1},
+			["payment_date"],
+		)
+
+		new_start_date = frappe.db.get_value(
+			"Loan Restructure",
+			{"loan": loan.name, "docstatus": 1},
+			["repayment_start_date"],
+			order_by="creation desc",
+		)
+
+		self.assertEqual(new_start_date, last_sched_start_date)
+		self.assertEqual(first_sched_pay_date, active_sched_pay_date)
