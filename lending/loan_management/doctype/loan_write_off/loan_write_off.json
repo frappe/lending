@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan",
+  "loan_disbursement",
   "applicant_type",
   "applicant",
   "loan_product",
@@ -138,12 +139,31 @@
    "fieldname": "is_settlement_write_off",
    "fieldtype": "Check",
    "label": "Is Settlement Write Off"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "value_date",
+   "fieldtype": "Date",
+   "label": "Value Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+>>>>>>> 1663b5f7 (fix: Disbursement-wise write-offs)
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-03-19 11:46:46.817812",
+=======
+ "modified": "2025-07-05 18:45:57.713027",
+>>>>>>> 1663b5f7 (fix: Disbursement-wise write-offs)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Write Off",

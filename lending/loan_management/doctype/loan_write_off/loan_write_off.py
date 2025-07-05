@@ -32,6 +32,7 @@ class LoanWriteOff(AccountsController):
 		is_npa: DF.Check
 		is_settlement_write_off: DF.Check
 		loan: DF.Link
+		loan_disbursement: DF.Link | None
 		loan_product: DF.Link | None
 		posting_date: DF.Date
 		write_off_account: DF.Link | None
@@ -54,7 +55,7 @@ class LoanWriteOff(AccountsController):
 	def validate_write_off_amount(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		loan_details = frappe.get_value(
+		loan_details = frappe.db.get_value(
 			"Loan",
 			self.loan,
 			[
@@ -68,11 +69,14 @@ class LoanWriteOff(AccountsController):
 				"written_off_amount",
 				"disbursed_amount",
 				"status",
+				"repayment_schedule_type",
 			],
 			as_dict=1,
 		)
 
-		pending_principal_amount = flt(get_pending_principal_amount(loan_details), precision)
+		pending_principal_amount = flt(
+			get_pending_principal_amount(loan_details, loan_disbursement=self.loan_disbursement), precision
+		)
 
 		if not self.write_off_amount and not self.is_settlement_write_off:
 			self.write_off_amount = pending_principal_amount
