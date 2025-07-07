@@ -89,6 +89,7 @@ def get_matching_queries(
 	filter_by_reference_date,
 	from_reference_date,
 	to_reference_date,
+	common_filters=None,
 ):
 	queries = []
 
