@@ -260,6 +260,7 @@ def make_property_setter_for_journal_entry():
 def after_install():
 	create_custom_fields(LOAN_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter_for_journal_entry()
+	setup_initial_permissions()
 
 
 def before_uninstall():
@@ -290,3 +291,52 @@ def delete_custom_fields(custom_fields):
 			)
 
 			frappe.clear_cache(doctype=doctype)
+
+
+def if_hrms_not_installed(function):
+	"""Decorator to check if HRMS app is not installed"""
+
+	def wrapper(*args, **kwargs):
+		if "hrms" not in frappe.get_installed_apps():
+			return function(*args, **kwargs)
+		return  # Skip if HRMS is installed
+
+	return wrapper
+
+
+@if_hrms_not_installed
+def setup_initial_permissions():
+	frappe.db.set_single_value("System Settings", "default_app", "lending")
+
+	role_name = "Loan Manager"
+	profile_name = "Loan Manager Restricted Access"
+
+	if not frappe.db.exists("Role", role_name):
+		frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+
+	if not frappe.db.exists("Module Profile", profile_name):
+		module_profile = frappe.new_doc("Module Profile")
+		module_profile.module_profile_name = profile_name
+
+		all_modules = [m.module_name for m in frappe.get_all("Module Def", fields=["module_name"])]
+
+		for module in all_modules:
+			if module != "Loan Management":
+				module_profile.append("block_modules", {"module": module})
+
+		module_profile.save(ignore_permissions=True)
+
+	user_name = frappe.db.get_value(
+		"User", {"enabled": 1, "name": ("!=", "Administrator"), "user_type": "System User"}, "name"
+	)
+
+	if user_name:
+		user = frappe.get_doc("User", user_name)
+
+		if not any(role.role == role_name for role in user.roles):
+			user.append("roles", {"role": role_name})
+
+		user.roles = [r for r in user.roles if r.role != "System Manager"]
+
+		user.module_profile = profile_name
+		user.save(ignore_permissions=True)
