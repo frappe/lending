@@ -1129,6 +1129,7 @@ class LoanRepayment(AccountsController):
 			loan_write_off.loan = self.against_loan
 			loan_write_off.posting_date = self.posting_date
 			loan_write_off.write_off_amount = principal_amount
+			loan_write_off.loan_disbursement = self.loan_disbursement
 			loan_write_off.is_settlement_write_off = 1
 			loan_write_off.save()
 			loan_write_off.submit()
@@ -2459,7 +2460,7 @@ def get_pending_principal_amount(loan, loan_disbursement=None):
 	elif loan.status == "Cancelled":
 		pending_principal_amount = 0
 	elif (
-		loan.status in ("Disbursed", "Closed", "Active", "Written Off")
+		loan.status in ("Disbursed", "Closed", "Active", "Written Off", "Settled")
 		and loan.repayment_schedule_type != "Line of Credit"
 	):
 		pending_principal_amount = flt(
