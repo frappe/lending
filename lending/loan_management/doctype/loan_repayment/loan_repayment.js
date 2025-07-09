@@ -53,6 +53,15 @@ frappe.ui.form.on('Loan Repayment', {
 				}
 			};
 		});
+
+		frm.set_query('loan_adjustment', function() {
+			return {
+				'filters': {
+					'docstatus': 1,
+					'loan': frm.doc.against_loan,
+				}
+			};
+		});
 	},
 	repayment_type: function(frm) {
 		if (frm.doc.posting_date) {
