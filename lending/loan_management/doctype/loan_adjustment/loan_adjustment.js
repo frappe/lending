@@ -12,7 +12,6 @@ const set_loan_filters = (frm, filters) => {
 			"filters": filters,
 		};
 	});
-	console.log("Setting loan filters", filters);
 }
 
 const set_loan_disbursement_filters = (frm, filters) => {
