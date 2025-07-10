@@ -1289,7 +1289,7 @@ def update_npa_check(
 			update_value["manual_npa"] = manual_npa
 
 		frappe.db.set_value("Loan", loan.name, update_value)
-		create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=manual_npa)
+		create_loan_npa_log(loan.name, posting_date, is_npa, event, manual_npa=manual_npa)
 
 
 def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):
