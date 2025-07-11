@@ -1176,13 +1176,15 @@ def update_loan_and_customer_status(
 			or actual_dpd == 0
 			or days_past_due == 0
 		):
-			frappe.db.set_value("Loan", loan, {"is_npa": 0, "days_past_due": actual_dpd})
+			update_all_linked_loan_customer_npa_status(
+				0, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
+			)
 			write_off_suspense_entries(loan, loan_product, max_date, company)
 			write_off_charges(loan, max_date, company)
-			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
 		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
-			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
-			update_all_linked_loan_customer_npa_status(1, applicant_type, applicant, posting_date, loan)
+			update_all_linked_loan_customer_npa_status(
+				1, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
+			)
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
 			move_unpaid_interest_to_suspense_ledger(loan, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
@@ -1245,30 +1247,22 @@ def update_all_linked_loan_customer_npa_status(
 	posting_date,
 	loan=None,
 	manual_npa=False,
+	event="Background Job",
 ):
 	"""Update NPA status of all linked customers"""
 
 	prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
 	if prev_npa != is_npa:
-		update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
-	else:
-		update_value = {
-			"is_npa": is_npa,
-		}
-
-		if manual_npa:
-			update_value["manual_npa"] = manual_npa
-
-		frappe.db.set_value("Loan", loan, update_value)
-
-	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
-
-	if loan:
-		create_loan_npa_log(loan, posting_date, is_npa, "Background Job", manual_npa=manual_npa)
+		update_npa_check(
+			is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa, event=event
+		)
+		frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
 
-def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=False):
+def update_npa_check(
+	is_npa, applicant_type, applicant, posting_date, manual_npa=False, event=None
+):
 	_loan = frappe.qb.DocType("Loan")
 	query = (
 		frappe.qb.from_(_loan)
@@ -1295,6 +1289,7 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 			update_value["manual_npa"] = manual_npa
 
 		frappe.db.set_value("Loan", loan.name, update_value)
+		create_loan_npa_log(loan.name, posting_date, is_npa, event, manual_npa=manual_npa)
 
 
 def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):
