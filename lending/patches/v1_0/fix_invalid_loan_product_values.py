@@ -25,17 +25,15 @@ def execute():
 		if field not in frappe.db.get_table_columns("Loan Product"):
 			continue
 
-		# Use backticks to ensure field names with special characters are handled correctly
-		field_sql = f"`{field}`"
-
+		# Set only if value is NULL, empty, or starts with non-numeric character
 		condition = (
-			"CAST({field} AS CHAR) IS NULL "
-			"OR CAST({field} AS CHAR) = '' "
-			"OR CAST({field} AS CHAR) NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$'"
-		).format(field=field_sql)
+			"CAST(`{field}` AS CHAR) IS NULL "
+			"OR CAST(`{field}` AS CHAR) = '' "
+			"OR CAST(`{field}` AS CHAR) NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$'"
+		).format(field=field)
 
-		query = "UPDATE `tabLoan Product` SET {field} = %s WHERE {condition}".format(
-			field=field_sql, condition=condition
+		query = ("UPDATE `tabLoan Product` SET `{field}` = %s WHERE {condition}").format(
+			field=field, condition=condition
 		)
 
 		frappe.db.sql(query, (default,))
