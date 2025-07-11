@@ -797,10 +797,6 @@ def get_restructure_details(
 
 
 def get_pending_tenure_and_start_date(loan, posting_date, repayment_type, loan_disbursement=None):
-	# from lending.loan_management.doctype.loan.loan import get_cyclic_date
-
-	ignore_bpi = False
-
 	filters = {"loan": loan, "docstatus": 1, "status": "Active"}
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
@@ -811,7 +807,6 @@ def get_pending_tenure_and_start_date(loan, posting_date, repayment_type, loan_d
 		monthly_repayment_amount,
 		repayment_frequency,
 		prev_repayment_start_date,
-		repayment_schedule_type,
 		moratorium_end_date,
 	) = frappe.db.get_value(
 		"Loan Repayment Schedule",
@@ -822,23 +817,12 @@ def get_pending_tenure_and_start_date(loan, posting_date, repayment_type, loan_d
 			"monthly_repayment_amount",
 			"repayment_frequency",
 			"repayment_start_date",
-			"repayment_schedule_type",
 			"moratorium_end_date",
 		],
 	)
 
-	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
-
 	if repayment_frequency == "One Time":
 		repayment_start_date = prev_repayment_start_date
-	# elif repayment_schedule_type in "Monthly as per cycle date" and repayment_frequency == "Monthly":
-	# 	# Skipping cyclic date calculation for migrated or manually updated repayment schedules.
-	# 	# In migrated loans or where repayment_start_date was explicitly modified,
-	# 	# we should retain the existing schedule dates and not recalculate based on product cycle.
-	# 	if repayment_type == "Pre Payment":
-	# 		ignore_bpi = True
-
-	# 	repayment_start_date = get_cyclic_date(loan_product, posting_date, ignore_bpi=ignore_bpi)
 	else:
 		if getdate(posting_date) <= getdate(prev_repayment_start_date):
 			repayment_start_date = prev_repayment_start_date
