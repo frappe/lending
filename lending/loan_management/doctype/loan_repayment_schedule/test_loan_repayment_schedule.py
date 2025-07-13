@@ -2,13 +2,8 @@
 # See license.txt
 
 import frappe
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import date_diff
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, getdate
->>>>>>> 412af585 (test: accrual frequency breaks for pre- and advance payments)
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
