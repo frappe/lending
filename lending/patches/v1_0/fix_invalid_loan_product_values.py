@@ -26,8 +26,14 @@ def execute():
 			continue
 
 		# Set only if value is NULL, empty, or starts with non-numeric character
-		condition = "`{0}` IS NULL OR `{0}` = '' OR `{0}` REGEXP '^[^0-9.-]'".format(field)
+		condition = (
+			"CAST(`{field}` AS CHAR) IS NULL "
+			"OR CAST(`{field}` AS CHAR) = '' "
+			"OR CAST(`{field}` AS CHAR) NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$'"
+		).format(field=field)
 
-		query = "UPDATE `tabLoan Product` SET `{0}` = %s WHERE {1}".format(field, condition)
+		query = ("UPDATE `tabLoan Product` SET `{field}` = %s WHERE {condition}").format(
+			field=field, condition=condition
+		)
 
 		frappe.db.sql(query, (default,))
