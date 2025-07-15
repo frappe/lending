@@ -35,6 +35,12 @@ def generate_demand(self, method=None):
 
 
 def update_waived_amount_in_demand(self, method=None):
+
+	loan_status = frappe.db.get_value("Loan", self.loan, "status")
+
+	if loan_status not in ["Active", "Disbursed"]:
+		return
+
 	if self.get("is_return") and not self.get("loan_repayment"):
 		for item in self.get("items"):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
