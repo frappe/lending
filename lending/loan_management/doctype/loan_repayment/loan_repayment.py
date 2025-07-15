@@ -1999,7 +1999,7 @@ class LoanRepayment(AccountsController):
 				)
 
 		if flt(self.excess_amount, precision):
-			if self.auto_close_loan():
+			if self.auto_close_loan() and self.excess_amount < 0:
 				against_account = account_details.interest_waiver_account
 				if not against_account:
 					frappe.throw(_("Interest Waiver Account is mandatory"))
