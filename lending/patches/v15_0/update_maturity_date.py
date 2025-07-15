@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Max
 
 
 def execute():
@@ -30,10 +31,12 @@ def execute():
 
 
 def get_maturity_date(schedule):
-	maturity_date = frappe.db.get_value(
-		"Repayment Schedule",
-		{"parent": schedule},
-		"MAX(payment_date)",
-	)
+	RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
+
+	maturity_date = (
+		frappe.qb.from_(RepaymentSchedule)
+		.select(Max(RepaymentSchedule.payment_date))
+		.where(RepaymentSchedule.parent == schedule)
+	).run()[0][0]
 
 	return maturity_date
