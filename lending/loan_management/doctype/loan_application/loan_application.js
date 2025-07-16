@@ -115,14 +115,13 @@ frappe.ui.form.on('Loan Application', {
 	},
 
 	applicant_phone_number: function(frm) {
-		frm.trigger("check_applicant")
-		console.log("meowww")
+		frm.trigger("check_applicant");
 	},
 	applicant_email_address: function(frm) {
 		frm.trigger("check_applicant")
 	},
 	check_applicant: function(frm) {
-		if (!frm.doc.applicant) {
+		if (!frm.doc.applicant && frm.doc.applicant_type === "Customer") {
 			frappe.call({
 				method: "lending.loan_management.doctype.loan_application.loan_application.check_duplicate_customers",
 				args: {
@@ -133,7 +132,24 @@ frappe.ui.form.on('Loan Application', {
 					const duplicates = r.message;
 					if (duplicates.length > 0) {
 						frappe.confirm(__("There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"),
-							() => frm.set_value("applicant", duplicates[0])
+							() => {
+								frappe.db.get_doc("Customer", duplicates[0]).then((customer) => {
+									frm.set_value("applicant", customer.name);
+									frm.set_value("applicant_phone_number", customer.mobile_no);
+									frm.set_value("applicant_email_address", customer.email_id);
+									if (customer.customer_primary_address) {
+										frappe.db.get_doc("Address", customer.customer_primary_address).then((address) => {
+											console.log(address);
+											frm.set_value("address_line_1", address.address_line1);
+											frm.set_value("address_line_2", address.address_line2);
+											frm.set_value("zip_code", address.pincode);
+											frm.set_value("city", address.city);
+											frm.set_value("state", address.state);
+											frm.set_value("country", address.country);
+										});
+									}
+								});
+							}
 						)
 					}
 				}

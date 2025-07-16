@@ -44,7 +44,7 @@ class LoanApplication(Document):
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		city: DF.Data | None
 		company: DF.Link
-		country: DF.Data | None
+		country: DF.Link | None
 		description: DF.SmallText | None
 		first_name: DF.Data | None
 		is_secured_loan: DF.Check
@@ -53,7 +53,7 @@ class LoanApplication(Document):
 		loan_amount: DF.Currency
 		loan_product: DF.Link
 		maximum_loan_amount: DF.Currency
-		posting_date: DF.Date | None
+		posting_date: DF.Date
 		proposed_pledges: DF.Table[ProposedPledge]
 		rate_of_interest: DF.Percent
 		repayment_amount: DF.Currency
@@ -112,19 +112,22 @@ class LoanApplication(Document):
 			address.address_type = "Billing"
 
 			# two different naming conventions = chaos
-			address.address_line1 = self.address_line_1
-			address.address_line2 = self.address_line_2
-			address.city = self.city
-			address.state = self.state
-			address.country = self.country
-			address.pincode = self.zip_code
-			address.append("links", {"link_doctype": "Customer", "link_name": customer.name})
+			if any(
+				[self.address_line_1, self.address_line_2, self.city, self.state, self.zip_code]
+			):  # address should be optional
+				address.address_line1 = self.address_line_1
+				address.address_line2 = self.address_line_2
+				address.city = self.city
+				address.state = self.state
+				address.country = self.country
+				address.pincode = self.zip_code
+				address.append("links", {"link_doctype": "Customer", "link_name": customer.name})
 
-			address.save()
+				address.save()
 
-			# more linking
+				customer.customer_primary_address = address.name
+
 			customer.customer_primary_contact = contact.name
-			customer.customer_primary_address = address.name
 
 			customer.save()
 
