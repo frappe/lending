@@ -139,13 +139,18 @@ frappe.ui.form.on('Loan Application', {
 									frm.set_value("applicant_email_address", customer.email_id);
 									if (customer.customer_primary_address) {
 										frappe.db.get_doc("Address", customer.customer_primary_address).then((address) => {
-											console.log(address);
 											frm.set_value("address_line_1", address.address_line1);
 											frm.set_value("address_line_2", address.address_line2);
 											frm.set_value("zip_code", address.pincode);
 											frm.set_value("city", address.city);
 											frm.set_value("state", address.state);
 											frm.set_value("country", address.country);
+										});
+									};
+									if (customer.customer_primary_contact) {
+										frappe.db.get_doc("Contact", customer.customer_primary_contact).then((contact) => {
+											frm.set_value("first_name", customer.first_name);
+											frm.set_value("last_name", customer.last_name);
 										});
 									}
 								});
