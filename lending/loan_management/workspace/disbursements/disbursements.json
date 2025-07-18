@@ -16,7 +16,7 @@
  "link_to": "Loan Disbursement",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:27:44.932892",
+ "modified": "2025-07-18 15:42:38.174289",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Disbursements",
@@ -25,7 +25,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
  "sequence_id": 3.0,
  "shortcuts": [],
  "title": "Disbursements",

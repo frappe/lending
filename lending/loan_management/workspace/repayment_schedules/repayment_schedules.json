@@ -16,7 +16,7 @@
  "link_to": "Loan Repayment Schedule",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:27:59.594285",
+ "modified": "2025-07-18 15:41:59.874744",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Repayment Schedules",
@@ -25,7 +25,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
  "sequence_id": 4.0,
  "shortcuts": [],
  "title": "Repayment Schedules",

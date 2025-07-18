@@ -16,7 +16,7 @@
  "link_to": "Loan Application",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:27:49.800249",
+ "modified": "2025-07-18 15:42:27.940509",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Applications",
@@ -25,7 +25,14 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  },
+  {
+   "role": "Loan LOS User"
+  }
+ ],
  "sequence_id": 2.0,
  "shortcuts": [],
  "title": "Applications",

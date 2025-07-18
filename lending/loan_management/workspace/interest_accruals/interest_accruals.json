@@ -16,7 +16,7 @@
  "link_to": "Loan Interest Accrual",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:28:11.254632",
+ "modified": "2025-07-18 15:41:37.989799",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Interest Accruals",
@@ -25,7 +25,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
  "sequence_id": 5.0,
  "shortcuts": [],
  "title": "Interest Accruals",

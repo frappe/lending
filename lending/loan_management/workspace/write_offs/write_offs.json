@@ -16,7 +16,7 @@
  "link_to": "Loan Write Off",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:27:30.150149",
+ "modified": "2025-07-18 15:41:28.354809",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Write Offs",
@@ -25,7 +25,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
  "sequence_id": 8.0,
  "shortcuts": [],
  "title": "Write Offs",

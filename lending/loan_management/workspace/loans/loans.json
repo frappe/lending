@@ -16,7 +16,7 @@
  "link_to": "Loan",
  "link_type": "DocType",
  "links": [],
- "modified": "2025-05-07 15:23:20.806264",
+ "modified": "2025-07-18 15:43:01.740346",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loans",
@@ -25,7 +25,11 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
  "sequence_id": 1.0,
  "shortcuts": [],
  "title": "Loans",
