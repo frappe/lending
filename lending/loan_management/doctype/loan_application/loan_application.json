@@ -45,7 +45,9 @@
   "repayment_periods",
   "repayment_amount",
   "total_payable_interest",
-  "amended_from"
+  "amended_from",
+  "documents_tab",
+  "documents"
  ],
  "fields": [
   {
@@ -298,12 +300,23 @@
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country"
+  },
+  {
+   "fieldname": "documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "documents",
+   "fieldtype": "Table",
+   "label": "Documents",
+   "options": "Loan Application Document"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-16 11:46:53.433951",
+ "modified": "2025-07-18 10:53:25.098835",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

@@ -34,6 +34,9 @@ class LoanApplication(Document):
 		from frappe.types import DF
 
 		from lending.loan_management.doctype.proposed_pledge.proposed_pledge import ProposedPledge
+		from lending.loan_origination.doctype.loan_application_document.loan_application_document import (
+			LoanApplicationDocument,
+		)
 
 		address_line_1: DF.Data | None
 		address_line_2: DF.Data | None
@@ -46,6 +49,7 @@ class LoanApplication(Document):
 		company: DF.Link
 		country: DF.Link | None
 		description: DF.SmallText | None
+		documents: DF.Table[LoanApplicationDocument]
 		first_name: DF.Data | None
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
