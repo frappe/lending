@@ -316,7 +316,6 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount,
 			pending_prev_days,
 		) = self.add_rows_from_prev_disbursement("repayment_schedule", 100, 100)
-
 		if flt(balance_amount, self.precision) > 0:
 			self.make_repayment_schedule(
 				"repayment_schedule",
@@ -398,9 +397,8 @@ class LoanRepaymentSchedule(Document):
 				and self.repayment_frequency == "Monthly"
 				and self.repayment_schedule_type == "Monthly as per cycle date"
 			):
-				payment_date = self.repayment_start_date
-				self.repayment_start_date = add_months(payment_date, self.moratorium_tenure)
 				self.moratorium_end_date = add_months(self.repayment_start_date, -1)
+				payment_date = add_months(self.repayment_start_date, -self.moratorium_tenure)
 			elif self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
 				if self.repayment_schedule_type == "Pro-rated calendar months":
