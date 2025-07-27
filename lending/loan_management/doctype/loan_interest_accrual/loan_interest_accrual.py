@@ -344,7 +344,6 @@ def calculate_accrual_amount_for_loans(
 		total_payable_interest = process_loan_interest_accrual_per_schedule(
 			parent_wise_schedules,
 			loan,
-			posting_date,
 			last_accrual_date_map,
 			is_future_accrual=is_future_accrual,
 			process_loan_interest=process_loan_interest,
@@ -417,7 +416,6 @@ def get_accrual_frequency_breaks(last_accrual_date, accrual_date, loan_accrual_f
 def process_loan_interest_accrual_per_schedule(
 	parent_wise_schedules,
 	loan,
-	posting_date,
 	last_accrual_date_map,
 	is_future_accrual=False,
 	process_loan_interest=None,
@@ -428,9 +426,8 @@ def process_loan_interest_accrual_per_schedule(
 
 	for parent in parent_wise_schedules:
 		for payment_date in parent_wise_schedules[parent]:
-			last_accrual_date_for_schedule = last_accrual_date_map.get(parent)
+			last_accrual_date_for_schedule = add_days(last_accrual_date_map.get(parent), 1)
 
-			print(last_accrual_date_for_schedule, "#########", parent)
 			pending_principal_amount = get_principal_amount_for_term_loan(parent, payment_date)
 			payable_interest = get_interest_for_term(
 				loan.company,
@@ -457,7 +454,7 @@ def process_loan_interest_accrual_per_schedule(
 						accrual_date=payment_date,
 					)
 
-				last_accrual_date_map[parent] = add_days(payment_date, 1)
+				last_accrual_date_map[parent] = payment_date
 
 	return total_payable_interest
 
@@ -907,7 +904,7 @@ def get_last_accrual_date(
 			if dates.moratorium_type == "EMI" and dates.moratorium_end_date:
 				final_date = dates.moratorium_end_date
 			else:
-				final_date = dates.posting_date
+				final_date = add_days(dates.posting_date, -1)
 
 			return final_date
 
