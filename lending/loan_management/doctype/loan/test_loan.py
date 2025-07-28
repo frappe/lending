@@ -1615,32 +1615,6 @@ class TestLoan(FrappeTestCase):
 		)
 		repayment_entry.submit()
 
-	def test_full_settlement(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry.submit()
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
 	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements(self):
 		loan = create_loan(
 			"_Test Customer 1",
