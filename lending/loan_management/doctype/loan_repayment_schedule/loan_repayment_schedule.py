@@ -381,7 +381,10 @@ class LoanRepaymentSchedule(Document):
 		interest_share_percentage,
 		partner_schedule_type=None,
 	):
-		payment_date = self.repayment_start_date
+		if len(self.repayment_schedule):
+			payment_date = self.get_next_payment_date(self.repayment_schedule[-1].payment_date)
+		else:
+			payment_date = self.repayment_start_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		row = 0
@@ -617,6 +620,7 @@ class LoanRepaymentSchedule(Document):
 			self.total_installments_raised = prev_schedule.total_installments_raised
 			self.total_installments_paid = prev_schedule.total_installments_paid
 			self.total_installments_overdue = prev_schedule.total_installments_overdue
+			self.repayment_start_date = prev_schedule.repayment_start_date
 
 			if prev_schedule:
 				if self.restructure_type:
@@ -822,7 +826,6 @@ class LoanRepaymentSchedule(Document):
 					pending_prev_days = 0
 					previous_interest_amount = 0
 					additional_principal_amount = 0
-					self.repayment_start_date = self.get_next_payment_date(next_emi_date)
 
 		return (
 			previous_interest_amount,
