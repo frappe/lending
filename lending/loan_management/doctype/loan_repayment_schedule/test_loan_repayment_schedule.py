@@ -62,7 +62,7 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 		repayment_schedule = frappe.get_doc(
-			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active"}
 		)
 		repayment_schedule_rows = repayment_schedule.get("repayment_schedule")
 		num_of_rows = len(repayment_schedule_rows)
@@ -71,6 +71,10 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		self.assertTrue(
 			abs(repayment_schedule_rows[-1].total_payment - (monthly_repayment_amount + 1000) < 1000)
 		)
+		old_repayment_start_date = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Rescheduled"}, "repayment_start_date"
+		)
+		self.assertEqual(repayment_schedule.repayment_start_date, old_repayment_start_date)
 
 	def test_payment_date_unchanged_with_same_day_prepayments(self):
 		loan = create_loan(
