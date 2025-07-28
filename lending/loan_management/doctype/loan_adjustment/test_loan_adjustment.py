@@ -73,3 +73,62 @@ class TestLoanAdjustment(FrappeTestCase):
 		).insert()
 
 		self.assertTrue(doc.submit())
+
+	def test_auto_security_deposit_adjust_within_auto_write_off_limit(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 100)
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Deposit",
+				"loan": loan.name,
+				"loan_disbursement": disbursement.name,
+				"deposit_amount": 1,
+				"available_amount": 1,
+			}
+		).submit()
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Loan Adjustment",
+				"loan": loan.name,
+				"posting_date": "2024-04-05",
+				"foreclosure_type": "Manual Foreclosure",
+				"adjustments": [
+					{
+						"loan_repayment_type": "Normal Repayment",
+						"amount": 100721,
+					}
+				],
+			}
+		).insert()
+
+		self.assertTrue(doc.submit())
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+		self.assertEqual(loan.closure_date, getdate("2024-04-05"))
