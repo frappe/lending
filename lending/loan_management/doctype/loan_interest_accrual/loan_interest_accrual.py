@@ -1140,9 +1140,11 @@ def get_parent_wise_dates(loan, posting_date, loan_disbursement=None):
 			loan_disbursement=loan_disbursement,
 		)
 
-		parent_wise_schedules.setdefault(schedule, [])
 		accrual_schedule_map[schedule] = last_accrual_date
-		parent_wise_schedules[schedule].append(getdate(last_accrual_date))
+
+		parent_wise_schedules.setdefault(schedule, [])
+		if getdate(last_accrual_date) <= posting_date:
+			parent_wise_schedules[schedule].append(getdate(last_accrual_date))
 
 		schedule_filters = {
 			"parent": schedule,
