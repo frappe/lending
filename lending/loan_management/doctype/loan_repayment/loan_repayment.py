@@ -2307,7 +2307,7 @@ class LoanRepayment(AccountsController):
 				"is_settlement_write_off": 1,
 				"docstatus": 1,
 				"loan": self.against_loan,
-				"value_date": (">=", self.value_date),
+				"posting_date": (">=", self.posting_date),
 			},
 		)
 
