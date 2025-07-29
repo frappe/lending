@@ -890,7 +890,7 @@ class TestLoanRepayment(FrappeTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			500000,
+			5000,
 			"Repay Over Number of Periods",
 			12,
 			"Customer",
@@ -899,57 +899,34 @@ class TestLoanRepayment(FrappeTestCase):
 		)
 		loan.submit()
 
-		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date="2024-03-25",
-			repayment_start_date="2024-04-01",
-			withhold_security_deposit=1,
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-25", repayment_start_date="2024-04-01"
 		)
 
-		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Deposit",
+				"loan": loan.name,
+				"loan_disbursement": disbursement.name,
+				"deposit_amount": 5200,
+				"available_amount": 5200,
+			}
+		).submit()
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-09-01")
-		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
-
-		repayment_entry = create_repayment_entry(loan.name, "2024-09-01", payable_amount)
-		repayment_entry.submit()
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-10-05", loan=loan.name, company="_Test Company"
-		)
-
-		loan.load_from_db()
-		loan.freeze_account = 1
-		loan.freeze_date = "2024-09-03"
-		loan.save()
-
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-09-05")
-		total_net_payable = (
-			round(
-				float(amounts["unaccrued_interest"] or 0.0)
-				+ float(amounts["interest_amount"] or 0.0)
-				+ float(amounts["penalty_amount"] or 0.0)
-				+ float(amounts["total_charges_payable"] or 0.0)
-				- float(amounts["available_security_deposit"] or 0.0)
-				+ float(amounts["unbooked_interest"] or 0.0)
-				+ float(amounts["unbooked_penalty"] or 0.0)
-				+ float(amounts["pending_principal_amount"] or 0.0),
-				2,
-			)
-			+ 20
-		)
-
-		loan_adjustment = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "Loan Adjustment",
 				"loan": loan.name,
-				"posting_date": "2024-09-05",
-				"foreclosure_type": "Internal Foreclosure",
-				"adjustments": [{"loan_repayment_type": "Normal Repayment", "amount": total_net_payable}],
+				"posting_date": "2024-04-05",
+				"foreclosure_type": "Manual Foreclosure",
+				"adjustments": [
+					{
+						"loan_repayment_type": "Security Deposit Adjustment",
+						"amount": 5200,
+					}
+				],
 			}
-		)
-		loan_adjustment.submit()
+		).submit()
 
 		# Since excess amount is more than 0 it should be parked in customer refund account
 		customer_refund_account = frappe.get_value(
