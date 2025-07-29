@@ -15,6 +15,7 @@ from lending.loan_management.doctype.loan_restructure.loan_restructure import cr
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
+from lending.loan_management.doctype.repayment_schedule import repayment_schedule
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
@@ -168,3 +169,26 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 				"Loan Interest Accrual", {"loan": loan.name}, [{"SUM": "interest_amount"}]
 			)
 			self.assertEqual(flt(paid_interest, 0), flt(payable_interest, 0))
+
+	def test_moratorium_date_jump(self):
+		for moratorium_type in ["Principal", "EMI"]:
+			loan = create_loan(
+				"_Test Customer 1",
+				"Term Loan Product 4",
+				200000,
+				"Repay Over Number of Periods",
+				12,
+				repayment_start_date="2025-08-05",
+				posting_date="2025-07-18",
+				rate_of_interest=30,
+				applicant_type="Customer",
+				moratorium_tenure=3,
+				moratorium_type=moratorium_type,
+			)
+			loan.submit()
+			loan.load_from_db()
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2025-07-18", repayment_start_date="2025-08-05"
+			)
+			repayment_schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": loan.name})
+			self.assertEqual(repayment_schedule.repayment_start_date, getdate("2025-08-05"))
