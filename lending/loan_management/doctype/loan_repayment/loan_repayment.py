@@ -640,9 +640,9 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Full Settlement":
 			if frappe.flags.in_test:
-				self.cancel_linked_repayments()
+				self.cancel_linked_repayments_and_write_off()
 			else:
-				frappe.enqueue(self.cancel_linked_repayments, enqueue_after_commit=True)
+				frappe.enqueue(self.cancel_linked_repayments_and_write_off, enqueue_after_commit=True)
 
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
@@ -2269,7 +2269,7 @@ class LoanRepayment(AccountsController):
 
 		return allocation_order
 
-	def cancel_linked_repayments(self):
+	def cancel_linked_repayments_and_write_off(self):
 		# Any repayment made after a Full Settlement is bound to be made
 		# by the Full Settlement repayment itself because the Loan closes
 		# after that. The fields posting_date and against_loan are indexed
@@ -2300,6 +2300,20 @@ class LoanRepayment(AccountsController):
 		for repayment_name in repayment_names:
 			repayment = frappe.get_doc("Loan Repayment", repayment_name)
 			repayment.cancel()
+
+		loan_write_off = frappe.db.get_value(
+			"Loan Write Off",
+			{
+				"is_settlement_write_off": 1,
+				"docstatus": 1,
+				"loan": self.against_loan,
+				"posting_date": (">=", self.posting_date),
+			},
+		)
+
+		if loan_write_off:
+			loan_write_off_doc = frappe.get_doc("Loan Write Off", loan_write_off)
+			loan_write_off_doc.cancel()
 
 	def no_repayments_during_moratorium(self):
 		if self.repayment_type in ("Pre Payment", "Advance Payment"):

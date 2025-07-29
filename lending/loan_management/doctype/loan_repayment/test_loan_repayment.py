@@ -950,3 +950,46 @@ class TestLoanRepayment(FrappeTestCase):
 		)
 
 		self.assertTrue(gl_entry, "GL Entry not created for customer refund account")
+
+	def test_full_settlement(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+		repayment_entry.cancel()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Disbursed")
+
+		create_repayment_entry(
+			loan.name, "2024-08-05", 200000, repayment_type="Partial Settlement"
+		).submit()
+
+		create_repayment_entry(
+			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
+		).submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
