@@ -1018,6 +1018,7 @@ class TestLoanRepayment(FrappeTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
+<<<<<<< HEAD
 
 	def test_write_off_recovery_settlement_allocation(self):
 		set_loan_accrual_frequency("Daily")
@@ -1055,3 +1056,5 @@ class TestLoanRepayment(FrappeTestCase):
 			loan.name, "2025-01-31", 1000000, repayment_type="Write Off Recovery"
 		).submit()
 >>>>>>> fbaf69e6 (fix: Reposting write off recovery payments)
+=======
+>>>>>>> fc7842c5 (chore: remove test)
