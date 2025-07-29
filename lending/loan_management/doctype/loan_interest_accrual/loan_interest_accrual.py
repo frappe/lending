@@ -528,7 +528,7 @@ def make_loan_interest_accrual_entry(
 
 def get_overlapping_dates(loan, posting_date, loan_accrual_frequency, loan_disbursement=None):
 	parent_wise_schedules, maturity_map, accrual_schedule_map = get_parent_wise_dates(
-		loan, posting_date, loan_disbursement=loan_disbursement
+		loan, posting_date, loan_accrual_frequency, loan_disbursement=loan_disbursement
 	)
 
 	# Merge accrual_frequency_breaks into repayment_schedule breaks and get all unique dates
@@ -1111,7 +1111,7 @@ def get_loan_accrual_frequency(company):
 	return loan_accrual_frequency
 
 
-def get_parent_wise_dates(loan, posting_date, loan_disbursement=None):
+def get_parent_wise_dates(loan, posting_date, loan_accrual_frequency, loan_disbursement=None):
 	filters = {"loan": loan, "docstatus": 1, "status": "Active", "posting_date": ("<=", posting_date)}
 
 	if loan_disbursement:
@@ -1143,7 +1143,7 @@ def get_parent_wise_dates(loan, posting_date, loan_disbursement=None):
 		accrual_schedule_map[schedule] = last_accrual_date
 
 		parent_wise_schedules.setdefault(schedule, [])
-		if getdate(last_accrual_date) <= posting_date:
+		if getdate(last_accrual_date) <= posting_date and loan_accrual_frequency == "Daily":
 			parent_wise_schedules[schedule].append(getdate(last_accrual_date))
 
 		schedule_filters = {
