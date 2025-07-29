@@ -399,8 +399,7 @@ class LoanRepaymentSchedule(Document):
 				and self.repayment_schedule_type == "Monthly as per cycle date"
 			):
 				payment_date = self.repayment_start_date
-				self.repayment_start_date = add_months(payment_date, self.moratorium_tenure)
-				self.moratorium_end_date = add_months(self.repayment_start_date, -1)
+				self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure - 1)
 			elif self.moratorium_tenure and self.repayment_frequency == "Monthly":
 				self.moratorium_end_date = add_months(self.repayment_start_date, self.moratorium_tenure)
 				if self.repayment_schedule_type == "Pro-rated calendar months":
