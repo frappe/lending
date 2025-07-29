@@ -76,6 +76,8 @@ class TestLoanAdjustment(FrappeTestCase):
 
 	def test_auto_security_deposit_adjust_within_auto_write_off_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 100)
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
+
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
 		loan = create_loan(
