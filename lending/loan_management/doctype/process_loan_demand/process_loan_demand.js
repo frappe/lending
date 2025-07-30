@@ -6,8 +6,6 @@
 
 // 	},
 // });
-<<<<<<< HEAD
-=======
 let active_loan_filters = {
 					"docstatus": 1,
 					"status": ["not in", ["Closed", "Draft", "Settled", "Written Off"]],
@@ -56,4 +54,3 @@ frappe.ui.form.on('Process Loan Demand', {
 			)
 	}
 });
->>>>>>> 83940305 (fix: remove all console logs from Lending app)

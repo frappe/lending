@@ -6,8 +6,6 @@
 
 // 	}
 // });
-<<<<<<< HEAD
-=======
 
 let active_loan_filters = {
 					"docstatus": 1,
@@ -60,4 +58,3 @@ frappe.ui.form.on('Process Loan Interest Accrual', {
 		}
 	},
 });
->>>>>>> eca38f1b (fix: add Link Query according to the loan)

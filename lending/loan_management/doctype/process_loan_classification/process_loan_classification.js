@@ -5,9 +5,6 @@
 // 	refresh(frm) {
 
 // 	},
-<<<<<<< HEAD
-// });
-=======
 // });
 let active_loan_filters = {
 					"docstatus": 1,
@@ -57,4 +54,3 @@ frappe.ui.form.on('Process Loan Classification', {
 			)
 	}
 });
->>>>>>> 83940305 (fix: remove all console logs from Lending app)
