@@ -579,6 +579,7 @@ def make_credit_note(
 	loan_repayment=None,
 	waiver_account=None,
 	posting_date=None,
+	value_date=None,
 ):
 	si = frappe.new_doc("Sales Invoice")
 	si.flags.ignore_links = True
@@ -598,6 +599,7 @@ def make_credit_note(
 
 	si.set_posting_time = 1
 	si.posting_date = posting_date
+	si.value_date = value_date
 
 	rate, income_account = frappe.db.get_value(
 		"Sales Invoice Item",

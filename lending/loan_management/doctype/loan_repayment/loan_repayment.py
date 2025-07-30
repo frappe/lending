@@ -611,6 +611,7 @@ class LoanRepayment(AccountsController):
 					loan_repayment=self.name,
 					waiver_account=waiver_account,
 					posting_date=self.posting_date,
+					value_date=self.value_date,
 				)
 
 				base_amount_details.setdefault(waiver_account, 0)
