@@ -279,8 +279,8 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("excess_amount", 0)
 
 			charges = []
-			if self.get("payable_charges"):
-				charges = [d.get("charge_code") for d in self.get("payable_charges")]
+			if repayment_doc.get("payable_charges"):
+				charges = [d.get("charge_code") for d in repayment_doc.get("payable_charges")]
 
 			amounts = calculate_amounts(
 				repayment_doc.against_loan,

@@ -1,9 +1,12 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import getdate
+from frappe.utils import date_diff, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	process_interest_accrual_batch,
+)
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+	process_loan_interest_accrual_for_loans,
 )
 from lending.tests.test_utils import (
 	create_loan,
@@ -86,6 +89,80 @@ class TestLoanInterestAccrual(FrappeTestCase):
 
 		self.assertEqual(getdate(last_accrual_date_a), getdate("2024-04-10"))
 		self.assertEqual(getdate(last_accrual_date_b), getdate("2024-04-20"))
+
+	def test_loc_loan_interest_accrual(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			500000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-17",
+			rate_of_interest=17,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-16",
+			limit_applicable_end="2026-10-16",
+		)
+		loan.submit()
+
+		disbursement_a = make_loan_disbursement_entry(
+			loan.name,
+			171000,
+			disbursement_date="2024-11-30",
+			repayment_start_date="2025-02-28",
+			repayment_frequency="One Time",
+		)
+		disbursement_a.submit()
+
+		disbursement_b = make_loan_disbursement_entry(
+			loan.name,
+			200000,
+			disbursement_date="2024-12-01",
+			repayment_start_date="2025-02-28",
+			repayment_frequency="One Time",
+		)
+		disbursement_b.submit()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-05", loan=loan.name, company="_Test Company"
+		)
+
+		loan_interest_accrual_1 = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_a.name,
+				"docstatus": 1,
+			},
+			fields=["name", "posting_date"],
+			order_by="posting_date asc",
+		)
+
+		loan_interest_accrual_2 = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_b.name,
+				"docstatus": 1,
+			},
+			fields=["name", "posting_date"],
+			order_by="posting_date asc",
+		)
+
+		self.assertEqual(
+			len(loan_interest_accrual_1), date_diff("2024-12-05", disbursement_a.disbursement_date) + 1
+		)
+		self.assertEqual(
+			len(loan_interest_accrual_2), date_diff("2024-12-05", disbursement_b.disbursement_date) + 1
+		)
+
+		self.assertEqual(
+			getdate(loan_interest_accrual_1[0].posting_date), getdate(disbursement_a.disbursement_date)
+		)
+		self.assertEqual(
+			getdate(loan_interest_accrual_2[0].posting_date), getdate(disbursement_b.disbursement_date)
+		)
 
 
 def get_loan_object(loan_doc):
