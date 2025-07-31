@@ -117,7 +117,7 @@ def make_suspense_gl_entry_for_charges(doc, method):
 	is_npa = frappe.db.get_value("Loan", doc.loan, "is_npa")
 	if is_npa:
 		move_receivable_charges_to_suspense_ledger(
-			doc.loan, doc.company, doc.posting_date, invoice=doc.name
+			doc.loan, doc.company, doc.posting_date, doc.value_date, invoice=doc.name
 		)
 
 
