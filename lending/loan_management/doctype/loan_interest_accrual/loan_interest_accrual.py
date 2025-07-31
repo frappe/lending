@@ -66,6 +66,8 @@ class LoanInterestAccrual(AccountsController):
 		if not self.posting_date:
 			self.posting_date = nowdate()
 
+		self.accrual_date = nowdate()
+
 		if not self.interest_amount:
 			frappe.throw(_("Interest Amount is mandatory"))
 
@@ -162,8 +164,8 @@ class LoanInterestAccrual(AccountsController):
 			write_off_date = frappe.db.get_value(
 				"Loan Write Off",
 				{"loan": self.loan, "docstatus": 1},
-				"posting_date",
-				order_by="posting_date desc",
+				"value_date",
+				order_by="value_date desc",
 			)
 
 			if write_off_date and getdate(self.posting_date) >= write_off_date:
@@ -244,7 +246,7 @@ class LoanInterestAccrual(AccountsController):
 								self.last_accrual_date, self.posting_date, self.loan
 							),
 							"cost_center": cost_center,
-							"posting_date": self.accrual_date or self.posting_date,
+							"posting_date": self.accrual_date,
 						}
 					)
 				)
@@ -262,7 +264,7 @@ class LoanInterestAccrual(AccountsController):
 								self.last_accrual_date, self.posting_date, self.loan
 							),
 							"cost_center": cost_center,
-							"posting_date": self.accrual_date or self.posting_date,
+							"posting_date": self.accrual_date,
 						}
 					)
 				)
@@ -281,7 +283,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
+						"posting_date": self.accrual_date,
 					}
 				)
 			)
@@ -299,7 +301,7 @@ class LoanInterestAccrual(AccountsController):
 							self.last_accrual_date, self.posting_date, self.loan
 						),
 						"cost_center": cost_center,
-						"posting_date": self.accrual_date or self.posting_date,
+						"posting_date": self.accrual_date,
 					}
 				)
 			)
@@ -946,11 +948,11 @@ def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
 	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
 
 	if schedule_type == "Line of Credit":
-		field = "MIN(posting_date)"
+		field = "MIN(disbursement_date)"
 	else:
 		field = "MAX(disbursement_date)"
 
-	filters = {"docstatus": 1, "against_loan": loan, "posting_date": ("<=", posting_date)}
+	filters = {"docstatus": 1, "against_loan": loan, "disbursement_date": ("<=", posting_date)}
 
 	if loan_disbursement:
 		filters["name"] = loan_disbursement

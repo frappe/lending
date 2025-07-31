@@ -34,6 +34,7 @@ class LoanWriteOff(AccountsController):
 		loan: DF.Link
 		loan_product: DF.Link | None
 		posting_date: DF.Date
+		value_date: DF.Date
 		write_off_account: DF.Link | None
 		write_off_amount: DF.Currency
 	# end: auto-generated types
@@ -50,6 +51,11 @@ class LoanWriteOff(AccountsController):
 			self.write_off_account = frappe.db.get_value(
 				"Loan Product", self.loan_product, "write_off_account"
 			)
+
+		self.posting_date = getdate()
+
+		if not self.value_date:
+			self.value_date = self.posting_date
 
 	def validate_write_off_amount(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -89,21 +95,21 @@ class LoanWriteOff(AccountsController):
 		)
 
 		if not self.is_settlement_write_off:
-			process_daily_loan_demands(self.posting_date, loan=self.loan)
+			process_daily_loan_demands(self.value_date, loan=self.loan)
 
 		self.process_unbooked_interest()
 
 		if not self.is_settlement_write_off:
-			make_loan_waivers(self.loan, self.posting_date)
+			make_loan_waivers(self.loan, self.value_date)
 
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.posting_date, self.company, on_write_off=True)
+		write_off_charges(self.loan, self.value_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
 
 		create_process_loan_classification(
-			posting_date=self.posting_date,
+			posting_date=self.value_date,
 			loan_product=self.loan_product,
 			loan=self.loan,
 		)
@@ -115,21 +121,21 @@ class LoanWriteOff(AccountsController):
 			get_unbooked_interest,
 		)
 
-		last_demand_date = get_last_demand_date(self.loan, self.posting_date)
+		last_demand_date = get_last_demand_date(self.loan, self.value_date)
 
 		unbooked_interest, unbooked_penalty = get_unbooked_interest(
-			self.loan, self.posting_date, last_demand_date=last_demand_date
+			self.loan, self.value_date, last_demand_date=last_demand_date
 		)
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if flt(unbooked_interest) > 0:
 			create_loan_demand(
-				self.loan, self.posting_date, "EMI", "Interest", flt(unbooked_interest, precision)
+				self.loan, self.value_date, "EMI", "Interest", flt(unbooked_interest, precision)
 			)
 
 	def cancel_suspense_entries(self):
 		write_off_suspense_entries(
-			self.loan, self.loan_product, self.posting_date, self.company, is_write_off=self.is_npa
+			self.loan, self.loan_product, self.value_date, self.company, is_write_off=self.is_npa
 		)
 
 	def on_cancel(self):
@@ -145,7 +151,7 @@ class LoanWriteOff(AccountsController):
 		if write_off_count >= 1:
 			return
 
-		waivers = get_write_off_waivers_for_cancel(self.loan, self.posting_date)
+		waivers = get_write_off_waivers_for_cancel(self.loan, self.value_date)
 
 		for waiver in waivers:
 			doc = frappe.get_doc("Loan Repayment", waiver)

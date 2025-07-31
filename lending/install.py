@@ -30,6 +30,13 @@ LOAN_CUSTOM_FIELDS = {
 			"read_only": 1,
 			"print_hide": 1,
 		},
+		{
+			"fieldname": "value_date",
+			"fieldtype": "Date",
+			"label": "Value Date",
+			"insert_after": "posting_date",
+			"search_index": 1,
+		},
 	],
 	"Company": [
 		{
@@ -221,6 +228,22 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Loan",
 			"insert_after": "loan_transfer",
 			"options": "Loan",
+			"search_index": 1,
+		},
+		{
+			"fieldname": "value_date",
+			"fieldtype": "Date",
+			"label": "Value Date",
+			"insert_after": "posting_date",
+			"search_index": 1,
+		},
+	],
+	"GL Entry": [
+		{
+			"fieldname": "value_date",
+			"fieldtype": "Date",
+			"label": "Value Date",
+			"insert_after": "posting_date",
 			"search_index": 1,
 		},
 	],

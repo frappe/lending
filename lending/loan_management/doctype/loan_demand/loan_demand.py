@@ -53,6 +53,8 @@ class LoanDemand(AccountsController):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 		self.partner_share_allocated = 0
 
+		self.posting_date = getdate()
+
 		if self.get("loan_partner"):
 			if self.demand_type == "EMI" and self.demand_subtype == "Principal":
 				partner_share_field = "principal_amount"
@@ -185,7 +187,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date or self.demand_date,
+						"posting_date": self.posting_date,
 						"account": receivable_account,
 						"against": accrual_account,
 						"debit": self.demand_amount,
@@ -201,7 +203,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date or self.demand_date,
+						"posting_date": self.posting_date,
 						"account": accrual_account,
 						"against": receivable_account,
 						"credit": self.demand_amount,
@@ -577,6 +579,7 @@ def make_credit_note(
 	loan_repayment=None,
 	waiver_account=None,
 	posting_date=None,
+	value_date=None,
 ):
 	si = frappe.new_doc("Sales Invoice")
 	si.flags.ignore_links = True
@@ -596,6 +599,7 @@ def make_credit_note(
 
 	si.set_posting_time = 1
 	si.posting_date = posting_date
+	si.value_date = value_date
 
 	rate, income_account = frappe.db.get_value(
 		"Sales Invoice Item",

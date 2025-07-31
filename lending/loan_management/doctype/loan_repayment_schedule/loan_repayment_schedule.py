@@ -18,6 +18,9 @@ from frappe.utils import (
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	get_accrual_frequency_breaks,
+)
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
 	get_amounts,
@@ -144,7 +147,12 @@ class LoanRepaymentSchedule(Document):
 		prepayment_details = frappe.db.get_value(
 			"Loan Restructure",
 			{"loan": self.loan, "name": self.loan_restructure},
-			["unaccrued_interest", "principal_adjusted", "balance_principal"],
+			[
+				"unaccrued_interest",
+				"adjusted_unaccrued_interest",
+				"principal_adjusted",
+				"balance_principal",
+			],
 			as_dict=1,
 		)
 
@@ -153,6 +161,13 @@ class LoanRepaymentSchedule(Document):
 		principal_balance = prepayment_details.balance_principal
 		paid_interest_amount = interest_amount
 		paid_principal_amount = principal_amount
+
+		if (
+			prepayment_details.adjusted_unaccrued_interest
+			and prepayment_details.adjusted_unaccrued_interest < prepayment_details.unaccrued_interest
+		):
+			interest_amount = prepayment_details.adjusted_unaccrued_interest
+			paid_interest_amount = interest_amount
 
 		if flt(interest_amount) > 0:
 			create_loan_demand(
@@ -194,18 +209,36 @@ class LoanRepaymentSchedule(Document):
 		)
 
 		if payable_interest > 0:
-			make_loan_interest_accrual_entry(
-				self.loan,
-				self.current_principal_amount - principal_balance,
-				flt(payable_interest, precision),
-				"",
-				add_days(last_accrual_date, 1),
-				add_days(self.posting_date, -1),
-				"Regular",
-				"Normal Interest",
-				self.rate_of_interest,
-				loan_repayment_schedule=self.name,
+			loan_accrual_frequency = frappe.get_value("Company", self.company, "loan_accrual_frequency")
+			start_date = add_days(last_accrual_date, 1)
+			end_date = add_days(self.posting_date, -1)
+
+			accrual_frequency_breaks = get_accrual_frequency_breaks(
+				last_accrual_date, accrual_date=end_date, loan_accrual_frequency=loan_accrual_frequency
 			)
+			if len(accrual_frequency_breaks):
+				if getdate(accrual_frequency_breaks[-1]) < getdate(end_date):
+					accrual_frequency_breaks.append(end_date)
+
+			current_last_accrual_date = start_date
+			total_no_of_days = date_diff(end_date, start_date) + 1
+
+			balance_amount = self.current_principal_amount - principal_balance
+			for posting_date in accrual_frequency_breaks:
+				no_of_days = date_diff(posting_date, current_last_accrual_date) + 1
+				make_loan_interest_accrual_entry(
+					self.loan,
+					balance_amount,
+					flt(payable_interest * (no_of_days / total_no_of_days), precision),
+					None,
+					current_last_accrual_date,
+					posting_date,
+					"Regular",
+					"Normal Interest",
+					self.rate_of_interest,
+					loan_repayment_schedule=self.name,
+				)
+				current_last_accrual_date = add_days(posting_date, 1)
 		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
 	def on_cancel(self):
@@ -671,18 +704,21 @@ class LoanRepaymentSchedule(Document):
 					additional_principal_amount = self.disbursed_amount
 
 				if self.restructure_type == "Advance Payment":
-					unaccrued_interest = frappe.db.get_value(
-						"Loan Restructure", self.loan_restructure, "unaccrued_interest"
+					adjusted_unaccrued_interest = frappe.db.get_value(
+						"Loan Restructure", self.loan_restructure, "adjusted_unaccrued_interest"
 					)
 
-					interest_amount = unaccrued_interest
+					interest_amount = adjusted_unaccrued_interest
 
 					paid_principal_amount = self.monthly_repayment_amount - interest_amount
 					total_payment = paid_principal_amount + interest_amount
 					balance_principal_amount = self.current_principal_amount
 					previous_interest_amount = 0
 
-					if self.repayment_schedule_type == "Monthly as per cycle date":
+					if (
+						self.repayment_schedule_type == "Monthly as per cycle date"
+						and self.repayment_frequency == "Monthly"
+					):
 						if not previous_broken_period_interest:
 							ignore_bpi = True
 						else:
@@ -748,6 +784,16 @@ class LoanRepaymentSchedule(Document):
 						interest_amount = flt(
 							self.current_principal_amount * flt(self.rate_of_interest) * pending_prev_days / (36500)
 						)
+
+						unaccrued_interest, adjusted_unaccrued_interest = frappe.db.get_value(
+							"Loan Restructure",
+							self.loan_restructure,
+							["unaccrued_interest", "adjusted_unaccrued_interest"],
+						)
+
+						if adjusted_unaccrued_interest and adjusted_unaccrued_interest < unaccrued_interest:
+							previous_interest_amount = unaccrued_interest - adjusted_unaccrued_interest
+							interest_amount += previous_interest_amount
 
 						if self.current_principal_amount > self.monthly_repayment_amount:
 							principal_amount = self.monthly_repayment_amount - interest_amount

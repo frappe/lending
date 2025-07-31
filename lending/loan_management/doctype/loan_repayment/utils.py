@@ -12,7 +12,8 @@ def get_pending_principal_amount_for_loans(loans, disbursement_map):
 		frappe.db.get_all(
 			"Loan Disbursement",
 			{"against_loan": ["in", loan_list]},
-			["name", "(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
+			["name", "sum(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
+			group_by="name",
 			as_list=1,
 		)
 	)

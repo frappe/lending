@@ -34,6 +34,7 @@ class LoanRefund(AccountsController):
 		reference_number: DF.Data | None
 		refund_account: DF.Link
 		refund_amount: DF.Currency
+		value_date: DF.Date
 	# end: auto-generated types
 
 	"""
@@ -41,6 +42,7 @@ class LoanRefund(AccountsController):
 	"""
 
 	def validate(self):
+		self.posting_date = getdate()
 		self.set_missing_values()
 		# self.validate_refund_amount()
 
@@ -113,7 +115,7 @@ class LoanRefund(AccountsController):
 
 	def mark_loan_as_closed(self):
 		frappe.db.set_value(
-			"Loan", self.loan, {"status": "Closed", "closure_date": getdate(self.posting_date)}
+			"Loan", self.loan, {"status": "Closed", "closure_date": getdate(self.value_date)}
 		)
 		schedule = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}

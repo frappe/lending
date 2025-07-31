@@ -317,7 +317,7 @@ class LoanDisbursement(AccountsController):
 		if not self.disbursement_date:
 			self.disbursement_date = nowdate()
 
-		self.posting_date = self.disbursement_date or nowdate()
+		self.posting_date = nowdate()
 
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
@@ -611,7 +611,7 @@ class LoanDisbursement(AccountsController):
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
-					"posting_date": bpi_difference_date or self.disbursement_date,
+					"posting_date": self.posting_date,
 				}
 			)
 		)
@@ -629,7 +629,7 @@ class LoanDisbursement(AccountsController):
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
 					"cost_center": self.cost_center,
-					"posting_date": bpi_difference_date or self.disbursement_date,
+					"posting_date": self.posting_date,
 				}
 			)
 		)
