@@ -34,24 +34,76 @@ frappe.query_reports["Loan Outstanding Report"] = {
 				}
 				return applicant_type;
 			},
+			"get_query": function() {
+				let applicant_type = frappe.query_report.get_filter_value('applicant_type');
+				let company = frappe.query_report.get_filter_value('company');
+
+				if (applicant_type === "Employee") {
+					return {
+						filters: {
+							company: company
+						}
+					};
+				}
+				return {};
+			}
 		},
 		{
 			"fieldname":"loan_product",
 			"label": __("Loan Product"),
 			"fieldtype": "Link",
 			"options": "Loan Product",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				return {
+					filters: {
+						company: company,
+					},
+				};
+			},
+			on_change: function() {
+				frappe.query_report.set_filter_value("loan", "");
+				frappe.query_report.set_filter_value("loan_disbursement", "");
+			}
 		},
 		{
 			"fieldname":"loan",
 			"label": __("Loan"),
 			"fieldtype": "Link",
 			"options": "Loan",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				var loan_product = frappe.query_report.get_filter_value("loan_product");
+				return {
+					filters: {
+						company: company,
+						docstatus: 1,
+						loan_product: loan_product || undefined,
+					},
+				};
+			},
+			on_change: function() {
+				frappe.query_report.set_filter_value("loan_disbursement", "");
+			}
 		},
 		{
 			"fieldname":"loan_disbursement",
 			"label": __("Loan Disbursement"),
 			"fieldtype": "Link",
 			"options": "Loan Disbursement",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				var loan = frappe.query_report.get_filter_value("loan");
+				var loan_product = frappe.query_report.get_filter_value("loan_product");
+				return {
+					filters: {
+						company: company,
+						docstatus: 1,
+						against_loan: loan || undefined,
+						loan_product: loan_product || undefined,
+					},
+				};
+			},
 		},
 	],
 };
