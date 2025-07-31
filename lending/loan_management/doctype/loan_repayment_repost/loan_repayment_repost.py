@@ -278,8 +278,8 @@ class LoanRepaymentRepost(Document):
 			else:
 				is_security_deposit_adjustment = False
 
-			for entry in repayment_doc.get("repayment_details"):
-				frappe.delete_doc("Loan Repayment Detail", entry.name, force=1)
+			for _entry in repayment_doc.get("repayment_details"):
+				frappe.delete_doc("Loan Repayment Detail", _entry.name, force=1)
 
 			repayment_doc.docstatus = 1
 			repayment_doc.set("pending_principal_amount", 0)
@@ -375,6 +375,7 @@ class LoanRepaymentRepost(Document):
 				frappe.db.set_value(
 					"Loan Repayment",
 					entry.loan_repayment,
+					"repayment_type",
 					"Security Deposit Adjustment",
 				)
 
