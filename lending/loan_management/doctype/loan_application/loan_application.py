@@ -84,7 +84,7 @@ class LoanApplication(Document):
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
 
-	def on_update(self):
+	def before_save(self):
 		duplicates = check_duplicate_customers(
 			applicant_phone_number=self.applicant_phone_number,
 			applicant_email_address=self.applicant_email_address,

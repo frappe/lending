@@ -19,7 +19,7 @@ class LoanOriginationSettings(Document):
 
 	pass
 
-	def on_update(self):
+	def before_save(self):
 		fields = ["mobile_no", "email_id"]
 		field_string = ", ".join([f"'{i}'" for i in fields])  # for raw sql querying
 
