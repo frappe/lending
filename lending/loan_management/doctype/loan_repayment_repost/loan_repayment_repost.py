@@ -151,7 +151,9 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.docstatus = 2
 
 				repayment_doc.update_demands(cancel=1)
-				repayment_doc.update_security_deposit_amount(cancel=1)
+
+				if repayment_doc.amount_paid <= repayment_doc.payable_amount:
+					repayment_doc.update_security_deposit_amount(cancel=1)
 
 				if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment"):
 					repayment_doc.cancel_loan_restructure()
@@ -271,8 +273,13 @@ class LoanRepaymentRepost(Document):
 			if repayment_doc.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.db.set_value("Loan", self.loan, "status", "Written Off")
 
-			for entry in repayment_doc.get("repayment_details"):
-				frappe.delete_doc("Loan Repayment Detail", entry.name, force=1)
+			if repayment_doc.repayment_type == "Security Deposit Adjustment":
+				is_security_deposit_adjustment = True
+			else:
+				is_security_deposit_adjustment = False
+
+			for _entry in repayment_doc.get("repayment_details"):
+				frappe.delete_doc("Loan Repayment Detail", _entry.name, force=1)
 
 			repayment_doc.docstatus = 1
 			repayment_doc.set("pending_principal_amount", 0)
@@ -363,6 +370,14 @@ class LoanRepaymentRepost(Document):
 						doc.make_gl_entries()
 
 					frappe.db.set_value("Loan", self.loan, "written_off_amount", write_off_amount)
+
+			if is_security_deposit_adjustment:
+				frappe.db.set_value(
+					"Loan Repayment",
+					entry.loan_repayment,
+					"repayment_type",
+					"Security Deposit Adjustment",
+				)
 
 			repayment_doc.flags.from_repost = False
 			frappe.flags.on_repost = False
