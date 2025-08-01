@@ -20,6 +20,7 @@ frappe.query_reports["Loan Outstanding Report"] = {
 			"default": "Customer",
 			on_change: function() {
 				frappe.query_report.set_filter_value('applicant', "");
+				frappe.query_report.refresh();
 			}
 		},
 		{
@@ -64,6 +65,7 @@ frappe.query_reports["Loan Outstanding Report"] = {
 			on_change: function() {
 				frappe.query_report.set_filter_value("loan", "");
 				frappe.query_report.set_filter_value("loan_disbursement", "");
+				frappe.query_report.refresh();
 			}
 		},
 		{
@@ -84,6 +86,7 @@ frappe.query_reports["Loan Outstanding Report"] = {
 			},
 			on_change: function() {
 				frappe.query_report.set_filter_value("loan_disbursement", "");
+				frappe.query_report.refresh();
 			}
 		},
 		{
