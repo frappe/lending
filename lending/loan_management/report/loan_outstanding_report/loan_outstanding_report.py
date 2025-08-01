@@ -109,8 +109,8 @@ def get_data(filters):
 			against_loan=loan, posting_date=getdate(), loan_disbursement=loan_disbursement
 		)
 		pending_principal_amount = flt(amounts.get("pending_principal_amount", 0))
-		principal_overdue = flt(amounts.get("principal_overdue", 0))
-		interest_overdue = flt(amounts.get("interest_overdue", 0))
+		principal_overdue = flt(amounts.get("payable_principal_amount", 0))
+		interest_overdue = flt(amounts.get("interest_amount", 0))
 
 		results.append(
 			{
