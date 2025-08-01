@@ -267,11 +267,7 @@ class LoanRepayment(AccountsController):
 		if (
 			self.is_term_loan
 			and self.repayment_type
-			not in (
-				"Interest Waiver",
-				"Penalty Waiver",
-				"Charges Waiver",
-			)
+			not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver", "Write Off Recovery")
 			and not self.flags.from_repost
 		):
 			max_date = None
