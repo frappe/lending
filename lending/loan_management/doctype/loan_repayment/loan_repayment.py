@@ -267,11 +267,7 @@ class LoanRepayment(AccountsController):
 		if (
 			self.is_term_loan
 			and self.repayment_type
-			not in (
-				"Interest Waiver",
-				"Penalty Waiver",
-				"Charges Waiver",
-			)
+			not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver", "Write Off Recovery")
 			and not self.flags.from_repost
 		):
 			max_date = None
@@ -508,7 +504,7 @@ class LoanRepayment(AccountsController):
 				loan_repayment_schedule = frappe.db.get_value(
 					"Loan Repayment Schedule", {"loan_restructure": loan_restructure}, "name"
 				)
-			on_back_dated_prepayment = True
+				on_back_dated_prepayment = True
 
 		accruals = reverse_loan_interest_accruals(
 			self.against_loan,
@@ -1301,8 +1297,8 @@ class LoanRepayment(AccountsController):
 		):
 			loan = frappe.qb.DocType("Loan")
 
-			loan_status, repayment_schedule_type = frappe.db.get_value(
-				"Loan", self.against_loan, ["status", "repayment_schedule_type"]
+			repayment_schedule_type = frappe.db.get_value(
+				"Loan", self.against_loan, "repayment_schedule_type"
 			)
 
 			schedule_filters = {"loan": self.against_loan, "docstatus": 1, "status": "Closed"}

@@ -2354,7 +2354,7 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
 
-	def test_accrual_background_job(self):
+	def test_interest_accrual_breaks(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",

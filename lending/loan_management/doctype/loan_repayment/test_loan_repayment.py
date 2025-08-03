@@ -246,7 +246,7 @@ class TestLoanRepayment(FrappeTestCase):
 	def test_demand_generation_upon_pre_payment(self):
 		loan = create_loan(
 			"_Test Customer 1",
-			"Term Loan Product 2",
+			"Term Loan Product 4",
 			100000,
 			"Repay Over Number of Periods",
 			22,
@@ -261,34 +261,28 @@ class TestLoanRepayment(FrappeTestCase):
 			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-09-16"
 		)
 
-		process_daily_loan_demands(posting_date="2024-11-16", loan=loan.name)
-
-		payable_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")["payable_amount"]
-		payable_principal_amount = get_amounts(init_amounts(), loan.name, "2024-09-01")[
-			"payable_principal_amount"
-		]
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-01", payable_amount, repayment_type="Normal Repayment"
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-08-31", loan=loan.name, company="_Test Company"
 		)
-		repayment_entry.submit()
-		pending_principal_amount = get_amounts(
-			init_amounts(), loan.name, timedelta(seconds=1) + get_datetime("2024-09-01")
-		)["pending_principal_amount"]
+
+		amounts = get_amounts(init_amounts(), loan.name, "2024-09-01")
+
 		repayment_entry = create_repayment_entry(
 			loan.name,
-			timedelta(seconds=1) + get_datetime("2024-09-01"),
-			pending_principal_amount,
+			"2024-09-01",
+			amounts["pending_principal_amount"] + amounts["unbooked_interest"],
 			repayment_type="Pre Payment",
 		)
 		repayment_entry.submit()
 
 		generated_demands = frappe.db.get_all(
 			"Loan Demand",
-			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Principal"},
+			{"loan": loan.name, "docstatus": 1},
 			pluck="demand_amount",
+			order_by="demand_amount",
 		)
 		self.assertEqual(
-			sorted(generated_demands), sorted([payable_principal_amount, pending_principal_amount])
+			generated_demands, [amounts["unbooked_interest"], amounts["pending_principal_amount"]]
 		)
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
