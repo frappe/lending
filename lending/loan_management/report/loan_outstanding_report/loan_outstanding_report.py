@@ -16,43 +16,109 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"label": _("Loan"), "fieldname": "loan", "fieldtype": "Link", "options": "Loan"},
+		{"label": _("Loan"), "fieldname": "loan", "fieldtype": "Link", "options": "Loan", "width": 200},
+		{"label": _("Applicant Name"), "fieldname": "applicant", "fieldtype": "Data", "width": 150},
+		{"label": _("Loan Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
+		{"label": _("Loan Amount"), "fieldname": "loan_amount", "fieldtype": "Currency", "width": 130},
 		{
 			"label": _("Loan Disbursement"),
 			"fieldname": "loan_disbursement",
 			"fieldtype": "Link",
 			"options": "Loan Disbursement",
+			"width": 150,
 		},
-		{"label": _("Disbursement Date"), "fieldname": "disbursement_date", "fieldtype": "Date"},
-		{"label": _("Disbursed Amount"), "fieldname": "disbursed_amount", "fieldtype": "Currency"},
-		{"label": _("Applicant Name"), "fieldname": "applicant", "fieldtype": "Data"},
+		{
+			"label": _("Disbursement Date"),
+			"fieldname": "disbursement_date",
+			"fieldtype": "Date",
+			"width": 110,
+		},
+		{
+			"label": _("Disbursed Amount"),
+			"fieldname": "disbursed_amount",
+			"fieldtype": "Currency",
+			"width": 130,
+		},
 		{
 			"label": _("Loan Product"),
 			"fieldname": "loan_product",
 			"fieldtype": "Link",
 			"options": "Loan Product",
+			"width": 150,
 		},
-		{"label": _("Loan Date"), "fieldname": "posting_date", "fieldtype": "Date"},
-		{"label": _("Loan Amount"), "fieldname": "loan_amount", "fieldtype": "Currency"},
 		{
 			"label": _("Total Principal Paid"),
 			"fieldname": "principal_amount_paid",
 			"fieldtype": "Currency",
+			"width": 150,
 		},
-		{"label": _("Total Interest Paid"), "fieldname": "total_interest_paid", "fieldtype": "Currency"},
-		{"label": _("Total Amount Paid"), "fieldname": "total_amount_paid", "fieldtype": "Currency"},
+		{
+			"label": _("Total Interest Paid"),
+			"fieldname": "total_interest_paid",
+			"fieldtype": "Currency",
+			"width": 150,
+		},
+		{
+			"label": _("Total Amount Paid"),
+			"fieldname": "total_amount_paid",
+			"fieldtype": "Currency",
+			"width": 150,
+		},
 		{
 			"label": _("Principal Outstanding"),
 			"fieldname": "pending_principal_amount",
 			"fieldtype": "Currency",
+			"width": 150,
 		},
-		{"label": _("Principal Overdue"), "fieldname": "principal_overdue", "fieldtype": "Currency"},
-		{"label": _("Interest Overdue"), "fieldname": "interest_overdue", "fieldtype": "Currency"},
-		{"label": _("Loan Status"), "fieldname": "status", "fieldtype": "Data"},
-		{"label": _("EMIs Paid"), "fieldname": "total_installments_paid", "fieldtype": "Int"},
-		{"label": _("EMIs Raised"), "fieldname": "total_installments_raised", "fieldtype": "Int"},
-		{"label": _("EMIs Due"), "fieldname": "total_installments_overdue", "fieldtype": "Int"},
-		{"label": _("Interest Rate (%)"), "fieldname": "rate_of_interest", "fieldtype": "Percent"},
+		{
+			"label": _("Principal Overdue"),
+			"fieldname": "principal_overdue",
+			"fieldtype": "Currency",
+			"width": 150,
+		},
+		{
+			"label": _("Interest Overdue"),
+			"fieldname": "interest_overdue",
+			"fieldtype": "Currency",
+			"width": 150,
+		},
+		{
+			"label": _("EMIs Paid"),
+			"fieldname": "total_installments_paid",
+			"fieldtype": "Int",
+			"width": 100,
+		},
+		{
+			"label": _("EMIs Raised"),
+			"fieldname": "total_installments_raised",
+			"fieldtype": "Int",
+			"width": 100,
+		},
+		{
+			"label": _("EMIs Due"),
+			"fieldname": "total_installments_overdue",
+			"fieldtype": "Int",
+			"width": 100,
+		},
+		{
+			"label": _("Repayment Period"),
+			"fieldname": "repayment_period",
+			"fieldtype": "Data",
+			"width": 120,
+		},
+		{
+			"label": _("Days Pass Due"),
+			"fieldname": "days_past_due",
+			"fieldtype": "Int",
+			"width": 120,
+		},
+		{
+			"label": _("Interest Rate (%)"),
+			"fieldname": "rate_of_interest",
+			"fieldtype": "Percent",
+			"width": 120,
+		},
+		{"label": _("Status"), "fieldname": "status", "fieldtype": "Data", "width": 100},
 	]
 
 
@@ -76,8 +142,9 @@ def get_data(filters):
 			Loan.status,
 			Loan.rate_of_interest,
 			Loan.repayment_schedule_type,
+			Loan.days_past_due,
 		)
-		.where(Loan.docstatus == 1)
+		.where((Loan.docstatus == 1) & (Loan.status != "Closed"))
 	)
 
 	for fl in ("company", "applicant_type", "loan_product", "applicant", "loan"):
