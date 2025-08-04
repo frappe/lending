@@ -734,7 +734,13 @@ def create_loan_repayment(
 
 
 def create_update_loan_reschedule(
-	loan, posting_date, loan_repayment, repayment_type, principal_adjusted, loan_disbursement=None
+	loan,
+	posting_date,
+	loan_repayment,
+	repayment_type,
+	principal_adjusted,
+	allocated_interest,
+	loan_disbursement=None,
 ):
 	if frappe.db.get_value("Loan Restructure", {"loan_repayment": loan_repayment, "docstatus": 0}):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": loan_repayment})
@@ -744,7 +750,12 @@ def create_update_loan_reschedule(
 
 	loan_restructure.update(
 		get_restructure_details(
-			loan, posting_date, repayment_type, principal_adjusted, loan_disbursement=loan_disbursement
+			loan,
+			posting_date,
+			repayment_type,
+			principal_adjusted,
+			allocated_interest,
+			loan_disbursement=loan_disbursement,
 		)
 	)
 
@@ -752,7 +763,7 @@ def create_update_loan_reschedule(
 
 
 def get_restructure_details(
-	loan, posting_date, repayment_type, principal_adjusted, loan_disbursement=None
+	loan, posting_date, repayment_type, principal_adjusted, allocated_interest, loan_disbursement=None
 ):
 	(
 		pending_tenure,
@@ -770,6 +781,7 @@ def get_restructure_details(
 		"repayment_start_date": repayment_start_date,
 		"moratorium_end_date": moratorium_end_date,
 		"principal_adjusted": principal_adjusted,
+		"adjusted_unaccrued_interest": allocated_interest,
 		"loan_disbursement": loan_disbursement,
 	}
 
