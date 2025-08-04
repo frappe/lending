@@ -107,7 +107,7 @@ def get_columns():
 			"width": 120,
 		},
 		{
-			"label": _("Days Pass Due"),
+			"label": _("Days Past Due"),
 			"fieldname": "days_past_due",
 			"fieldtype": "Int",
 			"width": 120,
