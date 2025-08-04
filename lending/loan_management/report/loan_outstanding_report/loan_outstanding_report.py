@@ -221,8 +221,6 @@ def get_repayment_details(loan, disbursement_name=None, repayment_schedule_type=
 
 	result = query.run(as_dict=True)
 
-	print("Query Result:", result)
-
 	return (
 		result[0]
 		if result
