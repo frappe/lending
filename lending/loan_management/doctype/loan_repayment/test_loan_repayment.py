@@ -1275,3 +1275,45 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
+
+	def test_loan_auto_closure_with_charge_under_limit(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			5000,
+			"Repay Over Number of Periods",
+			1,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-07-01",
+				"value_date": "2024-07-01",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 50}],
+			}
+		)
+		sales_invoice.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-07-15", 5068)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")

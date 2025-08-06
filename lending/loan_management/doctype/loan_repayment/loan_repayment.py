@@ -256,6 +256,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries()
 
 		self.update_paid_amounts()
+		# self.set_excess_amount_for_normal_payment()
 		self.handle_auto_demand_write_off()
 		self.update_demands()
 		self.update_security_deposit_amount()
@@ -1178,8 +1179,6 @@ class LoanRepayment(AccountsController):
 			["write_off_amount", "excess_amount_acceptance_limit"],
 		)
 
-		shortfall_amount = self.pending_principal_amount - self.principal_amount_paid
-
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
 			total_payable = (
 				frappe.db.get_value(
@@ -1199,6 +1198,9 @@ class LoanRepayment(AccountsController):
 
 		if self.excess_amount > 0 and self.repayment_schedule_type == "Line of Credit":
 			auto_close = True
+
+		shortfall_amount = flt(self.pending_principal_amount - self.principal_amount_paid, precision)
+		shortfall_amount += flt(self.total_charges_payable - self.total_charges_paid, precision)
 
 		if (
 			auto_write_off_amount
@@ -1450,7 +1452,6 @@ class LoanRepayment(AccountsController):
 				frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
 				self.load_from_db()
 
-		total_demanded_principal = 0
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
 		self.total_interest_paid = 0
@@ -1461,9 +1462,6 @@ class LoanRepayment(AccountsController):
 		self.total_partner_interest_share = 0
 		self.excess_amount = 0
 		settlement_date = None
-		for demand in amounts.get("unpaid_demands"):
-			if demand.get("demand_subtype") == "Principal":
-				total_demanded_principal += demand.get("outstanding_amount")
 
 		if (
 			self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
@@ -1626,6 +1624,10 @@ class LoanRepayment(AccountsController):
 
 			self.total_interest_paid = flt(self.total_interest_paid, precision)
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
+
+	def set_excess_amount_for_normal_payment(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		total_demanded_principal = self.payable_principal_amount
 
 		if (
 			self.auto_close_loan() or flt(self.principal_amount_paid - self.pending_principal_amount) > 0
