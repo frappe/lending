@@ -1044,7 +1044,7 @@ class TestLoanRepayment(FrappeTestCase):
 			data.append(
 				{
 					"against_loan": loan_a.name,
-					"value_date": add_months(repayment_start_date, i),
+					"posting_date": add_months(repayment_start_date, i),
 					"amount_paid": 178025,
 				}
 			)
@@ -1053,35 +1053,35 @@ class TestLoanRepayment(FrappeTestCase):
 			data.append(
 				{
 					"against_loan": loan_c.name,
-					"value_date": add_months(repayment_start_date, i),
+					"posting_date": add_months(repayment_start_date, i),
 					"amount_paid": 178025 + i,
 				}
 			)
 		post_bulk_payments(data)
 
 		create_repayment_entry(
-			loan=loan_b.name, value_date=repayment_start_date, paid_amount=178025
+			loan=loan_b.name, posting_date=repayment_start_date, paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, value_date=add_months(repayment_start_date, 1), paid_amount=178025
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 1), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, value_date=add_months(repayment_start_date, 2), paid_amount=178025
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 2), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, value_date=add_months(repayment_start_date, 3), paid_amount=178025
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 3), paid_amount=178025
 		).submit()
 		create_repayment_entry(
-			loan=loan_b.name, value_date=add_months(repayment_start_date, 4), paid_amount=178025
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
 		).submit()
 
 		dates = [add_months(repayment_start_date, i) for i in range(5)]
 		for date in dates:
 			repayment_a = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "value_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "posting_date": date}
 			)
 			repayment_b = frappe.get_doc(
-				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "value_date": date}
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "posting_date": date}
 			)
 
 			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
@@ -1132,7 +1132,7 @@ class TestLoanRepayment(FrappeTestCase):
 			data.append(
 				{
 					"against_loan": loan_a.name,
-					"value_date": add_months(repayment_start_date, i),
+					"posting_date": add_months(repayment_start_date, i),
 					"amount_paid": 178025,
 				}
 			)
@@ -1142,7 +1142,7 @@ class TestLoanRepayment(FrappeTestCase):
 			data.append(
 				{
 					"against_loan": loan_b.name,
-					"value_date": add_months(repayment_start_date, i),
+					"posting_date": add_months(repayment_start_date, i),
 					"amount_paid": 178025,
 				}
 			)
