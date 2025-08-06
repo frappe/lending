@@ -1131,7 +1131,11 @@ def get_parent_wise_dates(loan, posting_date, loan_accrual_frequency, loan_disbu
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
 		posting_date = freeze_date
 
+	maturity_map = add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date)
+
 	for schedule in schedules:
+		maturity_date = maturity_map.get(schedule)
+
 		last_accrual_date = get_last_accrual_date(
 			loan,
 			posting_date,
@@ -1143,7 +1147,11 @@ def get_parent_wise_dates(loan, posting_date, loan_accrual_frequency, loan_disbu
 		accrual_schedule_map[schedule] = last_accrual_date
 
 		parent_wise_schedules.setdefault(schedule, [])
-		if getdate(last_accrual_date) <= posting_date and loan_accrual_frequency == "Daily":
+		if (
+			getdate(last_accrual_date) < getdate(maturity_date)
+			and getdate(last_accrual_date) <= posting_date
+			and loan_accrual_frequency == "Daily"
+		):
 			parent_wise_schedules[schedule].append(getdate(last_accrual_date))
 
 		schedule_filters = {
@@ -1176,8 +1184,6 @@ def get_parent_wise_dates(loan, posting_date, loan_accrual_frequency, loan_disbu
 		parent_wise_schedules.setdefault(schedules[0], [])
 		if freeze_accrual_date not in parent_wise_schedules[schedules[0]]:
 			parent_wise_schedules[schedules[0]].append(freeze_accrual_date)
-
-	maturity_map = add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date)
 
 	return parent_wise_schedules, maturity_map, accrual_schedule_map
 
