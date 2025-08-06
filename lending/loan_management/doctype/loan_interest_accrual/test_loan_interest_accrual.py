@@ -199,7 +199,7 @@ class TestLoanInterestAccrual(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
 		)
 		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, [{"MAX": "posting_date"}]
+			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, "MAX(posting_date)"
 		)
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
