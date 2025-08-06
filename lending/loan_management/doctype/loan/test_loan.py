@@ -2969,6 +2969,7 @@ class TestLoan(FrappeTestCase):
 		)
 		self.assertEqual(len(demands), 2)
 
+<<<<<<< HEAD
 	def test_loan_interest_accruals_after_maturity_date(self):
 		set_loan_accrual_frequency("Monthly")
 		loan = create_loan(
@@ -3005,6 +3006,8 @@ class TestLoan(FrappeTestCase):
 		)
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
+=======
+>>>>>>> 0a6df685 (fix: Interest Accrual after maturity)
 	def test_two_day_break_up_in_accrual_frequency(self):
 		loan = create_loan(
 			"_Test Customer 1",
