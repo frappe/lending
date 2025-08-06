@@ -1,9 +1,17 @@
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import date_diff, getdate
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, date_diff, getdate
+>>>>>>> 0a6df685 (fix: Interest Accrual after maturity)
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	process_interest_accrual_batch,
+)
+from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+	process_daily_loan_demands,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
@@ -163,6 +171,48 @@ class TestLoanInterestAccrual(FrappeTestCase):
 		self.assertEqual(
 			getdate(loan_interest_accrual_2[0].posting_date), getdate(disbursement_b.disbursement_date)
 		)
+
+	def test_loan_interest_accruals_after_maturity_date(self):
+		set_loan_accrual_frequency("Monthly")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			3,
+			"Customer",
+			posting_date="2024-03-25",
+			rate_of_interest=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-03-25",
+			repayment_start_date="2024-04-07",
+			withhold_security_deposit=1,
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-8-05", loan=loan.name, company="_Test Company"
+		)
+
+		maturity_date = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
+		)
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, [{"MAX": "posting_date"}]
+		)
+		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-8-05", loan=loan.name, company="_Test Company"
+		)
+
+		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
 
 def get_loan_object(loan_doc):
