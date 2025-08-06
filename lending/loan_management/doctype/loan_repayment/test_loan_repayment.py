@@ -673,7 +673,6 @@ class TestLoanRepayment(FrappeTestCase):
 
 		self.assertEqual(interest_accrual_revised, 77.92)
 
-<<<<<<< HEAD
 	def test_loan_repayment_cancel_with_amount_overlimit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
@@ -1067,7 +1066,7 @@ class TestLoanRepayment(FrappeTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
-=======
+
 	def test_bulk_payments(self):
 		posting_date = get_datetime("2024-04-18")
 		repayment_start_date = get_datetime("2024-05-05")
@@ -1166,9 +1165,6 @@ class TestLoanRepayment(FrappeTestCase):
 			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
 			self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
 			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
-<<<<<<< HEAD
->>>>>>> ec297363 (test: bulk payments new test)
-=======
 
 	def test_bulk_repayment_logs(self):
 		posting_date = get_datetime("2024-04-18")
@@ -1235,4 +1231,3 @@ class TestLoanRepayment(FrappeTestCase):
 
 		self.assertEqual(successful_log.status, "Success")
 		self.assertEqual(failed_log.status, "Failure")
->>>>>>> ead511fe (test: bulk repayment log status)
