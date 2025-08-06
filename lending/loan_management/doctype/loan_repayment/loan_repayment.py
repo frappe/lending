@@ -2999,8 +2999,8 @@ def post_bulk_payments(data):
 
 	def loan_wise_submit(loan, rows):
 		rows = list(rows)
-		from_date = getdate(rows[0]["value_date"])
-		to_date = getdate(rows[-1]["value_date"])
+		from_date = getdate(rows[0]["posting_date"])
+		to_date = getdate(rows[-1]["posting_date"])
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = loan
 		repost.repost_date = getdate(from_date)
@@ -3017,7 +3017,7 @@ def post_bulk_payments(data):
 		repost.submit()
 
 	# sort data by loan and value date
-	data = sorted(data, key=lambda x: (x["against_loan"], x["value_date"]))
+	data = sorted(data, key=lambda x: (x["against_loan"], x["posting_date"]))
 
 	loan_wise_details = []
 	grouped_by_loan = group_by_loan(data)
