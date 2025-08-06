@@ -84,7 +84,7 @@ def get_data(filters):
 
 	where_clause = " AND ".join(where_conditions)
 
-	query = f"""
+	query = """
 		SELECT
 			tlr.against_loan AS loan,
 			tlr.applicant AS applicant,
@@ -96,11 +96,17 @@ def get_data(filters):
 			SUM(tlr.total_penalty_paid) AS total_penalty_paid,
 			SUM(tlr.excess_amount) AS excess_amount,
 			CONCAT(YEAR(tlr.posting_date), '-', LPAD(MONTH(tlr.posting_date), 2, '0')) AS yyyy_mm
-		FROM `tabLoan Repayment` tlr
-		WHERE {where_clause}
-		GROUP BY tlr.against_loan, yyyy_mm
-		ORDER BY tlr.against_loan, yyyy_mm
-	"""
+		FROM
+			`tabLoan Repayment` tlr
+		WHERE
+			{where_clause}
+		GROUP BY
+			tlr.against_loan, yyyy_mm
+		ORDER BY
+			tlr.against_loan, yyyy_mm
+	""".format(
+		where_clause=where_clause
+	)
 
 	records = frappe.db.sql(query, params, as_dict=True)
 
