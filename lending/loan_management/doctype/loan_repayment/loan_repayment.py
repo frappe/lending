@@ -256,7 +256,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries()
 
 		self.update_paid_amounts()
-		# self.set_excess_amount_for_normal_payment()
+		self.set_excess_amount_for_normal_payment()
 		self.handle_auto_demand_write_off()
 		self.update_demands()
 		self.update_security_deposit_amount()
@@ -1638,13 +1638,13 @@ class LoanRepayment(AccountsController):
 			"Interest Waiver",
 			"Penalty Waiver",
 		):
-			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
-			self.principal_amount_paid -= self.excess_amount
+			self.db_set("excess_amount", self.principal_amount_paid - self.pending_principal_amount)
+			self.db_set("principal_amount_paid", self.principal_amount_paid - self.excess_amount)
 		elif self.repayment_type == "Write Off Settlement" and (
 			self.auto_close_loan() or (self.principal_amount_paid - self.payable_principal_amount > 0)
 		):
-			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
-			self.principal_amount_paid -= self.excess_amount
+			self.db_set("excess_amount", self.principal_amount_paid - self.pending_principal_amount)
+			self.db_set("principal_amount_paid", self.principal_amount_paid - self.excess_amount)
 
 		total_paid_principal_demand = sum(
 			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
