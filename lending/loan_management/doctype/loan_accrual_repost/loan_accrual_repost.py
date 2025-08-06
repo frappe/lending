@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import getdate
 
+from erpnext.accounts.general_ledger import make_reverse_gl_entries
+
 
 class LoanAccrualRepost(Document):
 	# begin: auto-generated types
@@ -36,9 +38,9 @@ class LoanAccrualRepost(Document):
 			loan_status = frappe.db.get_value("Loan", loan.loan, "status")
 			if loan_status in ("Written Off", "Settled"):
 				written_off_date = frappe.db.get_value(
-					"Loan Write Off", {"loan": loan.loan, "is_settlement_write_off": 0}, "written_off_date"
+					"Loan Write Off", {"loan": loan.loan, "is_settlement_write_off": 0}, "posting_date"
 				)
-				if not written_off_date:
+				if written_off_date:
 					interest_accruals = self.get_interest_accrual_entries(loan.loan)
 					for entry in interest_accruals:
 						gl_exists = frappe.db.exists(
@@ -50,8 +52,8 @@ class LoanAccrualRepost(Document):
 							doc = frappe.get_doc("Loan Interest Accrual", entry.name)
 							doc.make_gl_entries()
 						elif gl_exists and getdate(entry.posting_date) >= getdate(written_off_date):
-							doc = frappe.get_doc("Loan Interest Accrual", entry.name)
-							doc.make_gl_entries(cancel=True)
+							make_reverse_gl_entries(voucher_type="Loan Interest Accrual", voucher_no=entry.name)
+
 			elif loan_status in ("Disbursed", "Active"):
 				interest_accruals = self.get_interest_accrual_entries(loan.loan)
 				for entry in interest_accruals:
