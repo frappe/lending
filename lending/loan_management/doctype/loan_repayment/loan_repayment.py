@@ -3049,3 +3049,72 @@ def group_by_loan(data):
 		grouped_by_loan.setdefault(loan, [])
 		grouped_by_loan[loan].append(repayment)
 	return grouped_by_loan
+<<<<<<< HEAD
+=======
+
+
+# Function that can be nicely enqueued
+def bulk_repost(grouped_by_loan, trace_id):
+	for loan, rows in grouped_by_loan.items():
+		bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
+		bulk_repayment_log.loan = loan
+		bulk_repayment_log.timestamp = frappe.utils.get_datetime()
+		bulk_repayment_log.details = str(rows)
+		bulk_repayment_log.trace_id = trace_id
+
+		try:
+			# weird way to do things. Please suggest better ways
+			payment, e = loan_wise_submit(loan, rows)
+			if e:
+				raise e
+
+			bulk_repayment_log.status = "Success"
+		except Exception as e:
+			frappe.db.rollback()
+			traceback_per_loan = traceback.format_exc()
+
+			bulk_repayment_log.traceback = traceback_per_loan
+			bulk_repayment_log.status = "Failure"
+
+			# track failing payment
+			if payment:
+				bulk_repayment_log.failed_repayment = str(payment)
+
+		bulk_repayment_log.submit()
+		# instant logging and save entire job being sabotaged by 1 failed repayment
+		frappe.db.commit()  # nosemgrep
+
+
+def loan_wise_submit(loan, rows):
+	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+		process_daily_loan_demands,
+	)
+	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		process_loan_interest_accrual_for_loans,
+	)
+
+	rows = list(rows)
+	from_date = getdate(rows[0]["value_date"])
+	to_date = getdate(rows[-1]["value_date"])
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = loan
+	repost.repost_date = getdate(from_date)
+	repost.cancel_future_accruals_and_demands = True
+	repost.clear_demand_allocation_before_repost = True
+	repost.cancel_future_emi_demands = True
+	for payment in rows:
+		payment["doctype"] = "Loan Repayment"
+		loan_repayment = frappe.get_doc(payment)
+		loan_repayment.flags.from_bulk_payment = True
+
+		try:
+			loan_repayment.submit()
+
+		# track failing payment
+		except Exception as e:
+			return payment, e
+	process_daily_loan_demands(posting_date=to_date, loan=loan)
+	process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
+	repost.submit()
+	return payment, None
+>>>>>>> 699096fa (feat: per repayment tracking of failing repayments)
