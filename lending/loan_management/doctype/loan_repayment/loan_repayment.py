@@ -3082,7 +3082,8 @@ def bulk_repost(grouped_by_loan, trace_id):
 			bulk_repayment_log.status = "Failure"
 
 		bulk_repayment_log.submit()
-		frappe.db.commit()
+		# instant logging and save entire job being sabotaged by 1 failed repayment
+		frappe.db.commit()  # nosemgrep
 
 
 def loan_wise_submit(loan, rows):
