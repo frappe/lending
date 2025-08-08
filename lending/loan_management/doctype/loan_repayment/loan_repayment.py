@@ -363,8 +363,12 @@ class LoanRepayment(AccountsController):
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
 		repost.loan_disbursement = self.loan_disbursement
+<<<<<<< HEAD
 		repost.repost_date = self.posting_date
 		repost.clear_demand_allocation_before_repost = True
+=======
+		repost.repost_date = self.value_date
+>>>>>>> 17c7577f (fix: Do not clear demand allocaiton on repost)
 		repost.cancel_future_accruals_and_demands = True
 		repost.cancel_future_emi_demands = True
 		repost.submit()
