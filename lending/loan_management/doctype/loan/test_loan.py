@@ -1853,7 +1853,7 @@ class TestLoan(FrappeTestCase):
 			missing_amount = original_invoice_total - total_credit_note_sum
 			self.assertTrue(
 				total_credit_note_sum >= original_invoice_total,
-				f"Credit notes missing amount: {missing_amount}.",
+				f"Credit note is missing amount: {missing_amount}.",
 			)
 
 		outstanding_demand = frappe.db.get_value(
