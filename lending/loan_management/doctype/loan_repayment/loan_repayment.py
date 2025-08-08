@@ -761,6 +761,9 @@ class LoanRepayment(AccountsController):
 		if not self.payable_amount or self.flags.from_repost:
 			self.payable_amount = flt(amounts["payable_amount"], precision)
 
+		if not self.total_charges_payable or self.flags.from_repost:
+			self.total_charges_payable = flt(amounts["total_charges_payable"], precision)
+
 		shortfall_amount = flt(
 			frappe.db.get_value(
 				"Loan Security Shortfall",
