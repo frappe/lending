@@ -1215,25 +1215,7 @@ class LoanRepayment(AccountsController):
 		):
 			self.flags.auto_close = True
 
-<<<<<<< HEAD
-		return auto_close
-
-	def set_excess_amount_for_waiver(self, total_payable):
-		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			self.excess_amount = self.amount_paid - total_payable
-
-	def enable_auto_waiver_if_normal_repayment(self):
-		if self.repayment_type == "Normal Repayment":
-			self.flags.auto_waiver_needed = True
-			self.set_auto_waiver_type(self.against_loan, self.posting_date, self.loan_disbursement)
-
-	def set_auto_waiver_type(self, against_loan, posting_date, loan_disbursement=None):
-		amounts = calculate_amounts(
-			against_loan=against_loan, posting_date=posting_date, loan_disbursement=loan_disbursement
-		)
-=======
 		return self.flags.auto_close
->>>>>>> 59888021 (fix: Auto closure loan scenario)
 
 	def get_auto_waiver_type(self, amounts):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -1260,33 +1242,13 @@ class LoanRepayment(AccountsController):
 				payment_type=self.repayment_type,
 			)
 
-<<<<<<< HEAD
-		amounts = calculate_amounts(
-			against_loan=self.against_loan,
-			posting_date=self.posting_date,
-			loan_disbursement=self.loan_disbursement,
-			payment_type=self.repayment_type,
-		)
-=======
 			waiver_type = self.get_auto_waiver_type(amounts)
->>>>>>> 59888021 (fix: Auto closure loan scenario)
 
 			if not waiver_type:
 				return
 
 			precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-<<<<<<< HEAD
-		# Map waiver type to correct key
-		key_map = {
-			"Interest Waiver": "interest_amount",
-			"Penalty Waiver": "penalty_amount",
-			"Charges Waiver": "total_charges_payable",
-			"Principal Adjustment": "pending_principal_amount",
-		}
-		amount_key = key_map.get(waiver_type)
-		waiver_amount = flt(amounts.get(amount_key, 0), precision)
-=======
 			key_map = {
 				"Interest Waiver": "interest_amount",
 				"Penalty Waiver": "penalty_amount",
@@ -1295,7 +1257,6 @@ class LoanRepayment(AccountsController):
 			}
 			amount_key = key_map.get(waiver_type)
 			waiver_amount = flt(amounts.get(amount_key, 0), precision)
->>>>>>> 59888021 (fix: Auto closure loan scenario)
 
 			if waiver_amount <= 0:
 				return

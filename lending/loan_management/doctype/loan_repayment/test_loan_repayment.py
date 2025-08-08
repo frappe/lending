@@ -1067,7 +1067,6 @@ class TestLoanRepayment(FrappeTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
 
-<<<<<<< HEAD
 	def test_bulk_payments(self):
 		posting_date = get_datetime("2024-04-18")
 		repayment_start_date = get_datetime("2024-05-05")
@@ -1232,7 +1231,7 @@ class TestLoanRepayment(FrappeTestCase):
 
 		self.assertEqual(successful_log.status, "Success")
 		self.assertEqual(failed_log.status, "Failure")
-=======
+
 	def test_loan_auto_closure_with_charge_under_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
 
@@ -1274,4 +1273,3 @@ class TestLoanRepayment(FrappeTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
->>>>>>> 59888021 (fix: Auto closure loan scenario)
