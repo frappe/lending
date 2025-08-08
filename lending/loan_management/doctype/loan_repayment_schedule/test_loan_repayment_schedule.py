@@ -165,6 +165,6 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 				add_days(getdate("2025-12-05"), -1),
 			)
 			paid_interest = frappe.get_value(
-				"Loan Interest Accrual", {"loan": loan.name}, [{"SUM": "interest_amount"}]
+				"Loan Interest Accrual", {"loan": loan.name}, "sum(interest_amount)"
 			)
 			self.assertEqual(flt(paid_interest, 0), flt(payable_interest, 0))
