@@ -1260,7 +1260,6 @@ class TestLoanRepayment(FrappeTestCase):
 				"company": "_Test Company",
 				"loan": loan.name,
 				"posting_date": "2024-07-01",
-				"value_date": "2024-07-01",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 50}],

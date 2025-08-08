@@ -1239,7 +1239,7 @@ class LoanRepayment(AccountsController):
 		if self.flags.auto_close:
 			amounts = calculate_amounts(
 				against_loan=self.against_loan,
-				posting_date=self.value_date,
+				posting_date=self.posting_date,
 				loan_disbursement=self.loan_disbursement,
 				payment_type=self.repayment_type,
 			)
