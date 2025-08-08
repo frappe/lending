@@ -1193,7 +1193,9 @@ class LoanRepayment(AccountsController):
 			self.flags.auto_close = True
 
 		shortfall_amount = flt(self.pending_principal_amount - self.principal_amount_paid, precision)
-		shortfall_amount += flt(self.total_charges_payable - self.total_charges_paid, precision)
+		shortfall_amount += flt(
+			flt(self.total_charges_payable) - flt(self.total_charges_paid), precision
+		)
 
 		if (
 			auto_write_off_amount
