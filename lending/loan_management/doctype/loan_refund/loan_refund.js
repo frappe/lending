@@ -8,7 +8,9 @@ frappe.ui.form.on('Loan Refund', {
 		frm.set_query("refund_account", function() {
 			return {
 				filters: {
-					"company": frm.doc.company
+					"company": frm.doc.company,
+					"is_group": 0,
+					"disabled": 0
 				}
 			};
 		});

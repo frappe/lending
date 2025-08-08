@@ -42,6 +42,7 @@ class LoanAdjustment(Document):
 						"loan_repayment_type": "Security Deposit Adjustment",
 						"amount": amounts.get("available_security_deposit", 0),
 					},
+					position=0,
 				)
 
 	def on_submit(self):

@@ -1615,32 +1615,6 @@ class TestLoan(FrappeTestCase):
 		)
 		repayment_entry.submit()
 
-	def test_full_settlement(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry.submit()
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
 	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2380,7 +2354,7 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
 
-	def test_accrual_background_job(self):
+	def test_interest_accrual_breaks(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2524,60 +2498,6 @@ class TestLoan(FrappeTestCase):
 			repayment_type="Pre Payment",
 		)
 		repayment.submit()
-
-	def test_bulk_payments(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 5",
-			2700000,
-			"Repay Over Number of Periods",
-			1,
-			posting_date="2024-10-30",
-			rate_of_interest=17.25,
-			applicant_type="Customer",
-			limit_applicable_start="2024-10-28",
-			limit_applicable_end="2025-10-28",
-		)
-		loan.submit()
-
-		disbursement = make_loan_disbursement_entry(
-			loan.name,
-			335533,
-			disbursement_date="2024-11-25",
-			repayment_start_date="2025-01-24",
-			repayment_frequency="One Time",
-		)
-		disbursement.submit()
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
-		)
-
-		payments = [
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-20 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-21 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-22 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-		]
-
-		post_bulk_payments(payments)
 
 	def test_npa_marking_for_customer(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -2994,42 +2914,6 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
 		)
 		self.assertEqual(len(demands), 2)
-
-	def test_loan_interest_accruals_after_maturity_date(self):
-		set_loan_accrual_frequency("Monthly")
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			500000,
-			"Repay Over Number of Periods",
-			3,
-			"Customer",
-			posting_date="2024-03-25",
-			rate_of_interest=12,
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date="2024-03-25",
-			repayment_start_date="2024-04-07",
-			withhold_security_deposit=1,
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-01", loan=loan.name)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-8-05", loan=loan.name, company="_Test Company"
-		)
-
-		maturity_date = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
-		)
-		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, "MAX(posting_date)"
-		)
-		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
 	def test_two_day_break_up_in_accrual_frequency(self):
 		loan = create_loan(
