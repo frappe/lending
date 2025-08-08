@@ -1252,7 +1252,7 @@ class LoanRepayment(AccountsController):
 		return waiver_type
 
 	def create_auto_waiver(self):
-		if self.repayment_type == "Normal Repayment" and self.flags.auto_close:
+		if self.flags.auto_close:
 			amounts = calculate_amounts(
 				against_loan=self.against_loan,
 				posting_date=self.value_date,
