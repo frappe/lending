@@ -50,6 +50,11 @@ frappe.query_reports["Loan Outstanding Report"] = {
 					};
 				}
 				return {};
+			},
+			on_change: function() {
+				frappe.query_report.set_filter_value('loan_product', "");
+				frappe.query_report.set_filter_value('loan', "");
+				frappe.query_report.refresh();
 			}
 		},
 		{
