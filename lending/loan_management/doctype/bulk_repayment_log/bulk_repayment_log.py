@@ -19,6 +19,7 @@ class BulkRepaymentLog(Document):
 		loan: DF.Link | None
 		status: DF.Data | None
 		timestamp: DF.Datetime | None
+		trace_id: DF.Data | None
 		traceback: DF.LongText | None
 	# end: auto-generated types
 
