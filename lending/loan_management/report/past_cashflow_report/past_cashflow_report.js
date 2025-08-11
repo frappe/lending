@@ -12,8 +12,8 @@ frappe.query_reports["Past Cashflow Report"] = {
 			"reqd": 1
 		},
 		{
-			"fieldname":"as_of_date",
-			"label": __("As of Date"),
+			"fieldname":"as_on_date",
+			"label": __("As on Date"),
 			"fieldtype": "Date",
 			"default": frappe.datetime.get_today(),
 			"reqd": 1,

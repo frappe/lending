@@ -56,21 +56,20 @@ def get_columns():
 			"fieldtype": "Currency",
 			"width": 150,
 		},
-		{"label": _("Year-Month"), "fieldname": "year_month", "fieldtype": "Data", "width": 120},
 	]
 
 
 def get_data(filters):
 	data = []
 
-	if not filters.get("as_of_date"):
+	if not filters.get("as_on_date"):
 		frappe.throw(_("Please select a date."))
 
-	params = {"as_of_date": filters["as_of_date"]}
+	params = {"as_on_date": filters["as_on_date"]}
 
 	where_conditions = [
 		"tlr.docstatus = 1",
-		"tlr.posting_date <= %(as_of_date)s",
+		"tlr.posting_date <= %(as_on_date)s",
 		"tlr.repayment_type NOT IN ('Principal Adjustment', 'Interest Waiver', 'Penalty Waiver', 'Charges Waiver')",
 	]
 
@@ -94,16 +93,15 @@ def get_data(filters):
 			SUM(tlr.unbooked_interest_paid) AS additional_interest,
 			SUM(tlr.total_charges_paid) AS total_charges_paid,
 			SUM(tlr.total_penalty_paid) AS total_penalty_paid,
-			SUM(tlr.excess_amount) AS excess_amount,
-			CONCAT(YEAR(tlr.posting_date), '-', LPAD(MONTH(tlr.posting_date), 2, '0')) AS yyyy_mm
+			SUM(tlr.excess_amount) AS excess_amount
 		FROM
 			`tabLoan Repayment` tlr
 		WHERE
 			{where_clause}
 		GROUP BY
-			tlr.against_loan, yyyy_mm
+			tlr.against_loan
 		ORDER BY
-			tlr.against_loan, yyyy_mm
+			tlr.against_loan
 	""".format(
 		where_clause=where_clause
 	)
@@ -116,13 +114,12 @@ def get_data(filters):
 				"loan": row.loan,
 				"applicant": row.applicant,
 				"loan_product": row.loan_product,
-				"principal_amount": round(row.principal_amount or 0, 2),
-				"interest_amount": round(row.interest_amount or 0, 2),
-				"additional_interest": round(row.additional_interest or 0, 2),
-				"total_charges_paid": round(row.total_charges_paid or 0, 2),
-				"total_penalty_paid": round(row.total_penalty_paid or 0, 2),
-				"excess_amount": round(row.excess_amount or 0, 2),
-				"year_month": row.yyyy_mm,
+				"principal_amount": row.principal_amount or 0,
+				"interest_amount": row.interest_amount or 0,
+				"additional_interest": row.additional_interest or 0,
+				"total_charges_paid": row.total_charges_paid or 0,
+				"total_penalty_paid": row.total_penalty_paid or 0,
+				"excess_amount": row.excess_amount or 0,
 			}
 		)
 
