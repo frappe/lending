@@ -1,11 +1,6 @@
 import frappe
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, date_diff, getdate
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, date_diff, flt, getdate
->>>>>>> 40689f49 (fix: Unaccrued future interest for closure)
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	process_interest_accrual_batch,

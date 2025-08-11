@@ -121,14 +121,10 @@ class LoanWriteOff(AccountsController):
 
 		last_demand_date = get_last_demand_date(self.loan, self.posting_date)
 
-<<<<<<< HEAD
-		unbooked_interest, unbooked_penalty = get_unbooked_interest(
-			self.loan, self.posting_date, last_demand_date=last_demand_date
-=======
 		unbooked_interest = get_unbooked_interest(
-			self.loan, self.value_date, last_demand_date=last_demand_date
->>>>>>> 40689f49 (fix: Unaccrued future interest for closure)
+			self.loan, self.posting_date, last_demand_date=last_demand_date
 		)
+
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if flt(unbooked_interest) > 0:
