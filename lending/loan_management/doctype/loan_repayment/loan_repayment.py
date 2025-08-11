@@ -364,7 +364,6 @@ class LoanRepayment(AccountsController):
 		repost.loan = self.against_loan
 		repost.loan_disbursement = self.loan_disbursement
 		repost.repost_date = self.posting_date
-		repost.clear_demand_allocation_before_repost = True
 		repost.cancel_future_accruals_and_demands = True
 		repost.cancel_future_emi_demands = True
 		repost.submit()
