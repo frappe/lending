@@ -440,7 +440,7 @@ def process_loan_interest_accrual_per_schedule(
 			)
 
 			if payable_interest > 0:
-				total_payable_interest = payable_interest
+				total_payable_interest += payable_interest
 				if not is_future_accrual:
 					make_loan_interest_accrual_entry(
 						loan.name,

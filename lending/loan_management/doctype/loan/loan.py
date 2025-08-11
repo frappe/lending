@@ -1383,9 +1383,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None, value_date=
 
 	last_demand_date = get_last_demand_date(loan, posting_date)
 
-	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan, posting_date, last_demand_date=last_demand_date
-	)
+	unbooked_interest = get_unbooked_interest(loan, posting_date, last_demand_date=last_demand_date)
 
 	accounts = frappe.db.get_value(
 		"Loan Product",

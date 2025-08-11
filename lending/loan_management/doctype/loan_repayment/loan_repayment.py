@@ -1079,7 +1079,7 @@ class LoanRepayment(AccountsController):
 			self.against_loan, self.value_date, loan_disbursement=self.loan_disbursement
 		)
 
-		unbooked_interest, accrued_interest = get_unbooked_interest(
+		unbooked_interest = get_unbooked_interest(
 			self.against_loan,
 			self.value_date,
 			loan_disbursement=self.loan_disbursement,
@@ -2594,7 +2594,7 @@ def process_amount_for_loan(
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
 	if loan.status not in ("Closed", "Settled"):
-		unbooked_interest, accrued_interest = get_unbooked_interest(
+		unbooked_interest = get_unbooked_interest(
 			loan.name,
 			posting_date,
 			loan_disbursement=loan_disbursement,
@@ -2672,7 +2672,7 @@ def get_bulk_due_details(loans, posting_date):
 	unbooked_interest_map = {
 		loan: get_unbooked_interest(
 			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
-		)[0]
+		)
 		for loan in loans
 	}
 	loan_demands = get_all_demands(loans, posting_date)
@@ -2918,12 +2918,14 @@ def get_last_demand_date(
 	return last_demand_date
 
 
-def get_latest_accrual_date(loan, posting_date, interest_type="Interest", loan_disbursement=None):
+def get_latest_accrual_date(
+	loan, posting_date, interest_type="Normal Interest", loan_disbursement=None
+):
 	filters = {
 		"loan": loan,
 		"docstatus": 1,
 		"interest_type": interest_type,
-		"posting_date": (">", posting_date),
+		"posting_date": ("<", posting_date),
 	}
 
 	if loan_disbursement:
@@ -2946,7 +2948,7 @@ def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_deman
 	)
 	unbooked_interest = flt(accrued_interest, precision)
 
-	return unbooked_interest, accrued_interest
+	return unbooked_interest
 
 
 def get_accrued_interest(

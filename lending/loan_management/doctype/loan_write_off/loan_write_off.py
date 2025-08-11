@@ -123,7 +123,7 @@ class LoanWriteOff(AccountsController):
 
 		last_demand_date = get_last_demand_date(self.loan, self.value_date)
 
-		unbooked_interest, unbooked_penalty = get_unbooked_interest(
+		unbooked_interest = get_unbooked_interest(
 			self.loan, self.value_date, last_demand_date=last_demand_date
 		)
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
