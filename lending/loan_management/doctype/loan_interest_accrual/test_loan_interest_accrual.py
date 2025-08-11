@@ -1,10 +1,16 @@
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, date_diff, getdate
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, date_diff, flt, getdate
+>>>>>>> 40689f49 (fix: Unaccrued future interest for closure)
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	process_interest_accrual_batch,
 )
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -208,6 +214,39 @@ class TestLoanInterestAccrual(FrappeTestCase):
 		)
 
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
+
+	def test_future_interest_amount(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			3,
+			"Customer",
+			posting_date="2024-03-25",
+			rate_of_interest=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-03-25",
+			repayment_start_date="2024-04-07",
+			withhold_security_deposit=1,
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-03-27", company="_Test Company"
+		)
+
+		amounts = calculate_amounts(loan.name, "2024-04-06", payment_type="Loan Closure")
+
+		no_of_days = date_diff("2024-04-06", "2024-03-27")
+		interest_amount = 500000 * 12 * no_of_days / 36500
+
+		self.assertEqual(flt(amounts.get("unaccrued_interest", 0), 2), flt(interest_amount, 2))
 
 
 def get_loan_object(loan_doc):
