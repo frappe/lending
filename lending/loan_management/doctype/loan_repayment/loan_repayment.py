@@ -815,7 +815,7 @@ class LoanRepayment(AccountsController):
 		}
 
 		if cancel:
-			filters["value_date"] = (">=", self.value_date)
+			filters["posting_date"] = (">=", self.posting_date)
 
 		if self.loan_disbursement and self.repayment_schedule_type == "Line of Credit":
 			filters["loan_disbursement"] = self.loan_disbursement
