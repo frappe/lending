@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format: Bulk Repayment for {loan} at {timestamp}}",
+ "autoname": "format: Bulk Repayment for {loan} at {timestamp}",
  "creation": "2025-05-26 11:38:18.456949",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,7 +12,8 @@
   "timestamp",
   "details",
   "status",
-  "traceback"
+  "traceback",
+  "trace_id"
  ],
  "fields": [
   {
@@ -54,13 +55,18 @@
    "fieldname": "timestamp",
    "fieldtype": "Datetime",
    "label": "Timestamp"
+  },
+  {
+   "fieldname": "trace_id",
+   "fieldtype": "Data",
+   "label": "Trace ID"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-26 13:19:35.616226",
+ "modified": "2025-06-03 14:08:36.162028",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Bulk Repayment Log",
