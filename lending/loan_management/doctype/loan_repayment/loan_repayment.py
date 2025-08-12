@@ -197,6 +197,7 @@ class LoanRepayment(AccountsController):
 
 		if self.flags.from_bulk_payment:
 			return
+
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -673,7 +674,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries(cancel=1)
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
-		self.check_future_entries()
+		self.check_future_entries(cancel=1)
 		if self.flags.from_bulk_payment:
 			return
 		if self.is_backdated:
@@ -803,8 +804,7 @@ class LoanRepayment(AccountsController):
 			if self.loan_disbursement not in disbursements:
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
 
-	def check_future_entries(self):
-
+	def check_future_entries(self, cancel=0):
 		if self.is_write_off_waiver:
 			return
 
@@ -813,6 +813,9 @@ class LoanRepayment(AccountsController):
 			"docstatus": 1,
 			"against_loan": self.against_loan,
 		}
+
+		if cancel:
+			filters["posting_date"] = (">=", self.posting_date)
 
 		if self.loan_disbursement and self.repayment_schedule_type == "Line of Credit":
 			filters["loan_disbursement"] = self.loan_disbursement
@@ -827,6 +830,7 @@ class LoanRepayment(AccountsController):
 			self.is_backdated = True
 		else:
 			self.is_backdated = False
+
 		self.db_set("is_backdated", self.is_backdated)
 
 	def validate_security_deposit_amount(self):
