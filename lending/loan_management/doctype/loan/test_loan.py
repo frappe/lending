@@ -3159,9 +3159,8 @@ class TestLoan(FrappeTestCase):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2025-01-15",
 				"posting_time": "00:06:10",
-				"value_date": "2025-01-15",
+				"posting_date": "2025-01-15",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
 			}
