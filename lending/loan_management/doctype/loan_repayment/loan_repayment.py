@@ -3026,7 +3026,11 @@ def bulk_repost(grouped_by_loan, trace_id):
 		bulk_repayment_log.trace_id = trace_id
 
 		try:
-			loan_wise_submit(loan, rows)
+			# weird way to do things. Please suggest better ways
+			payment, e = loan_wise_submit(loan, rows)
+			if e:
+				raise e
+
 			bulk_repayment_log.status = "Success"
 		except Exception as e:
 			frappe.db.rollback()
@@ -3034,6 +3038,10 @@ def bulk_repost(grouped_by_loan, trace_id):
 
 			bulk_repayment_log.traceback = traceback_per_loan
 			bulk_repayment_log.status = "Failure"
+
+			# track failing payment
+			if payment:
+				bulk_repayment_log.failed_repayment = str(payment)
 
 		bulk_repayment_log.submit()
 		# instant logging and save entire job being sabotaged by 1 failed repayment
@@ -3061,7 +3069,14 @@ def loan_wise_submit(loan, rows):
 		payment["doctype"] = "Loan Repayment"
 		loan_repayment = frappe.get_doc(payment)
 		loan_repayment.flags.from_bulk_payment = True
-		loan_repayment.submit()
+
+		try:
+			loan_repayment.submit()
+
+		# track failing payment
+		except Exception as e:
+			return payment, e
 	process_daily_loan_demands(posting_date=to_date, loan=loan)
 	process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
 	repost.submit()
+	return payment, None
