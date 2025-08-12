@@ -70,7 +70,7 @@ def get_data(filters):
 	where_conditions = [
 		"tlr.docstatus = 1",
 		"tlr.posting_date <= %(as_on_date)s",
-		"tlr.repayment_type NOT IN ('Principal Adjustment', 'Interest Waiver', 'Penalty Waiver', 'Charges Waiver')",
+		"tlr.repayment_type NOT IN ('Interest Waiver', 'Penalty Waiver', 'Charges Waiver')",
 	]
 
 	for fl in ("company", "loan_product", "applicant", "loan"):

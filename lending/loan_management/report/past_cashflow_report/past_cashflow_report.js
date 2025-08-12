@@ -37,8 +37,8 @@ frappe.query_reports["Past Cashflow Report"] = {
 			"label": __("Applicant"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				var applicant_type = frappe.query_report.get_filter_value('applicant_type');
-				var applicant = frappe.query_report.get_filter_value('applicant');
+				let applicant_type = frappe.query_report.get_filter_value('applicant_type');
+				let applicant = frappe.query_report.get_filter_value('applicant');
 				if(applicant && !applicant_type) {
 					frappe.throw(__("Please select Applicant Type first"));
 				}
@@ -69,7 +69,7 @@ frappe.query_reports["Past Cashflow Report"] = {
 			"fieldtype": "Link",
 			"options": "Loan Product",
 			get_query: () => {
-				var company = frappe.query_report.get_filter_value("company");
+				let company = frappe.query_report.get_filter_value("company");
 				return {
 					filters: {
 						company: company,
@@ -87,8 +87,8 @@ frappe.query_reports["Past Cashflow Report"] = {
 			"fieldtype": "Link",
 			"options": "Loan",
 			get_query: () => {
-				var company = frappe.query_report.get_filter_value("company");
-				var loan_product = frappe.query_report.get_filter_value("loan_product");
+				let company = frappe.query_report.get_filter_value("company");
+				let loan_product = frappe.query_report.get_filter_value("loan_product");
 				return {
 					filters: {
 						company: company,
