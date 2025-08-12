@@ -87,7 +87,7 @@ def get_data(filters):
 
 	where_clause = " AND ".join(where_conditions)
 
-	query = f"""
+	query = """
 		SELECT
 			l.name AS loan,
 			l.applicant,
@@ -102,7 +102,9 @@ def get_data(filters):
 			ON rs.parent = lrs.name AND rs.parentfield = 'repayment_schedule'
 		WHERE {where_clause}
 		ORDER BY rs.payment_date
-	"""
+	""".format(
+		where_clause=where_clause
+	)
 
 	results = frappe.db.sql(query, params, as_dict=True)
 	return results
