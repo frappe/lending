@@ -1231,3 +1231,84 @@ class TestLoanRepayment(FrappeTestCase):
 
 		self.assertEqual(successful_log.status, "Success")
 		self.assertEqual(failed_log.status, "Failure")
+
+	def test_loan_auto_closure_with_charge_under_limit(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			5000,
+			"Repay Over Number of Periods",
+			1,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-07-01",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 50}],
+			}
+		)
+		sales_invoice.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-07-15", 5068)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+
+	def test_same_day_cancel_reposting(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			10,
+			"Customer",
+			repayment_start_date="2025-07-05",
+			posting_date="2025-07-01",
+			rate_of_interest=17,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-07-01",
+			repayment_start_date="2025-07-05",
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-07-05", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-07-05")
+
+		repayment_entry1 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry1.submit()
+
+		repayment_entry2 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry2.submit()
+
+		repayment_entry1.cancel()
+		repayment_entry1.load_from_db()
+
+		self.assertEqual(repayment_entry1.is_backdated, 1)

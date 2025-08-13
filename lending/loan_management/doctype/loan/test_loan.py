@@ -1853,7 +1853,7 @@ class TestLoan(FrappeTestCase):
 			missing_amount = original_invoice_total - total_credit_note_sum
 			self.assertTrue(
 				total_credit_note_sum >= original_invoice_total,
-				f"Credit notes missing amount: {missing_amount}.",
+				f"Credit note is missing amount: {missing_amount}.",
 			)
 
 		outstanding_demand = frappe.db.get_value(
@@ -3159,9 +3159,8 @@ class TestLoan(FrappeTestCase):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2025-01-15",
 				"posting_time": "00:06:10",
-				"value_date": "2025-01-15",
+				"posting_date": "2025-01-15",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
 			}
