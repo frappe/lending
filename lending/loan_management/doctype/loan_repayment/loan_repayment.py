@@ -2984,8 +2984,21 @@ def post_bulk_payments(data):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["posting_date"]))
 
-	grouped_by_loan = group_by_loan(data)
+	# check if the loans do exist in the system
+	given_loans = {i["against_loan"] for i in data}
+	existing_loans = frappe.db.get_all("Loan", {"name": ("in", given_loans)})
 
+	existing_loans = {i.name for i in existing_loans}
+
+	# if the loan does not exist, do not proceed further; just fail
+	non_existent_loans = given_loans.difference(existing_loans)
+	if non_existent_loans:
+		frappe.local.response["http_status_code"] = 404
+		return _("The following loans do not exist in the system: {}").format(
+			", ".join(non_existent_loans)
+		)
+
+	grouped_by_loan = group_by_loan(data)
 	# custom hash best
 	trace_id = random_string(10)
 
