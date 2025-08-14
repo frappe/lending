@@ -18,6 +18,9 @@ from frappe.utils import (
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	get_accrual_frequency_breaks,
+)
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
 	get_amounts,
@@ -206,18 +209,36 @@ class LoanRepaymentSchedule(Document):
 		)
 
 		if payable_interest > 0:
-			make_loan_interest_accrual_entry(
-				self.loan,
-				self.current_principal_amount - principal_balance,
-				flt(payable_interest, precision),
-				"",
-				add_days(last_accrual_date, 1),
-				add_days(self.posting_date, -1),
-				"Regular",
-				"Normal Interest",
-				self.rate_of_interest,
-				loan_repayment_schedule=self.name,
+			loan_accrual_frequency = frappe.get_value("Company", self.company, "loan_accrual_frequency")
+			start_date = add_days(last_accrual_date, 1)
+			end_date = add_days(self.posting_date, -1)
+
+			accrual_frequency_breaks = get_accrual_frequency_breaks(
+				last_accrual_date, accrual_date=end_date, loan_accrual_frequency=loan_accrual_frequency
 			)
+			if len(accrual_frequency_breaks):
+				if getdate(accrual_frequency_breaks[-1]) < getdate(end_date):
+					accrual_frequency_breaks.append(end_date)
+
+			current_last_accrual_date = start_date
+			total_no_of_days = date_diff(end_date, start_date) + 1
+
+			balance_amount = self.current_principal_amount - principal_balance
+			for posting_date in accrual_frequency_breaks:
+				no_of_days = date_diff(posting_date, current_last_accrual_date) + 1
+				make_loan_interest_accrual_entry(
+					self.loan,
+					balance_amount,
+					flt(payable_interest * (no_of_days / total_no_of_days), precision),
+					None,
+					current_last_accrual_date,
+					posting_date,
+					"Regular",
+					"Normal Interest",
+					self.rate_of_interest,
+					loan_repayment_schedule=self.name,
+				)
+				current_last_accrual_date = add_days(posting_date, 1)
 		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
 	def on_cancel(self):

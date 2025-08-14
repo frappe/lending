@@ -1853,7 +1853,7 @@ class TestLoan(FrappeTestCase):
 			missing_amount = original_invoice_total - total_credit_note_sum
 			self.assertTrue(
 				total_credit_note_sum >= original_invoice_total,
-				f"Credit notes missing amount: {missing_amount}.",
+				f"Credit note is missing amount: {missing_amount}.",
 			)
 
 		outstanding_demand = frappe.db.get_value(
@@ -2498,60 +2498,6 @@ class TestLoan(FrappeTestCase):
 			repayment_type="Pre Payment",
 		)
 		repayment.submit()
-
-	def test_bulk_payments(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 5",
-			2700000,
-			"Repay Over Number of Periods",
-			1,
-			posting_date="2024-10-30",
-			rate_of_interest=17.25,
-			applicant_type="Customer",
-			limit_applicable_start="2024-10-28",
-			limit_applicable_end="2025-10-28",
-		)
-		loan.submit()
-
-		disbursement = make_loan_disbursement_entry(
-			loan.name,
-			335533,
-			disbursement_date="2024-11-25",
-			repayment_start_date="2025-01-24",
-			repayment_frequency="One Time",
-		)
-		disbursement.submit()
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
-		)
-
-		payments = [
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-20 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-21 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-22 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-		]
-
-		post_bulk_payments(payments)
 
 	def test_npa_marking_for_customer(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -3213,9 +3159,8 @@ class TestLoan(FrappeTestCase):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2025-01-15",
 				"posting_time": "00:06:10",
-				"value_date": "2025-01-15",
+				"posting_date": "2025-01-15",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
 			}

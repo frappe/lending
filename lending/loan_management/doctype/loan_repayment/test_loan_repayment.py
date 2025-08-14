@@ -11,6 +11,7 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
 	get_amounts,
 	init_amounts,
+	post_bulk_payments,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -1065,3 +1066,249 @@ class TestLoanRepayment(FrappeTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
+
+	def test_bulk_payments(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+		loan_a = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan_b = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan_c = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loans = [loan_a, loan_b, loan_c]
+		for loan in loans:
+			loan.submit()
+			make_loan_disbursement_entry(
+				loan.name,
+				loan.loan_amount,
+				disbursement_date=posting_date,
+				repayment_start_date=repayment_start_date,
+			)
+			process_loan_interest_accrual_for_loans(
+				loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+			)
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+
+		data = []
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_a.name,
+					"posting_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+				}
+			)
+		# Extra repayment because why not?
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_c.name,
+					"posting_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025 + i,
+				}
+			)
+		post_bulk_payments(data)
+
+		create_repayment_entry(
+			loan=loan_b.name, posting_date=repayment_start_date, paid_amount=178025
+		).submit()
+		create_repayment_entry(
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 1), paid_amount=178025
+		).submit()
+		create_repayment_entry(
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 2), paid_amount=178025
+		).submit()
+		create_repayment_entry(
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 3), paid_amount=178025
+		).submit()
+		create_repayment_entry(
+			loan=loan_b.name, posting_date=add_months(repayment_start_date, 4), paid_amount=178025
+		).submit()
+
+		dates = [add_months(repayment_start_date, i) for i in range(5)]
+		for date in dates:
+			repayment_a = frappe.get_doc(
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_a.name, "posting_date": date}
+			)
+			repayment_b = frappe.get_doc(
+				"Loan Repayment", {"docstatus": 1, "against_loan": loan_b.name, "posting_date": date}
+			)
+
+			self.assertEqual(repayment_a.principal_amount_paid, repayment_b.principal_amount_paid)
+			self.assertEqual(repayment_a.pending_principal_amount, repayment_b.pending_principal_amount)
+			self.assertEqual(repayment_a.interest_payable, repayment_b.interest_payable)
+
+	def test_bulk_repayment_logs(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+		loan_a = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan_b = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loans = [loan_a, loan_b]
+		for loan in loans:
+			loan.submit()
+			make_loan_disbursement_entry(
+				loan.name,
+				loan.loan_amount,
+				disbursement_date=posting_date,
+				repayment_start_date=repayment_start_date,
+			)
+			process_loan_interest_accrual_for_loans(
+				loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+			)
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+
+		data = []
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_a.name,
+					"posting_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+				}
+			)
+		# This should fail (closed loan)
+		frappe.db.set_value("Loan", loan_b.name, "status", "Closed")
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan_b.name,
+					"posting_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+				}
+			)
+		post_bulk_payments(data)
+
+		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_a.name})
+		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_b.name})
+
+		self.assertEqual(successful_log.status, "Success")
+		self.assertEqual(failed_log.status, "Failure")
+
+	def test_loan_auto_closure_with_charge_under_limit(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			5000,
+			"Repay Over Number of Periods",
+			1,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-07-01",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 50}],
+			}
+		)
+		sales_invoice.submit()
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-07-15", 5068)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+
+	def test_same_day_cancel_reposting(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			10,
+			"Customer",
+			repayment_start_date="2025-07-05",
+			posting_date="2025-07-01",
+			rate_of_interest=17,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-07-01",
+			repayment_start_date="2025-07-05",
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-07-05", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-07-05")
+
+		repayment_entry1 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry1.submit()
+
+		repayment_entry2 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry2.submit()
+
+		repayment_entry1.cancel()
+		repayment_entry1.load_from_db()
+
+		self.assertEqual(repayment_entry1.is_backdated, 1)
