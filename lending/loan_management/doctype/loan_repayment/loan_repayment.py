@@ -2985,8 +2985,21 @@ def post_bulk_payments(data):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["posting_date"]))
 
-	grouped_by_loan = group_by_loan(data)
+	# check if the loans do exist in the system
+	given_loans = {i["against_loan"] for i in data}
+	existing_loans = frappe.db.get_all("Loan", {"name": ("in", given_loans)})
 
+	existing_loans = {i.name for i in existing_loans}
+
+	# if the loan does not exist, do not proceed further; just fail
+	non_existent_loans = given_loans.difference(existing_loans)
+	if non_existent_loans:
+		frappe.local.response["http_status_code"] = 404
+		return _("The following loans do not exist in the system: {}").format(
+			", ".join(non_existent_loans)
+		)
+
+	grouped_by_loan = group_by_loan(data)
 	# custom hash best
 	trace_id = random_string(10)
 
@@ -3020,15 +3033,11 @@ def bulk_repost(grouped_by_loan, trace_id):
 		frappe.db.savepoint(save_point=save_point)
 
 		try:
-<<<<<<< HEAD
-			loan_wise_submit(loan, rows)
-=======
 			# weird way to do things. Please suggest better ways
 			payment, e = loan_wise_submit(loan, rows, bulk_repayment_log.name)
 			if e:
 				raise e
 
->>>>>>> 84431d5e (chore: add connections to repayments linked to bulk repayment log)
 			bulk_repayment_log.status = "Success"
 		except Exception as e:
 			frappe.db.rollback(save_point=save_point)
@@ -3036,6 +3045,10 @@ def bulk_repost(grouped_by_loan, trace_id):
 
 			bulk_repayment_log.traceback = traceback_per_loan
 			bulk_repayment_log.status = "Failure"
+
+			# track failing payment
+			if payment:
+				bulk_repayment_log.failed_repayment = str(payment)
 
 		bulk_repayment_log.submit()
 		# instant logging and save entire job being sabotaged by 1 failed repayment
@@ -3063,9 +3076,6 @@ def loan_wise_submit(loan, rows, bulk_repayment_log_name):
 		payment["doctype"] = "Loan Repayment"
 		loan_repayment = frappe.get_doc(payment)
 		loan_repayment.flags.from_bulk_payment = True
-<<<<<<< HEAD
-		loan_repayment.submit()
-=======
 		loan_repayment.bulk_repayment_log = bulk_repayment_log_name
 
 		try:
@@ -3074,7 +3084,7 @@ def loan_wise_submit(loan, rows, bulk_repayment_log_name):
 		# track failing payment
 		except Exception as e:
 			return payment, e
->>>>>>> 84431d5e (chore: add connections to repayments linked to bulk repayment log)
 	process_daily_loan_demands(posting_date=to_date, loan=loan)
 	process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
 	repost.submit()
+	return payment, None
