@@ -1,8 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-from datetime import timedelta
-
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
@@ -1127,5 +1125,91 @@ class TestLoanRepayment(FrappeTestCase):
 		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_a.name})
 		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_b.name})
 
+<<<<<<< HEAD
 		self.assertEqual(successful_log.status, "Success")
 		self.assertEqual(failed_log.status, "Failure")
+=======
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-07-05")
+
+		repayment_entry1 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry1.submit()
+
+		repayment_entry2 = create_repayment_entry(loan.name, "2025-07-05", 5068)
+		repayment_entry2.submit()
+
+		repayment_entry1.cancel()
+		repayment_entry1.load_from_db()
+
+		self.assertEqual(repayment_entry1.is_backdated, 1)
+
+	def test_bulk_payments_for_multiple_disbursements(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan.submit()
+		disbursement_a = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount / 2,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+		disbursement_b = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount / 2,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+
+		data = []
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+					"loan_disbursement": disbursement_a.name,
+				}
+			)
+		# This should fail (closed disbursement)
+		frappe.db.set_value("Loan Disbursement", disbursement_b.name, "status", "Closed")
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+					"loan_disbursement": disbursement_b.name,
+				}
+			)
+		post_bulk_payments(data)
+
+		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan_disbursement": disbursement_a.name})
+		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan_disbursement": disbursement_b.name})
+
+		self.assertEqual(successful_log.status, "Success")
+		self.assertEqual(failed_log.status, "Failure")
+
+		self.assertEqual(
+			len(
+				frappe.db.get_all("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_a.name})
+			),
+			5,
+		)
+		self.assertFalse(
+			frappe.db.exists("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_b.name})
+		)
+>>>>>>> a6366ae5 (test: disbursement-wise bulk repayments)
