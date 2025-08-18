@@ -3018,28 +3018,43 @@ def post_bulk_payments(data):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["posting_date"]))
 
+<<<<<<< HEAD
 	grouped_by_loan = group_by_loan(data)
 
+=======
+	grouped_by_loan_and_loan_disbursement = group_by_loan_and_loan_disbursement(data)
+>>>>>>> 957d06be (feat: disbursement-wise bulk repayments)
 	# custom hash best
 	trace_id = random_string(10)
 
 	if frappe.flags.in_test:
-		bulk_repost(grouped_by_loan, trace_id)
+		bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id)
 	else:
-		job = frappe.enqueue(bulk_repost, grouped_by_loan=grouped_by_loan, trace_id=trace_id)
+		job = frappe.enqueue(
+			bulk_repost, grouped_by_loan=grouped_by_loan_and_loan_disbursement, trace_id=trace_id
+		)
 		return {"job_id": job.id, "trace_id": trace_id}
 
 
-def group_by_loan(data):
-	grouped_by_loan = {}
+# grouping by disbursement because LoC loans exist
+# and it is easier to rollback per disbursement
+# than to rollback per loan
+def group_by_loan_and_loan_disbursement(data):
+	grouped_by_loan_and_dibsursement = {}
 	for repayment in data:
 		loan = repayment["against_loan"]
-		grouped_by_loan.setdefault(loan, [])
-		grouped_by_loan[loan].append(repayment)
-	return grouped_by_loan
+		disbursement = ""
+		if "loan_disbursement" in repayment:
+			disbursement = repayment["loan_disbursement"]
+
+		grouped_by_loan_and_dibsursement.setdefault(loan, dict())
+		grouped_by_loan_and_dibsursement[loan].setdefault(disbursement, [])
+		grouped_by_loan_and_dibsursement[loan][disbursement].append(repayment)
+	return grouped_by_loan_and_dibsursement
 
 
 # Function that can be nicely enqueued
+<<<<<<< HEAD
 def bulk_repost(grouped_by_loan, trace_id):
 	for loan, rows in grouped_by_loan.items():
 		bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
@@ -3054,10 +3069,40 @@ def bulk_repost(grouped_by_loan, trace_id):
 		except Exception as e:
 			frappe.db.rollback()
 			traceback_per_loan = traceback.format_exc()
+=======
+def bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id):
+	for loan, grouped_by_loan_disbursement in grouped_by_loan_and_loan_disbursement.items():
+		# first and last dates for the overall loan for
+		# demands and accrual processing and reposting
+		from_date = None
+		to_date = None
+		for disbursement, rows in grouped_by_loan_disbursement.items():
+			current_from_date = getdate(rows[0]["value_date"])
+			current_to_date = getdate(rows[-1]["value_date"])
 
-			bulk_repayment_log.traceback = traceback_per_loan
-			bulk_repayment_log.status = "Failure"
+			if from_date:
+				from_date = min(current_from_date, from_date)
+			else:
+				from_date = current_from_date
 
+			if to_date:
+				to_date = min(current_to_date, to_date)
+			else:
+				to_date = current_to_date
+
+			bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
+			bulk_repayment_log.loan = loan
+			bulk_repayment_log.loan_disbursement = disbursement
+			bulk_repayment_log.timestamp = frappe.utils.get_datetime()
+			bulk_repayment_log.details = str(rows)
+			bulk_repayment_log.trace_id = trace_id
+			bulk_repayment_log.save()
+>>>>>>> 957d06be (feat: disbursement-wise bulk repayments)
+
+			save_point = random_string(length=10)
+			frappe.db.savepoint(save_point=save_point)
+
+<<<<<<< HEAD
 		bulk_repayment_log.submit()
 		# instant logging and save entire job being sabotaged by 1 failed repayment
 		frappe.db.commit()  # nosemgrep
@@ -3080,11 +3125,71 @@ def loan_wise_submit(loan, rows):
 	repost.cancel_future_accruals_and_demands = True
 	repost.clear_demand_allocation_before_repost = True
 	repost.cancel_future_emi_demands = True
+=======
+			try:
+				# weird way to do things. Please suggest better ways
+				payment, e = loan_and_loan_disbursement_wise_submit(
+					loan, disbursement, rows, bulk_repayment_log.name
+				)
+				if e:
+					raise e
+
+				bulk_repayment_log.status = "Success"
+			except Exception as e:
+				frappe.db.rollback(save_point=save_point)
+				traceback_per_loan = traceback.format_exc()
+
+				bulk_repayment_log.traceback = traceback_per_loan
+				bulk_repayment_log.status = "Failure"
+
+				# track failing payment
+				if payment:
+					bulk_repayment_log.failed_repayment = str(payment)
+
+			bulk_repayment_log.submit()
+			# instant logging and save entire job being sabotaged by 1 failed repayment
+			frappe.db.commit()  # nosemgrep
+
+		post_bulk_submit_actions(loan, to_date, from_date)
+
+
+def loan_and_loan_disbursement_wise_submit(loan, disbursement, rows, bulk_repayment_log_name):
+	rows = list(rows)
+>>>>>>> 957d06be (feat: disbursement-wise bulk repayments)
 	for payment in rows:
 		payment["doctype"] = "Loan Repayment"
 		loan_repayment = frappe.get_doc(payment)
 		loan_repayment.flags.from_bulk_payment = True
+<<<<<<< HEAD
 		loan_repayment.submit()
+=======
+		loan_repayment.bulk_repayment_log = bulk_repayment_log_name
+
+		try:
+			loan_repayment.submit()
+
+		# track failing payment
+		except Exception as e:
+			return payment, e
+	return payment, None
+
+
+def post_bulk_submit_actions(loan, to_date, from_date):
+	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+		process_daily_loan_demands,
+	)
+	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		process_loan_interest_accrual_for_loans,
+	)
+
+>>>>>>> 957d06be (feat: disbursement-wise bulk repayments)
 	process_daily_loan_demands(posting_date=to_date, loan=loan)
 	process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
+
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = loan
+	repost.repost_date = getdate(from_date)
+	repost.cancel_future_accruals_and_demands = True
+	repost.clear_demand_allocation_before_repost = True
+	repost.cancel_future_emi_demands = True
 	repost.submit()
