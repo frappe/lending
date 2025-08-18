@@ -53,6 +53,7 @@ class LoanRepayment(AccountsController):
 		applicant: DF.DynamicLink
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		bank_account: DF.Link | None
+		bulk_repayment_log: DF.Link | None
 		clearance_date: DF.Date | None
 		company: DF.Link | None
 		cost_center: DF.Link | None
@@ -3037,10 +3038,11 @@ def bulk_repost(grouped_by_loan, trace_id):
 		bulk_repayment_log.timestamp = frappe.utils.get_datetime()
 		bulk_repayment_log.details = str(rows)
 		bulk_repayment_log.trace_id = trace_id
+		bulk_repayment_log.save()
 
 		try:
 			# weird way to do things. Please suggest better ways
-			payment, e = loan_wise_submit(loan, rows)
+			payment, e = loan_wise_submit(loan, rows, bulk_repayment_log.name)
 			if e:
 				raise e
 
@@ -3061,7 +3063,7 @@ def bulk_repost(grouped_by_loan, trace_id):
 		frappe.db.commit()  # nosemgrep
 
 
-def loan_wise_submit(loan, rows):
+def loan_wise_submit(loan, rows, bulk_repayment_log_name):
 	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 		process_daily_loan_demands,
 	)
@@ -3082,6 +3084,7 @@ def loan_wise_submit(loan, rows):
 		payment["doctype"] = "Loan Repayment"
 		loan_repayment = frappe.get_doc(payment)
 		loan_repayment.flags.from_bulk_payment = True
+		loan_repayment.bulk_repayment_log = bulk_repayment_log_name
 
 		try:
 			loan_repayment.submit()
