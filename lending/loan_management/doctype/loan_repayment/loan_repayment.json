@@ -14,6 +14,7 @@
   "repayment_schedule_type",
   "applicant_type",
   "loan_product",
+  "bulk_repayment_log",
   "column_break_3",
   "company",
   "posting_date",
@@ -535,14 +536,33 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Is Backdated"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "value_date",
+   "fieldtype": "Datetime",
+   "label": "Value Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bulk_repayment_log",
+   "fieldtype": "Link",
+   "label": "Bulk Repayment Log",
+   "options": "Bulk Repayment Log"
+>>>>>>> 84431d5e (chore: add connections to repayments linked to bulk repayment log)
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-03-06 17:13:10.181835",
  "modified": "2025-03-19 11:46:46.079233",
  "modified": "2025-03-26 15:26:11.110153",
+=======
+ "modified": "2025-08-18 17:55:07.773459",
+>>>>>>> 84431d5e (chore: add connections to repayments linked to bulk repayment log)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
