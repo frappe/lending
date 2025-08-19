@@ -3006,8 +3006,22 @@ def post_bulk_payments(data):
 	non_existent_loans = given_loans.difference(existing_loans)
 	if non_existent_loans:
 		frappe.local.response["http_status_code"] = 404
-		return _("The following loans do not exist in the system: {}").format(
-			", ".join(non_existent_loans)
+		return _("The following loans do not exist: {}").format(", ".join(non_existent_loans))
+
+	# disbursements that are not submitted or do not exist should be not allowed
+	# to go through
+	given_disbursements = {i["loan_disbursement"] for i in data if "loan_disbursement" in i}
+	submitted_disbursements = frappe.db.get_all(
+		"Loan Disbursement", {"name": ("in", given_disbursements), "docstatus": 1}
+	)
+	submitted_disbursements = {i.name for i in submitted_disbursements}
+
+	non_submitted_disbursements = given_disbursements.difference(submitted_disbursements)
+
+	if non_submitted_disbursements:
+		frappe.local.response["http_status_code"] = 404
+		return _("The following disbursements do not exist or are not submitted: {}").format(
+			", ".join(non_submitted_disbursements)
 		)
 
 	grouped_by_loan_and_loan_disbursement = group_by_loan_and_loan_disbursement(data)
