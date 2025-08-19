@@ -3018,7 +3018,9 @@ def post_bulk_payments(data):
 		bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id)
 	else:
 		job = frappe.enqueue(
-			bulk_repost, grouped_by_loan=grouped_by_loan_and_loan_disbursement, trace_id=trace_id
+			bulk_repost,
+			grouped_by_loan_and_loan_disbursement=grouped_by_loan_and_loan_disbursement,
+			trace_id=trace_id,
 		)
 		return {"job_id": job.id, "trace_id": trace_id}
 
