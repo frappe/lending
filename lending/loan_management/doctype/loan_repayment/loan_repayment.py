@@ -2573,9 +2573,6 @@ def process_amount_for_loan(
 		loan.name, posting_date, loan_disbursement=loan_disbursement
 	)
 
-	if latest_accrual_date and getdate(latest_accrual_date) > getdate(posting_date):
-		is_backdated = 1
-
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
@@ -2596,7 +2593,10 @@ def process_amount_for_loan(
 			last_demand_date=last_demand_date,
 		)
 
-	if getdate(posting_date) > getdate(latest_accrual_date) or is_backdated:
+	if latest_accrual_date and getdate(posting_date) > getdate(latest_accrual_date):
+		is_future_dated = 1
+
+	if is_future_dated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
 			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1)),
