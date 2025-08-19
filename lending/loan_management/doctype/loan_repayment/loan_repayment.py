@@ -2594,7 +2594,9 @@ def process_amount_for_loan(
 		)
 
 	if latest_accrual_date and getdate(posting_date) > getdate(latest_accrual_date):
-		is_future_dated = 1
+		is_future_dated = True
+	else:
+		is_future_dated = False
 
 	if is_future_dated:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
