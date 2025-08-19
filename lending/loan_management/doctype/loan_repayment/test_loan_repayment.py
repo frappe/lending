@@ -1125,22 +1125,8 @@ class TestLoanRepayment(FrappeTestCase):
 		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_a.name})
 		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan": loan_b.name})
 
-<<<<<<< HEAD
 		self.assertEqual(successful_log.status, "Success")
 		self.assertEqual(failed_log.status, "Failure")
-=======
-		process_daily_loan_demands(loan=loan.name, posting_date="2025-07-05")
-
-		repayment_entry1 = create_repayment_entry(loan.name, "2025-07-05", 5068)
-		repayment_entry1.submit()
-
-		repayment_entry2 = create_repayment_entry(loan.name, "2025-07-05", 5068)
-		repayment_entry2.submit()
-
-		repayment_entry1.cancel()
-		repayment_entry1.load_from_db()
-
-		self.assertEqual(repayment_entry1.is_backdated, 1)
 
 	def test_bulk_payments_for_multiple_disbursements(self):
 		posting_date = get_datetime("2024-04-18")
@@ -1212,4 +1198,3 @@ class TestLoanRepayment(FrappeTestCase):
 		self.assertFalse(
 			frappe.db.exists("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_b.name})
 		)
->>>>>>> a6366ae5 (test: disbursement-wise bulk repayments)
