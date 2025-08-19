@@ -19,7 +19,14 @@ def get_columns():
 			"fieldname": "loan",
 			"fieldtype": "Link",
 			"options": "Loan",
-			"width": 200,
+			"width": 150,
+		},
+		{
+			"label": _("Loan Disbursement"),
+			"fieldname": "loan_disbursement",
+			"fieldtype": "Link",
+			"options": "Loan Disbursement",
+			"width": 150,
 		},
 		{
 			"label": _("Applicant Name"),
@@ -32,7 +39,7 @@ def get_columns():
 			"fieldname": "loan_product",
 			"fieldtype": "Link",
 			"options": "Loan Product",
-			"width": 200,
+			"width": 150,
 		},
 		{
 			"label": _("Payment Date"),
@@ -65,46 +72,51 @@ def get_data(filters):
 	if not filters.get("as_on_date"):
 		frappe.throw(_("Please select As on Date."))
 
-	params = {"as_on_date": filters["as_on_date"]}
+	Loan = frappe.qb.DocType("Loan")
+	LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
+	RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
+	LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 
-	where_conditions = [
-		"l.docstatus = 1",
-		"lrs.docstatus = 1",
-		"lrs.status = 'Active'",
-		"l.status IN ('Disbursed', 'Partially Disbursed', 'Active')",
-		"l.freeze_account = 0",
-		"rs.payment_date >= %(as_on_date)s",
-		"rs.demand_generated = 0",
-	]
-
-	for fl in ("company", "loan_product", "applicant", "loan"):
-		if filters.get(fl):
-			if fl == "loan":
-				where_conditions.append("l.name = %({})s".format(fl))
-			else:
-				where_conditions.append("l.{0} = %({0})s".format(fl))
-			params[fl] = filters[fl]
-
-	where_clause = " AND ".join(where_conditions)
-
-	query = """
-		SELECT
-			l.name AS loan,
-			l.applicant,
-			l.loan_product,
-			rs.payment_date,
-			rs.principal_amount,
-			rs.interest_amount,
-			(rs.principal_amount + rs.interest_amount) AS total_payment
-		FROM `tabLoan` l
-		JOIN `tabLoan Repayment Schedule` lrs ON lrs.loan = l.name
-		JOIN `tabRepayment Schedule` rs
-			ON rs.parent = lrs.name AND rs.parentfield = 'repayment_schedule'
-		WHERE {where_clause}
-		ORDER BY rs.payment_date
-	""".format(
-		where_clause=where_clause
+	query = (
+		frappe.qb.from_(Loan)
+		.join(LoanDisbursement)
+		.on(LoanDisbursement.against_loan == Loan.name)
+		.join(LoanRepaymentSchedule)
+		.on(LoanRepaymentSchedule.loan_disbursement == LoanDisbursement.name)
+		.join(RepaymentSchedule)
+		.on(
+			(RepaymentSchedule.parent == LoanRepaymentSchedule.name)
+			& (RepaymentSchedule.parentfield == "repayment_schedule")
+		)
+		.select(
+			Loan.name.as_("loan"),
+			LoanDisbursement.name.as_("loan_disbursement"),
+			Loan.applicant,
+			Loan.loan_product,
+			RepaymentSchedule.payment_date,
+			RepaymentSchedule.principal_amount,
+			RepaymentSchedule.interest_amount,
+			RepaymentSchedule.total_payment,
+		)
+		.where(Loan.docstatus == 1)
+		.where(LoanRepaymentSchedule.docstatus == 1)
+		.where(LoanRepaymentSchedule.status == "Active")
+		.where(Loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
+		.where(Loan.freeze_account == 0)
+		.where(RepaymentSchedule.payment_date >= filters["as_on_date"])
+		.where(RepaymentSchedule.demand_generated == 0)
+		.where(LoanDisbursement.docstatus == 1)
 	)
 
-	results = frappe.db.sql(query, params, as_dict=True)
-	return results
+	if filters.get("company"):
+		query = query.where(Loan.company == filters["company"])
+	if filters.get("loan_product"):
+		query = query.where(Loan.loan_product == filters["loan_product"])
+	if filters.get("loan"):
+		query = query.where(Loan.name == filters["loan"])
+	if filters.get("loan_disbursement"):
+		query = query.where(LoanDisbursement.name == filters["loan_disbursement"])
+
+	query = query.orderby(RepaymentSchedule.payment_date)
+
+	return query.run(as_dict=True)

@@ -19,51 +19,6 @@ frappe.query_reports["Future Cashflow Report"] = {
 			"reqd": 1,
 		},
 		{
-			"fieldname":"applicant_type",
-			"label": __("Applicant Type"),
-			"fieldtype": "Select",
-			"options": ["Customer", "Employee"],
-			"reqd": 1,
-			"default": "Customer",
-			on_change: function() {
-				frappe.query_report.set_filter_value('applicant', "");
-				frappe.query_report.set_filter_value('loan_product', "");
-				frappe.query_report.set_filter_value('loan', "");
-				frappe.query_report.refresh();
-			}
-		},
-		{
-			"fieldname": "applicant",
-			"label": __("Applicant"),
-			"fieldtype": "Dynamic Link",
-			"get_options": function() {
-				let applicant_type = frappe.query_report.get_filter_value('applicant_type');
-				let applicant = frappe.query_report.get_filter_value('applicant');
-				if(applicant && !applicant_type) {
-					frappe.throw(__("Please select Applicant Type first"));
-				}
-				return applicant_type;
-			},
-			"get_query": function() {
-				let applicant_type = frappe.query_report.get_filter_value('applicant_type');
-				let company = frappe.query_report.get_filter_value('company');
-
-				if (applicant_type === "Employee") {
-					return {
-						filters: {
-							company: company
-						}
-					};
-				}
-				return {};
-			},
-			on_change: function() {
-				frappe.query_report.set_filter_value('loan_product', "");
-				frappe.query_report.set_filter_value('loan', "");
-				frappe.query_report.refresh();
-			}
-		},
-		{
 			"fieldname":"loan_product",
 			"label": __("Loan Product"),
 			"fieldtype": "Link",
@@ -93,6 +48,25 @@ frappe.query_reports["Future Cashflow Report"] = {
 					filters: {
 						company: company,
 						docstatus: 1,
+						loan_product: loan_product || undefined,
+					},
+				};
+			},
+		},
+		{
+			"fieldname":"loan_disbursement",
+			"label": __("Loan Disbursement"),
+			"fieldtype": "Link",
+			"options": "Loan Disbursement",
+			get_query: () => {
+				var company = frappe.query_report.get_filter_value("company");
+				var loan = frappe.query_report.get_filter_value("loan");
+				var loan_product = frappe.query_report.get_filter_value("loan_product");
+				return {
+					filters: {
+						company: company,
+						docstatus: 1,
+						against_loan: loan || undefined,
 						loan_product: loan_product || undefined,
 					},
 				};
