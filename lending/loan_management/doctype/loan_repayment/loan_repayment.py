@@ -3190,6 +3190,5 @@ def post_bulk_submit_actions(loan, to_date, from_date):
 	repost.loan = loan
 	repost.repost_date = getdate(from_date)
 	repost.cancel_future_accruals_and_demands = True
-	repost.clear_demand_allocation_before_repost = True
 	repost.cancel_future_emi_demands = True
 	repost.submit()
