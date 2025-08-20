@@ -2542,6 +2542,7 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		status=against_loan_doc.status,
 		payment_type=payment_type,
+		for_update=for_update,
 	)
 
 	if with_loan_details:
@@ -2551,7 +2552,14 @@ def get_amounts(
 
 
 def process_amount_for_loan(
-	loan, posting_date, demands, amounts, loan_disbursement=None, status=None, payment_type=None
+	loan,
+	posting_date,
+	demands,
+	amounts,
+	loan_disbursement=None,
+	status=None,
+	payment_type=None,
+	for_update=False,
 ):
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		calculate_accrual_amount_for_loans,
@@ -2563,7 +2571,6 @@ def process_amount_for_loan(
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
-	is_backdated = 0
 	unbooked_interest = 0
 
 	last_demand_date = get_last_demand_date(
@@ -2598,7 +2605,7 @@ def process_amount_for_loan(
 	else:
 		is_future_dated = False
 
-	if is_future_dated:
+	if is_future_dated and not for_update:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
 			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1)),
