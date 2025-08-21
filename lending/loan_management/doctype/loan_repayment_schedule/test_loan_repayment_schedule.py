@@ -50,11 +50,16 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 		)
 		loan.submit()
 		loan.load_from_db()
+
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-11-05", repayment_start_date="2024-12-05"
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date="2025-12-05")
-		loan_demand_amount = 181958
+
+		loan_demand_amount = frappe.db.get_value(
+			"Loan Demand", {"loan": loan.name, "docstatus": 1}, [{"SUM": "demand_amount"}]
+		)
+
 		repayment_entry = create_repayment_entry(
 			loan=loan.name,
 			value_date="2025-12-05",
