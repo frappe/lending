@@ -1248,6 +1248,7 @@ class LoanRepayment(AccountsController):
 				posting_date=self.posting_date,
 				loan_disbursement=self.loan_disbursement,
 				payment_type=self.repayment_type,
+				for_update=True,
 			)
 
 			waiver_type = self.get_auto_waiver_type(amounts)
@@ -2542,6 +2543,7 @@ def get_amounts(
 		loan_disbursement=loan_disbursement,
 		status=against_loan_doc.status,
 		payment_type=payment_type,
+		for_update=for_update,
 	)
 
 	if with_loan_details:
@@ -2551,11 +2553,17 @@ def get_amounts(
 
 
 def process_amount_for_loan(
-	loan, posting_date, demands, amounts, loan_disbursement=None, status=None, payment_type=None
+	loan,
+	posting_date,
+	demands,
+	amounts,
+	loan_disbursement=None,
+	status=None,
+	payment_type=None,
+	for_update=False,
 ):
 	from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 		calculate_accrual_amount_for_loans,
-		calculate_penal_interest_for_loans,
 	)
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -2563,7 +2571,6 @@ def process_amount_for_loan(
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
-	is_backdated = 0
 	unbooked_interest = 0
 
 	last_demand_date = get_last_demand_date(
@@ -2572,9 +2579,6 @@ def process_amount_for_loan(
 	latest_accrual_date = get_latest_accrual_date(
 		loan.name, posting_date, loan_disbursement=loan_disbursement
 	)
-
-	if latest_accrual_date and getdate(latest_accrual_date) > getdate(posting_date):
-		is_backdated = 1
 
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
@@ -2596,18 +2600,16 @@ def process_amount_for_loan(
 			last_demand_date=last_demand_date,
 		)
 
-	if getdate(posting_date) > getdate(latest_accrual_date) or is_backdated:
+	if latest_accrual_date and getdate(posting_date) > getdate(latest_accrual_date):
+		is_future_dated = True
+	else:
+		is_future_dated = False
+
+	if is_future_dated and not for_update:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
 			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1)),
 			accrual_type="Regular",
-			is_future_accrual=1,
-			loan_disbursement=loan_disbursement,
-		)
-
-		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
-			loan=loan,
-			posting_date=posting_date,
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
 		)
