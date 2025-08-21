@@ -6,7 +6,8 @@ import traceback
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Coalesce, Round, Sum
+from frappe.query_builder import Order
+from frappe.query_builder.functions import Coalesce, Max, Round, Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
 import erpnext
@@ -53,6 +54,7 @@ class LoanRepayment(AccountsController):
 		applicant: DF.DynamicLink
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		bank_account: DF.Link | None
+		bulk_repayment_log: DF.Link | None
 		clearance_date: DF.Date | None
 		company: DF.Link | None
 		cost_center: DF.Link | None
@@ -2646,12 +2648,9 @@ def process_amount_for_loan(
 def get_bulk_due_details(loans, posting_date):
 	from lending.loan_management.doctype.loan_repayment.utils import (
 		get_disbursement_map,
-		get_last_demand_date,
 		get_pending_principal_amount_for_loans,
 		process_amount_for_bulk_loans,
 	)
-
-	last_demand_dates = {loan: get_last_demand_date(posting_date, loan=loan) for loan in loans}
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2677,12 +2676,10 @@ def get_bulk_due_details(loans, posting_date):
 	disbursement_map = get_disbursement_map(loan_details)
 	principal_amount_map = get_pending_principal_amount_for_loans(loan_details, disbursement_map)
 
-	unbooked_interest_map = {
-		loan: get_unbooked_interest(
-			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
-		)
-		for loan in loans
-	}
+	unbooked_interest_map = get_unbooked_interest_for_bulk_loans(
+		loans=loans,
+		posting_date=posting_date,
+	)
 	loan_demands = get_all_demands(loans, posting_date)
 
 	demand_map = {}
@@ -2988,6 +2985,48 @@ def get_accrued_interest(
 	return flt(accrued_interest)
 
 
+def get_unbooked_interest_for_bulk_loans(loans, posting_date):
+
+	loan_demand_doc = frappe.qb.DocType("Loan Demand")
+	query1 = (
+		frappe.qb.from_(loan_demand_doc)
+		.where(loan_demand_doc.docstatus == 1)
+		.where(loan_demand_doc.demand_subtype == "Interest")
+		.where(loan_demand_doc.demand_date <= posting_date)
+		.where(loan_demand_doc.loan.isin(loans))
+		.orderby(loan_demand_doc.demand_date, order=Order.desc)
+		.select(
+			loan_demand_doc.loan.as_("loan"), Max(loan_demand_doc.demand_date).as_("last_demand_date")
+		)
+	)
+
+	query2 = (
+		frappe.qb.from_(query1)
+		.where(query1.loan.isin(loans))
+		.select(query1.loan, query1.last_demand_date)
+	)
+
+	loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
+	query3 = (
+		frappe.qb.from_(loan_interest_accrual_doc)
+		.join(query2)
+		.on(
+			(loan_interest_accrual_doc.loan == query2.loan)
+			& (loan_interest_accrual_doc.posting_date >= query2.last_demand_date)
+		)
+		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
+		.where(loan_interest_accrual_doc.docstatus == 1)
+		.where(loan_interest_accrual_doc.posting_date < posting_date)
+		.groupby(loan_interest_accrual_doc.loan)
+		.select(
+			loan_interest_accrual_doc.loan.as_("loan"),
+			Sum(loan_interest_accrual_doc.interest_amount).as_("interest_amount"),
+		)
+	)
+	result = query2.run(as_dict=True)
+	return {i.loan: i.interest_amount for i in result}
+
+
 def get_net_paid_amount(loan):
 	return frappe.db.get_value("Loan", {"name": loan}, "sum(total_amount_paid - refund_amount)")
 
@@ -3007,83 +3046,122 @@ def post_bulk_payments(data):
 	non_existent_loans = given_loans.difference(existing_loans)
 	if non_existent_loans:
 		frappe.local.response["http_status_code"] = 404
-		return _("The following loans do not exist in the system: {}").format(
-			", ".join(non_existent_loans)
+		return _("The following loans do not exist: {}").format(", ".join(non_existent_loans))
+
+	# disbursements that are not submitted or do not exist should be not allowed
+	# to go through
+	given_disbursements = {i["loan_disbursement"] for i in data if "loan_disbursement" in i}
+	submitted_disbursements = frappe.db.get_all(
+		"Loan Disbursement", {"name": ("in", given_disbursements), "docstatus": 1}
+	)
+	submitted_disbursements = {i.name for i in submitted_disbursements}
+
+	non_submitted_disbursements = given_disbursements.difference(submitted_disbursements)
+
+	if non_submitted_disbursements:
+		frappe.local.response["http_status_code"] = 404
+		return _("The following disbursements do not exist or are not submitted: {}").format(
+			", ".join(non_submitted_disbursements)
 		)
 
-	grouped_by_loan = group_by_loan(data)
+	grouped_by_loan_and_loan_disbursement = group_by_loan_and_loan_disbursement(data)
 	# custom hash best
 	trace_id = random_string(10)
 
 	if frappe.flags.in_test:
-		bulk_repost(grouped_by_loan, trace_id)
+		bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id)
 	else:
-		job = frappe.enqueue(bulk_repost, grouped_by_loan=grouped_by_loan, trace_id=trace_id)
+		job = frappe.enqueue(
+			bulk_repost,
+			grouped_by_loan_and_loan_disbursement=grouped_by_loan_and_loan_disbursement,
+			trace_id=trace_id,
+		)
 		return {"job_id": job.id, "trace_id": trace_id}
 
 
-def group_by_loan(data):
-	grouped_by_loan = {}
+# grouping by disbursement because LoC loans exist
+# and it is easier to rollback per disbursement
+# than to rollback per loan
+def group_by_loan_and_loan_disbursement(data):
+	grouped_by_loan_and_dibsursement = {}
 	for repayment in data:
 		loan = repayment["against_loan"]
-		grouped_by_loan.setdefault(loan, [])
-		grouped_by_loan[loan].append(repayment)
-	return grouped_by_loan
+		disbursement = ""
+		if "loan_disbursement" in repayment:
+			disbursement = repayment["loan_disbursement"]
+
+		grouped_by_loan_and_dibsursement.setdefault(loan, dict())
+		grouped_by_loan_and_dibsursement[loan].setdefault(disbursement, [])
+		grouped_by_loan_and_dibsursement[loan][disbursement].append(repayment)
+	return grouped_by_loan_and_dibsursement
 
 
 # Function that can be nicely enqueued
-def bulk_repost(grouped_by_loan, trace_id):
-	for loan, rows in grouped_by_loan.items():
-		bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
-		bulk_repayment_log.loan = loan
-		bulk_repayment_log.timestamp = frappe.utils.get_datetime()
-		bulk_repayment_log.details = str(rows)
-		bulk_repayment_log.trace_id = trace_id
+def bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id):
+	for loan, grouped_by_loan_disbursement in grouped_by_loan_and_loan_disbursement.items():
+		# first and last dates for the overall loan for
+		# demands and accrual processing and reposting
+		from_date = None
+		to_date = None
+		for disbursement, rows in grouped_by_loan_disbursement.items():
+			current_from_date = getdate(rows[0]["value_date"])
+			current_to_date = getdate(rows[-1]["value_date"])
 
-		try:
-			# weird way to do things. Please suggest better ways
-			payment, e = loan_wise_submit(loan, rows)
-			if e:
-				raise e
+			if from_date:
+				from_date = min(current_from_date, from_date)
+			else:
+				from_date = current_from_date
 
-			bulk_repayment_log.status = "Success"
-		except Exception as e:
-			frappe.db.rollback()
-			traceback_per_loan = traceback.format_exc()
+			if to_date:
+				to_date = min(current_to_date, to_date)
+			else:
+				to_date = current_to_date
 
-			bulk_repayment_log.traceback = traceback_per_loan
-			bulk_repayment_log.status = "Failure"
+			bulk_repayment_log = frappe.new_doc("Bulk Repayment Log")
+			bulk_repayment_log.loan = loan
+			bulk_repayment_log.loan_disbursement = disbursement
+			bulk_repayment_log.timestamp = frappe.utils.get_datetime()
+			bulk_repayment_log.details = str(rows)
+			bulk_repayment_log.trace_id = trace_id
+			bulk_repayment_log.save()
 
-			# track failing payment
-			if payment:
-				bulk_repayment_log.failed_repayment = str(payment)
+			frappe.db.commit()
 
-		bulk_repayment_log.submit()
-		# instant logging and save entire job being sabotaged by 1 failed repayment
+			try:
+				# weird way to do things. Please suggest better ways
+				payment, e = loan_and_loan_disbursement_wise_submit(
+					loan, disbursement, rows, bulk_repayment_log.name
+				)
+				if e:
+					raise e
+
+				bulk_repayment_log.status = "Success"
+			except Exception as e:
+				frappe.db.rollback()
+				traceback_per_loan = traceback.format_exc()
+
+				bulk_repayment_log.traceback = traceback_per_loan
+				bulk_repayment_log.status = "Failure"
+
+				# track failing payment
+				if payment:
+					bulk_repayment_log.failed_repayment = str(payment)
+
+			bulk_repayment_log.submit()
+			# instant logging and save entire job being sabotaged by 1 failed repayment
+			frappe.db.commit()  # nosemgrep
+
+		post_bulk_submit_actions(loan, to_date, from_date)
 		frappe.db.commit()  # nosemgrep
 
 
-def loan_wise_submit(loan, rows):
-	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
-		process_daily_loan_demands,
-	)
-	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-		process_loan_interest_accrual_for_loans,
-	)
-
+def loan_and_loan_disbursement_wise_submit(loan, disbursement, rows, bulk_repayment_log_name):
 	rows = list(rows)
-	from_date = getdate(rows[0]["value_date"])
-	to_date = getdate(rows[-1]["value_date"])
-	repost = frappe.new_doc("Loan Repayment Repost")
-	repost.loan = loan
-	repost.repost_date = getdate(from_date)
-	repost.cancel_future_accruals_and_demands = True
-	repost.clear_demand_allocation_before_repost = True
-	repost.cancel_future_emi_demands = True
 	for payment in rows:
 		payment["doctype"] = "Loan Repayment"
 		loan_repayment = frappe.get_doc(payment)
 		loan_repayment.flags.from_bulk_payment = True
+		loan_repayment.bulk_repayment_log = bulk_repayment_log_name
 
 		try:
 			loan_repayment.submit()
@@ -3091,7 +3169,23 @@ def loan_wise_submit(loan, rows):
 		# track failing payment
 		except Exception as e:
 			return payment, e
+	return payment, None
+
+
+def post_bulk_submit_actions(loan, to_date, from_date):
+	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+		process_daily_loan_demands,
+	)
+	from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+		process_loan_interest_accrual_for_loans,
+	)
+
 	process_daily_loan_demands(posting_date=to_date, loan=loan)
 	process_loan_interest_accrual_for_loans(posting_date=to_date, loan=loan)
+
+	repost = frappe.new_doc("Loan Repayment Repost")
+	repost.loan = loan
+	repost.repost_date = getdate(from_date)
+	repost.cancel_future_accruals_and_demands = True
+	repost.cancel_future_emi_demands = True
 	repost.submit()
-	return payment, None

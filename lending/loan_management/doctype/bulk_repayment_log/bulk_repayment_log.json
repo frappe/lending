@@ -9,6 +9,7 @@
   "section_break_0dlz",
   "amended_from",
   "loan",
+  "loan_disbursement",
   "trace_id",
   "column_break_kyhi",
   "status",
@@ -78,13 +79,19 @@
    "fieldname": "particulars_section",
    "fieldtype": "Section Break",
    "label": "Particulars"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-07 17:13:42.971017",
+ "modified": "2025-08-19 01:47:22.826162",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Bulk Repayment Log",
