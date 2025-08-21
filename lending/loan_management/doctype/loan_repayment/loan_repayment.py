@@ -2315,8 +2315,11 @@ class LoanRepayment(AccountsController):
 
 	def no_repayments_during_moratorium(self):
 		if self.repayment_type in ("Pre Payment", "Advance Payment"):
+			filters = {"loan": self.against_loan, "docstatus": 1}
+			if self.loan_disbursement:
+				filters["loan_disbursement"] = self.loan_disbursement
 			moratorium_end_date = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan": self.against_loan, "docstatus": 1}, "moratorium_end_date"
+				"Loan Repayment Schedule", filters, "moratorium_end_date"
 			)
 			if moratorium_end_date:
 				if get_datetime(moratorium_end_date) >= get_datetime(self.value_date):
