@@ -69,6 +69,11 @@ def get_columns():
 
 
 def get_data(filters):
+	if not filters.get("company"):
+		frappe.throw(_("Please select Company."))
+	if not filters.get("as_on_date"):
+		frappe.throw(_("Please select As on Date."))
+
 	Loan = frappe.qb.DocType("Loan")
 	LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
 	RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
