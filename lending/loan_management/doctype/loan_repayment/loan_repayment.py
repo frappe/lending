@@ -6,7 +6,6 @@ import traceback
 
 import frappe
 from frappe import _
-from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce, Max, Round, Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
@@ -2986,7 +2985,6 @@ def get_accrued_interest(
 
 
 def get_unbooked_interest_for_bulk_loans(loans, posting_date):
-
 	loan_demand_doc = frappe.qb.DocType("Loan Demand")
 	query1 = (
 		frappe.qb.from_(loan_demand_doc)
@@ -2994,25 +2992,19 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 		.where(loan_demand_doc.demand_subtype == "Interest")
 		.where(loan_demand_doc.demand_date <= posting_date)
 		.where(loan_demand_doc.loan.isin(loans))
-		.orderby(loan_demand_doc.demand_date, order=Order.desc)
+		.groupby(loan_demand_doc.loan)
 		.select(
 			loan_demand_doc.loan.as_("loan"), Max(loan_demand_doc.demand_date).as_("last_demand_date")
 		)
 	)
 
-	query2 = (
-		frappe.qb.from_(query1)
-		.where(query1.loan.isin(loans))
-		.select(query1.loan, query1.last_demand_date)
-	)
-
 	loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
-	query3 = (
+	query2 = (
 		frappe.qb.from_(loan_interest_accrual_doc)
-		.join(query2)
+		.join(query1)
 		.on(
-			(loan_interest_accrual_doc.loan == query2.loan)
-			& (loan_interest_accrual_doc.posting_date >= query2.last_demand_date)
+			(loan_interest_accrual_doc.loan == query1.loan)
+			& (loan_interest_accrual_doc.posting_date >= query1.last_demand_date)
 		)
 		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
 		.where(loan_interest_accrual_doc.docstatus == 1)
