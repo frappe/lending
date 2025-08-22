@@ -226,7 +226,6 @@ class Loan(AccountsController):
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
 
 	def on_cancel(self):
-		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.cancel_loan_security_assignment()
 		self.ignore_linked_doctypes = [
@@ -367,6 +366,7 @@ class Loan(AccountsController):
 		)
 		for schedule in schedules:
 			schedule = frappe.get_doc("Loan Repayment Schedule", schedule)
+			schedule.flags.ignore_links = True
 			schedule.cancel()
 
 	def calculate_totals(self, on_insert=False):
