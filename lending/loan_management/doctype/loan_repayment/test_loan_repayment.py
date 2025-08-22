@@ -462,6 +462,53 @@ class TestLoanRepayment(FrappeTestCase):
 				self.assertEqual(demand.outstanding_amount, 0)
 				self.assertEqual(demand.paid_amount, demand.demand_amount)
 
+	def test_backdated_repayment_allocation_resets_on_repost(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			10000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2025-02-15",
+			"2025-01-25",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-25", repayment_start_date="2025-02-15"
+		)
+		process_daily_loan_demands(posting_date="2025-02-15", loan=loan.name)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-02-15")[
+			"payable_amount"
+		]
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-02-15 00:06:10"), payable_amount
+		).submit()
+
+		process_daily_loan_demands(posting_date="2025-03-15", loan=loan.name)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-03-15")[
+			"payable_amount"
+		]
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-03-20 00:06:10"), flt(payable_amount / 2, 2)
+		).submit()
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-03-16 00:06:10"), flt(payable_amount / 2, 2)
+		).submit()
+
+		demands = frappe.db.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["outstanding_amount"],
+		)
+		for demand in demands:
+			self.assertEqual(demand.outstanding_amount, 0)
+
 	def test_on_time_penal_cancellations(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 		loan = create_loan(
