@@ -629,7 +629,3 @@ def get_freeze_date_map(loans):
 			"Loan", filters={"name": ("in", loans)}, fields=["name", "freeze_date"], as_list=1
 		)
 	)
-
-
-def on_doctype_update():
-	frappe.db.add_index("Loan Demand", ["loan", "demand_date"])
