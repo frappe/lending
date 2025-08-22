@@ -1158,7 +1158,7 @@ def update_loan_and_customer_status(
 		days_past_due = max_dpd
 
 	if loan_status == "Settled":
-		write_off_suspense_entries(loan, loan_product, posting_date, company)
+		write_off_suspense_entries(loan, loan_product, posting_date, posting_date, company)
 		write_off_charges(loan, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
 		is_previous_npa = frappe.db.get_value(
@@ -1177,8 +1177,10 @@ def update_loan_and_customer_status(
 			or actual_dpd == 0
 			or days_past_due == 0
 		):
-			frappe.db.set_value("Loan", loan, {"is_npa": 0, "days_past_due": actual_dpd})
-			write_off_suspense_entries(loan, loan_product, max_date, company)
+			update_all_linked_loan_customer_npa_status(
+				0, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
+			)
+			write_off_suspense_entries(loan, loan_product, max_date, max_date, company)
 			write_off_charges(loan, max_date, company)
 			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
 		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
@@ -1207,7 +1209,7 @@ def update_loan_and_customer_status(
 			if prev_npa:
 				for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 					loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
-					write_off_suspense_entries(loan_id, loan_product, posting_date, company)
+					write_off_suspense_entries(loan_id, loan_product, posting_date, posting_date, company)
 					write_off_charges(loan_id, posting_date, company)
 
 				update_all_linked_loan_customer_npa_status(
