@@ -2989,7 +2989,7 @@ def get_accrued_interest(
 def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 
 	loan_demand_doc = frappe.qb.DocType("Loan Demand")
-	query1 = (
+	query_get_last_demand_date_per_loan = (
 		frappe.qb.from_(loan_demand_doc)
 		.where(loan_demand_doc.docstatus == 1)
 		.where(loan_demand_doc.demand_subtype == "Interest")
@@ -3001,19 +3001,24 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 		)
 	)
 
-	query2 = (
-		frappe.qb.from_(query1)
-		.where(query1.loan.isin(loans))
-		.select(query1.loan, query1.last_demand_date)
+	query_get_last_demand_date_for_all_loans = (
+		frappe.qb.from_(query_get_last_demand_date_per_loan)
+		.where(query_get_last_demand_date_per_loan.loan.isin(loans))
+		.select(
+			query_get_last_demand_date_per_loan.loan, query_get_last_demand_date_per_loan.last_demand_date
+		)
 	)
 
 	loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
-	query3 = (
+	query_get_interest_amounts_for_all_loans = (
 		frappe.qb.from_(loan_interest_accrual_doc)
-		.join(query2)
+		.join(query_get_last_demand_date_for_all_loans)
 		.on(
-			(loan_interest_accrual_doc.loan == query2.loan)
-			& (loan_interest_accrual_doc.posting_date >= query2.last_demand_date)
+			(loan_interest_accrual_doc.loan == query_get_last_demand_date_for_all_loans.loan)
+			& (
+				loan_interest_accrual_doc.posting_date
+				>= query_get_last_demand_date_for_all_loans.last_demand_date
+			)
 		)
 		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
 		.where(loan_interest_accrual_doc.docstatus == 1)
@@ -3024,7 +3029,7 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 			Sum(loan_interest_accrual_doc.interest_amount).as_("interest_amount"),
 		)
 	)
-	result = query2.run(as_dict=True)
+	result = query_get_interest_amounts_for_all_loans.run(as_dict=True)
 	return {i.loan: i.interest_amount for i in result}
 
 
