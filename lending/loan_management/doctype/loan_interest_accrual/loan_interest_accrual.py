@@ -1088,6 +1088,7 @@ def reverse_loan_interest_accruals(
 			write_off_suspense_entries(
 				loan,
 				accrual_doc.loan_product,
+				nowdate(),
 				posting_date,
 				accrual_doc.company,
 				interest_amount=interest_amount,

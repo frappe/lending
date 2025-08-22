@@ -418,6 +418,7 @@ class LoanRepayment(AccountsController):
 				write_off_suspense_entries(
 					self.against_loan,
 					self.loan_product,
+					self.posting_date,
 					self.value_date,
 					self.company,
 					interest_amount=self.total_interest_paid,
