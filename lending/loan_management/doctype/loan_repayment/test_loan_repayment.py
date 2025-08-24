@@ -817,18 +817,18 @@ class TestLoanRepayment(FrappeTestCase):
 		)
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-12-31", 10000, repayment_type="Write Off Recovery"
+			loan.name, "2024-12-31", 2597256.40, repayment_type="Write Off Recovery"
 		).submit()
 
 		loan.load_from_db()
 
-		self.assertEqual(loan.total_principal_paid, 10000)
+		self.assertEqual(loan.total_principal_paid, 2500000)
 
 		repayment_entry.cancel()
-
 		loan.load_from_db()
 
 		self.assertEqual(loan.total_principal_paid, 0)
+		self.assertEqual(loan.status, "Written Off")
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")

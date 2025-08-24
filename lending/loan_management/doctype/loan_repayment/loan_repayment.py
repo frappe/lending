@@ -1322,7 +1322,7 @@ class LoanRepayment(AccountsController):
 				.where(loan.name == self.against_loan)
 			)
 
-			if self.repayment_type == "Write Off Settlement":
+			if self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
 				query = query.set(loan.status, "Written Off")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
