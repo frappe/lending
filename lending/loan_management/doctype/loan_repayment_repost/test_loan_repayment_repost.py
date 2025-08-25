@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt, get_datetime
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
