@@ -1426,3 +1426,51 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertFalse(
 			frappe.db.exists("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_b.name})
 		)
+
+	def test_unbooked_interest_accrual_calculation_till_freeze_date(self):
+		set_loan_accrual_frequency("Daily")
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-20", company="_Test Company"
+		)
+		freeze_date = "2024-04-10"
+
+		accrual_sum_till_freeze_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"posting_date": ("<", freeze_date),
+				"interest_type": "Normal Interest",
+			},
+			[{"SUM": "interest_amount"}],
+		)
+
+		frappe.db.set_value("Loan", loan.name, {"freeze_account": 1, "freeze_date": freeze_date})
+		unbooked_interest = calculate_amounts(against_loan=loan.name, posting_date="2024-04-20")[
+			"unbooked_interest"
+		]
+
+		self.assertEqual(accrual_sum_till_freeze_date, unbooked_interest)
