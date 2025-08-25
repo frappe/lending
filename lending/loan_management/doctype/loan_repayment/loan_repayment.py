@@ -198,16 +198,6 @@ class LoanRepayment(AccountsController):
 		if self.flags.from_bulk_payment:
 			return
 
-		if self.is_backdated:
-			if frappe.flags.in_test:
-				self.create_repost()
-			else:
-				frappe.enqueue(
-					self.create_repost,
-					enqueue_after_commit=True,
-				)
-			return
-
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -357,6 +347,16 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
 
 		self.create_auto_waiver()
 
@@ -675,6 +675,7 @@ class LoanRepayment(AccountsController):
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		self.check_future_entries(cancel=1)
+
 		if self.flags.from_bulk_payment:
 			return
 		if self.is_backdated:
