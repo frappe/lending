@@ -19,27 +19,21 @@ def get_columns():
 			"fieldname": "loan",
 			"fieldtype": "Link",
 			"options": "Loan",
-			"width": 150,
+			"width": 200,
 		},
 		{
 			"label": _("Loan Disbursement"),
 			"fieldname": "loan_disbursement",
 			"fieldtype": "Link",
 			"options": "Loan Disbursement",
-			"width": 150,
-		},
-		{
-			"label": _("Applicant Name"),
-			"fieldname": "applicant",
-			"fieldtype": "Data",
-			"width": 200,
+			"width": 180,
 		},
 		{
 			"label": _("Loan Product"),
 			"fieldname": "loan_product",
 			"fieldtype": "Link",
 			"options": "Loan Product",
-			"width": 150,
+			"width": 180,
 		},
 		{
 			"label": _("Payment Date"),
@@ -74,45 +68,38 @@ def get_data(filters):
 	if not filters.get("as_on_date"):
 		frappe.throw(_("Please select As on Date."))
 
-	Loan = frappe.qb.DocType("Loan")
 	LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
 	RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
 
 	query = (
 		frappe.qb.from_(LoanRepaymentSchedule)
-		.join(Loan)
-		.on(Loan.name == LoanRepaymentSchedule.loan)
 		.join(RepaymentSchedule)
 		.on(
 			(RepaymentSchedule.parent == LoanRepaymentSchedule.name)
 			& (RepaymentSchedule.parentfield == "repayment_schedule")
 		)
 		.select(
-			Loan.name.as_("loan"),
+			LoanRepaymentSchedule.loan,
 			LoanRepaymentSchedule.loan_disbursement,
-			Loan.applicant,
-			Loan.loan_product,
-			Loan.company,
+			LoanRepaymentSchedule.loan_product,
+			LoanRepaymentSchedule.company,
 			RepaymentSchedule.payment_date,
 			RepaymentSchedule.principal_amount,
 			RepaymentSchedule.interest_amount,
 			RepaymentSchedule.total_payment,
 		)
-		.where(Loan.docstatus == 1)
 		.where(LoanRepaymentSchedule.docstatus == 1)
 		.where(LoanRepaymentSchedule.status == "Active")
-		.where(Loan.status.isin(["Disbursed", "Partially Disbursed", "Active"]))
-		.where(Loan.freeze_account == 0)
 		.where(RepaymentSchedule.payment_date >= filters.get("as_on_date"))
 		.where(RepaymentSchedule.demand_generated == 0)
 	)
 
 	if filters.get("company"):
-		query = query.where(Loan.company == filters.get("company"))
+		query = query.where(LoanRepaymentSchedule.company == filters.get("company"))
 	if filters.get("loan_product"):
-		query = query.where(Loan.loan_product == filters.get("loan_product"))
+		query = query.where(LoanRepaymentSchedule.loan_product == filters.get("loan_product"))
 	if filters.get("loan"):
-		query = query.where(Loan.name == filters.get("loan"))
+		query = query.where(LoanRepaymentSchedule.loan == filters.get("loan"))
 	if filters.get("loan_disbursement"):
 		query = query.where(LoanRepaymentSchedule.loan_disbursement == filters.get("loan_disbursement"))
 
