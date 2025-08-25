@@ -2595,10 +2595,12 @@ def process_amount_for_loan(
 
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
+	freeze_date = loan.freeze_date
+
 	if loan.status not in ("Closed", "Settled"):
 		unbooked_interest = get_unbooked_interest(
 			loan.name,
-			posting_date,
+			posting_date if not freeze_date else freeze_date,
 			loan_disbursement=loan_disbursement,
 			last_demand_date=last_demand_date,
 		)
@@ -2611,7 +2613,9 @@ def process_amount_for_loan(
 	if is_future_dated and not for_update:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
-			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1)),
+			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1))
+			if not freeze_date
+			else freeze_date,
 			accrual_type="Regular",
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
