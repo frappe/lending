@@ -1,21 +1,8 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-<<<<<<< HEAD
-# import frappe
-from frappe.tests.utils import FrappeTestCase
-
-# On FrappeTestCase, the doctype test records and all
-# link-field test record depdendencies are recursively loaded
-# Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-
-
-class TestLoanRepaymentRepost(FrappeTestCase):
-=======
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import FrappeTestCase
 from frappe.utils import flt, get_datetime
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -33,8 +20,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepaymentRepost(IntegrationTestCase):
->>>>>>> 65450afd (test: Move to separate file)
+class TestLoanRepaymentRepost(FrappeTestCase):
 	"""
 	Integration tests for LoanRepaymentRepost.
 	Use this class for testing interactions between multiple components.
