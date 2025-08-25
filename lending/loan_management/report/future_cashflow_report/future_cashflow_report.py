@@ -77,14 +77,11 @@ def get_data(filters):
 	Loan = frappe.qb.DocType("Loan")
 	LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
 	RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
-	LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 
 	query = (
-		frappe.qb.from_(Loan)
-		.join(LoanDisbursement)
-		.on(LoanDisbursement.against_loan == Loan.name)
-		.join(LoanRepaymentSchedule)
-		.on(LoanRepaymentSchedule.loan_disbursement == LoanDisbursement.name)
+		frappe.qb.from_(LoanRepaymentSchedule)
+		.join(Loan)
+		.on(Loan.name == LoanRepaymentSchedule.loan)
 		.join(RepaymentSchedule)
 		.on(
 			(RepaymentSchedule.parent == LoanRepaymentSchedule.name)
@@ -92,9 +89,10 @@ def get_data(filters):
 		)
 		.select(
 			Loan.name.as_("loan"),
-			LoanDisbursement.name.as_("loan_disbursement"),
+			LoanRepaymentSchedule.loan_disbursement,
 			Loan.applicant,
 			Loan.loan_product,
+			Loan.company,
 			RepaymentSchedule.payment_date,
 			RepaymentSchedule.principal_amount,
 			RepaymentSchedule.interest_amount,
@@ -107,7 +105,6 @@ def get_data(filters):
 		.where(Loan.freeze_account == 0)
 		.where(RepaymentSchedule.payment_date >= filters.get("as_on_date"))
 		.where(RepaymentSchedule.demand_generated == 0)
-		.where(LoanDisbursement.docstatus == 1)
 	)
 
 	if filters.get("company"):
@@ -117,7 +114,7 @@ def get_data(filters):
 	if filters.get("loan"):
 		query = query.where(Loan.name == filters.get("loan"))
 	if filters.get("loan_disbursement"):
-		query = query.where(LoanDisbursement.name == filters.get("loan_disbursement"))
+		query = query.where(LoanRepaymentSchedule.loan_disbursement == filters.get("loan_disbursement"))
 
 	query = query.orderby(RepaymentSchedule.payment_date)
 

@@ -4,7 +4,7 @@
 frappe.query_reports["Future Cashflow Report"] = {
 	filters: [
 		{
-			"fieldname":"company",
+			"fieldname": "company",
 			"label": __("Company"),
 			"fieldtype": "Link",
 			"options": "Company",
@@ -12,14 +12,14 @@ frappe.query_reports["Future Cashflow Report"] = {
 			"reqd": 1
 		},
 		{
-			"fieldname":"as_on_date",
+			"fieldname": "as_on_date",
 			"label": __("As on Date"),
 			"fieldtype": "Date",
 			"default": frappe.datetime.get_today(),
 			"reqd": 1,
 		},
 		{
-			"fieldname":"loan_product",
+			"fieldname": "loan_product",
 			"label": __("Loan Product"),
 			"fieldtype": "Link",
 			"options": "Loan Product",
@@ -37,7 +37,7 @@ frappe.query_reports["Future Cashflow Report"] = {
 			}
 		},
 		{
-			"fieldname":"loan",
+			"fieldname": "loan",
 			"label": __("Loan"),
 			"fieldtype": "Link",
 			"options": "Loan",
@@ -54,7 +54,7 @@ frappe.query_reports["Future Cashflow Report"] = {
 			},
 		},
 		{
-			"fieldname":"loan_disbursement",
+			"fieldname": "loan_disbursement",
 			"label": __("Loan Disbursement"),
 			"fieldtype": "Link",
 			"options": "Loan Disbursement",
