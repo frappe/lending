@@ -281,7 +281,7 @@ class TestLoanInterestAccrual(FrappeTestCase):
 				"posting_date": ("<", freeze_date),
 				"interest_type": "Normal Interest",
 			},
-			[{"SUM": "interest_amount"}],
+			"sum(interest_amount)",
 		)
 
 		frappe.db.set_value("Loan", loan.name, {"freeze_account": 1, "freeze_date": freeze_date})
