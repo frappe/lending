@@ -198,16 +198,6 @@ class LoanRepayment(AccountsController):
 		if self.flags.from_bulk_payment:
 			return
 
-		if self.is_backdated:
-			if frappe.flags.in_test:
-				self.create_repost()
-			else:
-				frappe.enqueue(
-					self.create_repost,
-					enqueue_after_commit=True,
-				)
-			return
-
 		reversed_accruals = []
 		make_sales_invoice_for_charge(
 			self.against_loan,
@@ -357,6 +347,16 @@ class LoanRepayment(AccountsController):
 				loan_product=self.loan_product,
 				loan=self.against_loan,
 			)
+
+		if self.is_backdated:
+			if frappe.flags.in_test:
+				self.create_repost()
+			else:
+				frappe.enqueue(
+					self.create_repost,
+					enqueue_after_commit=True,
+				)
+			return
 
 		self.create_auto_waiver()
 
@@ -675,6 +675,7 @@ class LoanRepayment(AccountsController):
 		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		self.check_future_entries(cancel=1)
+
 		if self.flags.from_bulk_payment:
 			return
 		if self.is_backdated:
@@ -1322,7 +1323,7 @@ class LoanRepayment(AccountsController):
 				.where(loan.name == self.against_loan)
 			)
 
-			if self.repayment_type == "Write Off Settlement":
+			if self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
 				query = query.set(loan.status, "Written Off")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
@@ -2594,10 +2595,12 @@ def process_amount_for_loan(
 
 	pending_principal_amount = get_pending_principal_amount(loan, loan_disbursement=loan_disbursement)
 
+	freeze_date = loan.freeze_date
+
 	if loan.status not in ("Closed", "Settled"):
 		unbooked_interest = get_unbooked_interest(
 			loan.name,
-			posting_date,
+			posting_date if not freeze_date else freeze_date,
 			loan_disbursement=loan_disbursement,
 			last_demand_date=last_demand_date,
 		)
@@ -2610,7 +2613,9 @@ def process_amount_for_loan(
 	if is_future_dated and not for_update:
 		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
 			loan,
-			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1)),
+			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1))
+			if not freeze_date
+			else freeze_date,
 			accrual_type="Regular",
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
