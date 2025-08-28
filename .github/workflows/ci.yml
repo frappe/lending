@@ -117,7 +117,7 @@ jobs:
           CAPTURE_COVERAGE: True
 >>>>>>> 58006295 (ci: remove condition for CAPTURE_COVERAGE)
 
-      - name: Upload coverage artifact
+      - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.container }}
@@ -128,12 +128,15 @@ jobs:
     needs: tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-      - name: Upload merged coverage
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload coverage data
         uses: codecov/codecov-action@v5
         with:
-          files: /home/runner/frappe-bench/sites/coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
