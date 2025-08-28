@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: [1, 2, 3, 4]
+        container: [1, 2, 3]
 
     name: Python Unit Tests - ${{ matrix.container }}
 
@@ -105,7 +105,7 @@ jobs:
         env:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
 
-      - name: Run Parallel Tests
+      - name: Run Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }}
         env:
           TYPE: server
