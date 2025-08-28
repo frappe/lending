@@ -35,8 +35,10 @@ jobs:
 
     strategy:
       fail-fast: false
+      matrix:
+        container: [1, 2, 3, 4]
 
-    name: Python Unit Tests
+    name: Python Unit Tests - ${{ matrix.container }}
 
     services:
       mysql:
@@ -103,8 +105,35 @@ jobs:
         env:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
 
-
-      - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-tests --app lending --coverage
+      - name: Run Parallel Tests
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }}
         env:
           TYPE: server
+<<<<<<< HEAD
+=======
+          CAPTURE_COVERAGE: ${{ github.event_name != 'pull_request' }}
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: coverage-${{ matrix.container }}
+          path: /home/runner/frappe-bench/sites/coverage.xml
+
+  coverage:
+    name: Coverage Wrap Up
+    needs: tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - name: Upload merged coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: /home/runner/frappe-bench/sites/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+
+>>>>>>> 54313224 (ci: Add parallel test execution)
