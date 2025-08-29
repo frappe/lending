@@ -104,7 +104,7 @@ class LoanWriteOff(AccountsController):
 
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.value_date, self.company, on_write_off=True)
+		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
 
@@ -434,6 +434,7 @@ def write_off_suspense_entries(
 def write_off_charges(
 	loan,
 	posting_date,
+	value_date,
 	company,
 	amount_details=None,
 	on_write_off=False,
@@ -499,6 +500,7 @@ def write_off_charges(
 					income_amount = amount - base_amount
 					make_journal_entry(
 						posting_date,
+						value_date,
 						company,
 						loan,
 						income_amount,
@@ -509,7 +511,7 @@ def write_off_charges(
 
 			waiver_account = suspense_account_map.get(account)
 			make_journal_entry(
-				posting_date, company, loan, amount, account, waiver_account, is_reverse=is_reverse
+				posting_date, value_date, company, loan, amount, account, waiver_account, is_reverse=is_reverse
 			)
 
 
