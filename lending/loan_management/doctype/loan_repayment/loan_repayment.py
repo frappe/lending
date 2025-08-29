@@ -618,6 +618,7 @@ class LoanRepayment(AccountsController):
 
 	def create_loan_limit_change_log(self):
 <<<<<<< HEAD
+<<<<<<< HEAD
 		create_loan_limit_change_log(
 			loan=self.against_loan,
 			event="Repayment",
@@ -627,6 +628,9 @@ class LoanRepayment(AccountsController):
 		)
 =======
 		if self.repayment_schedule_type == "Line Of Credit":
+=======
+		if self.repayment_schedule_type == "Line of Credit":
+>>>>>>> 8445a4e3 (test: Loan cancellation)
 			create_loan_limit_change_log(
 				loan=self.against_loan,
 				event="Repayment",
