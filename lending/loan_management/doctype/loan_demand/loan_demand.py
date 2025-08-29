@@ -632,4 +632,4 @@ def get_freeze_date_map(loans):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Loan Demand", ["loan", "demand_date"])
+	frappe.db.add_index("Loan Demand", ["loan", "docstatus", "demand_subtype", "demand_date DESC"])
