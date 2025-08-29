@@ -1312,3 +1312,161 @@ class TestLoanRepayment(FrappeTestCase):
 		repayment_entry1.load_from_db()
 
 		self.assertEqual(repayment_entry1.is_backdated, 1)
+<<<<<<< HEAD
+=======
+
+	def test_bulk_payments_for_multiple_disbursements(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan.submit()
+		disbursement_a = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount / 2,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+		disbursement_b = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount / 2,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+
+		data = []
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+					"loan_disbursement": disbursement_a.name,
+				}
+			)
+		# This should fail (closed disbursement)
+		frappe.db.set_value("Loan Disbursement", disbursement_b.name, "status", "Closed")
+		for i in range(5):
+			data.append(
+				{
+					"against_loan": loan.name,
+					"value_date": add_months(repayment_start_date, i),
+					"amount_paid": 178025,
+					"loan_disbursement": disbursement_b.name,
+				}
+			)
+		post_bulk_payments(data)
+
+		successful_log = frappe.get_doc("Bulk Repayment Log", {"loan_disbursement": disbursement_a.name})
+		failed_log = frappe.get_doc("Bulk Repayment Log", {"loan_disbursement": disbursement_b.name})
+
+		self.assertEqual(successful_log.status, "Success")
+		self.assertEqual(failed_log.status, "Failure")
+
+		self.assertEqual(
+			len(
+				frappe.db.get_all("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_a.name})
+			),
+			5,
+		)
+		self.assertFalse(
+			frappe.db.exists("Loan Repayment", {"docstatus": 1, "loan_disbursement": disbursement_b.name})
+		)
+
+	def test_closure_payment_demand_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-04-01",
+			101945.80,
+		)
+		repayment_entry.submit()
+		repayment_entry.cancel()
+
+		demands = frappe.db.get_all(
+			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
+		)
+		self.assertEqual(len(demands), 2)
+
+	def test_additional_interest_demand_allocation(self):
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test EMI Based Standard Loan Demand Offset Order",
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			penalty_charges_rate=36.5,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		# Process Loan Interest Accrual
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-05-09", loan=loan.name, company="_Test Company"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2024-05-10",
+			96946.80,
+		)
+		repayment_entry.submit()
+
+		allocated_demands = [d.loan_demand for d in repayment_entry.get("repayment_details")]
+
+		demands = frappe.db.get_all(
+			"Loan Demand", {"name": ("in", allocated_demands), "docstatus": 1}, pluck="name"
+		)
+
+		self.assertEqual(len(demands), len(allocated_demands))
+>>>>>>> cc0386a7 (test: Loan cancellation)

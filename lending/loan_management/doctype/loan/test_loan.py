@@ -1453,39 +1453,6 @@ class TestLoan(FrappeTestCase):
 
 		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(total_principal_paid, 1))
 
-	def test_additional_interest(self):
-		frappe.db.set_value(
-			"Company",
-			"_Test Company",
-			"collection_offset_sequence_for_standard_asset",
-			"Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			500000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-06",
-			rate_of_interest=25,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
-		)
-		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
-
-		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
-
-		# Process Loan Interest Accrual
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-05-10", loan=loan.name, company="_Test Company"
-		)
-
 	def test_npa_loan(self):
 		loan = create_loan(
 			self.applicant2,
@@ -2879,42 +2846,6 @@ class TestLoan(FrappeTestCase):
 		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
 		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
 
-	def test_closure_payment_demand_cancel(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
-		)
-
-		repayment_entry = create_repayment_entry(
-			loan.name,
-			"2024-04-01",
-			101945.80,
-		)
-		repayment_entry.submit()
-		repayment_entry.cancel()
-
-		demands = frappe.db.get_all(
-			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
-		)
-		self.assertEqual(len(demands), 2)
-
 	def test_two_day_break_up_in_accrual_frequency(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -3188,3 +3119,31 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
 		)
 		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
+
+	def test_loan_cancellation_post_disbursement(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		loan_disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+
+		# self.assertRaises(frappe.exceptions.LinkExistsError, loan.cancel)
+
+		loan_disbursement.load_from_db()
+		self.assertTrue(loan_disbursement.cancel())
+		loan.load_from_db()
+		self.assertTrue(loan.cancel())

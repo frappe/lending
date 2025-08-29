@@ -771,7 +771,7 @@ def setup_loan_demand_offset_order(company=None):
 	)
 	create_demand_offset_order(
 		"Test EMI Based Standard Loan Demand Offset Order",
-		["EMI (Principal + Interest)", "Penalty", "Charges"],
+		["EMI (Principal + Interest)", "Penalty", "Additional Interest", "Charges"],
 	)
 
 	create_demand_offset_order(
