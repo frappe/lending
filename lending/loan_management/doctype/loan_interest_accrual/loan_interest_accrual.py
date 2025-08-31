@@ -1067,6 +1067,7 @@ def reverse_loan_interest_accruals(
 			accrual_doc.flags.ignore_links = True
 			accrual_doc.cancel()
 
+<<<<<<< HEAD
 		if is_npa:
 			interest_amount = 0
 			penalty_amount = 0
@@ -1092,6 +1093,8 @@ def reverse_loan_interest_accruals(
 
 =======
 >>>>>>> bceae9b8 (fix: Remove write off logic on cancel)
+=======
+>>>>>>> 0874884d (fix: Remove write off logic on cancel)
 	return accruals
 
 
