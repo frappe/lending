@@ -1028,10 +1028,6 @@ def reverse_loan_interest_accruals(
 	loan_disbursement=None,
 	future_accruals=False,
 ):
-	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
-		write_off_suspense_entries,
-	)
-
 	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
 	posting_date = get_datetime(getdate(posting_date))
 	filters = {
@@ -1082,6 +1078,7 @@ def reverse_loan_interest_accruals(
 				penalty_amount = accrual_doc.interest_amount - accrual_doc.additional_interest_amount
 				additional_interest_amount = accrual_doc.additional_interest_amount
 
+<<<<<<< HEAD
 			write_off_suspense_entries(
 				loan,
 				accrual_doc.loan_product,
@@ -1093,6 +1090,8 @@ def reverse_loan_interest_accruals(
 				on_payment_allocation=on_payment_allocation,
 			)
 
+=======
+>>>>>>> bceae9b8 (fix: Remove write off logic on cancel)
 	return accruals
 
 
