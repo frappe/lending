@@ -332,6 +332,7 @@ class LoanRepayment(AccountsController):
 						loan=self.against_loan,
 						loan_product=self.loan_product,
 						loan_disbursement=self.loan_disbursement,
+						from_demand=True,
 					)
 					process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=self.against_loan)
 
