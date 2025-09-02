@@ -75,6 +75,10 @@ class LoanRepayment(AccountsController):
 		]
 		self.make_gl_entries(cancel=1)
 
+		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
+		if loan_status == "Closed":
+			frappe.db.set_value("Loan", self.against_loan, "status", "Disbursed")
+
 	def make_credit_note(self):
 		item_details = frappe.db.get_value(
 			"Loan Product",
