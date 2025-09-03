@@ -1567,15 +1567,16 @@ class LoanRepayment(AccountsController):
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
-			if pending_interest > 0:
-				if pending_interest > amount_paid:
-					self.total_interest_paid += amount_paid
-					self.unbooked_interest_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_interest_paid += pending_interest
-					self.unbooked_interest_paid += pending_interest
-					amount_paid -= pending_interest
+			if self.repayment_type not in ["Charges Waiver", "Penalty Waiver"]:
+				if pending_interest > 0:
+					if pending_interest > amount_paid:
+						self.total_interest_paid += amount_paid
+						self.unbooked_interest_paid += amount_paid
+						amount_paid = 0
+					else:
+						self.total_interest_paid += pending_interest
+						self.unbooked_interest_paid += pending_interest
+						amount_paid -= pending_interest
 
 			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
 			if unbooked_penalty > 0 and self.repayment_type != "Interest Waiver":
