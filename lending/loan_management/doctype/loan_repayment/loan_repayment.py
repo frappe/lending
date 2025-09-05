@@ -292,15 +292,6 @@ class LoanRepayment(AccountsController):
 					on_payment_allocation=True,
 				)
 
-<<<<<<< HEAD
-			reverse_demands(
-				self.against_loan,
-				self.posting_date,
-				demand_type="Penalty",
-				loan_disbursement=self.loan_disbursement,
-				future_demands=True,
-			)
-=======
 			if not self.is_write_off_waiver:
 				reverse_demands(
 					self.against_loan,
@@ -309,7 +300,6 @@ class LoanRepayment(AccountsController):
 					loan_disbursement=self.loan_disbursement,
 					future_demands=True,
 				)
->>>>>>> 6ec71788 (perf: Write off submission count)
 
 			if reversed_accruals:
 				create_process_loan_classification(
