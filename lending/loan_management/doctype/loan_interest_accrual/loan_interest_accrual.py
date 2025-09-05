@@ -1218,5 +1218,5 @@ def add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date):
 def on_doctype_update():
 	frappe.db.add_index(
 		"Loan Interest Accrual",
-		["loan", "docstatus", "interest_type", "posting_date", "interest_amount"],
+		["loan", "docstatus", "interest_type", "posting_date"],
 	)
