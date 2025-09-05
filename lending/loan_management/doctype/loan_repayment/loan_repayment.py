@@ -295,7 +295,7 @@ class LoanRepayment(AccountsController):
 			if not self.is_write_off_waiver:
 				reverse_demands(
 					self.against_loan,
-					self.value_date,
+					self.posting_date,
 					demand_type="Penalty",
 					loan_disbursement=self.loan_disbursement,
 					future_demands=True,
