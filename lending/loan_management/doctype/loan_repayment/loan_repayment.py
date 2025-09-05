@@ -137,9 +137,11 @@ class LoanRepayment(AccountsController):
 			loan_disbursement=self.loan_disbursement,
 			for_update=True,
 		)
+
 		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
+
 		if self.loan_disbursement and self.repayment_type not in [
 			"Interest Waiver",
 			"Penalty Waiver",
@@ -199,15 +201,17 @@ class LoanRepayment(AccountsController):
 			return
 
 		reversed_accruals = []
-		make_sales_invoice_for_charge(
-			self.against_loan,
-			"loan_repayment",
-			self.name,
-			self.applicant if self.applicant_type == "Customer" else None,
-			self.posting_date,
-			self.company,
-			self.get("prepayment_charges"),
-		)
+
+		if self.get("prepayment_charges"):
+			make_sales_invoice_for_charge(
+				self.against_loan,
+				"loan_repayment",
+				self.name,
+				self.applicant if self.applicant_type == "Customer" else None,
+				self.posting_date,
+				self.company,
+				self.get("prepayment_charges"),
+			)
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			reversed_accruals += self.reverse_future_accruals_and_demands()
@@ -249,7 +253,9 @@ class LoanRepayment(AccountsController):
 		self.handle_auto_demand_write_off()
 		self.update_demands()
 		self.update_security_deposit_amount()
-		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+
+		if not self.is_write_off_waiver:
+			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
@@ -286,13 +292,14 @@ class LoanRepayment(AccountsController):
 					on_payment_allocation=True,
 				)
 
-			reverse_demands(
-				self.against_loan,
-				self.posting_date,
-				demand_type="Penalty",
-				loan_disbursement=self.loan_disbursement,
-				future_demands=True,
-			)
+			if not self.is_write_off_waiver:
+				reverse_demands(
+					self.against_loan,
+					self.posting_date,
+					demand_type="Penalty",
+					loan_disbursement=self.loan_disbursement,
+					future_demands=True,
+				)
 
 			if reversed_accruals:
 				create_process_loan_classification(
@@ -323,7 +330,7 @@ class LoanRepayment(AccountsController):
 						enqueue_after_commit=True,
 					)
 
-			if reversed_accruals:
+			if reversed_accruals and not self.is_write_off_waiver:
 				dates = [getdate(d.get("posting_date")) for d in reversed_accruals]
 				max_date = max(dates)
 				if getdate(max_date) > getdate(self.posting_date):
@@ -332,6 +339,7 @@ class LoanRepayment(AccountsController):
 						loan=self.against_loan,
 						loan_product=self.loan_product,
 						loan_disbursement=self.loan_disbursement,
+						from_demand=True,
 					)
 					process_daily_loan_demands(posting_date=add_days(max_date, 1), loan=self.against_loan)
 
@@ -348,7 +356,7 @@ class LoanRepayment(AccountsController):
 				loan=self.against_loan,
 			)
 
-		if self.is_backdated:
+		if self.is_backdated and not self.is_write_off_waiver:
 			if frappe.flags.in_test:
 				self.create_repost()
 			else:
@@ -376,9 +384,11 @@ class LoanRepayment(AccountsController):
 
 		base_amount_map = self.make_credit_note_for_charge_waivers(cancel=cancel)
 
-		foreclosure_type = frappe.db.get_value(
-			"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
-		)
+		foreclosure_type = ""
+		if self.loan_adjustment:
+			foreclosure_type = frappe.db.get_value(
+				"Loan Adjustment", self.loan_adjustment, "foreclosure_type"
+			)
 
 		if self.is_npa and (
 			self.repayment_type
@@ -596,7 +606,13 @@ class LoanRepayment(AccountsController):
 				return base_amount_details
 
 			for demand in self.get("repayment_details"):
-				demand_doc = frappe.get_doc("Loan Demand", demand.loan_demand)
+				demand_doc = frappe.db.get_value(
+					"Loan Demand",
+					demand.loan_demand,
+					["company", "demand_subtype", "applicant", "loan", "sales_invoice"],
+					as_dict=1,
+				)
+
 				waiver_account = self.get_charges_waiver_account(self.loan_product, demand.demand_subtype)
 				credit_note = make_credit_note(
 					demand_doc.company,
@@ -672,12 +688,15 @@ class LoanRepayment(AccountsController):
 		]
 		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
-		update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+
+		if not self.is_write_off_waiver:
+			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		self.check_future_entries(cancel=1)
 
 		if self.flags.from_bulk_payment:
 			return
+
 		if self.is_backdated:
 			if frappe.flags.in_test:
 				self.create_repost()
@@ -916,7 +935,6 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("The Loan Disbursement {0} has been closed.").format(self.loan_disbursement))
 
 	def get_waiver_amount(self, amounts):
-
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if self.repayment_type == "Interest Waiver":
@@ -2216,7 +2234,7 @@ class LoanRepayment(AccountsController):
 
 	def get_charges_waiver_account(self, loan_product, charge):
 		waiver_account = frappe.db.get_value(
-			"Loan Charges", {"parent": loan_product, "charge_type": charge}, "waiver_account"
+			"Loan Charges", {"parent": loan_product, "charge_type": charge}, "waiver_account", cache=True
 		)
 
 		if not waiver_account:

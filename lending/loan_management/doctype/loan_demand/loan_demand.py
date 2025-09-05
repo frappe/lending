@@ -597,11 +597,15 @@ def make_credit_note(
 	si.set_posting_time = 1
 	si.posting_date = posting_date
 
-	rate, income_account = frappe.db.get_value(
-		"Sales Invoice Item",
-		{"item_code": item_code, "parent": sales_invoice},
-		["rate", "income_account"],
-	)
+	rate = 0
+	income_account = ""
+
+	if not amount or not waiver_account:
+		rate, income_account = frappe.db.get_value(
+			"Sales Invoice Item",
+			{"item_code": item_code, "parent": sales_invoice},
+			["rate", "income_account"],
+		)
 
 	si.append(
 		"items",
