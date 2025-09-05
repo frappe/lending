@@ -48,11 +48,29 @@ class LoanAccrualRepost(Document):
 							{"voucher_no": entry.name, "voucher_type": "Loan Interest Accrual", "is_cancelled": 0},
 						)
 
-						if not gl_exists and getdate(entry.posting_date) < getdate(written_off_date):
+						if (
+							entry.docstatus == 1
+							and not gl_exists
+							and getdate(entry.posting_date) < getdate(written_off_date)
+						):
 							doc = frappe.get_doc("Loan Interest Accrual", entry.name)
 							doc.make_gl_entries()
-						elif gl_exists and getdate(entry.posting_date) >= getdate(written_off_date):
+						elif (
+							entry.docstatus == 1
+							and gl_exists
+							and getdate(entry.posting_date) >= getdate(written_off_date)
+						):
 							make_reverse_gl_entries(voucher_type="Loan Interest Accrual", voucher_no=entry.name)
+						elif entry.docstatus == 2 and gl_exists:
+							gl_details = frappe.get_value(
+								"GL Entry",
+								{"voucher_type": "Loan Interest Accrual", "voucher_no": entry.name, "is_cancelled": 1},
+								["sum(debit) as debit", "sum(credit) as credit"],
+								group_by="voucher_no",
+								as_dict=1,
+							)
+							if gl_details and gl_details.debit != gl_details.credit:
+								make_reverse_gl_entries(voucher_type="Loan Interest Accrual", voucher_no=entry.name)
 
 			elif loan_status in ("Disbursed", "Active"):
 				interest_accruals = self.get_interest_accrual_entries(loan.loan)
@@ -73,9 +91,8 @@ class LoanAccrualRepost(Document):
 				"loan": loan,
 				"posting_date": ["between", [self.from_date, self.to_date]],
 				"interest_type": "Normal Interest",
-				"docstatus": 1,
 			},
-			fields=["name", "posting_date"],
+			fields=["name", "posting_date", "docstatus"],
 		)
 
 		return interest_accruals
