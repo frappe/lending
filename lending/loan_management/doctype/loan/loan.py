@@ -1000,12 +1000,12 @@ def repost_days_past_due_log(
 
 	if demands:
 		if loan_product:
-			payment_conditions += f"AND loan_product = '{loan_product}'"
+			payment_conditions += f" AND loan_product = '{loan_product}'"
 
 		loc_loan = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
 
 		if loan_disbursement and loc_loan == "Line of Credit":
-			payment_conditions += f"AND (loan_disbursement = '{loan_disbursement}'"
+			payment_conditions += f" AND loan_disbursement = '{loan_disbursement}'"
 
 		payment_against_demand = frappe.db.sql(
 			"""
