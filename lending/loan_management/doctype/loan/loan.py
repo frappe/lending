@@ -1004,38 +1004,16 @@ def repost_days_past_due_log(
 	if demands:
 		repayment_schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
 
-<<<<<<< HEAD
-		loc_loan = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
-
-		if loan_disbursement and loc_loan == "Line of Credit":
-			payment_conditions += f" AND loan_disbursement = '{loan_disbursement}'"
-
-		payment_against_demand = frappe.db.sql(
-			"""
-			SELECT posting_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
-			FROM `tabLoan Repayment`
-			WHERE against_loan = %s
-				and docstatus = 1
-				{0}
-			GROUP BY posting_date
-			ORDER BY posting_date
-		""".format(
-				payment_conditions
-			),
-			(loan),
-			as_dict=1,
-=======
 		payment_query = (
 			frappe.qb.from_(LoanRepayment)
 			.select(
-				LoanRepayment.value_date,
+				LoanRepayment.posting_date,
 				Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
 				Sum(LoanRepayment.total_interest_paid).as_("total_interest_paid"),
 			)
 			.where((LoanRepayment.against_loan == loan) & (LoanRepayment.docstatus == 1))
-			.groupby(LoanRepayment.value_date)
-			.orderby(LoanRepayment.value_date)
->>>>>>> 4aeed230 (fix: update query frappe.db.sql to frappe.qb)
+			.groupby(LoanRepayment.posting_date)
+			.orderby(LoanRepayment.posting_date)
 		)
 
 		if loan_product:

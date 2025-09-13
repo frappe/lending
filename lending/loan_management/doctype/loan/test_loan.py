@@ -2061,8 +2061,6 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
 		self.assertEqual(loan_repayment_detail.repayment_type, "Charges Waiver")
 
-<<<<<<< HEAD
-=======
 	def test_loan_restructure_schedule_with_bpi_adjustment(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2191,7 +2189,6 @@ class TestLoan(FrappeTestCase):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
->>>>>>> a39fa4af (fix: DPD calculation for non-LOC loan when no disbursement is linked with loan repayment)
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
