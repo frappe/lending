@@ -6,6 +6,8 @@ import json
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -970,58 +972,57 @@ def repost_days_past_due_log(
 	loan, posting_date, loan_product, loan_disbursement, process_loan_classification
 ):
 	"""Get outstanding demands for a loan"""
-	where_conditions = ""
-	payment_conditions = ""
-
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	if loan_product:
-		where_conditions += f"AND loan_product = '{loan_product}'"
+	LoanDemand = DocType("Loan Demand")
+	LoanRepayment = DocType("Loan Repayment")
 
-	if loan_disbursement:
-		where_conditions += f"AND loan_disbursement = '{loan_disbursement}'"
-
-	demands = frappe.db.sql(
-		"""
-		SELECT demand_date, loan_disbursement, demand_subtype, sum(demand_amount) as demand_amount, sum(outstanding_amount) as outstanding_amount
-		FROM `tabLoan Demand`
-		WHERE loan = %s
-			AND docstatus = 1
-			AND demand_type = "EMI"
-			{0}
-		GROUP BY demand_date, demand_subtype
-		ORDER BY demand_date
-	""".format(
-			where_conditions
-		),
-		(loan),
-		as_dict=1,
+	demand_query = (
+		frappe.qb.from_(LoanDemand)
+		.select(
+			LoanDemand.demand_date,
+			LoanDemand.loan_disbursement,
+			LoanDemand.demand_subtype,
+			Sum(LoanDemand.demand_amount).as_("demand_amount"),
+			Sum(LoanDemand.outstanding_amount).as_("outstanding_amount"),
+		)
+		.where(
+			(LoanDemand.loan == loan) & (LoanDemand.docstatus == 1) & (LoanDemand.demand_type == "EMI")
+		)
+		.groupby(LoanDemand.demand_date, LoanDemand.demand_subtype)
+		.orderby(LoanDemand.demand_date)
 	)
 
+	if loan_product:
+		demand_query = demand_query.where(LoanDemand.loan_product == loan_product)
+
+	if loan_disbursement:
+		demand_query = demand_query.where(LoanDemand.loan_disbursement == loan_disbursement)
+
+	demands = demand_query.run(as_dict=True)
+
 	if demands:
-		if loan_product:
-			payment_conditions += f"AND loan_product = '{loan_product}'"
+		repayment_schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
 
-		if loan_disbursement:
-			payment_conditions += (
-				f"AND (loan_disbursement = '{loan_disbursement}' OR loan_disbursement IS NULL)"
+		payment_query = (
+			frappe.qb.from_(LoanRepayment)
+			.select(
+				LoanRepayment.posting_date,
+				Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
+				Sum(LoanRepayment.total_interest_paid).as_("total_interest_paid"),
 			)
-
-		payment_against_demand = frappe.db.sql(
-			"""
-			SELECT posting_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
-			FROM `tabLoan Repayment`
-			WHERE against_loan = %s
-				and docstatus = 1
-				{0}
-			GROUP BY posting_date
-			ORDER BY posting_date
-		""".format(
-				payment_conditions
-			),
-			(loan),
-			as_dict=1,
+			.where((LoanRepayment.against_loan == loan) & (LoanRepayment.docstatus == 1))
+			.groupby(LoanRepayment.posting_date)
+			.orderby(LoanRepayment.posting_date)
 		)
+
+		if loan_product:
+			payment_query = payment_query.where(LoanRepayment.loan_product == loan_product)
+
+		if loan_disbursement and repayment_schedule_type == "Line of Credit":
+			payment_query = payment_query.where(LoanRepayment.loan_disbursement == loan_disbursement)
+
+		payment_against_demand = payment_query.run(as_dict=True)
 
 		for idx, payment in enumerate(payment_against_demand):
 			next_payment_date = (
