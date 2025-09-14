@@ -286,8 +286,11 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("excess_amount", 0)
 
 			charges = []
-			if repayment_doc.get("payable_charges"):
+			if repayment_doc.get("payable_charges") and repayment_doc.repayment_type == "Charge Payment":
 				charges = [d.get("charge_code") for d in repayment_doc.get("payable_charges")]
+			else:
+				for d in repayment_doc.get("payable_charges"):
+					frappe.delete_doc("Loan Repayment Charge", d.name, force=1)
 
 			amounts = calculate_amounts(
 				repayment_doc.against_loan,
