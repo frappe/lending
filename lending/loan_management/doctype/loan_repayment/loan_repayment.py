@@ -126,8 +126,11 @@ class LoanRepayment(AccountsController):
 
 	def validate(self):
 		charges = None
-		if self.get("payable_charges") and self.repayment_type == "Charge Payment":
-			charges = [d.get("charge_code") for d in self.get("payable_charges")]
+		if self.get("payable_charges"):
+			if self.repayment_type == "Charge Payment":
+				charges = [d.get("charge_code") for d in self.get("payable_charges")]
+			else:
+				frappe.throw(_("Payable Charges can only be added if Charge Payment"))
 
 		amounts = calculate_amounts(
 			self.against_loan,
