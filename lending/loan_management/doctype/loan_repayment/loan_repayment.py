@@ -1009,6 +1009,12 @@ class LoanRepayment(AccountsController):
 			auto_write_off_amount = flt(
 				frappe.db.get_value("Loan Product", self.loan_product, "write_off_amount")
 			)
+			if self.is_backdated or self.flags.from_repost:
+				frappe.throw(
+					_(
+						"You are trying to make a backdated write off settlement. This behaviour is not supported. Repayment name: {}"
+					).format(self.name)
+				)
 			if self.amount_paid >= self.payable_amount - auto_write_off_amount and self.flags.auto_close:
 				if self.repayment_schedule_type != "Line of Credit":
 					query = query.set(loan.status, "Closed")
@@ -1016,7 +1022,6 @@ class LoanRepayment(AccountsController):
 				self.update_repayment_schedule_status()
 			else:
 				if self.repayment_schedule_type != "Line of Credit":
-					query = query.set(loan.status, "Active")
 					query = query.set(loan.status, "Settled")
 					query = query.set(loan.settlement_date, self.value_date)
 				self.update_repayment_schedule_status()
@@ -1038,6 +1043,12 @@ class LoanRepayment(AccountsController):
 			and not self.is_write_off_waiver
 		):
 			if self.repayment_schedule_type != "Line of Credit":
+				if self.is_backdated or self.flags.from_repost:
+					frappe.throw(
+						_(
+							"You are trying to make a backdated repayment that closes the loan. This behaviour is not supported. Repayment name: {}"
+						).format(self.name)
+					)
 				query = query.set(loan.status, "Closed")
 				query = query.set(loan.closure_date, self.value_date)
 
@@ -1045,6 +1056,12 @@ class LoanRepayment(AccountsController):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
 
 		elif self.repayment_type == "Full Settlement":
+			if self.is_backdated or self.flags.from_repost:
+				frappe.throw(
+					_(
+						"You are trying to make a backdated full settlement. This behaviour is not supported. Repayment name: {}"
+					).format(self.name)
+				)
 			if self.repayment_schedule_type != "Line of Credit":
 				query = query.set(loan.status, "Settled")
 				query = query.set(loan.settlement_date, self.value_date)
@@ -1349,10 +1366,24 @@ class LoanRepayment(AccountsController):
 			)
 
 			if self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
+				if self.is_backdated or self.flags.from_repost:
+					frappe.throw(
+						_(
+							"You are trying to make a backdated {}. This behaviour is not supported. Repayment name: {}"
+						).format(self.repayment_type.lower(), self.name)
+					)
+
 				query = query.set(loan.status, "Written Off")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif self.repayment_type == "Full Settlement":
+				if self.is_backdated or self.flags.from_repost:
+					frappe.throw(
+						_(
+							"You are trying to make a backdated full settlement. This behaviour is not supported. Repayment name: {}"
+						).format(self.name)
+					)
+
 				query = query.set(loan.status, "Disbursed")
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
