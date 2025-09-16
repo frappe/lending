@@ -1613,3 +1613,47 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		charges_waiver.submit()
 		self.assertEqual(charges_waiver.unbooked_interest_paid, 0)
+
+	def test_backdated_loan_closure_validation(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 2",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+			moratorium_tenure=1,
+			moratorium_type="Principal",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-11-26", 15000, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(posting_date="2024-11-01", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-11-16", 138.90, repayment_type="Normal Repayment"
+		)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(posting_date="2024-12-01", loan=loan.name)
+
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2024-10-25", payment_type="Loan Closure"
+		)
+		loan_closure_fee = amounts["payable_amount"]
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-25", loan_closure_fee, repayment_type="Loan Closure"
+		)
+		self.assertRaises(frappe.ValidationError, repayment_entry.submit)
