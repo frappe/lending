@@ -3316,36 +3316,6 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
 		)
 		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
-<<<<<<< HEAD
-=======
-
-	def test_loan_cancellation_post_disbursement(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		loan_disbursement = make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-
-		# self.assertRaises(frappe.exceptions.LinkExistsError, loan.cancel)
-
-		loan_disbursement.load_from_db()
-		self.assertTrue(loan_disbursement.cancel())
-		loan.load_from_db()
-		self.assertTrue(loan.cancel())
 
 	def test_loan_write_off_recovery_excess_amount(self):
 		loan = create_loan(
@@ -3380,4 +3350,3 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(
 			repayment.excess_amount, repayment.amount_paid - repayment.pending_principal_amount
 		)
->>>>>>> e4fb0554 (test: write off recovery excess amount)
