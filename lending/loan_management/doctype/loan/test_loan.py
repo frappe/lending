@@ -3378,6 +3378,6 @@ class TestLoan(FrappeTestCase):
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Written Off")
 		self.assertEqual(
-			repayment.excess_amount, repayment.amount_paid - repayment.payable_principal_amount
+			repayment.excess_amount, repayment.amount_paid - repayment.pending_principal_amount
 		)
 >>>>>>> e4fb0554 (test: write off recovery excess amount)
