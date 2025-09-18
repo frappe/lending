@@ -1647,10 +1647,16 @@ class LoanRepayment(AccountsController):
 		):
 			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
-		elif self.repayment_type == "Write Off Settlement" and (
+		elif self.repayment_type in ("Write Off Settlement") and (
 			self.auto_close_loan() or (self.principal_amount_paid - self.payable_principal_amount > 0)
 		):
 			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
+			self.principal_amount_paid -= self.excess_amount
+
+		elif self.repayment_type in ("Write Off Recovery") and (
+			self.auto_close_loan() or (self.principal_amount_paid - self.pending_principal_amount > 0)
+		):
+			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
 		total_paid_principal_demand = sum(
