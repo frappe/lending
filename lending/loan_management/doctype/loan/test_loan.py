@@ -3251,8 +3251,6 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
 		)
 		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
-<<<<<<< HEAD
-=======
 
 	def test_loan_cancellation_post_disbursement(self):
 		loan = create_loan(
@@ -3315,4 +3313,3 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(
 			repayment.excess_amount, repayment.amount_paid - repayment.pending_principal_amount
 		)
->>>>>>> e4fb0554 (test: write off recovery excess amount)
