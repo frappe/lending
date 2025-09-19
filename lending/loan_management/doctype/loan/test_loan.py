@@ -3345,8 +3345,20 @@ class TestLoan(FrappeTestCase):
 		repayment.submit()
 		repayment.load_from_db()
 
+		interest_waiver_amount = flt(
+			frappe.db.get_value(
+				"Loan Repayment",
+				{"against_loan": loan.name, "repayment_type": "Interest Waiver", "docstatus": 1},
+				"amount_paid",
+			)
+		)
+
+		self.assertEqual(repayment.total_interest_paid, interest_waiver_amount)
+
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Written Off")
+
 		self.assertEqual(
-			repayment.excess_amount, repayment.amount_paid - repayment.pending_principal_amount
+			flt(repayment.excess_amount, 2),
+			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
 		)
