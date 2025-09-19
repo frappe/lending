@@ -3316,3 +3316,49 @@ class TestLoan(FrappeTestCase):
 			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
 		)
 		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
+
+	def test_loan_write_off_recovery_excess_amount(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment = create_repayment_entry(
+			loan.name, "2024-12-05", 10000000, repayment_type="Write Off Recovery"
+		)
+		repayment.submit()
+		repayment.load_from_db()
+
+		interest_waiver_amount = flt(
+			frappe.db.get_value(
+				"Loan Repayment",
+				{"against_loan": loan.name, "repayment_type": "Interest Waiver", "docstatus": 1},
+				"amount_paid",
+			)
+		)
+
+		self.assertEqual(repayment.total_interest_paid, interest_waiver_amount)
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Written Off")
+
+		self.assertEqual(
+			flt(repayment.excess_amount, 2),
+			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
+		)

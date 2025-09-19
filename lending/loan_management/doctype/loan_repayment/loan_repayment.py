@@ -1648,6 +1648,12 @@ class LoanRepayment(AccountsController):
 			self.excess_amount = self.principal_amount_paid - self.payable_principal_amount
 			self.principal_amount_paid -= self.excess_amount
 
+		elif self.repayment_type == "Write Off Recovery" and (
+			self.auto_close_loan() or (self.principal_amount_paid - self.pending_principal_amount > 0)
+		):
+			self.excess_amount = self.principal_amount_paid - self.pending_principal_amount
+			self.principal_amount_paid -= self.excess_amount
+
 		total_paid_principal_demand = sum(
 			d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
 		)
