@@ -48,11 +48,40 @@ class LoanAccrualRepost(Document):
 							{"voucher_no": entry.name, "voucher_type": "Loan Interest Accrual", "is_cancelled": 0},
 						)
 
-						if not gl_exists and getdate(entry.posting_date) < getdate(written_off_date):
+						if (
+							entry.docstatus == 1
+							and not gl_exists
+							and getdate(entry.posting_date) < getdate(written_off_date)
+						):
 							doc = frappe.get_doc("Loan Interest Accrual", entry.name)
 							doc.make_gl_entries()
-						elif gl_exists and getdate(entry.posting_date) >= getdate(written_off_date):
+						elif (
+							entry.docstatus == 1
+							and gl_exists
+							and getdate(entry.posting_date) >= getdate(written_off_date)
+						):
 							make_reverse_gl_entries(voucher_type="Loan Interest Accrual", voucher_no=entry.name)
+						elif entry.docstatus == 2:
+							interest_accrual_account = frappe.db.get_value(
+								"Loan Product", entry.loan_product, "interest_accrued_account"
+							)
+
+							gl_details = frappe.get_value(
+								"GL Entry",
+								{
+									"voucher_type": "Loan Interest Accrual",
+									"voucher_no": entry.name,
+									"account": interest_accrual_account,
+								},
+								["sum(debit) as debit", "sum(credit) as credit"],
+								as_dict=1,
+							)
+							if gl_details and gl_details.debit != gl_details.credit:
+								doc = frappe.get_doc("Loan Interest Accrual", entry.name)
+								if gl_details.credit > gl_details.debit:
+									doc.make_gl_entries()
+								elif gl_details.debit > gl_details.credit:
+									doc.make_gl_entries(cancel=1)
 
 			elif loan_status in ("Disbursed", "Active"):
 				interest_accruals = self.get_interest_accrual_entries(loan.loan)
@@ -62,7 +91,7 @@ class LoanAccrualRepost(Document):
 						{"voucher_no": entry.name, "voucher_type": "Loan Interest Accrual", "is_cancelled": 0},
 					)
 
-					if not gl_exists:
+					if not gl_exists and entry.docstatus == 1:
 						doc = frappe.get_doc("Loan Interest Accrual", entry.name)
 						doc.make_gl_entries()
 
@@ -73,9 +102,8 @@ class LoanAccrualRepost(Document):
 				"loan": loan,
 				"posting_date": ["between", [self.from_date, self.to_date]],
 				"interest_type": "Normal Interest",
-				"docstatus": 1,
 			},
-			fields=["name", "posting_date"],
+			fields=["name", "posting_date", "docstatus", "loan_product"],
 		)
 
 		return interest_accruals

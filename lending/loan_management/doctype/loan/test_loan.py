@@ -2028,6 +2028,134 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
 		self.assertEqual(loan_repayment_detail.repayment_type, "Charges Waiver")
 
+	def test_loan_restructure_schedule_with_bpi_adjustment(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2025-03-28",
+			repayment_start_date="2025-04-28",
+			rate_of_interest=31,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-03-22", repayment_start_date="2025-04-28"
+		)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, get_datetime("2025-03-28 00:00:00"), 77.91, repayment_type="Pre Payment"
+		)
+		repayment_entry_1.submit()
+
+		first_repay_schedule_current_principal_amount = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "status": "Active", "docstatus": 1},
+			"current_principal_amount",
+		)
+		first_adjustment_after_pos = flt(loan.loan_amount - repayment_entry_1.amount_paid, 2)
+
+		self.assertEqual(first_repay_schedule_current_principal_amount, first_adjustment_after_pos)
+
+		process_daily_loan_demands(posting_date="2025-03-28", loan=loan.name)
+
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, get_datetime("2025-03-28 01:00:00"), 5096.00, repayment_type="Pre Payment"
+		)
+		repayment_entry_2.submit()
+
+		second_repay_schedule_current_principal_amount = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "status": "Active", "docstatus": 1},
+			"current_principal_amount",
+		)
+		second_adjustment_after_pos = flt(
+			first_repay_schedule_current_principal_amount - repayment_entry_2.amount_paid, 2
+		)
+
+		self.assertEqual(second_repay_schedule_current_principal_amount, second_adjustment_after_pos)
+
+	def test_dpd_calculation_for_non_loc_loan_without_disbursement(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			30,
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		).submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
+		)
+		loan_disbursement = frappe.db.get_value(
+			"Loan Disbursement", {"against_loan": loan.name, "docstatus": 1}, "name"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, "2024-10-05", 3000, loan_disbursement=loan_disbursement
+		).submit()
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, "2024-10-09", 782, loan_disbursement=loan_disbursement
+		).submit()
+
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		repayment_entry_3 = create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
+		repayment_entry_4 = create_repayment_entry(loan.name, "2024-11-10", 782).submit()
+
+		create_process_loan_classification(
+			posting_date="2024-10-05", loan=loan.name, loan_disbursement=loan_disbursement
+		)
+
+		dpd_logs = frappe.db.sql(
+			"""
+			SELECT posting_date, days_past_due
+			FROM `tabDays Past Due Log`
+			WHERE loan = %s
+			ORDER BY posting_date
+			""",
+			(loan.name),
+			as_dict=1,
+		)
+
+		expected_dpd_values = {
+			"2024-10-05": 1,
+			"2024-10-06": 2,
+			"2024-10-07": 3,
+			"2024-10-08": 4,
+			"2024-10-09": 0,
+			"2024-10-10": 0,
+			"2024-11-04": 0,
+			"2024-11-05": 1,
+			"2024-11-06": 2,
+			"2024-11-07": 3,
+			"2024-11-08": 4,
+			"2024-11-09": 5,
+			"2024-11-10": 0,
+		}
+
+		for log in dpd_logs:
+			posting_date = log["posting_date"]
+			dpd_value = log["days_past_due"]
+
+			posting_date_str = posting_date.strftime("%Y-%m-%d")
+
+			expected_dpd = expected_dpd_values.get(posting_date_str, 0)
+			self.assertEqual(
+				dpd_value,
+				expected_dpd,
+				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
+			)
+
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -3147,3 +3275,49 @@ class TestLoan(FrappeTestCase):
 		self.assertTrue(loan_disbursement.cancel())
 		loan.load_from_db()
 		self.assertTrue(loan.cancel())
+
+	def test_loan_write_off_recovery_excess_amount(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment = create_repayment_entry(
+			loan.name, "2024-12-05", 10000000, repayment_type="Write Off Recovery"
+		)
+		repayment.submit()
+		repayment.load_from_db()
+
+		interest_waiver_amount = flt(
+			frappe.db.get_value(
+				"Loan Repayment",
+				{"against_loan": loan.name, "repayment_type": "Interest Waiver", "docstatus": 1},
+				"amount_paid",
+			)
+		)
+
+		self.assertEqual(repayment.total_interest_paid, interest_waiver_amount)
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Written Off")
+
+		self.assertEqual(
+			flt(repayment.excess_amount, 2),
+			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
+		)
