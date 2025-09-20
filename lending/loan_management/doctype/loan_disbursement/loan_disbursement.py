@@ -229,6 +229,7 @@ class LoanDisbursement(AccountsController):
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
+		schedule.flags.ignore_links = True
 		schedule.cancel()
 
 	def make_credit_note(self):
@@ -371,6 +372,7 @@ class LoanDisbursement(AccountsController):
 	def delete_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
+			sd.flags.ignore_links = True
 			sd.cancel()
 			sd.delete()
 
