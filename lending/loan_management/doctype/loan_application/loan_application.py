@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Criterion
 from frappe.utils import cint, flt, rounded
 
 from lending.loan_management.doctype.loan.loan import (
@@ -33,27 +34,40 @@ class LoanApplication(Document):
 		from frappe.types import DF
 
 		from lending.loan_management.doctype.proposed_pledge.proposed_pledge import ProposedPledge
+		from lending.loan_origination.doctype.loan_application_document.loan_application_document import (
+			LoanApplicationDocument,
+		)
 
+		address_line_1: DF.Data | None
+		address_line_2: DF.Data | None
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
-		applicant_name: DF.Data | None
-		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		applicant: DF.DynamicLink | None
+		applicant_email_address: DF.Data | None
+		applicant_phone_number: DF.Phone | None
+		applicant_type: DF.Literal["Employee", "Customer"]
+		city: DF.Data | None
 		company: DF.Link
+		country: DF.Link | None
 		description: DF.SmallText | None
+		documents: DF.Table[LoanApplicationDocument]
+		first_name: DF.Data | None
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
+		last_name: DF.Data | None
 		loan_amount: DF.Currency
 		loan_product: DF.Link
 		maximum_loan_amount: DF.Currency
-		posting_date: DF.Date | None
+		posting_date: DF.Date
 		proposed_pledges: DF.Table[ProposedPledge]
 		rate_of_interest: DF.Percent
 		repayment_amount: DF.Currency
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
+		state: DF.Data | None
 		status: DF.Literal["Open", "Approved", "Rejected"]
 		total_payable_amount: DF.Currency
 		total_payable_interest: DF.Currency
+		zip_code: DF.Int
 	# end: auto-generated types
 
 	def validate(self):
@@ -65,9 +79,64 @@ class LoanApplication(Document):
 			self.validate_repayment_method()
 
 		self.validate_loan_product()
+		self.validate_employee()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
+
+	def before_save(self):
+		if self.applicant_type == "Customer":
+			duplicates = check_duplicate_customers(
+				applicant_phone_number=self.applicant_phone_number,
+				applicant_email_address=self.applicant_email_address,
+			)
+
+			if not self.applicant:
+				customer = frappe.new_doc("Customer")
+				customer.customer_name = self.first_name or "" + " " + self.last_name or ""
+				customer.type = "Company"
+				customer.mobile_number = self.applicant_phone_number
+				customer.email_address = self.applicant_email_address
+				# need to save customer first to link back from contact and address
+				customer.save()
+
+				# copying over contact details into the contact doctype
+				contact = frappe.new_doc("Contact")
+				contact.first_name = self.first_name
+				contact.last_name = self.last_name
+				contact.append("email_ids", {"email_id": self.applicant_email_address, "is_primary": True})
+				contact.append(
+					"phone_nos", {"phone": self.applicant_phone_number, "is_primary_mobile_no": True}
+				)
+
+				# link back to customer
+				contact.append("links", {"link_doctype": "Customer", "link_name": customer.name})
+				contact.save()
+
+				address = frappe.new_doc("Address")
+				address.address_type = "Billing"
+
+				# two different naming conventions = chaos
+				if any(
+					[self.address_line_1, self.address_line_2, self.city, self.state, self.zip_code]
+				):  # address should be optional
+					address.address_line1 = self.address_line_1
+					address.address_line2 = self.address_line_2
+					address.city = self.city
+					address.state = self.state
+					address.country = self.country
+					address.pincode = self.zip_code
+					address.append("links", {"link_doctype": "Customer", "link_name": customer.name})
+
+					address.save()
+
+					customer.customer_primary_address = address.name
+
+				customer.customer_primary_contact = contact.name
+
+				customer.save()
+
+				self.applicant = customer.name
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
@@ -83,6 +152,16 @@ class LoanApplication(Document):
 		company = frappe.get_value("Loan Product", self.loan_product, "company")
 		if company != self.company:
 			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
+
+	def validate_employee(self):
+		if self.applicant_type == "Employee":
+			employee_company = frappe.get_value("Employee", self.applicant, "company")
+			if employee_company != self.company:
+				frappe.throw(
+					_("Selected employee belongs to {0}. Please select an employee from company {1}.").format(
+						frappe.bold(employee_company), frappe.bold(self.company)
+					)
+				)
 
 	def validate_loan_amount(self):
 		if not self.loan_amount:
@@ -296,3 +375,24 @@ def get_proposed_pledge(securities):
 	proposed_pledges["maximum_loan_amount"] = maximum_loan_amount
 
 	return proposed_pledges
+
+
+@frappe.whitelist()
+def check_duplicate_customers(applicant_phone_number=None, applicant_email_address=None):
+	# check if there are customer entries with the same email and/or phone
+	customer_doc = frappe.qb.DocType("Customer")
+
+	# matching any one condition will suffice
+	conditions = []
+
+	if applicant_phone_number:
+		conditions.append((applicant_phone_number == customer_doc.mobile_no))
+
+	if applicant_email_address:
+		conditions.append(applicant_email_address == customer_doc.email_id)
+
+	if conditions:
+		query = frappe.qb.from_(customer_doc).where(Criterion.any(conditions)).select(customer_doc.name)
+		duplicates = [i[0] for i in query.run(as_list=True)]
+		return duplicates
+	return []

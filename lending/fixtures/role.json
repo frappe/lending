@@ -1,0 +1,80 @@
+[
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-04-08 18:07:56.394018",
+  "name": "Loan Manager",
+  "restrict_to_domain": null,
+  "role_name": "Loan Manager",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-06-27 12:25:06.495912",
+  "name": "Loan LOS User",
+  "restrict_to_domain": null,
+  "role_name": "Loan LOS User",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-06-27 15:55:58.727390",
+  "name": "Loan Officer",
+  "restrict_to_domain": null,
+  "role_name": "Loan Officer",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-06-27 15:56:29.889375",
+  "name": "Loan Processor",
+  "restrict_to_domain": null,
+  "role_name": "Loan Processor",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-06-27 15:58:09.521200",
+  "name": "Loan Appraiser",
+  "restrict_to_domain": null,
+  "role_name": "Loan Appraiser",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-06-27 15:58:23.469552",
+  "name": "Loan Underwriter",
+  "restrict_to_domain": null,
+  "role_name": "Loan Underwriter",
+  "two_factor_auth": 0
+ }
+]

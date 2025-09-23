@@ -3,16 +3,19 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import date_diff
+from frappe.utils import add_days, flt, getdate
 
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	get_interest_for_term,
+)
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
-	get_amounts,
 	get_monthly_repayment_amount,
 )
 from lending.loan_management.doctype.loan_restructure.loan_restructure import create_loan_repayment
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
+from lending.loan_management.doctype.repayment_schedule import repayment_schedule
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
@@ -20,6 +23,7 @@ from lending.tests.test_utils import (
 	init_loan_products,
 	make_loan_disbursement_entry,
 	master_init,
+	set_loan_accrual_frequency,
 )
 
 
@@ -46,14 +50,19 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 		loan.submit()
 		loan.load_from_db()
+
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-11-05", repayment_start_date="2024-12-05"
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date="2025-12-05")
-		loan_demand_amount = 181958
+
+		loan_demand_amount = frappe.db.get_value(
+			"Loan Demand", {"loan": loan.name, "docstatus": 1}, [{"SUM": "demand_amount"}]
+		)
+
 		repayment_entry = create_repayment_entry(
 			loan=loan.name,
-			posting_date="2025-12-05",
+			value_date="2025-12-05",
 			paid_amount=loan_demand_amount + 1000,
 			repayment_type="Pre Payment",
 		)
@@ -68,3 +77,123 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		self.assertTrue(
 			abs(repayment_schedule_rows[-1].total_payment - (monthly_repayment_amount + 1000) < 1000)
 		)
+
+	def test_payment_date_unchanged_with_same_day_prepayments(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		first_sched = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "name", order_by="creation asc"
+		)
+
+		first_sched_pay_date = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": first_sched, "idx": 1},
+			["payment_date"],
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-05-05")
+
+		create_repayment_entry(loan.name, "2025-05-05", 219556.00).submit()
+		create_repayment_entry(loan.name, "2025-05-21", 2000, repayment_type="Pre Payment").submit()
+		create_repayment_entry(loan.name, "2025-05-21", 1000, repayment_type="Pre Payment").submit()
+
+		last_sched, last_sched_start_date = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "status": "Active"},
+			["name", "repayment_start_date"],
+		)
+
+		active_sched_pay_date = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": last_sched, "idx": 1},
+			["payment_date"],
+		)
+
+		new_start_date = frappe.db.get_value(
+			"Loan Restructure",
+			{"loan": loan.name, "docstatus": 1},
+			["repayment_start_date"],
+			order_by="creation desc",
+		)
+
+		self.assertEqual(new_start_date, last_sched_start_date)
+		self.assertEqual(first_sched_pay_date, active_sched_pay_date)
+
+	def test_accrual_breaks_for_advance_and_pre_payments(self):
+		for frequency in ["Daily", "Weekly", "Monthly"]:
+			set_loan_accrual_frequency(frequency)
+			loan = create_loan(
+				"_Test Customer 1",
+				"Term Loan Product 4",
+				285000,
+				"Repay Over Number of Periods",
+				12,
+				repayment_start_date="2024-12-05",
+				posting_date="2024-11-05",
+				rate_of_interest=17,
+				applicant_type="Customer",
+				moratorium_tenure=3,
+				moratorium_type="Principal",
+			)
+			loan.submit()
+			loan.load_from_db()
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2024-11-05", repayment_start_date="2024-12-05"
+			)
+			repayment_entry = create_repayment_entry(
+				loan=loan.name,
+				value_date="2025-12-05",
+				paid_amount=185000,
+				repayment_type="Pre Payment",
+			)
+			repayment_entry.submit()
+
+			payable_interest = get_interest_for_term(
+				"_Test Company",
+				17,
+				285000,
+				getdate("2024-11-05"),
+				add_days(getdate("2025-12-05"), -1),
+			)
+			paid_interest = frappe.get_value(
+				"Loan Interest Accrual", {"loan": loan.name}, [{"SUM": "interest_amount"}]
+			)
+			self.assertEqual(flt(paid_interest, 0), flt(payable_interest, 0))
+
+	def test_moratorium_date_jump(self):
+		for moratorium_type in ["Principal", "EMI"]:
+			loan = create_loan(
+				"_Test Customer 1",
+				"Term Loan Product 4",
+				200000,
+				"Repay Over Number of Periods",
+				12,
+				repayment_start_date="2025-08-05",
+				posting_date="2025-07-18",
+				rate_of_interest=30,
+				applicant_type="Customer",
+				moratorium_tenure=3,
+				moratorium_type=moratorium_type,
+			)
+			loan.submit()
+			loan.load_from_db()
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2025-07-18", repayment_start_date="2025-08-05"
+			)
+			repayment_schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": loan.name})
+			self.assertEqual(repayment_schedule.repayment_start_date, getdate("2025-08-05"))

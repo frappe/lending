@@ -32,8 +32,10 @@ class LoanWriteOff(AccountsController):
 		is_npa: DF.Check
 		is_settlement_write_off: DF.Check
 		loan: DF.Link
+		loan_disbursement: DF.Link | None
 		loan_product: DF.Link | None
 		posting_date: DF.Date
+		value_date: DF.Date
 		write_off_account: DF.Link | None
 		write_off_amount: DF.Currency
 	# end: auto-generated types
@@ -51,10 +53,15 @@ class LoanWriteOff(AccountsController):
 				"Loan Product", self.loan_product, "write_off_account"
 			)
 
+		self.posting_date = getdate()
+
+		if not self.value_date:
+			self.value_date = self.posting_date
+
 	def validate_write_off_amount(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		loan_details = frappe.get_value(
+		loan_details = frappe.db.get_value(
 			"Loan",
 			self.loan,
 			[
@@ -68,16 +75,19 @@ class LoanWriteOff(AccountsController):
 				"written_off_amount",
 				"disbursed_amount",
 				"status",
+				"repayment_schedule_type",
 			],
 			as_dict=1,
 		)
 
-		pending_principal_amount = flt(get_pending_principal_amount(loan_details), precision)
+		pending_principal_amount = flt(
+			get_pending_principal_amount(loan_details, loan_disbursement=self.loan_disbursement), precision
+		)
 
-		if not self.write_off_amount:
+		if not self.write_off_amount and not self.is_settlement_write_off:
 			self.write_off_amount = pending_principal_amount
 
-		if self.write_off_amount != pending_principal_amount and not self.is_settlement_write_off:
+		if self.write_off_amount != pending_principal_amount:
 			frappe.throw(_("Write off amount should be equal to pending principal amount"))
 
 	def on_submit(self):
@@ -89,21 +99,21 @@ class LoanWriteOff(AccountsController):
 		)
 
 		if not self.is_settlement_write_off:
-			process_daily_loan_demands(self.posting_date, loan=self.loan)
+			process_daily_loan_demands(self.value_date, loan=self.loan)
 
 		self.process_unbooked_interest()
 
 		if not self.is_settlement_write_off:
-			make_loan_waivers(self.loan, self.posting_date)
+			make_loan_waivers(self.loan, self.value_date)
 
 		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.posting_date, self.company, on_write_off=True)
+		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
 		self.close_employee_loan()
 		self.update_outstanding_amount_and_status()
 
 		create_process_loan_classification(
-			posting_date=self.posting_date,
+			posting_date=self.value_date,
 			loan_product=self.loan_product,
 			loan=self.loan,
 		)
@@ -115,21 +125,26 @@ class LoanWriteOff(AccountsController):
 			get_unbooked_interest,
 		)
 
-		last_demand_date = get_last_demand_date(self.loan, self.posting_date)
+		last_demand_date = get_last_demand_date(self.loan, self.value_date)
 
-		unbooked_interest, unbooked_penalty = get_unbooked_interest(
-			self.loan, self.posting_date, last_demand_date=last_demand_date
+		unbooked_interest = get_unbooked_interest(
+			self.loan, self.value_date, last_demand_date=last_demand_date
 		)
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if flt(unbooked_interest) > 0:
 			create_loan_demand(
-				self.loan, self.posting_date, "EMI", "Interest", flt(unbooked_interest, precision)
+				self.loan, self.value_date, "EMI", "Interest", flt(unbooked_interest, precision)
 			)
 
 	def cancel_suspense_entries(self):
 		write_off_suspense_entries(
-			self.loan, self.loan_product, self.posting_date, self.company, is_write_off=self.is_npa
+			self.loan,
+			self.loan_product,
+			self.posting_date,
+			self.value_date,
+			self.company,
+			is_write_off=self.is_npa,
 		)
 
 	def on_cancel(self):
@@ -145,7 +160,7 @@ class LoanWriteOff(AccountsController):
 		if write_off_count >= 1:
 			return
 
-		waivers = get_write_off_waivers_for_cancel(self.loan, self.posting_date)
+		waivers = get_write_off_waivers_for_cancel(self.loan, self.value_date)
 
 		for waiver in waivers:
 			doc = frappe.get_doc("Loan Repayment", waiver)
@@ -172,7 +187,9 @@ class LoanWriteOff(AccountsController):
 
 	def make_gl_entries(self, cancel=0):
 		gl_entries = []
-		loan_details = frappe.get_doc("Loan", self.loan)
+		loan_details = frappe.db.get_value(
+			"Loan", self.loan, ["loan_account", "applicant_type", "applicant"], as_dict=1
+		)
 
 		gl_entries.append(
 			self.get_gl_dict(
@@ -255,6 +272,8 @@ def make_loan_waivers(loan, posting_date):
 		create_loan_repayment,
 	)
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 	amounts = calculate_amounts(loan, posting_date)
 	if amounts.get("penalty_amount") > 0:
 		create_loan_repayment(
@@ -270,7 +289,12 @@ def make_loan_waivers(loan, posting_date):
 			loan,
 			posting_date,
 			"Interest Waiver",
-			amounts.get("interest_amount"),
+			flt(
+				amounts.get("interest_amount", 0)
+				+ amounts.get("unaccrued_interest", 0)
+				+ amounts.get("unbooked_interest", 0),
+				precision,
+			),
 			is_write_off_waiver=1,
 		)
 
@@ -288,6 +312,7 @@ def write_off_suspense_entries(
 	loan,
 	loan_product,
 	posting_date,
+	value_date,
 	company,
 	is_write_off=0,
 	interest_amount=0,
@@ -358,7 +383,14 @@ def write_off_suspense_entries(
 				accounts.interest_waiver_account if is_write_off else accounts.interest_income_account
 			)
 			make_journal_entry(
-				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+				posting_date,
+				value_date,
+				company,
+				loan,
+				amount,
+				debit_account,
+				credit_account,
+				is_reverse=is_reverse,
 			)
 
 	if amounts.get(accounts.penalty_suspense_account, 0) > 0:
@@ -375,7 +407,14 @@ def write_off_suspense_entries(
 				accounts.penalty_waiver_account if is_write_off else accounts.penalty_income_account
 			)
 			make_journal_entry(
-				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+				posting_date,
+				value_date,
+				company,
+				loan,
+				amount,
+				debit_account,
+				credit_account,
+				is_reverse=is_reverse,
 			)
 
 	if amounts.get(accounts.additional_interest_suspense, 0) > 0:
@@ -392,13 +431,21 @@ def write_off_suspense_entries(
 				accounts.additional_interest_waiver if is_write_off else accounts.additional_interest_income
 			)
 			make_journal_entry(
-				posting_date, company, loan, amount, debit_account, credit_account, is_reverse=is_reverse
+				posting_date,
+				value_date,
+				company,
+				loan,
+				amount,
+				debit_account,
+				credit_account,
+				is_reverse=is_reverse,
 			)
 
 
 def write_off_charges(
 	loan,
 	posting_date,
+	value_date,
 	company,
 	amount_details=None,
 	on_write_off=False,
@@ -464,6 +511,7 @@ def write_off_charges(
 					income_amount = amount - base_amount
 					make_journal_entry(
 						posting_date,
+						value_date,
 						company,
 						loan,
 						income_amount,
@@ -474,7 +522,7 @@ def write_off_charges(
 
 			waiver_account = suspense_account_map.get(account)
 			make_journal_entry(
-				posting_date, company, loan, amount, account, waiver_account, is_reverse=is_reverse
+				posting_date, value_date, company, loan, amount, account, waiver_account, is_reverse=is_reverse
 			)
 
 
@@ -502,7 +550,7 @@ def get_write_off_waivers_for_cancel(loan_name, posting_date):
 		"Loan Repayment",
 		filters={
 			"against_loan": loan_name,
-			"posting_date": ("<=", posting_date),
+			"value_date": ("<=", posting_date),
 			"docstatus": 1,
 			"is_write_off_waiver": 1,
 		},
@@ -516,7 +564,7 @@ def get_write_off_waivers(loan_name, posting_date):
 			"Loan Repayment",
 			filters={
 				"against_loan": loan_name,
-				"posting_date": ("<=", posting_date),
+				"value_date": ("<=", posting_date),
 				"docstatus": 1,
 				"is_write_off_waiver": 1,
 			},
@@ -532,7 +580,7 @@ def get_write_off_recovery_details(loan_name, posting_date, settlement_date=None
 	filters = {"against_loan": loan_name, "posting_date": ("<=", posting_date), "docstatus": 1}
 
 	if settlement_date:
-		filters["posting_date"] = (">", settlement_date)
+		filters["value_date"] = (">", settlement_date)
 	else:
 		filters["repayment_type"] = ("in", ["Write Off Recovery", "Write Off Settlement"])
 
@@ -540,10 +588,10 @@ def get_write_off_recovery_details(loan_name, posting_date, settlement_date=None
 		"Loan Repayment",
 		filters,
 		[
-			"sum(total_penalty_paid) as total_penalty",
-			"sum(total_interest_paid) as total_interest",
-			"sum(total_charges_paid) as total_charges",
-			"sum(principal_amount_paid) as total_principal",
+			{"SUM": "total_penalty_paid", "as": "total_penalty"},
+			{"SUM": "total_interest_paid", "as": "total_interest"},
+			{"SUM": "total_charges_paid", "as": "total_charges"},
+			{"SUM": "principal_amount_paid", "as": "total_principal"},
 		],
 		as_dict=1,
 	)

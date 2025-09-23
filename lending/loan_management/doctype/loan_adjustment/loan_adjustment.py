@@ -24,10 +24,10 @@ class LoanAdjustment(Document):
 		adjustments: DF.Table[LoanAdjustmentDetail]
 		amended_from: DF.Link | None
 		foreclosure_type: DF.Literal["", "Manual Foreclosure", "Internal Foreclosure"]
-		loan: DF.Link | None
+		loan: DF.Link
 		loan_disbursement: DF.Link | None
 		payment_account: DF.Link | None
-		posting_date: DF.Datetime | None
+		posting_date: DF.Datetime
 	# end: auto-generated types
 
 	def validate(self):
@@ -42,6 +42,7 @@ class LoanAdjustment(Document):
 						"loan_repayment_type": "Security Deposit Adjustment",
 						"amount": amounts.get("available_security_deposit", 0),
 					},
+					position=0,
 				)
 
 	def on_submit(self):

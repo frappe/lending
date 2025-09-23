@@ -42,7 +42,6 @@ frappe.ui.form.on('Process Loan Classification', {
 			set_loan_disbursement_filters(frm, {"against_loan": frm.doc.loan})
 		}
 		else {
-			console.log("meow")
 			set_loan_disbursement_filters(frm, {})
 		}
 	},

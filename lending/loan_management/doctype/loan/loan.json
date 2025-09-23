@@ -509,6 +509,7 @@
    "options": "Monthly\nDaily\nWeekly\nBi-Weekly\nQuarterly\nOne Time"
   },
   {
+   "depends_on": "eval:doc.applicant_type==\"Customer\"",
    "fieldname": "loan_charges",
    "fieldtype": "Table",
    "label": "Loan Charges",
@@ -709,7 +710,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:46.469690",
+ "modified": "2025-06-23 16:14:48.341833",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

@@ -14,9 +14,11 @@
   "repayment_schedule_type",
   "applicant_type",
   "loan_product",
+  "bulk_repayment_log",
   "column_break_3",
   "company",
   "posting_date",
+  "value_date",
   "loan_restructure",
   "clearance_date",
   "rate_of_interest",
@@ -86,6 +88,7 @@
    "search_index": 1
   },
   {
+   "default": "Now",
    "fieldname": "posting_date",
    "fieldtype": "Datetime",
    "in_list_view": 1,
@@ -535,12 +538,24 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Is Backdated"
+  },
+  {
+   "fieldname": "value_date",
+   "fieldtype": "Datetime",
+   "label": "Value Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bulk_repayment_log",
+   "fieldtype": "Link",
+   "label": "Bulk Repayment Log",
+   "options": "Bulk Repayment Log"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:46.079233",
+ "modified": "2025-08-18 17:55:07.773459",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
@@ -578,6 +593,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

@@ -38,6 +38,7 @@
    "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan",
+   "reqd": 1,
    "search_index": 1
   },
   {
@@ -50,7 +51,8 @@
    "fieldname": "posting_date",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Posting Date"
+   "label": "Posting Date",
+   "reqd": 1
   },
   {
    "fieldname": "foreclosure_type",
@@ -84,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-02 19:34:15.230143",
+ "modified": "2025-06-11 11:35:50.878129",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Adjustment",

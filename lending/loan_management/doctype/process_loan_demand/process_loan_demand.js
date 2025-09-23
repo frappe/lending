@@ -50,7 +50,6 @@ frappe.ui.form.on('Process Loan Demand', {
 			.then(
 				resp => {
 					frm.set_value("loan", resp.message.against_loan)
-					console.log(resp.message)
 				}
 			)
 	}

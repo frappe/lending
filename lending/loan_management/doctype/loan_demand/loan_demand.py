@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, flt, getdate
+from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
@@ -53,6 +53,8 @@ class LoanDemand(AccountsController):
 		self.outstanding_amount = flt(self.demand_amount) - flt(self.paid_amount)
 		self.partner_share_allocated = 0
 
+		self.posting_date = getdate()
+
 		if self.get("loan_partner"):
 			if self.demand_type == "EMI" and self.demand_subtype == "Principal":
 				partner_share_field = "principal_amount"
@@ -80,12 +82,14 @@ class LoanDemand(AccountsController):
 			not frappe.flags.on_repost
 			and self.demand_type in ("EMI", "Normal")
 			and self.demand_subtype == "Interest"
+			and self.process_loan_demand
 		):
 			process_loan_interest_accrual_for_loans(
 				posting_date=add_days(self.demand_date, -1),
 				loan=self.loan,
 				company=self.company,
 				from_demand=True,
+				loan_disbursement=self.loan_disbursement,
 			)
 
 	def update_repayment_schedule(self, cancel=0):
@@ -183,7 +187,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date or self.demand_date,
+						"posting_date": self.posting_date,
 						"account": receivable_account,
 						"against": accrual_account,
 						"debit": self.demand_amount,
@@ -199,7 +203,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date or self.demand_date,
+						"posting_date": self.posting_date,
 						"account": accrual_account,
 						"against": receivable_account,
 						"credit": self.demand_amount,
@@ -276,18 +280,31 @@ def process_term_loan_batch(
 		disbursement_map[schedule.name] = schedule.loan_disbursement
 		start_date_map[schedule.name] = schedule.repayment_start_date
 
-	repayment_schedules = loan_repayment_schedule_map.keys()
+	repayment_schedules = list(loan_repayment_schedule_map.keys())
 
-	emi_rows = frappe.db.get_all(
-		"Repayment Schedule",
-		filters={
-			"parent": ("in", repayment_schedules),
-			"payment_date": ("<=", posting_date),
-			"demand_generated": 0,
-		},
-		fields=["name", "parent", "principal_amount", "interest_amount", "payment_date"],
-		order_by="payment_date asc",
-	)
+	if not repayment_schedules:
+		return
+
+	_repayment_schedule = frappe.qb.DocType("Repayment Schedule")
+
+	query = (
+		frappe.qb.from_(_repayment_schedule)
+		.select(
+			_repayment_schedule.name,
+			_repayment_schedule.parent,
+			_repayment_schedule.principal_amount,
+			_repayment_schedule.interest_amount,
+			_repayment_schedule.payment_date,
+		)
+		.where(
+			(_repayment_schedule.parent.isin(repayment_schedules))
+			& (_repayment_schedule.payment_date <= posting_date)
+			& (_repayment_schedule.demand_generated == 0)
+		)
+		.orderby(_repayment_schedule.payment_date)
+	).for_update()
+
+	emi_rows = query.run(as_dict=True)
 
 	for row in emi_rows:
 		try:
@@ -510,15 +527,20 @@ def reverse_demands(
 	loan_repayment_schedule=None,
 	loan_disbursement=None,
 	on_settlement_or_closure=False,
+	future_demands=False,
 	loan_repayment=None,
 ):
+
+	# Datetime adaptations
+	posting_date = get_datetime(getdate(posting_date))
 
 	# on settlement or closure, demand should be cleared from next day
 	# as other demands also get passed on the same day
 	if on_settlement_or_closure:
-		posting_date = add_days(getdate(posting_date), 1)
+		posting_date = add_days(posting_date, 1)
 
 	filters = {"loan": loan, "demand_date": (">=", posting_date), "docstatus": 1}
+	or_filters = {}
 
 	if loan_repayment:
 		filters["loan_repayment"] = loan_repayment
@@ -529,13 +551,18 @@ def reverse_demands(
 	if demand_type == "Penalty":
 		filters["demand_type"] = ("in", ("Penalty", "Additional Interest"))
 
-	if loan_repayment_schedule:
+	if loan_repayment_schedule and not future_demands:
 		filters["loan_repayment_schedule"] = loan_repayment_schedule
+	elif future_demands:
+		if loan_repayment_schedule:
+			or_filters["loan_repayment_schedule"] = loan_repayment_schedule
+		or_filters["demand_date"] = (">", posting_date)
+		del filters["demand_date"]
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	for demand in frappe.get_all("Loan Demand", filters=filters):
+	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
 		doc = frappe.get_doc("Loan Demand", demand.name)
 		doc.flags.ignore_links = True
 		doc.cancel()
@@ -552,6 +579,7 @@ def make_credit_note(
 	loan_repayment=None,
 	waiver_account=None,
 	posting_date=None,
+	value_date=None,
 ):
 	si = frappe.new_doc("Sales Invoice")
 	si.flags.ignore_links = True
@@ -571,12 +599,17 @@ def make_credit_note(
 
 	si.set_posting_time = 1
 	si.posting_date = posting_date
+	si.value_date = value_date
 
-	rate, income_account = frappe.db.get_value(
-		"Sales Invoice Item",
-		{"item_code": item_code, "parent": sales_invoice},
-		["rate", "income_account"],
-	)
+	rate = 0
+	income_account = ""
+
+	if not amount or not waiver_account:
+		rate, income_account = frappe.db.get_value(
+			"Sales Invoice Item",
+			{"item_code": item_code, "parent": sales_invoice},
+			["rate", "income_account"],
+		)
 
 	si.append(
 		"items",

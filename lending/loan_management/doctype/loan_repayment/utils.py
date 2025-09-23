@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, cint, flt
+from frappe.utils import cint, flt
 
 
 def get_pending_principal_amount_for_loans(loans, disbursement_map):
@@ -12,15 +12,14 @@ def get_pending_principal_amount_for_loans(loans, disbursement_map):
 		frappe.db.get_all(
 			"Loan Disbursement",
 			{"against_loan": ["in", loan_list]},
-			["name", "sum(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
+			["name", "(disbursed_amount - principal_amount_paid) as pending_principal_amount"],
 			as_list=1,
 		)
 	)
-
 	for loan in loans:
 		if loan.repayment_schedule_type == "Line of Credit":
 			for disbursement in disbursement_map.get(loan.name, []):
-				principal_amount_map[(loan.name, disbursement)] = disbursement_details.get(disbursement, 0)
+				principal_amount_map[(loan.name, disbursement)] = disbursement_details[disbursement]
 		elif loan.status == "Cancelled":
 			pending_principal_amount = 0
 			principal_amount_map[loan.name] = pending_principal_amount
@@ -118,6 +117,7 @@ def get_unbooked_interest_for_loans(
 
 	loan_list = [loan.name for loan in loans]
 	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
+	loan_status_map = {loan.name: loan.status for loan in loans}
 
 	filters = [
 		["loan", "in", loan_list],
@@ -139,7 +139,9 @@ def get_unbooked_interest_for_loans(
 	accrued_interest_map = {}
 
 	for accrued_interest in accrued_interests:
-		if loan_type_map.get(accrued_interest.loan) == "Line of Credit":
+		if loan_status_map.get(accrued_interest.loan) in ("Closed", "Settled"):
+			accrued_interest_map[accrued_interest.loan] = 0
+		elif loan_type_map.get(accrued_interest.loan) == "Line of Credit":
 			accrued_interest_map[
 				(accrued_interest.loan, accrued_interest.loan_disbursement)
 			] = accrued_interest.unbooked_interest
@@ -163,11 +165,8 @@ def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 	last_demand_date = frappe.db.get_value(
 		"Loan Demand",
 		filters,
-		"MAX(demand_date)",
+		[{"MAX": "demand_date"}],
 	)
-
-	if demand_subtype == "Interest" and last_demand_date:
-		last_demand_date = add_days(last_demand_date, -1)
 
 	return last_demand_date
 
@@ -182,7 +181,7 @@ def get_latest_accrual_date(posting_date, interest_type="Interest"):
 	latest_accrual_date = frappe.db.get_value(
 		"Loan Interest Accrual",
 		filters,
-		"MAX(posting_date)",
+		[{"MAX": "posting_date"}],
 	)
 
 	return latest_accrual_date

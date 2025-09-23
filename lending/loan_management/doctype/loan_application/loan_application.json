@@ -6,13 +6,27 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "applicant_contact_info_section",
+  "applicant_email_address",
+  "column_break_dxiv",
+  "applicant_phone_number",
+  "applicant_details_section",
   "applicant_type",
   "applicant",
-  "applicant_name",
+  "first_name",
+  "last_name",
   "column_break_2",
   "company",
   "posting_date",
   "status",
+  "applicant_address_details_section",
+  "address_line_1",
+  "address_line_2",
+  "zip_code",
+  "column_break_axte",
+  "city",
+  "state",
+  "country",
   "section_break_4",
   "loan_product",
   "is_term_loan",
@@ -31,32 +45,28 @@
   "repayment_periods",
   "repayment_amount",
   "total_payable_interest",
-  "amended_from"
+  "amended_from",
+  "documents_tab",
+  "documents"
  ],
  "fields": [
   {
+   "default": "Customer",
    "fieldname": "applicant_type",
    "fieldtype": "Select",
    "label": "Applicant Type",
-   "options": "Employee\nMember\nCustomer",
+   "options": "Employee\nCustomer",
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.applicant_type === \"Employee\" || doc.applicant !== null",
    "fieldname": "applicant",
    "fieldtype": "Dynamic Link",
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type",
-   "reqd": 1
-  },
-  {
-   "depends_on": "applicant",
-   "fieldname": "applicant_name",
-   "fieldtype": "Data",
-   "in_global_search": 1,
-   "label": "Applicant Name",
-   "read_only": 1
+   "read_only_depends_on": "eval: doc.applicant_type === \"Customer\""
   },
   {
    "fieldname": "column_break_2",
@@ -66,7 +76,8 @@
    "default": "Today",
    "fieldname": "posting_date",
    "fieldtype": "Date",
-   "label": "Posting Date"
+   "label": "Posting Date",
+   "reqd": 1
   },
   {
    "allow_on_submit": 1,
@@ -122,6 +133,7 @@
    "label": "Repayment Info"
   },
   {
+   "default": "Repay Over Number of Periods",
    "depends_on": "eval: doc.is_term_loan == 1",
    "fetch_if_empty": 1,
    "fieldname": "repayment_method",
@@ -210,15 +222,114 @@
    "fieldtype": "Check",
    "label": "Is Term Loan",
    "read_only": 1
+  },
+  {
+   "fieldname": "applicant_details_section",
+   "fieldtype": "Section Break",
+   "label": "Applicant Details"
+  },
+  {
+   "fieldname": "applicant_contact_info_section",
+   "fieldtype": "Section Break",
+   "label": "Applicant Contact Info"
+  },
+  {
+   "fieldname": "column_break_dxiv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "applicant_email_address",
+   "fieldtype": "Data",
+   "label": "Applicant Email Address",
+   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\""
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "applicant_phone_number",
+   "fieldtype": "Phone",
+   "label": "Applicant Phone Number",
+   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\""
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "First Name"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name"
+  },
+  {
+   "fieldname": "applicant_address_details_section",
+   "fieldtype": "Section Break",
+   "label": "Applicant Address Details"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "address_line_1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "address_line_2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "zip_code",
+   "fieldtype": "Int",
+   "label": "ZIP Code"
+  },
+  {
+   "fieldname": "column_break_axte",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "documents",
+   "fieldtype": "Table",
+   "label": "Documents",
+   "options": "Loan Application Document"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:51.585652",
+ "modified": "2025-08-12 15:06:52.004435",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -271,8 +382,23 @@
    "report": 1,
    "role": "Employee",
    "share": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan LOS User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "applicant_type, applicant, loan_product, loan_amount",
  "sort_field": "modified",
  "sort_order": "DESC",

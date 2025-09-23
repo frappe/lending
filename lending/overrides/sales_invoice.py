@@ -26,7 +26,7 @@ def generate_demand(self, method=None):
 
 			create_loan_demand(
 				self.loan,
-				self.posting_date,
+				self.value_date,
 				"Charges",
 				item.item_code,
 				flt(demand_amount, 2),
@@ -35,6 +35,12 @@ def generate_demand(self, method=None):
 
 
 def update_waived_amount_in_demand(self, method=None):
+
+	loan_status = frappe.db.get_value("Loan", self.loan, "status")
+
+	if loan_status not in ["Active", "Disbursed"]:
+		return
+
 	if self.get("is_return") and not self.get("loan_repayment"):
 		for item in self.get("items"):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
@@ -117,7 +123,7 @@ def make_suspense_gl_entry_for_charges(doc, method):
 	is_npa = frappe.db.get_value("Loan", doc.loan, "is_npa")
 	if is_npa:
 		move_receivable_charges_to_suspense_ledger(
-			doc.loan, doc.company, doc.posting_date, invoice=doc.name
+			doc.loan, doc.company, doc.posting_date, doc.value_date, invoice=doc.name
 		)
 
 
@@ -158,7 +164,9 @@ def cancel_demand(self, method=None):
 	if self.get("loan"):
 		demand = frappe.db.get_value("Loan Demand", {"sales_invoice": self.name})
 		if demand:
-			frappe.get_doc("Loan Demand", demand).cancel()
+			doc = frappe.get_doc("Loan Demand", demand)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 
 def get_tax_amount(taxes, item_code):

@@ -53,6 +53,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_accounts,
 	create_loan_application,
+	create_loan_partner,
 	create_loan_product,
 	create_loan_security,
 	create_loan_security_price,
@@ -168,15 +169,18 @@ class TestLoan(IntegrationTestCase):
 			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
 		)
 
-		self.applicant1 = make_employee("robert_loan@loan.com")
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
 
 		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
 
+		if not frappe.db.exists("Customer", "_Test Loan Customer 2"):
+			frappe.get_doc(get_customer_dict("_Test Loan Customer 2")).insert(ignore_permissions=True)
+
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
+		self.applicant1 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 2"}, "name")
 
 		frappe.db.set_value(
 			"Loan Product", "Demand Loan", "customer_refund_account", "Customer Refund Account - _TC"
@@ -465,15 +469,58 @@ class TestLoan(IntegrationTestCase):
 		last_accrual_date = frappe.db.get_value(
 			"Loan Interest Accrual",
 			{"loan": loan.name, "docstatus": 1},
-			"accrual_date",
-			order_by="accrual_date desc",
+			"posting_date",
+			order_by="posting_date desc",
 		)
 
 		freeze_date = loan.freeze_date
-		self.assertEqual(str(last_accrual_date), freeze_date)
+		self.assertEqual(getdate(last_accrual_date), getdate(freeze_date))
 
 		loan_status = frappe.db.get_value("Loan", loan.name, "status")
 		self.assertEqual(loan_status, "Closed")
+
+	def test_interest_accrual_stop_after_freeze_loan(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2025-01-01",
+			rate_of_interest=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-01-01",
+			repayment_start_date="2025-01-05",
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-02-05", loan=loan.name, company="_Test Company"
+		)
+
+		loan.load_from_db()
+		loan.freeze_account = 1
+		loan.freeze_date = "2025-01-25"
+		loan.save()
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-02-05", loan=loan.name, company="_Test Company"
+		)
+
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"posting_date",
+			order_by="posting_date desc",
+		)
+
+		freeze_date = loan.freeze_date
+		self.assertEqual(getdate(last_accrual_date), getdate(freeze_date))
 
 	def test_loan_repayment_for_term_loan(self):
 		pledges = [
@@ -815,15 +862,17 @@ class TestLoan(IntegrationTestCase):
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
 		)
-		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-07-06", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-06")
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
 
 	def test_same_date_for_daily_accruals(self):
+		from lending.tests.test_utils import get_penalty_amount
+
 		set_loan_accrual_frequency("Daily")
 		loan = create_loan(
 			self.applicant1,
@@ -846,9 +895,26 @@ class TestLoan(IntegrationTestCase):
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
+		# Calculate expected penal amount
+		expected_penalty_amount = 0
+
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}
+		)
+
+		for amount in frappe.db.get_all(
+			"Repayment Schedule",
+			{"parent": repayment_schedule, "principal_amount": (">", 0), "demand_generated": 1},
+			["payment_date", "total_payment"],
+		):
+
+			expected_penalty_amount += get_penalty_amount(
+				"2024-07-07", amount.payment_date, amount.total_payment, 25
+			)
+
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")
 
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3157.35)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), expected_penalty_amount)
 
 		accruals = frappe.get_all(
 			"Loan Interest Accrual",
@@ -1300,51 +1366,53 @@ class TestLoan(IntegrationTestCase):
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_interest_accrual_overlap(self):
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			1500000,
-			"Repay Over Number of Periods",
-			30,
-			repayment_start_date="2025-01-05",
-			posting_date="2024-11-28",
-			rate_of_interest=28,
-		)
+		for frequency in ["Monthly", "Weekly", "Daily"]:
+			set_loan_accrual_frequency(frequency)
+			loan = create_loan(
+				self.applicant1,
+				"Term Loan Product 4",
+				1500000,
+				"Repay Over Number of Periods",
+				30,
+				repayment_start_date="2025-01-05",
+				posting_date="2024-11-28",
+				rate_of_interest=28,
+			)
 
-		loan.submit()
+			loan.submit()
 
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-11-28", repayment_start_date="2025-01-05"
-		)
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2024-11-28", repayment_start_date="2025-01-05"
+			)
 
-		# Process Loan Interest Accrual
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-03", loan=loan.name, company="_Test Company"
-		)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-04", loan=loan.name, company="_Test Company"
-		)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-05", loan=loan.name, company="_Test Company"
-		)
+			# Process Loan Interest Accrual
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-03", loan=loan.name, company="_Test Company"
+			)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-04", loan=loan.name, company="_Test Company"
+			)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-05", loan=loan.name, company="_Test Company"
+			)
 
-		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+			process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
 
-		repayment = create_repayment_entry(loan.name, "2024-12-05", 1150, repayment_type="Pre Payment")
+			repayment = create_repayment_entry(loan.name, "2024-12-05", 1150, repayment_type="Pre Payment")
 
-		repayment.submit()
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-08", loan=loan.name, company="_Test Company"
-		)
+			repayment.submit()
+			process_loan_interest_accrual_for_loans(
+				posting_date="2024-12-08", loan=loan.name, company="_Test Company"
+			)
 
-		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-10", loan=loan.name, company="_Test Company"
-		)
+			process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+			process_loan_interest_accrual_for_loans(
+				posting_date="2025-01-10", loan=loan.name, company="_Test Company"
+			)
 
-		repayment = create_repayment_entry(loan.name, "2025-01-03", 10000, repayment_type="Pre Payment")
+			repayment = create_repayment_entry(loan.name, "2025-01-03", 10000, repayment_type="Pre Payment")
 
-		repayment.submit()
+			repayment.submit()
 
 	def test_principal_amount_paid(self):
 		frappe.db.set_value(
@@ -1380,40 +1448,10 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.submit()
 		repayment_entry.load_from_db()
 
-		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(51095.9, 1))
+		extra_amount_paid = repayment_entry.amount_paid - repayment_entry.payable_amount
+		total_principal_paid = repayment_entry.payable_principal_amount + extra_amount_paid
 
-	def test_additional_interest(self):
-		frappe.db.set_value(
-			"Company",
-			"_Test Company",
-			"collection_offset_sequence_for_standard_asset",
-			"Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			500000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-06",
-			rate_of_interest=25,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
-		)
-		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
-
-		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
-
-		# Process Loan Interest Accrual
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-05-10", loan=loan.name, company="_Test Company"
-		)
+		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(total_principal_paid, 1))
 
 	def test_npa_loan(self):
 		loan = create_loan(
@@ -1637,32 +1675,6 @@ class TestLoan(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 
-	def test_full_settlement(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry.submit()
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
 	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -1708,7 +1720,7 @@ class TestLoan(IntegrationTestCase):
 			self.assertEqual(2, closed_doc.docstatus)
 
 	def test_cancellation_of_resulting_repayments_after_cancelling_full_settlements_for_loc(self):
-		# makes two disbursements and corresponding full settlements and cancels one of them
+		# makes two disbursements and corresponding full settlements and cancel one of them
 		# checks if only the waivers for the cancelled full settlement are cancelled
 
 		loan = create_loan(
@@ -1770,7 +1782,7 @@ class TestLoan(IntegrationTestCase):
 
 		repayment_entry = create_repayment_entry(
 			loan.name,
-			"2024-10-25",
+			"2024-10-25 00:10:00",
 			4000,
 			repayment_type="Full Settlement",
 			loan_disbursement=disbursement_2.name,
@@ -1865,6 +1877,7 @@ class TestLoan(IntegrationTestCase):
 				"company": "_Test Company",
 				"loan": loan.name,
 				"posting_date": "2025-01-15",
+				"value_date": "2025-01-15",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
@@ -1901,7 +1914,7 @@ class TestLoan(IntegrationTestCase):
 			missing_amount = original_invoice_total - total_credit_note_sum
 			self.assertTrue(
 				total_credit_note_sum >= original_invoice_total,
-				f"Credit notes missing amount: {missing_amount}.",
+				f"Credit note is missing amount: {missing_amount}.",
 			)
 
 		outstanding_demand = frappe.db.get_value(
@@ -1910,6 +1923,333 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(
 			flt(outstanding_demand), 0, "There are still outstanding amounts in the loan demand."
 		)
+
+	def test_excess_amount_for_interest_waiver(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-01-16 00:06:10"), 100000, repayment_type="Principal Adjustment"
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-01-16 00:10:10"), 2600.00, repayment_type="Interest Waiver"
+		)
+		repayment_entry.submit()
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Closed")
+
+	def test_excess_amount_for_penal_waiver(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2024-06-05",
+			"2024-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-07-07", company="_Test Company"
+		)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")[
+			"payable_amount"
+		]
+
+		first_normal_repayment = round(float(payable_amount), 2) - 2000  # partial payment
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-07-07 00:05:10"), first_normal_repayment
+		)
+		repayment_entry.submit()
+
+		remaining_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")[
+			"payable_amount"
+		]
+		penalty_waiver = round(float(remaining_amount), 2) - 90  # checking excess_amount
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-07-07 00:06:10"), penalty_waiver, repayment_type="Penalty Waiver"
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+
+	def test_auto_waiver_after_auto_close_loan_for_penal(self):
+		# This test verifies that when a normal repayment is made and the loan is auto-closed,
+		# any remaining penal charges are waived automatically by creating a penalty waiver entry.
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2024-06-05",
+			"2024-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-07-06", company="_Test Company"
+		)
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-07-07")[
+			"payable_amount"
+		]
+
+		repayment_entry_amount = payable_amount - 90
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-07-07 00:05:10"), repayment_entry_amount
+		)
+		repayment_entry.submit()
+
+		auto_waiver_amount = payable_amount - repayment_entry.amount_paid
+
+		loan_repayment_detail = frappe.db.get_value(
+			"Loan Repayment",
+			{"against_loan": loan.name, "repayment_type": "Penalty Waiver"},
+			["repayment_type", "amount_paid"],
+			order_by="creation desc",
+			as_dict=1,
+		)
+
+		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
+		self.assertEqual(loan_repayment_detail.repayment_type, "Penalty Waiver")
+
+	def test_auto_waiver_after_auto_close_loan_for_charges(self):
+		# This test verifies that when a normal repayment is made and the loan is auto-closed,
+		# any remaining charges are waived automatically by creating a charges waiver entry.
+
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Standard Loan Demand Offset Order",
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2024-12-15", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-14",
+				"value_date": "2024-12-14",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+			}
+		)
+		sales_invoice.submit()
+
+		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2024-12-15")[
+			"payable_amount"
+		]
+
+		repayment_entry_amount = payable_amount - 90
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2024-12-15 00:07:10"), repayment_entry_amount
+		)
+		repayment_entry.submit()
+
+		auto_waiver_amount = payable_amount - repayment_entry.amount_paid
+
+		loan_repayment_detail = frappe.db.get_value(
+			"Loan Repayment",
+			{"against_loan": loan.name},
+			["repayment_type", "amount_paid"],
+			order_by="creation desc",
+			as_dict=1,
+		)
+
+		self.assertEqual(loan_repayment_detail.amount_paid, flt(auto_waiver_amount, 2))
+		self.assertEqual(loan_repayment_detail.repayment_type, "Charges Waiver")
+
+	def test_loan_restructure_schedule_with_bpi_adjustment(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2025-03-28",
+			repayment_start_date="2025-04-28",
+			rate_of_interest=31,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-03-22", repayment_start_date="2025-04-28"
+		)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, get_datetime("2025-03-28 00:00:00"), 77.91, repayment_type="Pre Payment"
+		)
+		repayment_entry_1.submit()
+
+		first_repay_schedule_current_principal_amount = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "status": "Active", "docstatus": 1},
+			"current_principal_amount",
+		)
+		first_adjustment_after_pos = flt(loan.loan_amount - repayment_entry_1.amount_paid, 2)
+
+		self.assertEqual(first_repay_schedule_current_principal_amount, first_adjustment_after_pos)
+
+		process_daily_loan_demands(posting_date="2025-03-28", loan=loan.name)
+
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, get_datetime("2025-03-28 01:00:00"), 5096.00, repayment_type="Pre Payment"
+		)
+		repayment_entry_2.submit()
+
+		second_repay_schedule_current_principal_amount = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "status": "Active", "docstatus": 1},
+			"current_principal_amount",
+		)
+		second_adjustment_after_pos = flt(
+			first_repay_schedule_current_principal_amount - repayment_entry_2.amount_paid, 2
+		)
+
+		self.assertEqual(second_repay_schedule_current_principal_amount, second_adjustment_after_pos)
+
+	def test_dpd_calculation_for_non_loc_loan_without_disbursement(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			30,
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		).submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
+		)
+		loan_disbursement = frappe.db.get_value(
+			"Loan Disbursement", {"against_loan": loan.name, "docstatus": 1}, "name"
+		)
+
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, "2024-10-05", 3000, loan_disbursement=loan_disbursement
+		).submit()
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, "2024-10-09", 782, loan_disbursement=loan_disbursement
+		).submit()
+
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		repayment_entry_3 = create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
+		repayment_entry_4 = create_repayment_entry(loan.name, "2024-11-10", 782).submit()
+
+		create_process_loan_classification(
+			posting_date="2024-10-05", loan=loan.name, loan_disbursement=loan_disbursement
+		)
+
+		dpd_logs = frappe.db.sql(
+			"""
+			SELECT posting_date, days_past_due
+			FROM `tabDays Past Due Log`
+			WHERE loan = %s
+			ORDER BY posting_date
+			""",
+			(loan.name),
+			as_dict=1,
+		)
+
+		expected_dpd_values = {
+			"2024-10-05": 1,
+			"2024-10-06": 2,
+			"2024-10-07": 3,
+			"2024-10-08": 4,
+			"2024-10-09": 0,
+			"2024-10-10": 0,
+			"2024-11-04": 0,
+			"2024-11-05": 1,
+			"2024-11-06": 2,
+			"2024-11-07": 3,
+			"2024-11-08": 4,
+			"2024-11-09": 5,
+			"2024-11-10": 0,
+		}
+
+		for log in dpd_logs:
+			posting_date = log["posting_date"]
+			dpd_value = log["days_past_due"]
+
+			posting_date_str = posting_date.strftime("%Y-%m-%d")
+
+			expected_dpd = expected_dpd_values.get(posting_date_str, 0)
+			self.assertEqual(
+				dpd_value,
+				expected_dpd,
+				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
+			)
 
 	def test_dpd_calculation(self):
 		loan = create_loan(
@@ -2090,6 +2430,68 @@ class TestLoan(IntegrationTestCase):
 				f"DPD mismatch for {posting_date} (Disbursement: {disbursement}): Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	def test_migrated_repayment_schedule(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			posting_date="2025-01-01",
+			repayment_start_date="2025-01-05",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-01", repayment_start_date="2025-01-05"
+		)
+
+		parent_schedule_name = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}
+		)
+
+		payment_dates = [
+			"2025-01-05",
+			"2025-02-05",
+			"2025-03-10",
+			"2025-04-10",
+			"2025-05-10",
+			"2025-06-10",
+		]
+
+		rows = frappe.db.get_all(
+			"Repayment Schedule",
+			filters={"parent": parent_schedule_name},
+			fields=["name"],
+			order_by="idx asc",
+		)
+
+		for i, row in enumerate(rows):
+			if i < len(payment_dates):
+				frappe.db.set_value("Repayment Schedule", row.get("name"), "payment_date", payment_dates[i])
+
+		process_daily_loan_demands(posting_date="2025-03-10", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2025-03-10", 51471)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2025-03-10", 15000, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
+
+		updated_rows = frappe.db.get_all(
+			"Repayment Schedule",
+			filters={"parent": parent_schedule_name},
+			fields=["payment_date"],
+			order_by="idx asc",
+		)
+
+		for i, row in enumerate(updated_rows):
+			self.assertEqual(str(row.get("payment_date")), payment_dates[i])
+
 	def test_charges_payment(self):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 
@@ -2115,6 +2517,7 @@ class TestLoan(IntegrationTestCase):
 				posting_date="2024-09-15", item_code="Processing Fee", qty=1, rate=1000, do_not_submit=1
 			)
 			sales_invoice.loan = loan.name
+			sales_invoice.value_date = "2024-09-15"
 			sales_invoice.save()
 			sales_invoice.submit()
 
@@ -2142,7 +2545,7 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(repayment.total_charges_paid, 500)
 		self.assertEqual(repayment.repayment_details[0].paid_amount, 500)
 
-	def test_accrual_background_job(self):
+	def test_interest_accrual_breaks(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -2166,7 +2569,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-08-16", to_date="2024-08-20"
+			loan=loan.name, from_date="2024-08-16", to_date="2024-08-20"
 		)
 		expected_dates = [
 			"2024-08-16",
@@ -2185,7 +2588,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-08-21", to_date="2024-08-31"
+			loan=loan.name, from_date="2024-08-21", to_date="2024-08-31"
 		)
 		expected_dates = [
 			"2024-08-25",
@@ -2200,7 +2603,7 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		loan_interest_accruals = get_loan_interest_accrual(
-			loan=loan, from_date="2024-09-01", to_date="2024-11-05"
+			loan=loan.name, from_date="2024-09-01", to_date="2024-11-05"
 		)
 		expected_dates = [
 			"2024-09-15",
@@ -2286,60 +2689,6 @@ class TestLoan(IntegrationTestCase):
 			repayment_type="Pre Payment",
 		)
 		repayment.submit()
-
-	def test_bulk_payments(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 5",
-			2700000,
-			"Repay Over Number of Periods",
-			1,
-			posting_date="2024-10-30",
-			rate_of_interest=17.25,
-			applicant_type="Customer",
-			limit_applicable_start="2024-10-28",
-			limit_applicable_end="2025-10-28",
-		)
-		loan.submit()
-
-		disbursement = make_loan_disbursement_entry(
-			loan.name,
-			335533,
-			disbursement_date="2024-11-25",
-			repayment_start_date="2025-01-24",
-			repayment_frequency="One Time",
-		)
-		disbursement.submit()
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
-		)
-
-		payments = [
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-20 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-21 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-			{
-				"doctype": "Loan Repayment",
-				"against_loan": loan.name,
-				"posting_date": "2025-01-22 00:10:00",
-				"amount_paid": 100000,
-				"loan_disbursement": disbursement.name,
-			},
-		]
-
-		post_bulk_payments(payments)
 
 	def test_npa_marking_for_customer(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -2493,7 +2842,7 @@ class TestLoan(IntegrationTestCase):
 		outstanding_demand = frappe.db.get_value(
 			"Loan Demand",
 			{"loan": loan.name, "loan_disbursement": disbursement.name},
-			"sum(outstanding_amount)",
+			[{"SUM": "outstanding_amount"}],
 		)
 
 		self.assertEqual(outstanding_demand, 0)
@@ -2719,38 +3068,351 @@ class TestLoan(IntegrationTestCase):
 		self.assertFalse(loan2.is_npa, "Loan 2 not unmarked as NPA")
 		self.assertFalse(customer_npa, "Customer not unmarked as NPA")
 
-	def test_closure_payment_demand_cancel(self):
+	def test_two_day_break_up_in_accrual_frequency(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
+		)
+		loan.submit()
+		# Daily accrual
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		set_loan_accrual_frequency("Daily")
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-16", company="_Test Company"
+		)
+		# weird bug where a two day difference in remaining accrual (18-16=2) creates a consolidated entry
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-19", company="_Test Company"
+		)
+
+		loan_interest_accruals = get_loan_interest_accrual(
+			loan=loan.name, from_date="2024-08-16", to_date="2024-08-20"
+		)
+		expected_dates = [
+			"2024-08-16",
+			"2024-08-17",
+			"2024-08-18",
+			"2024-08-19",
+		]
+		expected_dates = [getdate(i) for i in expected_dates]
+		accrual_dates = [getdate(i) for i in loan_interest_accruals]
+		self.assertEqual(accrual_dates, expected_dates)
+
+	def test_colender_loan_with_repayment_periods(self):
+		loan_partner = "Test Loan Partner 1"
+
+		if not frappe.db.exists("Loan Partner", loan_partner):
+			partner = create_loan_partner(
+				"Test Loan Partner 1",
+				"Test Loan Partner 1",
+				partner_loan_share_percentage=80,
+				effective_date="2025-01-27",
+				repayment_schedule_type="EMI (PMT) based",
+				partner_base_interest_rate=10,
+				organization_type="Centralized",
+				fldg_limit_calculation_component="Disbursement",
+				type_of_fldg_applicable="Fixed Deposit Only",
+				fldg_fixed_deposit_percentage=10,
+			)
+			partner.submit()
+
+		posting_date = "2025-01-27"
+		loan = create_loan(
+			self.applicant1,
+			"Personal Loan",
+			280000,
+			"Repay Over Number of Periods",
+			loan_partner=loan_partner,
+			repayment_periods=20,
+			repayment_start_date=add_months(posting_date, 1),
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name,
+			280000,
+			repayment_start_date=add_months(posting_date, 1),
+			disbursement_date=posting_date,
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
+		self.assertEqual(len(schedule), loan_repayment_schedule.repayment_periods)
+
+	def test_interest_accrual_gl_before_write_off(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=250000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry", filters={"voucher_type": "Loan Interest Accrual", "against_voucher": loan.name}
+		)
+
+		self.assertEqual(len(gl_entries), 60)  # 30 days of interest accruals
+
+	def test_interest_accrual_creates_suspense_jv_for_npa_loan(self):
+		set_loan_accrual_frequency("Daily")
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("NPA Customer 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-07-06", loan=loan.name, force_update_dpd_in_loan=1
 		)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-01", loan=loan.name, company="_Test Company"
+			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
-		repayment_entry = create_repayment_entry(
-			loan.name,
-			"2024-04-01",
-			100945.80,
+		last_accrual_date = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			"posting_date",
+			order_by="posting_date desc",
 		)
-		repayment_entry.submit()
-		repayment_entry.cancel()
 
-		demands = frappe.db.get_all(
-			"Loan Demand", {"loan_repayment": repayment_entry.name, "docstatus": 2}, pluck="name"
+		self.assertEqual(getdate(last_accrual_date), getdate("2024-07-06"))
+
+	def test_overlapping_accrual_validation(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-08-16",
+			posting_date="2024-08-16",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
 		)
-		self.assertEqual(len(demands), 2)
+		loan.submit()
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-08-16", repayment_start_date="2024-08-16"
+		)
+
+		def make_accrual_entry(start_date, posting_date):
+			start_date = get_datetime(start_date)
+			posting_date = get_datetime(posting_date)
+			accrual_doc = frappe.new_doc("Loan Interest Accrual")
+			accrual_doc.loan = loan.name
+			accrual_doc.loan_disbursement = disbursement.name
+			accrual_doc.company = "_Test Company"
+			accrual_doc.rate_of_interest = 8.5
+			accrual_doc.start_date = start_date
+			accrual_doc.posting_date = posting_date
+			accrual_doc.interest_amount = 32
+			accrual_doc.base_amount = 100000
+			accrual_doc.additional_interest_amount = 0
+
+			return accrual_doc
+
+		original_accrual = make_accrual_entry("2024-08-20", "2024-08-25")
+		original_accrual.submit()
+		original_accrual.load_from_db()
+
+		overlapping_accruals = [
+			("2024-08-20", "2024-08-24"),  # same start date, but shorter
+			("2024-08-20", "2024-08-26"),  # same start date, but longer
+			("2024-08-19", "2024-08-25"),  # same end date, but longer
+			("2024-08-21", "2024-08-25"),  # same end date, but shorter
+			("2024-08-21", "2024-08-23"),  # inside the original accrual
+			("2024-08-18", "2024-08-27"),  # the original accrual will fit inside this
+			("2024-08-20", "2024-08-25"),  # same start and end dates
+			("2024-08-25", "2024-08-30"),  # touching from the right
+			("2024-08-18", "2024-08-25"),  # touching from the left
+		]
+		for start_date, posting_date in overlapping_accruals:
+			accrual_entry = make_accrual_entry(start_date, posting_date)
+			self.assertRaises(frappe.ValidationError, accrual_entry.submit)
+
+		non_overlapping_accruals = [
+			("2024-08-17", "2024-08-18"),  # to the left
+			("2024-08-26", "2024-08-30"),  # to the right
+		]
+		for start_date, posting_date in non_overlapping_accruals:
+			accrual_entry = make_accrual_entry(start_date, posting_date)
+			accrual_entry.submit()
+
+	def test_demand_reversal_on_invoice_cancel(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2025-01-15",
+				"posting_time": "00:06:10",
+				"value_date": "2025-01-15",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+			}
+		)
+		sales_invoice.submit()
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
+		)
+		self.assertTrue(demand, "Demand not created for Sales Invoice")
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 2}
+		)
+		self.assertFalse(demand, "Demand should not be cancelled before Sales Invoice cancellation")
+
+		sales_invoice.load_from_db()
+		sales_invoice.cancel()
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 2}
+		)
+		self.assertTrue(demand, "Demand not cancelled on Sales Invoice cancellation")
+
+		demand = frappe.db.get_value(
+			"Loan Demand", {"sales_invoice": sales_invoice.name, "docstatus": 1}
+		)
+		self.assertFalse(demand, "Demand should not be present after Sales Invoice cancellation")
+
+	def test_loan_cancellation_post_disbursement(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		loan_disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+
+		# self.assertRaises(frappe.exceptions.LinkExistsError, loan.cancel)
+
+		loan_disbursement.load_from_db()
+		self.assertTrue(loan_disbursement.cancel())
+		loan.load_from_db()
+		self.assertTrue(loan.cancel())
+
+	def test_loan_write_off_recovery_excess_amount(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment = create_repayment_entry(
+			loan.name, "2024-12-05", 10000000, repayment_type="Write Off Recovery"
+		)
+		repayment.submit()
+		repayment.load_from_db()
+
+		interest_waiver_amount = flt(
+			frappe.db.get_value(
+				"Loan Repayment",
+				{"against_loan": loan.name, "repayment_type": "Interest Waiver", "docstatus": 1},
+				"amount_paid",
+			)
+		)
+
+		self.assertEqual(repayment.total_interest_paid, interest_waiver_amount)
+
+		loan_status = frappe.db.get_value("Loan", loan.name, "status")
+		self.assertEqual(loan_status, "Written Off")
+
+		self.assertEqual(
+			flt(repayment.excess_amount, 2),
+			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
+		)

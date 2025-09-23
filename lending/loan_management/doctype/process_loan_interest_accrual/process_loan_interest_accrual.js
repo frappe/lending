@@ -18,6 +18,15 @@ const set_loan_filters = (frm, filters) => {
 			};
 		});
 }
+
+const set_loan_disbursement_filters = (frm, filters) => {
+	frm.set_query("loan_disbursement", function () {
+		return {
+			"filters": filters,
+		};
+	});
+}
+
 frappe.ui.form.on('Process Loan Interest Accrual', {
 	onload: function (frm) {
 		set_loan_filters(frm, active_loan_filters)
@@ -29,6 +38,14 @@ frappe.ui.form.on('Process Loan Interest Accrual', {
 		}
 		else {
 			set_loan_filters(frm, active_loan_filters)
+		}
+	},
+	loan: function (frm) {
+		if (frm.doc.loan) {
+			set_loan_disbursement_filters(frm, {"against_loan": frm.doc.loan})
+		}
+		else {
+			set_loan_disbursement_filters(frm, {})
 		}
 	},
 	company: function (frm) {

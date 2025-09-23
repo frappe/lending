@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, now_datetime, nowdate
+from frappe.utils import add_days, date_diff, now_datetime, nowdate
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.setup_wizard.operations.install_fixtures import set_global_defaults
@@ -153,6 +153,14 @@ def create_loan_accounts():
 		"Asset",
 		"",
 		"Balance Sheet",
+	)
+
+	create_account(
+		"Additional Interest Waiver",
+		"Direct Expenses - _TC",
+		"Expense",
+		"Expense Account",
+		"Profit and Loss",
 	)
 
 	create_account(
@@ -333,6 +341,7 @@ def create_loan_product(
 	additional_interest_income="Additional Interest Income Account - _TC",
 	additional_interest_accrued="Additional Interest Accrued Account - _TC",
 	additional_interest_receivable="Additional Interest Receivable - _TC",
+	additional_interest_waiver="Additional Interest Waiver - _TC",
 	cyclic_day_of_the_month=5,
 	collection_offset_sequence_for_standard_asset=None,
 	collection_offset_sequence_for_sub_standard_asset=None,
@@ -376,6 +385,7 @@ def create_loan_product(
 	loan_product_doc.additional_interest_income = additional_interest_income
 	loan_product_doc.additional_interest_accrued = additional_interest_accrued
 	loan_product_doc.additional_interest_receivable = additional_interest_receivable
+	loan_product_doc.additional_interest_waiver = additional_interest_waiver
 	loan_product_doc.customer_refund_account = customer_refund_account
 	loan_product_doc.repayment_method = repayment_method
 	loan_product_doc.repayment_periods = repayment_periods
@@ -485,6 +495,7 @@ def make_loan_disbursement_entry(
 	repayment_start_date=None,
 	repayment_frequency=None,
 	withhold_security_deposit=False,
+	loan_disbursement_charges=None,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
@@ -497,6 +508,16 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.disbursed_amount = amount
 	loan_disbursement_entry.cost_center = "Main - _TC"
 	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
+
+	if loan_disbursement_charges:
+		for charge in loan_disbursement_charges:
+			loan_disbursement_entry.append(
+				"loan_disbursement_charges",
+				{
+					"charge": charge.get("charge"),
+					"amount": charge.get("amount"),
+				},
+			)
 
 	loan_disbursement_entry.save()
 	loan_disbursement_entry.submit()
@@ -525,7 +546,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 
 def create_repayment_entry(
 	loan,
-	posting_date,
+	value_date,
 	paid_amount,
 	repayment_type="Normal Repayment",
 	loan_disbursement=None,
@@ -534,7 +555,8 @@ def create_repayment_entry(
 	lr = frappe.new_doc("Loan Repayment")
 	lr.against_loan = loan
 	lr.company = "_Test Company"
-	lr.posting_date = posting_date or nowdate()
+	lr.posting_date = nowdate()
+	lr.value_date = value_date
 	lr.amount_paid = paid_amount
 	lr.repayment_type = repayment_type
 	lr.loan_disbursement = loan_disbursement
@@ -565,6 +587,8 @@ def create_loan_application(
 	loan_application.loan_product = loan_product
 	loan_application.posting_date = posting_date or nowdate()
 	loan_application.is_secured_loan = 1
+	loan_application.applicant_email_address = "lending@example.com"
+	loan_application.applicant_phone_number = "+91-9108273645"
 
 	if repayment_method:
 		loan_application.repayment_method = repayment_method
@@ -608,7 +632,7 @@ def create_loan(
 	loan = frappe.get_doc(
 		{
 			"doctype": "Loan",
-			"applicant_type": applicant_type or "Employee",
+			"applicant_type": applicant_type or "Customer",
 			"company": "_Test Company",
 			"applicant": applicant,
 			"loan_product": loan_product,
@@ -689,6 +713,50 @@ def create_demand_loan(applicant, loan_product, loan_application, posting_date=N
 	return loan
 
 
+def create_loan_partner(
+	partner_code,
+	partner_name,
+	partner_loan_share_percentage,
+	effective_date,
+	fldg_fixed_deposit_percentage,
+	partial_payment_mechanism=None,
+	repayment_schedule_type="EMI (PMT) based",
+	partner_base_interest_rate=10.0,
+	enable_partner_accounting=0,
+	organization_type="Centralized",
+	fldg_trigger_dpd=None,
+	fldg_limit_calculation_component="Disbursement",
+	type_of_fldg_applicable="Fixed Deposit Only",
+	servicer_fee=False,
+	restructure_of_loans_applicable=False,
+	waiving_of_charges_applicable=False,
+):
+	partner = frappe.get_doc(
+		{
+			"doctype": "Loan Partner",
+			"partner_code": "Test Loan Partner 1",
+			"partner_name": "Test Loan Partner 1",
+			"partner_loan_share_percentage": partner_loan_share_percentage,
+			"partial_payment_mechanism": partial_payment_mechanism,
+			"repayment_schedule_type": repayment_schedule_type,
+			"effective_date": effective_date or nowdate(),
+			"partner_base_interest_rate": partner_base_interest_rate,
+			"enable_partner_accounting": enable_partner_accounting,
+			"organization_type": organization_type,
+			"fldg_trigger_dpd": fldg_trigger_dpd,
+			"fldg_limit_calculation_component": fldg_limit_calculation_component,
+			"type_of_fldg_applicable": type_of_fldg_applicable,
+			"servicer_fee": servicer_fee,
+			"restructure_of_loans_applicable": restructure_of_loans_applicable,
+			"waiving_of_charges_applicable": waiving_of_charges_applicable,
+			"fldg_fixed_deposit_percentage": fldg_fixed_deposit_percentage,
+		}
+	)
+
+	partner.insert()
+	return partner
+
+
 def set_loan_settings_in_company(company=None):
 	if not company:
 		company = "_Test Company"
@@ -706,7 +774,12 @@ def setup_loan_demand_offset_order(company=None):
 	)
 	create_demand_offset_order(
 		"Test EMI Based Standard Loan Demand Offset Order",
-		["EMI (Principal + Interest)", "Penalty", "Charges"],
+		["EMI (Principal + Interest)", "Penalty", "Additional Interest", "Charges"],
+	)
+
+	create_demand_offset_order(
+		"Test Standard Loan Demand Offset Order",
+		["EMI (Principal + Interest)", "Additional Interest", "Penalty", "Charges"],
 	)
 
 	doc = frappe.get_doc("Company", company)
@@ -747,7 +820,7 @@ def create_demand_offset_order(order_name, components):
 def create_loan_write_off(loan, posting_date, write_off_amount=None):
 	loan_write_off = frappe.new_doc("Loan Write Off")
 	loan_write_off.loan = loan
-	loan_write_off.posting_date = posting_date
+	loan_write_off.value_date = posting_date
 	loan_write_off.company = "_Test Company"
 	loan_write_off.write_off_account = "Write Off Account - _TC"
 	loan_write_off.save()
@@ -875,3 +948,27 @@ def init_customers():
 def make_customer(customer_name):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
+
+
+def get_penalty_amount(penalty_date, emi_date, pending_amount, penalty_rate):
+	no_of_days = date_diff(penalty_date, emi_date)
+	penal_interest = (pending_amount * no_of_days * penalty_rate) / 36500
+
+	return penal_interest
+
+
+def create_loan_refund(
+	loan, posting_date, refund_amount, is_excess_amount_refund=0, is_security_amount_refund=0
+):
+	doc = frappe.new_doc("Loan Refund")
+	doc.loan = loan
+	doc.value_date = posting_date
+	doc.company = "_Test Company"
+	doc.is_excess_amount_refund = is_excess_amount_refund
+	doc.is_security_amount_refund = is_security_amount_refund
+	doc.refund_amount = refund_amount
+	doc.refund_account = "Payment Account - _TC"
+	doc.save()
+	doc.submit()
+
+	return doc

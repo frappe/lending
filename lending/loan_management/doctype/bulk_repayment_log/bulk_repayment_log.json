@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format: Bulk Repayment for {loan} at {timestamp}",
+ "creation": "2025-05-26 11:38:18.456949",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_0dlz",
+  "amended_from",
+  "loan",
+  "loan_disbursement",
+  "trace_id",
+  "column_break_kyhi",
+  "status",
+  "timestamp",
+  "failed_repayment",
+  "particulars_section",
+  "details",
+  "traceback"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_0dlz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Bulk Repayment Log",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "label": "Loan",
+   "options": "Loan"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Long Text",
+   "label": "Details"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "traceback",
+   "fieldtype": "Long Text",
+   "label": "Traceback"
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Timestamp"
+  },
+  {
+   "fieldname": "trace_id",
+   "fieldtype": "Data",
+   "label": "Trace ID"
+  },
+  {
+   "fieldname": "column_break_kyhi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.status === \"Failure\"",
+   "fieldname": "failed_repayment",
+   "fieldtype": "Text",
+   "label": "Failed Repayment"
+  },
+  {
+   "fieldname": "particulars_section",
+   "fieldtype": "Section Break",
+   "label": "Particulars"
+  },
+  {
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-08-19 01:47:22.826162",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Bulk Repayment Log",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

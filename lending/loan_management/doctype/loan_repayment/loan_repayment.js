@@ -6,7 +6,7 @@ lending.common.setup_filters("Loan Repayment");
 frappe.ui.form.on('Loan Repayment', {
 	setup(frm) {
 		frm.ignore_doctypes_on_cancel_all = ["Process Loan Classification", "Loan Repayment Repost", "Loan Adjustment",
-			"Loan Restructure", "Loan Repayment Schedule", "Sales Invoice", "Loan Demand", "Loan Interest Accrual"];
+			"Loan Restructure", "Loan Repayment Schedule", "Sales Invoice", "Loan Demand", "Loan Interest Accrual", "Loan Repayment"];
 		if (frappe.meta.has_field("Loan Repayment", "repay_from_salary")) {
 			frm.add_fetch("against_loan", "repay_from_salary", "repay_from_salary");
 		}
@@ -30,17 +30,17 @@ frappe.ui.form.on('Loan Repayment', {
 			};
 		});
 
-		if (frm.doc.against_loan && frm.doc.posting_date && frm.is_new()) {
+		if (frm.doc.against_loan && frm.doc.value_date && frm.is_new()) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
 
-	posting_date : function(frm) {
+	value_date : function(frm) {
 		frm.trigger('calculate_repayment_amounts');
 	},
 
 	against_loan: function(frm) {
-		if (frm.doc.posting_date) {
+		if (frm.doc.value_date) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
@@ -53,9 +53,18 @@ frappe.ui.form.on('Loan Repayment', {
 				}
 			};
 		});
+
+		frm.set_query('loan_adjustment', function() {
+			return {
+				'filters': {
+					'docstatus': 1,
+					'loan': frm.doc.against_loan,
+				}
+			};
+		});
 	},
 	repayment_type: function(frm) {
-		if (frm.doc.posting_date) {
+		if (frm.doc.value_date) {
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
@@ -65,7 +74,7 @@ frappe.ui.form.on('Loan Repayment', {
 			method: 'lending.loan_management.doctype.loan_repayment.loan_repayment.calculate_amounts',
 			args: {
 				'against_loan': frm.doc.against_loan,
-				'posting_date': frm.doc.posting_date,
+				'posting_date': frm.doc.value_date,
 				'payment_type': frm.doc.repayment_type
 			},
 			callback: function(r) {

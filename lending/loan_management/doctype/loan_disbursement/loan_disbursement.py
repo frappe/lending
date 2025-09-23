@@ -76,6 +76,7 @@ class LoanDisbursement(AccountsController):
 		loan_disbursement_charges: DF.Table[LoanDisbursementCharge]
 		loan_partner: DF.Link | None
 		loan_product: DF.Link | None
+		mode_of_payment: DF.Link | None
 		monthly_repayment_amount: DF.Currency
 		posting_date: DF.Date | None
 		principal_amount_paid: DF.Currency
@@ -235,6 +236,7 @@ class LoanDisbursement(AccountsController):
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
+		schedule.flags.ignore_links = True
 		schedule.cancel()
 
 	def make_credit_note(self):
@@ -323,13 +325,20 @@ class LoanDisbursement(AccountsController):
 		if not self.disbursement_date:
 			self.disbursement_date = nowdate()
 
-		self.posting_date = self.disbursement_date or nowdate()
+		self.posting_date = nowdate()
 
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
 		if not self.disbursement_account and self.bank_account:
 			self.disbursement_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
+
+		if self.mode_of_payment:
+			self.disbursement_account = frappe.db.get_value(
+				"Mode of Payment Account",
+				{"parent": self.mode_of_payment, "company": self.company},
+				"default_account",
+			)
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
 			self.monthly_repayment_amount = frappe.db.get_value(
@@ -370,6 +379,7 @@ class LoanDisbursement(AccountsController):
 	def delete_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
+			sd.flags.ignore_links = True
 			sd.cancel()
 			sd.delete()
 
@@ -610,7 +620,7 @@ class LoanDisbursement(AccountsController):
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
-					"posting_date": bpi_difference_date or self.disbursement_date,
+					"posting_date": self.posting_date,
 				}
 			)
 		)
@@ -628,7 +638,7 @@ class LoanDisbursement(AccountsController):
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
 					"cost_center": self.cost_center,
-					"posting_date": bpi_difference_date or self.disbursement_date,
+					"posting_date": self.posting_date,
 				}
 			)
 		)
@@ -684,6 +694,7 @@ class LoanDisbursement(AccountsController):
 				self.against_loan,
 				"loan_disbursement",
 				self.name,
+				self.applicant if self.applicant_type == "Customer" else None,
 				self.disbursement_date,
 				self.company,
 				self.get("loan_disbursement_charges"),
@@ -733,7 +744,7 @@ class LoanDisbursement(AccountsController):
 
 
 def make_sales_invoice_for_charge(
-	loan, reference_fieldname, reference_doctype, disbursement_date, company, charges
+	loan, reference_fieldname, reference_doctype, applicant, disbursement_date, company, charges
 ):
 	if not charges:
 		return
@@ -741,10 +752,11 @@ def make_sales_invoice_for_charge(
 	si = frappe.get_doc(
 		{
 			"doctype": "Sales Invoice",
+			"customer": applicant,
 			"loan": loan,
 			reference_fieldname: reference_doctype,
-			"set_posting_time": 1,
-			"posting_date": disbursement_date,
+			"posting_date": nowdate(),
+			"value_date": disbursement_date,
 			"due_date": disbursement_date,
 			"company": company,
 			"conversion_rate": 1,
@@ -863,5 +875,5 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 def get_maximum_amount_as_per_pledged_security(loan):
 	return flt(
-		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, "sum(maximum_loan_value)")
+		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, [{"SUM": "maximum_loan_value"}])
 	)

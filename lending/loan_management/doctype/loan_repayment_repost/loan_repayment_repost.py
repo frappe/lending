@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -48,21 +48,21 @@ class LoanRepaymentRepost(Document):
 		filters = {
 			"against_loan": self.loan,
 			"docstatus": 1,
-			"posting_date": (">=", self.repost_date),
+			"value_date": (">=", self.repost_date),
 		}
 
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 
 		entries = frappe.get_all(
-			"Loan Repayment", filters, ["name", "posting_date"], order_by="posting_date desc, creation desc"
+			"Loan Repayment", filters, ["name", "value_date"], order_by="value_date desc, creation desc"
 		)
 		for entry in entries:
 			self.append(
 				"repayment_entries",
 				{
 					"loan_repayment": entry.name,
-					"posting_date": entry.posting_date,
+					"posting_date": entry.value_date,
 				},
 			)
 
@@ -96,32 +96,47 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def clear_demand_allocation(self):
-		demands = frappe.get_all(
-			"Loan Demand",
-			{
-				"loan": self.loan,
-				"docstatus": 1,
-				"demand_type": "EMI",
-				"demand_date": (">=", self.repost_date),
-			},
-			["name", "demand_amount"],
+		demands = []
+
+		for repayment in self.get("repayment_entries"):
+			demands.extend(
+				frappe.get_all(
+					"Loan Repayment Detail",
+					{
+						"parent": repayment.loan_repayment,
+					},
+					pluck="loan_demand",
+				)
+			)
+
+		demand_amount_map = frappe._dict(
+			frappe.get_all(
+				"Loan Demand",
+				{
+					"loan": self.loan,
+					"docstatus": 1,
+					"name": ("in", demands),
+				},
+				["name", "demand_amount"],
+				as_list=1,
+			)
 		)
 
 		for demand in demands:
 			frappe.db.set_value(
 				"Loan Demand",
-				demand.name,
+				demand,
 				{
 					"paid_amount": 0,
-					"outstanding_amount": demand.demand_amount,
+					"waived_amount": 0,
+					"outstanding_amount": demand_amount_map.get(demand, 0),
 				},
 			)
 
 		for entry in self.get("repayment_entries"):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			for repayment_detail in repayment_doc.get("repayment_details"):
-				if repayment_detail.demand_type == "EMI":
-					frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
+				frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
 
 	def trigger_on_cancel_events(self):
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
@@ -136,7 +151,9 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.docstatus = 2
 
 				repayment_doc.update_demands(cancel=1)
-				repayment_doc.update_security_deposit_amount(cancel=1)
+
+				if repayment_doc.amount_paid <= repayment_doc.payable_amount:
+					repayment_doc.update_security_deposit_amount(cancel=1)
 
 				if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment"):
 					repayment_doc.cancel_loan_restructure()
@@ -150,14 +167,21 @@ class LoanRepaymentRepost(Document):
 					# cancel GL Entries
 					repayment_doc.make_gl_entries(cancel=1)
 
-			filters = {"against_loan": self.loan, "docstatus": 1, "posting_date": ("<", self.repost_date)}
+				if (
+					repayment_doc.pending_principal_amount > 0
+					and repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
+				):
+					frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
+					repayment_doc.update_repayment_schedule_status(cancel=1)
+
+			filters = {"against_loan": self.loan, "docstatus": 1, "value_date": ("<", self.repost_date)}
 
 			totals = frappe.db.get_value(
 				"Loan Repayment",
 				filters,
 				[
-					"SUM(principal_amount_paid) as total_principal_paid",
-					"SUM(amount_paid) as total_amount_paid",
+					{"SUM": "principal_amount_paid", "as": "total_principal_paid"},
+					{"SUM": "amount_paid", "as": "total_amount_paid"},
 				],
 				as_dict=1,
 			)
@@ -179,9 +203,9 @@ class LoanRepaymentRepost(Document):
 						"against_loan": self.loan,
 						"loan_disbursement": self.loan_disbursement,
 						"docstatus": 1,
-						"posting_date": ("<", self.repost_date),
+						"value_date": ("<", self.repost_date),
 					},
-					"sum(principal_amount_paid)",
+					[{"SUM": "principal_amount_paid"}],
 				)
 
 				frappe.db.set_value(
@@ -206,6 +230,19 @@ class LoanRepaymentRepost(Document):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
+		is_written_off = frappe.db.get_value(
+			"Loan Write Off",
+			{
+				"loan": self.loan,
+				"docstatus": 1,
+				"is_settlement_write_off": 0,
+				"posting_date": (">=", self.repost_date),
+			},
+		)
+
+		if is_written_off:
+			frappe.db.set_value("Loan", self.loan, "status", "Disbursed")
+
 		for entry in reversed(self.get("repayment_entries", [])):
 			if entry.loan_repayment in entries_to_cancel:
 				continue
@@ -216,31 +253,48 @@ class LoanRepaymentRepost(Document):
 				{
 					"doctype": "Process Loan Interest Accrual",
 					"loan": self.loan,
-					"posting_date": entry.posting_date,
+					"posting_date": add_days(entry.posting_date, -1),
+					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
 
 			frappe.get_doc(
-				{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": entry.posting_date}
+				{
+					"doctype": "Process Loan Demand",
+					"loan": self.loan,
+					"posting_date": entry.posting_date,
+					"loan_disbursement": self.loan_disbursement,
+				}
 			).submit()
 
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			repayment_doc.flags.from_repost = True
 
-			for entry in repayment_doc.get("repayment_details"):
-				frappe.delete_doc("Loan Repayment Detail", entry.name, force=1)
+			if repayment_doc.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
+				frappe.db.set_value("Loan", self.loan, "status", "Written Off")
+
+			if repayment_doc.repayment_type == "Security Deposit Adjustment":
+				is_security_deposit_adjustment = True
+			else:
+				is_security_deposit_adjustment = False
+
+			for _entry in repayment_doc.get("repayment_details"):
+				frappe.delete_doc("Loan Repayment Detail", _entry.name, force=1)
 
 			repayment_doc.docstatus = 1
 			repayment_doc.set("pending_principal_amount", 0)
 			repayment_doc.set("excess_amount", 0)
 
 			charges = []
-			if self.get("payable_charges"):
-				charges = [d.get("charge_code") for d in self.get("payable_charges")]
+			if repayment_doc.get("payable_charges") and repayment_doc.repayment_type == "Charge Payment":
+				charges = [d.get("charge_code") for d in repayment_doc.get("payable_charges")]
+			else:
+				for d in repayment_doc.get("payable_charges"):
+					frappe.delete_doc("Loan Repayment Charge", d.name, force=1)
 
 			amounts = calculate_amounts(
 				repayment_doc.against_loan,
-				repayment_doc.posting_date,
+				repayment_doc.value_date,
 				payment_type=repayment_doc.repayment_type,
 				charges=charges,
 				loan_disbursement=repayment_doc.loan_disbursement,
@@ -253,6 +307,12 @@ class LoanRepaymentRepost(Document):
 				loan, loan_disbursement=self.loan_disbursement
 			)
 
+			if is_written_off and repayment_doc.is_write_off_waiver:
+				if repayment_doc.repayment_type == "Interest Waiver":
+					repayment_doc.db_set(
+						"amount_paid", amounts.get("interest_amount", 0) + amounts.get("unbooked_interest", 0)
+					)
+
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
@@ -263,10 +323,11 @@ class LoanRepaymentRepost(Document):
 			):
 				create_update_loan_reschedule(
 					repayment_doc.against_loan,
-					repayment_doc.posting_date,
+					repayment_doc.value_date,
 					repayment_doc.name,
 					repayment_doc.repayment_type,
 					repayment_doc.principal_amount_paid,
+					repayment_doc.unbooked_interest_paid,
 					loan_disbursement=repayment_doc.loan_disbursement,
 				)
 
@@ -290,15 +351,75 @@ class LoanRepaymentRepost(Document):
 
 			update_installment_counts(self.loan)
 
+			if repayment_doc.repayment_type == "Full Settlement":
+				loan_write_off = frappe.db.get_value(
+					"Loan Write Off",
+					{"loan": self.loan, "docstatus": 1, "is_settlement_write_off": 1},
+					["name", "write_off_amount"],
+					as_dict=1,
+				)
+
+				if loan_write_off:
+					write_off_amount = flt(
+						repayment_doc.payable_principal_amount - repayment_doc.principal_amount_paid, 2
+					)
+					if flt(loan_write_off.write_off_amount, 2) != write_off_amount:
+						doc = frappe.get_doc("Loan Write Off", loan_write_off.name)
+						doc.make_gl_entries(cancel=1)
+
+						frappe.db.set_value(
+							"Loan Write Off", loan_write_off.name, "write_off_amount", write_off_amount
+						)
+						doc.load_from_db()
+						doc.make_gl_entries()
+
+					frappe.db.set_value("Loan", self.loan, "written_off_amount", write_off_amount)
+
+			if is_security_deposit_adjustment:
+				frappe.db.set_value(
+					"Loan Repayment",
+					entry.loan_repayment,
+					"repayment_type",
+					"Security Deposit Adjustment",
+				)
+
 			repayment_doc.flags.from_repost = False
 			frappe.flags.on_repost = False
 
+		if is_written_off:
+			frappe.db.set_value("Loan", self.loan, "status", "Written Off")
+
+		if self.loan_disbursement:
+			filters = {"against_loan": self.loan, "docstatus": 1}
+			total_principal_paid = frappe.db.get_value(
+				"Loan Repayment",
+				filters,
+				[{"SUM": "principal_amount_paid"}],
+			)
+
+			frappe.db.set_value(
+				"Loan",
+				self.loan,
+				"total_principal_paid",
+				flt(total_principal_paid),
+			)
+
 		frappe.get_doc(
-			{"doctype": "Process Loan Interest Accrual", "loan": self.loan, "posting_date": getdate()}
+			{
+				"doctype": "Process Loan Interest Accrual",
+				"loan": self.loan,
+				"posting_date": add_days(getdate(), -1),
+				"loan_disbursement": self.loan_disbursement,
+			}
 		).submit()
 
 		frappe.get_doc(
-			{"doctype": "Process Loan Demand", "loan": self.loan, "posting_date": getdate()}
+			{
+				"doctype": "Process Loan Demand",
+				"loan": self.loan,
+				"posting_date": getdate(),
+				"loan_disbursement": self.loan_disbursement,
+			}
 		).submit()
 
 		loan = frappe.db.get_value("Loan", self.loan, "status")

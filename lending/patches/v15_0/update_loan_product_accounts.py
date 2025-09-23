@@ -16,4 +16,22 @@ def execute():
 		if not doc.penalty_accrued_account:
 			doc.penalty_accrued_account = doc.penalty_income_account
 
+		if not doc.customer_refund_account:
+			doc.customer_refund_account = doc.loan_account
+
+		if not doc.security_deposit_account:
+			doc.security_deposit_account = doc.loan_account
+
+		if not doc.write_off_recovery_account:
+			doc.write_off_recovery_account = doc.interest_income_account
+
+		if not doc.interest_waiver_account:
+			doc.interest_waiver_account = doc.interest_income_account
+
+		if not doc.penalty_waiver_account:
+			doc.penalty_waiver_account = doc.penalty_income_account
+
+		if not doc.broken_period_interest_recovery_account:
+			doc.broken_period_interest_recovery_account = doc.interest_income_account
+
 		doc.save()

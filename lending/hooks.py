@@ -41,6 +41,18 @@ export_python_type_annotations = True
 # app_include_css = "/assets/lending/css/lending.css"
 app_include_js = "lending.bundle.js"
 
+# fixtures
+fixtures = [
+	{"dt": "Role", "filters": [["role_name", "like", "Loan %"]]},
+	{"dt": "Workflow", "filters": [["name", "=", "Loan Application Workflow"]]},
+	{"dt": "Workflow State", "filters": [["name", "not in", ("Rejected", "Approved", "Pending")]]},
+	{
+		"dt": "Workflow Action Master",
+		"filters": [["name", "not in", ("Reject", "Approve", "Review")]],
+	},
+]
+
+
 # include js, css files in header of web template
 # web_include_css = "/assets/lending/css/lending.css"
 # web_include_js = "/assets/lending/js/lending.js"
@@ -96,7 +108,7 @@ after_install = "lending.install.after_install"
 # Uninstallation
 # ------------
 
-# before_uninstall = "lending.uninstall.before_uninstall"
+before_uninstall = "lending.install.before_uninstall"
 # after_uninstall = "lending.uninstall.after_uninstall"
 
 # Desk Notifications
@@ -209,9 +221,8 @@ global_search_doctypes = {
 	],
 }
 
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "lending.event.get_events"
-# }
+update_gl_dict_with_app_based_fields = ["lending.overrides.gl_entry.update_value_date_in_gl_dict"]
+
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

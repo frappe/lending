@@ -6,6 +6,8 @@ import json
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -130,6 +132,8 @@ class Loan(AccountsController):
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
+		self.validate_loan_product()
+		self.validate_employee()
 		self.validate_cost_center()
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
@@ -145,6 +149,21 @@ class Loan(AccountsController):
 		if self.docstatus == 1:
 			info = get_dashboard_info(self)
 			self.set_onload("dashboard_info", info)
+
+	def validate_loan_product(self):
+		company = frappe.get_value("Loan Product", self.loan_product, "company")
+		if company != self.company:
+			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
+
+	def validate_employee(self):
+		if self.applicant_type == "Employee":
+			employee_company = frappe.get_value("Employee", self.applicant, "company")
+			if employee_company != self.company:
+				frappe.throw(
+					_("Selected employee belongs to {0}. Please select an employee from company {1}.").format(
+						frappe.bold(employee_company), frappe.bold(self.company)
+					)
+				)
 
 	def validate_accounts(self):
 		for fieldname in [
@@ -209,7 +228,6 @@ class Loan(AccountsController):
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
 
 	def on_cancel(self):
-		# self.unlink_loan_security_assignment()
 		self.cancel_and_delete_repayment_schedule()
 		self.cancel_loan_security_assignment()
 		self.ignore_linked_doctypes = [
@@ -261,7 +279,7 @@ class Loan(AccountsController):
 				manual_npa=self.manual_npa,
 			)
 			if self.manual_npa:
-				move_unpaid_interest_to_suspense_ledger(self.name)
+				move_unpaid_interest_to_suspense_ledger(self.name, value_date=getdate())
 
 		if self.has_value_changed("unmark_npa"):
 			if self.unmark_npa:
@@ -350,6 +368,7 @@ class Loan(AccountsController):
 		)
 		for schedule in schedules:
 			schedule = frappe.get_doc("Loan Repayment Schedule", schedule)
+			schedule.flags.ignore_links = True
 			schedule.cancel()
 
 	def calculate_totals(self, on_insert=False):
@@ -464,14 +483,14 @@ def get_total_loan_amount(applicant_type, applicant, company):
 		frappe.db.get_value(
 			"Loan Interest Accrual",
 			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			"sum(interest_amount)",
+			[{"SUM": "interest_amount"}],
 		)
 	)
 	paid_interest = flt(
 		frappe.db.get_value(
 			"Loan Repayment",
 			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			"sum(total_interest_paid)",
+			[{"SUM": "total_interest_paid"}],
 		)
 	)
 
@@ -639,6 +658,7 @@ def make_repayment_entry(
 	repayment_entry.company = company
 	repayment_entry.loan_product = loan_product
 	repayment_entry.posting_date = nowdate()
+	repayment_entry.value_date = nowdate()
 	repayment_entry.loan_disbursement = loan_disbursement
 
 	if as_dict:
@@ -858,6 +878,7 @@ def update_days_past_due_in_loans(
 					posting_date=posting_date,
 					loan_product=loan_product,
 					loan_disbursement=disbursement,
+					process_loan_classification=process_loan_classification,
 				)
 			else:
 				frappe.enqueue(
@@ -866,6 +887,7 @@ def update_days_past_due_in_loans(
 					posting_date=posting_date,
 					loan_product=loan_product,
 					loan_disbursement=disbursement,
+					process_loan_classification=process_loan_classification,
 					queue="long",
 					enqueue_after_commit=True,
 				)
@@ -947,69 +969,70 @@ def update_days_past_due_in_loans(
 			create_dpd_record(loan_name, disbursement, posting_date, 0, process_loan_classification)
 
 
-def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement):
+def repost_days_past_due_log(
+	loan, posting_date, loan_product, loan_disbursement, process_loan_classification
+):
 	"""Get outstanding demands for a loan"""
-	where_conditions = ""
-	payment_conditions = ""
-
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	if loan_product:
-		where_conditions += f"AND loan_product = '{loan_product}'"
+	LoanDemand = DocType("Loan Demand")
+	LoanRepayment = DocType("Loan Repayment")
 
-	if loan_disbursement:
-		where_conditions += f"AND loan_disbursement = '{loan_disbursement}'"
-
-	demands = frappe.db.sql(
-		"""
-		SELECT demand_date, loan_disbursement, demand_subtype, sum(demand_amount) as demand_amount, sum(outstanding_amount) as outstanding_amount
-		FROM `tabLoan Demand`
-		WHERE loan = %s
-			AND docstatus = 1
-			AND demand_type = "EMI"
-			{0}
-		GROUP BY demand_date, demand_subtype
-		ORDER BY demand_date
-	""".format(
-			where_conditions
-		),
-		(loan),
-		as_dict=1,
+	demand_query = (
+		frappe.qb.from_(LoanDemand)
+		.select(
+			LoanDemand.demand_date,
+			LoanDemand.loan_disbursement,
+			LoanDemand.demand_subtype,
+			Sum(LoanDemand.demand_amount).as_("demand_amount"),
+			Sum(LoanDemand.outstanding_amount).as_("outstanding_amount"),
+		)
+		.where(
+			(LoanDemand.loan == loan) & (LoanDemand.docstatus == 1) & (LoanDemand.demand_type == "EMI")
+		)
+		.groupby(LoanDemand.demand_date, LoanDemand.demand_subtype)
+		.orderby(LoanDemand.demand_date)
 	)
 
+	if loan_product:
+		demand_query = demand_query.where(LoanDemand.loan_product == loan_product)
+
+	if loan_disbursement:
+		demand_query = demand_query.where(LoanDemand.loan_disbursement == loan_disbursement)
+
+	demands = demand_query.run(as_dict=True)
+
 	if demands:
-		if loan_product:
-			payment_conditions += f"AND loan_product = '{loan_product}'"
+		repayment_schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
 
-		if loan_disbursement:
-			payment_conditions += (
-				f"AND (loan_disbursement = '{loan_disbursement}' OR loan_disbursement IS NULL)"
+		payment_query = (
+			frappe.qb.from_(LoanRepayment)
+			.select(
+				LoanRepayment.value_date,
+				Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
+				Sum(LoanRepayment.total_interest_paid).as_("total_interest_paid"),
 			)
-
-		payment_against_demand = frappe.db.sql(
-			"""
-			SELECT posting_date, SUM(principal_amount_paid) as total_principal_paid, SUM(total_interest_paid) as total_interest_paid
-			FROM `tabLoan Repayment`
-			WHERE against_loan = %s
-				and docstatus = 1
-				{0}
-			GROUP BY posting_date
-			ORDER BY posting_date
-		""".format(
-				payment_conditions
-			),
-			(loan),
-			as_dict=1,
+			.where((LoanRepayment.against_loan == loan) & (LoanRepayment.docstatus == 1))
+			.groupby(LoanRepayment.value_date)
+			.orderby(LoanRepayment.value_date)
 		)
+
+		if loan_product:
+			payment_query = payment_query.where(LoanRepayment.loan_product == loan_product)
+
+		if loan_disbursement and repayment_schedule_type == "Line of Credit":
+			payment_query = payment_query.where(LoanRepayment.loan_disbursement == loan_disbursement)
+
+		payment_against_demand = payment_query.run(as_dict=True)
 
 		for idx, payment in enumerate(payment_against_demand):
 			next_payment_date = (
-				payment_against_demand[idx + 1].posting_date
+				payment_against_demand[idx + 1].value_date
 				if idx + 1 < len(payment_against_demand)
 				else getdate()
 			)
 			for demand in demands:
-				if getdate(demand.demand_date) <= getdate(payment.posting_date):
+				if getdate(demand.demand_date) <= getdate(payment.value_date):
 					if demand.demand_subtype == "Interest" and flt(payment.total_interest_paid, precision) > 0:
 						paid_interest = min(
 							flt(payment.total_interest_paid, precision), flt(demand.demand_amount, precision)
@@ -1024,7 +1047,7 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 						demand.demand_amount -= paid_principal
 						payment.total_principal_paid -= paid_principal
 
-			start_date = getdate(payment.posting_date)
+			start_date = getdate(payment.value_date)
 			end_date = getdate(next_payment_date)
 
 			for current_date in daterange(start_date, end_date):
@@ -1035,14 +1058,18 @@ def repost_days_past_due_log(loan, posting_date, loan_product, loan_disbursement
 						demand_amount = flt(d.demand_amount, precision)
 						if getdate(d.demand_date) <= current_date and demand_amount > 0:
 							dpd_counter = date_diff(current_date, d.demand_date) + 1
-							create_dpd_record(loan, demand.loan_disbursement, current_date, dpd_counter)
+							create_dpd_record(
+								loan, demand.loan_disbursement, current_date, dpd_counter, process_loan_classification
+							)
 							final_dpd = dpd_counter
 							matching_demand_found = True
 							break
 
 					if not matching_demand_found:
 						final_dpd = 0
-						create_dpd_record(loan, demand.loan_disbursement, current_date, 0)
+						create_dpd_record(
+							loan, demand.loan_disbursement, current_date, 0, process_loan_classification
+						)
 
 			frappe.db.set_value("Loan", loan, "days_past_due", final_dpd)
 
@@ -1127,13 +1154,13 @@ def update_loan_and_customer_status(
 				"against_loan": loan,
 				"docstatus": 1,
 			},
-			"max(days_past_due)",
+			[{"MAX": "days_past_due"}],
 		)
 		days_past_due = max_dpd
 
 	if loan_status == "Settled":
-		write_off_suspense_entries(loan, loan_product, posting_date, company)
-		write_off_charges(loan, posting_date, company)
+		write_off_suspense_entries(loan, loan_product, posting_date, posting_date, company)
+		write_off_charges(loan, posting_date, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
 		is_previous_npa = frappe.db.get_value(
 			"Loan NPA Log",
@@ -1141,7 +1168,7 @@ def update_loan_and_customer_status(
 			"npa",
 			order_by="npa_date desc",
 		)
-		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, "max(posting_date)")
+		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, [{"MAX": "posting_date"}])
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -1151,28 +1178,30 @@ def update_loan_and_customer_status(
 			or actual_dpd == 0
 			or days_past_due == 0
 		):
-			frappe.db.set_value("Loan", loan, {"is_npa": 0, "days_past_due": actual_dpd})
-			write_off_suspense_entries(loan, loan_product, max_date, company)
-			write_off_charges(loan, max_date, company)
-			create_loan_npa_log(loan, posting_date, 0, "Loan Repayment")
+			update_all_linked_loan_customer_npa_status(
+				0, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
+			)
+			write_off_suspense_entries(loan, loan_product, max_date, max_date, company)
+			write_off_charges(loan, max_date, max_date, company)
 		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
-			create_loan_npa_log(loan, posting_date, 1, "Loan Repayment")
-			update_all_linked_loan_customer_npa_status(1, applicant_type, applicant, posting_date, loan)
+			update_all_linked_loan_customer_npa_status(
+				1, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
+			)
 			create_dpd_record(loan, loan_disbursement, posting_date, actual_dpd)
-			move_unpaid_interest_to_suspense_ledger(loan, max_date)
-			move_receivable_charges_to_suspense_ledger(loan, company, max_date)
+			move_unpaid_interest_to_suspense_ledger(loan, max_date, max_date)
+			move_receivable_charges_to_suspense_ledger(loan, company, max_date, max_date)
 
 	elif is_npa and not cint(unmark_npa) and not cint(current_npa):
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
-				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date)
-				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date)
+				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date, value_date=posting_date)
+				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date, posting_date)
 
 		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
 		max_dpd = frappe.db.get_value(
-			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, ["MAX(days_past_due)"]
+			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, [{"MAX": "days_past_due"}]
 		)
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
@@ -1181,8 +1210,8 @@ def update_loan_and_customer_status(
 			if prev_npa:
 				for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 					loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
-					write_off_suspense_entries(loan_id, loan_product, posting_date, company)
-					write_off_charges(loan_id, posting_date, company)
+					write_off_suspense_entries(loan_id, loan_product, posting_date, posting_date, company)
+					write_off_charges(loan_id, posting_date, posting_date, company)
 
 				update_all_linked_loan_customer_npa_status(
 					is_npa, applicant_type, applicant, posting_date, loan
@@ -1220,30 +1249,22 @@ def update_all_linked_loan_customer_npa_status(
 	posting_date,
 	loan=None,
 	manual_npa=False,
+	event="Background Job",
 ):
 	"""Update NPA status of all linked customers"""
 
 	prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
 
 	if prev_npa != is_npa:
-		update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa)
-	else:
-		update_value = {
-			"is_npa": is_npa,
-		}
-
-		if manual_npa:
-			update_value["manual_npa"] = manual_npa
-
-		frappe.db.set_value("Loan", loan, update_value)
-
-	frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
-
-	if loan:
-		create_loan_npa_log(loan, posting_date, is_npa, "Background Job", manual_npa=manual_npa)
+		update_npa_check(
+			is_npa, applicant_type, applicant, posting_date, manual_npa=manual_npa, event=event
+		)
+		frappe.db.set_value("Customer", applicant, "is_npa", is_npa)
 
 
-def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa=False):
+def update_npa_check(
+	is_npa, applicant_type, applicant, posting_date, manual_npa=False, event=None
+):
 	_loan = frappe.qb.DocType("Loan")
 	query = (
 		frappe.qb.from_(_loan)
@@ -1270,6 +1291,7 @@ def update_npa_check(is_npa, applicant_type, applicant, posting_date, manual_npa
 			update_value["manual_npa"] = manual_npa
 
 		frappe.db.set_value("Loan", loan.name, update_value)
+		create_loan_npa_log(loan.name, posting_date, is_npa, event, manual_npa=manual_npa)
 
 
 def create_loan_npa_log(loan, posting_date, is_npa, event, manual_npa=None):
@@ -1343,7 +1365,7 @@ def get_loan_partner_threshold_map():
 	)
 
 
-def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
+def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None, value_date=None):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_last_demand_date,
 		get_unbooked_interest,
@@ -1357,9 +1379,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 
 	last_demand_date = get_last_demand_date(loan, posting_date)
 
-	unbooked_interest, accrued_interest = get_unbooked_interest(
-		loan, posting_date, last_demand_date=last_demand_date
-	)
+	unbooked_interest = get_unbooked_interest(loan, posting_date, last_demand_date=last_demand_date)
 
 	accounts = frappe.db.get_value(
 		"Loan Product",
@@ -1407,6 +1427,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		credit_account = accounts.get("suspense_interest_income")
 		make_journal_entry(
 			posting_date,
+			value_date,
 			company,
 			loan,
 			amount,
@@ -1421,6 +1442,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		credit_account = accounts.get("penalty_suspense_account")
 		make_journal_entry(
 			posting_date,
+			value_date,
 			company,
 			loan,
 			amount,
@@ -1435,6 +1457,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 		credit_account = accounts.get("additional_interest_suspense")
 		make_journal_entry(
 			posting_date,
+			value_date,
 			company,
 			loan,
 			amount,
@@ -1445,20 +1468,28 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None):
 
 
 def make_suspense_journal_entry(
-	loan, company, loan_product, amount, posting_date, is_penal=False, additional_interest=0
+	loan,
+	company,
+	loan_product,
+	amount,
+	posting_date,
+	value_date,
+	is_penal=False,
+	additional_interest=0,
 ):
 	account_details = frappe.get_value(
 		"Loan Product",
 		loan_product,
-		[
+		(
 			"suspense_interest_income",
 			"interest_income_account",
 			"penalty_suspense_account",
 			"penalty_income_account",
 			"additional_interest_income",
 			"additional_interest_suspense",
-		],
+		),
 		as_dict=1,
+		cache=True,
 	)
 
 	normal_penal_interest_jv = None
@@ -1475,12 +1506,13 @@ def make_suspense_journal_entry(
 		if amount:
 			amount = amount - additional_interest
 			normal_penal_interest_jv = make_journal_entry(
-				posting_date, company, loan, amount, debit_account, credit_account
+				posting_date, value_date, company, loan, amount, debit_account, credit_account
 			)
 
 		if additional_interest > 0:
 			additional_interest_jv = make_journal_entry(
 				posting_date,
+				value_date,
 				company,
 				loan,
 				additional_interest,
@@ -1491,7 +1523,9 @@ def make_suspense_journal_entry(
 	return normal_penal_interest_jv, additional_interest_jv
 
 
-def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invoice=None):
+def move_receivable_charges_to_suspense_ledger(
+	loan, company, posting_date, value_date, invoice=None
+):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	overdue_charges = get_unpaid_demands(
@@ -1525,7 +1559,9 @@ def move_receivable_charges_to_suspense_ledger(loan, company, posting_date, invo
 		)
 
 		if suspense_account:
-			make_journal_entry(posting_date, company, loan, base_amount, income_account, suspense_account)
+			make_journal_entry(
+				posting_date, value_date, company, loan, base_amount, income_account, suspense_account
+			)
 
 
 def get_base_charge_amount(
@@ -1565,7 +1601,15 @@ def get_base_charge_amount(
 
 
 def make_journal_entry(
-	posting_date, company, loan, amount, debit_account, credit_account, is_reverse=0, remark=None
+	posting_date,
+	value_date,
+	company,
+	loan,
+	amount,
+	debit_account,
+	credit_account,
+	is_reverse=0,
+	remark=None,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -1581,6 +1625,7 @@ def make_journal_entry(
 			"doctype": "Journal Entry",
 			"voucher_type": "Journal Entry",
 			"posting_date": posting_date,
+			"value_date": value_date,
 			"company": company,
 			"accounts": [
 				{

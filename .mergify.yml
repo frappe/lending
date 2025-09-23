@@ -35,3 +35,12 @@ pull_request_rules:
           - poc-staging
         assignees:
           - "{{ author }}"
+  - name: backport to version-1
+    conditions:
+      - label="backport version-1"
+    actions:
+      backport:
+        branches:
+          - version-1
+        assignees:
+          - "{{ author }}"

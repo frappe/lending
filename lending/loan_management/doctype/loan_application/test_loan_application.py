@@ -42,6 +42,9 @@ class TestLoanApplication(unittest.TestCase):
 				"repayment_method": "Repay Over Number of Periods",
 				"repayment_periods": 18,
 				"company": "_Test Company",
+				"applicant_type": "Employee",
+				"applicant_email_address": "lending@example.com",
+				"applicant_phone_number": "+91-9102837465",
 			}
 		)
 		loan_application.insert()

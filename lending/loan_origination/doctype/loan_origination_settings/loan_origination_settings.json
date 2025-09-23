@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-30 16:12:02.822961",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "unique_customer",
+  "employee_loans"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "description": "Adds unique constraints to the email and phone number fields of the Customer DocType.",
+   "fieldname": "unique_customer",
+   "fieldtype": "Check",
+   "label": "Unique Customer"
+  },
+  {
+   "default": "0",
+   "description": "Adds the option to have employee loans",
+   "fieldname": "employee_loans",
+   "fieldtype": "Check",
+   "label": "Employee Loans"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-08-21 17:35:48.628799",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Loan Origination Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
