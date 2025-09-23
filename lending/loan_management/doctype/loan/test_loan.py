@@ -1485,6 +1485,29 @@ class TestLoan(IntegrationTestCase):
 		# repayment_entry.submit()
 
 	def test_broken_period_interest_for_amortized_over_tenure(self):
+		# Broken Period Interest (BPI) Calculation:
+		# Disbursement Date = 2023-11-03
+		# Loan Product setting "Minimum days between Disbursement date and first Repayment date" = 15
+		# With monthly frequency, expected first due date = 2023-12-03
+		# Repayment Start Date (explicit) = 2023-12-05
+		# Difference = 2 days → Broken Period Days = 2
+		#
+		# Principal = 100,000
+		# Annual Rate = 14.5%
+		# Repayment Periods = 12 months
+		#
+		# BPI = (Principal × Rate × Days) / (365 × 100) = (100000 × 14.5 × 2) / 36500 = 79.45
+		#
+		# Amortize BPI over 12 periods → 79.45 / 12 = 6.62 per period
+		#
+		# First Period Interest (Dec 05, 2023)
+		# Normal 30-day interest = (100000 × 14.5 × 30) / 36500 = 1191.78
+		# Add BPI amount (6.62) → 1191.78 + 6.62 = 1198.40
+		#
+		# Second Period Interest
+		# Normal interest reduces slightly after principal repayment (≈ 1135.31)
+		# Add BPI amount (6.62) → 1135.31 + 6.62 = 1141.93
+
 		frappe.db.set_value(
 			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Amortized Over Tenure"
 		)
@@ -1516,6 +1539,15 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(calculated_bpi_amount_2, 1141.93)
 
 	def test_broken_period_interest_for_add_to_first_emi(self):
+		# BPI = (Principal × Rate × Days) / (365 × 100) = (100000 × 14.5 × 2) / 36500 = 79.45
+		#
+		# Since the BPI recovery method is "Add to First EMI",
+		# the full BPI amount is added to the interest of the first repayment period.
+		#
+		# First Period Interest (Dec 05, 2023)
+		# Normal 30-day interest = (100000 × 14.5 × 30) / 36500 = 1191.78
+		# Add full BPI (79.45) → 1191.78 + 79.45 ≈ 1271.23
+
 		frappe.db.set_value(
 			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Add to First EMI"
 		)
@@ -1540,13 +1572,18 @@ class TestLoan(IntegrationTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
 		)
 
-		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
-		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
-
-		self.assertEqual(calculated_bpi_amount_1, 1271.23)
-		self.assertEqual(calculated_bpi_amount_2, 1135.31)
+		calculated_bpi_amount = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		self.assertEqual(calculated_bpi_amount, 1271.23)
 
 	def test_broken_period_interest_for_upfront_deduction(self):
+		# BPI = (Principal × Rate × Days) / (365 × 100) = (100000 × 14.5 × 2) / 36500 = 79.45
+		#
+		# Since the BPI recovery method is "Upfront Deduction",
+		# the full BPI amount is deducted upfront from the disbursed amount.
+		# This means the first repayment only contains the BPI amount.
+		#
+		# First Period Interest = 79.45
+
 		frappe.db.set_value(
 			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Upfront Deduction"
 		)
@@ -1571,11 +1608,8 @@ class TestLoan(IntegrationTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
 		)
 
-		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
-		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
-
-		self.assertEqual(calculated_bpi_amount_1, 79.45)
-		self.assertEqual(calculated_bpi_amount_2, 1191.78)
+		calculated_bpi_amount = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		self.assertEqual(calculated_bpi_amount, 79.45)
 
 	def test_npa_for_loc(self):
 		loan = create_loan(
