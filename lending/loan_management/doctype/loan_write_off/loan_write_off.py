@@ -4,6 +4,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import cint, flt, getdate
 
 import erpnext
@@ -576,27 +578,31 @@ def get_write_off_waivers(loan_name, posting_date):
 
 
 def get_write_off_recovery_details(loan_name, posting_date, settlement_date=None):
+	LoanRepayment = DocType("Loan Repayment")
 
-	filters = {"against_loan": loan_name, "posting_date": ("<=", posting_date), "docstatus": 1}
-
-	if settlement_date:
-		filters["value_date"] = (">", settlement_date)
-	else:
-		filters["repayment_type"] = ("in", ["Write Off Recovery", "Write Off Settlement"])
-
-	write_of_recovery_details = frappe.db.get_value(
-		"Loan Repayment",
-		filters,
-		[
-			{"SUM": "total_penalty_paid", "as": "total_penalty"},
-			{"SUM": "total_interest_paid", "as": "total_interest"},
-			{"SUM": "total_charges_paid", "as": "total_charges"},
-			{"SUM": "principal_amount_paid", "as": "total_principal"},
-		],
-		as_dict=1,
+	conditions = (
+		(LoanRepayment.against_loan == loan_name)
+		& (LoanRepayment.posting_date <= posting_date)
+		& (LoanRepayment.docstatus == 1)
 	)
 
-	return write_of_recovery_details or {}
+	if settlement_date:
+		conditions &= LoanRepayment.value_date > settlement_date
+	else:
+		conditions &= LoanRepayment.repayment_type.isin(["Write Off Recovery", "Write Off Settlement"])
+
+	write_off_recovery_details = (
+		frappe.qb.from_(LoanRepayment)
+		.select(
+			fn.Sum(LoanRepayment.total_penalty_paid).as_("total_penalty"),
+			fn.Sum(LoanRepayment.total_interest_paid).as_("total_interest"),
+			fn.Sum(LoanRepayment.total_charges_paid).as_("total_charges"),
+			fn.Sum(LoanRepayment.principal_amount_paid).as_("total_principal"),
+		)
+		.where(conditions)
+	).run(as_dict=True)
+
+	return write_off_recovery_details[0] if write_off_recovery_details else {}
 
 
 def get_accrued_interest_for_write_off_recovery(loan_name, posting_date):
