@@ -6,6 +6,8 @@ import traceback
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Coalesce, Round, Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
@@ -713,9 +715,13 @@ class LoanRepayment(AccountsController):
 			return
 		else:
 			# No need to do this in case of backdated prepayment as will be handled in repost
-			max_demand_date = frappe.db.get_value(
-				"Loan Interest Accrual", {"loan": self.against_loan}, [{"MAX": "posting_date"}]
-			)
+			LoanInterestAccrual = DocType("Loan Interest Accrual")
+			max_demand_date = (
+				frappe.qb.from_(LoanInterestAccrual)
+				.select(fn.Max(LoanInterestAccrual.posting_date))
+				.where(LoanInterestAccrual.loan == self.against_loan)
+			).run()[0][0]
+
 			if max_demand_date and getdate(max_demand_date) > getdate(self.value_date):
 				delink_npa_logs(self.against_loan, self.value_date)
 
@@ -1196,28 +1202,33 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
-			"Loan Product",
-			self.loan_product,
-			["write_off_amount", "excess_amount_acceptance_limit"],
-		)
+		LoanProduct = DocType("Loan Product")
+		LoanDemand = DocType("Loan Demand")
+
+		product_values = (
+			frappe.qb.from_(LoanProduct)
+			.select(LoanProduct.write_off_amount, LoanProduct.excess_amount_acceptance_limit)
+			.where(LoanProduct.name == self.loan_product)
+		).run(as_dict=True)[0]
+
+		auto_write_off_amount = product_values.write_off_amount
+		excess_amount_limit = product_values.excess_amount_acceptance_limit
 
 		shortfall_amount = self.pending_principal_amount - self.principal_amount_paid
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			total_payable = (
-				frappe.db.get_value(
-					"Loan Demand",
-					{
-						"loan": self.against_loan,
-						"docstatus": 1,
-						"outstanding_amount": (">", 0),
-						"demand_date": ("<=", self.value_date),
-					},
-					[{"SUM": "outstanding_amount"}],
+			total_payable_result = (
+				frappe.qb.from_(LoanDemand)
+				.select(fn.Sum(LoanDemand.outstanding_amount))
+				.where(
+					(LoanDemand.loan == self.against_loan)
+					& (LoanDemand.docstatus == 1)
+					& (LoanDemand.outstanding_amount > 0)
+					& (LoanDemand.demand_date <= self.value_date)
 				)
-				or 0
-			)
+			).run()[0][0]
+
+			total_payable = total_payable_result or 0
 		else:
 			total_payable = self.payable_amount
 
@@ -2496,14 +2507,17 @@ def get_demand_query():
 
 def get_pending_principal_amount(loan, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	LoanDisbursement = DocType("Loan Disbursement")
 
-	LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 	if loan_disbursement and loan.repayment_schedule_type == "Line of Credit":
-		pending_principal_amount = frappe.db.get_value(
-			"Loan Disbursement",
-			loan_disbursement,
-			Sum(LoanDisbursement.disbursed_amount - LoanDisbursement.principal_amount_paid),
-		)
+		pending_principal_amount_result = (
+			frappe.qb.from_(LoanDisbursement)
+			.select(fn.Sum(LoanDisbursement.disbursed_amount - LoanDisbursement.principal_amount_paid))
+			.where(LoanDisbursement.name == loan_disbursement)
+		).run()[0][0]
+
+		pending_principal_amount = flt(pending_principal_amount_result or 0)
+
 	elif loan.status == "Cancelled":
 		pending_principal_amount = 0
 	elif (
@@ -2827,9 +2841,14 @@ def calculate_amounts(
 			for_update=for_update,
 		)
 
-	amounts["available_security_deposit"] = frappe.db.get_value(
-		"Loan Security Deposit", {"loan": against_loan}, [{"SUM": "available_amount"}]
-	)
+	LoanSecurityDeposit = DocType("Loan Security Deposit")
+	available_amount_result = (
+		frappe.qb.from_(LoanSecurityDeposit)
+		.select(fn.Sum(LoanSecurityDeposit.available_amount))
+		.where(LoanSecurityDeposit.loan == against_loan)
+	).run()[0][0] or 0
+
+	amounts["available_security_deposit"] = available_amount_result
 
 	# update values for closure
 	if payment_type in ("Loan Closure", "Full Settlement", "Write Off Settlement"):
@@ -2934,21 +2953,21 @@ def get_last_demand_date(
 		get_last_disbursement_date,
 	)
 
-	filters = {
-		"loan": loan,
-		"docstatus": 1,
-		"demand_subtype": demand_subtype,
-		"demand_date": ("<=", posting_date),
-	}
+	LoanDemand = DocType("Loan Demand")
+
+	conditions = (
+		(LoanDemand.loan == loan)
+		& (LoanDemand.docstatus == 1)
+		& (LoanDemand.demand_subtype == demand_subtype)
+		& (LoanDemand.demand_date <= posting_date)
+	)
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		conditions &= LoanDemand.loan_disbursement == loan_disbursement
 
-	last_demand_date = frappe.db.get_value(
-		"Loan Demand",
-		filters,
-		[{"MAX": "demand_date"}],
-	)
+	last_demand_date = (
+		frappe.qb.from_(LoanDemand).select(fn.Max(LoanDemand.demand_date)).where(conditions)
+	).run()[0][0]
 
 	if not last_demand_date:
 		last_demand_date = get_last_disbursement_date(
@@ -2961,21 +2980,23 @@ def get_last_demand_date(
 def get_latest_accrual_date(
 	loan, posting_date, interest_type="Normal Interest", loan_disbursement=None
 ):
-	filters = {
-		"loan": loan,
-		"docstatus": 1,
-		"interest_type": interest_type,
-		"posting_date": ("<", posting_date),
-	}
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+	conditions = (
+		(LoanInterestAccrual.loan == loan)
+		& (LoanInterestAccrual.docstatus == 1)
+		& (LoanInterestAccrual.interest_type == interest_type)
+		& (LoanInterestAccrual.posting_date < posting_date)
+	)
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		conditions &= LoanInterestAccrual.loan_disbursement == loan_disbursement
 
-	latest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual",
-		filters,
-		[{"MAX": "posting_date"}],
-	)
+	latest_accrual_date = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.where(conditions)
+	).run()[0][0]
 
 	return latest_accrual_date
 
@@ -2998,24 +3019,26 @@ def get_accrued_interest(
 	last_demand_date=None,
 	loan_disbursement=None,
 ):
-	filters = [
-		["loan", "=", loan],
-		["docstatus", "=", 1],
-		["posting_date", "<", posting_date],
-		["interest_type", "=", interest_type],
-	]
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+	conditions = (
+		(LoanInterestAccrual.loan == loan)
+		& (LoanInterestAccrual.docstatus == 1)
+		& (LoanInterestAccrual.posting_date < posting_date)
+		& (LoanInterestAccrual.interest_type == interest_type)
+	)
 
 	if last_demand_date:
-		filters.append(["posting_date", ">=", last_demand_date])
+		conditions &= LoanInterestAccrual.posting_date >= last_demand_date
 
 	if loan_disbursement:
-		filters.append(["loan_disbursement", "=", loan_disbursement])
+		conditions &= LoanInterestAccrual.loan_disbursement == loan_disbursement
 
-	accrued_interest = frappe.db.get_value(
-		"Loan Interest Accrual",
-		filters,
-		[{"SUM": "interest_amount"}],
-	)
+	accrued_interest = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Sum(LoanInterestAccrual.interest_amount))
+		.where(conditions)
+	).run()[0][0] or 0
 
 	return flt(accrued_interest)
 
