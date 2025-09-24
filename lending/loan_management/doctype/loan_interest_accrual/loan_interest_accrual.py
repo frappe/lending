@@ -973,23 +973,30 @@ def get_last_accrual_date(
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
-	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
+	Loan = DocType("Loan")
+	LoanDisbursement = DocType("Loan Disbursement")
+
+	schedule_type = (
+		frappe.qb.from_(Loan).select(Loan.repayment_schedule_type).where(Loan.name == loan)
+	).run()[0][0]
 
 	if schedule_type == "Line of Credit":
-		field = [{"MIN": "disbursement_date"}]
+		agg_field = fn.Min(LoanDisbursement.disbursement_date)
 	else:
-		field = [{"MAX": "disbursement_date"}]
+		agg_field = fn.Max(LoanDisbursement.disbursement_date)
 
-	filters = {"docstatus": 1, "against_loan": loan, "disbursement_date": ("<=", posting_date)}
+	conditions = (
+		(LoanDisbursement.docstatus == 1)
+		& (LoanDisbursement.against_loan == loan)
+		& (LoanDisbursement.disbursement_date <= posting_date)
+	)
 
 	if loan_disbursement:
-		filters["name"] = loan_disbursement
+		conditions &= LoanDisbursement.name == loan_disbursement
 
-	last_disbursement_date = frappe.db.get_value(
-		"Loan Disbursement",
-		filters,
-		field,
-	)
+	last_disbursement_date = (
+		frappe.qb.from_(LoanDisbursement).select(agg_field).where(conditions)
+	).run()[0][0]
 
 	return last_disbursement_date
 
