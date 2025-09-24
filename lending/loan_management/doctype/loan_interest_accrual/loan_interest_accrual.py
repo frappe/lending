@@ -4,6 +4,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Cast
 from frappe.utils import (
 	add_days,
@@ -878,34 +880,47 @@ def get_last_accrual_date(
 	repayment_schedule_detail=None,
 	loan_disbursement=None,
 ):
-	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+	LoanRepaymentSchedule = DocType("Loan Repayment Schedule")
+
+	conditions = (
+		(LoanInterestAccrual.loan == loan)
+		& (LoanInterestAccrual.docstatus == 1)
+		& (LoanInterestAccrual.interest_type == interest_type)
+	)
 
 	if demand:
-		filters["loan_demand"] = demand
+		conditions &= LoanInterestAccrual.loan_demand == demand
 
 	if repayment_schedule_detail:
-		filters["loan_repayment_schedule_detail"] = repayment_schedule_detail
+		conditions &= LoanInterestAccrual.loan_repayment_schedule_detail == repayment_schedule_detail
 
 	if is_future_accrual:
-		filters["posting_date"] = ("<=", posting_date)
+		conditions &= LoanInterestAccrual.posting_date <= posting_date
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		conditions &= LoanInterestAccrual.loan_disbursement == loan_disbursement
 
-	last_interest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual", filters, [{"MAX": "posting_date"}], for_update=True
-	)
+	last_interest_accrual_date = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.where(conditions)
+		.for_update()
+	).run()[0][0]
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
 			return add_days(last_interest_accrual_date, 1)
 		else:
-			dates = frappe.db.get_value(
-				"Loan Repayment Schedule",
-				loan_repayment_schedule,
-				["moratorium_end_date", "posting_date", "moratorium_type"],
-				as_dict=1,
-			)
+			dates = (
+				frappe.qb.from_(LoanRepaymentSchedule)
+				.select(
+					LoanRepaymentSchedule.moratorium_end_date,
+					LoanRepaymentSchedule.posting_date,
+					LoanRepaymentSchedule.moratorium_type,
+				)
+				.where(LoanRepaymentSchedule.name == loan_repayment_schedule)
+			).run(as_dict=True)[0]
 
 			if dates.moratorium_type == "EMI" and dates.moratorium_end_date:
 				final_date = dates.moratorium_end_date
@@ -929,12 +944,20 @@ def get_last_accrual_date(
 
 		return last_interest_accrual_date
 	else:
-		moratorium_details = frappe.db.get_value(
-			"Loan Repayment Schedule",
-			{"loan": loan, "docstatus": 1, "status": "Active"},
-			["moratorium_end_date", "moratorium_type"],
-			as_dict=1,
-		)
+		moratorium_details = (
+			frappe.qb.from_(LoanRepaymentSchedule)
+			.select(
+				LoanRepaymentSchedule.moratorium_end_date,
+				LoanRepaymentSchedule.moratorium_type,
+			)
+			.where(
+				(LoanRepaymentSchedule.loan == loan)
+				& (LoanRepaymentSchedule.docstatus == 1)
+				& (LoanRepaymentSchedule.status == "Active")
+			)
+		).run(as_dict=True)
+
+		moratorium_details = moratorium_details[0] if moratorium_details else None
 
 		if (
 			moratorium_details

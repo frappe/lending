@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
@@ -459,39 +460,57 @@ def update_total_amount_paid(doc):
 
 
 def get_total_loan_amount(applicant_type, applicant, company):
+	Loan = DocType("Loan")
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+	LoanRepayment = DocType("Loan Repayment")
+
 	pending_amount = 0
-	loan_details = frappe.db.get_all(
-		"Loan",
-		filters={
-			"applicant_type": applicant_type,
-			"company": company,
-			"applicant": applicant,
-			"docstatus": 1,
-			"status": ("!=", "Closed"),
-		},
-		fields=[
-			"status",
-			"total_payment",
-			"disbursed_amount",
-			"total_interest_payable",
-			"total_principal_paid",
-			"written_off_amount",
-		],
-	)
+
+	loan_details = (
+		frappe.qb.from_(Loan)
+		.select(
+			Loan.status,
+			Loan.total_payment,
+			Loan.disbursed_amount,
+			Loan.total_interest_payable,
+			Loan.total_principal_paid,
+			Loan.written_off_amount,
+		)
+		.where(
+			(Loan.applicant_type == applicant_type)
+			& (Loan.company == company)
+			& (Loan.applicant == applicant)
+			& (Loan.docstatus == 1)
+			& (Loan.status != "Closed")
+		)
+	).run(as_dict=True)
 
 	total_interest_amount = flt(
-		frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			[{"SUM": "interest_amount"}],
-		)
+		(
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Sum(LoanInterestAccrual.interest_amount))
+			.where(
+				(LoanInterestAccrual.applicant_type == applicant_type)
+				& (LoanInterestAccrual.company == company)
+				& (LoanInterestAccrual.applicant == applicant)
+				& (LoanInterestAccrual.docstatus == 1)
+			)
+		).run()[0][0]
+		or 0
 	)
+
 	paid_interest = flt(
-		frappe.db.get_value(
-			"Loan Repayment",
-			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			[{"SUM": "total_interest_paid"}],
-		)
+		(
+			frappe.qb.from_(LoanRepayment)
+			.select(fn.Sum(LoanRepayment.total_interest_paid))
+			.where(
+				(LoanRepayment.applicant_type == applicant_type)
+				& (LoanRepayment.company == company)
+				& (LoanRepayment.applicant == applicant)
+				& (LoanRepayment.docstatus == 1)
+			)
+		).run()[0][0]
+		or 0
 	)
 
 	interest_amount = total_interest_amount - paid_interest
@@ -1124,14 +1143,26 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
-	loan_status, repayment_schedule_type, loan_product, unmark_npa, current_npa = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type", "loan_product", "unmark_npa", "is_npa"]
-	)
+	Loan = DocType("Loan")
+	LoanDisbursement = DocType("Loan Disbursement")
+	LoanNPALog = DocType("Loan NPA Log")
+	DPDLog = DocType("Days Past Due Log")
 
-	if loan_status == "Written Off":
-		is_written_off = 1
-	else:
-		is_written_off = 0
+	loan_values = (
+		frappe.qb.from_(Loan)
+		.select(
+			Loan.status,
+			Loan.repayment_schedule_type,
+			Loan.loan_product,
+			Loan.unmark_npa,
+			Loan.is_npa,
+		)
+		.where(Loan.name == loan)
+	).run()[0]
+
+	loan_status, repayment_schedule_type, loan_product, unmark_npa, current_npa = loan_values
+
+	is_written_off = 1 if loan_status == "Written Off" else 0
 
 	classification_code, classification_name = get_classification_code_and_name(
 		days_past_due, company, is_written_off=is_written_off
@@ -1148,27 +1179,32 @@ def update_loan_and_customer_status(
 				update_modified=False,
 			)
 
-		max_dpd = frappe.db.get_value(
-			"Loan Disbursement",
-			{
-				"against_loan": loan,
-				"docstatus": 1,
-			},
-			[{"MAX": "days_past_due"}],
-		)
+		max_dpd = (
+			frappe.qb.from_(LoanDisbursement)
+			.select(fn.Max(LoanDisbursement.days_past_due))
+			.where((LoanDisbursement.against_loan == loan) & (LoanDisbursement.docstatus == 1))
+		).run()[0][0] or 0
 		days_past_due = max_dpd
 
 	if loan_status == "Settled":
 		write_off_suspense_entries(loan, loan_product, posting_date, posting_date, company)
 		write_off_charges(loan, posting_date, posting_date, company)
+
 	elif is_backdated and days_past_due < dpd_threshold:
-		is_previous_npa = frappe.db.get_value(
-			"Loan NPA Log",
-			{"loan": loan, "npa_date": ("<", posting_date), "delinked": 0},
-			"npa",
-			order_by="npa_date desc",
-		)
-		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, [{"MAX": "posting_date"}])
+		is_previous_npa = (
+			frappe.qb.from_(LoanNPALog)
+			.select(LoanNPALog.npa)
+			.where(
+				(LoanNPALog.loan == loan) & (LoanNPALog.npa_date < posting_date) & (LoanNPALog.delinked == 0)
+			)
+			.orderby(LoanNPALog.npa_date, order=frappe.qb.desc)
+			.limit(1)
+		).run()
+		is_previous_npa = is_previous_npa[0][0] if is_previous_npa else 0
+
+		max_date = (
+			frappe.qb.from_(DPDLog).select(fn.Max(DPDLog.posting_date)).where(DPDLog.loan == loan)
+		).run()[0][0]
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -1193,23 +1229,30 @@ def update_loan_and_customer_status(
 
 	elif is_npa and not cint(unmark_npa) and not cint(current_npa):
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
+			prev_npa = (frappe.qb.from_(Loan).select(Loan.is_npa).where(Loan.name == loan_id)).run()[0][0]
+
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date, value_date=posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date, posting_date)
 
 		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
-	else:
-		max_dpd = frappe.db.get_value(
-			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, [{"MAX": "days_past_due"}]
-		)
 
-		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
+	else:
+		max_dpd = (
+			frappe.qb.from_(Loan)
+			.select(fn.Max(Loan.days_past_due))
+			.where((Loan.applicant_type == applicant_type) & (Loan.applicant == applicant))
+		).run()[0][0] or 0
+
 		if max_dpd == 0 or freeze_date:
-			prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
+			prev_npa = (frappe.qb.from_(Loan).select(Loan.is_npa).where(Loan.name == loan)).run()[0][0]
+
 			if prev_npa:
 				for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-					loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
+					loan_product = (
+						frappe.qb.from_(Loan).select(Loan.loan_product).where(Loan.name == loan_id)
+					).run()[0][0]
+
 					write_off_suspense_entries(loan_id, loan_product, posting_date, posting_date, company)
 					write_off_charges(loan_id, posting_date, posting_date, company)
 
