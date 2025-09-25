@@ -183,21 +183,25 @@ class LoanRepaymentRepost(Document):
 				& (LoanRepayment.value_date < self.repost_date)
 			)
 
-			totals = (
+			totals_result = (
 				frappe.qb.from_(LoanRepayment)
 				.select(
 					fn.Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
 					fn.Sum(LoanRepayment.amount_paid).as_("total_amount_paid"),
 				)
 				.where(conditions)
-			).run(as_dict=True)[0]
+			).run(as_dict=True)
+
+			totals = (
+				totals_result[0] if totals_result else {"total_principal_paid": 0, "total_amount_paid": 0}
+			)
 
 			frappe.db.set_value(
 				"Loan",
 				self.loan,
 				{
-					"total_principal_paid": flt(totals.total_principal_paid),
-					"total_amount_paid": flt(totals.total_amount_paid),
+					"total_principal_paid": flt(totals["total_principal_paid"]),
+					"total_amount_paid": flt(totals["total_amount_paid"]),
 					"excess_amount_paid": 0,
 				},
 			)
@@ -210,11 +214,13 @@ class LoanRepaymentRepost(Document):
 					& (LoanRepayment.value_date < self.repost_date)
 				)
 
-				total_principal_paid = (
+				total_principal_paid_result = (
 					frappe.qb.from_(LoanRepayment)
 					.select(fn.Sum(LoanRepayment.principal_amount_paid))
 					.where(conditions)
-				).run()[0][0] or 0
+				).run()
+
+				total_principal_paid = total_principal_paid_result[0][0] if total_principal_paid_result else 0
 
 				frappe.db.set_value(
 					"Loan Disbursement",
@@ -245,9 +251,9 @@ class LoanRepaymentRepost(Document):
 			& (LoanWriteOff.is_settlement_write_off == 0)
 			& (LoanWriteOff.posting_date >= self.repost_date)
 		)
-		is_written_off = (
-			frappe.qb.from_(LoanWriteOff).select(LoanWriteOff.name).where(conditions).run()[0][0]
-		)
+
+		result = frappe.qb.from_(LoanWriteOff).select(LoanWriteOff.name).where(conditions).run()
+		is_written_off = result[0][0] if result else None
 
 		if is_written_off:
 			frappe.db.set_value("Loan", self.loan, "status", "Disbursed")
@@ -440,7 +446,11 @@ class LoanRepaymentRepost(Document):
 		).submit()
 
 		Loan = DocType("Loan")
-		loan_status = frappe.qb.from_(Loan).select(Loan.status).where(Loan.name == self.loan).run()[0][0]
+		loan_status_result = (
+			frappe.qb.from_(Loan).select(Loan.status).where(Loan.name == self.loan).run()
+		)
+		loan_status = loan_status_result[0][0] if loan_status_result else None
+
 		if loan_status == "Closed":
 			create_process_loan_classification(
 				posting_date=self.repost_date,
