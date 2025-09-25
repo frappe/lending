@@ -1244,6 +1244,7 @@ def update_loan_and_customer_status(
 			.where((Loan.applicant_type == applicant_type) & (Loan.applicant == applicant))
 		).run()[0][0] or 0
 
+		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0 or freeze_date:
 			prev_npa = (frappe.qb.from_(Loan).select(Loan.is_npa).where(Loan.name == loan)).run()[0][0]
 

@@ -981,9 +981,9 @@ def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
 	).run()[0][0]
 
 	if schedule_type == "Line of Credit":
-		agg_field = fn.Min(LoanDisbursement.disbursement_date)
+		field = fn.Min(LoanDisbursement.disbursement_date)
 	else:
-		agg_field = fn.Max(LoanDisbursement.disbursement_date)
+		field = fn.Max(LoanDisbursement.disbursement_date)
 
 	conditions = (
 		(LoanDisbursement.docstatus == 1)
@@ -995,7 +995,7 @@ def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
 		conditions &= LoanDisbursement.name == loan_disbursement
 
 	last_disbursement_date = (
-		frappe.qb.from_(LoanDisbursement).select(agg_field).where(conditions)
+		frappe.qb.from_(LoanDisbursement).select(field).where(conditions)
 	).run()[0][0]
 
 	return last_disbursement_date
