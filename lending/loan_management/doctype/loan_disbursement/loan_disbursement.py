@@ -4,6 +4,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -230,6 +232,7 @@ class LoanDisbursement(AccountsController):
 		}
 		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
 		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
+		schedule.flags.ignore_links = True
 		schedule.cancel()
 
 	def make_credit_note(self):
@@ -372,6 +375,7 @@ class LoanDisbursement(AccountsController):
 	def delete_security_deposit(self):
 		if self.withhold_security_deposit:
 			sd = frappe.get_doc("Loan Security Deposit", {"loan_disbursement": self.name})
+			sd.flags.ignore_links = True
 			sd.cancel()
 			sd.delete()
 
@@ -866,6 +870,12 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 
 def get_maximum_amount_as_per_pledged_security(loan):
-	return flt(
-		frappe.db.get_value("Loan Security Assignment", {"loan": loan}, [{"SUM": "maximum_loan_value"}])
-	)
+	LoanSecurityAssignment = DocType("Loan Security Assignment")
+
+	maximum_amount = (
+		frappe.qb.from_(LoanSecurityAssignment)
+		.select(fn.Sum(LoanSecurityAssignment.maximum_loan_value))
+		.where(LoanSecurityAssignment.loan == loan)
+	).run()[0][0] or 0
+
+	return flt(maximum_amount)

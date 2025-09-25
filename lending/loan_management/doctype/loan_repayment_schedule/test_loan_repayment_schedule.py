@@ -2,6 +2,8 @@
 # See license.txt
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, getdate
 
@@ -56,9 +58,13 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date="2025-12-05")
 
-		loan_demand_amount = frappe.db.get_value(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1}, [{"SUM": "demand_amount"}]
-		)
+		LoanDemand = DocType("Loan Demand")
+
+		loan_demand_amount = (
+			frappe.qb.from_(LoanDemand)
+			.select(fn.Sum(LoanDemand.demand_amount))
+			.where((LoanDemand.loan == loan.name) & (LoanDemand.docstatus == 1))
+		).run()[0][0] or 0
 
 		repayment_entry = create_repayment_entry(
 			loan=loan.name,
@@ -170,9 +176,15 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 				getdate("2024-11-05"),
 				add_days(getdate("2025-12-05"), -1),
 			)
-			paid_interest = frappe.get_value(
-				"Loan Interest Accrual", {"loan": loan.name}, [{"SUM": "interest_amount"}]
-			)
+
+			LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+			paid_interest = (
+				frappe.qb.from_(LoanInterestAccrual)
+				.select(fn.Sum(LoanInterestAccrual.interest_amount))
+				.where(LoanInterestAccrual.loan == loan.name)
+			).run()[0][0] or 0
+
 			self.assertEqual(flt(paid_interest, 0), flt(payable_interest, 0))
 
 	def test_moratorium_date_jump(self):

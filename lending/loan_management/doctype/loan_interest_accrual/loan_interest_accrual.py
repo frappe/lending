@@ -4,6 +4,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Cast
 from frappe.utils import (
 	add_days,
@@ -878,23 +880,34 @@ def get_last_accrual_date(
 	repayment_schedule_detail=None,
 	loan_disbursement=None,
 ):
-	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+	query = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.where(
+			(LoanInterestAccrual.loan == loan)
+			& (LoanInterestAccrual.docstatus == 1)
+			& (LoanInterestAccrual.interest_type == interest_type)
+		)
+		.for_update()
+	)
 
 	if demand:
-		filters["loan_demand"] = demand
+		query = query.where(LoanInterestAccrual.loan_demand == demand)
 
 	if repayment_schedule_detail:
-		filters["loan_repayment_schedule_detail"] = repayment_schedule_detail
+		query = query.where(
+			LoanInterestAccrual.loan_repayment_schedule_detail == repayment_schedule_detail
+		)
 
 	if is_future_accrual:
-		filters["posting_date"] = ("<=", posting_date)
+		query = query.where(LoanInterestAccrual.posting_date <= posting_date)
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		query = query.where(LoanInterestAccrual.loan_disbursement == loan_disbursement)
 
-	last_interest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual", filters, [{"MAX": "posting_date"}], for_update=True
-	)
+	last_interest_accrual_date = query.run()[0][0]
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
@@ -950,23 +963,30 @@ def get_last_accrual_date(
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
+	Loan = DocType("Loan")
+	LoanDisbursement = DocType("Loan Disbursement")
+
 	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
 
 	if schedule_type == "Line of Credit":
-		field = [{"MIN": "disbursement_date"}]
+		field = fn.Min(LoanDisbursement.disbursement_date)
 	else:
-		field = [{"MAX": "disbursement_date"}]
+		field = fn.Max(LoanDisbursement.disbursement_date)
 
-	filters = {"docstatus": 1, "against_loan": loan, "disbursement_date": ("<=", posting_date)}
+	query = (
+		frappe.qb.from_(LoanDisbursement)
+		.select(field)
+		.where(
+			(LoanDisbursement.docstatus == 1)
+			& (LoanDisbursement.against_loan == loan)
+			& (LoanDisbursement.disbursement_date <= posting_date)
+		)
+	)
 
 	if loan_disbursement:
-		filters["name"] = loan_disbursement
+		query = query.where(LoanDisbursement.name == loan_disbursement)
 
-	last_disbursement_date = frappe.db.get_value(
-		"Loan Disbursement",
-		filters,
-		field,
-	)
+	last_disbursement_date = query.run()[0][0]
 
 	return last_disbursement_date
 
@@ -1035,10 +1055,6 @@ def reverse_loan_interest_accruals(
 	loan_disbursement=None,
 	future_accruals=False,
 ):
-	from lending.loan_management.doctype.loan_write_off.loan_write_off import (
-		write_off_suspense_entries,
-	)
-
 	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
 	posting_date = get_datetime(getdate(posting_date))
 	filters = {
@@ -1077,29 +1093,6 @@ def reverse_loan_interest_accruals(
 		if accrual_doc.docstatus == 1:
 			accrual_doc.flags.ignore_links = True
 			accrual_doc.cancel()
-
-		if is_npa:
-			interest_amount = 0
-			penalty_amount = 0
-			additional_interest_amount = 0
-
-			if interest_type == "Normal Interest":
-				interest_amount = accrual_doc.interest_amount
-			elif interest_type == "Penal Interest":
-				penalty_amount = accrual_doc.interest_amount - accrual_doc.additional_interest_amount
-				additional_interest_amount = accrual_doc.additional_interest_amount
-
-			write_off_suspense_entries(
-				loan,
-				accrual_doc.loan_product,
-				nowdate(),
-				posting_date,
-				accrual_doc.company,
-				interest_amount=interest_amount,
-				penalty_amount=penalty_amount,
-				additional_interest_amount=additional_interest_amount,
-				on_payment_allocation=on_payment_allocation,
-			)
 
 	return accruals
 

@@ -2,6 +2,8 @@
 # See license.txt
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
 
@@ -228,18 +230,32 @@ class TestLoanRepayment(IntegrationTestCase):
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date=add_days("2024-05-05", 6), company="_Test Company"
 		)
-		penal_interest = frappe.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			[{"SUM": "interest_amount"}],
-		)
+
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+		penal_interest = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Sum(LoanInterestAccrual.interest_amount))
+			.where(
+				(LoanInterestAccrual.loan == loan.name)
+				& (LoanInterestAccrual.interest_type == "Penal Interest")
+				& (LoanInterestAccrual.docstatus == 1)
+			)
+		).run()[0][0]
+
 		self.assertGreater(penal_interest, 0)
 		create_repayment_entry(loan=loan.name, value_date="2024-05-05", paid_amount=178025).submit()
-		penal_interest = frappe.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			[{"SUM": "interest_amount"}],
-		)
+
+		penal_interest = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Sum(LoanInterestAccrual.interest_amount))
+			.where(
+				(LoanInterestAccrual.loan == loan.name)
+				& (LoanInterestAccrual.interest_type == "Penal Interest")
+				& (LoanInterestAccrual.docstatus == 1)
+			)
+		).run()[0][0]
+
 		self.assertEqual(penal_interest, None)
 
 	def test_demand_generation_upon_pre_payment(self):
@@ -1510,3 +1526,106 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 
 		self.assertEqual(len(demands), len(allocated_demands))
+
+	def test_no_unbooked_interest_for_penalty_waivers(self):
+		set_loan_accrual_frequency("Daily")
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+			penalty_charges_rate=45,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+
+		posting_date = "2024-04-10"
+		process_daily_loan_demands(posting_date=posting_date, loan=loan.name)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-20", company="_Test Company"
+		)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date=posting_date)
+		penalty_amount = amounts["penalty_amount"]
+		penalty_waiver = create_repayment_entry(
+			loan=loan.name,
+			value_date=posting_date,
+			paid_amount=penalty_amount,
+			repayment_type="Penalty Waiver",
+		)
+		penalty_waiver.submit()
+		self.assertEqual(penalty_waiver.unbooked_interest_paid, 0)
+
+	def test_no_unbooked_interest_for_charges_waivers(self):
+		set_loan_accrual_frequency("Daily")
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+			penalty_charges_rate=45,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+
+		posting_date = "2024-04-10"
+		process_daily_loan_demands(posting_date=posting_date, loan=loan.name)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-20", company="_Test Company"
+		)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": self.applicant2,
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-04-10",
+				"value_date": "2024-04-10",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+			}
+		)
+		sales_invoice.submit()
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date=posting_date)
+
+		charges_amount = amounts["total_charges_payable"]
+		charges_waiver = create_repayment_entry(
+			loan=loan.name,
+			value_date=posting_date,
+			paid_amount=charges_amount,
+			repayment_type="Charges Waiver",
+		)
+
+		charges_waiver.submit()
+		self.assertEqual(charges_waiver.unbooked_interest_paid, 0)

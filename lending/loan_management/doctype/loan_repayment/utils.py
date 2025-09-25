@@ -1,4 +1,6 @@
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import cint, flt
 
 
@@ -153,35 +155,39 @@ def get_unbooked_interest_for_loans(
 
 
 def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
-	filters = {
-		"docstatus": 1,
-		"demand_subtype": demand_subtype,
-		"demand_date": ("<=", posting_date),
-	}
+	LoanDemand = DocType("Loan Demand")
+
+	query = (
+		frappe.qb.from_(LoanDemand)
+		.select(fn.Max(LoanDemand.demand_date))
+		.where(
+			(LoanDemand.docstatus == 1)
+			& (LoanDemand.demand_subtype == demand_subtype)
+			& (LoanDemand.demand_date <= posting_date)
+		)
+	)
 
 	if loan:
-		filters["loan"] = loan
+		query = query.where(LoanDemand.loan == loan)
 
-	last_demand_date = frappe.db.get_value(
-		"Loan Demand",
-		filters,
-		[{"MAX": "demand_date"}],
-	)
+	last_demand_date = query.run()[0][0]
 
 	return last_demand_date
 
 
 def get_latest_accrual_date(posting_date, interest_type="Interest"):
-	filters = {
-		"docstatus": 1,
-		"interest_type": interest_type,
-		"posting_date": (">", posting_date),
-	}
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
 
-	latest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual",
-		filters,
-		[{"MAX": "posting_date"}],
+	query = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.where(
+			(LoanInterestAccrual.docstatus == 1)
+			& (LoanInterestAccrual.interest_type == interest_type)
+			& (LoanInterestAccrual.posting_date > posting_date)
+		)
 	)
+
+	latest_accrual_date = query.run()[0][0]
 
 	return latest_accrual_date

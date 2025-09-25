@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import add_days, cint, flt, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -174,17 +176,22 @@ class LoanRepaymentRepost(Document):
 					frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
-			filters = {"against_loan": self.loan, "docstatus": 1, "value_date": ("<", self.repost_date)}
+			LoanRepayment = DocType("Loan Repayment")
+			Loan = DocType("Loan")
+			LoanDisbursement = DocType("Loan Disbursement")
 
-			totals = frappe.db.get_value(
-				"Loan Repayment",
-				filters,
-				[
-					{"SUM": "principal_amount_paid", "as": "total_principal_paid"},
-					{"SUM": "amount_paid", "as": "total_amount_paid"},
-				],
-				as_dict=1,
-			)
+			totals = (
+				frappe.qb.from_(LoanRepayment)
+				.select(
+					fn.Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
+					fn.Sum(LoanRepayment.amount_paid).as_("total_amount_paid"),
+				)
+				.where(
+					(LoanRepayment.against_loan == self.loan)
+					& (LoanRepayment.docstatus == 1)
+					& (LoanRepayment.value_date < self.repost_date)
+				)
+			).run(as_dict=True)[0]
 
 			frappe.db.set_value(
 				"Loan",
@@ -197,16 +204,16 @@ class LoanRepaymentRepost(Document):
 			)
 
 			if self.loan_disbursement:
-				total_principal_paid = frappe.db.get_value(
-					"Loan Repayment",
-					{
-						"against_loan": self.loan,
-						"loan_disbursement": self.loan_disbursement,
-						"docstatus": 1,
-						"value_date": ("<", self.repost_date),
-					},
-					[{"SUM": "principal_amount_paid"}],
-				)
+				total_principal_paid = (
+					frappe.qb.from_(LoanRepayment)
+					.select(fn.Sum(LoanRepayment.principal_amount_paid))
+					.where(
+						(LoanRepayment.against_loan == self.loan)
+						& (LoanRepayment.loan_disbursement == self.loan_disbursement)
+						& (LoanRepayment.docstatus == 1)
+						& (LoanRepayment.value_date < self.repost_date)
+					)
+				).run()[0][0] or 0
 
 				frappe.db.set_value(
 					"Loan Disbursement",
@@ -286,8 +293,11 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("excess_amount", 0)
 
 			charges = []
-			if repayment_doc.get("payable_charges"):
+			if repayment_doc.get("payable_charges") and repayment_doc.repayment_type == "Charge Payment":
 				charges = [d.get("charge_code") for d in repayment_doc.get("payable_charges")]
+			else:
+				for d in repayment_doc.get("payable_charges"):
+					frappe.delete_doc("Loan Repayment Charge", d.name, force=1)
 
 			amounts = calculate_amounts(
 				repayment_doc.against_loan,
@@ -387,12 +397,15 @@ class LoanRepaymentRepost(Document):
 			frappe.db.set_value("Loan", self.loan, "status", "Written Off")
 
 		if self.loan_disbursement:
-			filters = {"against_loan": self.loan, "docstatus": 1}
-			total_principal_paid = frappe.db.get_value(
-				"Loan Repayment",
-				filters,
-				[{"SUM": "principal_amount_paid"}],
-			)
+			LoanRepayment = DocType("Loan Repayment")
+
+			filters = (LoanRepayment.against_loan == self.loan) & (LoanRepayment.docstatus == 1)
+
+			total_principal_paid = (
+				frappe.qb.from_(LoanRepayment)
+				.select(fn.Sum(LoanRepayment.principal_amount_paid))
+				.where(filters)
+			).run()[0][0] or 0
 
 			frappe.db.set_value(
 				"Loan",

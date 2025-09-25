@@ -164,7 +164,9 @@ def cancel_demand(self, method=None):
 	if self.get("loan"):
 		demand = frappe.db.get_value("Loan Demand", {"sales_invoice": self.name})
 		if demand:
-			frappe.get_doc("Loan Demand", demand).cancel()
+			doc = frappe.get_doc("Loan Demand", demand)
+			doc.flags.ignore_links = True
+			doc.cancel()
 
 
 def get_tax_amount(taxes, item_code):
