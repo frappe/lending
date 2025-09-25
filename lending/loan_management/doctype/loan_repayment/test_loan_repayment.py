@@ -228,18 +228,33 @@ class TestLoanRepayment(IntegrationTestCase):
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date=add_days("2024-05-05", 6), company="_Test Company"
 		)
-		penal_interest = frappe.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			[{"SUM": "interest_amount"}],
-		)
+
+		penal_interest = frappe.db.sql(
+			"""
+			SELECT SUM(interest_amount)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s
+			AND interest_type = 'Penal Interest'
+			AND docstatus = 1
+			""",
+			(loan.name,),
+		)[0][0]
+
 		self.assertGreater(penal_interest, 0)
+
 		create_repayment_entry(loan=loan.name, value_date="2024-05-05", paid_amount=178025).submit()
-		penal_interest = frappe.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "interest_type": "Penal Interest", "docstatus": 1},
-			[{"SUM": "interest_amount"}],
-		)
+
+		penal_interest = frappe.db.sql(
+			"""
+			SELECT SUM(interest_amount)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s
+			AND interest_type = 'Penal Interest'
+			AND docstatus = 1
+			""",
+			(loan.name,),
+		)[0][0]
+
 		self.assertEqual(penal_interest, None)
 
 	def test_demand_generation_upon_pre_payment(self):

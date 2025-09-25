@@ -2746,10 +2746,16 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.save()
 		repayment_entry.submit()
 
-		outstanding_demand = frappe.db.get_value(
-			"Loan Demand",
-			{"loan": loan.name, "loan_disbursement": disbursement.name},
-			[{"SUM": "outstanding_amount"}],
+		outstanding_demand = (
+			frappe.db.sql(
+				"""
+			SELECT SUM(outstanding_amount)
+			FROM `tabLoan Demand`
+			WHERE loan = %s AND loan_disbursement = %s
+			""",
+				(loan.name, disbursement.name),
+			)[0][0]
+			or 0
 		)
 
 		self.assertEqual(outstanding_demand, 0)

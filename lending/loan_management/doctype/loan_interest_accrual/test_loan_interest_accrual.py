@@ -79,17 +79,23 @@ class TestLoanInterestAccrual(IntegrationTestCase):
 			accrual_date="2024-04-20",
 		)
 
-		last_accrual_date_a = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan_a.name, "docstatus": 1},
-			[{"MAX": "posting_date"}],
-		)
+		last_accrual_date_a = frappe.db.sql(
+			"""
+			SELECT MAX(posting_date)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s AND docstatus = 1
+			""",
+			(loan_a.name,),
+		)[0][0]
 
-		last_accrual_date_b = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan_b.name, "docstatus": 1},
-			[{"MAX": "posting_date"}],
-		)
+		last_accrual_date_b = frappe.db.sql(
+			"""
+			SELECT MAX(posting_date)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s AND docstatus = 1
+			""",
+			(loan_b.name,),
+		)[0][0]
 
 		self.assertEqual(getdate(last_accrual_date_a), getdate("2024-04-10"))
 		self.assertEqual(getdate(last_accrual_date_b), getdate("2024-04-20"))
@@ -199,9 +205,16 @@ class TestLoanInterestAccrual(IntegrationTestCase):
 		maturity_date = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
 		)
-		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, [{"MAX": "posting_date"}]
-		)
+
+		last_accrual_date = frappe.db.sql(
+			"""
+			SELECT MAX(posting_date)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s AND docstatus = 1
+			""",
+			(loan.name,),
+		)[0][0]
+
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
 		process_loan_interest_accrual_for_loans(
@@ -273,15 +286,19 @@ class TestLoanInterestAccrual(IntegrationTestCase):
 		)
 		freeze_date = "2024-04-10"
 
-		accrual_sum_till_freeze_date = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{
-				"loan": loan.name,
-				"docstatus": 1,
-				"posting_date": ("<", freeze_date),
-				"interest_type": "Normal Interest",
-			},
-			[{"SUM": "interest_amount"}],
+		accrual_sum_till_freeze_date = (
+			frappe.db.sql(
+				"""
+			SELECT SUM(interest_amount)
+			FROM `tabLoan Interest Accrual`
+			WHERE loan = %s
+			AND docstatus = 1
+			AND posting_date < %s
+			AND interest_type = 'Normal Interest'
+			""",
+				(loan.name, freeze_date),
+			)[0][0]
+			or 0
 		)
 
 		frappe.db.set_value("Loan", loan.name, {"freeze_account": 1, "freeze_date": freeze_date})
