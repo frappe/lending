@@ -263,9 +263,6 @@ class LoanRepayment(AccountsController):
 			else:
 				self.post_write_off_settlements()
 
-			# if self.repayment_schedule_type != "Line of Credit":
-			# 	frappe.db.set_value("Loan", self.against_loan, {"status": "Settled", "settlement_date": self.value_date})
-
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
