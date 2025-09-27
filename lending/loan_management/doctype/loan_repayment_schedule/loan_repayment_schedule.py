@@ -717,20 +717,7 @@ class LoanRepaymentSchedule(Document):
 					balance_principal_amount = self.current_principal_amount
 					previous_interest_amount = 0
 
-					if (
-						self.repayment_schedule_type == "Monthly as per cycle date"
-						and self.repayment_frequency == "Monthly"
-					):
-						if not previous_broken_period_interest:
-							ignore_bpi = True
-						else:
-							ignore_bpi = False
-
-						next_emi_date = get_cyclic_date(
-							self.loan_product, prev_repayment_date, ignore_bpi=ignore_bpi
-						)
-					else:
-						next_emi_date = self.get_next_payment_date(prev_repayment_date)
+					next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
 					self.repayment_start_date = frappe.db.get_value(
 						"Loan Restructure", self.loan_restructure, "repayment_start_date"
