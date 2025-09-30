@@ -447,9 +447,9 @@
    "search_index": 1
   },
   {
+   "depends_on": "eval:doc.repayment_type==\"Charge Payment\"",
    "fieldname": "payable_charges",
    "fieldtype": "Table",
-   "hidden": 1,
    "label": "Payable Charges",
    "options": "Loan Repayment Charges"
   },
@@ -555,7 +555,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-18 17:55:07.773459",
+ "modified": "2025-09-15 17:44:13.902229",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

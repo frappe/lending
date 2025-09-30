@@ -90,7 +90,11 @@ class LoanWriteOff(AccountsController):
 			self.write_off_amount = pending_principal_amount
 
 		if self.write_off_amount != pending_principal_amount:
-			frappe.throw(_("Write off amount should be equal to pending principal amount"))
+			frappe.throw(
+				_("Write off amount ({0}) should be equal to pending principal amount ({1})").format(
+					self.write_off_amount, pending_principal_amount
+				)
+			)
 
 	def on_submit(self):
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (

@@ -719,6 +719,7 @@ class LoanRepaymentSchedule(Document):
 					if (
 						self.repayment_schedule_type == "Monthly as per cycle date"
 						and self.repayment_frequency == "Monthly"
+						and getdate(self.posting_date) < getdate(first_date)
 					):
 						if not previous_broken_period_interest:
 							ignore_bpi = True

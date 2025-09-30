@@ -1050,10 +1050,9 @@ def reverse_loan_interest_accruals(
 	posting_date,
 	interest_type=None,
 	loan_repayment_schedule=None,
-	is_npa=0,
-	on_payment_allocation=False,
 	loan_disbursement=None,
 	future_accruals=False,
+	in_background=False,
 ):
 	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
 	posting_date = get_datetime(getdate(posting_date))
@@ -1082,6 +1081,20 @@ def reverse_loan_interest_accruals(
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
+	if in_background:
+		frappe.enqueue(
+			cancel_accruals,
+			filters=filters,
+			or_filters=or_filters,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+	else:
+		accruals = cancel_accruals(filters, or_filters)
+		return accruals
+
+
+def cancel_accruals(filters, or_filters):
 	accruals = (
 		frappe.get_all(
 			"Loan Interest Accrual", filters=filters, fields=["name", "posting_date"], or_filters=or_filters
