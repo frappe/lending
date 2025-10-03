@@ -2,6 +2,8 @@
 # See license.txt
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, getdate
 
@@ -56,9 +58,13 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date="2025-12-05")
 
-		loan_demand_amount = frappe.db.get_value(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1}, [{"SUM": "demand_amount"}]
-		)
+		LoanDemand = DocType("Loan Demand")
+
+		loan_demand_amount = (
+			frappe.qb.from_(LoanDemand)
+			.select(fn.Sum(LoanDemand.demand_amount))
+			.where((LoanDemand.loan == loan.name) & (LoanDemand.docstatus == 1))
+		).run()[0][0] or 0
 
 		repayment_entry = create_repayment_entry(
 			loan=loan.name,
@@ -170,9 +176,15 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 				getdate("2024-11-05"),
 				add_days(getdate("2025-12-05"), -1),
 			)
-			paid_interest = frappe.get_value(
-				"Loan Interest Accrual", {"loan": loan.name}, [{"SUM": "interest_amount"}]
-			)
+
+			LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+			paid_interest = (
+				frappe.qb.from_(LoanInterestAccrual)
+				.select(fn.Sum(LoanInterestAccrual.interest_amount))
+				.where(LoanInterestAccrual.loan == loan.name)
+			).run()[0][0] or 0
+
 			self.assertEqual(flt(paid_interest, 0), flt(payable_interest, 0))
 
 	def test_moratorium_date_jump(self):
@@ -197,3 +209,42 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 			)
 			repayment_schedule = frappe.get_doc("Loan Repayment Schedule", {"loan": loan.name})
 			self.assertEqual(repayment_schedule.repayment_start_date, getdate("2025-08-05"))
+
+	def test_date_after_advance_payment_rescheduling(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			285000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-12-10",
+			posting_date="2024-11-05",
+			rate_of_interest=17,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-11-05", repayment_start_date="2024-12-10"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-12-10")
+
+		create_repayment_entry(loan.name, "2024-12-10", 25994).submit()
+
+		create_repayment_entry(loan.name, "2024-12-15", 25994, repayment_type="Advance Payment").submit()
+
+		active_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "status": "Active"},
+			"name",
+		)
+
+		next_payment_date = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": active_repayment_schedule, "payment_date": (">=", "2024-12-15")},
+			"payment_date",
+			order_by="payment_date asc",
+		)
+
+		self.assertEqual(next_payment_date, getdate("2025-01-10"))

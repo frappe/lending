@@ -4,6 +4,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Cast
 from frappe.utils import (
 	add_days,
@@ -878,23 +880,34 @@ def get_last_accrual_date(
 	repayment_schedule_detail=None,
 	loan_disbursement=None,
 ):
-	filters = {"loan": loan, "docstatus": 1, "interest_type": interest_type}
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+	query = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.where(
+			(LoanInterestAccrual.loan == loan)
+			& (LoanInterestAccrual.docstatus == 1)
+			& (LoanInterestAccrual.interest_type == interest_type)
+		)
+		.for_update()
+	)
 
 	if demand:
-		filters["loan_demand"] = demand
+		query = query.where(LoanInterestAccrual.loan_demand == demand)
 
 	if repayment_schedule_detail:
-		filters["loan_repayment_schedule_detail"] = repayment_schedule_detail
+		query = query.where(
+			LoanInterestAccrual.loan_repayment_schedule_detail == repayment_schedule_detail
+		)
 
 	if is_future_accrual:
-		filters["posting_date"] = ("<=", posting_date)
+		query = query.where(LoanInterestAccrual.posting_date <= posting_date)
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		query = query.where(LoanInterestAccrual.loan_disbursement == loan_disbursement)
 
-	last_interest_accrual_date = frappe.db.get_value(
-		"Loan Interest Accrual", filters, [{"MAX": "posting_date"}], for_update=True
-	)
+	last_interest_accrual_date = query.run()[0][0]
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
@@ -950,23 +963,30 @@ def get_last_accrual_date(
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
+	Loan = DocType("Loan")
+	LoanDisbursement = DocType("Loan Disbursement")
+
 	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)
 
 	if schedule_type == "Line of Credit":
-		field = [{"MIN": "disbursement_date"}]
+		field = fn.Min(LoanDisbursement.disbursement_date)
 	else:
-		field = [{"MAX": "disbursement_date"}]
+		field = fn.Max(LoanDisbursement.disbursement_date)
 
-	filters = {"docstatus": 1, "against_loan": loan, "disbursement_date": ("<=", posting_date)}
+	query = (
+		frappe.qb.from_(LoanDisbursement)
+		.select(field)
+		.where(
+			(LoanDisbursement.docstatus == 1)
+			& (LoanDisbursement.against_loan == loan)
+			& (LoanDisbursement.disbursement_date <= posting_date)
+		)
+	)
 
 	if loan_disbursement:
-		filters["name"] = loan_disbursement
+		query = query.where(LoanDisbursement.name == loan_disbursement)
 
-	last_disbursement_date = frappe.db.get_value(
-		"Loan Disbursement",
-		filters,
-		field,
-	)
+	last_disbursement_date = query.run()[0][0]
 
 	return last_disbursement_date
 
@@ -1030,10 +1050,9 @@ def reverse_loan_interest_accruals(
 	posting_date,
 	interest_type=None,
 	loan_repayment_schedule=None,
-	is_npa=0,
-	on_payment_allocation=False,
 	loan_disbursement=None,
 	future_accruals=False,
+	in_background=False,
 ):
 	# Datetimes are a pain. Reverse any accruals made that day irrespective of time
 	posting_date = get_datetime(getdate(posting_date))
@@ -1062,6 +1081,20 @@ def reverse_loan_interest_accruals(
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
+	if in_background:
+		frappe.enqueue(
+			cancel_accruals,
+			filters=filters,
+			or_filters=or_filters,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+	else:
+		accruals = cancel_accruals(filters, or_filters)
+		return accruals
+
+
+def cancel_accruals(filters, or_filters):
 	accruals = (
 		frappe.get_all(
 			"Loan Interest Accrual", filters=filters, fields=["name", "posting_date"], or_filters=or_filters

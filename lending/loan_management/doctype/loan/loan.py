@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
 	add_days,
@@ -479,20 +480,30 @@ def get_total_loan_amount(applicant_type, applicant, company):
 		],
 	)
 
-	total_interest_amount = flt(
-		frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			[{"SUM": "interest_amount"}],
+	LoanInterestAccrual = DocType("Loan Interest Accrual")
+	LoanRepayment = DocType("Loan Repayment")
+
+	total_interest_amount = (
+		frappe.qb.from_(LoanInterestAccrual)
+		.select(fn.Sum(LoanInterestAccrual.interest_amount))
+		.where(
+			(LoanInterestAccrual.applicant_type == applicant_type)
+			& (LoanInterestAccrual.company == company)
+			& (LoanInterestAccrual.applicant == applicant)
+			& (LoanInterestAccrual.docstatus == 1)
 		)
-	)
-	paid_interest = flt(
-		frappe.db.get_value(
-			"Loan Repayment",
-			{"applicant_type": applicant_type, "company": company, "applicant": applicant, "docstatus": 1},
-			[{"SUM": "total_interest_paid"}],
+	).run()[0][0] or 0
+
+	paid_interest = (
+		frappe.qb.from_(LoanRepayment)
+		.select(fn.Sum(LoanRepayment.total_interest_paid))
+		.where(
+			(LoanRepayment.applicant_type == applicant_type)
+			& (LoanRepayment.company == company)
+			& (LoanRepayment.applicant == applicant)
+			& (LoanRepayment.docstatus == 1)
 		)
-	)
+	).run()[0][0] or 0
 
 	interest_amount = total_interest_amount - paid_interest
 
@@ -773,8 +784,8 @@ def create_loan_security_release(unpledge_map, loan, company, applicant_type, ap
 
 @frappe.whitelist()
 def get_shortfall_applicants():
-	loans = frappe.get_all("Loan Security Shortfall", {"status": "Pending"}, pluck="loan")
-	applicants = set(frappe.get_all("Loan", {"name": ("in", loans)}, pluck="name"))
+	loans = frappe.get_list("Loan Security Shortfall", {"status": "Pending"}, pluck="loan")
+	applicants = set(frappe.get_list("Loan", {"name": ("in", loans)}, pluck="name"))
 
 	return {"value": len(applicants), "fieldtype": "Int"}
 
@@ -1148,14 +1159,13 @@ def update_loan_and_customer_status(
 				update_modified=False,
 			)
 
-		max_dpd = frappe.db.get_value(
-			"Loan Disbursement",
-			{
-				"against_loan": loan,
-				"docstatus": 1,
-			},
-			[{"MAX": "days_past_due"}],
-		)
+		LoanDisbursement = DocType("Loan Disbursement")
+		max_dpd = (
+			frappe.qb.from_(LoanDisbursement)
+			.select(fn.Max(LoanDisbursement.days_past_due))
+			.where((LoanDisbursement.against_loan == loan) & (LoanDisbursement.docstatus == 1))
+		).run()[0][0] or 0
+
 		days_past_due = max_dpd
 
 	if loan_status == "Settled":
@@ -1168,7 +1178,13 @@ def update_loan_and_customer_status(
 			"npa",
 			order_by="npa_date desc",
 		)
-		max_date = frappe.db.get_value("Days Past Due Log", {"loan": loan}, [{"MAX": "posting_date"}])
+
+		DaysPastDueLog = DocType("Days Past Due Log")
+		max_date = (
+			frappe.qb.from_(DaysPastDueLog)
+			.select(fn.Max(DaysPastDueLog.posting_date))
+			.where(DaysPastDueLog.loan == loan)
+		).run()[0][0]
 
 		actual_diff = date_diff(getdate(max_date), getdate(posting_date))
 		actual_dpd = days_past_due + actual_diff
@@ -1200,9 +1216,13 @@ def update_loan_and_customer_status(
 
 		update_all_linked_loan_customer_npa_status(is_npa, applicant_type, applicant, posting_date, loan)
 	else:
-		max_dpd = frappe.db.get_value(
-			"Loan", {"applicant_type": applicant_type, "applicant": applicant}, [{"MAX": "days_past_due"}]
-		)
+		Loan = DocType("Loan")
+
+		max_dpd = (
+			frappe.qb.from_(Loan)
+			.select(fn.Max(Loan.days_past_due))
+			.where((Loan.applicant_type == applicant_type) & (Loan.applicant == applicant))
+		).run()[0][0] or 0
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0 or freeze_date:

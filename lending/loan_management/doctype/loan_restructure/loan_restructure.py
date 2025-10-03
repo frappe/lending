@@ -3,6 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import add_days, cint, flt, getdate
 
 from erpnext.controllers.accounts_controller import AccountsController
@@ -113,9 +115,14 @@ class LoanRestructure(AccountsController):
 
 	def validate_restructure_date(self):
 		if self.restructure_type == "Normal Restructure":
-			max_due_date = frappe.db.get_value(
-				"Loan Interest Accrual", {"loan": self.loan, "docstatus": 1}, [{"MAX": "posting_date"}]
-			)
+			LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+			max_due_date = (
+				frappe.qb.from_(LoanInterestAccrual)
+				.select(fn.Max(LoanInterestAccrual.posting_date))
+				.where((LoanInterestAccrual.loan == self.loan) & (LoanInterestAccrual.docstatus == 1))
+			).run()[0][0]
+
 			if max_due_date and getdate(self.restructure_date) < getdate(max_due_date):
 				frappe.throw(_("Restructure Date cannot be before last due date {0}").format(max_due_date))
 

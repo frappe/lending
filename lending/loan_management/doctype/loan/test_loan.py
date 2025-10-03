@@ -3,6 +3,8 @@
 
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.tests import IntegrationTestCase
 from frappe.utils import (
 	add_days,
@@ -2873,11 +2875,13 @@ class TestLoan(IntegrationTestCase):
 		repayment_entry.save()
 		repayment_entry.submit()
 
-		outstanding_demand = frappe.db.get_value(
-			"Loan Demand",
-			{"loan": loan.name, "loan_disbursement": disbursement.name},
-			[{"SUM": "outstanding_amount"}],
-		)
+		LoanDemand = DocType("Loan Demand")
+
+		outstanding_demand = (
+			frappe.qb.from_(LoanDemand)
+			.select(fn.Sum(LoanDemand.outstanding_amount))
+			.where((LoanDemand.loan == loan.name) & (LoanDemand.loan_disbursement == disbursement.name))
+		).run()[0][0] or 0
 
 		self.assertEqual(outstanding_demand, 0)
 
