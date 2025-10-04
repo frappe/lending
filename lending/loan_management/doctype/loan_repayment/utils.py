@@ -4,7 +4,7 @@ from frappe.query_builder import functions as fn
 from frappe.utils import cint, flt
 
 
-def get_pending_principal_amount_for_loans(loans, disbursement_map):
+def get_pending_principal_amount_for_loans(loans, disbursement_map, consolidated=False):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	principal_amount_map = {}
@@ -19,7 +19,7 @@ def get_pending_principal_amount_for_loans(loans, disbursement_map):
 		)
 	)
 	for loan in loans:
-		if loan.repayment_schedule_type == "Line of Credit":
+		if loan.repayment_schedule_type == "Line of Credit" and not consolidated:
 			for disbursement in disbursement_map.get(loan.name, []):
 				principal_amount_map[(loan.name, disbursement)] = disbursement_details[disbursement]
 		elif loan.status == "Cancelled":
