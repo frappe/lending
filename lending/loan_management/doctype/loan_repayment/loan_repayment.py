@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.query_builder.functions import Coalesce, Round, Sum
+from frappe.query_builder.functions import Coalesce, Max, Round, Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
 import erpnext
@@ -2689,12 +2689,9 @@ def process_amount_for_loan(
 def get_bulk_due_details(loans, posting_date, consolidated=False):
 	from lending.loan_management.doctype.loan_repayment.utils import (
 		get_disbursement_map,
-		get_last_demand_date,
 		get_pending_principal_amount_for_loans,
 		process_amount_for_bulk_loans,
 	)
-
-	last_demand_dates = {loan: get_last_demand_date(posting_date, loan=loan) for loan in loans}
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2722,12 +2719,10 @@ def get_bulk_due_details(loans, posting_date, consolidated=False):
 		loan_details, disbursement_map, consolidated=consolidated
 	)
 
-	unbooked_interest_map = {
-		loan: get_unbooked_interest(
-			loan=loan, posting_date=posting_date, last_demand_date=last_demand_dates[loan]
-		)
-		for loan in loans
-	}
+	unbooked_interest_map = get_unbooked_interest_for_bulk_loans(
+		loans=loans,
+		posting_date=posting_date,
+	)
 	loan_demands = get_all_demands(loans, posting_date)
 
 	demand_map = {}
@@ -3037,6 +3032,44 @@ def get_accrued_interest(
 	accrued_interest = query.run()[0][0] or 0
 
 	return flt(accrued_interest)
+
+
+def get_unbooked_interest_for_bulk_loans(loans, posting_date):
+
+	loan_demand_doc = frappe.qb.DocType("Loan Demand")
+	query_get_last_demand_date_per_loan = (
+		frappe.qb.from_(loan_demand_doc)
+		.where(loan_demand_doc.docstatus == 1)
+		.where(loan_demand_doc.demand_subtype == "Interest")
+		.where(loan_demand_doc.demand_date <= posting_date)
+		.where(loan_demand_doc.loan.isin(loans))
+		.groupby(loan_demand_doc.loan)
+		.select(
+			loan_demand_doc.loan.as_("loan"), Max(loan_demand_doc.demand_date).as_("last_demand_date")
+		)
+	)
+
+	loan_interest_accrual_doc = frappe.qb.DocType("Loan Interest Accrual")
+	query_get_interest_amounts_for_all_loans = (
+		frappe.qb.from_(loan_interest_accrual_doc)
+		.join(query_get_last_demand_date_per_loan)
+		.on(
+			(loan_interest_accrual_doc.loan == query_get_last_demand_date_per_loan.loan)
+			& (
+				loan_interest_accrual_doc.posting_date >= query_get_last_demand_date_per_loan.last_demand_date
+			)
+		)
+		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
+		.where(loan_interest_accrual_doc.docstatus == 1)
+		.where(loan_interest_accrual_doc.posting_date < posting_date)
+		.groupby(loan_interest_accrual_doc.loan)
+		.select(
+			loan_interest_accrual_doc.loan.as_("loan"),
+			Sum(loan_interest_accrual_doc.interest_amount).as_("interest_amount"),
+		)
+	)
+	result = query_get_interest_amounts_for_all_loans.run(as_dict=True)
+	return {i.loan: i.interest_amount for i in result}
 
 
 def get_net_paid_amount(loan):

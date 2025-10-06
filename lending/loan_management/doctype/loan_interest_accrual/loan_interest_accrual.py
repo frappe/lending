@@ -1213,3 +1213,10 @@ def add_maturity_breaks(parent_wise_schedules, schedules_details, posting_date):
 			parent_wise_schedules[schedule.name].append(getdate(to_accrual_date))
 
 	return maturity_map
+
+
+def on_doctype_update():
+	frappe.db.add_index(
+		"Loan Interest Accrual",
+		["loan", "docstatus", "interest_type", "posting_date"],
+	)
