@@ -338,7 +338,7 @@ def calculate_accrual_amount_for_loans(
 
 	total_payable_interest = 0
 
-	if loan_accrual_frequency == None:
+	if loan_accrual_frequency is None:
 		loan_accrual_frequency = frappe.db.get_value("Company", loan.company, "loan_accrual_frequency")
 
 	if loan.is_term_loan:
