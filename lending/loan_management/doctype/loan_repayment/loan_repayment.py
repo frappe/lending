@@ -6,22 +6,9 @@ import traceback
 
 import frappe
 from frappe import _
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.query_builder.functions import Coalesce, Round, Sum
-=======
 from frappe.query_builder.functions import Coalesce, Max, Round, Sum
->>>>>>> 46434d6 (perf: get unbooked interest using a single query)
-=======
-from frappe.query_builder import Order
-from frappe.query_builder.functions import Coalesce, Round, Sum
->>>>>>> 380a3a7 (perf: use order by desc instead of max and put it in a subquery)
-=======
-from frappe.query_builder.functions import Coalesce, Max, Round, Sum
->>>>>>> 062e80e (fix: go back to using simple aggregates)
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, random_string
 
 import erpnext
