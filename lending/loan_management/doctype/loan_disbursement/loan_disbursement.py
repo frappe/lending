@@ -165,14 +165,8 @@ class LoanDisbursement(AccountsController):
 
 		self.db_set("monthly_repayment_amount", schedule.monthly_repayment_amount)
 		if loan_details.status == "Sanctioned":
-			bpi_recovery_method = frappe.db.get_value(
-				"Loan Product", self.loan_product, "bpi_recovery_method"
-			)
-			if bpi_recovery_method == "Upfront Deduction":
-				self.db_set("broken_period_interest", flt(schedule.broken_period_interest, precision))
-				self.db_set(
-					"broken_period_interest_days", flt(schedule.broken_period_interest_days, precision)
-				)
+			self.db_set("broken_period_interest", flt(schedule.broken_period_interest, precision))
+			self.db_set("broken_period_interest_days", flt(schedule.broken_period_interest_days, precision))
 
 	def on_submit(self):
 		if self.is_term_loan:
@@ -671,25 +665,32 @@ class LoanDisbursement(AccountsController):
 				remarks,
 			)
 
-		if self.broken_period_interest:
-			broken_period_interest_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
-			)
+		bpi_recovery_method = frappe.db.get_value(
+			"Loan Product", self.loan_product, "bpi_recovery_method"
+		)
 
-			if not broken_period_interest_account:
-				frappe.throw(
-					_("Please set Broken Period Interest Recovery Account for the Loan Product {0}").format(
-						frappe.bold(self.loan_product)
-					)
+		if bpi_recovery_method == "Upfront Deduction":
+			if self.broken_period_interest:
+				broken_period_interest_account = frappe.db.get_value(
+					"Loan Product", self.loan_product, "broken_period_interest_recovery_account"
 				)
 
-			self.add_gl_entry(
-				gle_map,
-				broken_period_interest_account,
-				bank_account,
-				flt(-1 * self.broken_period_interest, precision),
-				remarks,
-			)
+				if not broken_period_interest_account:
+					frappe.throw(
+						_("Please set Broken Period Interest Recovery Account for the Loan Product {0}").format(
+							frappe.bold(self.loan_product)
+						)
+					)
+
+				self.add_gl_entry(
+					gle_map,
+					broken_period_interest_account,
+					bank_account,
+					flt(-1 * self.broken_period_interest, precision),
+					remarks,
+				)
+
+			self.add_bpi_difference_entry(gle_map)
 
 		if self.get("loan_disbursement_charges") and not cancel and not repost:
 			make_sales_invoice_for_charge(
@@ -735,8 +736,6 @@ class LoanDisbursement(AccountsController):
 					(self.disbursed_amount * loan_partner_details.partner_loan_share_percentage) / 100,
 					remarks,
 				)
-
-		self.add_bpi_difference_entry(gle_map)
 
 		if gle_map:
 			if cancel:

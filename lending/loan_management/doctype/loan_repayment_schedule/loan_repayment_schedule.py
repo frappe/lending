@@ -978,9 +978,6 @@ class LoanRepaymentSchedule(Document):
 		)
 
 		if bpi_recovery_method == "Upfront Deduction":
-			if schedule_field == "repayment_schedule":
-				self.broken_period_interest += interest_amount
-
 			payment_date = add_months(payment_date, -1)
 			self.add_repayment_schedule_row(
 				payment_date,
