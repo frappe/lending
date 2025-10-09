@@ -67,15 +67,14 @@ def update_waived_amount_in_demand(self, method=None):
 						)
 					)
 
-				if flt(demand_details.outstanding_amount) > flt(waived_amount):
-					loan_demand = frappe.qb.DocType("Loan Demand")
-					frappe.qb.update(loan_demand).set(
-						loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
-					).set(
-						loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
-					).where(
-						loan_demand.name == demand_details.name
-					).run()
+				loan_demand = frappe.qb.DocType("Loan Demand")
+				frappe.qb.update(loan_demand).set(
+					loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
+				).set(
+					loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
+				).where(
+					loan_demand.name == demand_details.name
+				).run()
 
 
 def make_partner_charge_gl_entries(doc, method):
