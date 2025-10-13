@@ -2,7 +2,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 from erpnext.accounts.general_ledger import make_gl_entries
 
@@ -35,16 +35,18 @@ def generate_demand(self, method=None):
 
 
 def update_waived_amount_in_demand(self, method=None):
-
 	loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 	if loan_status not in ["Active", "Disbursed"]:
 		return
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 	if self.get("is_return") and not self.get("loan_repayment"):
 		for item in self.get("items"):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
-			waived_amount = abs(item.base_net_amount + tax_amount)
+			waived_amount = flt(abs(item.base_net_amount + tax_amount), precision)
+
 			demand_details = frappe.db.get_value(
 				"Loan Demand",
 				{
@@ -59,17 +61,20 @@ def update_waived_amount_in_demand(self, method=None):
 
 			if demand_details:
 				if flt(demand_details.outstanding_amount) - flt(waived_amount) < 0:
-					frappe.throw(_("Waived amount cannot be greater than outstanding amount"))
+					frappe.throw(
+						_("Waived amount {0} cannot be greater than outstanding amount {1}").format(
+							flt(waived_amount), flt(demand_details.outstanding_amount)
+						)
+					)
 
-				if flt(demand_details.outstanding_amount) > flt(waived_amount):
-					loan_demand = frappe.qb.DocType("Loan Demand")
-					frappe.qb.update(loan_demand).set(
-						loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
-					).set(
-						loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
-					).where(
-						loan_demand.name == demand_details.name
-					).run()
+				loan_demand = frappe.qb.DocType("Loan Demand")
+				frappe.qb.update(loan_demand).set(
+					loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
+				).set(
+					loan_demand.outstanding_amount, loan_demand.outstanding_amount - waived_amount
+				).where(
+					loan_demand.name == demand_details.name
+				).run()
 
 
 def make_partner_charge_gl_entries(doc, method):
