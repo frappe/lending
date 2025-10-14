@@ -67,6 +67,13 @@ def update_waived_amount_in_demand(self, method=None):
 						)
 					)
 
+				precision_loss = flt(demand_details.outstanding_amount, precision) - flt(
+					waived_amount, precision
+				)
+
+				if 0 < precision_loss < 1:
+					waived_amount += precision_loss
+
 				loan_demand = frappe.qb.DocType("Loan Demand")
 				frappe.qb.update(loan_demand).set(
 					loan_demand.waived_amount, loan_demand.waived_amount + waived_amount
