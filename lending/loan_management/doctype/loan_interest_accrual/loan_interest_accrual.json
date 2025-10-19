@@ -212,7 +212,8 @@
   {
    "fieldname": "accrual_date",
    "fieldtype": "Date",
-   "label": "Accrual Date"
+   "label": "Accrual Date",
+   "search_index": 1
   },
   {
    "fieldname": "loan_repayment_schedule_detail",
@@ -288,7 +289,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-28 17:52:40.723839",
+ "modified": "2025-10-16 13:09:22.099819",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
