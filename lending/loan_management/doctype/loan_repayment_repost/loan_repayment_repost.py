@@ -248,18 +248,19 @@ class LoanRepaymentRepost(Document):
 		if is_written_off:
 			frappe.db.set_value("Loan", self.loan, "status", "Disbursed")
 
-		active_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.loan, "status": "Active", "docstatus": 1}, "name"
-		)
+		if self.cancel_future_emi_demands:
+			active_schedule = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": self.loan, "status": "Active", "docstatus": 1}, "name"
+			)
 
-		frappe.db.sql(
-			"""
-			UPDATE `tabRepayment Schedule`
-			SET demand_generated = 0
-			WHERE parent = %s AND payment_date >= %s
-		""",
-			(active_schedule, self.repost_date),
-		)
+			frappe.db.sql(
+				"""
+				UPDATE `tabRepayment Schedule`
+				SET demand_generated = 0
+				WHERE parent = %s AND payment_date >= %s
+			""",
+				(active_schedule, self.repost_date),
+			)
 
 		for entry in reversed(self.get("repayment_entries", [])):
 			if entry.loan_repayment in entries_to_cancel:
