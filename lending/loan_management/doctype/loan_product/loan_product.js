@@ -24,7 +24,7 @@ frappe.ui.form.on('Loan Product', {
 				return {
 					"filters": {
 						"company": frm.doc.company,
-						"root_type": "Asset",
+						"root_type": ["in", ["Asset", "Liability"]],
 						"is_group": 0
 					}
 				};
