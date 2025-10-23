@@ -177,8 +177,6 @@ class LoanRepaymentRepost(Document):
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
 			LoanRepayment = DocType("Loan Repayment")
-			Loan = DocType("Loan")
-			LoanDisbursement = DocType("Loan Disbursement")
 
 			totals = (
 				frappe.qb.from_(LoanRepayment)
@@ -243,7 +241,7 @@ class LoanRepaymentRepost(Document):
 				"loan": self.loan,
 				"docstatus": 1,
 				"is_settlement_write_off": 0,
-				"posting_date": (">=", self.repost_date),
+				"value_date": (">=", self.repost_date),
 			},
 		)
 

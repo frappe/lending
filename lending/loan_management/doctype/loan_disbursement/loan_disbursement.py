@@ -600,7 +600,6 @@ class LoanDisbursement(AccountsController):
 		remarks=None,
 		against_voucher_type=None,
 		against_voucher=None,
-		bpi_difference_date=None,
 	):
 		account_type = frappe.db.get_value("Account", account, "account_type")
 		gl_entries.append(
@@ -616,7 +615,7 @@ class LoanDisbursement(AccountsController):
 					"cost_center": self.cost_center,
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
-					"posting_date": self.posting_date,
+					"posting_date": self.posting_date if self.docstatus == 1 else getdate(),
 				}
 			)
 		)
@@ -634,7 +633,7 @@ class LoanDisbursement(AccountsController):
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
 					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
 					"cost_center": self.cost_center,
-					"posting_date": self.posting_date,
+					"posting_date": self.posting_date if self.docstatus == 1 else getdate(),
 				}
 			)
 		)
