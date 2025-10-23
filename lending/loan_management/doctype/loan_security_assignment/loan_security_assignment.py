@@ -81,9 +81,11 @@ class LoanSecurityAssignment(Document):
 				)
 
 	def validate_loan_security_type(self):
-		existing_lsa = frappe.db.get_value(
-			"Loan Security Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
-		)
+		existing_lsa = None
+		if self.loan:
+			existing_lsa = frappe.db.get_value(
+				"Loan Security Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
+			)
 
 		if existing_lsa:
 			loan_security_type = frappe.db.get_value(
