@@ -1907,7 +1907,9 @@ class LoanRepayment(AccountsController):
 			return
 
 		if cancel:
-			make_reverse_gl_entries(voucher_type="Loan Repayment", voucher_no=self.name)
+			make_reverse_gl_entries(
+				voucher_type="Loan Repayment", voucher_no=self.name, posting_date=getdate()
+			)
 			return
 
 		gle_map = self.get_gl_map()
