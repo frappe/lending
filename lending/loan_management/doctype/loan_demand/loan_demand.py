@@ -187,7 +187,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date,
+						"posting_date": self.posting_date if self.docstatus == 1 else getdate(),
 						"account": receivable_account,
 						"against": accrual_account,
 						"debit": self.demand_amount,
@@ -203,7 +203,7 @@ class LoanDemand(AccountsController):
 			gl_entries.append(
 				self.get_gl_dict(
 					{
-						"posting_date": self.posting_date,
+						"posting_date": self.posting_date if self.docstatus == 1 else getdate(),
 						"account": accrual_account,
 						"against": receivable_account,
 						"credit": self.demand_amount,

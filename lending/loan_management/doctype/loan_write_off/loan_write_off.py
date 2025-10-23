@@ -208,7 +208,7 @@ class LoanWriteOff(AccountsController):
 					"against_voucher": self.loan,
 					"remarks": _("Against Loan:") + self.loan,
 					"cost_center": self.cost_center,
-					"posting_date": getdate(self.posting_date),
+					"posting_date": getdate(self.posting_date) if self.docstatus == 1 else getdate(),
 				}
 			)
 		)
@@ -226,7 +226,7 @@ class LoanWriteOff(AccountsController):
 					"against_voucher": self.loan,
 					"remarks": _("Against Loan:") + self.loan,
 					"cost_center": self.cost_center,
-					"posting_date": getdate(self.posting_date),
+					"posting_date": getdate(self.posting_date) if self.docstatus == 1 else getdate(),
 				}
 			)
 		)

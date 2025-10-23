@@ -241,7 +241,7 @@ class LoanRepaymentRepost(Document):
 				"loan": self.loan,
 				"docstatus": 1,
 				"is_settlement_write_off": 0,
-				"posting_date": (">=", self.repost_date),
+				"value_date": (">=", self.repost_date),
 			},
 		)
 
