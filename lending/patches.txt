@@ -8,6 +8,12 @@ lending.patches.v15_0.rename_loan_type_to_loan_product
 execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assignment", force=True)
 execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 execute:frappe.delete_doc_if_exists("DocType", "Loan Buyback")
+<<<<<<< HEAD
+=======
+lending.patches.v1_0.fix_invalid_loan_product_values #2
+lending.patches.v1_0.rename_is_accrued_to_demand_generated #2
+execute:frappe.delete_doc_if_exists("Report", "Loan Interest Report")
+>>>>>>> 75f02b34 (chore: Remove old report (#966))
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
