@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2025-10-26 09:34+0000\n"
-"PO-Revision-Date: 2025-10-26 09:34+0000\n"
+"POT-Creation-Date: 2025-11-09 09:34+0000\n"
+"PO-Revision-Date: 2025-11-09 09:34+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -134,14 +134,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Accrual Type"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:68
-msgid "Accrued Interest"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:75
-msgid "Accrued Principal"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
@@ -562,7 +554,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:28
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:31
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:28
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:32
@@ -619,7 +610,6 @@ msgstr ""
 #. Label of the applicant_name (Data) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:27
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:33
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:40
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 msgid "Applicant Name"
@@ -666,8 +656,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:21
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:17
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:27
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:16
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:17
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:17
@@ -1228,7 +1216,6 @@ msgstr ""
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.js:8
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.js:9
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:8
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:9
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:8
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:9
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.js:9
@@ -1342,7 +1329,6 @@ msgid "Credit Adjustment Amount"
 msgstr ""
 
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:89
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:135
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:70
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:86
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:51
@@ -1644,7 +1630,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:54
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:57
 msgid "Disbursed Amount"
 msgstr ""
@@ -2001,8 +1986,6 @@ msgstr ""
 
 #. Label of the from_date (Date) field in DocType 'Loan Accrual Repost'
 #: lending/loan_management/doctype/loan_accrual_repost/loan_accrual_repost.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:41
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:46
 msgid "From Date"
 msgstr ""
 
@@ -2083,10 +2066,6 @@ msgstr ""
 msgid "Interest"
 msgstr ""
 
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:117
-msgid "Interest %"
-msgstr ""
-
 #. Label of the interest_accounts_section (Section Break) field in DocType
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -2152,10 +2131,6 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1966
 msgid "Interest Income Account is mandatory"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:96
-msgid "Interest Outstanding"
 msgstr ""
 
 #. Label of the interest_overdue (Currency) field in DocType 'Loan Restructure'
@@ -2425,7 +2400,6 @@ msgstr ""
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:18
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:41
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:18
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:24
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:81
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:39
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:24
@@ -2798,9 +2772,7 @@ msgstr ""
 msgid "Loan Interest Accruals"
 msgstr ""
 
-#. Name of a report
 #. Label of a Link in the Lending Workspace
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Loan Interest Report"
 msgstr ""
@@ -2991,7 +2963,6 @@ msgstr ""
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:20
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:23
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:32
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:40
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:62
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:63
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:68
@@ -3323,7 +3294,6 @@ msgstr ""
 #. Label of the loan_to_value_ratio (Percent) field in DocType 'Loan Security
 #. Type'
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:129
 msgid "Loan To Value Ratio"
 msgstr ""
 
@@ -4065,7 +4035,6 @@ msgstr ""
 #. Label of the penalty_amount (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:47
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:61
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:49
 msgid "Penalty Amount"
 msgstr ""
@@ -4098,10 +4067,6 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1997
 msgid "Penalty Income Account is mandatory"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:123
-msgid "Penalty Interest %"
 msgstr ""
 
 #. Label of the penalty_interest_rate (Percent) field in DocType 'Loan Product'
@@ -4214,7 +4179,6 @@ msgstr ""
 msgid "Please enter repayment Amount"
 msgstr ""
 
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.js:34
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:37
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:34
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:34
@@ -4486,7 +4450,6 @@ msgstr ""
 #. Label of the principal_outstanding (Currency) field in DocType 'Loan
 #. Restructure Limit Log'
 #: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:89
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:88
 msgid "Principal Outstanding"
 msgstr ""
@@ -5103,10 +5066,6 @@ msgstr ""
 msgid "Sanctioned"
 msgstr ""
 
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:47
-msgid "Sanctioned Amount"
-msgstr ""
-
 #. Label of the sanctioned_amount_limit (Currency) field in DocType 'Sanctioned
 #. Loan Amount'
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
@@ -5283,7 +5242,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:25
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:141
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:26
 msgid "Status"
@@ -5497,10 +5455,6 @@ msgstr ""
 msgid "Total Interest Payable"
 msgstr ""
 
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:103
-msgid "Total Outstanding"
-msgstr ""
-
 #. Label of the total_overdue_amount (Currency) field in DocType 'Loan
 #. Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -5559,10 +5513,6 @@ msgstr ""
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:61
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:52
 msgid "Total Qty"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:82
-msgid "Total Repayment"
 msgstr ""
 
 #. Label of the total_security_value (Currency) field in DocType 'Loan Security
@@ -5644,10 +5594,6 @@ msgstr ""
 #. Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Unbooked Penalty Paid"
-msgstr ""
-
-#: lending/loan_management/report/loan_interest_report/loan_interest_report.py:110
-msgid "Undue Booked Interest"
 msgstr ""
 
 #. Label of the unfreeze_date (Date) field in DocType 'Loan Freeze Log'
