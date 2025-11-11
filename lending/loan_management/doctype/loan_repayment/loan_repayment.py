@@ -215,7 +215,7 @@ class LoanRepayment(AccountsController):
 				"loan_repayment",
 				self.name,
 				self.applicant if self.applicant_type == "Customer" else None,
-				self.posting_date,
+				self.value_date,
 				self.company,
 				self.get("prepayment_charges"),
 			)
@@ -224,7 +224,11 @@ class LoanRepayment(AccountsController):
 			reversed_accruals += self.reverse_future_accruals_and_demands()
 
 		if self.principal_amount_paid < self.pending_principal_amount:
-			if self.is_term_loan and self.repayment_type in ("Advance Payment", "Pre Payment"):
+			if (
+				self.is_term_loan
+				and self.repayment_type in ("Advance Payment", "Pre Payment")
+				or self.get("prepayment_charges")
+			):
 				amounts = calculate_amounts(
 					self.against_loan,
 					self.value_date,
@@ -235,17 +239,18 @@ class LoanRepayment(AccountsController):
 				self.allocate_amount_against_demands(amounts, on_submit=True)
 				self.db_update_all()
 
-				create_update_loan_reschedule(
-					self.against_loan,
-					self.value_date,
-					self.name,
-					self.repayment_type,
-					self.principal_amount_paid,
-					self.unbooked_interest_paid,
-					loan_disbursement=self.loan_disbursement,
-				)
+				if self.repayment_type in ("Advance Payment", "Pre Payment"):
+					create_update_loan_reschedule(
+						self.against_loan,
+						self.value_date,
+						self.name,
+						self.repayment_type,
+						self.principal_amount_paid,
+						self.unbooked_interest_paid,
+						loan_disbursement=self.loan_disbursement,
+					)
 
-				self.process_reschedule()
+					self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
 			self.principal_amount_paid >= self.pending_principal_amount
