@@ -1723,3 +1723,32 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		for demand in demands:
 			self.assertEqual(demand.outstanding_amount, 0)
+
+	def test_prepayment_charge_payment(self):
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+			penalty_charges_rate=12,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-09-05", 500, prepayment_charges=[{"charge": "Processing Fee", "amount": 500}]
+		)
+		repayment_entry.submit()
+
+		repayment_entry.load_from_db()
+		self.assertEqual(repayment_entry.total_charges_paid, 500)
+		self.assertEqual(repayment_entry.repayment_details[0].demand_subtype, "Processing Fee")

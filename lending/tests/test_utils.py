@@ -551,6 +551,7 @@ def create_repayment_entry(
 	repayment_type="Normal Repayment",
 	loan_disbursement=None,
 	payable_charges=None,
+	prepayment_charges=None,
 ):
 	lr = frappe.new_doc("Loan Repayment")
 	lr.against_loan = loan
@@ -564,6 +565,10 @@ def create_repayment_entry(
 	if payable_charges:
 		for charge in payable_charges:
 			lr.append("payable_charges", charge)
+
+	if prepayment_charges:
+		for charge in prepayment_charges:
+			lr.append("prepayment_charges", charge)
 
 	lr.insert(ignore_permissions=True)
 
