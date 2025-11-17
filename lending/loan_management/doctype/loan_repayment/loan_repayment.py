@@ -3005,13 +3005,34 @@ def get_latest_accrual_date(
 
 def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_demand_date=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	balance_interest = 0
 
 	accrued_interest = get_accrued_interest(
 		loan, posting_date, loan_disbursement=loan_disbursement, last_demand_date=last_demand_date
 	)
 	unbooked_interest = flt(accrued_interest, precision)
 
+	if last_demand_date:
+		balance_interest = flt(
+			get_balance_interest(loan, last_demand_date, loan_disbursement=loan_disbursement), precision
+		)
+
+		unbooked_interest = unbooked_interest + balance_interest
+
 	return unbooked_interest
+
+
+def get_balance_interest(loan, last_demand_date, loan_disbursement=None):
+	filters = {"loan": loan, "docstatus": 1, "restructure_date": ("<=", last_demand_date)}
+
+	if loan_disbursement:
+		filters["loan_disbursement"] = loan_disbursement
+
+	balance_interest = frappe.db.get_value(
+		"Loan Restructure", filters, "balance_unaccrued_interest", order_by="restructure_date desc"
+	)
+
+	return balance_interest
 
 
 def get_accrued_interest(
