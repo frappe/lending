@@ -3023,7 +3023,7 @@ def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_deman
 
 
 def get_balance_interest(loan, last_demand_date, loan_disbursement=None):
-	filters = {"loan": loan, "docstatus": 1, "restructure_date": ("<=", last_demand_date)}
+	filters = {"loan": loan, "docstatus": 1, "restructure_date": (">=", last_demand_date)}
 
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
