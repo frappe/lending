@@ -396,7 +396,7 @@ class TestLoan(IntegrationTestCase):
 		amounts = frappe.db.get_all(
 			"Loan Demand",
 			{"loan": loan.name, "demand_type": "Normal", "demand_subtype": "Interest"},
-			["SUM(demand_amount) as payable_amount"],
+			[{"SUM": "demand_amount", "as": "payable_amount"}],
 		)
 
 		self.assertEqual(flt(amounts[0].payable_amount, 0), flt(accrued_interest_amount, 0))
@@ -566,7 +566,7 @@ class TestLoan(IntegrationTestCase):
 		amounts = frappe.db.get_all(
 			"Loan Demand",
 			{"loan": loan.name, "demand_type": "EMI", "demand_subtype": "Interest"},
-			["SUM(paid_amount) as paid_amount"],
+			[{"SUM": "paid_amount", "as": "paid_amount"}],
 		)
 
 		self.assertEqual(flt(amounts[0].paid_amount, 2), 11465.75)
