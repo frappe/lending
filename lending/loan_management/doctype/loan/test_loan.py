@@ -393,11 +393,19 @@ class TestLoan(IntegrationTestCase):
 
 		repayment_entry.submit()
 
-		amounts = frappe.db.get_all(
-			"Loan Demand",
-			{"loan": loan.name, "demand_type": "Normal", "demand_subtype": "Interest"},
-			["SUM(demand_amount) as payable_amount"],
-		)
+		LoanDemand = DocType("Loan Demand")
+
+		amounts = (
+			frappe.qb.from_(LoanDemand)
+			.select(
+				fn.Sum(LoanDemand.demand_amount).as_("payable_amount"),
+			)
+			.where(
+				(LoanDemand.loan == loan.name)
+				& (LoanDemand.demand_type == "Normal")
+				& (LoanDemand.demand_subtype == "Interest")
+			)
+		).run(as_dict=True)
 
 		self.assertEqual(flt(amounts[0].payable_amount, 0), flt(accrued_interest_amount, 0))
 		self.assertEqual(flt(repayment_entry.penalty_amount, 5), 0)
@@ -563,11 +571,19 @@ class TestLoan(IntegrationTestCase):
 		# 	"Loan Interest Accrual", {"loan": loan.name}, ["paid_interest_amount", "paid_principal_amount"]
 		# )
 
-		amounts = frappe.db.get_all(
-			"Loan Demand",
-			{"loan": loan.name, "demand_type": "EMI", "demand_subtype": "Interest"},
-			["SUM(paid_amount) as paid_amount"],
-		)
+		LoanDemand = DocType("Loan Demand")
+
+		amounts = (
+			frappe.qb.from_(LoanDemand)
+			.select(
+				fn.Sum(LoanDemand.paid_amount).as_("paid_amount"),
+			)
+			.where(
+				(LoanDemand.loan == loan.name)
+				& (LoanDemand.demand_type == "EMI")
+				& (LoanDemand.demand_subtype == "Interest")
+			)
+		).run(as_dict=True)
 
 		self.assertEqual(flt(amounts[0].paid_amount, 2), 11465.75)
 		self.assertEqual(flt(repayment_entry.principal_amount_paid, 2), 78303.00)
