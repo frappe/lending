@@ -137,8 +137,8 @@ class LoanInterestAccrual(AccountsController):
 					self.company,
 					self.loan_product,
 					self.interest_amount,
-					self.posting_date,
 					self.accrual_date,
+					self.posting_date,
 					is_penal=is_penal,
 					additional_interest=self.additional_interest_amount,
 				)
