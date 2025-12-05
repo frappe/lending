@@ -280,7 +280,7 @@ def make_loan_waivers(loan, posting_date):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-	amounts = calculate_amounts(loan, posting_date)
+	amounts = calculate_amounts(loan, posting_date, for_update=True)
 	if amounts.get("penalty_amount") > 0:
 		create_loan_repayment(
 			loan,
