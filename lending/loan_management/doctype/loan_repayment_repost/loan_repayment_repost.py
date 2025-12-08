@@ -141,7 +141,6 @@ class LoanRepaymentRepost(Document):
 				frappe.delete_doc("Loan Repayment Detail", repayment_detail.name, force=1)
 
 	def trigger_on_cancel_events(self):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		entries_to_cancel = [d.loan_repayment for d in self.get("entries_to_cancel")]
 		for entry in self.get("repayment_entries"):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
@@ -154,19 +153,7 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.docstatus = 2
 
 				repayment_doc.update_demands(cancel=1)
-
-				amounts = calculate_amounts(
-					repayment_doc.against_loan,
-					repayment_doc.value_date,
-					payment_type=repayment_doc.repayment_type,
-					loan_disbursement=repayment_doc.loan_disbursement,
-					for_update=True,
-				)
-
-				payable_amount = flt(amounts.get("payable_amount", 0), precision)
-
-				if repayment_doc.amount_paid <= payable_amount:
-					repayment_doc.update_security_deposit_amount(cancel=1)
+				repayment_doc.update_security_deposit_amount(cancel=1)
 
 				if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment"):
 					repayment_doc.cancel_loan_restructure()
