@@ -1418,28 +1418,40 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None, value_date=
 		as_dict=1,
 	)
 
-	amounts = frappe._dict(
-		frappe.db.get_all(
-			"GL Entry",
-			fields=["account", "sum(credit) - sum(debit) as amount"],
-			filters={
-				"against_voucher_type": "Loan",
-				"against_voucher": loan,
-				"account": (
-					"in",
+	GL = DocType("GL Entry")
+
+	rows = (
+		frappe.qb.from_(GL)
+		.select(
+			GL.account,
+			fn.Sum(GL.credit).as_("credit"),
+			fn.Sum(GL.debit).as_("debit"),
+		)
+		.where(
+			(GL.against_voucher_type == "Loan")
+			& (GL.against_voucher == loan)
+			& (
+				GL.account.isin(
 					[
 						accounts.interest_receivable_account,
 						accounts.additional_interest_receivable,
 						accounts.penalty_receivable_account,
-					],
-				),
-				"is_cancelled": 0,
-				"posting_date": ("<=", posting_date),
-			},
-			group_by="account",
-			as_list=1,
+					]
+				)
+			)
+			& (GL.is_cancelled == 0)
+			& (GL.posting_date <= posting_date)
 		)
-	)
+		.groupby(GL.account)
+	).run(as_dict=True)
+
+	amounts = frappe._dict()
+	for row in rows:
+		account = row["account"]
+		credit = row.get("credit") or 0
+		debit = row.get("debit") or 0
+		amount = credit - debit
+		amounts[account] = amount
 
 	if abs(amounts.get(accounts.interest_receivable_account, 0)) > 0 or unbooked_interest > 0:
 		amount = abs(amounts.get(accounts.interest_receivable_account, 0)) + unbooked_interest

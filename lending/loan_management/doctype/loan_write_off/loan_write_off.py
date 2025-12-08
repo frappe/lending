@@ -352,28 +352,39 @@ def write_off_suspense_entries(
 		as_dict=1,
 	)
 
-	amounts = frappe._dict(
-		frappe.db.get_all(
-			"GL Entry",
-			fields=["account", "sum(credit) - sum(debit) as amount"],
-			filters={
-				"against_voucher_type": "Loan",
-				"against_voucher": loan,
-				"account": (
-					"in",
+	GL = DocType("GL Entry")
+
+	rows = (
+		frappe.qb.from_(GL)
+		.select(
+			GL.account,
+			fn.Sum(GL.credit).as_("credit"),
+			fn.Sum(GL.debit).as_("debit"),
+		)
+		.where(
+			(GL.against_voucher_type == "Loan")
+			& (GL.against_voucher == loan)
+			& (
+				GL.account.isin(
 					[
 						accounts.suspense_interest_income,
 						accounts.penalty_suspense_account,
 						accounts.additional_interest_suspense,
-					],
-				),
-				"is_cancelled": 0,
-				"posting_date": ("<=", posting_date),
-			},
-			group_by="account",
-			as_list=1,
+					]
+				)
+			)
+			& (GL.is_cancelled == 0)
+			& (GL.posting_date <= posting_date)
 		)
-	)
+		.groupby(GL.account)
+	).run(as_dict=True)
+
+	amounts = frappe._dict()
+	for row in rows:
+		account = row["account"]
+		credit = row.get("credit") or 0
+		debit = row.get("debit") or 0
+		amounts[account] = credit - debit
 
 	if amounts.get(accounts.suspense_interest_income, 0) > 0:
 		if interest_amount and (
@@ -480,22 +491,34 @@ def write_off_charges(
 	)
 
 	suspense_accounts = [key for key, value in suspense_account_map.items()]
+	if not suspense_accounts:
+		return
 
-	amounts = frappe._dict(
-		frappe.db.get_all(
-			"GL Entry",
-			fields=["account", "sum(credit) - sum(debit) as amount"],
-			filters={
-				"against_voucher_type": "Loan",
-				"against_voucher": loan,
-				"account": ("in", suspense_accounts),
-				"is_cancelled": 0,
-				"posting_date": ("<=", posting_date),
-			},
-			group_by="account",
-			as_list=1,
+	GL = DocType("GL Entry")
+
+	rows = (
+		frappe.qb.from_(GL)
+		.select(
+			GL.account,
+			fn.Sum(GL.credit).as_("credit"),
+			fn.Sum(GL.debit).as_("debit"),
 		)
-	)
+		.where(
+			(GL.against_voucher_type == "Loan")
+			& (GL.against_voucher == loan)
+			& (GL.account.isin(suspense_accounts))
+			& (GL.is_cancelled == 0)
+			& (GL.posting_date <= posting_date)
+		)
+		.groupby(GL.account)
+	).run(as_dict=True)
+
+	amounts = frappe._dict()
+	for row in rows:
+		account = row["account"]
+		credit = row.get("credit") or 0
+		debit = row.get("debit") or 0
+		amounts[account] = credit - debit
 
 	for account, amount in amounts.items():
 		if amount > 0:
@@ -565,20 +588,28 @@ def get_write_off_waivers_for_cancel(loan_name, posting_date):
 
 
 def get_write_off_waivers(loan_name, posting_date):
-	return frappe._dict(
-		frappe.db.get_all(
-			"Loan Repayment",
-			filters={
-				"against_loan": loan_name,
-				"value_date": ("<=", posting_date),
-				"docstatus": 1,
-				"is_write_off_waiver": 1,
-			},
-			fields=["repayment_type", "sum(amount_paid) as amount"],
-			group_by="repayment_type",
-			as_list=1,
+	LoanRepayment = DocType("Loan Repayment")
+
+	rows = (
+		frappe.qb.from_(LoanRepayment)
+		.select(
+			LoanRepayment.repayment_type,
+			fn.Sum(LoanRepayment.amount_paid).as_("amount"),
 		)
-	)
+		.where(
+			(LoanRepayment.against_loan == loan_name)
+			& (LoanRepayment.value_date <= posting_date)
+			& (LoanRepayment.docstatus == 1)
+			& (LoanRepayment.is_write_off_waiver == 1)
+		)
+		.groupby(LoanRepayment.repayment_type)
+	).run(as_dict=True)
+
+	result = frappe._dict()
+	for row in rows:
+		result[row["repayment_type"]] = row.get("amount") or 0
+
+	return result
 
 
 def get_write_off_recovery_details(loan_name, posting_date, settlement_date=None):
