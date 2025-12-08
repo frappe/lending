@@ -27,6 +27,8 @@
   "city",
   "state",
   "country",
+  "co_applicants_section",
+  "co_applicants",
   "section_break_4",
   "loan_product",
   "is_term_loan",
@@ -226,12 +228,12 @@
   {
    "fieldname": "applicant_details_section",
    "fieldtype": "Section Break",
-   "label": "Applicant Details"
+   "label": "Primary Applicant Details"
   },
   {
    "fieldname": "applicant_contact_info_section",
    "fieldtype": "Section Break",
-   "label": "Applicant Contact Info"
+   "label": "Primary Applicant Contact Info"
   },
   {
    "fieldname": "column_break_dxiv",
@@ -267,7 +269,7 @@
   {
    "fieldname": "applicant_address_details_section",
    "fieldtype": "Section Break",
-   "label": "Applicant Address Details"
+   "label": "Primary Applicant Address Details"
   },
   {
    "depends_on": "eval: doc.applicant_type == \"Customer\"",
@@ -320,12 +322,22 @@
    "fieldtype": "Table",
    "label": "Documents",
    "options": "Loan Application Document"
+  },
+  {
+   "fieldname": "co_applicants_section",
+   "fieldtype": "Section Break",
+   "label": "Co-Applicants"
+  },
+  {
+   "fieldname": "co_applicants",
+   "fieldtype": "Table",
+   "options": "Loan Co-Applicants"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-12 15:06:52.004435",
+ "modified": "2025-11-05 16:12:50.900024",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

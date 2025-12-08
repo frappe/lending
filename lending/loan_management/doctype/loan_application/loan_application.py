@@ -37,6 +37,9 @@ class LoanApplication(Document):
 		from lending.loan_origination.doctype.loan_application_document.loan_application_document import (
 			LoanApplicationDocument,
 		)
+		from lending.loan_origination.doctype.loan_co_applicants.loan_co_applicants import (
+			LoanCoApplicants,
+		)
 
 		address_line_1: DF.Data | None
 		address_line_2: DF.Data | None
@@ -46,6 +49,7 @@ class LoanApplication(Document):
 		applicant_phone_number: DF.Phone | None
 		applicant_type: DF.Literal["Employee", "Customer"]
 		city: DF.Data | None
+		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
 		country: DF.Link | None
 		description: DF.SmallText | None
