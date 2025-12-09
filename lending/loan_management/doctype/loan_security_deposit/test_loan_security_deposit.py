@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt, get_datetime
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -20,7 +20,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanSecurityDeposit(IntegrationTestCase):
+class TestLoanSecurityDeposit(FrappeTestCase):
 	"""
 	Integration tests for LoanSecurityDeposit.
 	Use this class for testing interactions between multiple components.
