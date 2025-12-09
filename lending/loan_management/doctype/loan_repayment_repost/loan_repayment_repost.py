@@ -153,9 +153,7 @@ class LoanRepaymentRepost(Document):
 				repayment_doc.docstatus = 2
 
 				repayment_doc.update_demands(cancel=1)
-
-				if repayment_doc.amount_paid <= repayment_doc.payable_amount:
-					repayment_doc.update_security_deposit_amount(cancel=1)
+				repayment_doc.update_security_deposit_amount(cancel=1)
 
 				if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment"):
 					repayment_doc.cancel_loan_restructure()
