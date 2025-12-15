@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class LoanApplicationDocument(Document):
+class LoanDocumentType(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -14,11 +14,7 @@ class LoanApplicationDocument(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		document_type: DF.Link
-		file: DF.Attach
-		parent: DF.Data
-		parentfield: DF.Data
-		parenttype: DF.Data
+		loan_document_type: DF.Data | None
 	# end: auto-generated types
 
 	pass
