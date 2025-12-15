@@ -166,8 +166,8 @@ class LoanRepaymentSchedule(Document):
 			prepayment_details.adjusted_unaccrued_interest
 			and prepayment_details.adjusted_unaccrued_interest < prepayment_details.unaccrued_interest
 		):
-			interest_amount = prepayment_details.unaccrued_interest
-			paid_interest_amount = prepayment_details.adjusted_unaccrued_interest
+			interest_amount = prepayment_details.adjusted_unaccrued_interest
+			paid_interest_amount = interest_amount
 
 		if flt(interest_amount) > 0:
 			create_loan_demand(
