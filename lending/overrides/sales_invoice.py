@@ -61,7 +61,7 @@ def update_waived_amount_in_demand(self, method=None):
 
 			if demand_details:
 				# Ignore 0.1 difference due to precision loss
-				if flt(demand_details.outstanding_amount) - flt(waived_amount) < 0.1:
+				if flt(demand_details.outstanding_amount) - flt(waived_amount) < -0.1:
 					frappe.throw(
 						_("Waived amount {0} cannot be greater than outstanding amount {1}").format(
 							flt(waived_amount), flt(demand_details.outstanding_amount)
