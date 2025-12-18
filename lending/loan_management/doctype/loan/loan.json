@@ -70,8 +70,14 @@
    "fieldname": "applicant_type",
    "fieldtype": "Select",
    "label": "Applicant Type",
+<<<<<<< HEAD
    "options": "Employee\nMember\nCustomer",
    "reqd": 1
+=======
+   "options": "Customer\nEmployee",
+   "reqd": 1,
+   "search_index": 1
+>>>>>>> 250142f6 (chore: Make loan booking customer first (#1021))
   },
   {
    "fieldname": "applicant",
@@ -479,7 +485,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-10-11 13:26:31.406754",
+=======
+ "modified": "2025-12-18 10:42:35.606076",
+>>>>>>> 250142f6 (chore: Make loan booking customer first (#1021))
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
@@ -506,6 +516,7 @@
    "role": "Employee"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "posting_date",
  "sort_field": "creation",
  "sort_order": "DESC",
