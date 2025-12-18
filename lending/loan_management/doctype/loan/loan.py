@@ -52,7 +52,7 @@ class Loan(AccountsController):
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink
 		applicant_name: DF.Data | None
-		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		applicant_type: DF.Literal["Customer", "Employee"]
 		available_limit_amount: DF.Currency
 		cancellation_date: DF.Date | None
 		classification_code: DF.Link | None

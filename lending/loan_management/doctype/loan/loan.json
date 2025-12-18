@@ -99,7 +99,7 @@
    "fieldname": "applicant_type",
    "fieldtype": "Select",
    "label": "Applicant Type",
-   "options": "Employee\nMember\nCustomer",
+   "options": "Customer\nEmployee",
    "reqd": 1,
    "search_index": 1
   },
@@ -710,7 +710,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-23 16:14:48.341833",
+ "modified": "2025-12-18 10:42:35.606076",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
@@ -737,6 +737,7 @@
    "role": "Employee"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "posting_date",
  "sort_field": "creation",
  "sort_order": "DESC",
