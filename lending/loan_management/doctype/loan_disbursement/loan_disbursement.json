@@ -277,7 +277,7 @@
    "depends_on": "eval:doc.is_term_loan && doc.repayment_frequency != \"One Time\" && doc.repayment_schedule_type == \"Line of Credit\"",
    "fieldname": "tenure",
    "fieldtype": "Int",
-   "label": "Tenure",
+   "label": "Loan Tenure",
    "mandatory_depends_on": "eval:doc.repayment_schedule_type==\"Line of Credit\""
   },
   {
