@@ -2,8 +2,6 @@
 # See license.txt
 
 import frappe
-
-# import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate
 

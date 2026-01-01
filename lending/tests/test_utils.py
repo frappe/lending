@@ -255,6 +255,14 @@ def create_loan_accounts():
 	)
 
 	create_account(
+		"Charge Income Account",
+		"Direct Income - _TC",
+		"Income",
+		"Income Account",
+		"Profit and Loss",
+	)
+
+	create_account(
 		"Processing Fee Receivable Account",
 		"Loans and Advances (Assets) - _TC",
 		"Asset",
@@ -445,6 +453,19 @@ def add_or_update_loan_charges(product_name):
 		},
 	)
 	loan_product.save()
+
+
+def create_charge_master(charge_type):
+	if not frappe.db.exists("Item", charge_type):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": charge_type,
+				"item_group": "Services",
+				"is_stock_item": 0,
+				"income_account": "Charge Income Account - _TC",
+			}
+		).insert()
 
 
 def create_loan_security_type():
@@ -940,6 +961,8 @@ def init_loan_products():
 		collection_offset_sequence_for_written_off_asset=None,
 		collection_offset_sequence_for_settlement_collection=None,
 	)
+
+	create_charge_master("Documentation Charge")
 
 
 def init_customers():
