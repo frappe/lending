@@ -274,11 +274,10 @@ class LoanRestructure(AccountsController):
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
 
-				# self.make_waiver_and_capitalization_for_penalty()
+				self.make_waiver_and_capitalization_for_penalty()
 				self.make_loan_repayment_for_adjustment()
 				self.make_loan_repayment_for_waiver()
-				# self.make_loan_adjustment_for_capitalization()
-				self.make_loan_adjustment_for_carry_forward()
+				self.make_loan_adjustment_for_capitalization()
 
 			self.restructure_loan()
 
@@ -682,35 +681,6 @@ class LoanRestructure(AccountsController):
 				self.balance_charges,
 				restructure_name=self.name,
 			)
-
-		if self.balance_principal:
-			create_loan_repayment(
-				self.loan,
-				self.restructure_date,
-				"Principal Capitalization",
-				self.balance_principal,
-				restructure_name=self.name,
-			)
-
-	def make_loan_adjustment_for_carry_forward(self):
-		if self.restructure_type == "Normal Restructure":
-			if self.balance_interest_amount and self.treatment_of_normal_interest == "Add To First EMI":
-				create_loan_repayment(
-					self.loan,
-					self.restructure_date,
-					"Interest Carry Forward",
-					self.balance_interest_amount,
-					restructure_name=self.name,
-				)
-
-			if self.balance_unaccrued_interest and self.unaccrued_interest_treatment == "Add To First EMI":
-				create_loan_repayment(
-					self.loan,
-					self.restructure_date,
-					"Interest Carry Forward",
-					self.balance_unaccrued_interest,
-					restructure_name=self.name,
-				)
 
 
 def create_loan_repayment(
