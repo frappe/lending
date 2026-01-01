@@ -18,7 +18,6 @@ from frappe.utils import (
 )
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-from erpnext.setup.doctype.employee.test_employee import make_employee
 
 from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
 from lending.loan_management.doctype.loan_application.loan_application import (
@@ -30,10 +29,7 @@ from lending.loan_management.doctype.loan_disbursement.loan_disbursement import 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-	calculate_amounts,
-	post_bulk_payments,
-)
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -834,10 +830,6 @@ class TestLoan(IntegrationTestCase):
 		no_of_days = date_diff(last_date, first_date) + 1
 
 		no_of_days += 5
-
-		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * no_of_days) / (
-			days_in_year(get_datetime(first_date).year) * 100
-		)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
 		process_loan_interest_accrual_for_loans(
@@ -2242,17 +2234,17 @@ class TestLoan(IntegrationTestCase):
 
 		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
 
-		repayment_entry_1 = create_repayment_entry(
+		create_repayment_entry(
 			loan.name, "2024-10-05", 3000, loan_disbursement=loan_disbursement
 		).submit()
-		repayment_entry_2 = create_repayment_entry(
+		create_repayment_entry(
 			loan.name, "2024-10-09", 782, loan_disbursement=loan_disbursement
 		).submit()
 
 		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		repayment_entry_3 = create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
-		repayment_entry_4 = create_repayment_entry(loan.name, "2024-11-10", 782).submit()
+		create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
+		create_repayment_entry(loan.name, "2024-11-10", 782).submit()
 
 		create_process_loan_classification(
 			posting_date="2024-10-05", loan=loan.name, loan_disbursement=loan_disbursement
@@ -2796,8 +2788,6 @@ class TestLoan(IntegrationTestCase):
 		)
 
 	def test_normal_loan_repayment_schedule_close(self):
-		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",

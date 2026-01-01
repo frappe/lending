@@ -400,7 +400,7 @@ def process_demand_loan_batch(loans, posting_date, process_loan_demand):
 	for loan in loans:
 		try:
 			make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand)
-		except Exception as e:
+		except Exception:
 			frappe.log_error(
 				title="Demand Loan Demand Generation Error",
 				message=frappe.get_traceback(),

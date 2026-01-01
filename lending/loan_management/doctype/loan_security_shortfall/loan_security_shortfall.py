@@ -115,8 +115,6 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 		)
 	)
 
-	loan_security_map = {}
-
 	for loan in loans:
 		if loan.status == "Disbursed":
 			outstanding_amount = (

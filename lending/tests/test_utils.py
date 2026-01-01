@@ -530,7 +530,7 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 		"name",
 	):
 
-		lsp = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "Loan Security Price",
 				"loan_security": loan_security,

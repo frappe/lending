@@ -62,10 +62,6 @@ class LoanSecurityRelease(Document):
 
 		pledge_qty_map = get_pledged_security_qty(self.loan)
 
-		ltv_ratio_map = frappe._dict(
-			frappe.get_all("Loan Security Type", fields=["name", "loan_to_value_ratio"], as_list=1)
-		)
-
 		loan_security_price_map = frappe._dict(
 			frappe.get_all(
 				"Loan Security Price",

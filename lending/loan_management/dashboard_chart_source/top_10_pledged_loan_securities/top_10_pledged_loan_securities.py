@@ -89,7 +89,7 @@ def get_data(
 		labels.append(security)
 		count += 1
 
-		## Just need top 10 securities
+		# Just need top 10 securities
 		if count == 10:
 			break
 

@@ -40,7 +40,7 @@ def add_unique_constraints():
 		try:
 			frappe.db.add_unique("Customer", field)
 
-		except Exception as e:
+		except Exception:
 			# remove any added constraints
 			remove_unique_constraints()
 
@@ -57,12 +57,12 @@ def get_fields_with_unique_constraints():
 	)  # for raw sql querying
 	fields_with_unique_constraints = frappe.db.sql(
 		f"""
-															select column_name
-															from information_schema.statistics
-															where table_name='tabCustomer'
-															and column_name in ({field_string})
-															and non_unique = 0
-														"""
+			select column_name
+			from information_schema.statistics
+			where table_name='tabCustomer'
+			and column_name in ({field_string})
+			and non_unique = 0
+		"""
 	)
 	fields_with_unique_constraints = [i[0] for i in fields_with_unique_constraints]
 

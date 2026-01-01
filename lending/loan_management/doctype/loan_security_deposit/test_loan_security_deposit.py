@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import flt, get_datetime
+from frappe.utils import flt
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -16,7 +16,6 @@ from lending.tests.test_utils import (
 	init_loan_products,
 	make_loan_disbursement_entry,
 	master_init,
-	set_loan_accrual_frequency,
 )
 
 

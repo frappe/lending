@@ -13,11 +13,9 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_monthly_repayment_amount,
 )
-from lending.loan_management.doctype.loan_restructure.loan_restructure import create_loan_repayment
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
-from lending.loan_management.doctype.repayment_schedule import repayment_schedule
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,

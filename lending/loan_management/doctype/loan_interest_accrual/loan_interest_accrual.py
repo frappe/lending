@@ -963,7 +963,6 @@ def get_last_accrual_date(
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
-	Loan = DocType("Loan")
 	LoanDisbursement = DocType("Loan Disbursement")
 
 	schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type", cache=True)

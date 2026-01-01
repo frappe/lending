@@ -90,11 +90,6 @@ class LoanApplication(Document):
 
 	def before_save(self):
 		if self.applicant_type == "Customer":
-			duplicates = check_duplicate_customers(
-				applicant_phone_number=self.applicant_phone_number,
-				applicant_email_address=self.applicant_email_address,
-			)
-
 			if not self.applicant:
 				customer = frappe.new_doc("Customer")
 				customer.customer_name = self.first_name or "" + " " + self.last_name or ""

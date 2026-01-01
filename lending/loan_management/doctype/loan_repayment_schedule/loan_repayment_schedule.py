@@ -132,8 +132,9 @@ class LoanRepaymentSchedule(Document):
 		)
 
 		advance_payment = ""
-		if not self.restructure_type in ("Advance Payment", "Pre Payment"):
+		if self.restructure_type not in ("Advance Payment", "Pre Payment"):
 			return
+
 		for row in self.repayment_schedule:
 			if not row.demand_generated:
 				advance_payment = row

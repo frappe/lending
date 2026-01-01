@@ -27,6 +27,9 @@ class LoanProduct(Document):
 		additional_interest_suspense: DF.Link | None
 		additional_interest_waiver: DF.Link | None
 		amended_from: DF.Link | None
+		bpi_recovery_method: DF.Literal[
+			"", "Upfront Deduction", "Amortized Over Tenure", "Add to First EMI"
+		]
 		broken_period_interest_recovery_account: DF.Link
 		collection_offset_sequence_for_settlement_collection: DF.Link | None
 		collection_offset_sequence_for_standard_asset: DF.Link | None

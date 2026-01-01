@@ -55,7 +55,8 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		payable_amount = calculate_amounts(against_loan=loan.name, posting_date="2025-02-15")[
 			"payable_amount"
 		]
-		repayment_entry = create_repayment_entry(
+
+		create_repayment_entry(
 			loan.name, get_datetime("2025-02-15 00:06:10"), payable_amount
 		).submit()
 

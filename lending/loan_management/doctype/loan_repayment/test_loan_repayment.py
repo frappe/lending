@@ -1131,7 +1131,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertEqual(flt(principal_amount, 2), 37593.01)
 		self.assertEqual(flt(interest_amount, 2), 17295.99)
 
-		unpaid_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
+		calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")
