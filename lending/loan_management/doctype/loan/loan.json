@@ -36,13 +36,15 @@
   "is_term_loan",
   "term_details_section",
   "repayment_start_date",
-  "repayment_method",
-  "repayment_periods",
+  "repayment_frequency",
   "monthly_repayment_amount",
   "column_break_qsfx",
+  "repayment_method",
+  "repayment_periods",
+  "moratorium_details_section",
   "moratorium_type",
+  "column_break_nzzj",
   "moratorium_tenure",
-  "repayment_frequency",
   "treatment_of_interest",
   "loan_credit_limits_section",
   "limit_applicable_start",
@@ -124,7 +126,8 @@
    "fieldtype": "Link",
    "label": "Loan Application",
    "no_copy": 1,
-   "options": "Loan Application"
+   "options": "Loan Application",
+   "read_only": 1
   },
   {
    "fieldname": "loan_product",
@@ -158,13 +161,12 @@
    "reqd": 1
   },
   {
-   "default": "Sanctioned",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Draft\nSanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed\nWritten Off\nSettled",
+   "options": "\nDraft\nSanctioned\nPartially Disbursed\nDisbursed\nActive\nLoan Closure Requested\nClosed\nWritten Off\nSettled",
    "read_only": 1,
    "search_index": 1
   },
@@ -217,7 +219,7 @@
    "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "repayment_periods",
    "fieldtype": "Int",
-   "label": "Repayment Periods"
+   "label": "Tenure"
   },
   {
    "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
@@ -525,7 +527,7 @@
    "options": "\nCapitalize\nAdd to first repayment"
   },
   {
-   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
+   "depends_on": "moratorium_type",
    "fieldname": "moratorium_tenure",
    "fieldtype": "Int",
    "label": "Moratorium Tenure"
@@ -590,7 +592,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\" && doc.moratorium_tenure",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_schedule_type != \"Line of Credit\"",
    "fieldname": "moratorium_type",
    "fieldtype": "Select",
    "label": "Moratorium Type",
@@ -700,16 +702,25 @@
   {
    "fieldname": "column_break_qsfx",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "moratorium_details_section",
+   "fieldtype": "Section Break",
+   "label": "Moratorium Details"
+  },
+  {
+   "fieldname": "column_break_nzzj",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-18 10:42:35.606076",
+ "modified": "2026-01-01 16:04:23.630804",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

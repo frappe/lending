@@ -107,6 +107,7 @@ class Loan(AccountsController):
 		repayment_start_date: DF.Date | None
 		settlement_date: DF.Date | None
 		status: DF.Literal[
+			"",
 			"Draft",
 			"Sanctioned",
 			"Partially Disbursed",
