@@ -22,4 +22,12 @@ class LoanDemandOffsetOrder(Document):
 		title: DF.Data | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if not self.get("components"):
+			self.append("components", {
+				"demand_type": "Principal",
+			})
+
+			self.append("components", {
+				"demand_type": "Interest",
+			})
