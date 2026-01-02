@@ -34,8 +34,8 @@ class LoanProduct(Document):
 		]
 		broken_period_interest_recovery_account: DF.Link
 		collection_offset_sequence_for_settlement_collection: DF.Link | None
-		collection_offset_sequence_for_standard_asset: DF.Link | None
-		collection_offset_sequence_for_sub_standard_asset: DF.Link | None
+		collection_offset_sequence_for_standard_asset: DF.Link
+		collection_offset_sequence_for_sub_standard_asset: DF.Link
 		collection_offset_sequence_for_written_off_asset: DF.Link | None
 		company: DF.Link
 		customer_refund_account: DF.Link | None
