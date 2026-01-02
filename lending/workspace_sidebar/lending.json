@@ -33,10 +33,54 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "loan",
+   "icon": "settings-2",
    "indent": 1,
    "keep_closed": 0,
-   "label": "Loan and Repayment",
+   "label": "Setup",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Company",
+   "link_to": "Company",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Loan Product",
+   "link_to": "Loan Product",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Charges",
+   "link_to": "Item",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list-todo",
+   "indent": 1,
+   "keep_closed": 0,
+   "label": "Loan Management",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Section Break"
@@ -58,8 +102,8 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Loan Product",
-   "link_to": "Loan Product",
+   "label": "Loan Disbursement",
+   "link_to": "Loan Disbursement",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -69,8 +113,30 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Loan Disbursement",
-   "link_to": "Loan Disbursement",
+   "label": "Loan Repayment Schedule",
+   "link_to": "Loan Repayment Schedule",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Loan Transfer",
+   "link_to": "Loan Transfer",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Loan Restructure",
+   "link_to": "Loan Restructure",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -113,28 +179,6 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Loan Repayment Schedule",
-   "link_to": "Loan Repayment Schedule",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Loan Restructure",
-   "link_to": "Loan Restructure",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
    "label": "Loan Write Off",
    "link_to": "Loan Write Off",
    "link_type": "DocType",
@@ -148,6 +192,39 @@
    "keep_closed": 0,
    "label": "DPD Log",
    "link_to": "Days Past Due Log",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "person-standing",
+   "indent": 1,
+   "keep_closed": 0,
+   "label": "Loan Origination",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Customer",
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Loan Application",
+   "link_to": "Loan Application",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -241,7 +318,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-31 15:35:35.433883",
+ "modified": "2026-01-02 17:30:31.561081",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending",
