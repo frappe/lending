@@ -114,15 +114,13 @@
    "fieldname": "payment_account",
    "fieldtype": "Link",
    "label": "Repayment Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "loan_account",
    "fieldtype": "Link",
    "label": "Loan Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "column_break_12",
@@ -132,15 +130,13 @@
    "fieldname": "interest_income_account",
    "fieldtype": "Link",
    "label": "Interest Income Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "penalty_income_account",
    "fieldtype": "Link",
    "label": "Penalty Income Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "default": "0",
@@ -190,8 +186,7 @@
    "fieldname": "disbursement_account",
    "fieldtype": "Link",
    "label": "Disbursement Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "depends_on": "is_term_loan",
@@ -222,15 +217,13 @@
    "fieldname": "interest_waiver_account",
    "fieldtype": "Link",
    "label": "Interest Waiver Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "penalty_waiver_account",
    "fieldtype": "Link",
    "label": "Penalty Waiver Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "suspense_interest_income",
@@ -248,15 +241,13 @@
    "fieldname": "interest_receivable_account",
    "fieldtype": "Link",
    "label": "Interest Receivable Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "penalty_receivable_account",
    "fieldtype": "Link",
    "label": "Penalty Receivable Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "collapsible": 1,
@@ -275,8 +266,7 @@
    "fieldname": "security_deposit_account",
    "fieldtype": "Link",
    "label": "Security Deposit Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.repayment_schedule_type == \"Monthly as per cycle date\"",
@@ -325,8 +315,7 @@
    "fieldname": "interest_accrued_account",
    "fieldtype": "Link",
    "label": "Interest Accrued Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "default": "0",
@@ -338,8 +327,7 @@
    "fieldname": "broken_period_interest_recovery_account",
    "fieldtype": "Link",
    "label": "Broken Period Interest Recovery Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "column_break_nuqr",
@@ -395,8 +383,7 @@
    "fieldname": "penalty_accrued_account",
    "fieldtype": "Link",
    "label": "Penalty Accrued Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "column_break_zslc",
@@ -418,8 +405,7 @@
    "fieldname": "write_off_account",
    "fieldtype": "Link",
    "label": "Write Off Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "column_break_ehnt",
@@ -430,8 +416,7 @@
    "fieldname": "write_off_recovery_account",
    "fieldtype": "Link",
    "label": "Write Off Recovery Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "loan_category",
@@ -455,8 +440,7 @@
    "fieldname": "customer_refund_account",
    "fieldtype": "Link",
    "label": "Customer Refund Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "default": "0",

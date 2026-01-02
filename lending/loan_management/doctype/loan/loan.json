@@ -241,8 +241,7 @@
    "fieldtype": "Link",
    "label": "Payment Account",
    "options": "Account",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_9",
@@ -254,8 +253,7 @@
    "fieldtype": "Link",
    "label": "Loan Account",
    "options": "Account",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fetch_from": "loan_product.interest_income_account",
@@ -263,8 +261,7 @@
    "fieldtype": "Link",
    "label": "Interest Income Account",
    "options": "Account",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_17",
@@ -332,8 +329,7 @@
    "fieldtype": "Link",
    "label": "Penalty Income Account",
    "options": "Account",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "total_principal_paid",
@@ -380,8 +376,7 @@
    "fieldtype": "Link",
    "label": "Disbursement Account",
    "options": "Account",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "collapsible": 1,

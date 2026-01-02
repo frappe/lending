@@ -1,7 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
@@ -3455,6 +3454,42 @@ class TestLoan(IntegrationTestCase):
 			flt(repayment.excess_amount, 2),
 			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
 		)
+
+	def test_loan_accounting_disabled(self):
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2025-01-16")
+		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-01-16 00:03:10"), payable_amount
+		)
+		repayment_entry.submit()
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry",
+			filters={"against_voucher_type": "Loan", "against_voucher": loan.name},
+		)
+
+		self.assertEqual(len(gl_entries), 0)
 
 	def test_flat_rate_interest_method(self):
 		loan = create_loan(

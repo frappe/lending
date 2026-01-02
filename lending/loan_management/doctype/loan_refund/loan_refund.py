@@ -6,13 +6,13 @@ from frappe import _
 from frappe.utils import flt, getdate
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
-from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import get_net_paid_amount
+from lending.loan_management.utils import loan_accounting_enabled
 
 
-class LoanRefund(AccountsController):
+class LoanRefund(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -124,6 +124,9 @@ class LoanRefund(AccountsController):
 			frappe.db.set_value("Loan Repayment Schedule", schedule, "status", "Closed")
 
 	def make_gl_entries(self, cancel=0):
+		if not loan_accounting_enabled(self.company):
+			return
+
 		gl_entries = []
 		loan_details = frappe.db.get_value(
 			"Loan Product",
@@ -179,4 +182,4 @@ class LoanRefund(AccountsController):
 			)
 		)
 
-		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False)
+		super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False)

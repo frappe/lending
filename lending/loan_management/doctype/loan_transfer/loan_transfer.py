@@ -7,6 +7,8 @@ from frappe.model.document import Document
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
+from lending.loan_management.utils import loan_accounting_enabled
+
 
 class LoanTransfer(Document):
 	# begin: auto-generated types
@@ -77,7 +79,8 @@ class LoanTransfer(Document):
 
 	def cancel_functions(self):
 		self.update_branch(cancel=1)
-		self.submit_cancel_journal_entries(cancel=1)
+		if loan_accounting_enabled(self.company):
+			self.submit_cancel_journal_entries(cancel=1)
 
 	def submit_cancel_journal_entries(self, cancel=0):
 		for loan in self.loans:
@@ -152,8 +155,9 @@ class LoanTransfer(Document):
 			je_doc.save()
 
 	def on_submit_actions(self):
-		self.get_balances_and_make_journal_entry()
-		self.submit_cancel_journal_entries()
+		if loan_accounting_enabled(self.company):
+			self.get_balances_and_make_journal_entry()
+			self.submit_cancel_journal_entries()
 
 
 @frappe.whitelist()

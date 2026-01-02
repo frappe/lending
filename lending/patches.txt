@@ -45,5 +45,5 @@ lending.patches.v1_0.create_custom_field_loan_accrual_rate_for_company #rerun #2
 lending.patches.v1_0.add_index_for_custom_fields_for_JE
 lending.patches.v1_0.update_value_date_in_loan_repayment
 lending.patches.v1_0.update_value_date_in_loan_refund
-lending.patches.v1_0.update_value_date_in_pending_doctypes #1
-
+lending.patches.v1_0.update_value_date_in_pending_doctypes
+lending.patches.v16_0.add_enable_loan_accounting_field

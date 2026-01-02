@@ -5,13 +5,12 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
-from erpnext.accounts.general_ledger import make_gl_entries
-from erpnext.controllers.accounts_controller import AccountsController
-
+from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
+from lending.loan_management.utils import loan_accounting_enabled
 
 
-class LoanDemand(AccountsController):
+class LoanDemand(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -119,6 +118,9 @@ class LoanDemand(AccountsController):
 			)
 
 	def make_gl_entries(self, cancel=0):
+		if not loan_accounting_enabled(self.company):
+			return
+
 		gl_entries = []
 
 		if self.demand_subtype == "Principal":
@@ -176,7 +178,7 @@ class LoanDemand(AccountsController):
 				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
-		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+		super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None

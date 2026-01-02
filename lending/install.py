@@ -42,7 +42,7 @@ LOAN_CUSTOM_FIELDS = {
 		{
 			"fieldname": "loan_tab",
 			"fieldtype": "Tab Break",
-			"label": "Loan",
+			"label": "Lending",
 			"insert_after": "default_in_transit_warehouse",
 		},
 		{
@@ -55,7 +55,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "loan_restructure_limit",
 			"label": "Restructure Limit % (Overall)",
 			"fieldtype": "Percent",
-			"insert_after": "loan_settings",
+			"insert_after": "enable_loan_accounting",
 		},
 		{
 			"fieldname": "watch_period_post_loan_restructure_in_days",
@@ -87,14 +87,20 @@ LOAN_CUSTOM_FIELDS = {
 		{
 			"fieldname": "loan_column_break",
 			"fieldtype": "Column Break",
-			"insert_after": "min_days_bw_disbursement_first_repayment",
+			"insert_after": "loan_accrual_frequency",
+		},
+		{
+			"fieldname": "enable_loan_accounting",
+			"label": "Enable Loan Accounting",
+			"fieldtype": "Check",
+			"insert_after": "loan_column_break",
 		},
 		{
 			"fieldname": "collection_offset_logic_based_on",
 			"label": "Collection Offset Logic Based On",
 			"fieldtype": "Select",
 			"options": "NPA Flag\nDays Past Due",
-			"insert_after": "loan_column_break",
+			"insert_after": "enable_loan_accounting",
 		},
 		{
 			"fieldname": "days_past_due_threshold",
@@ -115,7 +121,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Collection Offset Sequence for Sub Standard Asset",
 			"fieldtype": "Link",
 			"options": "Loan Demand Offset Order",
-			"insert_after": "days_past_due_threshold",
+			"insert_after": "days_past_due_threshold_for_auto_write_off",
 		},
 		{
 			"fieldname": "collection_offset_sequence_for_standard_asset",

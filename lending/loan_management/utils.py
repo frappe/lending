@@ -316,3 +316,7 @@ def get_amounts_not_reflected_in_system_for_bank_reconciliation_statement(filter
 		total_amount += flt(amount)
 
 	return total_amount
+
+
+def loan_accounting_enabled(company: str) -> bool:
+	return bool(frappe.get_cached_value("Company", company, "enable_loan_accounting"))

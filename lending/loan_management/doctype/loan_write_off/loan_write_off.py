@@ -9,15 +9,15 @@ from frappe.query_builder import functions as fn
 from frappe.utils import cint, flt, getdate
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries
-from erpnext.controllers.accounts_controller import AccountsController
 
+from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	get_pending_principal_amount,
 )
+from lending.loan_management.utils import loan_accounting_enabled
 
 
-class LoanWriteOff(AccountsController):
+class LoanWriteOff(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -192,6 +192,9 @@ class LoanWriteOff(AccountsController):
 		frappe.db.set_value("Loan", self.loan, update_values)
 
 	def make_gl_entries(self, cancel=0):
+		if not loan_accounting_enabled(self.company):
+			return
+
 		gl_entries = []
 		loan_details = frappe.db.get_value(
 			"Loan", self.loan, ["loan_account", "applicant_type", "applicant"], as_dict=1
@@ -231,7 +234,7 @@ class LoanWriteOff(AccountsController):
 			)
 		)
 
-		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False)
+		super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False)
 
 	def close_employee_loan(self, cancel=0):
 		if not self.applicant_type == "Employee":

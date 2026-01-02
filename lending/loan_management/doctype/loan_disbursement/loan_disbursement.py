@@ -19,10 +19,10 @@ from frappe.utils import (
 )
 
 import erpnext
-from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
-from erpnext.controllers.accounts_controller import AccountsController
+from erpnext.accounts.general_ledger import process_gl_map
 from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
+from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
@@ -40,10 +40,11 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
 )
+from lending.loan_management.utils import loan_accounting_enabled
 
 
 # nosemgrep
-class LoanDisbursement(AccountsController):
+class LoanDisbursement(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -639,6 +640,9 @@ class LoanDisbursement(AccountsController):
 		)
 
 	def make_gl_entries(self, cancel=0, adv_adj=0, repost=0):
+		if not loan_accounting_enabled(self.company):
+			return
+
 		gle_map = []
 		remarks = _("Disbursement against loan:") + self.against_loan
 
@@ -691,39 +695,40 @@ class LoanDisbursement(AccountsController):
 
 			self.add_bpi_difference_entry(gle_map)
 
-		if self.get("loan_disbursement_charges") and not cancel and not repost:
-			make_sales_invoice_for_charge(
-				self.against_loan,
-				"loan_disbursement",
-				self.name,
-				self.applicant if self.applicant_type == "Customer" else None,
-				self.disbursement_date,
-				self.company,
-				self.get("loan_disbursement_charges"),
-			)
+		if loan_accounting_enabled(self.company):
+			if self.get("loan_disbursement_charges") and not cancel and not repost:
+				make_sales_invoice_for_charge(
+					self.against_loan,
+					"loan_disbursement",
+					self.name,
+					self.applicant if self.applicant_type == "Customer" else None,
+					self.disbursement_date,
+					self.company,
+					self.get("loan_disbursement_charges"),
+				)
 
-		filters = {"loan": self.against_loan, "docstatus": 1, "is_return": 0}
-		if cancel:
-			filters["is_return"] = 1
-		else:
-			filters["loan_disbursement"] = self.name
+			filters = {"loan": self.against_loan, "docstatus": 1, "is_return": 0}
+			if cancel:
+				filters["is_return"] = 1
+			else:
+				filters["loan_disbursement"] = self.name
 
-		sales_invoices = frappe.db.get_all(
-			"Sales Invoice",
-			filters=filters,
-			fields=["name", "debit_to", "grand_total"],
-		)
-
-		for invoice in sales_invoices:
-			self.add_gl_entry(
-				gle_map,
-				invoice.debit_to,
-				bank_account,
-				-1 * abs(invoice.grand_total),
-				remarks,
+			sales_invoices = frappe.db.get_all(
 				"Sales Invoice",
-				invoice.name,
+				filters=filters,
+				fields=["name", "debit_to", "grand_total"],
 			)
+
+			for invoice in sales_invoices:
+				self.add_gl_entry(
+					gle_map,
+					invoice.debit_to,
+					bank_account,
+					-1 * abs(invoice.grand_total),
+					remarks,
+					"Sales Invoice",
+					invoice.name,
+				)
 
 		if self.loan_partner:
 			loan_partner_details = get_loan_partner_details(self.loan_partner)
@@ -740,7 +745,7 @@ class LoanDisbursement(AccountsController):
 			if cancel:
 				gle_map = process_gl_map(gle_map)
 
-			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
 
 
 def make_sales_invoice_for_charge(

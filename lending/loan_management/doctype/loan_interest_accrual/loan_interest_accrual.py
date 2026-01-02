@@ -20,14 +20,13 @@ from frappe.utils import (
 	nowdate,
 )
 
-from erpnext.accounts.general_ledger import make_gl_entries
-from erpnext.controllers.accounts_controller import AccountsController
-
+from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.utils import loan_accounting_enabled
 from lending.utils import daterange
 
 
-class LoanInterestAccrual(AccountsController):
+class LoanInterestAccrual(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -149,12 +148,12 @@ class LoanInterestAccrual(AccountsController):
 	def on_cancel(self):
 		self.make_gl_entries(cancel=1)
 
-		if self.normal_interest_journal_entry:
+		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
 			doc.flags.ignore_links = True
 			doc.cancel()
 
-		if self.additional_interest_suspense_entry:
+		if self.additional_interest_suspense_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry)
 			doc.flags.ignore_links = True
 			doc.cancel()
@@ -162,8 +161,10 @@ class LoanInterestAccrual(AccountsController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
-		gle_map = []
+		if not loan_accounting_enabled(self.company):
+			return
 
+		gle_map = []
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
 		if loan_status == "Written Off":
@@ -313,7 +314,7 @@ class LoanInterestAccrual(AccountsController):
 			)
 
 		if gle_map:
-			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
