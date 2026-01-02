@@ -29,13 +29,11 @@ class LoanProduct(Document):
 		additional_interest_suspense: DF.Link | None
 		additional_interest_waiver: DF.Link | None
 		amended_from: DF.Link | None
-		bpi_recovery_method: DF.Literal[
-			"", "Upfront Deduction", "Amortized Over Tenure", "Add to First EMI"
-		]
+		bpi_recovery_method: DF.Literal["", "Upfront Deduction", "Amortized Over Tenure", "Add to First EMI"]
 		broken_period_interest_recovery_account: DF.Link
 		collection_offset_sequence_for_settlement_collection: DF.Link | None
-		collection_offset_sequence_for_standard_asset: DF.Link
-		collection_offset_sequence_for_sub_standard_asset: DF.Link
+		collection_offset_sequence_for_standard_asset: DF.Link | None
+		collection_offset_sequence_for_sub_standard_asset: DF.Link | None
 		collection_offset_sequence_for_written_off_asset: DF.Link | None
 		company: DF.Link
 		customer_refund_account: DF.Link | None
@@ -67,14 +65,7 @@ class LoanProduct(Document):
 		product_name: DF.Data
 		rate_of_interest: DF.Percent
 		repayment_date_on: DF.Literal["", "Start of the next month", "End of the current month"]
-		repayment_schedule_type: DF.Literal[
-			"",
-			"Monthly as per repayment start date",
-			"Pro-rated calendar months",
-			"Monthly as per cycle date",
-			"Line of Credit",
-			"Flat Interest Rate",
-		]
+		repayment_schedule_type: DF.Literal["", "Monthly as per repayment start date", "Pro-rated calendar months", "Monthly as per cycle date", "Line of Credit", "Flat Interest Rate"]
 		same_as_regular_interest_accounts: DF.Check
 		security_deposit_account: DF.Link | None
 		subsidy_adjustment_account: DF.Link | None
@@ -94,6 +85,7 @@ class LoanProduct(Document):
 		if loan_accounting_enabled(self.company):
 			self.validate_accounts()
 		self.validate_rates()
+		self.validate_demand_offset_sequences()
 
 	def set_missing_values(self):
 		company_min_days_bw_disbursement_first_repayment = frappe.get_cached_value(
@@ -133,6 +125,7 @@ class LoanProduct(Document):
 			if self.get(field) and self.get(field) < 0:
 				frappe.throw(_("{0} cannot be negative").format(frappe.unscrub(field)))
 
+<<<<<<< HEAD
 	def set_optional_accounts(self):
 		if not loan_accounting_enabled(self.company):
 			return
@@ -171,6 +164,25 @@ class LoanProduct(Document):
 				)
 			)
 
+=======
+	def validate_demand_offset_sequences(self):
+		mandatory_sequences = [
+			"collection_offset_sequence_for_standard_asset",
+			"collection_offset_sequence_for_sub_standard_asset"
+		]
+
+		for seq in mandatory_sequences:
+			sequence_value = self.get(seq)
+			if not sequence_value:
+				sequence_value = frappe.db.get_value("Company", self.company, seq)
+
+			if not sequence_value:
+				frappe.throw(
+					_("{0} is mandatory. Please set it in Loan Product or Company").format(
+						frappe.bold(frappe.unscrub(seq))
+					)
+				)
+>>>>>>> a88657bb (fix: Loan Demand offset order non mandatory)
 
 @frappe.whitelist()
 def get_default_charge_accounts(charge_type, company):
