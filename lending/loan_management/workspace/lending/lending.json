@@ -1,5 +1,4 @@
 {
- "app": "lending",
  "charts": [
   {
    "chart_name": "New Loans",
@@ -90,76 +89,6 @@
    "link_count": 0,
    "link_to": "Loan Security Shortfall",
    "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 6,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Loan Repayment and Closure",
-   "link_count": 0,
-   "link_to": "Loan Repayment and Closure",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Loan Security Status",
-   "link_count": 0,
-   "link_to": "Loan Security Status",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Loan Interest Report",
-   "link_count": 0,
-   "link_to": "Loan Interest Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Loan Security Exposure",
-   "link_count": 0,
-   "link_to": "Loan Security Exposure",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Applicant-Wise Loan Security Exposure",
-   "link_count": 0,
-   "link_to": "Applicant-Wise Loan Security Exposure",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Loan Security Status",
-   "link_count": 0,
-   "link_to": "Loan Security Status",
-   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },
@@ -560,9 +489,92 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 7,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Loan Outstanding Report",
+   "link_count": 0,
+   "link_to": "Loan Outstanding Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Past Cashflow Report",
+   "link_count": 0,
+   "link_to": "Past Cashflow Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Future Cashflow Report",
+   "link_count": 0,
+   "link_to": "Future Cashflow Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Loan",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Loan Repayment and Closure",
+   "link_count": 0,
+   "link_to": "Loan Repayment and Closure",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Loan Repayment",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Loan Security Exposure",
+   "link_count": 0,
+   "link_to": "Loan Security Exposure",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Loan Security Status",
+   "link_count": 0,
+   "link_to": "Loan Security Status",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Loan Security",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Applicant-Wise Loan Security Exposure",
+   "link_count": 0,
+   "link_to": "Applicant-Wise Loan Security Exposure",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Loan Security",
+   "type": "Link"
   }
  ],
- "modified": "2025-02-10 19:09:09.075062",
+ "modified": "2026-01-08 18:53:29.562108",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending",
@@ -602,6 +614,5 @@
    "type": "Dashboard"
   }
  ],
- "title": "Lending",
- "type": "Workspace"
+ "title": "Lending"
 }
