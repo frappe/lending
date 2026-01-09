@@ -35,16 +35,26 @@ frappe.ui.form.on('Loan Repayment', {
 		}
 	},
 
+<<<<<<< HEAD
 	posting_date : function(frm) {
 		frm.trigger('calculate_repayment_amounts');
 	},
 
 	against_loan: function(frm) {
 		if (frm.doc.posting_date) {
+=======
+	value_date : function(frm) {
+		if (frm.doc.against_loan && frm.doc.value_date){
+>>>>>>> d17385a9 (fix: Error while fetching due details (#1045))
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
+
 	against_loan: function(frm) {
+		if (frm.doc.against_loan && frm.doc.value_date) {
+			frm.trigger('calculate_repayment_amounts');
+		}
+
 		frm.set_query('loan_disbursement', function() {
 			return {
 				'filters': {
@@ -63,8 +73,13 @@ frappe.ui.form.on('Loan Repayment', {
 			};
 		});
 	},
+
 	repayment_type: function(frm) {
+<<<<<<< HEAD
 		if (frm.doc.posting_date) {
+=======
+		if (frm.doc.against_loan && frm.doc.value_date) {
+>>>>>>> d17385a9 (fix: Error while fetching due details (#1045))
 			frm.trigger('calculate_repayment_amounts');
 		}
 	},
