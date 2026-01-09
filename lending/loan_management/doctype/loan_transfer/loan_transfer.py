@@ -31,6 +31,8 @@ class LoanTransfer(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_branch_accounting_dimension()
+
 		if not self.get("loans"):
 			loans = get_loans(self.from_branch, self.applicant)
 
@@ -39,6 +41,18 @@ class LoanTransfer(Document):
 
 			for loan in loans:
 				self.append("loans", {"loan": loan})
+
+	def validate_branch_accounting_dimension(self):
+		branch_dimension = frappe.db.get_value(
+			"Accounting Dimension", {"document_type": "Branch"}, "name"
+		)
+
+		if not branch_dimension:
+			frappe.throw(
+				_(
+					"Please set up Branch as an Accounting Dimension before transferring loans between branches."
+				)
+			)
 
 	def get_balances_and_make_journal_entry(self):
 		loans = [d.loan for d in self.loans]
