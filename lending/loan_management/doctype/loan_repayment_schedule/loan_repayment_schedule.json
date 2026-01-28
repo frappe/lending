@@ -145,15 +145,10 @@
    "options": "Company"
   }
  ],
- "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
  "modified": "2023-10-02 22:14:24.172876",
-=======
- "modified": "2025-12-18 15:30:32.183881",
->>>>>>> 250142f6 (chore: Make loan booking customer first (#1021))
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
