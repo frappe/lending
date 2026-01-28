@@ -1893,15 +1893,8 @@ class LoanRepayment(AccountsController):
 				)
 			return
 
-		if (
-			self.repayment_type == "Principal Adjustment"
-			and self.loan_restructure
-			and frappe.db.get_value(
-				"Loan Restructure", self.loan_restructure, "restructure_type"
-			) == "Normal Restructure"
-		):
+		if self.repayment_type == "Principal Adjustment" and self.loan_restructure:
 			return
-
 
 		if cancel:
 			make_reverse_gl_entries(voucher_type="Loan Repayment", voucher_no=self.name)
