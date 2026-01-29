@@ -295,8 +295,12 @@
  "modified_by": "Administrator",
 =======
  "modified": "2026-01-29 12:59:17.163607",
+<<<<<<< HEAD
  "modified_by": "deepesh@frappe.io",
 >>>>>>> 8c89e57e (perf: Speed up doc cancellation linked to loan demands)
+=======
+ "modified_by": "Administrator",
+>>>>>>> 64d643b1 (perf: Speed up doc cancellation linked to loan demands)
  "module": "Loan Management",
  "name": "Loan Demand",
  "naming_rule": "Expression",
