@@ -2,13 +2,7 @@
 # See license.txt
 
 import frappe
-<<<<<<< HEAD
-
-# import frappe
 from frappe.tests.utils import FrappeTestCase
-=======
-from frappe.tests import IntegrationTestCase
->>>>>>> c7be395e (fix: Capitalization entries in loan restructure)
 from frappe.utils import getdate
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
