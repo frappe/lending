@@ -275,6 +275,7 @@ class LoanRestructure(AccountsController):
 				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
 
 				self.make_waiver_and_capitalization_for_penalty()
+				self.set_principal_adjustment_on_restructure()
 				self.make_loan_repayment_for_adjustment()
 				self.make_loan_repayment_for_waiver()
 				self.make_loan_adjustment_for_capitalization()
@@ -591,6 +592,10 @@ class LoanRestructure(AccountsController):
 				self.balance_penalty_amount,
 				restructure_name=self.name,
 			)
+
+	def set_principal_adjustment_on_restructure(self):
+		if flt(self.principal_overdue) > 0 and flt(self.principal_adjusted) == 0:
+			self.principal_adjusted = flt(self.principal_overdue)
 
 	def make_loan_repayment_for_adjustment(self):
 		if self.principal_adjusted:
