@@ -124,7 +124,8 @@
    "fieldname": "applicant_type",
    "fieldtype": "Link",
    "label": "Applicant Type",
-   "options": "DocType"
+   "options": "DocType",
+   "search_index": 1
   },
   {
    "fetch_from": "loan.applicant",
@@ -289,11 +290,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-28 12:22:19.596834",
+ "modified": "2026-01-29 12:59:17.163607",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
