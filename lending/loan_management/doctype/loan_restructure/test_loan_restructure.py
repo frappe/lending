@@ -2,6 +2,8 @@
 # See license.txt
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Sum
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
