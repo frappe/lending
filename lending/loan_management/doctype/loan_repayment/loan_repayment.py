@@ -1958,7 +1958,19 @@ class LoanRepayment(AccountsController):
 		)
 
 		if flt(self.principal_amount_paid, precision) > 0:
-			self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
+			if self.repayment_type == "Interest Capitalization":
+				if not account_details.interest_receivable_account:
+					frappe.throw(_("Interest Receivable Account is mandatory"))
+				if not self.loan_account:
+					frappe.throw(_("Loan Account is mandatory"))
+				self.add_gl_entry(
+					self.loan_account,
+					account_details.interest_receivable_account,
+					self.principal_amount_paid,
+					gle_map,
+				)
+			else:
+				self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
