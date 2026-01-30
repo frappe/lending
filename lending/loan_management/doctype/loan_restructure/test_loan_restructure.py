@@ -1,18 +1,10 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-<<<<<<< HEAD
-# import frappe
-from frappe.tests.utils import FrappeTestCase
-
-
-class TestLoanRestructure(FrappeTestCase):
-	pass
-=======
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -31,7 +23,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRestructure(IntegrationTestCase):
+class TestLoanRestructure(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -197,4 +189,3 @@ def create_loan_restructure(
 	doc.submit()
 
 	return doc
->>>>>>> 0a7427ae (fix: clear overdue principal demands during normal restructure)
