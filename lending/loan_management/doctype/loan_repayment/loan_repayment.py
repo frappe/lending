@@ -1487,6 +1487,45 @@ class LoanRepayment(AccountsController):
 			if demand.get("demand_subtype") == "Principal":
 				total_demanded_principal += demand.get("outstanding_amount")
 
+		if self.repayment_type == "Interest Capitalization":
+			amount_paid = flt(self.amount_paid, precision)
+			self.principal_amount_paid = 0
+			self.excess_amount = 0
+
+			unpaid_demands = amounts.get("unpaid_demands") or []
+			interest_demands = [d for d in unpaid_demands if d.get("demand_subtype") == "Interest"]
+
+			if interest_demands and amount_paid > 0:
+				if loan_status == "Written Off":
+					allocation_order = self.get_allocation_order(
+						"Collection Offset Sequence for Written Off Asset"
+					)
+				elif self.is_npa:
+					allocation_order = self.get_allocation_order(
+						"Collection Offset Sequence for Sub Standard Asset"
+					)
+				else:
+					allocation_order = self.get_allocation_order(
+						"Collection Offset Sequence for Standard Asset"
+					)
+
+				amount_paid = self.apply_allocation_order(
+					allocation_order, amount_paid, interest_demands, status=loan_status
+				)
+
+				for payment in self.repayment_details:
+					if payment.demand_subtype == "Interest":
+						self.total_interest_paid += flt(payment.paid_amount, precision)
+						self.total_partner_interest_share += flt(payment.partner_share, precision)
+
+			if flt(amount_paid, precision) > 0:
+				self.total_interest_paid += flt(amount_paid, precision)
+				self.unbooked_interest_paid += flt(amount_paid, precision)
+
+			self.total_interest_paid = flt(self.total_interest_paid, precision)
+			self.unbooked_interest_paid = flt(self.unbooked_interest_paid, precision)
+			return
+
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement") or (
 			loan_status == "Settled"
 			and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
@@ -1608,7 +1647,7 @@ class LoanRepayment(AccountsController):
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
-			if self.repayment_type not in ["Charges Waiver", "Penalty Waiver"]:
+			if self.repayment_type not in ["Charges Waiver", "Penalty Waiver", "Penalty Capitalization"]:
 				if pending_interest > 0:
 					if pending_interest > amount_paid:
 						self.total_interest_paid += amount_paid
@@ -1642,12 +1681,12 @@ class LoanRepayment(AccountsController):
 					self.total_charges_paid += self.total_charges_payable
 					amount_paid -= self.total_charges_payable
 
-			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"):
 				self.principal_amount_paid += flt(amount_paid, precision)
-			elif self.repayment_type == "Penalty Waiver":
+			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
 				self.total_penalty_paid += amount_paid
 				amount_paid = 0
-			elif self.repayment_type == "Interest Waiver":
+			elif self.repayment_type in ("Interest Waiver", "Interest Capitalization"):
 				self.total_interest_paid += amount_paid
 				amount_paid = 0
 
@@ -1958,19 +1997,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		if flt(self.principal_amount_paid, precision) > 0:
-			if self.repayment_type == "Interest Capitalization":
-				if not account_details.interest_receivable_account:
-					frappe.throw(_("Interest Receivable Account is mandatory"))
-				if not self.loan_account:
-					frappe.throw(_("Loan Account is mandatory"))
-				self.add_gl_entry(
-					self.loan_account,
-					account_details.interest_receivable_account,
-					self.principal_amount_paid,
-					gle_map,
-				)
-			else:
-				self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
+			self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):

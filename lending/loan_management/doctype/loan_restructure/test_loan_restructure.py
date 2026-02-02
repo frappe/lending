@@ -209,13 +209,13 @@ class TestLoanRestructure(IntegrationTestCase):
 				"loan_restructure": loan_restructure.name,
 				"docstatus": 1,
 				"repayment_type": "Interest Capitalization",
-				"principal_amount_paid": (">", 0),
+				"unbooked_interest_paid": (">", 0),
 			},
-			["name", "principal_amount_paid"],
+			["name", "unbooked_interest_paid"],
 			as_dict=True,
 		)
 
-		amount = flt(loan_repayment.principal_amount_paid, 2)
+		amount = flt(loan_repayment.unbooked_interest_paid, 2)
 
 		gl_entries = frappe.db.get_all(
 			"GL Entry",
