@@ -333,7 +333,7 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
-			repayment_doc.allocate_amount_against_demands(amounts)
+			repayment_doc.allocate_amounts(amounts)
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount

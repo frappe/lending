@@ -274,11 +274,11 @@ class LoanRestructure(AccountsController):
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
 
+				self.make_loan_adjustment_for_capitalization()
 				self.make_waiver_and_capitalization_for_penalty()
 				self.set_principal_adjustment_on_restructure()
 				self.make_loan_repayment_for_adjustment()
 				self.make_loan_repayment_for_waiver()
-				self.make_loan_adjustment_for_capitalization()
 
 			self.restructure_loan()
 
