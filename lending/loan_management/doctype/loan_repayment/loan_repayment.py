@@ -1958,6 +1958,7 @@ class LoanRepayment(AccountsController):
 					},
 				)
 
+				self.total_charges_paid += paid_amount
 				amount_paid -= paid_amount
 
 		return amount_paid
