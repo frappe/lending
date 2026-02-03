@@ -163,7 +163,7 @@ class LoanRepayment(AccountsController):
 		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
 		self.validate_amount(amounts)
-		self.allocate_amount_against_demands(amounts)
+		self.allocate_amounts(amounts)
 
 	def on_update(self):
 		from lending.loan_management.doctype.loan_restructure.loan_restructure import (
@@ -238,7 +238,7 @@ class LoanRepayment(AccountsController):
 					loan_disbursement=self.loan_disbursement,
 					for_update=True,
 				)
-				self.allocate_amount_against_demands(amounts, on_submit=True)
+				self.allocate_amounts(amounts, on_submit=True)
 				self.db_update_all()
 
 				if self.repayment_type in ("Advance Payment", "Pre Payment"):
@@ -1453,26 +1453,89 @@ class LoanRepayment(AccountsController):
 				loan_security_deposit.loan == self.against_loan
 			).run()
 
-	def allocate_amount_against_demands(self, amounts, on_submit=False):
-		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
-			get_accrued_interest_for_write_off_recovery,
-			get_write_off_recovery_details,
-			get_write_off_waivers,
-		)
-
+	def allocate_amounts(self, amounts, on_submit=False):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
 		if not on_submit:
 			self.set("repayment_details", [])
 		else:
-			records_to_delete = [d.name for d in self.get("repayment_details")]
-			lr_detail = frappe.qb.DocType("Loan Repayment Detail")
-			if records_to_delete:
-				frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
-				self.load_from_db()
+			self.hard_clear_table()
 
-		total_demanded_principal = 0
+		self.init_amounts()
+
+		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
+		amount_paid = self.amount_paid
+
+		if self.repayment_type == "Charge Payment":
+			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
+		else:
+			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
+
+		if flt(amount_paid, precision) > 0:
+			self.validate_advance_payment(amount_paid, amounts, on_submit)
+
+			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
+				amounts.get("unbooked_interest")
+			)
+
+			if self.repayment_type not in ["Charges Waiver", "Penalty Waiver", "Penalty Capitalization"]:
+				if pending_interest > 0:
+					if pending_interest > amount_paid:
+						self.total_interest_paid += amount_paid
+						self.unbooked_interest_paid += amount_paid
+						amount_paid = 0
+					else:
+						self.total_interest_paid += pending_interest
+						self.unbooked_interest_paid += pending_interest
+						amount_paid -= pending_interest
+
+			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
+			if unbooked_penalty > 0 and self.repayment_type != "Interest Waiver":
+				if unbooked_penalty > amount_paid:
+					self.total_penalty_paid += amount_paid
+					self.unbooked_penalty_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_penalty_paid += unbooked_penalty
+					self.unbooked_penalty_paid += unbooked_penalty
+					amount_paid -= unbooked_penalty
+
+			if (
+				flt(self.total_charges_payable) > 0
+				and amount_paid > 0
+				and self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
+			):
+				if flt(self.total_charges_payable) > amount_paid:
+					self.total_charges_paid += amount_paid
+					amount_paid = 0
+				else:
+					self.total_charges_paid += self.total_charges_payable
+					amount_paid -= self.total_charges_payable
+
+			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"):
+				self.principal_amount_paid += flt(amount_paid, precision)
+			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
+				self.total_penalty_paid += amount_paid
+				amount_paid = 0
+			elif self.repayment_type in ("Interest Waiver", "Interest Capitalization"):
+				self.total_interest_paid += amount_paid
+				amount_paid = 0
+
+			# Rounding off amounts to avoid floating point issues
+			self.total_interest_paid = flt(self.total_interest_paid, precision)
+			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
+
+		self.handle_final_closure_payments(amounts)
+
+	def hard_clear_table(self):
+		records_to_delete = [d.name for d in self.get("repayment_details")]
+		lr_detail = frappe.qb.DocType("Loan Repayment Detail")
+		if records_to_delete:
+			frappe.qb.from_(lr_detail).delete().where(lr_detail.name.isin(records_to_delete)).run()
+			self.load_from_db()
+
+	def init_amounts(self):
 		self.principal_amount_paid = 0
 		self.total_penalty_paid = 0
 		self.total_interest_paid = 0
@@ -1482,11 +1545,15 @@ class LoanRepayment(AccountsController):
 		self.total_partner_principal_share = 0
 		self.total_partner_interest_share = 0
 		self.excess_amount = 0
-		settlement_date = None
-		for demand in amounts.get("unpaid_demands"):
-			if demand.get("demand_subtype") == "Principal":
-				total_demanded_principal += demand.get("outstanding_amount")
 
+	def update_amounts_for_write_off_recovery(self, loan_status, amounts):
+		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+			get_accrued_interest_for_write_off_recovery,
+			get_write_off_recovery_details,
+			get_write_off_waivers,
+		)
+
+		settlement_date = None
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement") or (
 			loan_status == "Settled"
 			and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
@@ -1537,122 +1604,14 @@ class LoanRepayment(AccountsController):
 				self.pending_principal_amount + self.interest_payable + self.penalty_amount
 			)
 
-		amount_paid = self.amount_paid
+		return amounts
 
-		if self.repayment_type == "Charge Payment":
-			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
-		else:
-			if loan_status == "Written Off":
-				allocation_order = self.get_allocation_order(
-					"Collection Offset Sequence for Written Off Asset"
-				)
-			elif self.repayment_type in (
-				"Partial Settlement",
-				"Full Settlement",
-				"Principal Adjustment",
-			) or (
-				loan_status == "Settled"
-				and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
-			):
-				allocation_order = self.get_allocation_order(
-					"Collection Offset Sequence for Settlement Collection"
-				)
-			elif self.is_npa:
-				allocation_order = self.get_allocation_order(
-					"Collection Offset Sequence for Sub Standard Asset"
-				)
-			else:
-				allocation_order = self.get_allocation_order("Collection Offset Sequence for Standard Asset")
-
-			if self.shortfall_amount:
-				if self.amount_paid > self.shortfall_amount:
-					self.principal_amount_paid = self.shortfall_amount
-				else:
-					self.principal_amount_paid = self.amount_paid
-
-			amount_paid = self.apply_allocation_order(
-				allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
-			)
-
-		for payment in self.repayment_details:
-			if payment.demand_subtype == "Interest":
-				self.total_interest_paid += flt(payment.paid_amount, precision)
-				self.total_partner_interest_share += flt(payment.partner_share, precision)
-			elif payment.demand_subtype == "Principal":
-				self.principal_amount_paid += flt(payment.paid_amount, precision)
-				self.total_partner_principal_share += flt(payment.partner_share, precision)
-			elif payment.demand_type in ("Penalty", "Additional Interest"):
-				self.total_penalty_paid += flt(payment.paid_amount, precision)
-			elif payment.demand_type == "Charges":
-				self.total_charges_paid += flt(payment.paid_amount, precision)
-
-		if flt(amount_paid, precision) > 0:
-			if self.is_term_loan and not on_submit:
-				if self.repayment_type == "Advance Payment":
-					filters = {"loan": self.against_loan, "status": "Active", "docstatus": 1}
-
-					if self.loan_disbursement:
-						filters["loan_disbursement"] = self.loan_disbursement
-
-					monthly_repayment_amount = frappe.db.get_value(
-						"Loan Repayment Schedule",
-						filters,
-						"monthly_repayment_amount",
-					)
-
-					if (flt(amount_paid, precision) < monthly_repayment_amount) or (
-						flt(amount_paid, precision) > (2 * monthly_repayment_amount)
-					):
-						frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
-
-			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
-				amounts.get("unbooked_interest")
-			)
-			if self.repayment_type not in ["Charges Waiver", "Penalty Waiver"]:
-				if pending_interest > 0:
-					if pending_interest > amount_paid:
-						self.total_interest_paid += amount_paid
-						self.unbooked_interest_paid += amount_paid
-						amount_paid = 0
-					else:
-						self.total_interest_paid += pending_interest
-						self.unbooked_interest_paid += pending_interest
-						amount_paid -= pending_interest
-
-			unbooked_penalty = flt(amounts.get("unbooked_penalty"))
-			if unbooked_penalty > 0 and self.repayment_type != "Interest Waiver":
-				if unbooked_penalty > amount_paid:
-					self.total_penalty_paid += amount_paid
-					self.unbooked_penalty_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_penalty_paid += unbooked_penalty
-					self.unbooked_penalty_paid += unbooked_penalty
-					amount_paid -= unbooked_penalty
-
-			if (
-				flt(self.total_charges_payable) > 0
-				and amount_paid > 0
-				and self.repayment_type in ("Write Off Recovery", "Write Off Settlement")
-			):
-				if flt(self.total_charges_payable) > amount_paid:
-					self.total_charges_paid += amount_paid
-					amount_paid = 0
-				else:
-					self.total_charges_paid += self.total_charges_payable
-					amount_paid -= self.total_charges_payable
-
-			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-				self.principal_amount_paid += flt(amount_paid, precision)
-			elif self.repayment_type == "Penalty Waiver":
-				self.total_penalty_paid += amount_paid
-				amount_paid = 0
-			elif self.repayment_type == "Interest Waiver":
-				self.total_interest_paid += amount_paid
-				amount_paid = 0
-
-			self.total_interest_paid = flt(self.total_interest_paid, precision)
-			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
+	def handle_final_closure_payments(self, amounts):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		total_demanded_principal = 0
+		for demand in amounts.get("unpaid_demands"):
+			if demand.get("demand_subtype") == "Principal":
+				total_demanded_principal += demand.get("outstanding_amount")
 
 		if (
 			self.auto_close_loan() or flt(self.principal_amount_paid - self.pending_principal_amount) > 0
@@ -1686,6 +1645,75 @@ class LoanRepayment(AccountsController):
 		):
 			last_principal_demand = self.get("repayment_details")[-1]
 			last_principal_demand.paid_amount += abs(self.excess_amount)
+
+	def validate_advance_payment(self, amount_paid, amounts, on_submit):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		if self.is_term_loan and not on_submit:
+			if self.repayment_type == "Advance Payment":
+				filters = {"loan": self.against_loan, "status": "Active", "docstatus": 1}
+
+				if self.loan_disbursement:
+					filters["loan_disbursement"] = self.loan_disbursement
+
+				monthly_repayment_amount = frappe.db.get_value(
+					"Loan Repayment Schedule",
+					filters,
+					"monthly_repayment_amount",
+				)
+
+				if (flt(amount_paid, precision) < monthly_repayment_amount) or (
+					flt(amount_paid, precision) > (2 * monthly_repayment_amount)
+				):
+					frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
+
+	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		if loan_status == "Written Off":
+			allocation_order = self.get_allocation_order(
+				"Collection Offset Sequence for Written Off Asset"
+			)
+		elif self.repayment_type in (
+			"Partial Settlement",
+			"Full Settlement",
+			"Principal Adjustment",
+		) or (
+			loan_status == "Settled"
+			and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
+		):
+			allocation_order = self.get_allocation_order(
+				"Collection Offset Sequence for Settlement Collection"
+			)
+		elif self.is_npa:
+			allocation_order = self.get_allocation_order(
+				"Collection Offset Sequence for Sub Standard Asset"
+			)
+		else:
+			allocation_order = self.get_allocation_order("Collection Offset Sequence for Standard Asset")
+
+		if self.shortfall_amount:
+			if self.amount_paid > self.shortfall_amount:
+				self.principal_amount_paid = self.shortfall_amount
+			else:
+				self.principal_amount_paid = self.amount_paid
+
+		amount_paid = self.apply_allocation_order(
+			allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
+		)
+
+		for payment in self.repayment_details:
+			if payment.demand_subtype == "Interest":
+				self.total_interest_paid += flt(payment.paid_amount, precision)
+				self.total_partner_interest_share += flt(payment.partner_share, precision)
+			elif payment.demand_subtype == "Principal":
+				self.principal_amount_paid += flt(payment.paid_amount, precision)
+				self.total_partner_principal_share += flt(payment.partner_share, precision)
+			elif payment.demand_type in ("Penalty", "Additional Interest"):
+				self.total_penalty_paid += flt(payment.paid_amount, precision)
+			elif payment.demand_type == "Charges":
+				self.total_charges_paid += flt(payment.paid_amount, precision)
+
+		return amount_paid
 
 	def set_partner_payment_ratio(self):
 		if self.get("loan_partner"):
@@ -1779,6 +1807,7 @@ class LoanRepayment(AccountsController):
 					},
 				)
 
+				self.total_charges_paid += paid_amount
 				amount_paid -= paid_amount
 
 		return amount_paid
@@ -1958,19 +1987,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		if flt(self.principal_amount_paid, precision) > 0:
-			if self.repayment_type == "Interest Capitalization":
-				if not account_details.interest_receivable_account:
-					frappe.throw(_("Interest Receivable Account is mandatory"))
-				if not self.loan_account:
-					frappe.throw(_("Loan Account is mandatory"))
-				self.add_gl_entry(
-					self.loan_account,
-					account_details.interest_receivable_account,
-					self.principal_amount_paid,
-					gle_map,
-				)
-			else:
-				self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
+			self.add_gl_entry(payment_account, self.loan_account, self.principal_amount_paid, gle_map)
 
 		if flt(self.total_interest_paid, precision) > 0:
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
@@ -2120,7 +2137,6 @@ class LoanRepayment(AccountsController):
 		return gle_map
 
 	def add_round_off_gl_entry(self, gle_map):
-
 		if self.repayment_type == "Penalty Waiver":
 			return
 
