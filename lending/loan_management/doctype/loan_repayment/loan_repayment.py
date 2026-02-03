@@ -38,16 +38,9 @@ class LoanRepayment(AccountsController):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-
-		from lending.loan_management.doctype.loan_repayment_charges.loan_repayment_charges import (
-			LoanRepaymentCharges,
-		)
-		from lending.loan_management.doctype.loan_repayment_detail.loan_repayment_detail import (
-			LoanRepaymentDetail,
-		)
-		from lending.loan_management.doctype.prepayment_charges.prepayment_charges import (
-			PrepaymentCharges,
-		)
+		from lending.loan_management.doctype.loan_repayment_charges.loan_repayment_charges import LoanRepaymentCharges
+		from lending.loan_management.doctype.loan_repayment_detail.loan_repayment_detail import LoanRepaymentDetail
+		from lending.loan_management.doctype.prepayment_charges.prepayment_charges import PrepaymentCharges
 
 		against_loan: DF.Link
 		amended_from: DF.Link | None
@@ -62,6 +55,7 @@ class LoanRepayment(AccountsController):
 		days_past_due: DF.Int
 		due_date: DF.Date | None
 		excess_amount: DF.Currency
+		full_settlement_job: DF.Data | None
 		interest_payable: DF.Currency
 		is_backdated: DF.Check
 		is_npa: DF.Check
@@ -94,27 +88,7 @@ class LoanRepayment(AccountsController):
 		reference_number: DF.Data | None
 		repayment_details: DF.Table[LoanRepaymentDetail]
 		repayment_schedule_type: DF.Data | None
-		repayment_type: DF.Literal[
-			"Normal Repayment",
-			"Interest Waiver",
-			"Penalty Waiver",
-			"Charges Waiver",
-			"Principal Adjustment",
-			"Interest Carry Forward",
-			"Write Off Recovery",
-			"Security Deposit Adjustment",
-			"Advance Payment",
-			"Pre Payment",
-			"Subsidy Adjustments",
-			"Loan Closure",
-			"Partial Settlement",
-			"Full Settlement",
-			"Write Off Settlement",
-			"Charge Payment",
-			"Penalty Capitalization",
-			"Interest Capitalization",
-			"Charges Capitalization",
-		]
+		repayment_type: DF.Literal["Normal Repayment", "Interest Waiver", "Penalty Waiver", "Charges Waiver", "Principal Adjustment", "Interest Carry Forward", "Write Off Recovery", "Security Deposit Adjustment", "Advance Payment", "Pre Payment", "Subsidy Adjustments", "Loan Closure", "Partial Settlement", "Full Settlement", "Write Off Settlement", "Charge Payment", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"]
 		shortfall_amount: DF.Currency
 		total_charges_paid: DF.Currency
 		total_charges_payable: DF.Currency
@@ -273,7 +247,8 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
-				frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+				job_name = frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+				self.db_set("full_settlement_job", job_name)
 			else:
 				self.post_write_off_settlements()
 
