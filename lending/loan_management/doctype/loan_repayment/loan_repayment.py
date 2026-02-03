@@ -1443,12 +1443,12 @@ class LoanRepayment(AccountsController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
-		self.init_amounts()
-
 		if not on_submit:
 			self.set("repayment_details", [])
 		else:
 			self.hard_clear_table()
+
+		self.init_amounts()
 
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
