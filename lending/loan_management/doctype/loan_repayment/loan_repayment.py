@@ -38,9 +38,16 @@ class LoanRepayment(AccountsController):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-		from lending.loan_management.doctype.loan_repayment_charges.loan_repayment_charges import LoanRepaymentCharges
-		from lending.loan_management.doctype.loan_repayment_detail.loan_repayment_detail import LoanRepaymentDetail
-		from lending.loan_management.doctype.prepayment_charges.prepayment_charges import PrepaymentCharges
+
+		from lending.loan_management.doctype.loan_repayment_charges.loan_repayment_charges import (
+			LoanRepaymentCharges,
+		)
+		from lending.loan_management.doctype.loan_repayment_detail.loan_repayment_detail import (
+			LoanRepaymentDetail,
+		)
+		from lending.loan_management.doctype.prepayment_charges.prepayment_charges import (
+			PrepaymentCharges,
+		)
 
 		against_loan: DF.Link
 		amended_from: DF.Link | None
