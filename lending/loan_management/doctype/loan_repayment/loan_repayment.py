@@ -1154,7 +1154,8 @@ class LoanRepayment(AccountsController):
 			principal_amount = flt(self.payable_principal_amount - self.principal_amount_paid, precision)
 			loan_write_off = frappe.new_doc("Loan Write Off")
 			loan_write_off.loan = self.against_loan
-			loan_write_off.posting_date = self.value_date
+			loan_write_off.posting_date = self.posting_date
+			loan_write_off.value_date = self.value_date
 			loan_write_off.write_off_amount = principal_amount
 			loan_write_off.loan_disbursement = self.loan_disbursement
 			loan_write_off.is_settlement_write_off = 1
