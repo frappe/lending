@@ -186,9 +186,13 @@ class TestLoanRestructure(IntegrationTestCase):
 			loan.name, loan.loan_amount, disbursement_date="2025-10-09", repayment_start_date="2025-11-05"
 		)
 
-		process_loan_interest_accrual_for_loans(posting_date="2025-12-04", loan=loan.name, company="_Test Company")
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-12-04", loan=loan.name, company="_Test Company"
+		)
 		process_daily_loan_demands(loan=loan.name, posting_date="2026-01-05")
-		process_loan_interest_accrual_for_loans(posting_date="2026-02-03", loan=loan.name, company="_Test Company")
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-02-03", loan=loan.name, company="_Test Company"
+		)
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
