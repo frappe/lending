@@ -866,6 +866,36 @@ class LoanRepaymentSchedule(Document):
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
+			days, months = self.get_monthly_interest_days_and_months(
+				payment_date,
+				additional_days,
+				balance_amount,
+				rate_of_interest,
+				schedule_field,
+				principal_share_percentage,
+				interest_share_percentage,
+				months,
+			)
+		else:
+			days = self.get_non_monthly_days(payment_date)
+
+		return days, months
+
+	def get_monthly_interest_days_and_months(
+		self,
+		payment_date,
+		additional_days,
+		balance_amount,
+		rate_of_interest,
+		schedule_field,
+		principal_share_percentage,
+		interest_share_percentage,
+		months,
+	):
+		if self.is_first_emi_after_normal_restructure(payment_date):
+			days = date_diff(payment_date, self.posting_date)
+
+		else:
 			expected_payment_date = get_last_day(payment_date)
 			if self.repayment_date_on == "Start of the next month":
 				expected_payment_date = add_days(expected_payment_date, 1)
@@ -913,21 +943,38 @@ class LoanRepaymentSchedule(Document):
 					days = date_diff(payment_date, self.posting_date)
 				else:
 					days = date_diff(get_last_day(payment_date), payment_date)
-		else:
-			if payment_date == self.repayment_start_date:
-				days = date_diff(payment_date, self.posting_date)
-			elif self.repayment_frequency == "Bi-Weekly":
-				days = 14
-			elif self.repayment_frequency == "Weekly":
-				days = 7
-			elif self.repayment_frequency == "Daily":
-				days = 1
-			elif self.repayment_frequency == "Quarterly":
-				days = 3
-			elif self.repayment_frequency == "One Time":
-				days = date_diff(self.repayment_start_date, self.posting_date)
 
 		return days, months
+
+	def is_first_emi_after_normal_restructure(self, payment_date):
+		return (
+			self.restructure_type == "Normal Restructure"
+			and self.loan_restructure
+			and getdate(payment_date) == getdate(self.repayment_start_date)
+			and getdate(self.posting_date) < getdate(payment_date)
+			and self.repayment_schedule_type
+			in (
+				"Monthly as per cycle date",
+				"Monthly as per repayment start date",
+				"Line of Credit",
+				"Pro-rated calendar months",
+			)
+		)
+
+
+	def get_non_monthly_days(self, payment_date):
+		if payment_date == self.repayment_start_date:
+			return date_diff(payment_date, self.posting_date)
+		elif self.repayment_frequency == "Bi-Weekly":
+			return 14
+		elif self.repayment_frequency == "Weekly":
+			return 7
+		elif self.repayment_frequency == "Daily":
+			return 1
+		elif self.repayment_frequency == "Quarterly":
+			return 3
+		elif self.repayment_frequency == "One Time":
+			return date_diff(self.repayment_start_date, self.posting_date)
 
 	def add_broken_period_interest(
 		self,
