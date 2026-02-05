@@ -62,6 +62,7 @@ class LoanRepayment(AccountsController):
 		days_past_due: DF.Int
 		due_date: DF.Date | None
 		excess_amount: DF.Currency
+		full_settlement_job: DF.Data | None
 		interest_payable: DF.Currency
 		is_backdated: DF.Check
 		is_npa: DF.Check
@@ -94,27 +95,7 @@ class LoanRepayment(AccountsController):
 		reference_number: DF.Data | None
 		repayment_details: DF.Table[LoanRepaymentDetail]
 		repayment_schedule_type: DF.Data | None
-		repayment_type: DF.Literal[
-			"Normal Repayment",
-			"Interest Waiver",
-			"Penalty Waiver",
-			"Charges Waiver",
-			"Principal Adjustment",
-			"Interest Carry Forward",
-			"Write Off Recovery",
-			"Security Deposit Adjustment",
-			"Advance Payment",
-			"Pre Payment",
-			"Subsidy Adjustments",
-			"Loan Closure",
-			"Partial Settlement",
-			"Full Settlement",
-			"Write Off Settlement",
-			"Charge Payment",
-			"Penalty Capitalization",
-			"Interest Capitalization",
-			"Charges Capitalization",
-		]
+		repayment_type: DF.Literal["Normal Repayment", "Interest Waiver", "Penalty Waiver", "Charges Waiver", "Principal Adjustment", "Interest Carry Forward", "Write Off Recovery", "Security Deposit Adjustment", "Advance Payment", "Pre Payment", "Subsidy Adjustments", "Loan Closure", "Partial Settlement", "Full Settlement", "Write Off Settlement", "Charge Payment", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"]
 		shortfall_amount: DF.Currency
 		total_charges_paid: DF.Currency
 		total_charges_payable: DF.Currency
@@ -273,7 +254,8 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
-				frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+				job_name = frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
+				self.db_set("full_settlement_job", job_name)
 			else:
 				self.post_write_off_settlements()
 
@@ -1172,7 +1154,8 @@ class LoanRepayment(AccountsController):
 			principal_amount = flt(self.payable_principal_amount - self.principal_amount_paid, precision)
 			loan_write_off = frappe.new_doc("Loan Write Off")
 			loan_write_off.loan = self.against_loan
-			loan_write_off.posting_date = self.value_date
+			loan_write_off.posting_date = self.posting_date
+			loan_write_off.value_date = self.value_date
 			loan_write_off.write_off_amount = principal_amount
 			loan_write_off.loan_disbursement = self.loan_disbursement
 			loan_write_off.is_settlement_write_off = 1
