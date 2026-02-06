@@ -27,7 +27,7 @@ class LoanSecurityAssignment(Document):
 		from lending.loan_management.doctype.pledge.pledge import Pledge
 
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
+		applicant: DF.Data
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
@@ -38,15 +38,7 @@ class LoanSecurityAssignment(Document):
 		reference_no: DF.Data | None
 		release_time: DF.Datetime | None
 		securities: DF.Table[Pledge]
-		status: DF.Literal[
-			"Pledge Requested",
-			"Unpledged",
-			"Pledged",
-			"Release Requested",
-			"Released",
-			"Repossessed",
-			"Cancelled",
-		]
+		status: DF.Literal["Pledge Requested", "Unpledged", "Pledged", "Release Requested", "Released", "Repossessed", "Cancelled"]
 		total_security_value: DF.Currency
 	# end: auto-generated types
 
