@@ -519,10 +519,14 @@
  "index_web_pages_for_search": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2025-12-24 11:54:26.966153",
 =======
  "modified": "2026-02-06 14:16:12.918968",
 >>>>>>> 18339294 (fix: All loan doctypes import by default)
+=======
+ "modified": "2026-02-06 14:46:02.236340",
+>>>>>>> 1e559eb4 (fix: Add permissions to import for loan masters)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
@@ -534,10 +538,24 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
    "share": 1,
    "write": 1
   }
