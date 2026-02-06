@@ -78,10 +78,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-06 14:44:32.083182",
+ "modified": "2026-02-06 15:26:22.781899",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Price",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
