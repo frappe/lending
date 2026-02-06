@@ -961,7 +961,6 @@ class LoanRepaymentSchedule(Document):
 			)
 		)
 
-
 	def get_non_monthly_days(self, payment_date):
 		if payment_date == self.repayment_start_date:
 			return date_diff(payment_date, self.posting_date)

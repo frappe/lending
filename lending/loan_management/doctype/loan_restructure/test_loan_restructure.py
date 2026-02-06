@@ -265,15 +265,14 @@ class TestLoanRestructure(IntegrationTestCase):
 		repayment_start_date = "2026-02-05"
 
 		loan_restructure = create_loan_restructure(
-			loan=loan.name,
-			restructure_date=restructure_date,
-			repayment_start_date=repayment_start_date
+			loan=loan.name, restructure_date=restructure_date, repayment_start_date=repayment_start_date
 		)
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
 
 		loan_repayment_schedule = frappe.get_doc(
-			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "loan_restructure": loan_restructure.name}
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "loan_restructure": loan_restructure.name},
 		)
 
 		date_diff_value = date_diff(repayment_start_date, restructure_date)
