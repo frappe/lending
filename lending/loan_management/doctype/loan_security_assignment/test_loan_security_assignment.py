@@ -13,6 +13,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_security,
 	create_loan_security_price,
+	create_loan_security_type,
 	init_customers,
 	init_loan_products,
 	make_loan_disbursement_entry,
@@ -26,6 +27,7 @@ class TestLoanSecurityAssignment(unittest.TestCase):
 		init_loan_products()
 		init_customers()
 
+		create_loan_security_type()
 		create_loan_security()
 
 		create_loan_security_price(

@@ -828,7 +828,7 @@ def get_total_pledged_security_value(loan):
 
 
 @frappe.whitelist()
-def get_disbursal_amount(loan, on_current_security_price=0):
+def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 	loan_details = frappe.get_value(
 		"Loan",
 		loan,

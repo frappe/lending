@@ -315,7 +315,7 @@ def create_loan(source_name, target_doc=None, submit=0):
 
 
 @frappe.whitelist()
-def create_loan_security_assignment(loan_application=None, loan=None, securities=None):
+def create_loan_security_assignment(loan_application: str | None = None, loan: str | None = None, securities: list | None = None):
 	if loan_application:
 		loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 		applicant_type, applicant, company = frappe.db.get_value("Loan Application", loan_application,
