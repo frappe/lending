@@ -95,7 +95,27 @@ class LoanRepayment(AccountsController):
 		reference_number: DF.Data | None
 		repayment_details: DF.Table[LoanRepaymentDetail]
 		repayment_schedule_type: DF.Data | None
-		repayment_type: DF.Literal["Normal Repayment", "Interest Waiver", "Penalty Waiver", "Charges Waiver", "Principal Adjustment", "Interest Carry Forward", "Write Off Recovery", "Security Deposit Adjustment", "Advance Payment", "Pre Payment", "Subsidy Adjustments", "Loan Closure", "Partial Settlement", "Full Settlement", "Write Off Settlement", "Charge Payment", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"]
+		repayment_type: DF.Literal[
+			"Normal Repayment",
+			"Interest Waiver",
+			"Penalty Waiver",
+			"Charges Waiver",
+			"Principal Adjustment",
+			"Interest Carry Forward",
+			"Write Off Recovery",
+			"Security Deposit Adjustment",
+			"Advance Payment",
+			"Pre Payment",
+			"Subsidy Adjustments",
+			"Loan Closure",
+			"Partial Settlement",
+			"Full Settlement",
+			"Write Off Settlement",
+			"Charge Payment",
+			"Penalty Capitalization",
+			"Interest Capitalization",
+			"Charges Capitalization",
+		]
 		shortfall_amount: DF.Currency
 		total_charges_paid: DF.Currency
 		total_charges_payable: DF.Currency
@@ -1496,7 +1516,14 @@ class LoanRepayment(AccountsController):
 					self.total_charges_paid += self.total_charges_payable
 					amount_paid -= self.total_charges_payable
 
-			if self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"):
+			if self.repayment_type not in (
+				"Interest Waiver",
+				"Penalty Waiver",
+				"Charges Waiver",
+				"Penalty Capitalization",
+				"Interest Capitalization",
+				"Charges Capitalization",
+			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
 				self.total_penalty_paid += amount_paid
@@ -1653,9 +1680,7 @@ class LoanRepayment(AccountsController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if loan_status == "Written Off":
-			allocation_order = self.get_allocation_order(
-				"Collection Offset Sequence for Written Off Asset"
-			)
+			allocation_order = self.get_allocation_order("Collection Offset Sequence for Written Off Asset")
 		elif self.repayment_type in (
 			"Partial Settlement",
 			"Full Settlement",
