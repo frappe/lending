@@ -95,6 +95,7 @@ class LoanRepayment(AccountsController):
 		reference_number: DF.Data | None
 		repayment_details: DF.Table[LoanRepaymentDetail]
 		repayment_schedule_type: DF.Data | None
+<<<<<<< HEAD
 		repayment_type: DF.Literal[
 			"Normal Repayment",
 			"Interest Waiver",
@@ -116,6 +117,9 @@ class LoanRepayment(AccountsController):
 			"Interest Capitalization",
 			"Charges Capitalization",
 		]
+=======
+		repayment_type: DF.Literal["Normal Repayment", "Interest Waiver", "Penalty Waiver", "Charges Waiver", "Principal Adjustment", "Interest Carry Forward", "Write Off Recovery", "Security Deposit Adjustment", "Advance Payment", "Pre Payment", "Subsidy Adjustments", "Loan Closure", "Partial Settlement", "Full Settlement", "Write Off Settlement", "Charge Payment", "Penalty Capitalization", "Interest Capitalization", "Charges Capitalization", "Principal Capitalization"]
+>>>>>>> 592a56e4 (fix: Add Principal Capitalization repayment type for restructure cases)
 		shortfall_amount: DF.Currency
 		total_charges_paid: DF.Currency
 		total_charges_payable: DF.Currency
@@ -1517,12 +1521,17 @@ class LoanRepayment(AccountsController):
 					amount_paid -= self.total_charges_payable
 
 			if self.repayment_type not in (
+<<<<<<< HEAD
 				"Interest Waiver",
 				"Penalty Waiver",
 				"Charges Waiver",
 				"Penalty Capitalization",
 				"Interest Capitalization",
 				"Charges Capitalization",
+=======
+				"Interest Waiver", "Penalty Waiver", "Charges Waiver",
+				"Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"
+>>>>>>> 592a56e4 (fix: Add Principal Capitalization repayment type for restructure cases)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
@@ -1685,6 +1694,7 @@ class LoanRepayment(AccountsController):
 			"Partial Settlement",
 			"Full Settlement",
 			"Principal Adjustment",
+			"Principal Capitalization",
 		) or (
 			loan_status == "Settled"
 			and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
@@ -1950,7 +1960,7 @@ class LoanRepayment(AccountsController):
 				)
 			return
 
-		if self.repayment_type == "Principal Adjustment" and self.loan_restructure:
+		if self.repayment_type == "Principal Capitalization" and self.loan_restructure:
 			return
 
 		if cancel:
