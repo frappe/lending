@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.tests import IntegrationTestCase
-from frappe.utils import flt
+from frappe.utils import date_diff, flt
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -237,10 +237,54 @@ class TestLoanRestructure(IntegrationTestCase):
 		for expected in expected_entries:
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
+	def test_normal_restructure_first_emi_schedule_days(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1200000,
+			"Repay Over Number of Periods",
+			36,
+			repayment_start_date="2025-10-05",
+			posting_date="2024-09-19",
+			rate_of_interest=24,
+			applicant_type="Customer",
+			penalty_charges_rate=36,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-19", repayment_start_date="2025-10-05"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-01-05")
+
+		restructure_date = "2026-02-02"
+		repayment_start_date = "2026-02-05"
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name, restructure_date=restructure_date, repayment_start_date=repayment_start_date
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "loan_restructure": loan_restructure.name},
+		)
+
+		date_diff_value = date_diff(repayment_start_date, restructure_date)
+		number_of_days_for_first_emi = loan_repayment_schedule.repayment_schedule[0].number_of_days
+
+		self.assertEqual(date_diff_value, number_of_days_for_first_emi)
+
 
 def create_loan_restructure(
 	loan,
 	restructure_date,
+	repayment_start_date=None,
 	interest_waiver_amount=None,
 	unaccrued_interest_waiver=None,
 	penal_waiver_amount=None,
@@ -254,6 +298,7 @@ def create_loan_restructure(
 	doc = frappe.new_doc("Loan Restructure")
 	doc.loan = loan
 	doc.restructure_date = restructure_date
+	doc.repayment_start_date = repayment_start_date or restructure_date
 	doc.interest_waiver_amount = interest_waiver_amount
 	doc.unaccrued_interest_waiver = unaccrued_interest_waiver
 	doc.penal_interest_waiver = penal_waiver_amount
