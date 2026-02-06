@@ -315,24 +315,32 @@ def create_loan(source_name, target_doc=None, submit=0):
 
 
 @frappe.whitelist()
-def create_loan_security_assignment(loan_application, loan=None):
-	loan_application_doc = frappe.get_doc("Loan Application", loan_application)
+def create_loan_security_assignment(loan_application=None, loan=None, securities=None):
+	if loan_application:
+		loan_application_doc = frappe.get_doc("Loan Application", loan_application)
+		applicant_type, applicant, company = frappe.db.get_value("Loan Application", loan_application,
+			["applicant_type", "applicant", "company"])
+		securities = loan_application_doc.get("proposed_pledges")
+	elif loan:
+		applicant_type, applicant, company = frappe.db.get_value("Loan", loan,
+			["applicant_type", "applicant", "company"])
+
 
 	lsa = frappe.new_doc("Loan Security Assignment")
-	lsa.applicant_type = loan_application_doc.applicant_type
-	lsa.applicant = loan_application_doc.applicant
-	lsa.company = loan_application_doc.company
+	lsa.applicant_type = applicant_type
+	lsa.applicant = applicant
+	lsa.company = company
 	lsa.loan_application = loan_application
 	lsa.loan = loan
 
-	for pledge in loan_application_doc.proposed_pledges:
+	for pledge in securities:
 		lsa.append(
 			"securities",
 			{
-				"loan_security": pledge.loan_security,
-				"qty": pledge.qty,
-				"loan_security_price": pledge.loan_security_price,
-				"haircut": pledge.haircut,
+				"loan_security": pledge.get("loan_security"),
+				"qty": pledge.get("qty"),
+				"loan_security_price": pledge.get("loan_security_price"),
+				"haircut": pledge.get("haircut"),
 			},
 		)
 

@@ -395,6 +395,7 @@ class LoanDisbursement(LoanController):
 				"limit_applicable_start",
 				"limit_applicable_end",
 				"available_limit_amount",
+				"is_secured_loan"
 			],
 			as_dict=1,
 		)
@@ -403,9 +404,9 @@ class LoanDisbursement(LoanController):
 			frappe.throw(_("Disbursed amount cannot be zero"))
 		elif (
 			self.disbursed_amount > possible_disbursal_amount
-			and self.repayment_schedule_type != "Line of Credit"
+			and (self.repayment_schedule_type != "Line of Credit" or limit_details.is_secured_loan)
 		):
-			frappe.throw(_("Disbursed Amount cannot be greater than {0}").format(possible_disbursal_amount))
+			frappe.throw(_("Disbursed Amount cannot be more than {0} as per loan limit or assigned security value").format(possible_disbursal_amount))
 		elif self.repayment_schedule_type == "Line of Credit":
 			if not (
 				getdate(limit_details.limit_applicable_start)
@@ -845,6 +846,8 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 			"is_secured_loan",
 			"maximum_loan_amount",
 			"written_off_amount",
+			"repayment_schedule_type",
+			"available_limit_amount"
 		],
 		as_dict=1,
 		for_update=True,
@@ -855,7 +858,10 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 	):
 		return 0
 
-	pending_principal_amount = get_pending_principal_amount(loan_details)
+	if loan_details.get("repayment_schedule_type") == "Line of Credit":
+		pending_principal_amount = loan_details.get("available_limit_amount")
+	else:
+		pending_principal_amount = get_pending_principal_amount(loan_details)
 
 	security_value = 0.0
 	if loan_details.is_secured_loan and on_current_security_price:
@@ -869,8 +875,12 @@ def get_disbursal_amount(loan, on_current_security_price=0):
 
 	disbursal_amount = flt(security_value) - flt(pending_principal_amount)
 
+	if loan_details.get("repayment_schedule_type") == "Line of Credit" and loan_details.get("is_secured_loan"):
+		if flt(pending_principal_amount) > flt(security_value):
+			disbursal_amount = flt(security_value)
+
 	if (
-		loan_details.is_term_loan
+		loan_details.get("is_term_loan") and loan_details.get("repayment_schedule_type") != "Line of Credit"
 		and (disbursal_amount + loan_details.loan_amount) > loan_details.loan_amount
 	):
 		disbursal_amount = loan_details.loan_amount - loan_details.disbursed_amount

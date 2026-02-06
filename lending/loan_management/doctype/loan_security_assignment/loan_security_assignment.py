@@ -71,8 +71,11 @@ class LoanSecurityAssignment(Document):
 		update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
 	def validate_securities(self):
+		if not self.get("securities"):
+			frappe.throw(_("Atlest one security needs to be assigned"))
+
 		security_list = []
-		for security in self.securities:
+		for security in self.get("securities"):
 			if security.loan_security not in security_list:
 				security_list.append(security.loan_security)
 			else:
