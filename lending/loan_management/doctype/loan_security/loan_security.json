@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:loan_security_code",
  "creation": "2019-09-02 15:07:08.885593",
@@ -81,7 +82,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-19 11:46:50.152532",
+ "modified": "2026-02-06 14:11:02.402122",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",
@@ -113,6 +114,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "loan_security_code",
  "sort_field": "modified",
  "sort_order": "DESC",

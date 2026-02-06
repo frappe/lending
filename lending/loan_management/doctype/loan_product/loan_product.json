@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:product_code",
  "creation": "2019-08-29 18:08:38.159726",
@@ -517,7 +518,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-12-24 11:54:26.966153",
+=======
+ "modified": "2026-02-06 14:16:12.918968",
+>>>>>>> 18339294 (fix: All loan doctypes import by default)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
