@@ -27,7 +27,7 @@ class LoanSecurityAssignment(Document):
 		from lending.loan_management.doctype.pledge.pledge import Pledge
 
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
+		applicant: DF.Data
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
@@ -38,15 +38,7 @@ class LoanSecurityAssignment(Document):
 		reference_no: DF.Data | None
 		release_time: DF.Datetime | None
 		securities: DF.Table[Pledge]
-		status: DF.Literal[
-			"Pledge Requested",
-			"Unpledged",
-			"Pledged",
-			"Release Requested",
-			"Released",
-			"Repossessed",
-			"Cancelled",
-		]
+		status: DF.Literal["Pledge Requested", "Unpledged", "Pledged", "Release Requested", "Released", "Repossessed", "Cancelled"]
 		total_security_value: DF.Currency
 	# end: auto-generated types
 
@@ -71,8 +63,11 @@ class LoanSecurityAssignment(Document):
 		update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
 	def validate_securities(self):
+		if not self.get("securities"):
+			frappe.throw(_("Atlest one security needs to be assigned"))
+
 		security_list = []
-		for security in self.securities:
+		for security in self.get("securities"):
 			if security.loan_security not in security_list:
 				security_list.append(security.loan_security)
 			else:
