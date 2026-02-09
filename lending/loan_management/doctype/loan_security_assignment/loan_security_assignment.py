@@ -44,7 +44,6 @@ class LoanSecurityAssignment(Document):
 
 	def validate(self):
 		self.validate_securities()
-		self.validate_loan_security_type()
 		self.set_loan_and_security_values()
 
 	def on_submit(self):
@@ -74,30 +73,6 @@ class LoanSecurityAssignment(Document):
 				frappe.throw(
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
-
-	def validate_loan_security_type(self):
-		existing_lsa = None
-		if self.loan:
-			existing_lsa = frappe.db.get_value(
-				"Loan Security Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
-			)
-
-		if existing_lsa:
-			loan_security_type = frappe.db.get_value(
-				"Pledge", {"parent": existing_lsa}, ["loan_security_type"]
-			)
-		else:
-			loan_security_type = self.securities[0].loan_security_type
-
-		ltv_ratio_map = frappe._dict(
-			frappe.get_all("Loan Security Type", fields=["name", "loan_to_value_ratio"], as_list=1)
-		)
-
-		ltv_ratio = ltv_ratio_map.get(loan_security_type)
-
-		for security in self.securities:
-			if ltv_ratio_map.get(security.loan_security_type) != ltv_ratio:
-				frappe.throw(_("Loan Securities with different LTV ratio cannot be pledged against one loan"))
 
 	def set_loan_and_security_values(self):
 		total_security_value = 0

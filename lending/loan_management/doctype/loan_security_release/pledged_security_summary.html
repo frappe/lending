@@ -1,0 +1,20 @@
+<table class="table table-bordered small">
+	<thead>
+		<tr>
+			<td style="width: 33%">{{ __("Loan Security") }}</td>
+			<td style="width: 33%" class="text-right">{{ __("Pledged Qty") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% Object.keys(data).forEach(function(key, index) { %}
+		<tr>
+			<td>
+				{{ __(key) }}
+			</td>
+			<td class="text-right">
+				{{ data[key] }}
+			</td>
+		</div>
+		{% }); %}
+	</tbody>
+</table>

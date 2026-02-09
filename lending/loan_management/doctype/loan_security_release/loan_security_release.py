@@ -21,7 +21,7 @@ class LoanSecurityRelease(Document):
 		from lending.loan_management.doctype.unpledge.unpledge import Unpledge
 
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
+		applicant: DF.Data
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
@@ -169,7 +169,7 @@ class LoanSecurityRelease(Document):
 
 
 @frappe.whitelist()
-def get_pledged_security_qty(loan):
+def get_pledged_security_qty(loan: str):
 
 	current_pledges = {}
 
