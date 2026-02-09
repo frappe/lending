@@ -117,8 +117,13 @@ class LoanSecurityAssignment(Document):
 						_("No valid Loan Security Price found for {0}").format(frappe.bold(pledge.loan_security))
 					)
 
+			haircut = pledge.haircut
+
+			if not haircut:
+				haircut = flt(frappe.db.get_value("Loan Security Type", self.loan_security_type, "haircut"))
+
 			pledge.amount = pledge.qty * pledge.loan_security_price
-			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * pledge.haircut / 100))
+			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * haircut / 100))
 
 			total_security_value += pledge.amount
 			maximum_loan_value += pledge.post_haircut_amount
