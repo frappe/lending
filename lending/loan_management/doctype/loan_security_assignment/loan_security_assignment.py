@@ -95,7 +95,7 @@ class LoanSecurityAssignment(Document):
 			haircut = pledge.haircut
 
 			if not haircut:
-				haircut = flt(frappe.db.get_value("Loan Security Type", self.loan_security_type, "haircut"))
+				haircut = flt(frappe.db.get_value("Loan Security Type", pledge.loan_security_type, "haircut"))
 
 			pledge.amount = pledge.qty * pledge.loan_security_price
 			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * haircut / 100))
