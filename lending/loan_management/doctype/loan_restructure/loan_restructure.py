@@ -668,7 +668,7 @@ class LoanRestructure(AccountsController):
 			create_loan_repayment(
 				self.loan,
 				self.restructure_date,
-				"Principal Adjustment",
+				"Principal Capitalization",
 				self.principal_adjusted,
 				restructure_name=self.name,
 			)

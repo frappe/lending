@@ -115,6 +115,7 @@ class LoanRepayment(AccountsController):
 			"Penalty Capitalization",
 			"Interest Capitalization",
 			"Charges Capitalization",
+			"Principal Capitalization",
 		]
 		shortfall_amount: DF.Currency
 		total_charges_paid: DF.Currency
@@ -1685,6 +1686,7 @@ class LoanRepayment(AccountsController):
 			"Partial Settlement",
 			"Full Settlement",
 			"Principal Adjustment",
+			"Principal Capitalization",
 		) or (
 			loan_status == "Settled"
 			and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
@@ -1950,7 +1952,7 @@ class LoanRepayment(AccountsController):
 				)
 			return
 
-		if self.repayment_type == "Principal Adjustment" and self.loan_restructure:
+		if self.repayment_type == "Principal Capitalization" and self.loan_restructure:
 			return
 
 		if cancel:
