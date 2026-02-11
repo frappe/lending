@@ -208,7 +208,6 @@ class LoanDisbursement(AccountsController):
 				self.disbursement_account,
 				-1 * self.bpi_amount_difference,
 				_("BPI difference entry"),
-				bpi_difference_date=self.bpi_difference_date,
 			)
 
 	def submit_repayment_schedule(self):
