@@ -1101,7 +1101,7 @@ def create_dpd_record(
 		{"loan": loan, "posting_date": posting_date, "loan_disbursement": loan_disbursement},
 	)
 	if existing_log:
-		doc = frappe.get_doc("Days Past Due Log", existing_log)
+		doc = frappe.get_doc("Days Past Due Log", existing_log, for_update=True)
 	else:
 		doc = frappe.new_doc("Days Past Due Log")
 
