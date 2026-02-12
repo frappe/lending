@@ -5,8 +5,14 @@ import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.tests import IntegrationTestCase
-from frappe.utils import date_diff, flt
+from frappe.utils import add_days, date_diff, flt, getdate
 
+from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -15,8 +21,10 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_repayment_entry,
 	init_customers,
 	init_loan_products,
+	loan_classification_ranges,
 	make_loan_disbursement_entry,
 	master_init,
 	set_loan_accrual_frequency,
@@ -28,6 +36,7 @@ class TestLoanRestructure(IntegrationTestCase):
 		master_init()
 		init_loan_products()
 		init_customers()
+		loan_classification_ranges()
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_loan_restructure_capitalization(self):
@@ -279,6 +288,185 @@ class TestLoanRestructure(IntegrationTestCase):
 		number_of_days_for_first_emi = loan_repayment_schedule.repayment_schedule[0].number_of_days
 
 		self.assertEqual(date_diff_value, number_of_days_for_first_emi)
+
+	def test_non_npa_restructure_resets_dpd_without_watch_period(self):
+		"""
+		Verify that restructuring a non-NPA loan resets DPD to zero
+		without setting any watch period or NPA tagging.
+		"""
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2024-04-10")
+		create_process_loan_classification(posting_date="2024-04-11", loan=loan.name)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2024-04-11",
+			repayment_start_date="2024-05-11",
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		loan.load_from_db()
+		self.assertFalse(loan.watch_period_end_date)
+		self.assertEqual(loan.days_past_due, 0)
+		self.assertEqual(loan.is_npa, 0)
+
+	def test_npa_restructure_keeps_classification_same(self):
+		"""
+		Verify that after restructuring an NPA loan,
+		the loan classification stays the same during the watch period.
+		"""
+
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		customer = frappe.get_doc(get_customer_dict("NPA Restructure 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-05")
+
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		loan.load_from_db()
+		classification_code = loan.classification_code
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2024-08-06",
+			repayment_start_date="2024-09-05",
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		loan.load_from_db()
+		self.assertTrue(loan.watch_period_end_date)
+		self.assertEqual(loan.days_past_due, 0)
+		self.assertEqual(loan.is_npa, 1)
+		self.assertEqual(loan.classification_code, classification_code)
+
+	def test_npa_restructure_watch_period_resets_on_dpd(self):
+		"""
+		Verify that when DPD increases after NPA restructuring,
+		the watch period is reset from the new DPD date.
+		"""
+
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		customer = frappe.get_doc(get_customer_dict("NPA Restructure 1")).insert()
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			customer.name,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-05")
+
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		loan.load_from_db()
+		classification_code = loan.classification_code
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2024-08-06",
+			repayment_start_date="2024-09-05",
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		loan.load_from_db()
+		self.assertTrue(loan.watch_period_end_date)
+		self.assertEqual(loan.days_past_due, 0)
+		self.assertEqual(loan.is_npa, 1)
+		self.assertEqual(loan.classification_code, classification_code)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-09-05")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-09-05")
+		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-09-05", payable_amount)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-10-05")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-10-05")
+		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", payable_amount)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-11-05")
+		create_process_loan_classification(
+			posting_date="2024-11-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+		loan.load_from_db()
+		watch_period_days = frappe.db.get_value(
+			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"
+		)
+		watch_period_end_date = add_days("2024-11-05", watch_period_days)
+
+		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
 
 def create_loan_restructure(
