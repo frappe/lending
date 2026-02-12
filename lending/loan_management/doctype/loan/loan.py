@@ -832,15 +832,15 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	loan_name,
-	posting_date=None,
-	loan_product=None,
-	process_loan_classification=None,
-	loan_disbursement=None,
-	ignore_freeze=False,
-	is_backdated=0,
-	force_update_dpd_in_loan=0,
-):
+	loan_name: str,
+	posting_date: str | None = None,
+	loan_product: str | None = None,
+	process_loan_classification: str | None = None,
+	loan_disbursement: str | None = None,
+	ignore_freeze: bool = False,
+	is_backdated: bool = False,
+	force_update_dpd_in_loan: bool = False,
+) -> None:
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	"""Update days past due in loans"""
