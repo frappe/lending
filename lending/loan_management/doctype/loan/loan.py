@@ -3,6 +3,7 @@
 
 
 import json
+from datetime import date, datetime
 
 import frappe
 from frappe import _
@@ -833,7 +834,7 @@ def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, s
 @frappe.whitelist()
 def update_days_past_due_in_loans(
 	loan_name: str,
-	posting_date: str | None = None,
+	posting_date: str | date | datetime | None = None,
 	loan_product: str | None = None,
 	process_loan_classification: str | None = None,
 	loan_disbursement: str | None = None,
