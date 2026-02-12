@@ -49,6 +49,7 @@ class LoanRestructure(AccountsController):
 		disbursed_amount: DF.Currency
 		interest_overdue: DF.Currency
 		interest_waiver_amount: DF.Currency
+		is_npa: DF.Check
 		loan: DF.Link
 		loan_disbursement: DF.Link | None
 		loan_product: DF.Link | None
@@ -57,9 +58,7 @@ class LoanRestructure(AccountsController):
 		new_loan_amount: DF.Currency
 		new_monthly_repayment_amount: DF.Currency
 		new_rate_of_interest: DF.Percent
-		new_repayment_method: DF.Literal[
-			"", "Repay Fixed Amount per Period", "Repay Over Number of Periods"
-		]
+		new_repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		new_repayment_period_in_months: DF.Int
 		old_emi: DF.Currency
 		old_loan_amount: DF.Currency
@@ -449,17 +448,17 @@ class LoanRestructure(AccountsController):
 	def restructure_loan(self):
 		if self.restructure_type == "Normal Restructure":
 			# Mark Loan as NPA
-			update_all_linked_loan_customer_npa_status(
-				1, self.applicant_type, self.applicant, self.restructure_date, loan=self.loan
-			)
-
-			watch_period_days = frappe.db.get_value(
-				"Company", self.company, "watch_period_post_loan_restructure_in_days"
-			)
-			watch_period_end_date = add_days(self.restructure_date, watch_period_days)
-			update_watch_period_date_for_all_loans(
-				watch_period_end_date, self.applicant_type, self.applicant
-			)
+			if self.is_npa:
+				update_all_linked_loan_customer_npa_status(
+					1, self.applicant_type, self.applicant, self.restructure_date, loan=self.loan
+				)
+				watch_period_days = frappe.db.get_value(
+					"Company", self.company, "watch_period_post_loan_restructure_in_days"
+				)
+				watch_period_end_date = add_days(self.restructure_date, watch_period_days)
+				update_watch_period_date_for_all_loans(
+					watch_period_end_date, self.applicant_type, self.applicant
+				)
 
 			frappe.db.set_value("Loan", self.loan, "days_past_due", 0)
 			status = "Restructured"
