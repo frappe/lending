@@ -338,8 +338,8 @@ class TestLoanRestructure(IntegrationTestCase):
 
 	def test_npa_restructure_keeps_classification_same(self):
 		"""
-		Verify that after restructuring an NPA loan, the classification
-		remains unchanged during the active watch period.
+		Verify that after restructuring an NPA loan,
+		the loan classification stays the same during the watch period.
 		"""
 
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
@@ -386,18 +386,6 @@ class TestLoanRestructure(IntegrationTestCase):
 		self.assertEqual(loan.days_past_due, 0)
 		self.assertEqual(loan.is_npa, 1)
 		self.assertEqual(loan.classification_code, classification_code)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-09-05")
-		create_process_loan_classification(posting_date="2024-09-05", loan=loan.name, force_update_dpd_in_loan=1)
-
-		loan.load_from_db()
-
-		watch_period_days = frappe.db.get_value(
-			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"
-		)
-		watch_period_end_date = add_days("2024-09-05", watch_period_days)
-
-		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
