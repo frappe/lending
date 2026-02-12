@@ -535,6 +535,7 @@
    "fetch_from": "loan.is_npa",
    "fieldname": "is_npa",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Is NPA",
    "read_only": 1
   }
@@ -542,7 +543,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-11 15:04:57.731068",
+ "modified": "2026-02-12 11:55:29.308410",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",
