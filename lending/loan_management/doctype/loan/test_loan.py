@@ -63,6 +63,7 @@ from lending.tests.test_utils import (
 	create_repayment_entry,
 	create_secured_demand_loan,
 	get_loan_interest_accrual,
+	loan_classification_ranges,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 	set_loan_settings_in_company,
@@ -75,6 +76,7 @@ class TestLoan(FrappeTestCase):
 		set_loan_settings_in_company()
 		create_loan_accounts()
 		setup_loan_demand_offset_order()
+		loan_classification_ranges()
 
 		set_loan_accrual_frequency("Monthly")
 		simple_terms_loans = [

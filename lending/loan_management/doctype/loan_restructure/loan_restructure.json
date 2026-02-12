@@ -22,6 +22,7 @@
   "reason_for_restructure",
   "old_repayment_frequency",
   "moratorium_end_date",
+  "is_npa",
   "loan_details_section",
   "loan_product",
   "old_tenure",
@@ -528,16 +529,24 @@
    "fieldname": "moratorium_end_date",
    "fieldtype": "Date",
    "label": "Moratorium End Date"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan.is_npa",
+   "fieldname": "is_npa",
+   "fieldtype": "Check",
+   "label": "Is NPA",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:44.614411",
+ "modified": "2026-02-11 15:04:57.731068",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -569,6 +578,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
