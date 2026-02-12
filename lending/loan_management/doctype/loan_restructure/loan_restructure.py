@@ -58,7 +58,9 @@ class LoanRestructure(AccountsController):
 		new_loan_amount: DF.Currency
 		new_monthly_repayment_amount: DF.Currency
 		new_rate_of_interest: DF.Percent
-		new_repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
+		new_repayment_method: DF.Literal[
+			"", "Repay Fixed Amount per Period", "Repay Over Number of Periods"
+		]
 		new_repayment_period_in_months: DF.Int
 		old_emi: DF.Currency
 		old_loan_amount: DF.Currency

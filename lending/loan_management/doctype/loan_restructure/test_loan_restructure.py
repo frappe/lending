@@ -367,7 +367,9 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-05")
 
-		create_process_loan_classification(posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
 
 		loan.load_from_db()
 		classification_code = loan.classification_code
@@ -418,7 +420,9 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-05")
 
-		create_process_loan_classification(posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
 
 		loan.load_from_db()
 		classification_code = loan.classification_code
@@ -453,7 +457,9 @@ class TestLoanRestructure(IntegrationTestCase):
 		repayment_entry.submit()
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2024-11-05")
-		create_process_loan_classification(posting_date="2024-11-05", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(
+			posting_date="2024-11-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
 		loan.load_from_db()
 		watch_period_days = frappe.db.get_value(
 			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"

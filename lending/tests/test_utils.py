@@ -1003,7 +1003,15 @@ def create_loan_refund(
 
 
 def loan_classification_ranges():
-	classifications = ["Standard", "Sub-Standard 1", "Sub-Standard 2", "Doubtful 1", "Doubtful 2", "Doubtful 3", "Loss"]
+	classifications = [
+		"Standard",
+		"Sub-Standard 1",
+		"Sub-Standard 2",
+		"Doubtful 1",
+		"Doubtful 2",
+		"Doubtful 3",
+		"Loss",
+	]
 
 	for classification in classifications:
 		if not frappe.db.exists("Loan Classification", {"classification_code": classification}):
@@ -1016,13 +1024,48 @@ def loan_classification_ranges():
 			).insert(ignore_permissions=True)
 
 	loan_classification_ranges = [
-		{"classification_code": "Standard", "classification_name": "Standard", "min_dpd_range": 0, "max_dpd_range": 0},
-		{"classification_code": "Sub-Standard 1", "classification_name": "Sub-Standard 1", "min_dpd_range": 1, "max_dpd_range": 30},
-		{"classification_code": "Sub-Standard 2", "classification_name": "Sub-Standard 2", "min_dpd_range": 31, "max_dpd_range": 60},
-		{"classification_code": "Doubtful 1", "classification_name": "Doubtful 1", "min_dpd_range": 61, "max_dpd_range": 90},
-		{"classification_code": "Doubtful 2", "classification_name": "Doubtful 2", "min_dpd_range": 91, "max_dpd_range": 120},
-		{"classification_code": "Doubtful 3", "classification_name": "Doubtful 3", "min_dpd_range": 121, "max_dpd_range": 150},
-		{"classification_code": "Loss", "classification_name": "Loss", "min_dpd_range": 151, "max_dpd_range": 300},
+		{
+			"classification_code": "Standard",
+			"classification_name": "Standard",
+			"min_dpd_range": 0,
+			"max_dpd_range": 0,
+		},
+		{
+			"classification_code": "Sub-Standard 1",
+			"classification_name": "Sub-Standard 1",
+			"min_dpd_range": 1,
+			"max_dpd_range": 30,
+		},
+		{
+			"classification_code": "Sub-Standard 2",
+			"classification_name": "Sub-Standard 2",
+			"min_dpd_range": 31,
+			"max_dpd_range": 60,
+		},
+		{
+			"classification_code": "Doubtful 1",
+			"classification_name": "Doubtful 1",
+			"min_dpd_range": 61,
+			"max_dpd_range": 90,
+		},
+		{
+			"classification_code": "Doubtful 2",
+			"classification_name": "Doubtful 2",
+			"min_dpd_range": 91,
+			"max_dpd_range": 120,
+		},
+		{
+			"classification_code": "Doubtful 3",
+			"classification_name": "Doubtful 3",
+			"min_dpd_range": 121,
+			"max_dpd_range": 150,
+		},
+		{
+			"classification_code": "Loss",
+			"classification_name": "Loss",
+			"min_dpd_range": 151,
+			"max_dpd_range": 300,
+		},
 	]
 
 	doc = frappe.get_doc("Company", "_Test Company")
@@ -1030,7 +1073,7 @@ def loan_classification_ranges():
 	doc.watch_period_post_loan_restructure_in_days = 365
 
 	existing_codes = set()
-	for row in (doc.get("loan_classification_ranges") or []):
+	for row in doc.get("loan_classification_ranges") or []:
 		if row.get("classification_code"):
 			existing_codes.add(row.get("classification_code"))
 
