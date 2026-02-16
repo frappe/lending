@@ -109,6 +109,16 @@ frappe.ui.form.on('Loan', {
 				},__('Status'));
 			}
 		}
+
+		if (frm.doc.docstatus == 1 && frm.doc.is_secured_loan) {
+			frm.add_custom_button(__('Loan Security Ledger'), function() {
+				frappe.route_options = {
+					loan: frm.doc.name,
+				};
+				frappe.set_route("query-report", "Loan Security Ledger");
+			}, __("View"));
+		}
+
 		frm.trigger("toggle_fields");
 		frm.trigger("add_dashboard_stats");
 	},
