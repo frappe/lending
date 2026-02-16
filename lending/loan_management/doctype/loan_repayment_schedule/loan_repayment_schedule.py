@@ -506,7 +506,7 @@ class LoanRepaymentSchedule(Document):
 			# All the residue amount is added to the last row for "Repay Over Number of Periods"
 			#
 			# Also, when such a Repayment Schedule is rescheduled, its repayment_method changes to Repay Fixed Amount per Period
-			# Here, the tenure shouldn't change. Thus, if this is a restructed repayment schedule, the last row is all the residue amount left.
+			# Here, the tenure shouldn't change. Thus, if this is a restructured repayment schedule, the last row is all the residue amount left.
 			# This is a special case.
 
 			if (
@@ -575,11 +575,7 @@ class LoanRepaymentSchedule(Document):
 		else:
 			tenure = self.repayment_periods
 
-		if (
-			self.restructure_type != "Normal Restructure"
-			and self.repayment_frequency == "Monthly"
-			or (self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time")
-		):
+		if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":
 			self.broken_period_interest_days = date_diff(add_months(payment_date, -1), self.posting_date)
 			if (
 				self.broken_period_interest_days > 0
