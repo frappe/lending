@@ -1075,10 +1075,12 @@ class TestLoan(IntegrationTestCase):
 		lrs = frappe.get_doc(
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
 		)
+
 		self.assertEqual(lrs.monthly_repayment_amount, 47523)
 		self.assertEqual(lrs.get("repayment_schedule")[3].total_payment, 47523)
 		self.assertEqual(lrs.broken_period_interest, 0)
 		self.assertEqual(lrs.broken_period_interest_days, 0)
+		self.assertEqual(lrs.repayment_periods, 12)
 
 	def test_multi_tranche_disbursement_accrual(self):
 		loan = create_loan(
