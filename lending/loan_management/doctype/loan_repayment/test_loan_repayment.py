@@ -1134,9 +1134,6 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertEqual(flt(principal_amount, 2), 37593.01)
 		self.assertEqual(flt(interest_amount, 2), 17295.99)
 
-<<<<<<< HEAD
-		unpaid_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
-=======
 		pending_interest = unbooked_interest - 3327
 		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
 		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
@@ -1145,7 +1142,6 @@ class TestLoanRepayment(IntegrationTestCase):
 		pending_interest = still_pending_unbooked_interest - 1000
 		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
 		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
->>>>>>> 2373c7c9 (fix: Partial unbooked interest calculation post pre payment)
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")
