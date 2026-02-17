@@ -1109,6 +1109,9 @@ class TestLoanRepayment(IntegrationTestCase):
 			loan=loan.name, posting_date="2025-05-20", company="_Test Company"
 		)
 
+		amounts = calculate_amounts(loan.name, "2025-05-21")
+
+		unbooked_interest = amounts.get("unbooked_interest", 0)
 		create_repayment_entry(loan.name, "2025-05-21", 3327, repayment_type="Pre Payment").submit()
 
 		demand_amount = frappe.db.get_value(
@@ -1131,7 +1134,14 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertEqual(flt(principal_amount, 2), 37593.01)
 		self.assertEqual(flt(interest_amount, 2), 17295.99)
 
-		unpaid_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
+		pending_interest = unbooked_interest - 3327
+		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
+		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
+
+		create_repayment_entry(loan.name, "2025-05-21", 1000, repayment_type="Pre Payment").submit()
+		pending_interest = still_pending_unbooked_interest - 1000
+		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
+		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")

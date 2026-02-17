@@ -23,6 +23,7 @@
   "sales_invoice",
   "loan_product",
   "is_term_loan",
+  "is_partial_pre_paid_interest",
   "loan_demand_details_section",
   "demand_type",
   "demand_subtype",
@@ -284,13 +285,19 @@
    "fieldtype": "Link",
    "label": "Loan Repayment",
    "options": "Loan Repayment"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_partial_pre_paid_interest",
+   "fieldtype": "Check",
+   "label": "Is partial pre-paid interest"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-29 12:59:17.163607",
+ "modified": "2026-02-16 15:13:09.765918",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
