@@ -338,7 +338,9 @@ class TestLoanRestructure(IntegrationTestCase):
 		self.assertEqual(loan.is_npa, 0)
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-11")
-		create_process_loan_classification(posting_date="2024-08-11", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(
+			posting_date="2024-08-11", loan=loan.name, force_update_dpd_in_loan=1
+		)
 
 		loan.load_from_db()
 		self.assertEqual(loan.is_npa, 1)

@@ -3057,11 +3057,14 @@ def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_deman
 		loan, posting_date, loan_disbursement=loan_disbursement, last_demand_date=last_demand_date
 	)
 
-	partial_pre_paid_interest = get_partial_pre_paid_interest(loan, last_demand_date, loan_disbursement=loan_disbursement)
+	partial_pre_paid_interest = get_partial_pre_paid_interest(
+		loan, last_demand_date, loan_disbursement=loan_disbursement
+	)
 
 	unbooked_interest = flt(accrued_interest, precision) - partial_pre_paid_interest
 
 	return unbooked_interest
+
 
 def get_partial_pre_paid_interest(loan, last_demand_date, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -3080,6 +3083,7 @@ def get_partial_pre_paid_interest(loan, last_demand_date, loan_disbursement=None
 	amount = frappe.db.get_value("Loan Demand", filters, [{"SUM": "paid_amount"}]) or 0
 
 	return flt(amount, precision)
+
 
 def get_accrued_interest(
 	loan, posting_date, interest_type="Normal Interest", last_demand_date=None, loan_disbursement=None
