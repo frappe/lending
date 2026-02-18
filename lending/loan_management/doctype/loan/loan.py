@@ -972,11 +972,22 @@ def update_days_past_due_in_loans(
 				"Company", company, "watch_period_post_loan_restructure_in_days"
 			)
 
+			restructure_exists = frappe.db.exists(
+				"Loan Restructure",
+				{
+					"loan": loan_name,
+					"status": "Approved",
+					"docstatus": 1,
+					"company": company,
+					"restructure_type": "Normal Restructure",
+				},
+			)
+
 			watch_period_start_date = (
 				demand.demand_date
 				if existing_watch_period_end_date and days_past_due == 1
 				else getdate(posting_date)
-				if is_npa and not existing_watch_period_end_date
+				if is_npa and not existing_watch_period_end_date and restructure_exists
 				else None
 			)
 
