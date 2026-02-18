@@ -365,25 +365,28 @@ class TestLoanRestructure(IntegrationTestCase):
 		loan = create_loan(
 			customer.name,
 			"Term Loan Product 4",
-			100000,
+			2300000.00,
 			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
-			rate_of_interest=8.5,
+			24,
+			repayment_start_date="2025-10-05",
+			posting_date="2025-09-13",
+			rate_of_interest=27,
 			applicant_type="Customer",
 		)
-
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date="2025-09-13", repayment_start_date="2025-10-05"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-05")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-02-05")
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-02-18", loan=loan.name, company="_Test Company"
+		)
 
 		create_process_loan_classification(
-			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+			posting_date="2026-02-18", loan=loan.name, force_update_dpd_in_loan=1
 		)
 
 		loan.load_from_db()
@@ -391,8 +394,10 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2024-08-06",
-			repayment_start_date="2024-09-05",
+			restructure_date="2026-02-18",
+			repayment_start_date="2026-03-05",
+			interest_waiver_amount=1001,
+			unaccrued_interest_waiver=1002,
 		)
 
 		loan_restructure.status = "Approved"
