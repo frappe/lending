@@ -342,14 +342,12 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.is_npa, 1)
-		# self.assertTrue(loan.watch_period_end_date)
 		watch_period_days = frappe.db.get_value(
 			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"
 		)
 		watch_period_end_date = add_days("2024-08-11", watch_period_days)
 
 		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
-
 
 	def test_npa_restructure_keeps_classification_same(self):
 		"""
