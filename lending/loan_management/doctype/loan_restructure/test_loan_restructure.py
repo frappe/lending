@@ -381,17 +381,13 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2026-02-05")
 
-<<<<<<< HEAD
-		create_process_loan_classification(
-			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
-		)
-=======
 		process_loan_interest_accrual_for_loans(
 			posting_date="2026-02-18", loan=loan.name, company="_Test Company"
 		)
 
-		create_process_loan_classification(posting_date="2026-02-18", loan=loan.name, force_update_dpd_in_loan=1)
->>>>>>> d668fcbf (test: npa restructure keeps classification same)
+		create_process_loan_classification(
+			posting_date="2026-02-18", loan=loan.name, force_update_dpd_in_loan=1
+		)
 
 		loan.load_from_db()
 		classification_code = loan.classification_code
