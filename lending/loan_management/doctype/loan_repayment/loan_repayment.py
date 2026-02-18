@@ -3068,19 +3068,26 @@ def get_unbooked_interest(loan, posting_date, loan_disbursement=None, last_deman
 
 def get_partial_pre_paid_interest(loan, last_demand_date, loan_disbursement=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
-	filters = {
-		"loan": loan,
-		"docstatus": 1,
-		"demand_type": "EMI",
-		"demand_subtype": "Interest",
-		"is_partial_pre_paid_interest": 1,
-		"demand_date": (">=", last_demand_date),
-	}
+
+	LoanDemand = DocType("Loan Demand")
+
+	query = (
+		frappe.qb.from_(LoanDemand)
+		.select(fn.Sum(LoanDemand.paid_amount))
+		.where(
+			(LoanDemand.loan == loan)
+			& (LoanDemand.docstatus == 1)
+			& (LoanDemand.demand_type == "EMI")
+			& (LoanDemand.demand_subtype == "Interest")
+			& (LoanDemand.is_partial_pre_paid_interest == 1)
+			& (LoanDemand.demand_date >= last_demand_date)
+		)
+	)
 
 	if loan_disbursement:
-		filters["loan_disbursement"] = loan_disbursement
+		query = query.where(LoanDemand.loan_disbursement == loan_disbursement)
 
-	amount = frappe.db.get_value("Loan Demand", filters, [{"SUM": "paid_amount"}]) or 0
+	amount = query.run()[0][0] or 0
 
 	return flt(amount, precision)
 
