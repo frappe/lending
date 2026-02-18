@@ -295,6 +295,7 @@ class TestLoanRestructure(IntegrationTestCase):
 		without setting any watch period or NPA tagging.
 		"""
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -335,6 +336,20 @@ class TestLoanRestructure(IntegrationTestCase):
 		self.assertFalse(loan.watch_period_end_date)
 		self.assertEqual(loan.days_past_due, 0)
 		self.assertEqual(loan.is_npa, 0)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-11")
+		create_process_loan_classification(
+			posting_date="2024-08-11", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		loan.load_from_db()
+		self.assertEqual(loan.is_npa, 1)
+		watch_period_days = frappe.db.get_value(
+			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"
+		)
+		watch_period_end_date = add_days("2024-08-11", watch_period_days)
+
+		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
 	def test_npa_restructure_keeps_classification_same(self):
 		"""

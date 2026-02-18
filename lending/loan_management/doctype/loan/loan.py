@@ -920,7 +920,7 @@ def update_days_past_due_in_loans(
 		applicant = loan_details.get("applicant")
 		company = loan_details.get("company")
 		freeze_date = loan_details.get("freeze_date")
-		watch_period_end_date = loan_details.get("watch_period_end_date")
+		existing_watch_period_end_date = loan_details.get("watch_period_end_date")
 
 		if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
 			return
@@ -943,13 +943,6 @@ def update_days_past_due_in_loans(
 				days_past_due = 0
 				is_npa = 0
 
-			if watch_period_end_date and days_past_due == 1:
-				watch_period_days = frappe.db.get_value(
-					"Company", company, "watch_period_post_loan_restructure_in_days"
-				)
-				watch_period_end_date = add_days(demand.demand_date, watch_period_days)
-				update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type, applicant)
-
 			if posting_date == add_days(getdate(), -1) or force_update_dpd_in_loan:
 				update_loan_and_customer_status(
 					demand.loan,
@@ -964,6 +957,33 @@ def update_days_past_due_in_loans(
 					is_backdated=is_backdated,
 					dpd_threshold=threshold,
 				)
+
+			watch_period_days = frappe.db.get_value(
+				"Company", company, "watch_period_post_loan_restructure_in_days"
+			)
+
+			restructure_exists = frappe.db.exists(
+				"Loan Restructure",
+				{
+					"loan": loan_name,
+					"status": "Approved",
+					"docstatus": 1,
+					"company": company,
+					"restructure_type": "Normal Restructure",
+				},
+			)
+
+			watch_period_start_date = (
+				demand.demand_date
+				if existing_watch_period_end_date and days_past_due == 1
+				else getdate(posting_date)
+				if is_npa and not existing_watch_period_end_date and restructure_exists
+				else None
+			)
+
+			if watch_period_start_date:
+				watch_period_end_date = add_days(watch_period_start_date, watch_period_days)
+				update_watch_period_date_for_all_loans(watch_period_end_date, applicant_type, applicant)
 
 			create_dpd_record(
 				demand.loan, disbursement, posting_date, days_past_due, process_loan_classification
