@@ -602,20 +602,17 @@ def calculate_penal_interest_for_loans(
 	freeze_date = loan.freeze_date
 	loan_status = loan.status
 	penal_interest_rate = loan.penalty_charges_rate
+	loan_product_doc = frappe.get_cached_doc("Loan Product", loan_product)
 
 	if not penal_interest_rate:
-		penal_interest_rate = frappe.get_value(
-			"Loan Product", loan_product, "penalty_interest_rate", cache=True
-		)
+		penal_interest_rate = loan_product_doc.penalty_interest_rate
 
 	if flt(penal_interest_rate, precision) <= 0:
 		return 0
 
 	demands = get_unpaid_demands(loan.name, posting_date, emi_wise=True)
 
-	grace_period_days = cint(
-		frappe.get_value("Loan Product", loan_product, "grace_period_in_days", cache=True)
-	)
+	grace_period_days = cint(loan_product_doc.grace_period_in_days)
 	total_penal_interest = 0
 
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -653,26 +650,26 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
+			principal_amount = frappe.db.get_value(
+				"Loan Demand",
+				{
+					"loan": loan.name,
+					"repayment_schedule_detail": demand.repayment_schedule_detail,
+					"demand_type": "EMI",
+					"demand_subtype": "Principal",
+				},
+				"outstanding_amount",
+			)
+
+			if not principal_amount:
+				continue
+
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 
-				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
+				penal_interest_amount = flt(demand.pending_amount * penal_interest_rate / 36500, precision)
 
-				if flt(penal_interest_amount, precision) > 0:
+				if penal_interest_amount > 0:
 					total_penal_interest += penal_interest_amount
-
-					principal_amount = frappe.db.get_value(
-						"Loan Demand",
-						{
-							"loan": loan.name,
-							"repayment_schedule_detail": demand.repayment_schedule_detail,
-							"demand_type": "EMI",
-							"demand_subtype": "Principal",
-						},
-						"outstanding_amount",
-					)
-
-					if not principal_amount:
-						continue
 
 					per_day_interest = get_per_day_interest(
 						principal_amount, loan.rate_of_interest, loan.company, current_date
