@@ -594,17 +594,20 @@ def calculate_penal_interest_for_loans(
 	freeze_date = loan.freeze_date
 	loan_status = loan.status
 	penal_interest_rate = loan.penalty_charges_rate
-	loan_product_doc = frappe.get_cached_doc("Loan Product", loan_product)
 
 	if not penal_interest_rate:
-		penal_interest_rate = loan_product_doc.penalty_interest_rate
+		penal_interest_rate = frappe.get_value(
+			"Loan Product", loan_product, "penalty_interest_rate", cache=True
+		)
 
 	if flt(penal_interest_rate, precision) <= 0:
 		return 0
 
 	demands = get_unpaid_demands(loan.name, posting_date, emi_wise=True)
 
-	grace_period_days = cint(loan_product_doc.grace_period_in_days)
+	grace_period_days = cint(
+		frappe.get_value("Loan Product", loan_product, "grace_period_in_days", cache=True)
+	)
 	total_penal_interest = 0
 
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -661,10 +664,14 @@ def calculate_penal_interest_for_loans(
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 =======
 
+<<<<<<< HEAD
 				penal_interest_amount = flt(demand.pending_amount * penal_interest_rate / 36500, precision)
 >>>>>>> f704741a (perf: reduce repeated DB lookups in calculate_penal_interest_for_loans)
+=======
+				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
+>>>>>>> e97b3c25 (perf: reduce repeated DB lookups in calculate_penal_interest_for_loans)
 
-				if penal_interest_amount > 0:
+				if flt(penal_interest_amount, precision) > 0:
 					total_penal_interest += penal_interest_amount
 
 					per_day_interest = get_per_day_interest(
