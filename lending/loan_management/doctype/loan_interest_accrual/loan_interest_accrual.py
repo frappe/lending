@@ -660,16 +660,8 @@ def calculate_penal_interest_for_loans(
 				continue
 
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
-<<<<<<< HEAD
-				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
-=======
 
-<<<<<<< HEAD
-				penal_interest_amount = flt(demand.pending_amount * penal_interest_rate / 36500, precision)
->>>>>>> f704741a (perf: reduce repeated DB lookups in calculate_penal_interest_for_loans)
-=======
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
->>>>>>> e97b3c25 (perf: reduce repeated DB lookups in calculate_penal_interest_for_loans)
 
 				if flt(penal_interest_amount, precision) > 0:
 					total_penal_interest += penal_interest_amount
