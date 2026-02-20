@@ -262,7 +262,6 @@ class LoanRestructure(AccountsController):
 	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
-				self.make_waiver_and_capitalization_for_interest()
 				self.make_waiver_and_capitalization_for_penalty()
 				self.set_principal_adjustment_on_restructure()
 				self.make_loan_repayment_for_adjustment()
