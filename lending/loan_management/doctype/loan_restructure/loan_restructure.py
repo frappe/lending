@@ -11,9 +11,6 @@ from lending.loan_management.doctype.loan.loan import (
 	update_all_linked_loan_customer_npa_status,
 	update_watch_period_date_for_all_loans,
 )
-from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
-	make_accrual_interest_entry_for_loans,
-)
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
@@ -265,8 +262,12 @@ class LoanRestructure(AccountsController):
 	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
+<<<<<<< HEAD
 				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
 
+=======
+				self.make_waiver_and_capitalization_for_interest()
+>>>>>>> 9dd70519 (fix: Skip interest accrual during Loan Restructure submission)
 				self.make_waiver_and_capitalization_for_penalty()
 				self.set_principal_adjustment_on_restructure()
 				self.make_loan_repayment_for_adjustment()
