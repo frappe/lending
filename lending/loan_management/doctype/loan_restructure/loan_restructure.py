@@ -262,12 +262,7 @@ class LoanRestructure(AccountsController):
 	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
-<<<<<<< HEAD
-				make_accrual_interest_entry_for_loans(posting_date=self.restructure_date, loan=self.loan)
-
-=======
 				self.make_waiver_and_capitalization_for_interest()
->>>>>>> 9dd70519 (fix: Skip interest accrual during Loan Restructure submission)
 				self.make_waiver_and_capitalization_for_penalty()
 				self.set_principal_adjustment_on_restructure()
 				self.make_loan_repayment_for_adjustment()
