@@ -32,7 +32,7 @@ def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_p
 	else:
 		years = 1
 
-	total_interest = (loan_amount * rate_of_interest * repayment_periods) / (years * 100)
+	total_interest = loan_amount * rate_of_interest * repayment_periods/ (years * 100)
 	total_amount = loan_amount + total_interest
 	monthly_repayment_amount = math.ceil(flt(total_amount) / repayment_periods)
 
@@ -76,7 +76,7 @@ def get_amounts(
 		current_balance_amount = balance_amount
 
 	if flat_rate:
-		interest_amount = flt(loan_amount * flt(rate_of_interest) * days / (months * 100), precision)
+		interest_amount = flt((loan_amount * flt(rate_of_interest)) / (months * 100), precision)
 	else:
 		interest_amount = flt(
 			current_balance_amount * flt(rate_of_interest) * days / (months * 100), precision
