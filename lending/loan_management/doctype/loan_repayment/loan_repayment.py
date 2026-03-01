@@ -645,7 +645,7 @@ class LoanRepayment(AccountsController):
 					amount=demand.paid_amount,
 					loan_repayment=self.name,
 					waiver_account=waiver_account,
-					posting_date=self.posting_date,
+					posting_date=getdate(self.posting_date),
 					value_date=self.value_date,
 				)
 
