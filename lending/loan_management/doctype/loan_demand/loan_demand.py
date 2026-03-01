@@ -598,7 +598,7 @@ def make_credit_note(
 		posting_date = getdate()
 
 		if posting_date < getdate(demand_date):
-			posting_date = demand_date
+			posting_date = getdate(demand_date)
 
 	si.set_posting_time = 1
 	si.posting_date = posting_date
