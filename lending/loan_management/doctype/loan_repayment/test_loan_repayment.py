@@ -1764,3 +1764,54 @@ class TestLoanRepayment(IntegrationTestCase):
 		repayment_entry.load_from_db()
 		self.assertEqual(repayment_entry.total_charges_paid, 500)
 		self.assertEqual(repayment_entry.repayment_details[0].demand_subtype, "Processing Fee")
+
+	def test_due_details_api_closure_with_future_penalty(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 0)
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 2)
+		set_loan_accrual_frequency("Daily")
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			10000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=12,
+			penalty_charges_rate=25,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+
+		posting_date = "2024-04-10"
+		process_daily_loan_demands(posting_date=posting_date, loan=loan.name)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-17", company="_Test Company"
+		)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-04-20", payment_type="Loan Closure")
+
+		payable_amount = amounts["payable_amount"]
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-19", company="_Test Company"
+		)
+
+		create_repayment_entry(
+			loan.name,
+			"2024-04-20",
+			payable_amount,
+		).submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
