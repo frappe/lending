@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, flt, getdate
+from frappe.utils import add_days, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
@@ -20,6 +20,7 @@ from lending.loan_management.doctype.process_loan_demand.process_loan_demand imp
 from lending.loan_management.doctype.repayment_schedule import repayment_schedule
 from lending.tests.test_utils import (
 	create_loan,
+	create_loan_partner,
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
@@ -248,3 +249,53 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 
 		self.assertEqual(next_payment_date, getdate("2025-01-10"))
+
+	def test_pre_payment_restructure_with_loan_partner_and_bpi(self):
+		loan_partner = "Test Loan Partner 1"
+		if not frappe.db.exists("Loan Partner", loan_partner):
+			partner = create_loan_partner(
+				"Test Loan Partner 1",
+				"Test Loan Partner 1",
+				partner_loan_share_percentage=80,
+				effective_date="2025-01-27",
+				repayment_schedule_type="EMI (PMT) based",
+				partner_base_interest_rate=10,
+				organization_type="Centralized",
+				fldg_limit_calculation_component="Disbursement",
+				type_of_fldg_applicable="Fixed Deposit Only",
+				fldg_fixed_deposit_percentage=10,
+			)
+			partner.submit()
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			posting_date="2026-02-18",
+			repayment_start_date="2026-03-05",
+			rate_of_interest=29,
+			loan_partner=loan_partner,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-02-04", repayment_start_date="2026-03-05"
+		)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2026-02-18 00:00:00"), 0.32, repayment_type="Pre Payment"
+		)
+		repayment_entry.submit()
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		schedule = loan_repayment_schedule.repayment_schedule
+
+		self.assertEqual(
+			schedule[0].balance_loan_amount, loan_repayment_schedule.current_principal_amount
+		)
+		self.assertEqual(loan_repayment_schedule.repayment_periods, len(schedule))

@@ -529,6 +529,9 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount = 0
 			pending_prev_days = 0
 
+		if schedule_field == "colender_schedule":
+			return
+
 		if schedule_field == "repayment_schedule" and not self.restructure_type:
 			if self.repayment_frequency == "One Time":
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
@@ -635,14 +638,14 @@ class LoanRepaymentSchedule(Document):
 				):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
-							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
-						):
-
-							if getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type in (
+							getdate(row.payment_date) == getdate(self.posting_date)
+							and self.restructure_type
+							in (
 								"Pre Payment",
 								"Advance Payment",
-							):
-								row.balance_loan_amount = self.current_principal_amount
+							)
+						):
+							row.balance_loan_amount = self.current_principal_amount
 
 							self.add_repayment_schedule_row(
 								row.payment_date,

@@ -2723,9 +2723,7 @@ def process_amount_for_loan(
 
 		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
 			loan,
-			posting_date=add_days(posting_date, -1)
-			if not freeze_date
-			else freeze_date,
+			posting_date=add_days(posting_date, -1) if not freeze_date else freeze_date,
 			accrual_type="Regular",
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
