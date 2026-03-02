@@ -1,8 +1,10 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint, flt
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_restructure.loan_restructure import create_loan_repayment
@@ -44,6 +46,38 @@ class LoanAdjustment(Document):
 					},
 					position=0,
 				)
+
+			self.validate_foreclosure_adjustment(amounts)
+
+	def validate_foreclosure_adjustment(self, amounts):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		total_net_payable = (
+			amounts.get("pending_principal_amount", 0)
+			+ amounts.get("interest_amount", 0)
+			+ amounts.get("penalty_amount", 0)
+			+ amounts.get("unaccrued_interest", 0)
+			+ amounts.get("unbooked_interest", 0)
+			+ amounts.get("unbooked_penalty", 0)
+			+ amounts.get("total_charges_payable", 0)
+			- amounts.get("available_security_deposit", 0)
+		)
+
+		adjustment_amount = flt(
+			sum(
+				flt(row.amount, precision)
+				for row in self.adjustments
+				if row.amount and row.loan_repayment_type != "Security Deposit Adjustment"
+			),
+			precision,
+		)
+
+		if total_net_payable > adjustment_amount:
+			frappe.throw(
+				_("Total net payable amount is {0}, but the total adjustment amount is {1}. "
+				"For Manual or Internal Foreclosure, the adjustment amount must exactly match the total net payable amount.")
+				.format(total_net_payable, adjustment_amount)
+			)
 
 	def on_submit(self):
 		for repayment in self.get("adjustments"):
