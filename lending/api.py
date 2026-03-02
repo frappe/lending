@@ -67,3 +67,29 @@ def update_loan_security_price(data: dict):
 		})
 
 	frappe.response["message"] = _("Loan Security Prices updated successfully")
+
+@frappe.whitelist()
+def get_due_details(loan: str, as_on_date: str) -> dict:
+	"""
+	API to get due details for a given loan account as on a specific date
+	"""
+
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
+	amounts = calculate_amounts(loan, as_on_date)
+
+	frappe.response["message"] = {
+		"overdue_penalty_amount": amounts.get("penalty_amount"),
+		"overdue_interest_amount": amounts.get("interest_amount"),
+		"overdue_principal_amount": amounts.get("payable_principal_amount"),
+		"principal_outstanding": amounts.get("pending_principal_amount"),
+		"overdue_total_amount": amounts.get("payable_amount"),
+		"applicable_future_interest": amounts.get("unaccrued_interest"),
+		"unbooked_interest": amounts.get("unbooked_interest"),
+		"applicable_future_penalty": amounts.get("unbooked_penalty"),
+		"oldest_due_date": amounts.get("due_date"),
+		"overdue_charges": amounts.get("total_charges_payable"),
+		"available_security_deposit": amounts.get("available_security_deposit"),
+		"written_off_amount": amounts.get("written_off_amount"),
+		"excess_amount_paid": amounts.get("excess_amount_paid")
+	}
