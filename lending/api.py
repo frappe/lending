@@ -1,7 +1,10 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
+from frappe import _
 from frappe.utils import flt, getdate
 
 
@@ -45,3 +48,22 @@ def get_repayment_schedule(loan_product: str, loan_amount: float, rate_of_intere
 		})
 
 	frappe.response["message"] = response
+
+@frappe.whitelist()
+def update_loan_security_price(data: dict):
+	"""
+	API to bulk update loan security price
+	Note this API assumes only one record exists for updating loan securities
+	"""
+
+	if isinstance(data, str):
+		data = json.loads(data)
+
+	for loan_security, price_details in data.items():
+		frappe.db.set_value("Loan Security Price", {"loan_security": loan_security}, {
+			"loan_security_price": price_details.get("loan_security_price"),
+			"valid_from": price_details.get("valid_from"),
+			"valid_upto": price_details.get("valid_upto")
+		})
+
+	frappe.response["message"] = _("Loan Security Prices updated successfully")
