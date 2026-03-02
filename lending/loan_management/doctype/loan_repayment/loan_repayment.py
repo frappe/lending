@@ -2680,21 +2680,7 @@ def process_amount_for_loan(
 			loan_disbursement=loan_disbursement,
 		), precision)
 
-<<<<<<< HEAD
 	amounts["total_charges_payable"] = charges
-=======
-		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
-			loan,
-			posting_date=add_days(posting_date, -1)
-			if not freeze_date
-			else freeze_date,
-			accrual_type="Regular",
-			is_future_accrual=1,
-			loan_disbursement=loan_disbursement,
-		)
-
-	amounts["total_charges_payable"] = flt(charges, precision)
->>>>>>> 2f380ddf (feat: Due details API)
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)
 	amounts["payable_principal_amount"] = flt(payable_principal_amount, precision)
 	amounts["interest_amount"] = flt(total_pending_interest, precision)
