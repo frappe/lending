@@ -52,7 +52,7 @@ class LoanAdjustment(Document):
 	def validate_foreclosure_adjustment(self, amounts):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		total_net_payable = (
+		total_net_payable = flt(
 			amounts.get("pending_principal_amount", 0)
 			+ amounts.get("interest_amount", 0)
 			+ amounts.get("penalty_amount", 0)
@@ -60,7 +60,8 @@ class LoanAdjustment(Document):
 			+ amounts.get("unbooked_interest", 0)
 			+ amounts.get("unbooked_penalty", 0)
 			+ amounts.get("total_charges_payable", 0)
-			- amounts.get("available_security_deposit", 0)
+			- amounts.get("available_security_deposit", 0),
+			precision,
 		)
 
 		adjustment_amount = flt(
