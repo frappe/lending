@@ -1799,7 +1799,9 @@ class TestLoanRepayment(IntegrationTestCase):
 			loan=loan.name, posting_date="2024-04-17", company="_Test Company"
 		)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-04-20", payment_type="Loan Closure")
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2024-04-20", payment_type="Loan Closure"
+		)
 
 		payable_amount = amounts["payable_amount"]
 

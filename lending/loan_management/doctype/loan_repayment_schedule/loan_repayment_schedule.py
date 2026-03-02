@@ -638,7 +638,9 @@ class LoanRepaymentSchedule(Document):
 				):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
-							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type in (
+							getdate(row.payment_date) == getdate(self.posting_date)
+							and self.restructure_type
+							in (
 								"Pre Payment",
 								"Advance Payment",
 							)

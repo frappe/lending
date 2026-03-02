@@ -295,5 +295,7 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 		schedule = loan_repayment_schedule.repayment_schedule
 
-		self.assertEqual(schedule[0].balance_loan_amount, loan_repayment_schedule.current_principal_amount)
+		self.assertEqual(
+			schedule[0].balance_loan_amount, loan_repayment_schedule.current_principal_amount
+		)
 		self.assertEqual(loan_repayment_schedule.repayment_periods, len(schedule))
