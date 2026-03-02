@@ -75,9 +75,10 @@ class LoanAdjustment(Document):
 
 		if total_net_payable > adjustment_amount:
 			frappe.throw(
-				_("Total net payable amount is {0}, but the total adjustment amount is {1}. "
-				"For Manual or Internal Foreclosure, the adjustment amount must exactly match the total net payable amount.")
-				.format(total_net_payable, adjustment_amount)
+				_(
+					"Total net payable amount is {0}, but the total adjustment amount is {1}. "
+					"For Manual or Internal Foreclosure, the adjustment amount must exactly match the total net payable amount."
+				).format(total_net_payable, adjustment_amount)
 			)
 
 	def on_submit(self):
