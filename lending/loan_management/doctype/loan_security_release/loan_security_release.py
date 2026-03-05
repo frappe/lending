@@ -201,13 +201,13 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 		unpldge_doctype.parent == loan_security_release_doctype.name
 	).select(
 		unpldge_doctype.loan_security, fn.Sum(unpldge_doctype.qty).as_("qty")
-	)
+	).where(loan_security_release_doctype.docstatus == 1).where(loan_security_release_doctype.status == "Approved")
 
 	pledge_query = frappe.qb.from_(pledge_doctype).inner_join(loan_security_assignment_doctype).on(
 		pledge_doctype.parent == loan_security_assignment_doctype.name
 	).select(
 		pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty")
-	)
+	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
 
 	if loan:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.loan == loan)
