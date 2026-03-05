@@ -674,7 +674,7 @@ class TestLoan(IntegrationTestCase):
 		unpledge_request.save()
 		loan.load_from_db()
 
-		pledged_qty = get_pledged_security_qty(loan.name)
+		pledged_qty = get_pledged_security_qty(loan=loan.name)
 
 		self.assertEqual(loan.status, "Closed")
 		self.assertEqual(sum(pledged_qty.values()), 0)

@@ -66,3 +66,19 @@ def get_loan_security_price(loan_security, valid_time=None):
 	)
 
 	return loan_security_price
+
+def get_loan_security_price_map(loan_security_list, valid_time=None):
+	if not valid_time:
+		valid_time = get_datetime()
+
+	loan_security_prices = frappe._dict(frappe.db.get_all(
+		"Loan Security Price",
+		fields=["loan_security", "loan_security_price"],
+		filters={
+			"loan_security": ("in", loan_security_list),
+			"valid_from": ("<=", valid_time),
+			"valid_upto": (">=", valid_time),
+		}, as_list=1
+	))
+
+	return loan_security_prices

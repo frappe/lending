@@ -69,14 +69,14 @@ def update_loan_security_price(data: dict):
 	frappe.response["message"] = _("Loan Security Prices updated successfully")
 
 @frappe.whitelist()
-def get_due_details(loan: str, as_on_date: str) -> dict:
+def get_due_details(loan: str, as_on_date: str, loan_disbursement: str | None = None) -> dict:
 	"""
 	API to get due details for a given loan account as on a specific date
 	"""
 
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
-	amounts = calculate_amounts(loan, as_on_date)
+	amounts = calculate_amounts(loan, as_on_date, loan_disbursement=loan_disbursement)
 
 	frappe.response["message"] = {
 		"overdue_penalty_amount": amounts.get("penalty_amount"),

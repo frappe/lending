@@ -743,7 +743,7 @@ def unpledge_security(
 		security_map = json.loads(security_map)
 
 	if loan:
-		pledge_qty_map = security_map or get_pledged_security_qty(loan)
+		pledge_qty_map = security_map or get_pledged_security_qty(loan=loan)
 		loan_doc = frappe.get_doc("Loan", loan)
 		unpledge_request = create_loan_security_release(
 			pledge_qty_map, loan_doc.name, loan_doc.company, loan_doc.applicant_type, loan_doc.applicant

@@ -83,7 +83,6 @@ def add_security(loan):
 
 
 def check_for_ltv_shortfall(process_loan_security_shortfall):
-
 	update_time = get_datetime()
 
 	loan_security_price_map = frappe._dict(
@@ -125,7 +124,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 				flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
 			)
 
-		pledged_securities = get_pledged_security_qty(loan.name)
+		pledged_securities = get_pledged_security_qty(loan=loan.name)
 		ltv_ratio = 0.0
 		security_value = 0.0
 

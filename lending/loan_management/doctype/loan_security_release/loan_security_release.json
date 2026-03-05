@@ -34,7 +34,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Applicant",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_3",
@@ -45,7 +46,6 @@
    "fieldtype": "Link",
    "label": "Loan",
    "options": "Loan",
-   "reqd": 1,
    "search_index": 1
   },
   {
@@ -126,7 +126,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-09 12:40:24.427536",
+ "modified": "2026-03-04 16:46:54.213511",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Release",
