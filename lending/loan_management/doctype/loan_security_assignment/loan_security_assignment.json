@@ -46,7 +46,8 @@
    "in_standard_filter": 1,
    "label": "Applicant",
    "options": "applicant_type",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "loan_security_details_section",
@@ -171,7 +172,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-06 17:47:21.265506",
+ "modified": "2026-03-04 16:47:18.804637",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

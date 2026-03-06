@@ -27,6 +27,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_flat_monthly_repayment_amount,
 	get_loan_partner_details,
 	get_monthly_repayment_amount,
+	get_repayment_periods,
 	set_demand,
 )
 
@@ -399,6 +400,10 @@ class LoanRepaymentSchedule(Document):
 			)
 		else:
 			monthly_repayment_amount = self.monthly_repayment_amount
+			if self.repayment_method == "Repay Fixed Amount per Period" and not self.restructure_type:
+				self.repayment_periods = get_repayment_periods(
+					balance_amount, rate_of_interest, monthly_repayment_amount, self.repayment_frequency
+				)
 
 		payment_date = self.set_moratorium_end_date(payment_date)
 

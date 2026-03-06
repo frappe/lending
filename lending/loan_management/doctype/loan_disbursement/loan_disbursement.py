@@ -816,7 +816,7 @@ def get_total_pledged_security_value(loan):
 	)
 
 	security_value = 0.0
-	pledged_securities = get_pledged_security_qty(loan)
+	pledged_securities = get_pledged_security_qty(loan=loan)
 
 	for security, qty in pledged_securities.items():
 		after_haircut_percentage = 100 - hair_cut_map.get(security)

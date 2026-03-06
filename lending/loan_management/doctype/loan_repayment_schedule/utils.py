@@ -25,6 +25,17 @@ def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_period
 		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
 	return monthly_repayment_amount
 
+def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amount, frequency):
+	if frequency == "One Time":
+		return 1
+
+	monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
+	repayment_periods = math.log(
+		flt(monthly_repayment_amount) / (flt(monthly_repayment_amount) - (loan_amount * monthly_interest_rate)),
+		1 + monthly_interest_rate,
+	)
+
+	return math.ceil(repayment_periods)
 
 def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
 	if frequency == "Monthly":
