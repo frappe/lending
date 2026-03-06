@@ -97,9 +97,6 @@ class LoanWriteOff(AccountsController):
 			)
 
 	def on_submit(self):
-		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-			create_process_loan_classification,
-		)
 		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 			process_daily_loan_demands,
 		)
@@ -108,15 +105,27 @@ class LoanWriteOff(AccountsController):
 			process_daily_loan_demands(self.value_date, loan=self.loan)
 
 		self.process_unbooked_interest()
+		self.make_gl_entries()
+
+		frappe.enqueue(
+			self.process_write_off_waivers_and_classification,
+			enqueue_after_commit=True,
+			queue="long",
+		)
+
+		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
+		self.close_employee_loan()
+		self.update_outstanding_amount_and_status()
+
+	def process_write_off_waivers_and_classification(self):
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
+		)
 
 		if not self.is_settlement_write_off:
 			make_loan_waivers(self.loan, self.value_date)
 
-		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
-		self.close_employee_loan()
-		self.update_outstanding_amount_and_status()
 
 		create_process_loan_classification(
 			posting_date=self.value_date,
