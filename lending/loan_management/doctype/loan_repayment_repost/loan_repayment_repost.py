@@ -268,18 +268,18 @@ class LoanRepaymentRepost(Document):
 
 			frappe.get_doc(
 				{
-					"doctype": "Process Loan Interest Accrual",
+					"doctype": "Process Loan Demand",
 					"loan": self.loan,
-					"posting_date": add_days(entry.posting_date, -1),
+					"posting_date": entry.posting_date,
 					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
 
 			frappe.get_doc(
 				{
-					"doctype": "Process Loan Demand",
+					"doctype": "Process Loan Interest Accrual",
 					"loan": self.loan,
-					"posting_date": entry.posting_date,
+					"posting_date": add_days(entry.posting_date, -1),
 					"loan_disbursement": self.loan_disbursement,
 				}
 			).submit()
