@@ -1077,7 +1077,7 @@ class LoanRepaymentSchedule(Document):
 
 		interest_amount = interest_amount * interest_share_percentage / 100
 		principal_amount = principal_amount * principal_share_percentage / 100
-		total_payment = principal_amount + interest_amount + charges
+		total_payment = principal_amount + interest_amount + flt(charges)
 
 		if repayment_schedule_field == "colender_schedule" and not self.partner_monthly_repayment_amount:
 			self.partner_monthly_repayment_amount = total_payment

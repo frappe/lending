@@ -632,16 +632,16 @@ def close_unsecured_term_loan(loan):
 
 @frappe.whitelist()
 def make_loan_disbursement(
-	loan,
-	disbursement_amount=0,
-	as_dict=0,
-	submit=False,
-	repayment_start_date=None,
-	repayment_frequency=None,
-	posting_date=None,
-	disbursement_date=None,
-	bank_account=None,
-	is_term_loan=None,
+	loan: str,
+	disbursement_amount: int | None = 0,
+	as_dict: int | None = 0,
+	submit: bool | None = False,
+	repayment_start_date: str | None = None,
+	repayment_frequency: str | None = None,
+	posting_date: str | None = None,
+	disbursement_date: str | None = None,
+	bank_account: str | None = None,
+	is_term_loan: int | None = None,
 ):
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
