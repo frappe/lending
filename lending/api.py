@@ -93,3 +93,48 @@ def get_due_details(loan: str, as_on_date: str, loan_disbursement: str | None = 
 		"written_off_amount": amounts.get("written_off_amount"),
 		"excess_amount_paid": amounts.get("excess_amount_paid")
 	}
+
+@frappe.whitelist()
+def apply_charge(loan: str, charge_type: str, based_on: str, percentage: float | None = None, amount: float | None = None, charge_applicable_date: str | None = None):
+	from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+	from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+		make_sales_invoice_for_charge,
+	)
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		calculate_amounts,
+		get_pending_principal_amount,
+	)
+	from lending.loan_management.utils import create_charge_master, loan_accounting_enabled
+
+	create_charge_master(charge_type)
+
+	if based_on == "On Outstanding Principal":
+		loan_doc = frappe.get_doc("Loan", loan)
+		pending_principal_amount = get_pending_principal_amount(loan_doc)
+		charge_amount = (pending_principal_amount * percentage) / 100
+	elif based_on == "On Total Payable Amount":
+		payable_amount = calculate_amounts(loan, getdate(), payment_type="Loan Closure").get("payable_amount")
+		charge_amount = (payable_amount * percentage) / 100
+	elif based_on == "Flat":
+		charge_amount = amount
+
+	loan_details = frappe.db.get_value("Loan", loan, ["company", "applicant", "applicant_type"], as_dict=1)
+
+	if loan_accounting_enabled(loan_details.company):
+		charges = [
+			{
+				"charge": charge_type,
+				"amount": charge_amount,
+			}
+		]
+		make_sales_invoice_for_charge(loan, None, None, charge_type, charge_amount, charge_applicable_date, loan_details.company, charges)
+	else:
+		create_loan_demand(
+			loan=loan,
+			demand_date=getdate(charge_applicable_date),
+			demand_type="Charges",
+			demand_subtype=charge_type,
+			amount=charge_amount,
+		)
+
+	frappe.response["message"] = _("Charge applied successfully for amount {0}").format(charge_amount)
