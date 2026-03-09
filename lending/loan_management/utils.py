@@ -320,8 +320,6 @@ def get_amounts_not_reflected_in_system_for_bank_reconciliation_statement(filter
 
 def loan_accounting_enabled(company: str) -> bool:
 	return bool(frappe.get_cached_value("Company", company, "enable_loan_accounting"))
-<<<<<<< HEAD
-=======
 
 
 def update_repayment_schedule_demand_generated(
@@ -369,4 +367,3 @@ def create_charge_master(charge_type):
 				"is_stock_item": 0,
 			}
 		).insert()
->>>>>>> 1614311a (feat: Apply charge api)

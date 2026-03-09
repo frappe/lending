@@ -1754,8 +1754,6 @@ class TestLoanRepayment(IntegrationTestCase):
 		repayment_entry.load_from_db()
 		self.assertEqual(repayment_entry.total_charges_paid, 500)
 		self.assertEqual(repayment_entry.repayment_details[0].demand_subtype, "Processing Fee")
-<<<<<<< HEAD
-=======
 
 	def test_due_details_api_closure_with_future_penalty(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 0)
@@ -1849,4 +1847,3 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertEqual(payable_charge, 200)
 
 		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
->>>>>>> 1614311a (feat: Apply charge api)
