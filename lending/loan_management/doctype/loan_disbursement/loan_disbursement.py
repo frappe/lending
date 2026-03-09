@@ -24,6 +24,7 @@ from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
@@ -95,6 +96,7 @@ class LoanDisbursement(LoanController):
 		sanctioned_loan_amount: DF.Currency
 		status: DF.Literal["", "Draft", "Submitted", "Cancelled", "Closed"]
 		tenure: DF.Int
+		total_emi_charges: DF.Currency
 		withhold_security_deposit: DF.Check
 	# end: auto-generated types
 
@@ -106,6 +108,7 @@ class LoanDisbursement(LoanController):
 			self.set_cyclic_date()
 
 		self.validate_repayment_start_date()
+		self.calculate_total_emi_charges()
 
 	def on_update(self):
 		if self.is_term_loan:
@@ -131,6 +134,7 @@ class LoanDisbursement(LoanController):
 			if self.repayment_method == "Repay Fixed Amount per Period"
 			else 0,
 			"loan_disbursement": self.name,
+			"disbursement_charges": self.total_emi_charges,
 		}
 
 	def get_draft_schedule(self):
@@ -185,6 +189,7 @@ class LoanDisbursement(LoanController):
 		update_loan_securities_values(self.against_loan, self.disbursed_amount, self.doctype)
 		self.create_loan_limit_change_log()
 		self.withheld_security_deposit()
+		self.make_demand_for_disbursement_charges()
 		self.make_gl_entries()
 
 	def set_status(self):
@@ -384,7 +389,15 @@ class LoanDisbursement(LoanController):
 		if self.repayment_start_date and getdate(self.repayment_start_date) < getdate(
 			self.disbursement_date
 		):
-			frappe.throw(_("Repayment Start Date cannot be before Disbursement Date"))
+			frappe.throw(_("Repayment Start Date {0} cannot be before Disbursement Date {1}").format(self.repayment_start_date, self.disbursement_date))
+
+	def calculate_total_emi_charges(self):
+		total_charges = 0
+		for charge in self.get("loan_disbursement_charges"):
+			if charge.treatment_of_charge == "Add to first repayment":
+				total_charges += charge.amount
+
+		self.total_emi_charges = total_charges
 
 	def validate_disbursal_amount(self):
 		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
@@ -640,6 +653,17 @@ class LoanDisbursement(LoanController):
 			)
 		)
 
+	def make_demand_for_disbursement_charges(self, cancel=0, repost=0):
+		if not loan_accounting_enabled(self.company) and not cancel and not repost:
+			for charge in self.get("loan_disbursement_charges"):
+				create_loan_demand(
+					self.against_loan,
+					self.disbursement_date,
+					"Charges",
+					charge.charge,
+					charge.amount
+				)
+
 	def make_gl_entries(self, cancel=0, adv_adj=0, repost=0):
 		if not loan_accounting_enabled(self.company):
 			return
@@ -696,40 +720,39 @@ class LoanDisbursement(LoanController):
 
 			self.add_bpi_difference_entry(gle_map)
 
-		if loan_accounting_enabled(self.company):
-			if self.get("loan_disbursement_charges") and not cancel and not repost:
-				make_sales_invoice_for_charge(
-					self.against_loan,
-					"loan_disbursement",
-					self.name,
-					self.applicant if self.applicant_type == "Customer" else None,
-					self.disbursement_date,
-					self.company,
-					self.get("loan_disbursement_charges"),
-				)
-
-			filters = {"loan": self.against_loan, "docstatus": 1, "is_return": 0}
-			if cancel:
-				filters["is_return"] = 1
-			else:
-				filters["loan_disbursement"] = self.name
-
-			sales_invoices = frappe.db.get_all(
-				"Sales Invoice",
-				filters=filters,
-				fields=["name", "debit_to", "grand_total"],
+		if self.get("loan_disbursement_charges") and not cancel and not repost:
+			make_sales_invoice_for_charge(
+				self.against_loan,
+				"loan_disbursement",
+				self.name,
+				self.applicant if self.applicant_type == "Customer" else None,
+				self.disbursement_date,
+				self.company,
+				self.get("loan_disbursement_charges"),
 			)
 
-			for invoice in sales_invoices:
-				self.add_gl_entry(
-					gle_map,
-					invoice.debit_to,
-					bank_account,
-					-1 * abs(invoice.grand_total),
-					remarks,
-					"Sales Invoice",
-					invoice.name,
-				)
+		filters = {"loan": self.against_loan, "docstatus": 1, "is_return": 0}
+		if cancel:
+			filters["is_return"] = 1
+		else:
+			filters["loan_disbursement"] = self.name
+
+		sales_invoices = frappe.db.get_all(
+			"Sales Invoice",
+			filters=filters,
+			fields=["name", "debit_to", "grand_total"],
+		)
+
+		for invoice in sales_invoices:
+			self.add_gl_entry(
+				gle_map,
+				invoice.debit_to,
+				bank_account,
+				-1 * abs(invoice.grand_total),
+				remarks,
+				"Sales Invoice",
+				invoice.name,
+			)
 
 		if self.loan_partner:
 			loan_partner_details = get_loan_partner_details(self.loan_partner)

@@ -57,6 +57,7 @@ class LoanRepaymentSchedule(Document):
 		company: DF.Link | None
 		current_principal_amount: DF.Currency
 		disbursed_amount: DF.Currency
+		disbursement_charges: DF.Currency
 		loan: DF.Link
 		loan_amount: DF.Currency
 		loan_disbursement: DF.Link | None
@@ -76,26 +77,14 @@ class LoanRepaymentSchedule(Document):
 		posting_date: DF.Datetime | None
 		rate_of_interest: DF.Float
 		repayment_date_on: DF.Literal["Start of the next month", "End of the current month"]
-		repayment_frequency: DF.Literal[
-			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
-		]
+		repayment_frequency: DF.Literal["Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"]
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
 		repayment_schedule: DF.Table[RepaymentSchedule]
 		repayment_schedule_type: DF.Data | None
 		repayment_start_date: DF.Date | None
 		restructure_type: DF.Literal["", "Normal Restructure", "Advance Payment", "Pre Payment"]
-		status: DF.Literal[
-			"Initiated",
-			"Rejected",
-			"Active",
-			"Restructured",
-			"Rescheduled",
-			"Outdated",
-			"Draft",
-			"Cancelled",
-			"Closed",
-		]
+		status: DF.Literal["Initiated", "Rejected", "Active", "Restructured", "Rescheduled", "Outdated", "Draft", "Cancelled", "Closed"]
 		total_installments_overdue: DF.Int
 		total_installments_paid: DF.Int
 		total_installments_raised: DF.Int
@@ -416,8 +405,8 @@ class LoanRepaymentSchedule(Document):
 		if additional_days < 0:
 			self.broken_period_interest_days = 0
 
-		bpi_recovery_method = frappe.db.get_value(
-			"Loan Product", self.loan_product, "bpi_recovery_method"
+		bpi_recovery_method, bpi_treatment = frappe.db.get_value(
+			"Loan Product", self.loan_product, ["bpi_recovery_method", "bpi_treatment"]
 		)
 
 		amortized_bpi, first_emi_adjustment = self.apply_broken_period_interest_method(
@@ -459,6 +448,7 @@ class LoanRepaymentSchedule(Document):
 			(
 				interest_amount,
 				principal_amount,
+				charges,
 				balance_amount,
 				total_payment,
 				days,
@@ -475,6 +465,8 @@ class LoanRepaymentSchedule(Document):
 				pending_prev_days,
 				flat_rate=True if self.repayment_schedule_type == "Flat Interest Rate" else False,
 				loan_amount=self.loan_amount,
+				bpi_amount = first_emi_adjustment if is_first_emi and bpi_treatment == "Adjust within the EMI amount" else 0,
+				disbursement_charges = self.disbursement_charges if is_first_emi else 0,
 			)
 
 			if (
@@ -512,15 +504,17 @@ class LoanRepaymentSchedule(Document):
 			if bpi_recovery_method == "Amortized Over Tenure":
 				interest_amount += amortized_bpi
 				total_payment += amortized_bpi
-			elif bpi_recovery_method == "Add to First EMI" and is_first_emi:
+			elif bpi_recovery_method == "Add to First EMI" and is_first_emi and bpi_treatment == "On top of first EMI":
 				interest_amount += first_emi_adjustment
 				total_payment += first_emi_adjustment
-				is_first_emi = False
+
+			is_first_emi = False
 
 			self.add_repayment_schedule_row(
 				payment_date,
 				principal_amount,
 				interest_amount,
+				charges,
 				total_payment,
 				balance_amount,
 				days,
@@ -552,6 +546,14 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount = 0
 			pending_prev_days = 0
 
+<<<<<<< HEAD
+=======
+		self.add_bpi_to_last_row(schedule_field, bpi_recovery_method)
+
+		if schedule_field == "colender_schedule":
+			return
+
+>>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
 		if schedule_field == "repayment_schedule" and not self.restructure_type:
 			if self.repayment_frequency == "One Time":
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
@@ -559,6 +561,11 @@ class LoanRepaymentSchedule(Document):
 				self.monthly_repayment_amount = monthly_repayment_amount
 		else:
 			self.repayment_periods = self.number_of_rows
+
+	def add_bpi_to_last_row(self, schedule_field, bpi_recovery_method):
+		if bpi_recovery_method == "Add to Last EMI":
+			self.get(schedule_field)[-1].interest_amount += self.broken_period_interest
+			self.get(schedule_field)[-1].total_payment += self.broken_period_interest
 
 	def set_moratorium_end_date(self, payment_date):
 		if not self.restructure_type:
@@ -718,6 +725,7 @@ class LoanRepaymentSchedule(Document):
 								row.payment_date,
 								row.principal_amount,
 								row.interest_amount,
+								0,
 								row.total_payment,
 								row.balance_loan_amount,
 								row.number_of_days,
@@ -812,6 +820,7 @@ class LoanRepaymentSchedule(Document):
 						next_emi_date,
 						paid_principal_amount,
 						interest_amount,
+						0,
 						total_payment,
 						balance_principal_amount,
 						pending_prev_days,
@@ -882,6 +891,7 @@ class LoanRepaymentSchedule(Document):
 						next_emi_date,
 						principal_amount,
 						interest_amount,
+						0,
 						total_payment,
 						balance_principal_amount,
 						pending_prev_days,
@@ -1045,6 +1055,7 @@ class LoanRepaymentSchedule(Document):
 		payment_date,
 		principal_amount,
 		interest_amount,
+		charges,
 		total_payment,
 		balance_loan_amount,
 		days,
@@ -1065,7 +1076,7 @@ class LoanRepaymentSchedule(Document):
 
 		interest_amount = interest_amount * interest_share_percentage / 100
 		principal_amount = principal_amount * principal_share_percentage / 100
-		total_payment = principal_amount + interest_amount
+		total_payment = principal_amount + interest_amount + charges
 
 		if repayment_schedule_field == "colender_schedule" and not self.partner_monthly_repayment_amount:
 			self.partner_monthly_repayment_amount = total_payment
@@ -1077,6 +1088,7 @@ class LoanRepaymentSchedule(Document):
 				"payment_date": payment_date,
 				"principal_amount": principal_amount,
 				"interest_amount": interest_amount,
+				"charges": charges,
 				"total_payment": total_payment,
 				"balance_loan_amount": balance_loan_amount,
 				"demand_generated": demand_generated,

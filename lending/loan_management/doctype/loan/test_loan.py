@@ -848,7 +848,9 @@ class TestLoan(IntegrationTestCase):
 		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
 		self.assertEqual(amounts["pending_principal_amount"], 0.0)
 
-	def test_penalty(self):
+	def test_penalty_and_auto_create_disbursement_with_charges(self):
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
 		loan = create_loan(
 			self.applicant1,
 			"Term Loan Product 4",
@@ -858,20 +860,30 @@ class TestLoan(IntegrationTestCase):
 			repayment_start_date="2024-05-05",
 			posting_date="2024-04-01",
 			penalty_charges_rate=25,
+			auto_create_disbursement_on_loan_booking=1,
+			disbursement_charges=[
+				{
+					"charge": "Processing Fee",
+					"amount": 100,
+					"treatment_of_charge": "Add to first repayment"
+				}
+			]
 		)
 
 		loan.submit()
 
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
-		)
+		charge_demand = frappe.db.get_value("Loan Demand", {"loan": loan.name, "demand_type": "Charges"}, "name")
+		self.assertTrue(charge_demand)
+
 		process_daily_loan_demands(posting_date="2024-07-06", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-06")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3055.36)
+
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
 
 	def test_same_date_for_daily_accruals(self):
 		from lending.tests.test_utils import get_penalty_amount

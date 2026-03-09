@@ -651,6 +651,15 @@ def create_loan(
 	moratorium_type=None,
 	penalty_charges_rate=None,
 	repayment_frequency=None,
+<<<<<<< HEAD
+=======
+	is_imported=False,
+	migration_date=None,
+	status=None,
+	loan_import_details=None,
+	auto_create_disbursement_on_loan_booking=0,
+	disbursement_charges=None
+>>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
 ):
 
 	loan = frappe.get_doc(
@@ -675,9 +684,32 @@ def create_loan(
 			"moratorium_type": moratorium_type,
 			"penalty_charges_rate": penalty_charges_rate,
 			"repayment_frequency": repayment_frequency or "Monthly",
+<<<<<<< HEAD
 		}
 	)
 
+=======
+			"is_imported": is_imported,
+			"migration_date": migration_date,
+			"status": status,
+			"auto_create_disbursement_on_loan_booking": auto_create_disbursement_on_loan_booking,
+		}
+	)
+
+	for charge in disbursement_charges or []:
+		loan.append(
+			"loan_charges",
+			{
+				"charge": charge.get("charge"),
+				"amount": charge.get("amount"),
+				"treatment_of_charge": charge.get("treatment_of_charge"),
+			},
+		)
+
+	if loan_import_details:
+		loan.set("loan_import_details", loan_import_details)
+
+>>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
 	loan.save()
 	return loan
 

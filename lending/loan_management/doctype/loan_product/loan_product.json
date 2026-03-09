@@ -15,6 +15,7 @@
   "maximum_loan_amount",
   "penalty_interest_rate",
   "bpi_recovery_method",
+  "bpi_treatment",
   "column_break_2",
   "company",
   "cyclic_day_of_the_month",
@@ -513,12 +514,23 @@
    "fieldname": "bpi_recovery_method",
    "fieldtype": "Select",
    "label": "BPI Recovery Method",
-   "options": "\nUpfront Deduction\nAmortized Over Tenure\nAdd to First EMI"
+   "options": "\nUpfront Deduction\nAmortized Over Tenure\nAdd to First EMI\nAdd to Last EMI"
+  },
+  {
+   "depends_on": "eval:doc.bpi_recovery_method == \"Add to First EMI\"",
+   "fieldname": "bpi_treatment",
+   "fieldtype": "Select",
+   "label": "BPI Treatment",
+   "options": "On top of first EMI\nAdjust within the EMI amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-02-06 14:16:12.918968",
+=======
+ "modified": "2026-03-09 12:24:09.001135",
+>>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
