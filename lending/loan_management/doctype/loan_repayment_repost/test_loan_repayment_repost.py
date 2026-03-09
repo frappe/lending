@@ -9,6 +9,9 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+	process_loan_interest_accrual_for_loans,
+)
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
@@ -124,3 +127,54 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		)
 		for demand in demands:
 			self.assertEqual(demand.outstanding_amount, 0)
+
+	def test_penal_interest_regenerated_after_reposting_repayment(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
+			penalty_charges_rate=25,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-05-10", loan=loan.name, company="_Test Company"
+		)
+
+		create_repayment_entry(loan.name, "2024-05-11", 47523.00).submit()
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"repost_date": "2024-05-05",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		penal_interest = frappe.db.exists(
+			"Loan Interest Accrual",
+			{
+				"loan": loan.name,
+				"posting_date": "2024-05-10",
+				"interest_type": "Penal Interest",
+				"docstatus": 1,
+			},
+		)
+
+		self.assertTrue(penal_interest, "Penal interest should exist after repost")
