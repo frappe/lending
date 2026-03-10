@@ -734,13 +734,6 @@
    "label": "Loan Import Details"
   },
   {
-   "fieldname": "loan_import_details",
-   "fieldtype": "Table",
-   "label": "Loan Import Details",
-   "mandatory_depends_on": "eval:(doc.is_imported && doc.status !== \"Closed\")",
-   "options": "Loan Import Details"
-  },
-  {
    "default": "0",
    "fieldname": "auto_create_disbursement_on_loan_booking",
    "fieldtype": "Check",
