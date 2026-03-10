@@ -388,7 +388,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-09 16:02:21.379958",
+ "modified": "2026-03-10 12:13:00.031037",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
@@ -418,6 +418,7 @@
    "report": 1,
    "role": "Loan Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

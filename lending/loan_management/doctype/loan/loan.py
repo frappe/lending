@@ -706,7 +706,7 @@ def make_repayment_entry(
 
 
 @frappe.whitelist()
-def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict=0):
+def make_loan_write_off(loan: str, company: str | None = None, posting_date: str | None = None, amount: float = 0, as_dict: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	frappe.has_permission("Loan Write Off", "write", throw=True)
@@ -820,7 +820,7 @@ def get_shortfall_applicants():
 
 
 @frappe.whitelist()
-def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, submit=0):
+def make_refund_jv(loan: str, amount: float = 0, reference_number: str | None = None, reference_date: str | None = None, submit: int = 0):
 	frappe.has_permission("Journal Entry", "write", throw=True)
 
 	loan_details = frappe.db.get_value(
