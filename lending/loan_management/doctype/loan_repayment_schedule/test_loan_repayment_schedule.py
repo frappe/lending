@@ -246,3 +246,21 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		)
 
 		self.assertEqual(next_payment_date, getdate("2025-01-10"))
+
+	def test_no_cost_emi_calculation_with_bpi_treatment(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			117770,
+			"Repay Fixed Amount per Period",
+			"Customer",
+			monthly_repayment_amount=40000,
+			posting_date="2026-03-01",
+			repayment_start_date="2026-07-04",
+			rate_of_interest=9.5,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-03-01", repayment_start_date="2026-04-07"
+		)

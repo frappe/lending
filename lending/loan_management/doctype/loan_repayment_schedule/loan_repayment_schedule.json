@@ -46,6 +46,7 @@
   "moratorium_end_date",
   "adjusted_interest",
   "broken_period_interest_days",
+  "disbursement_charges",
   "co_lending_tab",
   "loan_partner_details_section",
   "loan_partner",
@@ -376,17 +377,22 @@
    "fieldname": "co_lending_tab",
    "fieldtype": "Tab Break",
    "label": "Co Lending"
+  },
+  {
+   "fieldname": "disbursement_charges",
+   "fieldtype": "Currency",
+   "label": "Disbursement Charges"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-18 15:30:32.183881",
+ "modified": "2026-03-09 16:02:21.379958",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment Schedule",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

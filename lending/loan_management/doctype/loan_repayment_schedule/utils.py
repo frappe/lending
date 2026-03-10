@@ -77,6 +77,8 @@ def get_amounts(
 	pending_prev_days=0,
 	flat_rate=False,
 	loan_amount=0,
+	bpi_amount=0,
+	disbursement_charges=0
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -93,7 +95,10 @@ def get_amounts(
 			current_balance_amount * flt(rate_of_interest) * days / (months * 100), precision
 		)
 
-	principal_amount = monthly_repayment_amount - flt(interest_amount)
+	if bpi_amount:
+		interest_amount += bpi_amount
+
+	principal_amount = monthly_repayment_amount - flt(interest_amount) - flt(disbursement_charges)
 
 	if carry_forward_interest:
 		interest_amount += carry_forward_interest
@@ -123,6 +128,7 @@ def get_amounts(
 	return (
 		interest_amount,
 		principal_amount,
+		disbursement_charges,
 		balance_amount,
 		total_payment,
 		days,
