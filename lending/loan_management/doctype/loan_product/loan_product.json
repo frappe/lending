@@ -526,11 +526,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-02-06 14:16:12.918968",
-=======
  "modified": "2026-03-09 12:24:09.001135",
->>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

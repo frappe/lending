@@ -17,12 +17,9 @@
   "company",
   "posting_date",
   "status",
-<<<<<<< HEAD
-=======
   "is_imported",
   "migration_date",
   "auto_create_disbursement_on_loan_booking",
->>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
   "section_break_8",
   "loan_product",
   "loan_amount",
@@ -706,8 +703,6 @@
   {
    "fieldname": "column_break_qsfx",
    "fieldtype": "Column Break"
-<<<<<<< HEAD
-=======
   },
   {
    "default": "0",
@@ -750,17 +745,12 @@
    "fieldname": "auto_create_disbursement_on_loan_booking",
    "fieldtype": "Check",
    "label": "Auto create disbursement on loan booking"
->>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-12-18 10:42:35.606076",
-=======
  "modified": "2026-03-09 14:19:18.157852",
->>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

@@ -546,14 +546,11 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount = 0
 			pending_prev_days = 0
 
-<<<<<<< HEAD
-=======
 		self.add_bpi_to_last_row(schedule_field, bpi_recovery_method)
 
 		if schedule_field == "colender_schedule":
 			return
 
->>>>>>> 3636368a (feat: Treatment of BPI charges in first repayment)
 		if schedule_field == "repayment_schedule" and not self.restructure_type:
 			if self.repayment_frequency == "One Time":
 				self.monthly_repayment_amount = self.get(schedule_field)[0].total_payment
