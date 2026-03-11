@@ -158,6 +158,9 @@ doc_events = {
 	"Custom Field": {
 		"before_insert": "lending.overrides.custom_field.update_dimensions",
 	},
+	"Journal Entry": {
+		"on_cancel": "lending.overrides.journal_entry.add_ignore_linked_doctypes_for_jv",
+	},
 }
 
 accounting_dimension_doctypes = [
