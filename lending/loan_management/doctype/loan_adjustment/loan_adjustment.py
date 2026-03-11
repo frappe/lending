@@ -73,12 +73,22 @@ class LoanAdjustment(Document):
 			precision,
 		)
 
-		if total_net_payable > adjustment_amount:
+		loan_product = frappe.db.get_value("Loan", self.loan, "loan_product")
+
+		auto_write_off_amount = flt(
+			frappe.db.get_value("Loan Product", loan_product, "write_off_amount") or 0,
+			precision,
+		)
+
+		shortfall = flt(total_net_payable - adjustment_amount, precision)
+
+		if shortfall > auto_write_off_amount:
 			frappe.throw(
 				_(
-					"Total net payable amount is {0}, but the total adjustment amount is {1}. "
-					"For Manual or Internal Foreclosure, the adjustment amount must exactly match the total net payable amount."
-				).format(total_net_payable, adjustment_amount)
+					"Total net payable amount is {0} and total adjustment amount is {1}. "
+					"For Manual or Internal Foreclosure, shortfall {2} exceeds the allowed write-off "
+					"limit of {3} as per the Loan Product Auto Write Off Amount."
+				).format(total_net_payable, adjustment_amount, shortfall, auto_write_off_amount)
 			)
 
 	def on_submit(self):
