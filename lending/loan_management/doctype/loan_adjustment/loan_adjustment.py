@@ -85,21 +85,10 @@ class LoanAdjustment(Document):
 		if shortfall > auto_write_off_amount:
 			frappe.throw(
 				_(
-<<<<<<< HEAD
-<<<<<<< HEAD
-					"Total net payable amount is {0}, but the total adjustment amount is {1}. "
-					"For Manual or Internal Foreclosure, the adjustment amount must exactly match the total net payable amount."
-				).format(total_net_payable, adjustment_amount)
-=======
-					"Total net payable is {0} and total adjustment is {1}. "
-					"Shortfall {2} exceeds the allowed write-off limit of {3} as per the Loan Product Auto Write Off Amount."
-=======
 					"Total net payable amount is {0} and total adjustment amount is {1}. "
 					"For Manual or Internal Foreclosure, shortfall {2} exceeds the allowed write-off "
 					"limit of {3} as per the Loan Product Auto Write Off Amount."
->>>>>>> daa21d91 (fix: update the message)
 				).format(total_net_payable, adjustment_amount, shortfall, auto_write_off_amount)
->>>>>>> 9ac942ab (fix: validate foreclosure adjustment amount with auto write off limit)
 			)
 
 	def on_submit(self):
