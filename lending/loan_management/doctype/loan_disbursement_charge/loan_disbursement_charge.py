@@ -20,6 +20,7 @@ class LoanDisbursementCharge(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		treatment_of_charge: DF.Literal["Billed Separately", "Add to first repayment"]
 	# end: auto-generated types
 
 	pass

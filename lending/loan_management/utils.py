@@ -320,3 +320,50 @@ def get_amounts_not_reflected_in_system_for_bank_reconciliation_statement(filter
 
 def loan_accounting_enabled(company: str) -> bool:
 	return bool(frappe.get_cached_value("Company", company, "enable_loan_accounting"))
+
+
+def update_repayment_schedule_demand_generated(
+	loan,
+	loan_disbursement=None,
+	from_date=None,
+	to_date=None,
+	demand_generated=0,
+):
+	LRS = frappe.qb.DocType("Loan Repayment Schedule")
+	RS = frappe.qb.DocType("Repayment Schedule")
+
+	lrs_query = (
+		frappe.qb.from_(LRS)
+		.select(LRS.name)
+		.where(LRS.loan == loan)
+		.where(LRS.docstatus == 1)
+		.where(LRS.status == "Active")
+	)
+
+	if loan_disbursement:
+		lrs_query = lrs_query.where(LRS.loan_disbursement == loan_disbursement)
+
+	query = (
+		frappe.qb.update(RS)
+		.set(RS.demand_generated, demand_generated)
+		.where(RS.parent.isin(lrs_query))
+	)
+
+	if from_date:
+		query = query.where(RS.payment_date >= from_date)
+
+	if to_date:
+		query = query.where(RS.payment_date < to_date)
+
+	query.run()
+
+def create_charge_master(charge_type):
+	if not frappe.db.exists("Item", charge_type):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": charge_type,
+				"item_group": "Services",
+				"is_stock_item": 0,
+			}
+		).insert()

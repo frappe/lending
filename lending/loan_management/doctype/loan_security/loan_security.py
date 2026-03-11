@@ -50,3 +50,12 @@ def get_loan_security_price_or_value(loan_security):
 		"qty": 1,
 		"value": frappe.db.get_value("Loan Security", loan_security, "available_security_value"),
 	}
+
+def get_haircut_percentage(loan_security):
+	haircut = frappe.db.get_value("Loan Security", loan_security, "haircut")
+
+	if not haircut:
+		loan_security_type = frappe.db.get_value("Loan Security", loan_security, "loan_security_type")
+		haircut = frappe.db.get_value("Loan Security Type", loan_security_type, "haircut")
+
+	return haircut

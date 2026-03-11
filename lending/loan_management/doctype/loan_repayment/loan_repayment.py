@@ -2670,7 +2670,7 @@ def process_amount_for_loan(
 		is_future_dated = False
 
 	if is_future_dated and not for_update:
-		amounts["unaccrued_interest"] = calculate_accrual_amount_for_loans(
+		amounts["unaccrued_interest"] = flt(calculate_accrual_amount_for_loans(
 			loan,
 			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1))
 			if not freeze_date
@@ -2678,7 +2678,7 @@ def process_amount_for_loan(
 			accrual_type="Regular",
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
-		)
+		), precision)
 
 	amounts["total_charges_payable"] = charges
 	amounts["pending_principal_amount"] = flt(pending_principal_amount, precision)

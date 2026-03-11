@@ -16,6 +16,7 @@ class RepaymentSchedule(Document):
 		from frappe.types import DF
 
 		balance_loan_amount: DF.Currency
+		charges: DF.Currency
 		demand_generated: DF.Check
 		interest_amount: DF.Currency
 		number_of_days: DF.Int

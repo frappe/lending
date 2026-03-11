@@ -25,6 +25,17 @@ def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_period
 		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
 	return monthly_repayment_amount
 
+def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amount, frequency):
+	if frequency == "One Time":
+		return 1
+
+	monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
+	repayment_periods = math.log(
+		flt(monthly_repayment_amount) / (flt(monthly_repayment_amount) - (loan_amount * monthly_interest_rate)),
+		1 + monthly_interest_rate,
+	)
+
+	return math.ceil(repayment_periods)
 
 def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
 	if frequency == "Monthly":
@@ -32,7 +43,7 @@ def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_p
 	else:
 		years = 1
 
-	total_interest = (loan_amount * rate_of_interest * repayment_periods) / (years * 100)
+	total_interest = loan_amount * rate_of_interest * repayment_periods/ (years * 100)
 	total_amount = loan_amount + total_interest
 	monthly_repayment_amount = math.ceil(flt(total_amount) / repayment_periods)
 
@@ -66,6 +77,8 @@ def get_amounts(
 	pending_prev_days=0,
 	flat_rate=False,
 	loan_amount=0,
+	bpi_amount=0,
+	disbursement_charges=0
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -76,13 +89,16 @@ def get_amounts(
 		current_balance_amount = balance_amount
 
 	if flat_rate:
-		interest_amount = flt(loan_amount * flt(rate_of_interest) * days / (months * 100), precision)
+		interest_amount = flt((loan_amount * flt(rate_of_interest)) / (months * 100), precision)
 	else:
 		interest_amount = flt(
 			current_balance_amount * flt(rate_of_interest) * days / (months * 100), precision
 		)
 
-	principal_amount = monthly_repayment_amount - flt(interest_amount)
+	if bpi_amount:
+		interest_amount += bpi_amount
+
+	principal_amount = monthly_repayment_amount - flt(interest_amount) - flt(disbursement_charges)
 
 	if carry_forward_interest:
 		interest_amount += carry_forward_interest
@@ -112,6 +128,7 @@ def get_amounts(
 	return (
 		interest_amount,
 		principal_amount,
+		disbursement_charges,
 		balance_amount,
 		total_payment,
 		days,

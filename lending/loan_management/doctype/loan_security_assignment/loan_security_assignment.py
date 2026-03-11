@@ -27,7 +27,7 @@ class LoanSecurityAssignment(Document):
 		from lending.loan_management.doctype.pledge.pledge import Pledge
 
 		amended_from: DF.Link | None
-		applicant: DF.DynamicLink
+		applicant: DF.Data
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
@@ -38,29 +38,46 @@ class LoanSecurityAssignment(Document):
 		reference_no: DF.Data | None
 		release_time: DF.Datetime | None
 		securities: DF.Table[Pledge]
-		status: DF.Literal[
-			"Pledge Requested",
-			"Unpledged",
-			"Pledged",
-			"Release Requested",
-			"Released",
-			"Repossessed",
-			"Cancelled",
-		]
+		status: DF.Literal["Pledge Requested", "Unpledged", "Pledged", "Release Requested", "Released", "Repossessed", "Cancelled"]
 		total_security_value: DF.Currency
 	# end: auto-generated types
 
 	def validate(self):
 		self.validate_securities()
-		self.validate_loan_security_type()
 		self.set_loan_and_security_values()
 
 	def on_submit(self):
 		if self.loan:
-			self.db_set("status", "Pledged")
-			self.db_set("pledge_time", now_datetime())
 			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
+
+		if not self.loan_application:
+			# Create Sanctioned Loan Amount Record
+			current_sanctioned_amount = frappe.db.get_value(
+				"Sanctioned Loan Amount",
+				{"applicant": self.applicant, "applicant_type": self.applicant_type},
+				["name", "sanctioned_amount_limit"],
+				as_dict=1
+			)
+
+			if current_sanctioned_amount:
+				frappe.db.set_value(
+					"Sanctioned Loan Amount",
+					current_sanctioned_amount.name,
+					"sanctioned_amount_limit",
+					current_sanctioned_amount.sanctioned_amount_limit + self.maximum_loan_value
+				)
+			else:
+				frappe.get_doc({
+					"doctype": "Sanctioned Loan Amount",
+					"applicant": self.applicant,
+					"applicant_type": self.applicant_type,
+					"sanctioned_amount_limit": self.maximum_loan_value
+				}).insert()
+
+				self.db_set("status", "Pledged")
+				self.db_set("pledge_time", now_datetime())
+
 
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
@@ -71,38 +88,17 @@ class LoanSecurityAssignment(Document):
 		update_loan(self.loan, self.maximum_loan_value, cancel=1)
 
 	def validate_securities(self):
+		if not self.get("securities"):
+			frappe.throw(_("Atlest one security needs to be assigned"))
+
 		security_list = []
-		for security in self.securities:
+		for security in self.get("securities"):
 			if security.loan_security not in security_list:
 				security_list.append(security.loan_security)
 			else:
 				frappe.throw(
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
-
-	def validate_loan_security_type(self):
-		existing_lsa = None
-		if self.loan:
-			existing_lsa = frappe.db.get_value(
-				"Loan Security Assignment", {"loan": self.loan, "docstatus": 1}, ["name"]
-			)
-
-		if existing_lsa:
-			loan_security_type = frappe.db.get_value(
-				"Pledge", {"parent": existing_lsa}, ["loan_security_type"]
-			)
-		else:
-			loan_security_type = self.securities[0].loan_security_type
-
-		ltv_ratio_map = frappe._dict(
-			frappe.get_all("Loan Security Type", fields=["name", "loan_to_value_ratio"], as_list=1)
-		)
-
-		ltv_ratio = ltv_ratio_map.get(loan_security_type)
-
-		for security in self.securities:
-			if ltv_ratio_map.get(security.loan_security_type) != ltv_ratio:
-				frappe.throw(_("Loan Securities with different LTV ratio cannot be pledged against one loan"))
 
 	def set_loan_and_security_values(self):
 		total_security_value = 0
@@ -122,8 +118,13 @@ class LoanSecurityAssignment(Document):
 						_("No valid Loan Security Price found for {0}").format(frappe.bold(pledge.loan_security))
 					)
 
+			haircut = pledge.haircut
+
+			if not haircut:
+				haircut = flt(frappe.db.get_value("Loan Security Type", pledge.loan_security_type, "haircut"))
+
 			pledge.amount = pledge.qty * pledge.loan_security_price
-			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * pledge.haircut / 100))
+			pledge.post_haircut_amount = cint(pledge.amount - (pledge.amount * haircut / 100))
 
 			total_security_value += pledge.amount
 			maximum_loan_value += pledge.post_haircut_amount
@@ -244,9 +245,10 @@ def update_loan_securities_values(
 
 
 @frappe.whitelist()
-def release_loan_security_assignment(loan_security_assignment):
-	frappe.db.set_value(
-		"Loan Security Assignment",
-		loan_security_assignment,
-		{"status": "Released", "release_time": now_datetime()},
-	)
+def release_loan_security_assignment(loan_security_assignment: str):
+	if frappe.has_permission("Loan Security Assignment", "write"):
+		frappe.db.set_value(
+			"Loan Security Assignment",
+			loan_security_assignment,
+			{"status": "Released", "release_time": now_datetime()},
+		)

@@ -17,6 +17,9 @@
   "company",
   "posting_date",
   "status",
+  "is_imported",
+  "migration_date",
+  "auto_create_disbursement_on_loan_booking",
   "section_break_8",
   "loan_product",
   "loan_amount",
@@ -516,7 +519,7 @@
    "collapsible": 1,
    "fieldname": "loan_charges_section",
    "fieldtype": "Section Break",
-   "label": "Loan Charges"
+   "label": "Loan Booking Charges"
   },
   {
    "depends_on": "eval:doc.moratorium_tenure && doc.moratorium_type == \"EMI\"",
@@ -704,6 +707,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
+   "fieldname": "is_imported",
+   "fieldtype": "Check",
+   "label": "Is Imported",
+   "read_only": 1
+  },
+  {
    "fieldname": "moratorium_details_section",
    "fieldtype": "Section Break",
    "label": "Moratorium Details"
@@ -711,12 +721,31 @@
   {
    "fieldname": "column_break_nzzj",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "is_imported",
+   "fieldname": "migration_date",
+   "fieldtype": "Date",
+   "label": "Migration Date",
+   "read_only": 1
+  },
+  {
+   "depends_on": "is_imported",
+   "fieldname": "loan_import_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Loan Import Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_create_disbursement_on_loan_booking",
+   "fieldtype": "Check",
+   "label": "Auto create disbursement on loan booking"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-01 16:04:23.630804",
+ "modified": "2026-03-09 14:19:18.157852",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

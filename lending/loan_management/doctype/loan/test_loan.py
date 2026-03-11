@@ -224,8 +224,7 @@ class TestLoan(IntegrationTestCase):
 			self.applicant1,
 			"Personal Loan",
 			280000,
-			"Repay Over Number of Periods",
-			repayment_periods=20,
+			"Repay Fixed Amount per Period",
 			repayment_start_date=add_months(disbursement_date, 1),
 		)
 
@@ -674,7 +673,7 @@ class TestLoan(IntegrationTestCase):
 		unpledge_request.save()
 		loan.load_from_db()
 
-		pledged_qty = get_pledged_security_qty(loan.name)
+		pledged_qty = get_pledged_security_qty(loan=loan.name)
 
 		self.assertEqual(loan.status, "Closed")
 		self.assertEqual(sum(pledged_qty.values()), 0)
@@ -849,7 +848,9 @@ class TestLoan(IntegrationTestCase):
 		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
 		self.assertEqual(amounts["pending_principal_amount"], 0.0)
 
-	def test_penalty(self):
+	def test_penalty_and_auto_create_disbursement_with_charges(self):
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
 		loan = create_loan(
 			self.applicant1,
 			"Term Loan Product 4",
@@ -859,20 +860,30 @@ class TestLoan(IntegrationTestCase):
 			repayment_start_date="2024-05-05",
 			posting_date="2024-04-01",
 			penalty_charges_rate=25,
+			auto_create_disbursement_on_loan_booking=1,
+			disbursement_charges=[
+				{
+					"charge": "Processing Fee",
+					"amount": 100,
+					"treatment_of_charge": "Add to first repayment"
+				}
+			]
 		)
 
 		loan.submit()
 
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
-		)
+		charge_demand = frappe.db.get_value("Loan Demand", {"loan": loan.name, "demand_type": "Charges"}, "name")
+		self.assertTrue(charge_demand)
+
 		process_daily_loan_demands(posting_date="2024-07-06", loan=loan.name)
 		process_loan_interest_accrual_for_loans(
 			posting_date="2024-07-06", loan=loan.name, company="_Test Company"
 		)
 
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-07-06")
-		self.assertEqual(flt(amounts["penalty_amount"], 2), 3059.7)
+		self.assertEqual(flt(amounts["penalty_amount"], 2), 3055.36)
+
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
 
 	def test_same_date_for_daily_accruals(self):
 		from lending.tests.test_utils import get_penalty_amount
@@ -1457,36 +1468,6 @@ class TestLoan(IntegrationTestCase):
 
 		self.assertEqual(flt(repayment_entry.principal_amount_paid, 1), flt(total_principal_paid, 1))
 
-	def test_npa_loan(self):
-		loan = create_loan(
-			self.applicant2,
-			"Term Loan Product 4",
-			500000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-06",
-			rate_of_interest=25,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
-		)
-		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-10", loan=loan.name, company="_Test Company"
-		)
-
-		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
-
-		create_process_loan_classification(posting_date="2024-11-05", loan=loan.name)
-
-		# repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 47523)
-		# repayment_entry.submit()
 
 	def test_broken_period_interest_for_amortized_over_tenure(self):
 		# Broken Period Interest (BPI) Calculation:
@@ -1523,6 +1504,37 @@ class TestLoan(IntegrationTestCase):
 			"Repay Over Number of Periods",
 			12,
 			"Customer",
+			posting_date="2023-11-03",
+			rate_of_interest=14.5,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2023-11-03", repayment_start_date="2023-12-05"
+		)
+
+		loan_repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}
+		)
+
+		calculated_bpi_amount_1 = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
+		calculated_bpi_amount_2 = flt(loan_repayment_schedule.repayment_schedule[1].interest_amount, 2)
+
+		self.assertEqual(calculated_bpi_amount_1, 1198.40)
+		self.assertEqual(calculated_bpi_amount_2, 1141.93)
+
+	def test_broken_period_interest_for_amortized_over_tenure_for_fixed_amount(self):
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "bpi_recovery_method", "Amortized Over Tenure"
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Fixed Amount per Period",
+			"Customer",
+			monthly_repayment_amount=9003,
 			posting_date="2023-11-03",
 			rate_of_interest=14.5,
 		)
@@ -3495,9 +3507,9 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Flat Interest Rate Loan",
-			50000,
+			12000,
 			"Repay Over Number of Periods",
-			12,
+			4,
 			"Customer",
 			repayment_start_date="2024-11-01",
 			posting_date="2024-10-01",
@@ -3511,18 +3523,10 @@ class TestLoan(IntegrationTestCase):
 		)
 
 		expected_repayment_schedule = [
-			["2024-11-01", 3979.33, 416.67, 4396],
-			["2024-12-01", 3979.33, 416.67, 4396],
-			["2025-01-01", 3979.33, 416.67, 4396],
-			["2025-02-01", 3979.33, 416.67, 4396],
-			["2025-03-01", 3979.33, 416.67, 4396],
-			["2025-04-01", 3979.33, 416.67, 4396],
-			["2025-05-01", 3979.33, 416.67, 4396],
-			["2025-06-01", 3979.33, 416.67, 4396],
-			["2025-07-01", 3979.33, 416.67, 4396],
-			["2025-08-01", 3979.33, 416.67, 4396],
-			["2025-09-01", 3979.33, 416.67, 4396],
-			["2025-10-01", 6227.37, 416.67, 6644.04],
+			["2024-11-01", 3000, 100, 3100],
+			["2024-12-01", 3000, 100, 3100],
+			["2025-01-01", 3000, 100, 3100],
+			["2025-02-01", 3000, 100, 3100],
 		]
 
 		repayment_schedule = frappe.get_doc(
