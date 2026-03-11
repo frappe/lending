@@ -557,8 +557,10 @@ def get_sanctioned_amount_limit(applicant_type, applicant, company):
 
 
 @frappe.whitelist()
-def request_loan_closure(loan, posting_date=None, auto_close=0):
+def request_loan_closure(loan: str, posting_date: str | None = None, auto_close: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
+	frappe.has_permission("Loan", "write", throw=True)
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if not posting_date:
@@ -615,7 +617,9 @@ def get_loan_application(loan_application):
 
 
 @frappe.whitelist()
-def close_unsecured_term_loan(loan):
+def close_unsecured_term_loan(loan: str):
+	frappe.has_permission("Loan", "write", throw=True)
+
 	loan_details = frappe.db.get_value(
 		"Loan", {"name": loan}, ["status", "is_term_loan", "is_secured_loan"], as_dict=1
 	)
@@ -702,8 +706,10 @@ def make_repayment_entry(
 
 
 @frappe.whitelist()
-def make_loan_write_off(loan, company=None, posting_date=None, amount=0, as_dict=0):
+def make_loan_write_off(loan: str, company: str | None = None, posting_date: str | None = None, amount: float = 0, as_dict: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
+	frappe.has_permission("Loan Write Off", "write", throw=True)
 
 	if not company:
 		company = frappe.get_value("Loan", loan, "company")
@@ -814,7 +820,9 @@ def get_shortfall_applicants():
 
 
 @frappe.whitelist()
-def make_refund_jv(loan, amount=0, reference_number=None, reference_date=None, submit=0):
+def make_refund_jv(loan: str, amount: float = 0, reference_number: str | None = None, reference_date: str | None = None, submit: int = 0):
+	frappe.has_permission("Journal Entry", "write", throw=True)
+
 	loan_details = frappe.db.get_value(
 		"Loan",
 		loan,
@@ -877,6 +885,8 @@ def update_days_past_due_in_loans(
 	force_update_dpd_in_loan=0,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
+
+	frappe.has_permission("Loan", "write", throw=True)
 
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()
