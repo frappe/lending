@@ -517,15 +517,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2025-12-24 11:54:26.966153",
-=======
- "modified": "2026-01-01 15:53:56.751167",
->>>>>>> 617fc2fb (fix: General UX related issues)
-=======
  "modified": "2026-01-02 15:00:33.320984",
->>>>>>> a88657bb (fix: Loan Demand offset order non mandatory)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
