@@ -25,18 +25,18 @@
   "is_term_loan",
   "validate_normal_repayment",
   "disabled",
-  "limits_section",
-  "min_days_bw_disbursement_first_repayment",
-  "excess_amount_acceptance_limit",
-  "column_break_wwhp",
-  "write_off_amount",
-  "grace_period_in_days",
   "collection_offset_sequence_section",
   "collection_offset_sequence_for_standard_asset",
   "collection_offset_sequence_for_sub_standard_asset",
   "column_break_dbkg",
   "collection_offset_sequence_for_written_off_asset",
   "collection_offset_sequence_for_settlement_collection",
+  "limits_section",
+  "min_days_bw_disbursement_first_repayment",
+  "excess_amount_acceptance_limit",
+  "column_break_wwhp",
+  "write_off_amount",
+  "grace_period_in_days",
   "section_break_ia6s",
   "loan_charges",
   "amended_from",
@@ -475,6 +475,7 @@
    "options": "Loan Demand Offset Order"
   },
   {
+   "collapsible": 1,
    "fieldname": "limits_section",
    "fieldtype": "Section Break",
    "label": "Limits"
@@ -484,7 +485,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
    "fieldname": "collection_offset_sequence_section",
    "fieldtype": "Section Break",
    "label": "Collection Offset Sequence"
