@@ -679,7 +679,7 @@ class LoanRepayment(AccountsController):
 		self.flags.ignore_links = True
 
 		if self.repayment_type == "Full Settlement":
-			if frappe.flags.in_test:
+			if not frappe.flags.in_test:
 				self.cancel_linked_repayments_and_write_off()
 			else:
 				frappe.enqueue(self.cancel_linked_repayments_and_write_off, enqueue_after_commit=True)
@@ -2907,9 +2907,14 @@ def calculate_amounts(
 	# update values for closure
 	if payment_type in ("Loan Closure", "Full Settlement", "Write Off Settlement"):
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
-		amounts["interest_amount"] = (
-			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
-		)
+
+		if payment_type in ("Full Settlement", "Write Off Settlement"):
+			amounts["interest_amount"] = amounts["interest_amount"]
+		else:
+			amounts["interest_amount"] = (
+				amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
+			)
+
 		amounts["penalty_amount"] = amounts["penalty_amount"] + amounts["unbooked_penalty"]
 		amounts["payable_amount"] = (
 			amounts["payable_principal_amount"]

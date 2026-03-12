@@ -1302,6 +1302,61 @@ class TestLoanRepayment(IntegrationTestCase):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
 
+	def test_full_settlement_creates_waiver_and_write_off(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-09-05", company="_Test Company"
+		)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, "2024-09-05 17:24:18", 374378.00, repayment_type="Normal Repayment"
+		)
+		repayment_entry_1.submit()
+		repayment_entry_1.cancel()
+
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, "2024-09-05 17:24:18", 1000000, repayment_type="Full Settlement"
+		)
+		repayment_entry_2.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+		loan_repayment = frappe.db.get_value(
+			"Loan Repayment",
+			{"repayment_type": "Interest Waiver", "against_loan": loan.name, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(loan_repayment, "Interest waiver entry not created")
+
+		loan_writer_off = frappe.db.get_value(
+			"Loan Write Off",
+			{"loan": loan.name, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(loan_writer_off, "Loan write off entry not created")
+
+
 	def test_loan_auto_closure_with_charge_under_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
 
