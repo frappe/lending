@@ -274,7 +274,7 @@ class LoanRepayment(AccountsController):
 			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
 
 		if self.repayment_type == "Full Settlement":
-			if frappe.flags.in_test:
+			if not frappe.flags.in_test:
 				job_name = frappe.enqueue(self.post_write_off_settlements, enqueue_after_commit=True)
 				self.db_set("full_settlement_job", job_name)
 			else:
@@ -679,7 +679,7 @@ class LoanRepayment(AccountsController):
 		self.flags.ignore_links = True
 
 		if self.repayment_type == "Full Settlement":
-			if not frappe.flags.in_test:
+			if frappe.flags.in_test:
 				self.cancel_linked_repayments_and_write_off()
 			else:
 				frappe.enqueue(self.cancel_linked_repayments_and_write_off, enqueue_after_commit=True)
