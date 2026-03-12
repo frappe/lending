@@ -3043,7 +3043,7 @@ class TestLoan(IntegrationTestCase):
 		loan_partner = "Test Loan Partner 1"
 
 		if not frappe.db.exists("Loan Partner", loan_partner):
-			partner = create_loan_partner(
+			create_loan_partner(
 				"Test Loan Partner 1",
 				"Test Loan Partner 1",
 				partner_loan_share_percentage=80,
@@ -3055,7 +3055,6 @@ class TestLoan(IntegrationTestCase):
 				type_of_fldg_applicable="Fixed Deposit Only",
 				fldg_fixed_deposit_percentage=10,
 			)
-			partner.submit()
 
 		posting_date = "2025-01-27"
 		loan = create_loan(

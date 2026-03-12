@@ -253,7 +253,7 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 	def test_pre_payment_restructure_with_loan_partner_and_bpi(self):
 		loan_partner = "Test Loan Partner 1"
 		if not frappe.db.exists("Loan Partner", loan_partner):
-			partner = create_loan_partner(
+			create_loan_partner(
 				"Test Loan Partner 1",
 				"Test Loan Partner 1",
 				partner_loan_share_percentage=80,
@@ -265,7 +265,6 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 				type_of_fldg_applicable="Fixed Deposit Only",
 				fldg_fixed_deposit_percentage=10,
 			)
-			partner.submit()
 
 		loan = create_loan(
 			"_Test Customer 1",
