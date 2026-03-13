@@ -1546,6 +1546,8 @@ class TestLoanRepayment(IntegrationTestCase):
 		self.assertEqual(len(demands), 2)
 
 	def test_closure_pre_payment(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
+
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
