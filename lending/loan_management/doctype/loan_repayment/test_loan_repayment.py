@@ -1356,7 +1356,6 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		self.assertTrue(loan_writer_off, "Loan write off entry not created")
 
-
 	def test_loan_auto_closure_with_charge_under_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
 
