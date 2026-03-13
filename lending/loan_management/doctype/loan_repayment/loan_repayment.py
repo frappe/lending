@@ -3,6 +3,7 @@
 
 
 import traceback
+from datetime import date, datetime
 
 import frappe
 from frappe import _
@@ -2864,13 +2865,13 @@ def get_all_demands(loans, posting_date):
 
 @frappe.whitelist()
 def calculate_amounts(
-	against_loan,
-	posting_date,
-	payment_type="",
-	with_loan_details=False,
-	charges=None,
-	loan_disbursement=None,
-	for_update=False,
+	against_loan: str,
+	posting_date: str | date | datetime,
+	payment_type: str | None = None,
+	with_loan_details: bool = False,
+	charges: list[str] | None = None,
+	loan_disbursement: str | None = None,
+	for_update: bool = False,
 ):
 	amounts = init_amounts()
 
@@ -2907,9 +2908,14 @@ def calculate_amounts(
 	# update values for closure
 	if payment_type in ("Loan Closure", "Full Settlement", "Write Off Settlement"):
 		amounts["payable_principal_amount"] = amounts["pending_principal_amount"]
-		amounts["interest_amount"] = (
-			amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
-		)
+
+		if payment_type in ("Full Settlement", "Write Off Settlement"):
+			amounts["interest_amount"] = amounts["interest_amount"]
+		else:
+			amounts["interest_amount"] = (
+				amounts["interest_amount"] + amounts["unbooked_interest"] + amounts["unaccrued_interest"]
+			)
+
 		amounts["penalty_amount"] = amounts["penalty_amount"] + amounts["unbooked_penalty"]
 		amounts["payable_amount"] = (
 			amounts["payable_principal_amount"]
