@@ -1575,7 +1575,7 @@ class TestLoanRepayment(IntegrationTestCase):
 			repayment_type="Pre Payment",
 		).submit()
 
-		demand_count = frappe.db.count("Loan Demand", {"loan": loan.name, "docstatus": 1})
+		demand_count = frappe.db.count("Loan Demand", {"loan": loan.name, "docstatus": 1, "demand_type": "EMI"})
 		self.assertEqual(demand_count, 3)
 
 	def test_additional_interest_demand_allocation(self):
