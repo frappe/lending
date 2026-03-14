@@ -1545,6 +1545,39 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		self.assertEqual(len(demands), 2)
 
+	def test_closure_pre_payment(self):
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
+
+		create_repayment_entry(
+			loan.name,
+			"2024-04-05",
+			101945.80,
+			repayment_type="Pre Payment",
+		).submit()
+
+		demand_count = frappe.db.count("Loan Demand", {"loan": loan.name, "docstatus": 1, "demand_type": "EMI"})
+		self.assertEqual(demand_count, 3)
+
 	def test_additional_interest_demand_allocation(self):
 		frappe.db.set_value(
 			"Company",

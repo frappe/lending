@@ -225,8 +225,13 @@ class LoanRepayment(AccountsController):
 				self.get("prepayment_charges"),
 			)
 
+		on_settlement_or_closure = False
+
+		if self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount:
+			on_settlement_or_closure = True
+
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			reversed_accruals += self.reverse_future_accruals_and_demands()
+			reversed_accruals += self.reverse_future_accruals_and_demands(on_settlement_or_closure=on_settlement_or_closure)
 
 		if self.principal_amount_paid < self.pending_principal_amount:
 			if (
