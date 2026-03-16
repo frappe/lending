@@ -274,7 +274,6 @@ class LoanRepayment(AccountsController):
 			if self.is_term_loan:
 				self.book_pending_principal()
 
-		# self.post_suspense_entries()
 		if self.repayment_type == "Charges Waiver" and self.total_charges_paid > 0:
 			self.db_set("is_invoice_not_generated", 1)
 
