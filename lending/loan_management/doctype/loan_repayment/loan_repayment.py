@@ -66,6 +66,11 @@ class LoanRepayment(AccountsController):
 		full_settlement_job: DF.Data | None
 		interest_payable: DF.Currency
 		is_backdated: DF.Check
+<<<<<<< HEAD
+=======
+		is_imported: DF.Check
+		is_invoice_not_generated: DF.Check
+>>>>>>> 9bd724d4 (fix: resolve lock timeout by moving credit note creation to background job)
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		is_write_off_waiver: DF.Check
@@ -269,7 +274,9 @@ class LoanRepayment(AccountsController):
 			if self.is_term_loan:
 				self.book_pending_principal()
 
-		self.post_suspense_entries()
+		# self.post_suspense_entries()
+		if self.repayment_type == "Charges Waiver" and self.total_charges_paid > 0:
+			self.db_set("is_invoice_not_generated", 1)
 
 		self.update_paid_amounts()
 		self.handle_auto_demand_write_off()
@@ -404,12 +411,31 @@ class LoanRepayment(AccountsController):
 		repost.cancel_future_emi_demands = True
 		repost.submit()
 
+<<<<<<< HEAD
 	def post_suspense_entries(self, cancel=0):
+=======
+	def check_import_total_amount(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		total_amount = flt(self.principal_amount_paid, precision) + flt(self.total_interest_paid, precision) + flt(
+			self.total_penalty_paid, precision
+		) + flt(self.total_charges_paid, precision) + flt(self.unbooked_interest_paid, precision) + flt(
+			self.unbooked_penalty_paid, precision
+		)
+
+		if flt(self.amount_paid, precision) != flt(total_amount, precision):
+			frappe.throw(
+				_("Amount Paid must equal the sum of Principal, Interest, Penalty, Charges, Unbooked Interest, and Unbooked Penalty.")
+			)
+
+	def post_suspense_entries(self, base_amount_map=None, cancel=0):
+>>>>>>> 9bd724d4 (fix: resolve lock timeout by moving credit note creation to background job)
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 			write_off_suspense_entries,
 		)
 
-		base_amount_map = self.make_credit_note_for_charge_waivers(cancel=cancel)
+		if not base_amount_map:
+			base_amount_map = self.make_credit_note_for_charge_waivers(cancel=cancel)
 
 		foreclosure_type = ""
 		if self.loan_adjustment:
@@ -3347,3 +3373,41 @@ def post_bulk_submit_actions(loan, to_date, from_date):
 	repost.cancel_future_accruals_and_demands = True
 	repost.cancel_future_emi_demands = True
 	repost.submit()
+
+
+def process_pending_credit_notes():
+	LR = frappe.qb.DocType("Loan Repayment")
+
+	query = (
+		frappe.qb.from_(LR)
+		.select(LR.name)
+		.where(
+			(LR.repayment_type == "Charges Waiver")
+			& (LR.docstatus == 1)
+			& (LR.is_invoice_not_generated == 1)
+		)
+		.orderby(LR.creation)
+		.limit(500)
+	)
+
+	pending_repayments = query.run(pluck=True)
+
+	for name in pending_repayments:
+		try:
+			repayment = frappe.get_doc("Loan Repayment", name)
+
+			base_amount_map = repayment.make_credit_note_for_charge_waivers()
+			repayment.post_suspense_entries(base_amount_map=base_amount_map)
+
+			frappe.db.set_value(
+				"Loan Repayment",
+				name,
+				"is_invoice_not_generated",
+				0
+			)
+
+		except Exception:
+			frappe.log_error(
+				frappe.get_traceback(),
+				f"Credit Note Processing Failed for {name}"
+			)

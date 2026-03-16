@@ -29,6 +29,7 @@
   "is_npa",
   "is_write_off_waiver",
   "is_backdated",
+  "is_invoice_not_generated",
   "payment_details_section",
   "due_date",
   "pending_principal_amount",
@@ -557,12 +558,20 @@
    "fieldtype": "Data",
    "label": "Full Settlement Job ",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_invoice_not_generated",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Invoice not generated",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-06 15:41:39.868624",
+ "modified": "2026-03-16 16:02:34.609891",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
