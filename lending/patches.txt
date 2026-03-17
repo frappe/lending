@@ -46,4 +46,4 @@ lending.patches.v1_0.add_index_for_custom_fields_for_JE
 lending.patches.v1_0.update_value_date_in_loan_repayment
 lending.patches.v1_0.update_value_date_in_loan_refund
 lending.patches.v1_0.update_value_date_in_pending_doctypes #1
-
+lending.patches.v16_0.update_is_invoice_generated_field

@@ -66,6 +66,7 @@ class LoanRepayment(AccountsController):
 		full_settlement_job: DF.Data | None
 		interest_payable: DF.Currency
 		is_backdated: DF.Check
+		is_invoice_generated: DF.Check
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		is_write_off_waiver: DF.Check
@@ -227,11 +228,15 @@ class LoanRepayment(AccountsController):
 
 		on_settlement_or_closure = False
 
-		if self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount:
+		if (
+			self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount
+		):
 			on_settlement_or_closure = True
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
-			reversed_accruals += self.reverse_future_accruals_and_demands(on_settlement_or_closure=on_settlement_or_closure)
+			reversed_accruals += self.reverse_future_accruals_and_demands(
+				on_settlement_or_closure=on_settlement_or_closure
+			)
 
 		if self.principal_amount_paid < self.pending_principal_amount:
 			if (
@@ -268,8 +273,6 @@ class LoanRepayment(AccountsController):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
 				self.book_pending_principal()
-
-		self.post_suspense_entries()
 
 		self.update_paid_amounts()
 		self.handle_auto_demand_write_off()
@@ -404,12 +407,13 @@ class LoanRepayment(AccountsController):
 		repost.cancel_future_emi_demands = True
 		repost.submit()
 
-	def post_suspense_entries(self, cancel=0):
+	def post_suspense_entries(self, base_amount_map=None, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 			write_off_suspense_entries,
 		)
 
-		base_amount_map = self.make_credit_note_for_charge_waivers(cancel=cancel)
+		if not base_amount_map:
+			base_amount_map = self.make_credit_note_for_charge_waivers(cancel=cancel)
 
 		foreclosure_type = ""
 		if self.loan_adjustment:
@@ -3347,3 +3351,31 @@ def post_bulk_submit_actions(loan, to_date, from_date):
 	repost.cancel_future_accruals_and_demands = True
 	repost.cancel_future_emi_demands = True
 	repost.submit()
+
+
+def process_pending_credit_notes():
+	LR = frappe.qb.DocType("Loan Repayment")
+
+	query = (
+		frappe.qb.from_(LR)
+		.select(LR.name)
+		.where(
+			(LR.repayment_type == "Charges Waiver") & (LR.docstatus == 1) & (LR.is_invoice_generated == 0)
+		)
+		.orderby(LR.creation)
+		.limit(500)
+	)
+
+	pending_repayments = query.run(pluck=True)
+
+	for name in pending_repayments:
+		try:
+			repayment = frappe.get_doc("Loan Repayment", name)
+
+			base_amount_map = repayment.make_credit_note_for_charge_waivers()
+			repayment.post_suspense_entries(base_amount_map=base_amount_map)
+
+			frappe.db.set_value("Loan Repayment", name, "is_invoice_generated", 1, update_modified=False)
+
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), f"Credit Note Processing Failed for {name}")
