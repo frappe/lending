@@ -69,8 +69,12 @@ class LoanRepayment(AccountsController):
 <<<<<<< HEAD
 =======
 		is_imported: DF.Check
+<<<<<<< HEAD
 		is_invoice_not_generated: DF.Check
 >>>>>>> 9bd724d4 (fix: resolve lock timeout by moving credit note creation to background job)
+=======
+		is_invoice_generated: DF.Check
+>>>>>>> 1f44ce09 (fix: rename fieldname and add patch update_is_invoice_generated_field)
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		is_write_off_waiver: DF.Check
@@ -273,9 +277,6 @@ class LoanRepayment(AccountsController):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
 				self.book_pending_principal()
-
-		if self.repayment_type == "Charges Waiver" and self.total_charges_paid > 0:
-			self.db_set("is_invoice_not_generated", 1)
 
 		self.update_paid_amounts()
 		self.handle_auto_demand_write_off()
@@ -3383,7 +3384,7 @@ def process_pending_credit_notes():
 		.where(
 			(LR.repayment_type == "Charges Waiver")
 			& (LR.docstatus == 1)
-			& (LR.is_invoice_not_generated == 1)
+			& (LR.is_invoice_generated == 0)
 		)
 		.orderby(LR.creation)
 		.limit(500)
@@ -3398,12 +3399,7 @@ def process_pending_credit_notes():
 			base_amount_map = repayment.make_credit_note_for_charge_waivers()
 			repayment.post_suspense_entries(base_amount_map=base_amount_map)
 
-			frappe.db.set_value(
-				"Loan Repayment",
-				name,
-				"is_invoice_not_generated",
-				0
-			)
+			frappe.db.set_value("Loan Repayment", name, "is_invoice_generated", 1, update_modified=False)
 
 		except Exception:
 			frappe.log_error(
