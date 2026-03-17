@@ -194,7 +194,7 @@ scheduler_events = {
 	],
 	"hourly": [
 		"lending.loan_management.doctype.loan_repayment.loan_repayment.process_pending_credit_notes",
-	]
+	],
 }
 
 bank_reconciliation_doctypes = [
