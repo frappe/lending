@@ -135,6 +135,19 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
+<<<<<<< HEAD
+=======
+		if frappe.flags.in_import:
+			self.is_imported = 1
+			self.check_import_total_amount()
+			return
+
+		self.posting_date = get_datetime()
+
+		if not self.value_date:
+			self.value_date = get_datetime()
+
+>>>>>>> a2a1af5a (fix: initialize value_date before calculate_amounts call in loan repayment)
 		charges = None
 		if self.get("payable_charges"):
 			if self.repayment_type == "Charge Payment":
@@ -798,11 +811,6 @@ class LoanRepayment(AccountsController):
 
 	def set_missing_values(self, amounts):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-
-		self.posting_date = get_datetime()
-
-		if not self.value_date:
-			self.value_date = get_datetime()
 
 		if not self.cost_center:
 			self.cost_center = erpnext.get_default_cost_center(self.company)
