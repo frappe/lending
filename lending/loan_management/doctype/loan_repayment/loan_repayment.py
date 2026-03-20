@@ -135,19 +135,11 @@ class LoanRepayment(AccountsController):
 		self.set_repayment_account()
 
 	def validate(self):
-<<<<<<< HEAD
-=======
-		if frappe.flags.in_import:
-			self.is_imported = 1
-			self.check_import_total_amount()
-			return
-
 		self.posting_date = get_datetime()
 
 		if not self.value_date:
 			self.value_date = get_datetime()
 
->>>>>>> a2a1af5a (fix: initialize value_date before calculate_amounts call in loan repayment)
 		charges = None
 		if self.get("payable_charges"):
 			if self.repayment_type == "Charge Payment":
