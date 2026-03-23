@@ -566,7 +566,7 @@ def reverse_demands(
 		filters["loan_disbursement"] = loan_disbursement
 
 	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
-		doc = frappe.get_doc("Loan Demand", demand.name)
+		doc = frappe.get_doc("Loan Demand", demand.name, for_update=True)
 		doc.flags.ignore_links = True
 		doc.cancel()
 
