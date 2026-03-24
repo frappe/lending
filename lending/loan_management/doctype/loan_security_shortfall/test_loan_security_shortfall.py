@@ -44,10 +44,6 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_shortfall(self):
-		frappe.db.sql(
-			"""UPDATE `tabLoan Security Price` SET loan_security_price = 250
-			where loan_security='Test Security 2'"""
-		)
 		pledges = [
 			{
 				"loan_security": "Test Security 2",
@@ -69,25 +65,19 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount)
 
-		frappe.db.sql(
-			"""UPDATE `tabLoan Security Price` SET loan_security_price = 100
-			where loan_security='Test Security 2'"""
-		)
-
+		create_loan_security_price("Test Security 2", 100, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_process_loan_security_shortfall()
-		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
-		self.assertTrue(loan_security_shortfall)
 
+		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+
+		self.assertTrue(loan_security_shortfall)
 		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1000000.00)
 		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 800000.00)
 		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 600000.00)
 
-		frappe.db.sql(
-			""" UPDATE `tabLoan Security Price` SET loan_security_price = 250
-			where loan_security='Test Security 2'"""
-		)
-
+		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_process_loan_security_shortfall()
+
 		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
