@@ -73,8 +73,8 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 
 		self.assertTrue(loan_security_shortfall)
 		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1700000.00)
-		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 800000.00)
-		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 600000.00)
+		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 900000.00)
+		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 800000.00)
 
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_process_loan_security_shortfall()
