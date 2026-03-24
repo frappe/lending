@@ -545,12 +545,19 @@ def make_loan_disbursement_entry(
 
 
 def create_loan_security_price(loan_security, loan_security_price, uom, from_date, to_date, update_if_existing=False):
-	if not frappe.db.get_value(
-		"Loan Security Price",
-		{"loan_security": loan_security, "valid_from": ("<=", from_date), "valid_upto": (">=", to_date)},
-		"name",
-	) or update_if_existing:
+	existing_price = frappe.db.sql(
+		""" SELECT name from `tabLoan Security Price`
+		WHERE loan_security = %s AND (valid_from BETWEEN %s and %s OR valid_upto BETWEEN %s and %s) """,
+		(
+			loan_security,
+			from_date,
+			to_date,
+			from_date,
+			to_date,
+		),
+	)
 
+	if not existing_price:
 		frappe.get_doc(
 			{
 				"doctype": "Loan Security Price",
@@ -562,6 +569,13 @@ def create_loan_security_price(loan_security, loan_security_price, uom, from_dat
 				"update_if_existing": update_if_existing,
 			}
 		).insert(ignore_permissions=True)
+	elif update_if_existing:
+		price_doc = frappe.get_doc("Loan Security Price", existing_price[0][0])
+		price_doc.loan_security_price = loan_security_price
+		price_doc.uom = uom
+		price_doc.valid_from = from_date
+		price_doc.valid_upto = to_date
+		price_doc.save()
 
 
 def create_repayment_entry(

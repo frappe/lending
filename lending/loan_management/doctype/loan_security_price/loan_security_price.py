@@ -21,7 +21,6 @@ class LoanSecurityPrice(Document):
 		loan_security_name: DF.Data | None
 		loan_security_price: DF.Currency
 		loan_security_type: DF.Link | None
-		update_if_existing: DF.Check
 		valid_from: DF.Datetime
 		valid_upto: DF.Datetime
 	# end: auto-generated types
@@ -35,26 +34,18 @@ class LoanSecurityPrice(Document):
 
 		existing_loan_security = frappe.db.sql(
 			""" SELECT name from `tabLoan Security Price`
-			WHERE loan_security = %s AND name != %s AND (valid_from <= %s and valid_upto >= %s) """,
+			WHERE loan_security = %s AND name != %s AND (valid_from BETWEEN %s and %s OR valid_upto BETWEEN %s and %s) """,
 			(
 				self.loan_security,
 				self.name,
 				self.valid_from,
 				self.valid_upto,
+				self.valid_from,
+				self.valid_upto,
 			),
 		)
 
-		if self.update_if_existing and existing_loan_security:
-			frappe.db.set_value(
-				"Loan Security Price",
-				existing_loan_security[0][0],
-				{
-					"loan_security_price": self.loan_security_price,
-					"valid_from": self.valid_from,
-					"valid_upto": self.valid_upto,
-				},
-			)
-		elif existing_loan_security:
+		if existing_loan_security:
 			frappe.throw(_("Loan Security Price overlapping with {0}").format(existing_loan_security[0][0]))
 
 

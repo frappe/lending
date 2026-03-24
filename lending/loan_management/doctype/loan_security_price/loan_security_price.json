@@ -12,7 +12,6 @@
   "column_break_xegn",
   "loan_security_type",
   "loan_security_price",
-  "update_if_existing",
   "section_break_6",
   "valid_from",
   "column_break_8",
@@ -23,6 +22,7 @@
    "fieldname": "loan_security",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan Security",
    "options": "Loan Security",
    "reqd": 1
@@ -75,17 +75,11 @@
   {
    "fieldname": "column_break_xegn",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "update_if_existing",
-   "fieldtype": "Check",
-   "label": "Update if existing"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 12:06:33.580366",
+ "modified": "2026-03-24 15:31:37.000177",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Price",
