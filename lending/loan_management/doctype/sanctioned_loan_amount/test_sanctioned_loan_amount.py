@@ -13,6 +13,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_security,
 	create_loan_security_price,
+	create_loan_security_release,
 	create_loan_security_type,
 	init_customers,
 	init_loan_products,
@@ -132,24 +133,3 @@ class TestSanctionedLoanAmount(unittest.TestCase):
 
 		sanctioned_amount_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer, "applicant_type": "Customer"}, "sanctioned_amount_limit")
 		self.assertEqual(sanctioned_amount_limit, 1000000)
-
-
-def create_loan_security_release(applicant, applicant_type, securities, loan=None):
-	loan_security_release = frappe.new_doc("Loan Security Release")
-	loan_security_release.applicant = applicant
-	loan_security_release.applicant_type = applicant_type
-	loan_security_release.loan = loan
-
-	for security in securities:
-		loan_security_release.append("securities", {
-			"loan_security": security.get("loan_security"),
-			"qty": security.get("qty")
-		})
-
-	loan_security_release.insert()
-	loan_security_release.submit()
-
-	loan_security_release.status = "Approved"
-	loan_security_release.save()
-
-	return loan_security_release

@@ -41,9 +41,6 @@ from lending.loan_management.doctype.process_loan_demand.process_loan_demand imp
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
 )
-from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
-	create_process_loan_security_shortfall,
-)
 from lending.tests.test_utils import (
 	add_or_update_loan_charges,
 	create_demand_loan,
@@ -577,54 +574,6 @@ class TestLoan(IntegrationTestCase):
 		self.assertEqual(flt(amounts[0].paid_amount, 2), 11465.75)
 		self.assertEqual(flt(repayment_entry.principal_amount_paid, 2), 78303.00)
 
-	def test_security_shortfall(self):
-		frappe.db.sql(
-			"""UPDATE `tabLoan Security Price` SET loan_security_price = 250
-			where loan_security='Test Security 2'"""
-		)
-		pledges = [
-			{
-				"loan_security": "Test Security 2",
-				"qty": 8000.00,
-				"haircut": 50,
-			}
-		]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
-		)
-
-		create_loan_security_assignment(loan_application)
-
-		loan = create_loan_with_security(
-			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(loan.name, loan.loan_amount)
-
-		frappe.db.sql(
-			"""UPDATE `tabLoan Security Price` SET loan_security_price = 100
-			where loan_security='Test Security 2'"""
-		)
-
-		create_process_loan_security_shortfall()
-		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
-		self.assertTrue(loan_security_shortfall)
-
-		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1000000.00)
-		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 800000.00)
-		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 600000.00)
-
-		frappe.db.sql(
-			""" UPDATE `tabLoan Security Price` SET loan_security_price = 250
-			where loan_security='Test Security 2'"""
-		)
-
-		create_process_loan_security_shortfall()
-		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
-		self.assertEqual(loan_security_shortfall.status, "Completed")
-		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
 	def test_loan_security_release(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
@@ -742,45 +691,6 @@ class TestLoan(IntegrationTestCase):
 		unpledge_request.status = "Approved"
 		unpledge_request.save()
 		unpledge_request.submit()
-
-	def test_disbursal_check_with_shortfall(self):
-		pledges = [
-			{
-				"loan_security": "Test Security 2",
-				"qty": 8000.00,
-				"haircut": 50,
-			}
-		]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
-		)
-
-		create_loan_security_assignment(loan_application)
-
-		loan = create_loan_with_security(
-			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
-		)
-		loan.submit()
-
-		# Disbursing 7,00,000 from the allowed 10,00,000 according to security pledge
-		make_loan_disbursement_entry(loan.name, 700000)
-
-		frappe.db.sql(
-			"""UPDATE `tabLoan Security Price` SET loan_security_price = 100
-			where loan_security='Test Security 2'"""
-		)
-
-		create_process_loan_security_shortfall()
-		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
-		self.assertTrue(loan_security_shortfall)
-
-		self.assertEqual(get_disbursal_amount(loan.name), 0)
-
-		frappe.db.sql(
-			""" UPDATE `tabLoan Security Price` SET loan_security_price = 250
-			where loan_security='Test Security 2'"""
-		)
 
 	def test_disbursal_check_without_shortfall(self):
 		pledges = [

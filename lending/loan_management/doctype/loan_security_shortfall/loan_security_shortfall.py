@@ -4,6 +4,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime
 
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
@@ -82,7 +83,11 @@ def add_security(loan):
 	return loan_security_assignment.as_dict()
 
 
-def check_for_ltv_shortfall(process_loan_security_shortfall):
+def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applicant=None):
+	from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+		get_total_pledged_security_value,
+	)
+
 	update_time = get_datetime()
 
 	loan_security_price_map = frappe._dict(
@@ -93,6 +98,14 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 			as_list=1,
 		)
 	)
+
+	filters={"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1}
+
+	if loan:
+		filters["name"] = loan
+
+	if applicant:
+		filters["applicant"] = applicant
 
 	loans = frappe.get_all(
 		"Loan",
@@ -105,8 +118,14 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 			"disbursed_amount",
 			"status",
 		],
-		filters={"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1},
+		filters=filters,
 	)
+
+	applicant_filters = {}
+	if applicant:
+		applicant_filters["name"] = applicant
+
+	applicants= frappe.db.get_all("Customer", filters=applicant_filters, pluck="name")
 
 	loan_shortfall_map = frappe._dict(
 		frappe.get_all(
@@ -114,6 +133,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 		)
 	)
 
+	# Loan-wise shortfall processing
 	for loan in loans:
 		if loan.status == "Disbursed":
 			outstanding_amount = (
@@ -134,16 +154,15 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 			security_value += flt(loan_security_price_map.get(security)) * flt(qty)
 
 		current_ratio = (outstanding_amount / security_value) * 100 if security_value else 0
-
 		if flt(current_ratio, 6) > flt(ltv_ratio, 6):
 			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
 			create_loan_security_shortfall(
-				loan.name,
 				outstanding_amount,
 				security_value,
 				shortfall_amount,
 				current_ratio,
 				process_loan_security_shortfall,
+				loan=loan.name,
 			)
 		elif loan_shortfall_map.get(loan.name):
 			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
@@ -151,17 +170,41 @@ def check_for_ltv_shortfall(process_loan_security_shortfall):
 				shortfall = loan_shortfall_map.get(loan.name)
 				update_pending_shortfall(shortfall)
 
+	# Applicant-wise shortfall processing
+	for applicant in applicants:
+		security_value = get_total_pledged_security_value(applicant=applicant, on_shortfall_check=True)
+		pending_principal_amount = get_pending_principal_amount_for_applicant(applicant)
+
+		shortfall_amount = security_value - pending_principal_amount
+		if flt(shortfall_amount) < 0:
+			current_ratio = (abs(shortfall_amount)/pending_principal_amount) * 100
+			create_loan_security_shortfall(
+				pending_principal_amount,
+				security_value,
+				abs(shortfall_amount),
+				current_ratio,
+				process_loan_security_shortfall,
+				applicant=applicant,
+			)
+
 
 def create_loan_security_shortfall(
-	loan,
 	loan_amount,
 	security_value,
 	shortfall_amount,
 	shortfall_ratio,
 	process_loan_security_shortfall,
+	loan=None,
+	applicant=None,
 ):
+
+	if loan:
+		filters = {"loan": loan, "status": "Pending"}
+	elif applicant:
+		filters = {"applicant": applicant, "status": "Pending"}
+
 	existing_shortfall = frappe.db.get_value(
-		"Loan Security Shortfall", {"loan": loan, "status": "Pending"}, "name"
+		"Loan Security Shortfall", filters=filters, fieldname="name"
 	)
 
 	if existing_shortfall:
@@ -170,6 +213,8 @@ def create_loan_security_shortfall(
 		ltv_shortfall = frappe.new_doc("Loan Security Shortfall")
 		ltv_shortfall.loan = loan
 
+	ltv_shortfall.applicant_type = "Customer"
+	ltv_shortfall.applicant = applicant
 	ltv_shortfall.shortfall_time = get_datetime()
 	ltv_shortfall.loan_amount = loan_amount
 	ltv_shortfall.security_value = security_value
@@ -192,3 +237,13 @@ def update_pending_shortfall(shortfall):
 		shortfall,
 		{"status": "Completed", "shortfall_amount": 0, "shortfall_percentage": 0},
 	)
+
+def get_pending_principal_amount_for_applicant(applicant):
+	loan = frappe.qb.DocType("Loan")
+	pending_principal_amount = frappe.qb.from_(loan).select(
+		fn.Sum(loan.total_payment) - fn.Sum(loan.total_interest_payable) - fn.Sum(loan.total_principal_paid)
+	).where(
+		(loan.applicant == applicant) & (loan.status.isin(["Disbursed", "Partially Disbursed"]))
+	).run()
+
+	return flt(pending_principal_amount[0][0])

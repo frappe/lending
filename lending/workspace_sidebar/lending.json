@@ -296,6 +296,17 @@
    "type": "Link"
   },
   {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Sanctioned Loan Amount",
+   "link_to": "Sanctioned Loan Amount",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
    "child": 0,
    "collapsible": 1,
    "icon": "notepad-text",
@@ -384,7 +395,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-02 17:55:26.370262",
+ "modified": "2026-03-23 17:55:26.370262",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending",

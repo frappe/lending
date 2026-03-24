@@ -822,7 +822,7 @@ def make_sales_invoice_for_charge(
 	return si
 
 
-def get_total_pledged_security_value(loan):
+def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_check=False):
 	update_time = get_datetime()
 
 	loan_security_price_map = frappe._dict(
@@ -834,18 +834,28 @@ def get_total_pledged_security_value(loan):
 		)
 	)
 
-	hair_cut_map = frappe._dict(
-		frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)
-	)
+	if on_shortfall_check:
+		detail_map = frappe._dict(
+			frappe.get_all("Loan Security", fields=["name", "loan_to_value_ratio"], as_list=1)
+		)
+	else:
+		detail_map = frappe._dict(
+			frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)
+		)
 
 	security_value = 0.0
-	pledged_securities = get_pledged_security_qty(loan=loan)
+	pledged_securities = get_pledged_security_qty(loan=loan, applicant=applicant)
 
 	for security, qty in pledged_securities.items():
-		after_haircut_percentage = 100 - hair_cut_map.get(security)
-		security_value += (
-			loan_security_price_map.get(security, 0) * qty * after_haircut_percentage
-		) / 100
+		if on_shortfall_check:
+			loan_to_value_ratio = detail_map.get(security, 0)
+			security_value += (loan_security_price_map.get(security, 0) * qty * loan_to_value_ratio) / 100
+		else:
+			hair_cut = detail_map.get(security, 0)
+			after_haircut_percentage = 100 - hair_cut
+			security_value += (
+				loan_security_price_map.get(security, 0) * qty * after_haircut_percentage
+			) / 100
 
 	return security_value
 
