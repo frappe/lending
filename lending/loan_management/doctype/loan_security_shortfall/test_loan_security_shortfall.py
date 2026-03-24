@@ -44,6 +44,7 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_shortfall(self):
+		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		pledges = [
 			{
 				"loan_security": "Test Security 2",
