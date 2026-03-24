@@ -4,7 +4,7 @@
 import unittest
 
 import frappe
-from frappe.utils import add_to_date, get_datetime, nowdate
+from frappe.utils import add_days, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
@@ -30,12 +30,9 @@ class TestLoanSecurityAssignment(unittest.TestCase):
 		create_loan_security_type()
 		create_loan_security()
 
-		create_loan_security_price(
-			"Test Security 1", 500, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
-		create_loan_security_price(
-			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
+		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+
 
 	def test_loan_security_validations(self):
 		pledge = [

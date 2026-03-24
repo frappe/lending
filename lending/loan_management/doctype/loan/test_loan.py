@@ -8,7 +8,6 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import (
 	add_days,
 	add_months,
-	add_to_date,
 	date_diff,
 	flt,
 	get_datetime,
@@ -151,12 +150,8 @@ class TestLoan(IntegrationTestCase):
 		create_loan_security_type()
 		create_loan_security()
 
-		create_loan_security_price(
-			"Test Security 1", 500, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
-		create_loan_security_price(
-			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
+		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 
 		if not frappe.db.exists("Customer", "_Test Loan Customer"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
