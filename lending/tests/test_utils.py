@@ -1038,8 +1038,6 @@ def create_loan_refund(
 	doc.submit()
 
 	return doc
-<<<<<<< HEAD
-=======
 
 
 def loan_classification_ranges():
@@ -1114,4 +1112,3 @@ def update_loan_security_price(loan_security, loan_security_price, uom, from_dat
 		doc.save()
 	else:
 		create_loan_security_price(loan_security, loan_security_price, uom, from_date, to_date)
->>>>>>> f8b97a96 (feat: Shortfall tracking at the customer level)
