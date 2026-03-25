@@ -21,6 +21,8 @@ class ProcessLoanSecurityShortfall(Document):
 		from frappe.types import DF
 
 		amended_from: DF.Link | None
+		applicant_borrower: DF.Link | None
+		loan: DF.Link | None
 		update_time: DF.Datetime
 	# end: auto-generated types
 

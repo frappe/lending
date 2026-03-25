@@ -4,7 +4,7 @@
 import unittest
 
 import frappe
-from frappe.utils import add_to_date, get_datetime, nowdate
+from frappe.utils import add_days, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
@@ -13,6 +13,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_security,
 	create_loan_security_price,
+	create_loan_security_release,
 	create_loan_security_type,
 	init_customers,
 	init_loan_products,
@@ -30,12 +31,8 @@ class TestSanctionedLoanAmount(unittest.TestCase):
 		create_loan_security_type()
 		create_loan_security()
 
-		create_loan_security_price(
-			"Test Security 1", 500, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
-		create_loan_security_price(
-			"Test Security 2", 250, "Nos", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24))
-		)
+		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 
 	def test_sanctioned_loan_amount_limit_for_secured_loan(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -132,24 +129,3 @@ class TestSanctionedLoanAmount(unittest.TestCase):
 
 		sanctioned_amount_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer, "applicant_type": "Customer"}, "sanctioned_amount_limit")
 		self.assertEqual(sanctioned_amount_limit, 1000000)
-
-
-def create_loan_security_release(applicant, applicant_type, securities, loan=None):
-	loan_security_release = frappe.new_doc("Loan Security Release")
-	loan_security_release.applicant = applicant
-	loan_security_release.applicant_type = applicant_type
-	loan_security_release.loan = loan
-
-	for security in securities:
-		loan_security_release.append("securities", {
-			"loan_security": security.get("loan_security"),
-			"qty": security.get("qty")
-		})
-
-	loan_security_release.insert()
-	loan_security_release.submit()
-
-	loan_security_release.status = "Approved"
-	loan_security_release.save()
-
-	return loan_security_release

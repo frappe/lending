@@ -16,6 +16,7 @@
   "column_break_3",
   "loan_security_type",
   "available_security_value",
+  "loan_to_value_ratio",
   "disabled"
  ],
  "fields": [
@@ -78,11 +79,18 @@
    "fieldtype": "Currency",
    "label": "Original Security Value",
    "options": "Company:company:default_currency"
+  },
+  {
+   "fetch_from": "loan_security_type.loan_to_value_ratio",
+   "fetch_if_empty": 1,
+   "fieldname": "loan_to_value_ratio",
+   "fieldtype": "Percent",
+   "label": "Loan To Value Ratio"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-06 15:26:41.204299",
+ "modified": "2026-03-24 11:21:09.533212",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",

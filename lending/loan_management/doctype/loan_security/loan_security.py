@@ -26,6 +26,7 @@ class LoanSecurity(Document):
 		loan_security_code: DF.Data
 		loan_security_name: DF.Data
 		loan_security_type: DF.Link
+		loan_to_value_ratio: DF.Percent
 		original_security_value: DF.Currency
 		utilized_security_value: DF.Currency
 	# end: auto-generated types
