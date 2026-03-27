@@ -569,7 +569,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "total_charges_payable",
+   "depends_on": "eval: (doc.repayment_type == \"Charges Waiver\" || doc.repayment_type == \"Charges Capitalization\") && doc.loan_restructure",
    "fieldname": "charges",
    "fieldtype": "Data",
    "label": "Charges",
@@ -579,7 +579,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-25 15:45:20.994676",
+ "modified": "2026-03-27 10:23:03.742260",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",

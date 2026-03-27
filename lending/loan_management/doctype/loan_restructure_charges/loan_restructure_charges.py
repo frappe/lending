@@ -17,7 +17,6 @@ class LoanRestructureCharges(Document):
 		balance_charges: DF.Currency
 		charge: DF.Link | None
 		charges_overdue: DF.Currency
-		loan_demand: DF.Link | None
 		other_charges_waiver: DF.Currency
 		parent: DF.Data
 		parentfield: DF.Data

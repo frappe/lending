@@ -1691,40 +1691,6 @@ class LoanRepayment(AccountsController):
 	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		# # For Charges Waiver and Charges Capitalization, we need to allocate to specific charges
-		# if self.repayment_type in ["Charges Waiver", "Charges Capitalization"]:
-		# 	# Get only charges demands
-		# 	charges_demands = [d for d in amounts.get("unpaid_demands") if d.demand_type == "Charges"]
-
-		# 	# If specific charges are specified, filter them
-		# 	if hasattr(self, 'charges') and self.charges:
-		# 		specific_charges = self.charges if isinstance(self.charges, list) else [self.charges]
-		# 		charges_demands = [d for d in charges_demands if d.demand_subtype in specific_charges]
-
-		# 	# Allocate amount to these specific charges
-		# 	for demand in charges_demands:
-		# 		if amount_paid > 0:
-		# 			if amount_paid >= demand.outstanding_amount:
-		# 				paid_amount = demand.outstanding_amount
-		# 			else:
-		# 				paid_amount = amount_paid
-
-		# 			self.append(
-		# 				"repayment_details",
-		# 				{
-		# 					"loan_demand": demand.name,
-		# 					"paid_amount": paid_amount,
-		# 					"demand_type": "Charges",
-		# 					"demand_subtype": demand.demand_subtype,
-		# 					"sales_invoice": demand.sales_invoice,
-		# 				},
-		# 			)
-
-		# 			self.total_charges_paid += paid_amount
-		# 			amount_paid -= paid_amount
-
-		# 	return amount_paid
-
 		if loan_status == "Written Off":
 			allocation_order = self.get_allocation_order("Collection Offset Sequence for Written Off Asset")
 		elif self.repayment_type in (
