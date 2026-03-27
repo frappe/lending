@@ -14,14 +14,15 @@ class LoanRestructureCharges(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		balance_amount: DF.Currency
+		balance_charges: DF.Currency
 		charge: DF.Link | None
 		charges_overdue: DF.Currency
+		loan_demand: DF.Link | None
 		other_charges_waiver: DF.Currency
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		treatment_of_other_charges: DF.Literal[None]
+		treatment_of_other_charges: DF.Literal["Capitalize", "Carry Forward"]
 	# end: auto-generated types
 
 	pass

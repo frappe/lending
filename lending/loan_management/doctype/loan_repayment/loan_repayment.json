@@ -36,6 +36,7 @@
   "interest_payable",
   "payable_amount",
   "total_charges_payable",
+  "charges",
   "column_break_9",
   "shortfall_amount",
   "payable_principal_amount",
@@ -566,12 +567,19 @@
    "hidden": 1,
    "label": "Is Invoice generated",
    "read_only": 1
+  },
+  {
+   "depends_on": "total_charges_payable",
+   "fieldname": "charges",
+   "fieldtype": "Data",
+   "label": "Charges",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-17 11:01:14.744467",
+ "modified": "2026-03-25 15:45:20.994676",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
