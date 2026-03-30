@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import flt, get_datetime
+from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -178,3 +178,65 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		)
 
 		self.assertTrue(penal_interest, "Penal interest should exist after repost")
+
+	def test_gl_entries_after_loan_repayment_repost(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			2,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
+		repayment_entry.submit()
+
+		frappe.db.set_value(
+			"Loan Repayment", repayment_entry.name, "posting_date", "2024-04-05", update_modified=False
+		)
+
+		repayments_1 = frappe.db.get_all(
+			"GL Entry",
+			{"voucher_type": "Loan Repayment", "voucher_no": repayment_entry.name, "is_cancelled": 0},
+			["name"],
+		)
+
+		for repayment_1 in repayments_1:
+			frappe.db.set_value(
+				"GL Entry", repayment_1.name, "posting_date", "2024-04-05", update_modified=False
+			)
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"repost_date": "2024-04-04",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		repayment_entry.load_from_db()
+
+		repayments_2 = frappe.db.get_all(
+			"GL Entry",
+			{"voucher_type": "Loan Repayment", "voucher_no": repayment_entry.name, "is_cancelled": 0},
+			["posting_date"],
+		)
+
+		for repayment_2 in repayments_2:
+			self.assertEqual(
+				repayment_2.posting_date,
+				getdate(),
+				"Posting date of GL entries should be current date after the loan repayment repost",
+			)
