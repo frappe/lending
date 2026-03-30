@@ -57,7 +57,6 @@ class LoanRepayment(AccountsController):
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		bank_account: DF.Link | None
 		bulk_repayment_log: DF.Link | None
-		charges: DF.Data | None
 		clearance_date: DF.Date | None
 		company: DF.Link | None
 		cost_center: DF.Link | None
