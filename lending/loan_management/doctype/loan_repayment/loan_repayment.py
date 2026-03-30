@@ -143,10 +143,10 @@ class LoanRepayment(AccountsController):
 
 		charges = None
 		if self.get("payable_charges"):
-			if self.repayment_type == "Charge Payment":
+			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
 				charges = [d.get("charge_code") for d in self.get("payable_charges")]
 			else:
-				frappe.throw(_("Payable Charges can only be added if Charge Payment"))
+				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
 
 		amounts = calculate_amounts(
 			self.against_loan,
@@ -1482,7 +1482,7 @@ class LoanRepayment(AccountsController):
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
 
-		if self.repayment_type == "Charge Payment":
+		if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
@@ -1712,24 +1712,15 @@ class LoanRepayment(AccountsController):
 		else:
 			allocation_order = self.get_allocation_order("Collection Offset Sequence for Standard Asset")
 
-		if self.repayment_type in ["Charges Waiver", "Charges Capitalization"] and self.loan_restructure and self.charges:
-			charges_demands = [d for d in amounts.get("unpaid_demands") if d.demand_type == "Charges" and d.demand_subtype == self.charges]
-
-			# Apply allocation order only for these specific charges
-			amount_paid = self.apply_allocation_order(
-				allocation_order, amount_paid, charges_demands, status=loan_status
-			)
-		else:
-			# Normal allocation for all demands
-			amount_paid = self.apply_allocation_order(
-				allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
-			)
-
 		if self.shortfall_amount:
 			if self.amount_paid > self.shortfall_amount:
 				self.principal_amount_paid = self.shortfall_amount
 			else:
 				self.principal_amount_paid = self.amount_paid
+
+		amount_paid = self.apply_allocation_order(
+			allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
+		)
 
 		for payment in self.repayment_details:
 			if payment.demand_subtype == "Interest":

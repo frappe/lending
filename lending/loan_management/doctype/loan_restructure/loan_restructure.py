@@ -762,7 +762,7 @@ class LoanRestructure(AccountsController):
 					"Charges Waiver",
 					charge.other_charges_waiver,
 					restructure_name=self.name,
-					charges=charge.charge
+					charge_code=charge.charge
 				)
 
 			if charge.treatment_of_other_charges == "Capitalize" and flt(charge.balance_charges) > 0:
@@ -772,7 +772,7 @@ class LoanRestructure(AccountsController):
 					"Charges Capitalization",
 					charge.balance_charges,
 					restructure_name=self.name,
-					charges=charge.charge
+					charge_code=charge.charge
 				)
 
 	def set_principal_adjustment_on_restructure(self):
@@ -814,7 +814,7 @@ def create_loan_repayment(
 	is_write_off_waiver=0,
 	payment_account=None,
 	loan_disbursement=None,
-	charges=None,
+	charge_code=None,
 ):
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.offset_based_on_npa = 1
@@ -827,7 +827,13 @@ def create_loan_repayment(
 	repayment.is_write_off_waiver = is_write_off_waiver
 	repayment.payment_account = payment_account
 	repayment.loan_disbursement = loan_disbursement
-	repayment.charges = charges
+
+	if charge_code and waiver_amount > 0:
+		repayment.append("payable_charges", {
+			"charge_code": charge_code,
+			"amount": waiver_amount
+		})
+
 	repayment.save()
 	repayment.submit()
 	return repayment
