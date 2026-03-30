@@ -2248,7 +2248,7 @@ class LoanRepayment(AccountsController):
 					"cost_center": self.cost_center,
 					"party": payment_party if not is_waiver_entry else "",
 					"party_type": payment_party_type if not is_waiver_entry else "",
-					"posting_date": get_datetime() if self.flags.from_repost else getdate(self.posting_date),
+					"posting_date": getdate() if self.flags.from_repost else getdate(self.posting_date),
 				}
 			)
 		)
@@ -2265,7 +2265,7 @@ class LoanRepayment(AccountsController):
 					"against_voucher": against_voucher or self.against_loan,
 					"remarks": _(remarks),
 					"cost_center": self.cost_center,
-					"posting_date": get_datetime() if self.flags.from_repost else getdate(self.posting_date),
+					"posting_date": getdate() if self.flags.from_repost else getdate(self.posting_date),
 				}
 			)
 		)
