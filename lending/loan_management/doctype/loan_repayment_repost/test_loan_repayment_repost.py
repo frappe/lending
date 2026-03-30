@@ -178,8 +178,6 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		)
 
 		self.assertTrue(penal_interest, "Penal interest should exist after repost")
-<<<<<<< HEAD
-=======
 
 	def test_gl_entries_after_loan_repayment_repost(self):
 		loan = create_loan(
@@ -203,16 +201,20 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
 		repayment_entry.submit()
 
-		frappe.db.set_value("Loan Repayment", repayment_entry.name, "posting_date", "2024-04-05", update_modified=False)
+		frappe.db.set_value(
+			"Loan Repayment", repayment_entry.name, "posting_date", "2024-04-05", update_modified=False
+		)
 
 		repayments_1 = frappe.db.get_all(
 			"GL Entry",
 			{"voucher_type": "Loan Repayment", "voucher_no": repayment_entry.name, "is_cancelled": 0},
-			["name"]
+			["name"],
 		)
 
 		for repayment_1 in repayments_1:
-			frappe.db.set_value("GL Entry", repayment_1.name, "posting_date", "2024-04-05", update_modified=False)
+			frappe.db.set_value(
+				"GL Entry", repayment_1.name, "posting_date", "2024-04-05", update_modified=False
+			)
 
 		frappe.get_doc(
 			{
@@ -229,7 +231,7 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 		repayments_2 = frappe.db.get_all(
 			"GL Entry",
 			{"voucher_type": "Loan Repayment", "voucher_no": repayment_entry.name, "is_cancelled": 0},
-			["posting_date"]
+			["posting_date"],
 		)
 
 		for repayment_2 in repayments_2:
@@ -238,4 +240,3 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 				getdate(),
 				"Posting date of GL entries should be current date after the loan repayment repost",
 			)
->>>>>>> 87f3846e (fix: update GL Entry posting date during Loan Repayment Repost)
