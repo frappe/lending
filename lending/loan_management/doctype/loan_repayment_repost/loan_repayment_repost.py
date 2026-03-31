@@ -287,9 +287,6 @@ class LoanRepaymentRepost(Document):
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			repayment_doc.flags.from_repost = True
 
-			if repayment_doc.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
-				frappe.db.set_value("Loan", self.loan, "status", "Written Off")
-
 			if repayment_doc.repayment_type == "Security Deposit Adjustment":
 				is_security_deposit_adjustment = True
 			else:
