@@ -14,6 +14,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_loan_write_off,
 	create_repayment_entry,
 	init_customers,
 	init_loan_products,
@@ -240,3 +241,45 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 				getdate(),
 				"Posting date of GL entries should be current date after the loan repayment repost",
 			)
+
+	def test_loan_write_off_settlement_status_after_repost(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment_1 = create_repayment_entry(
+			loan.name, "2025-01-05", 750000, repayment_type="Write Off Recovery"
+		)
+		repayment_1.submit()
+
+		repayment_2 = create_repayment_entry(
+			loan.name, "2025-01-06", 750000, repayment_type="Write Off Recovery"
+		)
+		repayment_2.submit()
+
+		repayment_1.cancel()
+
+		repayment_3 = create_repayment_entry(
+			loan.name, "2025-01-05", 750000, repayment_type="Write Off Settlement"
+		)
+		repayment_3.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
