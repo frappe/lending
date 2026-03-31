@@ -235,8 +235,8 @@ class TestLoanRestructure(IntegrationTestCase):
 			restructure_date="2024-04-11",
 			interest_waiver_amount=500,
 			loan_restructure_charges=[
-				{"charge": "Processing Fee", "other_charges_waiver": 500, "treatment_of_other_charges": "Capitalize"},
-				{"charge": "Documentation Charge", "other_charges_waiver": 0, "treatment_of_other_charges": "Capitalize"},
+				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
+				{"charge": "Documentation Charge", "capitalize_amount": 2500, "treatment_of_other_charges": "Capitalize"},
 			],
 		)
 		loan_restructure.status = "Approved"
@@ -602,7 +602,7 @@ def create_loan_restructure(
 				"loan_restructure_charges",
 				{
 					"charge": charge.get("charge"),
-					"other_charges_waiver": charge.get("other_charges_waiver"),
+					"capitalize_amount": charge.get("capitalize_amount"),
 					"treatment_of_other_charges": charge.get("treatment_of_other_charges"),
 				},
 			)

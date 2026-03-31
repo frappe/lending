@@ -418,7 +418,7 @@ class LoanRestructure(AccountsController):
 			frappe.throw(_("Interest Waiver Amount cannot be greater than overdue interest"))
 
 		for charge in self.get("loan_restructure_charges"):
-			if flt(charge.other_charges_waiver) > flt(charge.charges_overdue):
+			if flt(charge.charges_waiver_amount) > flt(charge.charges_overdue):
 				frappe.throw(_("Waiver amount for charge {0} cannot exceed overdue amount {1}").format(
 					charge.charge, charge.charges_overdue
 				))
@@ -443,7 +443,8 @@ class LoanRestructure(AccountsController):
 				merged_charges[charge_type] = {
 					"charge": charge_type,
 					"charges_overdue": 0,
-					"other_charges_waiver": 0,
+					"capitalize_amount": 0,
+					"charges_waiver_amount": 0,
 					"balance_charges": 0,
 					"treatment_of_other_charges": "Capitalize" if self.restructure_type == "Normal Restructure" else "Carry Forward",
 				}
@@ -538,9 +539,16 @@ class LoanRestructure(AccountsController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		for charge in self.get("loan_restructure_charges"):
-			overdue = flt(charge.get("charges_overdue"))
-			waiver = flt(charge.get("other_charges_waiver"))
-			charge.balance_charges = flt(overdue - waiver, precision)
+			overdue = flt(charge.get("charges_overdue"), precision)
+			capitalize_amount = flt(charge.get("capitalize_amount"), precision)
+
+			if capitalize_amount > overdue:
+				frappe.throw(_("Capitalize amount for charge {0} cannot exceed overdue amount {1}").format(
+					charge.charge, overdue
+				))
+
+			charge.charges_waiver_amount = flt(overdue - capitalize_amount, precision)
+			charge.balance_charges = flt(overdue - capitalize_amount, precision)
 
 	def update_restructured_loan_details(self):
 		if not self.new_rate_of_interest:
@@ -755,22 +763,22 @@ class LoanRestructure(AccountsController):
 
 	def make_waiver_and_capitalization_for_charges(self):
 		for charge in self.get("loan_restructure_charges"):
-			if flt(charge.other_charges_waiver) > 0:
+			if flt(charge.charges_waiver_amount) > 0:
 				create_loan_repayment(
 					self.loan,
 					self.restructure_date,
 					"Charges Waiver",
-					charge.other_charges_waiver,
+					charge.charges_waiver_amount,
 					restructure_name=self.name,
 					charge_code=charge.charge
 				)
 
-			if charge.treatment_of_other_charges == "Capitalize" and flt(charge.balance_charges) > 0:
+			if flt(charge.capitalize_amount) > 0 and charge.treatment_of_other_charges == "Capitalize":
 				create_loan_repayment(
 					self.loan,
 					self.restructure_date,
 					"Charges Capitalization",
-					charge.balance_charges,
+					charge.capitalize_amount,
 					restructure_name=self.name,
 					charge_code=charge.charge
 				)
