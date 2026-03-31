@@ -241,8 +241,6 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 				getdate(),
 				"Posting date of GL entries should be current date after the loan repayment repost",
 			)
-<<<<<<< HEAD
-=======
 
 	def test_loan_write_off_settlement_status_after_repost(self):
 		loan = create_loan(
@@ -285,4 +283,3 @@ class TestLoanRepaymentRepost(IntegrationTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
->>>>>>> a0200c57 (fix: Remove forced loan status update for Write Off Recovery/Settlement in Loan Repayment Repost)
