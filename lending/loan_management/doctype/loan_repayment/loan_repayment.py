@@ -3377,5 +3377,9 @@ def process_pending_credit_notes():
 
 			frappe.db.set_value("Loan Repayment", name, "is_invoice_generated", 1, update_modified=False)
 
+			frappe.db.commit()  # nosemgrep
+
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), f"Credit Note Processing Failed for {name}")
+
+			frappe.db.rollback()
