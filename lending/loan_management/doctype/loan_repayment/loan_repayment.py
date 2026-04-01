@@ -3380,13 +3380,6 @@ def process_pending_credit_notes():
 			frappe.db.commit()  # nosemgrep
 
 		except Exception:
-<<<<<<< HEAD
 			frappe.log_error(frappe.get_traceback(), f"Credit Note Processing Failed for {name}")
-=======
-			frappe.log_error(
-				frappe.get_traceback(),
-				f"Credit Note Processing Failed for {name}"
-			)
 
 			frappe.db.rollback()
->>>>>>> 3bcbe67d (fix: add commit in background jobs of process_pending_credit_notes)
