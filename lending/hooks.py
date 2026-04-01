@@ -192,7 +192,7 @@ scheduler_events = {
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",
 	],
-	"hourly": [
+	"hourly_long": [
 		"lending.loan_management.doctype.loan_repayment.loan_repayment.process_pending_credit_notes",
 	],
 }
