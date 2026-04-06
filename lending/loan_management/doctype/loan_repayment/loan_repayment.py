@@ -918,6 +918,42 @@ class LoanRepayment(AccountsController):
 		]:
 			frappe.throw(_("Repayment cannot be made for closed loan"))
 
+		if self.repayment_type == "Full Settlement":
+			last_repayment = frappe.db.get_value(
+				"Loan Repayment",
+				{
+					"against_loan": self.against_loan,
+					"docstatus": 1,
+					"name": ("!=", self.name or ""),
+				},
+				["name", "value_date"],
+				as_dict=True,
+				order_by="value_date desc",
+			)
+			if last_repayment and get_datetime(self.value_date) < get_datetime(last_repayment.value_date):
+				frappe.throw(
+					_(
+						"Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
+					).format(get_datetime(self.value_date), get_datetime(last_repayment.value_date), last_repayment.name)
+				)
+
+		elif self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			existing_full_settlement = frappe.db.get_value(
+				"Loan Repayment",
+				{
+					"against_loan": self.against_loan,
+					"repayment_type": "Full Settlement",
+					"docstatus": 1,
+				},
+				"name",
+			)
+			if existing_full_settlement:
+				frappe.throw(
+					_(
+						"Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
+					).format(self.against_loan, self.repayment_type)
+				)
+
 		if loan_status == "Written Off":
 			if (
 				self.repayment_type not in ("Write Off Recovery", "Write Off Settlement")

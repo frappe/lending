@@ -1906,3 +1906,106 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
+<<<<<<< HEAD
+=======
+
+	def test_add_charges_api(self):
+		from lending.api import apply_charge
+
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			10000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=12,
+			penalty_charges_rate=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+
+		apply_charge(
+			loan=loan.name,
+			charge_type="Processing Fee",
+			based_on="On Outstanding Principal",
+			percentage=2,
+			charge_applicable_date=posting_date
+		)
+
+		payable_charge = calculate_amounts(against_loan=loan.name, posting_date=posting_date)["total_charges_payable"]
+		self.assertEqual(payable_charge, 200)
+
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
+	def test_full_settlement_cannot_be_backdated(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2025-08-05",
+			posting_date="2025-07-05",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-07-05", repayment_start_date="2025-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2025-09-05", loan=loan.name)
+
+		create_repayment_entry(
+			loan.name, "2025-09-10", 34314.00, repayment_type="Normal Repayment"
+		).submit()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(
+				loan.name, "2025-09-06", 100000, repayment_type="Full Settlement"
+			)
+
+	def test_no_repayment_after_full_settlement_except_waivers(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2025-08-05",
+			posting_date="2025-07-05",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-07-05", repayment_start_date="2025-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2025-09-05", loan=loan.name)
+
+		create_repayment_entry(
+			loan.name, "2025-09-05", 100000, repayment_type="Full Settlement"
+		).submit()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(
+				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
+			)
+>>>>>>> 42d84667 (fix: Add validations for Full Settlement backdating and post-settlement repayments)
