@@ -51,7 +51,6 @@
   "interest_overdue",
   "unaccrued_interest",
   "penalty_overdue",
-  "charges_overdue",
   "column_break_jvss",
   "adjusted_interest_amount",
   "adjusted_unaccrued_interest",
@@ -59,17 +58,16 @@
   "interest_waiver_amount",
   "unaccrued_interest_waiver",
   "penal_interest_waiver",
-  "other_charges_waiver",
   "column_break_ujcs",
   "balance_interest_amount",
   "balance_unaccrued_interest",
   "balance_penalty_amount",
-  "balance_charges",
   "column_break_x8or",
   "treatment_of_normal_interest",
   "unaccrued_interest_treatment",
   "treatment_of_penal_interest",
-  "treatment_of_other_charges",
+  "section_break_ulrx",
+  "loan_restructure_charges",
   "loan_restructure_details_section",
   "new_rate_of_interest",
   "repayment_start_date",
@@ -185,12 +183,6 @@
    "options": "Company:company:default_currency"
   },
   {
-   "fieldname": "other_charges_waiver",
-   "fieldtype": "Currency",
-   "label": "Other Charges Waiver",
-   "options": "Company:company:default_currency"
-  },
-  {
    "fieldname": "total_overdue_amount",
    "fieldtype": "Currency",
    "label": "Total Overdue Amount",
@@ -208,13 +200,6 @@
    "fieldname": "interest_overdue",
    "fieldtype": "Currency",
    "label": "Interest Overdue",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "charges_overdue",
-   "fieldtype": "Currency",
-   "label": "Charges Overdue",
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -335,13 +320,6 @@
    "options": "Capitalize\nCarry Forward"
   },
   {
-   "default": "Capitalize",
-   "fieldname": "treatment_of_other_charges",
-   "fieldtype": "Select",
-   "label": "Charges Treatment",
-   "options": "Capitalize\nCarry Forward"
-  },
-  {
    "default": "Add To First EMI",
    "fieldname": "treatment_of_normal_interest",
    "fieldtype": "Select",
@@ -389,13 +367,6 @@
   },
   {
    "fieldname": "balance_penalty_amount",
-   "fieldtype": "Currency",
-   "label": "Balance Amount",
-   "options": "Company:company:default_currency",
-   "read_only": 1
-  },
-  {
-   "fieldname": "balance_charges",
    "fieldtype": "Currency",
    "label": "Balance Amount",
    "options": "Company:company:default_currency",
@@ -538,12 +509,22 @@
    "hidden": 1,
    "label": "Is NPA",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_ulrx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "loan_restructure_charges",
+   "fieldtype": "Table",
+   "label": "Loan Restructure Charges",
+   "options": "Loan Restructure Charges"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-12 11:55:29.308410",
+ "modified": "2026-03-27 10:03:31.735055",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",
