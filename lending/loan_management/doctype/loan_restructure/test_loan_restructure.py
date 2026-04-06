@@ -1,6 +1,8 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from collections import Counter
+
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
@@ -105,7 +107,6 @@ class TestLoanRestructure(IntegrationTestCase):
 			restructure_date="2024-04-11",
 			interest_waiver_amount=500,
 			penal_waiver_amount=10,
-			other_charges_waiver=0,
 		)
 
 		loan_restructure.status = "Approved"
@@ -117,7 +118,7 @@ class TestLoanRestructure(IntegrationTestCase):
 			pluck="name",
 		)
 
-		self.assertEqual(len(repayments), 7)
+		self.assertEqual(len(repayments), 8)
 
 	def test_clears_principal_overdue_demands_on_normal_restructure(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
@@ -154,7 +155,6 @@ class TestLoanRestructure(IntegrationTestCase):
 			restructure_date="2024-04-11",
 			interest_waiver_amount=500,
 			penal_waiver_amount=10,
-			other_charges_waiver=0,
 		)
 
 		loan_restructure.status = "Approved"
@@ -172,6 +172,88 @@ class TestLoanRestructure(IntegrationTestCase):
 		).run()[0][0]
 
 		self.assertEqual(flt(total_outstanding), 0)
+
+	def test_loan_restructure_charges_waiver_and_capitalization(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-02-20",
+				"value_date": "2024-02-20",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"debit_to": "Processing Fee Receivable Account - _TC",
+				"items":
+				[
+					{"item_code": "Processing Fee", "qty": 1, "rate": 4000},
+					{"item_code": "Documentation Charge", "qty": 1, "rate": 3000},
+				],
+			}
+		)
+		sales_invoice.submit()
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-02-20",
+				"value_date": "2024-02-20",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 2000}],
+			}
+		)
+		sales_invoice.submit()
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2024-04-11",
+			interest_waiver_amount=500,
+			loan_restructure_charges=[
+				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
+				{"charge": "Documentation Charge", "capitalize_amount": 2500, "treatment_of_other_charges": "Capitalize"},
+			],
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		repayments = frappe.db.get_all(
+			"Loan Repayment",
+			filters={"loan_restructure": loan_restructure.name, "docstatus": 1},
+			pluck="repayment_type",
+		)
+
+		self.assertEqual(len(repayments), 7)
+
+		counts = Counter(repayments)
+
+		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
+		self.assertEqual(counts.get("Charges Waiver", 0), 1)
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
@@ -485,11 +567,10 @@ def create_loan_restructure(
 	interest_waiver_amount=None,
 	unaccrued_interest_waiver=None,
 	penal_waiver_amount=None,
-	other_charges_waiver=None,
 	treatment_of_normal_interest="Capitalize",
 	unaccrued_interest_treatment="Capitalize",
 	treatment_of_penal_interest="Capitalize",
-	treatment_of_other_charges="Capitalize",
+	loan_restructure_charges=None,
 ):
 
 	doc = frappe.new_doc("Loan Restructure")
@@ -499,12 +580,22 @@ def create_loan_restructure(
 	doc.interest_waiver_amount = interest_waiver_amount
 	doc.unaccrued_interest_waiver = unaccrued_interest_waiver
 	doc.penal_interest_waiver = penal_waiver_amount
-	doc.other_charges_waiver = other_charges_waiver
 	doc.restructure_type = "Normal Restructure"
 	doc.treatment_of_normal_interest = treatment_of_normal_interest
 	doc.unaccrued_interest_treatment = unaccrued_interest_treatment
 	doc.treatment_of_penal_interest = treatment_of_penal_interest
-	doc.treatment_of_other_charges = treatment_of_other_charges
+
+	if loan_restructure_charges:
+		for charge in loan_restructure_charges:
+			doc.append(
+				"loan_restructure_charges",
+				{
+					"charge": charge.get("charge"),
+					"capitalize_amount": charge.get("capitalize_amount"),
+					"treatment_of_other_charges": charge.get("treatment_of_other_charges"),
+				},
+			)
+
 	doc.submit()
 
 	return doc

@@ -608,6 +608,7 @@ def make_credit_note(
 	si.set_posting_time = 1
 	si.posting_date = posting_date
 	si.value_date = value_date
+	si.debit_to = frappe.db.get_value("Sales Invoice", sales_invoice, "debit_to")
 
 	rate = 0
 	income_account = ""

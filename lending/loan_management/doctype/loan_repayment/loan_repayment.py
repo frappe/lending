@@ -124,10 +124,10 @@ class LoanRepayment(LoanController):
 
 		charges = None
 		if self.get("payable_charges"):
-			if self.repayment_type == "Charge Payment":
+			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
 				charges = [d.get("charge_code") for d in self.get("payable_charges")]
 			else:
-				frappe.throw(_("Payable Charges can only be added if Charge Payment"))
+				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
 
 		amounts = calculate_amounts(
 			self.against_loan,
@@ -1494,7 +1494,7 @@ class LoanRepayment(LoanController):
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
 
-		if self.repayment_type == "Charge Payment":
+		if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)

@@ -28,18 +28,20 @@ class LoanRestructure(AccountsController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from lending.loan_management.doctype.loan_restructure_charges.loan_restructure_charges import (
+			LoanRestructureCharges,
+		)
+
 		adjusted_interest_amount: DF.Currency
 		adjusted_unaccrued_interest: DF.Currency
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		available_security_deposit: DF.Currency
-		balance_charges: DF.Currency
 		balance_interest_amount: DF.Currency
 		balance_penalty_amount: DF.Currency
 		balance_principal: DF.Currency
 		balance_unaccrued_interest: DF.Currency
-		charges_overdue: DF.Currency
 		company: DF.Link | None
 		completed_tenure: DF.Int
 		current_restructure_count: DF.Int
@@ -51,6 +53,7 @@ class LoanRestructure(AccountsController):
 		loan_disbursement: DF.Link | None
 		loan_product: DF.Link | None
 		loan_repayment: DF.Link | None
+		loan_restructure_charges: DF.Table[LoanRestructureCharges]
 		moratorium_end_date: DF.Date | None
 		new_loan_amount: DF.Currency
 		new_monthly_repayment_amount: DF.Currency
@@ -62,7 +65,6 @@ class LoanRestructure(AccountsController):
 		old_rate_of_interest: DF.Percent
 		old_repayment_frequency: DF.Data | None
 		old_tenure: DF.Int
-		other_charges_waiver: DF.Currency
 		penal_interest_waiver: DF.Currency
 		penalty_overdue: DF.Currency
 		pending_principal_amount: DF.Currency
@@ -80,7 +82,6 @@ class LoanRestructure(AccountsController):
 		total_overdue_amount: DF.Currency
 		total_principal_paid: DF.Currency
 		treatment_of_normal_interest: DF.Literal["Capitalize", "Add To First EMI"]
-		treatment_of_other_charges: DF.Literal["Capitalize", "Carry Forward"]
 		treatment_of_penal_interest: DF.Literal["Capitalize", "Carry Forward"]
 		unaccrued_interest: DF.Currency
 		unaccrued_interest_treatment: DF.Literal["Capitalize", "Add To First EMI"]
@@ -95,6 +96,7 @@ class LoanRestructure(AccountsController):
 		self.update_overdue_amounts()
 		self.allocate_security_deposit()
 		self.validate_waiver_amount()
+		self.fetch_charges_details()
 		self.calculate_balance_amounts()
 		self.set_missing_values()
 		self.validate_repayment_start_date()
@@ -185,7 +187,6 @@ class LoanRestructure(AccountsController):
 		self.balance_penalty_amount = flt(
 			flt(self.penalty_overdue) - flt(self.penal_interest_waiver), precision
 		)
-		self.balance_charges = flt(flt(self.charges_overdue) - flt(self.other_charges_waiver), precision)
 
 	def validate_repayment_start_date(self):
 		if getdate(self.repayment_start_date) < getdate(self.restructure_date):
@@ -239,8 +240,9 @@ class LoanRestructure(AccountsController):
 			):
 				self.new_loan_amount += flt(self.balance_penalty_amount)
 
-			if self.treatment_of_other_charges == "Capitalize":
-				self.new_loan_amount += flt(self.balance_charges)
+			for charge in self.get("loan_restructure_charges"):
+				if charge.treatment_of_other_charges == "Capitalize" and charge.balance_charges > 0:
+					self.new_loan_amount += flt(charge.balance_charges)
 
 		self.new_loan_amount = flt(self.new_loan_amount, 2)
 
@@ -365,7 +367,6 @@ class LoanRestructure(AccountsController):
 		self.principal_overdue = flt(amounts.get("payable_principal_amount"), precision)
 		self.interest_overdue = flt(amounts.get("interest_amount"), precision)
 		self.penalty_overdue = flt(amounts.get("penalty_amount"), precision)
-		self.charges_overdue = flt(amounts.get("total_charges_payable"), precision)
 		self.unaccrued_interest = flt(
 			flt(amounts.get("unaccrued_interest"), precision)
 			+ flt(amounts.get("unbooked_interest"), precision),
@@ -376,6 +377,8 @@ class LoanRestructure(AccountsController):
 			self.unaccrued_interest = 0
 
 		self.available_security_deposit = flt(amounts.get("available_security_deposit"), precision)
+
+		self.fetch_charges_details(amounts.get("unpaid_demands", []))
 
 	def cancel_repayment_schedule(self):
 
@@ -412,8 +415,11 @@ class LoanRestructure(AccountsController):
 		):
 			frappe.throw(_("Interest Waiver Amount cannot be greater than overdue interest"))
 
-		if flt(self.other_charges_waiver) > flt(self.charges_overdue):
-			frappe.throw(_("Other Charges Waiver cannot be greater than overdue charges"))
+		for charge in self.get("loan_restructure_charges"):
+			if flt(charge.charges_waiver_amount) > flt(charge.charges_overdue):
+				frappe.throw(_("Waiver amount for charge {0} cannot exceed overdue amount {1}").format(
+					charge.charge, charge.charges_overdue
+				))
 
 		if flt(self.penal_interest_waiver) > flt(self.penalty_overdue):
 			frappe.throw(_("Penalty Waiver cannot be greater than overdue penalty interest"))
@@ -422,6 +428,128 @@ class LoanRestructure(AccountsController):
 			self.unaccrued_interest
 		) - flt(self.adjusted_unaccrued_interest):
 			frappe.throw(_("Unaccrued Interest Waiver cannot be greater than overdue amount"))
+
+	def get_charges_details(self, unpaid_demands):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		charges_demands = [d for d in unpaid_demands if d.get("demand_type") == "Charges"]
+
+		merged_charges = {}
+		for demand in charges_demands:
+			charge_type = demand.get("demand_subtype")
+			if charge_type not in merged_charges:
+				merged_charges[charge_type] = {
+					"charge": charge_type,
+					"charges_overdue": 0,
+					"capitalize_amount": 0,
+					"charges_waiver_amount": 0,
+					"balance_charges": 0,
+					"treatment_of_other_charges": "Capitalize" if self.restructure_type == "Normal Restructure" else "Carry Forward",
+				}
+			merged_charges[charge_type]["charges_overdue"] += flt(demand.get("outstanding_amount"), precision)
+			merged_charges[charge_type]["balance_charges"] += flt(demand.get("outstanding_amount"), precision)
+
+		charges_details = []
+		for charge_data in merged_charges.values():
+			charges_details.append(charge_data)
+
+		return charges_details
+
+	def fetch_charges_details(self, unpaid_demands=None):
+		if self.restructure_type != "Normal Restructure":
+			return
+
+		if unpaid_demands is None:
+			return
+
+		current_charges = self.get_charges_details(unpaid_demands)
+
+		existing_charges_map = {}
+		for charge_row in self.get("loan_restructure_charges"):
+			existing_charges_map[charge_row.charge] = charge_row
+
+		processed_charges = set()
+
+		for charge_detail in current_charges:
+			charge_type = charge_detail.get("charge")
+			processed_charges.add(charge_type)
+
+			if charge_type in existing_charges_map:
+				existing_row = existing_charges_map[charge_type]
+
+				if existing_row.get("charges_overdue") != charge_detail.get("charges_overdue"):
+					existing_row.charges_overdue = charge_detail.get("charges_overdue")
+			else:
+				self.append("loan_restructure_charges", charge_detail)
+
+		charges_to_remove = []
+		for charge_row in self.get("loan_restructure_charges"):
+			if charge_row.get("charge") not in processed_charges:
+				charges_to_remove.append(charge_row)
+
+		for charge_row in charges_to_remove:
+			self.remove(charge_row)
+
+		self.validate_charges_total(unpaid_demands)
+		self.calculate_balance_charges()
+
+	def validate_charges_total(self, unpaid_demands):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		charges_demands = [d for d in unpaid_demands if d.get("demand_type") == "Charges"]
+
+		actual_map = {}
+		for demand in charges_demands:
+			charge_type = demand.get("demand_subtype")
+			if charge_type not in actual_map:
+				actual_map[charge_type] = 0
+			actual_map[charge_type] += flt(demand.get("outstanding_amount"), precision)
+
+		table_map = {}
+		for charge_row in self.get("loan_restructure_charges"):
+			charge_type = charge_row.get("charge")
+			if not charge_type:
+				continue
+
+			charges_overdue = flt(charge_row.get("charges_overdue"), precision)
+			table_map[charge_type] = table_map.get(charge_type, 0) + charges_overdue
+
+		for charge_type, table_total in table_map.items():
+			if charge_type not in actual_map:
+				frappe.throw(_("Charge {0} does not exist in unpaid demands").format(charge_type))
+
+			actual_total = actual_map.get(charge_type)
+
+			if flt(table_total, precision) != flt(actual_total, precision):
+				frappe.throw(_(
+					"Total overdue amount for charge {0} is {1}, but table shows {2}. "
+					"Please remove the duplicate charges and refresh the page."
+				).format(charge_type, actual_total, table_total))
+
+		for charge_type, actual_total in actual_map.items():
+			if charge_type not in table_map:
+				frappe.throw(_(
+					"Charge {0} with overdue amount {1} is missing from the charges table. "
+					"Please refresh the page to get latest charges."
+				).format(charge_type, actual_total))
+
+	def calculate_balance_charges(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		for charge in self.get("loan_restructure_charges"):
+			overdue = flt(charge.get("charges_overdue"), precision)
+			capitalize_amount = flt(charge.get("capitalize_amount"), precision)
+
+			if capitalize_amount < 0:
+				frappe.throw(_("Capitalize amount for charge {0} cannot be negative").format(charge.charge))
+
+			if capitalize_amount > overdue:
+				frappe.throw(_("Capitalize amount for charge {0} cannot exceed overdue amount {1}").format(
+					charge.charge, overdue
+				))
+
+			charge.charges_waiver_amount = flt(overdue - capitalize_amount, precision)
+			charge.balance_charges = flt(capitalize_amount, precision)
 
 	def update_restructured_loan_details(self):
 		if not self.new_rate_of_interest:
@@ -635,23 +763,26 @@ class LoanRestructure(AccountsController):
 			)
 
 	def make_waiver_and_capitalization_for_charges(self):
-		if self.balance_charges and self.treatment_of_other_charges == "Capitalize":
-			create_loan_repayment(
-				self.loan,
-				self.restructure_date,
-				"Charges Capitalization",
-				self.balance_charges,
-				restructure_name=self.name,
-			)
+		for charge in self.get("loan_restructure_charges"):
+			if flt(charge.charges_waiver_amount) > 0:
+				create_loan_repayment(
+					self.loan,
+					self.restructure_date,
+					"Charges Waiver",
+					charge.charges_waiver_amount,
+					restructure_name=self.name,
+					charge_code=charge.charge
+				)
 
-		if self.other_charges_waiver:
-			create_loan_repayment(
-				self.loan,
-				self.restructure_date,
-				"Charges Waiver",
-				self.other_charges_waiver,
-				restructure_name=self.name,
-			)
+			if flt(charge.capitalize_amount) > 0 and charge.treatment_of_other_charges == "Capitalize":
+				create_loan_repayment(
+					self.loan,
+					self.restructure_date,
+					"Charges Capitalization",
+					charge.capitalize_amount,
+					restructure_name=self.name,
+					charge_code=charge.charge
+				)
 
 	def set_principal_adjustment_on_restructure(self):
 		if flt(self.principal_overdue) > 0 and flt(self.principal_adjusted) == 0:
@@ -692,6 +823,7 @@ def create_loan_repayment(
 	is_write_off_waiver=0,
 	payment_account=None,
 	loan_disbursement=None,
+	charge_code=None,
 ):
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.offset_based_on_npa = 1
@@ -704,6 +836,13 @@ def create_loan_repayment(
 	repayment.is_write_off_waiver = is_write_off_waiver
 	repayment.payment_account = payment_account
 	repayment.loan_disbursement = loan_disbursement
+
+	if charge_code and waiver_amount > 0:
+		repayment.append("payable_charges", {
+			"charge_code": charge_code,
+			"amount": waiver_amount
+		})
+
 	repayment.save()
 	repayment.submit()
 	return repayment
