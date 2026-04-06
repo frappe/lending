@@ -85,6 +85,36 @@
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "rta",
+   "fieldtype": "Data",
+   "label": "RTA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lien_ref_no",
+   "fieldtype": "Data",
+   "label": "Lien Ref No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lien_subref_no",
+   "fieldtype": "Data",
+   "label": "Lien Subref No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "folio_no",
+   "fieldtype": "Data",
+   "label": "Folio Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amc",
+   "fieldtype": "Data",
+   "label": "AMC Name",
+   "read_only": 1
   }
  ],
  "istable": 1,
