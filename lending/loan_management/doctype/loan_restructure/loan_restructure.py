@@ -419,9 +419,11 @@ class LoanRestructure(AccountsController):
 
 		for charge in self.get("loan_restructure_charges"):
 			if flt(charge.charges_waiver_amount) > flt(charge.charges_overdue):
-				frappe.throw(_("Waiver amount for charge {0} cannot exceed overdue amount {1}").format(
-					charge.charge, charge.charges_overdue
-				))
+				frappe.throw(
+					_("Waiver amount for charge {0} cannot exceed overdue amount {1}").format(
+						charge.charge, charge.charges_overdue
+					)
+				)
 
 		if flt(self.penal_interest_waiver) > flt(self.penalty_overdue):
 			frappe.throw(_("Penalty Waiver cannot be greater than overdue penalty interest"))
@@ -446,10 +448,16 @@ class LoanRestructure(AccountsController):
 					"capitalize_amount": 0,
 					"charges_waiver_amount": 0,
 					"balance_charges": 0,
-					"treatment_of_other_charges": "Capitalize" if self.restructure_type == "Normal Restructure" else "Carry Forward",
+					"treatment_of_other_charges": "Capitalize"
+					if self.restructure_type == "Normal Restructure"
+					else "Carry Forward",
 				}
-			merged_charges[charge_type]["charges_overdue"] += flt(demand.get("outstanding_amount"), precision)
-			merged_charges[charge_type]["balance_charges"] += flt(demand.get("outstanding_amount"), precision)
+			merged_charges[charge_type]["charges_overdue"] += flt(
+				demand.get("outstanding_amount"), precision
+			)
+			merged_charges[charge_type]["balance_charges"] += flt(
+				demand.get("outstanding_amount"), precision
+			)
 
 		charges_details = []
 		for charge_data in merged_charges.values():
@@ -523,17 +531,21 @@ class LoanRestructure(AccountsController):
 			actual_total = actual_map.get(charge_type)
 
 			if flt(table_total, precision) != flt(actual_total, precision):
-				frappe.throw(_(
-					"Total overdue amount for charge {0} is {1}, but table shows {2}. "
-					"Please remove the duplicate charges and refresh the page."
-				).format(charge_type, actual_total, table_total))
+				frappe.throw(
+					_(
+						"Total overdue amount for charge {0} is {1}, but table shows {2}. "
+						"Please remove the duplicate charges and refresh the page."
+					).format(charge_type, actual_total, table_total)
+				)
 
 		for charge_type, actual_total in actual_map.items():
 			if charge_type not in table_map:
-				frappe.throw(_(
-					"Charge {0} with overdue amount {1} is missing from the charges table. "
-					"Please refresh the page to get latest charges."
-				).format(charge_type, actual_total))
+				frappe.throw(
+					_(
+						"Charge {0} with overdue amount {1} is missing from the charges table. "
+						"Please refresh the page to get latest charges."
+					).format(charge_type, actual_total)
+				)
 
 	def calculate_balance_charges(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -546,9 +558,11 @@ class LoanRestructure(AccountsController):
 				frappe.throw(_("Capitalize amount for charge {0} cannot be negative").format(charge.charge))
 
 			if capitalize_amount > overdue:
-				frappe.throw(_("Capitalize amount for charge {0} cannot exceed overdue amount {1}").format(
-					charge.charge, overdue
-				))
+				frappe.throw(
+					_("Capitalize amount for charge {0} cannot exceed overdue amount {1}").format(
+						charge.charge, overdue
+					)
+				)
 
 			charge.charges_waiver_amount = flt(overdue - capitalize_amount, precision)
 			charge.balance_charges = flt(capitalize_amount, precision)
@@ -773,7 +787,7 @@ class LoanRestructure(AccountsController):
 					"Charges Waiver",
 					charge.charges_waiver_amount,
 					restructure_name=self.name,
-					charge_code=charge.charge
+					charge_code=charge.charge,
 				)
 
 			if flt(charge.capitalize_amount) > 0 and charge.treatment_of_other_charges == "Capitalize":
@@ -783,7 +797,7 @@ class LoanRestructure(AccountsController):
 					"Charges Capitalization",
 					charge.capitalize_amount,
 					restructure_name=self.name,
-					charge_code=charge.charge
+					charge_code=charge.charge,
 				)
 
 	def set_principal_adjustment_on_restructure(self):
@@ -840,10 +854,7 @@ def create_loan_repayment(
 	repayment.loan_disbursement = loan_disbursement
 
 	if charge_code and waiver_amount > 0:
-		repayment.append("payable_charges", {
-			"charge_code": charge_code,
-			"amount": waiver_amount
-		})
+		repayment.append("payable_charges", {"charge_code": charge_code, "amount": waiver_amount})
 
 	repayment.save()
 	repayment.submit()

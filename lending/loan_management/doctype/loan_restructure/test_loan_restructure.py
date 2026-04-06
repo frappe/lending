@@ -206,8 +206,7 @@ class TestLoanRestructure(IntegrationTestCase):
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"debit_to": "Processing Fee Receivable Account - _TC",
-				"items":
-				[
+				"items": [
 					{"item_code": "Processing Fee", "qty": 1, "rate": 4000},
 					{"item_code": "Documentation Charge", "qty": 1, "rate": 3000},
 				],
@@ -235,8 +234,16 @@ class TestLoanRestructure(IntegrationTestCase):
 			restructure_date="2024-04-11",
 			interest_waiver_amount=500,
 			loan_restructure_charges=[
-				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
-				{"charge": "Documentation Charge", "capitalize_amount": 2500, "treatment_of_other_charges": "Capitalize"},
+				{
+					"charge": "Processing Fee",
+					"capitalize_amount": 6000,
+					"treatment_of_other_charges": "Capitalize",
+				},
+				{
+					"charge": "Documentation Charge",
+					"capitalize_amount": 2500,
+					"treatment_of_other_charges": "Capitalize",
+				},
 			],
 		)
 		loan_restructure.status = "Approved"
