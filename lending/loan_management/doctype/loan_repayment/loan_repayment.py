@@ -919,17 +919,22 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Repayment cannot be made for closed loan"))
 
 		if self.repayment_type == "Full Settlement":
+			filters = {
+				"against_loan": self.against_loan,
+				"docstatus": 1,
+			}
+
+			if self.repayment_schedule_type == "Line of Credit" and self.loan_disbursement:
+				filters["loan_disbursement"] = self.loan_disbursement
+
 			last_repayment = frappe.db.get_value(
 				"Loan Repayment",
-				{
-					"against_loan": self.against_loan,
-					"docstatus": 1,
-					"name": ("!=", self.name or ""),
-				},
+				filters,
 				["name", "value_date"],
 				as_dict=True,
 				order_by="value_date desc",
 			)
+
 			if last_repayment and get_datetime(self.value_date) < get_datetime(last_repayment.value_date):
 				frappe.throw(
 					_(
@@ -938,15 +943,21 @@ class LoanRepayment(AccountsController):
 				)
 
 		elif self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
+			filters = {
+				"against_loan": self.against_loan,
+				"repayment_type": "Full Settlement",
+				"docstatus": 1,
+			}
+
+			if self.repayment_schedule_type == "Line of Credit" and self.loan_disbursement:
+				filters["loan_disbursement"] = self.loan_disbursement
+
 			existing_full_settlement = frappe.db.get_value(
 				"Loan Repayment",
-				{
-					"against_loan": self.against_loan,
-					"repayment_type": "Full Settlement",
-					"docstatus": 1,
-				},
+				filters,
 				"name",
 			)
+
 			if existing_full_settlement:
 				frappe.throw(
 					_(
