@@ -542,13 +542,16 @@ class LoanRestructure(AccountsController):
 			overdue = flt(charge.get("charges_overdue"), precision)
 			capitalize_amount = flt(charge.get("capitalize_amount"), precision)
 
+			if capitalize_amount < 0:
+				frappe.throw(_("Capitalize amount for charge {0} cannot be negative").format(charge.charge))
+
 			if capitalize_amount > overdue:
 				frappe.throw(_("Capitalize amount for charge {0} cannot exceed overdue amount {1}").format(
 					charge.charge, overdue
 				))
 
 			charge.charges_waiver_amount = flt(overdue - capitalize_amount, precision)
-			charge.balance_charges = flt(overdue - capitalize_amount, precision)
+			charge.balance_charges = flt(capitalize_amount, precision)
 
 	def update_restructured_loan_details(self):
 		if not self.new_rate_of_interest:
