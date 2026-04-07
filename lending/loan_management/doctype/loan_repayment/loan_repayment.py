@@ -947,6 +947,7 @@ class LoanRepayment(AccountsController):
 				"against_loan": self.against_loan,
 				"repayment_type": "Full Settlement",
 				"docstatus": 1,
+				"value_date": ("<=", get_datetime(self.value_date)),
 			}
 
 			if self.repayment_schedule_type == "Line of Credit" and self.loan_disbursement:
