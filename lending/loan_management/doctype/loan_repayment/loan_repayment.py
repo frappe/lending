@@ -939,7 +939,9 @@ class LoanRepayment(AccountsController):
 				frappe.throw(
 					_(
 						"Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
-					).format(get_datetime(self.value_date), get_datetime(last_repayment.value_date), last_repayment.name)
+					).format(
+						get_datetime(self.value_date), get_datetime(last_repayment.value_date), last_repayment.name
+					)
 				)
 
 		elif self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
