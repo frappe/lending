@@ -96,6 +96,7 @@ class LoanDisbursement(LoanController):
 		status: DF.Literal["", "Draft", "Submitted", "Cancelled", "Closed"]
 		tenure: DF.Int
 		total_emi_charges: DF.Currency
+		tranche_number: DF.Int
 		withhold_security_deposit: DF.Check
 	# end: auto-generated types
 
@@ -113,6 +114,7 @@ class LoanDisbursement(LoanController):
 
 		self.validate_repayment_start_date()
 		self.calculate_total_emi_charges()
+		self.assign_tranche_number()
 
 	def on_update(self):
 		if self.is_term_loan:
@@ -186,6 +188,7 @@ class LoanDisbursement(LoanController):
 				)
 
 			self.submit_repayment_schedule()
+			self.update_tranche_numbers_on_sequence_change(cancel=0)
 			self.update_current_repayment_schedule()
 			self.update_repayment_schedule_status()
 		self.set_status_and_amounts()
@@ -270,23 +273,36 @@ class LoanDisbursement(LoanController):
 			doc.submit()
 			doc.set_status(update=True)
 
-	def update_current_repayment_schedule(self, cancel=0):
-		# Update status of existing schedule on top up
-		if cancel:
-			status = "Active"
-			current_status = "Outdated"
-		else:
-			status = "Outdated"
-			current_status = "Active"
+	def update_current_repayment_schedule(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			return
 
-		if self.repayment_schedule_type != "Line of Credit":
-			existing_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule",
-				{"loan": self.against_loan, "docstatus": 1, "status": current_status},
-			)
+		filters = {
+			"against_loan": self.against_loan,
+			"docstatus": 1,
+			"repayment_schedule_type": ["!=", "Line of Credit"]
+		}
 
-			if existing_schedule:
-				frappe.db.set_value("Loan Repayment Schedule", existing_schedule, "status", status)
+		latest_disbursement = frappe.db.get_value(
+			"Loan Disbursement",
+			filters,
+			"name",
+			order_by="tranche_number desc"
+		)
+
+		if not latest_disbursement:
+			return
+
+		schedules = frappe.get_all(
+			"Loan Repayment Schedule",
+			filters={"loan": self.against_loan, "docstatus": 1},
+			fields=["name", "loan_disbursement"]
+		)
+
+		for schedule in schedules:
+			status = "Active" if schedule.loan_disbursement == latest_disbursement else "Outdated"
+			frappe.db.set_value("Loan Repayment Schedule", schedule.name, "status", status, update_modified=False)
+
 
 	def update_repayment_schedule_status(self, cancel=0):
 		if cancel:
@@ -311,6 +327,8 @@ class LoanDisbursement(LoanController):
 
 		if self.is_term_loan:
 			self.cancel_and_delete_repayment_schedule()
+			self.update_tranche_numbers_on_sequence_change(cancel=1)
+			self.update_current_repayment_schedule()
 
 		self.make_credit_note()
 		self.delete_security_deposit()
@@ -401,6 +419,59 @@ class LoanDisbursement(LoanController):
 				total_charges += charge.amount
 
 		self.total_emi_charges = total_charges
+
+	def assign_tranche_number(self):
+		if self.repayment_schedule_type == "Line of Credit":
+			return
+
+		LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
+
+		disbursements = (
+			frappe.qb.from_(LoanDisbursement)
+			.select(LoanDisbursement.name, LoanDisbursement.disbursement_date, LoanDisbursement.posting_date)
+			.where(
+				(LoanDisbursement.against_loan == self.against_loan)
+				& (LoanDisbursement.docstatus == 1)
+				& (LoanDisbursement.repayment_schedule_type != "Line of Credit")
+			)
+			.orderby(LoanDisbursement.disbursement_date, order=frappe.qb.asc)
+			.orderby(LoanDisbursement.posting_date, order=frappe.qb.asc)
+		).run(as_dict=True)
+
+		if self.tranche_number == 0:
+			tranche_number = 1
+			for idx, disbursement in enumerate(disbursements, start=1):
+				if disbursement.name == self.name:
+					tranche_number = idx
+					break
+
+			self.db_set("tranche_number", tranche_number)
+
+	def update_tranche_numbers_on_sequence_change(self, cancel=0):
+		if self.repayment_schedule_type == "Line of Credit":
+			return
+
+		if cancel:
+			self.db_set("tranche_number", 0)
+
+		LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
+
+		query = (
+			frappe.qb.from_(LoanDisbursement)
+			.select(LoanDisbursement.name)
+			.where(
+				(LoanDisbursement.against_loan == self.against_loan)
+				& (LoanDisbursement.docstatus == 1)
+				& (LoanDisbursement.repayment_schedule_type != "Line of Credit")
+			)
+			.orderby(LoanDisbursement.disbursement_date, order=frappe.qb.asc)
+			.orderby(LoanDisbursement.posting_date, order=frappe.qb.asc)
+		)
+
+		disbursements = query.run(as_dict=True)
+
+		for idx, disbursement in enumerate(disbursements, start=1):
+			frappe.db.set_value("Loan Disbursement", disbursement.name, "tranche_number", idx, update_modified=False)
 
 	def validate_disbursal_amount(self):
 		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
