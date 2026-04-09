@@ -103,6 +103,7 @@ class TestLoanDisbursement(IntegrationTestCase):
 			fields=["status", "loan_disbursement"],
 		)
 		status_map_before = {s.loan_disbursement: s.status for s in schedules_before}
+
 		self.assertEqual(status_map_before.get(disbursement_1.name), "Outdated")
 		self.assertEqual(status_map_before.get(disbursement_2.name), "Active")
 		self.assertEqual(status_map_before.get(disbursement_3.name), "Outdated")
@@ -113,10 +114,6 @@ class TestLoanDisbursement(IntegrationTestCase):
 		disbursement_2.load_from_db()
 		disbursement_3.load_from_db()
 
-		# print("Disbursement ID", disbursement_1.name ,"Disbursement 1 date:", disbursement_1.disbursement_date, "Tranche Number:", disbursement_1.tranche_number)
-		# print("Disbursement ID", disbursement_2.name ,"Disbursement 2 date:", disbursement_2.disbursement_date, "Tranche Number:", disbursement_2.tranche_number)
-		# print("Disbursement ID", disbursement_3.name ,"Disbursement 3 date:", disbursement_3.disbursement_date, "Tranche Number:", disbursement_3.tranche_number)
-
 		self.assertEqual(disbursement_1.tranche_number, 2)
 		self.assertEqual(disbursement_2.tranche_number, 0)
 		self.assertEqual(disbursement_3.tranche_number, 1)
@@ -126,8 +123,7 @@ class TestLoanDisbursement(IntegrationTestCase):
 			filters={"loan": loan.name, "docstatus": 1},
 			fields=["status", "loan_disbursement"],
 		)
-		# for s in schedules_after:
-		# 	print(f"Loan Disbursement: {s.loan_disbursement}, Status: {s.status}")
 		status_map_after = {s.loan_disbursement: s.status for s in schedules_after}
+
 		self.assertEqual(status_map_after.get(disbursement_1.name), "Active")
 		self.assertEqual(status_map_after.get(disbursement_3.name), "Outdated")
