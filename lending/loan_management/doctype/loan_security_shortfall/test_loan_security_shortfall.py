@@ -166,3 +166,7 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 
 		self.assertTrue(shortfall_details)
 		self.assertEqual(flt(shortfall_details.shortfall_amount), 100000)
+
+		# Test Customer Sanctioned Limit
+		sanctioned_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit")
+		self.assertEqual(flt(sanctioned_limit), 400000)
