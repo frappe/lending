@@ -29,7 +29,7 @@ class LoanSecurityRelease(Document):
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
-		loan: DF.Link
+		loan: DF.Link | None
 		reference_no: DF.Data | None
 		securities: DF.Table[Unpledge]
 		status: DF.Literal["Requested", "Approved"]
