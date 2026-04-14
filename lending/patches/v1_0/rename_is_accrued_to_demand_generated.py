@@ -1,7 +1,10 @@
 import frappe
-from frappe.model.utils.rename_field import rename_field
 
 
 def execute():
-	if not frappe.db.has_column("Repayment Schedule", "demand_generated"):
-		rename_field("Repayment Schedule", "is_accrued", "demand_generated")
+	if frappe.db.has_column("Repayment Schedule", "is_accrued"):
+		frappe.db.sql("""
+			UPDATE `tabRepayment Schedule`
+			SET demand_generated = is_accrued
+			WHERE demand_generated IS NULL OR demand_generated = 0
+		""")
