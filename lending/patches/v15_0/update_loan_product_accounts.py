@@ -34,4 +34,6 @@ def execute():
 		if not doc.broken_period_interest_recovery_account:
 			doc.broken_period_interest_recovery_account = doc.interest_income_account
 
+		doc.flags.ignore_mandatory = True
+		doc.flags.ignore_validate = True
 		doc.save()
