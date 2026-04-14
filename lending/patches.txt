@@ -9,7 +9,6 @@ execute:frappe.rename_doc("DocType", "Loan Security Pledge", "Loan Security Assi
 execute:frappe.rename_doc("DocType", "Loan Security Unpledge", "Loan Security Release", force=True)
 execute:frappe.delete_doc_if_exists("DocType", "Loan Buyback")
 lending.patches.v1_0.fix_invalid_loan_product_values #2
-lending.patches.v1_0.rename_is_accrued_to_demand_generated #2
 execute:frappe.delete_doc_if_exists("Report", "Loan Interest Report")
 
 [post_model_sync]
@@ -41,6 +40,7 @@ lending.patches.v15_0.create_accounting_dimensions_for_loan_doctypes
 lending.patches.v15_0.update_maturity_date
 lending.patches.v15_0.loan_repayment_schedule_status_patch
 lending.patches.v15_0.loan_disbursement_status_patch
+lending.patches.v1_0.rename_is_accrued_to_demand_generated #2
 lending.patches.v1_0.create_custom_field_loan_accrual_rate_for_company #rerun #2
 lending.patches.v1_0.add_index_for_custom_fields_for_JE
 lending.patches.v1_0.update_value_date_in_loan_repayment
