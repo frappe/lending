@@ -1,0 +1,157 @@
+<style type="text/css">
+	body, html {
+		margin-top: 10;
+		padding: 0;
+		width: 100%;
+		height: auto;
+		font-family: Arial, sans-serif;
+	}
+
+	.title-letter-spacing {
+		letter-spacing: .2rem;
+	}
+
+	@media print {
+		@page {
+			size: A4;
+			margin-top: 10mm;
+		}
+
+		.page-break {
+			page-break-before: always;
+			margin-top: 10mm;
+		}
+
+		thead {
+			display: table-header-group;
+		}
+
+		tfoot {
+			display: table-footer-group;
+		}
+
+		th, td {
+			padding: 1px;
+			border: 1px solid black;
+		}
+
+		.no-print {
+			display: none !important;
+		}
+	}
+</style>
+
+<br>
+<div style="font-family:Arial">
+	<div>
+		<div class="title-letter-spacing" style="text-align:center; font-size:15px; text-decoration:underline;">
+			<b>
+				{%= __("LOAN STATEMENT OF ACCOUNT") %}
+				{% if (filters.applicant) { %}
+					<br>{%= filters.applicant %}
+				{% } %}
+			</b>
+		</div>
+		<div style="text-align:center; font-size:13px;">
+			<b>
+				{%= __("{0} to {1}", [frappe.datetime.str_to_user(filters.from_date), frappe.datetime.str_to_user(filters.to_date)]) %}
+			</b>
+		</div>
+		<div style="text-align:center; font-size:12px; margin-top:4px; color:#555;">
+			{% if (filters.loan) { %}
+				{%= __("Loan") %}: {%= filters.loan %}&nbsp;&nbsp;
+			{% } %}
+			{% if (filters.loan_product) { %}
+				{%= __("Loan Product") %}: {%= filters.loan_product %}
+			{% } %}
+		</div>
+		<br>
+	</div>
+
+	<table style="width:100%; font-size:11px; border-collapse:collapse;">
+		<thead>
+			<tr class="title-letter-spacing" style="text-align:center; font-weight:bold;">
+				<td style="border:1.5px solid black; width:7em;">{%= __("Date").toLocaleUpperCase() %}</td>
+				<td style="border:1.5px solid black;">{%= __("Transaction Type").toLocaleUpperCase() %}</td>
+				{% if (filters.group_by !== "Grouped") { %}
+					<td style="border:1.5px solid black;">{%= __("Transaction").toLocaleUpperCase() %}</td>
+				{% } %}
+				<td style="border:1.5px solid black;">{%= __("Loan").toLocaleUpperCase() %}</td>
+				<td style="border:1.5px solid black; width:9em;">{%= __("Debit").toLocaleUpperCase() %}</td>
+				<td style="border:1.5px solid black; width:9em;">{%= __("Credit").toLocaleUpperCase() %}</td>
+				<td style="border:1.5px solid black; width:10em;">{%= __("Balance").toLocaleUpperCase() %}</td>
+			</tr>
+		</thead>
+		<tbody>
+			{% for(var i=0, l=data.length; i<l; i++) { %}
+				<tr>
+					<td style="text-align:center; border:1px dotted black;">
+						{%= frappe.datetime.str_to_user(data[i].posting_date) %}
+					</td>
+					<td style="border-right:1px dotted black; border-bottom:1px dotted black;">
+						{%= data[i].transaction_type %}
+					</td>
+					{% if (filters.group_by !== "Grouped") { %}
+						<td style="border-right:1px dotted black; border-bottom:1px dotted black;">
+							{%= data[i].transaction_name || "" %}
+						</td>
+					{% } %}
+					<td style="border-right:1px dotted black; border-bottom:1px dotted black;">
+						{%= data[i].loan || "" %}
+					</td>
+					<td style="text-align:right; border-right:1px dotted black; border-bottom:1px dotted black;">
+						{% if (data[i].debit) { %}
+							{%= format_currency(data[i].debit, data[i].currency) %}
+						{% } %}
+					</td>
+					<td style="text-align:right; border-right:1px dotted black; border-bottom:1px dotted black;">
+						{% if (data[i].credit) { %}
+							{%= format_currency(data[i].credit, data[i].currency) %}
+						{% } %}
+					</td>
+					<td style="text-align:right; border-right:1px dotted black; border-bottom:1px dotted black;">
+						{%= format_currency(data[i].balance, data[i].currency) %}
+					</td>
+				</tr>
+			{% } %}
+		</tbody>
+	</table>
+
+	{% if (data.length) { %}
+		<div style="margin-top:15px; font-size:12px;">
+			<table style="width:40%; float:right; border-collapse:collapse;">
+				{%
+					var total_debit = 0, total_credit = 0;
+					for (var i = 0; i < data.length; i++) {
+						total_debit += data[i].debit || 0;
+						total_credit += data[i].credit || 0;
+					}
+					var closing_balance = data[data.length - 1].balance || 0;
+				%}
+				<tr style="font-weight:bold; border-top:2px solid black;">
+					<td style="padding:4px;">{%= __("Total Debit") %}</td>
+					<td style="text-align:right; padding:4px;">
+						{%= format_currency(total_debit, data[0].currency) %}
+					</td>
+				</tr>
+				<tr style="font-weight:bold;">
+					<td style="padding:4px;">{%= __("Total Credit") %}</td>
+					<td style="text-align:right; padding:4px;">
+						{%= format_currency(total_credit, data[0].currency) %}
+					</td>
+				</tr>
+				<tr style="font-weight:bold; border-top:2px solid black;">
+					<td style="padding:4px;">{%= __("Closing Balance") %}</td>
+					<td style="text-align:right; padding:4px;">
+						{%= format_currency(closing_balance, data[0].currency) %}
+					</td>
+				</tr>
+			</table>
+			<div style="clear:both;"></div>
+		</div>
+	{% } %}
+
+	<p class="text-right text-muted" style="margin-top:20px;">
+		{%= __("Printed on {0}", [frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string())]) %}
+	</p>
+</div>
