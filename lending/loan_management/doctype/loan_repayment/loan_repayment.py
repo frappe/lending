@@ -185,7 +185,11 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be zero"))
 
 		if self.repayment_type == "Normal Repayment" and self.amount_paid > self.payable_amount:
-			frappe.throw(_("Amount paid ({0}) cannot be greater than overdue amount ({1})").format(flt(self.amount_paid), flt(self.payable_amount)))
+			frappe.throw(
+				_("Amount paid ({0}) cannot be greater than overdue amount ({1})").format(
+					flt(self.amount_paid), flt(self.payable_amount)
+				)
+			)
 
 	def book_unaccrued_interest(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
