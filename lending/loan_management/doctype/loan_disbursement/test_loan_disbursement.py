@@ -108,15 +108,15 @@ class TestLoanDisbursement(IntegrationTestCase):
 		self.assertEqual(status_map_before.get(disbursement_2.name), "Active")
 		self.assertEqual(status_map_before.get(disbursement_3.name), "Outdated")
 
-		disbursement_2.cancel()
+		disbursement_3.cancel()
 
 		disbursement_1.load_from_db()
 		disbursement_2.load_from_db()
 		disbursement_3.load_from_db()
 
-		self.assertEqual(disbursement_1.tranche_number, 2)
-		self.assertEqual(disbursement_2.tranche_number, 0)
-		self.assertEqual(disbursement_3.tranche_number, 1)
+		self.assertEqual(disbursement_1.tranche_number, 1)
+		self.assertEqual(disbursement_2.tranche_number, 2)
+		self.assertEqual(disbursement_3.tranche_number, 0)
 
 		schedules_after = frappe.get_all(
 			"Loan Repayment Schedule",
@@ -125,5 +125,5 @@ class TestLoanDisbursement(IntegrationTestCase):
 		)
 		status_map_after = {s.loan_disbursement: s.status for s in schedules_after}
 
-		self.assertEqual(status_map_after.get(disbursement_1.name), "Active")
-		self.assertEqual(status_map_after.get(disbursement_3.name), "Outdated")
+		self.assertEqual(status_map_after.get(disbursement_1.name), "Outdated")
+		self.assertEqual(status_map_after.get(disbursement_2.name), "Active")

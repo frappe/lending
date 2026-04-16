@@ -466,6 +466,7 @@ class LoanDisbursement(LoanController):
 			)
 			.orderby(LoanDisbursement.disbursement_date, order=frappe.qb.asc)
 			.orderby(LoanDisbursement.posting_date, order=frappe.qb.asc)
+			.orderby(LoanDisbursement.creation, order=frappe.qb.asc)
 		)
 
 		disbursements = query.run(as_dict=True)
