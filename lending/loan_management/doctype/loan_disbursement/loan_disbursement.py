@@ -189,8 +189,8 @@ class LoanDisbursement(LoanController):
 
 			self.submit_repayment_schedule()
 			self.update_tranche_numbers_on_sequence_change(cancel=0)
-			self.update_current_repayment_schedule()
 			self.update_repayment_schedule_status()
+			self.update_current_repayment_schedule()
 		self.set_status_and_amounts()
 
 		update_loan_securities_values(self.against_loan, self.disbursed_amount, self.doctype)
