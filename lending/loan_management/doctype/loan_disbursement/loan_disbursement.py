@@ -424,28 +424,34 @@ class LoanDisbursement(LoanController):
 		if self.repayment_schedule_type == "Line of Credit":
 			return
 
+		if self.tranche_number != 0:
+			return
+
 		LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 
-		disbursements = (
+		count = (
 			frappe.qb.from_(LoanDisbursement)
-			.select(LoanDisbursement.name, LoanDisbursement.disbursement_date, LoanDisbursement.posting_date)
+			.select(fn.Count(LoanDisbursement.name))
 			.where(
 				(LoanDisbursement.against_loan == self.against_loan)
 				& (LoanDisbursement.docstatus == 1)
 				& (LoanDisbursement.repayment_schedule_type != "Line of Credit")
+				& (
+					(LoanDisbursement.disbursement_date < self.disbursement_date)
+					| (
+						(LoanDisbursement.disbursement_date == self.disbursement_date)
+						& (LoanDisbursement.posting_date < self.posting_date)
+					)
+					| (
+						(LoanDisbursement.disbursement_date == self.disbursement_date)
+						& (LoanDisbursement.posting_date == self.posting_date)
+						& (LoanDisbursement.creation < self.creation)
+					)
+				)
 			)
-			.orderby(LoanDisbursement.disbursement_date, order=frappe.qb.asc)
-			.orderby(LoanDisbursement.posting_date, order=frappe.qb.asc)
-		).run(as_dict=True)
+		).run()[0][0] or 0
 
-		if self.tranche_number == 0:
-			tranche_number = 1
-			for idx, disbursement in enumerate(disbursements, start=1):
-				if disbursement.name == self.name:
-					tranche_number = idx
-					break
-
-			self.db_set("tranche_number", tranche_number)
+		self.db_set("tranche_number", count + 1)
 
 	def update_tranche_numbers_on_sequence_change(self, cancel=0):
 		if self.repayment_schedule_type == "Line of Credit":
@@ -453,6 +459,23 @@ class LoanDisbursement(LoanController):
 
 		if cancel:
 			self.db_set("tranche_number", 0)
+			update_tranche_no = True
+		else:
+			highest_tranche = frappe.db.get_value(
+				"Loan Disbursement",
+				{
+					"against_loan": self.against_loan,
+					"docstatus": 1,
+					"repayment_schedule_type": ["!=", "Line of Credit"]
+				},
+				"tranche_number",
+				order_by="tranche_number desc"
+			)
+
+			update_tranche_no = highest_tranche != self.tranche_number
+
+		if not update_tranche_no:
+			return
 
 		LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
 
