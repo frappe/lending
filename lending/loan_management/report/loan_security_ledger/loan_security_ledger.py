@@ -3,6 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import functions as fn
+from frappe.query_builder.custom import ConstantColumn
 
 
 def execute(filters: dict | None = None):
@@ -64,29 +66,50 @@ def get_columns(filters) -> list[dict]:
 
 def get_data(filters) -> list[list]:
 	loan = filters.get("loan")
+	applicant = filters.get("applicant")
+	loan_security = filters.get("loan_security")
+
+	if not (loan or applicant):
+		frappe.throw(_("Please select at least Loan or Applicant to view the ledger"))
+
 	balance_qty = 0
 
-	unpledges = frappe.db.sql(
-		"""
-			SELECT up.loan, "Loan Security Release" as doctype, u.loan_security, u.loan_security_type, u.qty, up.unpledge_time as date
-			FROM `tabLoan Security Release` up, `tabUnpledge` u
-			WHERE up.loan = %s
-			AND u.parent = up.name
-			AND up.status = 'Approved'
-			GROUP BY u.loan_security
-		""", (loan), as_dict=1
-	)
+	unpldge_doctype = frappe.qb.DocType("Unpledge")
+	loan_security_release_doctype = frappe.qb.DocType("Loan Security Release")
 
-	pledges = frappe.db.sql(
-		"""
-			SELECT lsa.loan, "Loan Security Assignment" as doctype, p.loan_security, p.loan_security_type, p.qty, lsa.pledge_time as date
-			FROM `tabLoan Security Assignment` lsa, `tabPledge` p
-			WHERE lsa.loan = %s
-			AND p.parent = lsa.name
-			AND lsa.status = 'Pledged'
-			GROUP BY p.loan_security
-		""", (loan), as_dict=1
-	)
+	pledge_doctype = frappe.qb.DocType("Pledge")
+	loan_security_assignment_doctype = frappe.qb.DocType("Loan Security Assignment")
+
+	unpledge_query = frappe.qb.from_(unpldge_doctype).inner_join(loan_security_release_doctype).on(
+		unpldge_doctype.parent == loan_security_release_doctype.name
+	).select(
+		loan_security_release_doctype.loan, ConstantColumn("Loan Security Release").as_("doctype"), unpldge_doctype.loan_security, fn.Sum(unpldge_doctype.qty).as_("qty"), loan_security_release_doctype.unpledge_time.as_("date"), unpldge_doctype.loan_security_type
+	).where(loan_security_release_doctype.docstatus == 1).where(loan_security_release_doctype.status == "Approved")
+
+	pledge_query = frappe.qb.from_(pledge_doctype).inner_join(loan_security_assignment_doctype).on(
+		pledge_doctype.parent == loan_security_assignment_doctype.name
+	).select(
+		loan_security_assignment_doctype.loan, ConstantColumn("Loan Security Assignment").as_("doctype"), pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty"), loan_security_assignment_doctype.pledge_time.as_("date"), pledge_doctype.loan_security_type
+	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
+
+	if loan:
+		unpledge_query = unpledge_query.where(loan_security_release_doctype.loan == loan)
+		pledge_query = pledge_query.where(loan_security_assignment_doctype.loan == loan)
+
+	if applicant:
+		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
+		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
+
+	if loan_security:
+		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security == loan_security)
+		pledge_query = pledge_query.where(pledge_doctype.loan_security == loan_security)
+
+	if loan_security:
+		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security == loan_security)
+		pledge_query = pledge_query.where(pledge_doctype.loan_security == loan_security)
+
+	unpledges = unpledge_query.groupby(unpldge_doctype.loan_security).run(as_dict=True)
+	pledges = pledge_query.groupby(pledge_doctype.loan_security).run(as_dict=True)
 
 	result = pledges + unpledges
 

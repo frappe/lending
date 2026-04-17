@@ -8,7 +8,12 @@ frappe.query_reports["Loan Security Ledger"] = {
 			"label": __("Loan"),
 			"fieldtype": "Link",
 			"options": "Loan",
-			"reqd": 1,
+		},
+		{
+			"fieldname": "applicant",
+			"label": __("Applicant"),
+			"fieldtype": "Link",
+			"options": "Customer",
 		},
 		{
 			"fieldname": "loan_security",
