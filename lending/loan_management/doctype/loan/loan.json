@@ -26,6 +26,7 @@
   "loan_partner",
   "loan_category",
   "repayment_schedule_type",
+  "no_interest_till_month_end",
   "cancellation_date",
   "settlement_date",
   "column_break_11",
@@ -436,6 +437,15 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Repayment Schedule Type",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_product.no_interest_till_month_end",
+   "fieldname": "no_interest_till_month_end",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "No Interest Accrual Till Month End",
    "read_only": 1
   },
   {
