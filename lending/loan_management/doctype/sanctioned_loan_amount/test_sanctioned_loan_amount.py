@@ -1,9 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-import unittest
-
 import frappe
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
@@ -19,10 +18,11 @@ from lending.tests.test_utils import (
 	init_loan_products,
 	make_loan_disbursement_entry,
 	master_init,
+	update_loan_security_price,
 )
 
 
-class TestSanctionedLoanAmount(unittest.TestCase):
+class TestSanctionedLoanAmount(IntegrationTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -129,3 +129,48 @@ class TestSanctionedLoanAmount(unittest.TestCase):
 
 		sanctioned_amount_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer, "applicant_type": "Customer"}, "sanctioned_amount_limit")
 		self.assertEqual(sanctioned_amount_limit, 1000000)
+
+	def test_sanctioned_limit_updates_on_price_change_and_security_release(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("Sanctioned Amount Customer")).insert().name
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
+		create_loan_security_assignment(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=pledge,
+			company="_Test Company",
+		)
+
+		sanctioned_amount_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount",
+			{"applicant": customer, "applicant_type": "Customer"},
+			"sanctioned_amount_limit",
+		)
+		self.assertEqual(sanctioned_amount_limit, 1000000)
+
+		update_loan_security_price(
+			"Test Security 1", 600, "Nos", nowdate(), add_days(nowdate(), 1)
+		)
+
+		sanctioned_amount_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount",
+			{"applicant": customer, "applicant_type": "Customer"},
+			"sanctioned_amount_limit",
+		)
+		self.assertEqual(sanctioned_amount_limit, 1200000)
+
+		create_loan_security_release(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=[{"loan_security": "Test Security 1", "qty": 1000.00}],
+		)
+
+		sanctioned_amount_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount",
+			{"applicant": customer, "applicant_type": "Customer"},
+			"sanctioned_amount_limit",
+		)
+		self.assertEqual(sanctioned_amount_limit, 900000)
+

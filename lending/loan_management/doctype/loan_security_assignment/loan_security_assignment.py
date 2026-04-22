@@ -10,6 +10,9 @@ from frappe.utils import cint, flt, now_datetime
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	update_sanctioned_loan_amount_for_applicant,
+)
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
@@ -27,7 +30,7 @@ class LoanSecurityAssignment(Document):
 		from lending.loan_management.doctype.pledge.pledge import Pledge
 
 		amended_from: DF.Link | None
-		applicant: DF.Data
+		applicant: DF.DynamicLink
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
@@ -51,32 +54,30 @@ class LoanSecurityAssignment(Document):
 			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
 
+		# Set status early so that pledged securities are visible in queries
+		self.db_set("status", "Pledged")
+		self.db_set("pledge_time", now_datetime())
+
 		if not self.loan_application:
-			# Create Sanctioned Loan Amount Record
+			# Create or refresh sanctioned amount based on latest pledged qty and security prices.
 			current_sanctioned_amount = frappe.db.get_value(
 				"Sanctioned Loan Amount",
 				{"applicant": self.applicant, "applicant_type": self.applicant_type},
-				["name", "sanctioned_amount_limit"],
-				as_dict=1
+				"name",
 			)
 
-			if current_sanctioned_amount:
-				frappe.db.set_value(
-					"Sanctioned Loan Amount",
-					current_sanctioned_amount.name,
-					"sanctioned_amount_limit",
-					current_sanctioned_amount.sanctioned_amount_limit + self.maximum_loan_value
-				)
-			else:
-				frappe.get_doc({
-					"doctype": "Sanctioned Loan Amount",
-					"applicant": self.applicant,
-					"applicant_type": self.applicant_type,
-					"sanctioned_amount_limit": self.maximum_loan_value
-				}).insert()
+			if not current_sanctioned_amount:
+				frappe.get_doc(
+					{
+						"doctype": "Sanctioned Loan Amount",
+						"applicant": self.applicant,
+						"applicant_type": self.applicant_type,
+						"company": self.company,
+						"sanctioned_amount_limit": 0,
+					}
+				).insert()
 
-				self.db_set("status", "Pledged")
-				self.db_set("pledge_time", now_datetime())
+			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 
 	def on_update_after_submit(self):
@@ -86,6 +87,7 @@ class LoanSecurityAssignment(Document):
 		self.db_set("status", "Cancelled")
 		self.db_set("pledge_time", None)
 		update_loan(self.loan, self.maximum_loan_value, cancel=1)
+		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_securities(self):
 		if not self.get("securities"):

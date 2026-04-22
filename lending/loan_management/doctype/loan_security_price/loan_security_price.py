@@ -28,6 +28,34 @@ class LoanSecurityPrice(Document):
 	def validate(self):
 		self.validate_dates()
 
+	def on_update(self):
+		self.update_sanctioned_limits_for_security_holders()
+
+	def on_trash(self):
+		self.update_sanctioned_limits_for_security_holders()
+
+	def update_sanctioned_limits_for_security_holders(self):
+		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+			update_sanctioned_loan_amount_for_applicant,
+		)
+
+		pledge = frappe.qb.DocType("Pledge")
+		loan_security_assignment = frappe.qb.DocType("Loan Security Assignment")
+
+		affected_applicants = (
+			frappe.qb.from_(loan_security_assignment)
+			.inner_join(pledge)
+			.on(pledge.parent == loan_security_assignment.name)
+			.select(loan_security_assignment.applicant, loan_security_assignment.applicant_type)
+			.where(loan_security_assignment.docstatus == 1)
+			.where(loan_security_assignment.status == "Pledged")
+			.where(pledge.loan_security == self.loan_security)
+			.distinct()
+		).run(as_list=True)
+
+		for applicant, applicant_type in affected_applicants:
+			update_sanctioned_loan_amount_for_applicant(applicant, applicant_type)
+
 	def validate_dates(self):
 		if self.valid_from > self.valid_upto:
 			frappe.throw(_("Valid From Time must be lesser than Valid Upto Time."))
