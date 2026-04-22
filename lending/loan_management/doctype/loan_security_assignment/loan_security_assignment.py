@@ -71,10 +71,10 @@ class LoanSecurityAssignment(Document):
 					"sanctioned_amount_limit": self.maximum_loan_value  # Direct assignment
 				}).insert()
 
-				self.db_set("status", "Pledged")
-				self.db_set("pledge_time", now_datetime())
-			else:
-				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+			self.db_set("status", "Pledged")
+			self.db_set("pledge_time", now_datetime())
+
+			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 
 	def on_update_after_submit(self):
