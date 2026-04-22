@@ -151,10 +151,6 @@ class LoanSecurityRelease(Document):
 			self.db_set("unpledge_time", get_datetime())
 			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
-	def update_sanctioned_loan_amount(self):
-		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
-
-
 	def update_loan_status(self, cancel=0):
 		if cancel:
 			loan_status = frappe.get_value("Loan", self.loan, "status")
