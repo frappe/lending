@@ -7,9 +7,6 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
-from lending.loan_management.doctype.loan_security_price.loan_security_price import (
-	update_sanctioned_limits_for_security_holders,
-)
 from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,
 )
@@ -72,9 +69,8 @@ def update_loan_security_price(data: dict):
 			"valid_from": price_details.get("valid_from"),
 			"valid_upto": price_details.get("valid_upto")
 		})
+		frappe.get_doc("Loan Security Price", {"loan_security": loan_security}).update_sanctioned_limits_for_security_holders()
 
-
-	update_sanctioned_limits_for_security_holders()
 	create_process_loan_security_shortfall()
 	frappe.response["message"] = _("Loan Security Prices updated successfully")
 

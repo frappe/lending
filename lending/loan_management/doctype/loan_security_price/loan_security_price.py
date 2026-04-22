@@ -7,6 +7,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime
 
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	update_sanctioned_loan_amount_for_applicant,
+)
+
 
 class LoanSecurityPrice(Document):
 	# begin: auto-generated types
@@ -35,10 +39,6 @@ class LoanSecurityPrice(Document):
 		self.update_sanctioned_limits_for_security_holders()
 
 	def update_sanctioned_limits_for_security_holders(self):
-		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
-			update_sanctioned_loan_amount_for_applicant,
-		)
-
 		pledge = frappe.qb.DocType("Pledge")
 		loan_security_assignment = frappe.qb.DocType("Loan Security Assignment")
 

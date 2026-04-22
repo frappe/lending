@@ -54,12 +54,8 @@ class LoanSecurityAssignment(Document):
 			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
 
-		# Set status early so that pledged securities are visible in queries
-		self.db_set("status", "Pledged")
-		self.db_set("pledge_time", now_datetime())
-
 		if not self.loan_application:
-			# Create or refresh sanctioned amount based on latest pledged qty and security prices.
+			# Create Sanctioned Loan Amount Record
 			current_sanctioned_amount = frappe.db.get_value(
 				"Sanctioned Loan Amount",
 				{"applicant": self.applicant, "applicant_type": self.applicant_type},
@@ -67,17 +63,18 @@ class LoanSecurityAssignment(Document):
 			)
 
 			if not current_sanctioned_amount:
-				frappe.get_doc(
-					{
-						"doctype": "Sanctioned Loan Amount",
-						"applicant": self.applicant,
-						"applicant_type": self.applicant_type,
-						"company": self.company,
-						"sanctioned_amount_limit": 0,
-					}
-				).insert()
+				frappe.get_doc({
+					"doctype": "Sanctioned Loan Amount",
+					"applicant": self.applicant,
+					"applicant_type": self.applicant_type,
+					"company": self.company,
+					"sanctioned_amount_limit": self.maximum_loan_value  # Direct assignment
+				}).insert()
 
-			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+				self.db_set("status", "Pledged")
+				self.db_set("pledge_time", now_datetime())
+			else:
+				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 
 	def on_update_after_submit(self):
