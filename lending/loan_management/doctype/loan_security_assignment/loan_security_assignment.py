@@ -55,6 +55,9 @@ class LoanSecurityAssignment(Document):
 			update_loan(self.loan, self.maximum_loan_value)
 
 		if not self.loan_application:
+			self.db_set("status", "Pledged")
+			self.db_set("pledge_time", now_datetime())
+
 			# Create Sanctioned Loan Amount Record
 			current_sanctioned_amount = frappe.db.get_value(
 				"Sanctioned Loan Amount",
@@ -68,14 +71,10 @@ class LoanSecurityAssignment(Document):
 					"applicant": self.applicant,
 					"applicant_type": self.applicant_type,
 					"company": self.company,
-					"sanctioned_amount_limit": self.maximum_loan_value  # Direct assignment
+					"sanctioned_amount_limit": self.maximum_loan_value
 				}).insert()
-
-			self.db_set("status", "Pledged")
-			self.db_set("pledge_time", now_datetime())
-
-			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
-
+			else:
+				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
