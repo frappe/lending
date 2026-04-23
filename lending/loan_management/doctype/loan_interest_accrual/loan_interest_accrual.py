@@ -922,9 +922,9 @@ def get_last_accrual_date(
 				"Loan", loan, "no_interest_till_month_end", cache=True
 			)
 			if no_interest_till_month_end:
-				final_date = get_last_day(final_date)
+				final_date = add_days(get_last_day(final_date), 1)
 
-			return add_days(final_date, 1)
+			return final_date
 
 	last_disbursement_date = get_last_disbursement_date(
 		loan, posting_date, loan_disbursement=loan_disbursement
