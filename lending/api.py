@@ -69,7 +69,6 @@ def update_loan_security_price(data: dict):
 			"valid_from": price_details.get("valid_from"),
 			"valid_upto": price_details.get("valid_upto")
 		})
-		frappe.get_doc("Loan Security Price", {"loan_security": loan_security}).update_sanctioned_limits_for_security_holders()
 
 	create_process_loan_security_shortfall()
 	frappe.response["message"] = _("Loan Security Prices updated successfully")

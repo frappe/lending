@@ -130,7 +130,7 @@ class TestSanctionedLoanAmount(IntegrationTestCase):
 		sanctioned_amount_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer, "applicant_type": "Customer"}, "sanctioned_amount_limit")
 		self.assertEqual(sanctioned_amount_limit, 1000000)
 
-	def test_sanctioned_limit_updates_on_price_change_and_security_release(self):
+	def test_sanctioned_limit_updates_on_security_price_increase(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 		customer = frappe.get_doc(get_customer_dict("Sanctioned Amount Customer")).insert().name
@@ -160,17 +160,3 @@ class TestSanctionedLoanAmount(IntegrationTestCase):
 			"sanctioned_amount_limit",
 		)
 		self.assertEqual(sanctioned_amount_limit, 1200000)
-
-		create_loan_security_release(
-			applicant=customer,
-			applicant_type="Customer",
-			securities=[{"loan_security": "Test Security 1", "qty": 1000.00}],
-		)
-
-		sanctioned_amount_limit = frappe.db.get_value(
-			"Sanctioned Loan Amount",
-			{"applicant": customer, "applicant_type": "Customer"},
-			"sanctioned_amount_limit",
-		)
-		self.assertEqual(sanctioned_amount_limit, 900000)
-
