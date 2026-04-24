@@ -101,7 +101,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-24 10:09:30.448192",
+ "modified": "2026-04-24 10:39:42.864622",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Bulk Repayment Log",
@@ -118,6 +118,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
