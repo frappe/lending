@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-04-19 09:47+0000\n"
-"PO-Revision-Date: 2026-04-19 09:47+0000\n"
+"POT-Creation-Date: 2026-04-26 09:47+0000\n"
+"PO-Revision-Date: 2026-04-26 09:47+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -2177,6 +2177,11 @@ msgstr ""
 #. Label of the failed_repayment (Text) field in DocType 'Bulk Repayment Log'
 #: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
 msgid "Failed Repayment"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Bulk Repayment Log'
+#: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
+msgid "Failure"
 msgstr ""
 
 #. Label of the file (Attach) field in DocType 'Loan Application Document'
@@ -5831,7 +5836,7 @@ msgstr ""
 msgid "State"
 msgstr ""
 
-#. Label of the status (Data) field in DocType 'Bulk Repayment Log'
+#. Label of the status (Select) field in DocType 'Bulk Repayment Log'
 #. Label of the status (Select) field in DocType 'Loan'
 #. Label of the status (Select) field in DocType 'Loan Application'
 #. Label of the status (Select) field in DocType 'Loan Disbursement'
@@ -5872,6 +5877,11 @@ msgstr ""
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Subsidy Adjustments"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Bulk Repayment Log'
+#: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
+msgid "Success"
 msgstr ""
 
 #. Label of the suspense_account (Link) field in DocType 'Loan Charges'
