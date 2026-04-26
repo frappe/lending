@@ -187,9 +187,13 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				applicant=applicant,
 			)
 
-			sanctioned_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": applicant}, "name")
-			if sanctioned_limit:
-				frappe.db.set_value("Sanctioned Loan Amount", sanctioned_limit, "sanctioned_amount_limit", security_value)
+		sanctioned_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount", {"applicant": applicant}, "name"
+		)
+		if sanctioned_limit:
+			frappe.db.set_value(
+				"Sanctioned Loan Amount", sanctioned_limit, "sanctioned_amount_limit", security_value
+			)
 
 
 def create_loan_security_shortfall(
