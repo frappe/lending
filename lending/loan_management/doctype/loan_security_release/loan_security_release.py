@@ -43,6 +43,7 @@ class LoanSecurityRelease(Document):
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
 		self.db_set("status", "Requested")
+		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_duplicate_securities(self):
 		security_list = []
@@ -148,28 +149,7 @@ class LoanSecurityRelease(Document):
 				self.update_loan_status()
 
 			self.db_set("unpledge_time", get_datetime())
-			self.update_sanctioned_loan_amount()
-
-	def update_sanctioned_loan_amount(self):
-		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-			get_ltv_ratio,
-		)
-
-		current_pledged_qty = get_pledged_security_qty(applicant=self.applicant)
-		securities = list(current_pledged_qty)
-		loan_security_price_map = get_loan_security_price_map(securities)
-
-		new_sanctioned_loan_amount = 0
-		for security, qty in current_pledged_qty.items():
-			current_price = flt(loan_security_price_map.get(security))
-			new_sanctioned_loan_amount += (qty * current_price * get_ltv_ratio(security)) / 100
-
-		if new_sanctioned_loan_amount > 0:
-			frappe.db.set_value("Sanctioned Loan Amount", {
-				"applicant": self.applicant,
-				"applicant_type": self.applicant_type
-			}, "sanctioned_amount_limit", new_sanctioned_loan_amount)
-
+			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def update_loan_status(self, cancel=0):
 		if cancel:
@@ -185,6 +165,42 @@ class LoanSecurityRelease(Document):
 
 			if not pledged_qty:
 				frappe.db.set_value("Loan", self.loan, {"status": "Closed", "closure_date": getdate()})
+
+
+def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		get_ltv_ratio,
+	)
+
+	if not applicant or not applicant_type:
+		return
+
+	sanctioned_limit = frappe.db.get_value(
+		"Sanctioned Loan Amount",
+		{"applicant": applicant, "applicant_type": applicant_type},
+		"name",
+	)
+
+	if not sanctioned_limit:
+		return
+
+	current_pledged_qty = get_pledged_security_qty(applicant=applicant)
+	loan_security_price_map = {}
+
+	if current_pledged_qty:
+		loan_security_price_map = get_loan_security_price_map(list(current_pledged_qty))
+
+	new_sanctioned_loan_amount = 0
+	for security, qty in current_pledged_qty.items():
+		current_price = flt(loan_security_price_map.get(security))
+		new_sanctioned_loan_amount += (flt(qty) * current_price * flt(get_ltv_ratio(security))) / 100
+
+	frappe.db.set_value(
+		"Sanctioned Loan Amount",
+		sanctioned_limit,
+		"sanctioned_amount_limit",
+		new_sanctioned_loan_amount,
+	)
 
 
 @frappe.whitelist()
