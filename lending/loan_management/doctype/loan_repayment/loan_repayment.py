@@ -3156,7 +3156,7 @@ def get_partial_pre_paid_interest(loan, last_demand_date, loan_disbursement=None
 			& (LoanDemand.demand_type == "EMI")
 			& (LoanDemand.demand_subtype == "Interest")
 			& (LoanDemand.is_partial_pre_paid_interest == 1)
-			& (LoanDemand.demand_date >= last_demand_date)
+			& (LoanDemand.demand_date > last_demand_date)
 		)
 	)
 
