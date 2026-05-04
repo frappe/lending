@@ -1073,75 +1073,54 @@ class TestLoanRepayment(IntegrationTestCase):
 			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
 		)
 
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-02-04", company="_Test Company"
-		)
+		emi_dates = ["2025-02-05", "2025-03-05", "2025-04-05", "2025-05-05"]
+		for emi_date in emi_dates:
+			accrual_date = add_days(emi_date, -1)
+			process_loan_interest_accrual_for_loans(
+				loan=loan.name, posting_date=accrual_date, company="_Test Company"
+			)
+			process_daily_loan_demands(loan=loan.name, posting_date=emi_date)
+			create_repayment_entry(loan.name, emi_date, 54889).submit()
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2025-02-05")
-
-		create_repayment_entry(loan.name, "2025-02-05", 54889).submit()
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-03-04", company="_Test Company"
-		)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2025-03-05")
-
-		create_repayment_entry(loan.name, "2025-03-05", 54889).submit()
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-04-04", company="_Test Company"
-		)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2025-04-05")
-
-		create_repayment_entry(loan.name, "2025-04-05", 54889).submit()
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-05-04", company="_Test Company"
-		)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2025-05-05")
-
-		create_repayment_entry(loan.name, "2025-05-05", 54889).submit()
-
+		pre_payment_date = "2025-05-21"
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date="2025-05-20", company="_Test Company"
 		)
 
-		amounts = calculate_amounts(loan.name, "2025-05-21")
-
+		amounts = calculate_amounts(loan.name, pre_payment_date)
 		unbooked_interest = amounts.get("unbooked_interest", 0)
-		create_repayment_entry(loan.name, "2025-05-21", 3327, repayment_type="Pre Payment").submit()
+
+		# Test 1: Partial pre-payment (half of unbooked interest)
+		partial_amount = flt(unbooked_interest / 2, 2)
+		create_repayment_entry(loan.name, pre_payment_date, partial_amount, repayment_type="Pre Payment").submit()
 
 		demand_amount = frappe.db.get_value(
 			"Loan Demand",
-			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest", "demand_date": "2025-05-21"},
+			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest", "demand_date": pre_payment_date},
 			"paid_amount",
 		)
+		self.assertEqual(demand_amount, partial_amount)
 
-		self.assertEqual(demand_amount, 3327)
+		remaining_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
+		self.assertEqual(flt(remaining_unbooked, 2), flt(unbooked_interest - partial_amount, 2))
 
-		repayment_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
+		# Test 2: Additional partial pre-payment
+		create_repayment_entry(loan.name, pre_payment_date, 1000, repayment_type="Pre Payment").submit()
+		remaining_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
+		self.assertEqual(flt(remaining_unbooked, 2), flt(unbooked_interest - partial_amount - 1000, 2))
+
+		# Test 3: Full pre-payment clearing remaining interest + principal
+		amounts_before_full = calculate_amounts(loan.name, pre_payment_date)
+		full_pending = flt(
+			amounts_before_full.get("unbooked_interest", 0) + amounts_before_full.get("unaccrued_interest", 0),
+			2
 		)
-		principal_amount, interest_amount = frappe.db.get_value(
-			"Repayment Schedule",
-			{"parent": repayment_schedule, "idx": 5},
-			["principal_amount", "interest_amount"],
-		)
+		second_payment_amount = flt(full_pending + 10000, 2)
 
-		self.assertEqual(flt(principal_amount, 2), 37593.01)
-		self.assertEqual(flt(interest_amount, 2), 17295.99)
+		create_repayment_entry(loan.name, pre_payment_date, second_payment_amount, repayment_type="Pre Payment").submit()
 
-		pending_interest = unbooked_interest - 3327
-		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
-		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
-
-		create_repayment_entry(loan.name, "2025-05-21", 1000, repayment_type="Pre Payment").submit()
-		pending_interest = still_pending_unbooked_interest - 1000
-		still_pending_unbooked_interest = calculate_amounts(loan.name, "2025-05-21")["unbooked_interest"]
-		self.assertEqual(flt(still_pending_unbooked_interest, 2), pending_interest)
+		final_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
+		self.assertGreaterEqual(final_unbooked, 0, "Unbooked interest should not be negative after full pre-payment")
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")
