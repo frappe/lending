@@ -428,10 +428,6 @@ class LoanDisbursement(LoanController):
 			return
 
 		LoanDisbursement = frappe.qb.DocType("Loan Disbursement")
-		future_filter = LoanDisbursement.disbursement_date == self.disbursement_date
-
-		if self.creation:
-			future_filter = future_filter & (LoanDisbursement.creation < self.creation)
 
 		count = (
 			frappe.qb.from_(LoanDisbursement)
@@ -442,7 +438,10 @@ class LoanDisbursement(LoanController):
 				& (LoanDisbursement.repayment_schedule_type != "Line of Credit")
 				& (
 					(LoanDisbursement.disbursement_date < self.disbursement_date)
-					| future_filter
+					| (
+						(LoanDisbursement.disbursement_date == self.disbursement_date)
+						& (LoanDisbursement.creation < self.creation)
+					)
 				)
 			)
 		).run()[0][0] or 0
