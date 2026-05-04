@@ -1092,11 +1092,18 @@ class TestLoanRepayment(IntegrationTestCase):
 
 		# Test 1: Partial pre-payment (half of unbooked interest)
 		partial_amount = flt(unbooked_interest / 2, 2)
-		create_repayment_entry(loan.name, pre_payment_date, partial_amount, repayment_type="Pre Payment").submit()
+		create_repayment_entry(
+			loan.name, pre_payment_date, partial_amount, repayment_type="Pre Payment"
+		).submit()
 
 		demand_amount = frappe.db.get_value(
 			"Loan Demand",
-			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest", "demand_date": pre_payment_date},
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"demand_subtype": "Interest",
+				"demand_date": pre_payment_date,
+			},
 			"paid_amount",
 		)
 		self.assertEqual(demand_amount, partial_amount)
@@ -1112,15 +1119,20 @@ class TestLoanRepayment(IntegrationTestCase):
 		# Test 3: Full pre-payment clearing remaining interest + principal
 		amounts_before_full = calculate_amounts(loan.name, pre_payment_date)
 		full_pending = flt(
-			amounts_before_full.get("unbooked_interest", 0) + amounts_before_full.get("unaccrued_interest", 0),
-			2
+			amounts_before_full.get("unbooked_interest", 0)
+			+ amounts_before_full.get("unaccrued_interest", 0),
+			2,
 		)
 		second_payment_amount = flt(full_pending + 10000, 2)
 
-		create_repayment_entry(loan.name, pre_payment_date, second_payment_amount, repayment_type="Pre Payment").submit()
+		create_repayment_entry(
+			loan.name, pre_payment_date, second_payment_amount, repayment_type="Pre Payment"
+		).submit()
 
 		final_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
-		self.assertGreaterEqual(final_unbooked, 0, "Unbooked interest should not be negative after full pre-payment")
+		self.assertGreaterEqual(
+			final_unbooked, 0, "Unbooked interest should not be negative after full pre-payment"
+		)
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")
