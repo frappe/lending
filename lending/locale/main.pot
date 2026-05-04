@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-04-26 09:47+0000\n"
-"PO-Revision-Date: 2026-04-26 09:47+0000\n"
+"POT-Creation-Date: 2026-05-03 09:54+0000\n"
+"PO-Revision-Date: 2026-05-03 09:54+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -560,7 +560,8 @@ msgstr ""
 #. Accrual'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Repayment'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Restructure'
-#. Label of the applicant (Data) field in DocType 'Loan Security Assignment'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
+#. Assignment'
 #. Label of the applicant (Data) field in DocType 'Loan Security Release'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Shortfall'
@@ -733,7 +734,7 @@ msgstr ""
 msgid "As on Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:92
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:90
 msgid "Atlest one security needs to be assigned"
 msgstr ""
 
@@ -3528,7 +3529,7 @@ msgstr ""
 msgid "Loan Restructure is in process. Cannot make any loan adjustment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:151
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:149
 msgid "Loan Securities worth {0} needed more to book the loan"
 msgstr ""
 
@@ -3653,7 +3654,7 @@ msgstr ""
 msgid "Loan Security Price"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_price/loan_security_price.py:49
+#: lending/loan_management/doctype/loan_security_price/loan_security_price.py:77
 msgid "Loan Security Price overlapping with {0}"
 msgstr ""
 
@@ -3671,7 +3672,7 @@ msgstr ""
 msgid "Loan Security Release"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:108
 msgid "Loan Security Release Error"
 msgstr ""
 
@@ -3717,11 +3718,11 @@ msgstr ""
 msgid "Loan Security Value"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:133
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:134
 msgid "Loan Security Value after unpledge is {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:100
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:98
 msgid "Loan Security {0} added multiple times"
 msgstr ""
 
@@ -3730,7 +3731,7 @@ msgstr ""
 msgid "Loan Statement of Account"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:139
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:140
 msgid "Loan To Security Value ratio must always be {0}"
 msgstr ""
 
@@ -3748,7 +3749,7 @@ msgstr ""
 msgid "Loan To Value Ratio expresses the ratio of the loan amount to the value of the security pledged. A loan security shortfall will be triggered if this falls below the specified value for any loan "
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:140
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:141
 msgid "Loan To Value ratio breach"
 msgstr ""
 
@@ -4113,7 +4114,7 @@ msgid "No loans found for this applicant or branch"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:212
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:118
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:116
 msgid "No valid Loan Security Price found for {0}"
 msgstr ""
 
@@ -4666,7 +4667,7 @@ msgstr ""
 msgid "Pending Principal: {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:135
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:136
 msgid "Pending principal amount for loan {0} is {1}"
 msgstr ""
 
@@ -5121,7 +5122,7 @@ msgid "Provision Rate"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:203
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:109
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:107
 msgid "Qty is mandatory for loan security!"
 msgstr ""
 
@@ -5619,11 +5620,11 @@ msgstr ""
 msgid "Round Off Account is mandatory"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:54
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:55
 msgid "Row {0}: Loan Security {1} added multiple times"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:99
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:100
 msgid "Row {0}: {1} of {2} is pledged against Loan {3}."
 msgstr ""
 
@@ -6349,7 +6350,7 @@ msgstr ""
 msgid "Valid From"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_price/loan_security_price.py:33
+#: lending/loan_management/doctype/loan_security_price/loan_security_price.py:61
 msgid "Valid From Time must be lesser than Valid Upto Time."
 msgstr ""
 
@@ -6533,7 +6534,7 @@ msgstr ""
 msgid "Written Off Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:106
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
 msgstr ""
 
