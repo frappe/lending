@@ -20,7 +20,7 @@ class TestLoanWriteOff(IntegrationTestCase):
 
 	def test_loan_write_off_status_on_submit_and_cancel(self):
 		loan = create_loan(
-			"_Test Customer 1",
+			"_Test Customer 2",
 			"Term Loan Product 4",
 			2500000,
 			"Repay Over Number of Periods",
