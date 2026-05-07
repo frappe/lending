@@ -237,10 +237,19 @@ class TestLoanRestructure(IntegrationTestCase):
 			loan_restructure_charges=[
 				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
 				{"charge": "Documentation Charge", "capitalize_amount": 2500, "treatment_of_other_charges": "Capitalize"},
+				{"charge": "Processing Fee", "restructure_charge_amount": 3000, "is_post_restructure_charge": 1},
+				{"charge": "Documentation Charge", "restructure_charge_amount": 1000, "is_post_restructure_charge": 1}
 			],
 		)
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
+
+		invoices = frappe.db.get_all(
+			"Sales Invoice",
+			filters={"loan": loan.name, "docstatus": 1, "value_date": "2024-04-11"},
+			pluck="name",
+		)
+		self.assertEqual(len(invoices), 1, "Expected 1 Sales Invoice to be created for post-restructure charges.")
 
 		repayments = frappe.db.get_all(
 			"Loan Repayment",
@@ -254,6 +263,26 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
 		self.assertEqual(counts.get("Charges Waiver", 0), 1)
+
+		processing_fee_capitalization = frappe.get_doc(
+			"Loan Repayment",
+			{
+				"loan_restructure": loan_restructure.name,
+				"docstatus": 1,
+				"repayment_type": "Charges Capitalization",
+				"amount_paid": 6000,
+			},
+		)
+
+		allocated_processing_fee_amounts = sorted(
+			[
+				flt(d.paid_amount)
+				for d in processing_fee_capitalization.get("repayment_details")
+				if d.demand_subtype == "Processing Fee"
+			]
+		)
+
+		self.assertEqual(allocated_processing_fee_amounts, [2000.0, 4000.0])
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
@@ -567,6 +596,8 @@ def create_loan_restructure(
 	interest_waiver_amount=None,
 	unaccrued_interest_waiver=None,
 	penal_waiver_amount=None,
+	restructure_charge_amount=None,
+	is_post_restructure_charge=0,
 	treatment_of_normal_interest="Capitalize",
 	unaccrued_interest_treatment="Capitalize",
 	treatment_of_penal_interest="Capitalize",
@@ -591,6 +622,8 @@ def create_loan_restructure(
 				"loan_restructure_charges",
 				{
 					"charge": charge.get("charge"),
+					"is_post_restructure_charge": charge.get("is_post_restructure_charge", 0),
+					"restructure_charge_amount": charge.get("restructure_charge_amount"),
 					"capitalize_amount": charge.get("capitalize_amount"),
 					"treatment_of_other_charges": charge.get("treatment_of_other_charges"),
 				},
