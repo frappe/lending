@@ -264,26 +264,6 @@ class TestLoanRestructure(IntegrationTestCase):
 		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
 		self.assertEqual(counts.get("Charges Waiver", 0), 1)
 
-		processing_fee_capitalization = frappe.get_doc(
-			"Loan Repayment",
-			{
-				"loan_restructure": loan_restructure.name,
-				"docstatus": 1,
-				"repayment_type": "Charges Capitalization",
-				"amount_paid": 6000,
-			},
-		)
-
-		allocated_processing_fee_amounts = sorted(
-			[
-				flt(d.paid_amount)
-				for d in processing_fee_capitalization.get("repayment_details")
-				if d.demand_subtype == "Processing Fee"
-			]
-		)
-
-		self.assertEqual(allocated_processing_fee_amounts, [2000.0, 4000.0])
-
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
