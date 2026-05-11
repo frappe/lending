@@ -1865,14 +1865,18 @@ class LoanRepayment(AccountsController):
 	def allocate_charges(self, amount_paid, demands):
 		paid_charges = {}
 		for charge in self.get("payable_charges"):
-			paid_charges[charge.charge_code] = charge.amount
+			paid_charges[charge.charge_code] = paid_charges.get(charge.charge_code, 0) + flt(charge.amount)
 
 		for demand in demands:
 			if amount_paid > 0 and paid_charges.get(demand.demand_subtype, 0) > 0:
-				if amount_paid > paid_charges.get(demand.demand_subtype, 0):
-					paid_amount = paid_charges.get(demand.demand_subtype, 0)
-				else:
-					paid_amount = amount_paid
+				paid_amount = min(
+					flt(amount_paid),
+					flt(paid_charges.get(demand.demand_subtype, 0)),
+					flt(demand.outstanding_amount),
+				)
+
+				if paid_amount <= 0:
+					continue
 
 				self.append(
 					"repayment_details",
@@ -1886,6 +1890,9 @@ class LoanRepayment(AccountsController):
 				)
 
 				self.total_charges_paid += paid_amount
+				paid_charges[demand.demand_subtype] = flt(
+					paid_charges.get(demand.demand_subtype, 0) - paid_amount
+				)
 				amount_paid -= paid_amount
 
 		return amount_paid
