@@ -234,7 +234,6 @@ class TestLoanRestructure(IntegrationTestCase):
 			restructure_date="2024-04-11",
 			interest_waiver_amount=500,
 			loan_restructure_charges=[
-<<<<<<< HEAD
 				{
 					"charge": "Processing Fee",
 					"capitalize_amount": 6000,
@@ -245,12 +244,16 @@ class TestLoanRestructure(IntegrationTestCase):
 					"capitalize_amount": 2500,
 					"treatment_of_other_charges": "Capitalize",
 				},
-=======
-				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
-				{"charge": "Documentation Charge", "capitalize_amount": 2500, "treatment_of_other_charges": "Capitalize"},
-				{"charge": "Processing Fee", "restructure_charge_amount": 3000, "is_post_restructure_charge": 1},
-				{"charge": "Documentation Charge", "restructure_charge_amount": 1000, "is_post_restructure_charge": 1}
->>>>>>> b83241a2 (feat: add post restructure charge support without existing demand)
+				{
+					"charge": "Processing Fee",
+					"restructure_charge_amount": 3000,
+					"is_post_restructure_charge": 1,
+				},
+				{
+					"charge": "Documentation Charge",
+					"restructure_charge_amount": 1000,
+					"is_post_restructure_charge": 1,
+				},
 			],
 		)
 		loan_restructure.status = "Approved"
@@ -261,7 +264,9 @@ class TestLoanRestructure(IntegrationTestCase):
 			filters={"loan": loan.name, "docstatus": 1, "value_date": "2024-04-11"},
 			pluck="name",
 		)
-		self.assertEqual(len(invoices), 1, "Expected 1 Sales Invoice to be created for post-restructure charges.")
+		self.assertEqual(
+			len(invoices), 1, "Expected 1 Sales Invoice to be created for post-restructure charges."
+		)
 
 		repayments = frappe.db.get_all(
 			"Loan Repayment",
