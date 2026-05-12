@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-05-03 09:54+0000\n"
-"PO-Revision-Date: 2026-05-03 09:54+0000\n"
+"POT-Creation-Date: 2026-05-10 09:58+0000\n"
+"PO-Revision-Date: 2026-05-10 09:58+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -370,8 +370,8 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:160
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:176
-#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:221
-#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:239
+#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:226
+#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:244
 msgid "Against Loan:"
 msgstr ""
 
@@ -819,7 +819,7 @@ msgstr ""
 msgid "BPI Treatment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:223
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:226
 msgid "BPI difference entry"
 msgstr ""
 
@@ -1854,7 +1854,7 @@ msgstr ""
 msgid "Disbursed Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:425
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:513
 msgid "Disbursed Amount cannot be more than {0} as per loan limit or assigned security value"
 msgstr ""
 
@@ -1862,7 +1862,7 @@ msgstr ""
 msgid "Disbursed Amount: {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:420
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:508
 msgid "Disbursed amount cannot be zero"
 msgstr ""
 
@@ -1921,11 +1921,11 @@ msgstr ""
 msgid "Disbursement References"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:675
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:763
 msgid "Disbursement against loan:"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:437
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:525
 msgid "Disbursement amount cannot be greater than available limit amount"
 msgstr ""
 
@@ -1934,7 +1934,7 @@ msgstr ""
 msgid "Disbursement and Repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:432
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:520
 msgid "Disbursement date is out of approved limit dates"
 msgstr ""
 
@@ -3801,7 +3801,7 @@ msgstr ""
 msgid "Loan is a Non Performing Asset"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:282
+#: lending/loan_management/doctype/loan_write_off/loan_write_off.py:287
 msgid "Loan {0} closed"
 msgstr ""
 
@@ -4742,8 +4742,8 @@ msgstr ""
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:214
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:711
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:217
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:799
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr ""
 
@@ -5526,7 +5526,7 @@ msgstr ""
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:395
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:413
 msgid "Repayment Start Date {0} cannot be before Disbursement Date {1}"
 msgstr ""
 
@@ -6194,6 +6194,11 @@ msgstr ""
 #. Label of the traceback (Long Text) field in DocType 'Bulk Repayment Log'
 #: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
 msgid "Traceback"
+msgstr ""
+
+#. Label of the tranche_number (Int) field in DocType 'Loan Disbursement'
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
+msgid "Tranche Number"
 msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:77
