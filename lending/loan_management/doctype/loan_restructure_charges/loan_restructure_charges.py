@@ -19,9 +19,11 @@ class LoanRestructureCharges(Document):
 		charge: DF.Link | None
 		charges_overdue: DF.Currency
 		charges_waiver_amount: DF.Currency
+		is_post_restructure_charge: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		restructure_charge_amount: DF.Currency
 		treatment_of_other_charges: DF.Literal["Capitalize", "Carry Forward"]
 	# end: auto-generated types
 

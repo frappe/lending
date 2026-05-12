@@ -279,6 +279,7 @@ class LoanRestructure(AccountsController):
 			self.restructure_loan()
 
 			if self.restructure_type == "Normal Restructure":
+				self.make_post_restructure_charge_demands()
 				self.update_totals()
 				self.update_security_deposit_amount()
 				self.update_restructure_count()
@@ -466,7 +467,8 @@ class LoanRestructure(AccountsController):
 
 		existing_charges_map = {}
 		for charge_row in self.get("loan_restructure_charges"):
-			existing_charges_map[charge_row.charge] = charge_row
+			if not charge_row.is_post_restructure_charge:
+				existing_charges_map[charge_row.charge] = charge_row
 
 		processed_charges = set()
 
@@ -484,6 +486,8 @@ class LoanRestructure(AccountsController):
 
 		charges_to_remove = []
 		for charge_row in self.get("loan_restructure_charges"):
+			if charge_row.is_post_restructure_charge:
+				continue
 			if charge_row.get("charge") not in processed_charges:
 				charges_to_remove.append(charge_row)
 
@@ -507,6 +511,8 @@ class LoanRestructure(AccountsController):
 
 		table_map = {}
 		for charge_row in self.get("loan_restructure_charges"):
+			if charge_row.is_post_restructure_charge:
+				continue
 			charge_type = charge_row.get("charge")
 			if not charge_type:
 				continue
@@ -537,6 +543,12 @@ class LoanRestructure(AccountsController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		for charge in self.get("loan_restructure_charges"):
+			if charge.is_post_restructure_charge:
+				charge.charges_overdue = 0
+				charge.charges_waiver_amount = 0
+				charge.balance_charges = flt(charge.restructure_charge_amount, precision)
+				continue
+
 			overdue = flt(charge.get("charges_overdue"), precision)
 			capitalize_amount = flt(charge.get("capitalize_amount"), precision)
 
@@ -764,6 +776,8 @@ class LoanRestructure(AccountsController):
 
 	def make_waiver_and_capitalization_for_charges(self):
 		for charge in self.get("loan_restructure_charges"):
+			if charge.is_post_restructure_charge:
+				continue
 			if flt(charge.charges_waiver_amount) > 0:
 				create_loan_repayment(
 					self.loan,
@@ -787,6 +801,28 @@ class LoanRestructure(AccountsController):
 	def set_principal_adjustment_on_restructure(self):
 		if flt(self.principal_overdue) > 0 and flt(self.principal_adjusted) == 0:
 			self.principal_adjusted = flt(self.principal_overdue)
+
+	def make_post_restructure_charge_demands(self):
+		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+			make_sales_invoice_for_charge,
+		)
+
+		post_restructure_charges = [
+			frappe._dict(charge=charge.charge, amount=flt(charge.restructure_charge_amount))
+			for charge in self.get("loan_restructure_charges")
+			if charge.is_post_restructure_charge and flt(charge.restructure_charge_amount) > 0
+		]
+
+		if post_restructure_charges:
+			make_sales_invoice_for_charge(
+				self.loan,
+				"loan_restructure",
+				self.name,
+				self.applicant if self.applicant_type == "Customer" else None,
+				self.restructure_date,
+				self.company,
+				post_restructure_charges,
+			)
 
 	def make_loan_repayment_for_adjustment(self):
 		if self.principal_adjusted:
