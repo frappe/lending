@@ -12,6 +12,7 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 )
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_monthly_repayment_amount,
+	get_repayment_periods,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
@@ -264,3 +265,9 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2026-03-01", repayment_start_date="2026-04-07"
 		)
+<<<<<<< HEAD
+=======
+
+	def test_get_repayment_periods_with_zero_interest(self):
+		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
+>>>>>>> 4d620619 (fix: repayment periods with zero interest)
