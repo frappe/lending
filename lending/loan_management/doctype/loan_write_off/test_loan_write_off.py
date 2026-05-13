@@ -70,4 +70,3 @@ class TestLoanWriteOff(IntegrationTestCase):
 			pluck="name",
 		)
 		self.assertEqual(len(loan_repayments), 2)
-
