@@ -29,9 +29,27 @@ def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amoun
 	if frequency == "One Time":
 		return 1
 
-	monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
+	loan_amount = flt(loan_amount)
+	monthly_repayment_amount = flt(monthly_repayment_amount)
+	rate_of_interest = flt(rate_of_interest)
+
+	if monthly_repayment_amount <= 0:
+		frappe.throw(frappe._("Monthly Repayment Amount must be greater than zero"))
+
+	if rate_of_interest <= 0:
+		# For 0% interest, periods are simple principal/EMI rounds.
+		return math.ceil(loan_amount / monthly_repayment_amount)
+
+	monthly_interest_rate = rate_of_interest / (get_frequency(frequency) * 100)
+	denominator = monthly_repayment_amount - (loan_amount * monthly_interest_rate)
+
+	if denominator <= 0:
+		frappe.throw(
+			frappe._("Monthly Repayment Amount must be greater than periodic interest amount")
+		)
+
 	repayment_periods = math.log(
-		flt(monthly_repayment_amount) / (flt(monthly_repayment_amount) - (loan_amount * monthly_interest_rate)),
+		monthly_repayment_amount / denominator,
 		1 + monthly_interest_rate,
 	)
 
