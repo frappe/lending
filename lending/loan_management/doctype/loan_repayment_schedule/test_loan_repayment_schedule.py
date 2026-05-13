@@ -265,9 +265,6 @@ class TestLoanRepaymentSchedule(IntegrationTestCase):
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2026-03-01", repayment_start_date="2026-04-07"
 		)
-<<<<<<< HEAD
-=======
 
 	def test_get_repayment_periods_with_zero_interest(self):
 		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
->>>>>>> 4d620619 (fix: repayment periods with zero interest)
