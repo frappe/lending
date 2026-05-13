@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import cint, flt, getdate
+from frappe.utils import cint, flt, get_datetime, getdate
 
 import erpnext
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -107,11 +107,14 @@ class LoanWriteOff(AccountsController):
 		self.process_unbooked_interest()
 		self.make_gl_entries()
 
-		frappe.enqueue(
-			self.process_write_off_waivers_and_classification,
-			enqueue_after_commit=True,
-			queue="long",
-		)
+		if not frappe.flags.in_test:
+			frappe.enqueue(
+				self.process_write_off_waivers_and_classification,
+				enqueue_after_commit=True,
+				queue="long",
+			)
+		else:
+			self.process_write_off_waivers_and_classification()
 
 		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
 		self.close_employee_loan()
@@ -589,11 +592,12 @@ def get_suspense_entries(loan, loan_product):
 
 
 def get_write_off_waivers_for_cancel(loan_name, posting_date):
+	posting_datetime = get_datetime(posting_date)
 	return frappe.db.get_all(
 		"Loan Repayment",
 		filters={
 			"against_loan": loan_name,
-			"value_date": ("<=", posting_date),
+			"value_date": ("<=", posting_datetime),
 			"docstatus": 1,
 			"is_write_off_waiver": 1,
 		},
