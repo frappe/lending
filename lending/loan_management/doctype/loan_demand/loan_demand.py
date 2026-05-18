@@ -101,7 +101,18 @@ class LoanDemand(LoanController):
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
-		self.make_gl_entries(cancel=1)
+
+		# Reverse GL Entries update in the background job to avoid timeout issues during demand cancellation
+		if not frappe.flags.in_test:
+			frappe.enqueue(
+				self.make_gl_entries,
+				cancel=1,
+				queue="long",
+				enqueue_after_commit=True,
+			)
+		else:
+			self.make_gl_entries(cancel=1)
+
 		self.update_repayment_schedule(cancel=1)
 		self.make_credit_note()
 
