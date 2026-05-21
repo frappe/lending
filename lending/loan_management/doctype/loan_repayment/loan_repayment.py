@@ -723,18 +723,7 @@ class LoanRepayment(LoanController):
 			"Loan Repayment Repost",
 			"Loan Adjustment",
 		]
-
-		# Reverse GL Entries update in the background job to avoid timeout issues during cancellation
-		if not frappe.flags.in_test:
-			frappe.enqueue(
-				self.make_gl_entries,
-				cancel=1,
-				queue="long",
-				enqueue_after_commit=True,
-			)
-		else:
-			self.make_gl_entries(cancel=1)
-
+		self.make_gl_entries(cancel=1)
 		self.post_suspense_entries(cancel=1)
 
 		if not self.is_write_off_waiver:

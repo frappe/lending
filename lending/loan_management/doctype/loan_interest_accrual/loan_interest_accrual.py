@@ -145,16 +145,7 @@ class LoanInterestAccrual(LoanController):
 				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
 
 	def on_cancel(self):
-		# Reverse GL Entries update in the background job to avoid timeout issues during accrual cancellation
-		if not frappe.flags.in_test:
-			frappe.enqueue(
-				self.make_gl_entries,
-				cancel=1,
-				queue="long",
-				enqueue_after_commit=True,
-			)
-		else:
-			self.make_gl_entries(cancel=1)
+		self.make_gl_entries(cancel=1)
 
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
