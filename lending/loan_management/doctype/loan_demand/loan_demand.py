@@ -107,7 +107,6 @@ class LoanDemand(LoanController):
 			self.db_set("cancel_gl_pending", 1)
 		else:
 			self.make_gl_entries(cancel=1)
-			self.db_set("cancel_gl_pending", 0)
 
 		self.update_repayment_schedule(cancel=1)
 		self.make_credit_note()

@@ -152,7 +152,6 @@ class LoanInterestAccrual(LoanController):
 			self.db_set("cancel_gl_pending", 1)
 		else:
 			self.make_gl_entries(cancel=1)
-			self.db_set("cancel_gl_pending", 0)
 
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
