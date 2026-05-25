@@ -393,9 +393,12 @@ def process_cancelled_documents(doctype, title):
 	for row in rows:
 		try:
 			docname = row.name
-			document = frappe.get_doc(doctype, docname)
+			document = frappe.get_doc(doctype, docname, for_update=True)
+			if not document.cancel_gl_pending:
+				frappe.db.rollback()
+				continue
 			document.make_gl_entries(cancel=1)
-			document.db_set("cancel_gl_pending", 0, update_modified=False)
+			document.db_set("cancel_gl_pending", 0)
 			frappe.db.commit()
 		except Exception:
 			frappe.db.rollback()
