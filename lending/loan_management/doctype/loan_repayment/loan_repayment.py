@@ -153,7 +153,11 @@ class LoanRepayment(AccountsController):
 			else:
 				frappe.throw(
 					_(
+<<<<<<< HEAD
 						"Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"
+=======
+						"Payable Charges can only be added for Charge Payment, or for Charges Waiver/Charges Capitalization/Principal Capitalization during Loan Restructure"
+>>>>>>> 02cace56 (test: update testcase)
 					)
 				)
 
