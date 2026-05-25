@@ -12,6 +12,7 @@ def execute():
 					"fieldtype": "Check",
 					"insert_after": "loan_repayment",
 					"read_only": 1,
+					"print_hide": 1,
 				}
 			]
 		}
