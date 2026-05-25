@@ -257,12 +257,15 @@ class TestLoanRestructure(IntegrationTestCase):
 			pluck="repayment_type",
 		)
 
-		self.assertEqual(len(repayments), 7)
+		self.assertEqual(len(repayments), 8)
 
 		counts = Counter(repayments)
 
 		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
 		self.assertEqual(counts.get("Charges Waiver", 0), 1)
+
+		sales_invoice = frappe.db.get_value("Sales Invoice", {"loan": loan.name, "docstatus": 1, "value_date": "2024-04-11"}, "outstanding_amount")
+		self.assertEqual(flt(sales_invoice), 0, "Expected the Sales Invoice for post-restructure charges to be fully paid.")
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")

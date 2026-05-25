@@ -124,7 +124,7 @@ class LoanRepayment(LoanController):
 
 		charges = None
 		if self.get("payable_charges"):
-			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
+			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization") and self.loan_restructure):
 				charges = [d.get("charge_code") for d in self.get("payable_charges")]
 			else:
 				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
@@ -2019,7 +2019,9 @@ class LoanRepayment(LoanController):
 				)
 			return
 
-		if self.repayment_type == "Principal Capitalization" and self.loan_restructure:
+		if self.repayment_type == "Principal Capitalization" and self.loan_restructure and not any(
+			d.sales_invoice for d in self.get("repayment_details")
+		):
 			return
 
 		if cancel:
@@ -2346,6 +2348,7 @@ class LoanRepayment(LoanController):
 			"Interest Capitalization": "loan_account",
 			"Penalty Capitalization": "loan_account",
 			"Charges Capitalization": "loan_account",
+			"Principal Capitalization": "loan_account",
 		}
 
 		if self.repayment_type in (

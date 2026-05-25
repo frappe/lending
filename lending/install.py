@@ -31,6 +31,14 @@ LOAN_CUSTOM_FIELDS = {
 			"print_hide": 1,
 		},
 		{
+			"fieldname": "is_post_restructure_charge",
+			"label": "Is Post Restructure Charge",
+			"fieldtype": "Check",
+			"insert_after": "loan_repayment",
+			"read_only": 1,
+			"print_hide": 1,
+		},
+		{
 			"fieldname": "value_date",
 			"fieldtype": "Date",
 			"label": "Value Date",
