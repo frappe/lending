@@ -901,18 +901,19 @@ def create_loan_repayment(
 
 	if charge_code and waiver_amount > 0:
 <<<<<<< HEAD
+<<<<<<< HEAD
 		repayment.append("payable_charges", {"charge_code": charge_code, "amount": waiver_amount})
 =======
 		# Check if charge_code is a list or a single value
+=======
+>>>>>>> 5d749367 (fix: remove comment)
 		if isinstance(charge_code, list):
-			# Handle list of charges (from post_restructure_charges)
 			for charge in charge_code:
 				repayment.append("payable_charges", {
 					"charge_code": charge.get("charge"),
 					"amount": charge.get("amount")
 				})
 		else:
-			# Handle single charge code (string from make_waiver_and_capitalization_for_charges)
 			repayment.append("payable_charges", {
 				"charge_code": charge_code,
 				"amount": waiver_amount
