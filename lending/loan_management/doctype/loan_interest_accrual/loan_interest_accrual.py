@@ -43,6 +43,7 @@ class LoanInterestAccrual(LoanController):
 		applicant: DF.DynamicLink | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		base_amount: DF.Currency
+		cancel_gl_pending: DF.Check
 		company: DF.Link | None
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
@@ -145,7 +146,13 @@ class LoanInterestAccrual(LoanController):
 				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
 
 	def on_cancel(self):
-		self.make_gl_entries(cancel=1)
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+
+		if self.queue_cancel_gl() and not frappe.flags.in_test:
+			self.db_set("cancel_gl_pending", 1)
+		else:
+			self.make_gl_entries(cancel=1)
+			self.db_set("cancel_gl_pending", 0)
 
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
@@ -157,7 +164,8 @@ class LoanInterestAccrual(LoanController):
 			doc.flags.ignore_links = True
 			doc.cancel()
 
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+	def queue_cancel_gl(self):
+		return frappe.db.get_value("Company", self.company, "enable_interest_cancel_gl_queue")
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if not loan_accounting_enabled(self.company):

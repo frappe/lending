@@ -22,6 +22,7 @@ class LoanDemand(LoanController):
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink | None
 		applicant_type: DF.Link | None
+		cancel_gl_pending: DF.Check
 		company: DF.Link | None
 		cost_center: DF.Link | None
 		demand_amount: DF.Currency
@@ -101,9 +102,18 @@ class LoanDemand(LoanController):
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
-		self.make_gl_entries(cancel=1)
+
+		if self.queue_cancel_gl() and not frappe.flags.in_test:
+			self.db_set("cancel_gl_pending", 1)
+		else:
+			self.make_gl_entries(cancel=1)
+			self.db_set("cancel_gl_pending", 0)
+
 		self.update_repayment_schedule(cancel=1)
 		self.make_credit_note()
+
+	def queue_cancel_gl(self):
+		return frappe.db.get_value("Company", self.company, "enable_demand_cancel_gl_queue")
 
 	def make_credit_note(self):
 		if not self.demand_type == "Charges":

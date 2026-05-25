@@ -96,11 +96,25 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_column_break",
 		},
 		{
+			"fieldname": "enable_demand_cancel_gl_queue",
+			"label": "Enable Demand Cancel GL Queue",
+			"fieldtype": "Check",
+			"default": "1",
+			"insert_after": "enable_loan_accounting",
+		},
+		{
+			"fieldname": "enable_interest_cancel_gl_queue",
+			"label": "Enable Interest Cancel GL Queue",
+			"fieldtype": "Check",
+			"default": "1",
+			"insert_after": "enable_demand_cancel_gl_queue",
+		},
+		{
 			"fieldname": "collection_offset_logic_based_on",
 			"label": "Collection Offset Logic Based On",
 			"fieldtype": "Select",
 			"options": "NPA Flag\nDays Past Due",
-			"insert_after": "enable_loan_accounting",
+			"insert_after": "enable_interest_cancel_gl_queue",
 		},
 		{
 			"fieldname": "days_past_due_threshold",

@@ -367,3 +367,41 @@ def create_charge_master(charge_type):
 				"is_stock_item": 0,
 			}
 		).insert()
+
+
+def process_cancelled_gl_entries():
+	process_cancelled_documents(
+		doctype="Loan Demand",
+		title="Loan Demand Cancel GL Queue Error",
+	)
+
+	process_cancelled_documents(
+		doctype="Loan Interest Accrual",
+		title="Loan Interest Accrual Cancel GL Queue Error",
+	)
+
+
+def process_cancelled_documents(doctype, title):
+	doc = frappe.qb.DocType(doctype)
+	rows = (
+		frappe.qb.from_(doc)
+		.select(doc.name)
+		.where((doc.docstatus == 2) & (doc.cancel_gl_pending == 1))
+		.run(as_dict=True)
+	)
+
+	for row in rows:
+		try:
+			docname = row.name
+			document = frappe.get_doc(doctype, docname)
+			document.make_gl_entries(cancel=1)
+			document.db_set("cancel_gl_pending", 0, update_modified=False)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(
+				title=title,
+				message=frappe.get_traceback(),
+				reference_doctype=doctype,
+				reference_name=row.name,
+			)
