@@ -1538,8 +1538,12 @@ class LoanRepayment(LoanController):
 		amount_paid = self.amount_paid
 
 		if self.repayment_type == "Charge Payment" or (
-			self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization")
+			self.repayment_type in ("Charges Waiver", "Charges Capitalization")
 			and self.loan_restructure
+		) or (
+			self.repayment_type == "Principal Capitalization"
+			and self.loan_restructure
+			and self.get("payable_charges")
 		):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
