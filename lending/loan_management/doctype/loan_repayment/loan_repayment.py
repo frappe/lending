@@ -1738,15 +1738,16 @@ class LoanRepayment(LoanController):
 				if self.loan_disbursement:
 					filters["loan_disbursement"] = self.loan_disbursement
 
-				monthly_repayment_amount = flt(
-					frappe.db.get_value(
-						"Loan Repayment Schedule",
-						filters,
-						"monthly_repayment_amount",
-					),
-					precision
+				monthly_repayment_amount = frappe.db.get_value(
+					"Loan Repayment Schedule",
+					filters,
+					"monthly_repayment_amount",
 				)
 
+				if not monthly_repayment_amount:
+					frappe.throw(_("Cannot process Advance Payment: No active Loan Repayment Schedule found for this loan"))
+
+				monthly_repayment_amount = flt(monthly_repayment_amount, precision)
 				amount_paid = flt(amount_paid, precision)
 
 				if (amount_paid < monthly_repayment_amount) or (
