@@ -37,6 +37,8 @@
   {
    "fieldname": "loan",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan",
    "options": "Loan"
   },
@@ -47,8 +49,11 @@
   },
   {
    "fieldname": "status",
-   "fieldtype": "Data",
-   "label": "Status"
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nSuccess\nFailure"
   },
   {
    "fieldname": "traceback",
@@ -63,6 +68,8 @@
   {
    "fieldname": "trace_id",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Trace ID"
   },
   {
@@ -83,19 +90,22 @@
   {
    "fieldname": "loan_disbursement",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Loan Disbursement",
    "options": "Loan Disbursement"
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-19 01:47:22.826162",
+ "modified": "2026-04-24 10:39:42.864622",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Bulk Repayment Log",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -115,5 +125,14 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Success"
+  },
+  {
+   "color": "Red",
+   "title": "Failure"
+  }
+ ]
 }
