@@ -1547,11 +1547,20 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Charge Payment" or (
 <<<<<<< HEAD
+<<<<<<< HEAD
 			self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure
 =======
 			self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization")
 			and self.loan_restructure
 >>>>>>> 6713d25c (fix: add Principal Capitalization in allocate_amounts)
+=======
+			self.repayment_type in ("Charges Waiver", "Charges Capitalization")
+			and self.loan_restructure
+		) or (
+			self.repayment_type == "Principal Capitalization"
+			and self.loan_restructure
+			and self.get("payable_charges")
+>>>>>>> 53baa994 (fix: add Principal Capitalization in allocate_amounts)
 		):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
