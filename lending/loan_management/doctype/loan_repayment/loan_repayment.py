@@ -1537,7 +1537,10 @@ class LoanRepayment(LoanController):
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
 
-		if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
+		if self.repayment_type == "Charge Payment" or (
+			self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization")
+			and self.loan_restructure
+		):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
