@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from lending.tests.test_utils import (
 	create_loan,
@@ -11,9 +10,10 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanDisbursement(IntegrationTestCase):
+class TestLoanDisbursement(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()

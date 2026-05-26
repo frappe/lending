@@ -1,8 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-import unittest
-
 import frappe
 from frappe.utils import add_days, add_to_date, flt, get_datetime, nowdate
 
@@ -28,9 +26,10 @@ from lending.tests.test_utils import (
 	master_init,
 	update_loan_security_price,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanSecurityShortfall(unittest.TestCase):
+class TestLoanSecurityShortfall(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()

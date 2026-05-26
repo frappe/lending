@@ -4,7 +4,6 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests import IntegrationTestCase
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -66,9 +65,10 @@ from lending.tests.test_utils import (
 	set_loan_settings_in_company,
 	setup_loan_demand_offset_order,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoan(IntegrationTestCase):
+class TestLoan(LendingTestSuite):
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
