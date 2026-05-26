@@ -1738,14 +1738,19 @@ class LoanRepayment(LoanController):
 				if self.loan_disbursement:
 					filters["loan_disbursement"] = self.loan_disbursement
 
-				monthly_repayment_amount = frappe.db.get_value(
-					"Loan Repayment Schedule",
-					filters,
-					"monthly_repayment_amount",
+				monthly_repayment_amount = flt(
+					frappe.db.get_value(
+						"Loan Repayment Schedule",
+						filters,
+						"monthly_repayment_amount",
+					),
+					precision
 				)
 
-				if (flt(amount_paid, precision) < monthly_repayment_amount) or (
-					flt(amount_paid, precision) > (2 * monthly_repayment_amount)
+				amount_paid = flt(amount_paid, precision)
+
+				if (amount_paid < monthly_repayment_amount) or (
+					amount_paid > (2 * monthly_repayment_amount)
 				):
 					frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
