@@ -461,8 +461,11 @@ def create_loan_security():
 				"loan_security_name": "Test Security 1",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_to_value_ratio": 50,
 			}
 		).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Loan Security", "Test Security 1", "loan_to_value_ratio", 50)
 
 	if not frappe.db.exists("Loan Security", "Test Security 2"):
 		frappe.get_doc(
@@ -473,8 +476,11 @@ def create_loan_security():
 				"loan_security_name": "Test Security 2",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_to_value_ratio": 50,
 			}
 		).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 50)
 
 
 def make_loan_disbursement_entry(
@@ -1052,6 +1058,7 @@ def create_loan_security_release(applicant, applicant_type, securities, loan=Non
 	loan_security_release.applicant = applicant
 	loan_security_release.applicant_type = applicant_type
 	loan_security_release.loan = loan
+	loan_security_release.company = "_Test Company"
 
 	for security in securities:
 		loan_security_release.append("securities", {
