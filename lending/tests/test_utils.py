@@ -324,6 +324,7 @@ def create_loan_product(
 	collection_offset_sequence_for_sub_standard_asset=None,
 	collection_offset_sequence_for_written_off_asset=None,
 	collection_offset_sequence_for_settlement_collection=None,
+	no_interest_till_month_end=0,
 ):
 
 	loan_product = frappe.get_all("Loan Product", filters={"product_name": product_name}, limit=1)
@@ -338,6 +339,7 @@ def create_loan_product(
 	loan_product_doc.is_term_loan = is_term_loan
 	loan_product_doc.repayment_schedule_type = repayment_schedule_type
 	loan_product_doc.cyclic_day_of_the_month = cyclic_day_of_the_month
+	loan_product_doc.no_interest_till_month_end = no_interest_till_month_end
 	loan_product_doc.maximum_loan_amount = maximum_loan_amount
 	loan_product_doc.rate_of_interest = rate_of_interest
 	loan_product_doc.penalty_interest_rate = penalty_interest_rate
@@ -912,6 +914,10 @@ def init_loan_products():
 		["Term Loan Product 5", 3000000, 25, "Line of Credit"],
 	]
 
+	loc_loans_no_interest_till_month_end = [
+		["Term Loan Product 6", 3000000, 25, "Line of Credit"],
+	]
+
 	for loan_product in simple_terms_loans:
 		create_loan_product(
 			loan_product[0],
@@ -938,6 +944,16 @@ def init_loan_products():
 			loan_product[1],
 			loan_product[2],
 			repayment_schedule_type=loan_product[3],
+		)
+
+	for loan_product in loc_loans_no_interest_till_month_end:
+		create_loan_product(
+			loan_product[0],
+			loan_product[0],
+			loan_product[1],
+			loan_product[2],
+			repayment_schedule_type=loan_product[3],
+			no_interest_till_month_end=1,
 		)
 
 	for loan_product in pro_rated_term_loans:

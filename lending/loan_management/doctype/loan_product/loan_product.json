@@ -21,6 +21,7 @@
   "cyclic_day_of_the_month",
   "repayment_date_on",
   "repayment_schedule_type",
+  "no_interest_till_month_end",
   "days_past_due_threshold_for_npa",
   "is_term_loan",
   "validate_normal_repayment",
@@ -198,6 +199,14 @@
    "label": "Repayment Schedule Type",
    "mandatory_depends_on": "is_term_loan",
    "options": "\nMonthly as per repayment start date\nPro-rated calendar months\nMonthly as per cycle date\nLine of Credit\nFlat Interest Rate"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.repayment_schedule_type == \"Line of Credit\"",
+   "description": "If enabled, no interest will be accrued from each disbursement date till the end of the calendar month. Interest accrual will begin from the 1st of the following month.",
+   "fieldname": "no_interest_till_month_end",
+   "fieldtype": "Check",
+   "label": "No Interest Accrual Till Month End"
   },
   {
    "depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
