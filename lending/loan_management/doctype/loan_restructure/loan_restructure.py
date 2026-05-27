@@ -838,7 +838,6 @@ class LoanRestructure(AccountsController):
 				self.restructure_date,
 				self.company,
 				post_restructure_charges,
-				is_post_restructure_charge=True,
 			)
 			if sales_invoice:
 				create_loan_repayment(

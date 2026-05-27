@@ -738,7 +738,7 @@ class LoanDisbursement(AccountsController):
 
 
 def make_sales_invoice_for_charge(
-	loan, reference_fieldname, reference_doctype, applicant, disbursement_date, company, charges, is_post_restructure_charge=False
+	loan, reference_fieldname, reference_doctype, applicant, disbursement_date, company, charges
 ):
 	if not charges:
 		return
@@ -780,7 +780,6 @@ def make_sales_invoice_for_charge(
 	if reference_doctype == "Loan Disbursement":
 		si.debit_to = receivable_account
 	si.ignore_default_payment_terms_template = 1
-	si.is_post_restructure_charge = is_post_restructure_charge
 
 	si.save()
 	si.submit()
