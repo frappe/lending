@@ -20,7 +20,7 @@ def generate_demand(self, method=None):
 		total_demand_amount = 0
 		total_items = len(self.get("items") or [])
 		for i, item in enumerate(self.get("items")):
-			tax_amount = get_tax_amount(self, item.name)
+			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
 			demand_amount = item.base_net_amount + flt(tax_amount)
 			total_demand_amount += demand_amount
 			if i == total_items - 1:
@@ -48,7 +48,7 @@ def update_waived_amount_in_demand(self, method=None):
 
 	if self.get("is_return") and not self.get("loan_repayment"):
 		for item in self.get("items"):
-			tax_amount = get_tax_amount(self, item.name)
+			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
 			waived_amount = flt(abs(item.base_net_amount + tax_amount), precision)
 
 			demand_details = frappe.db.get_value(
@@ -190,13 +190,14 @@ def cancel_demand(self, method=None):
 			doc.cancel()
 
 
-def get_tax_amount(doc, item_row_name):
-	"""Get tax amount for a specific item row from item_wise_tax_details table"""
+def get_tax_amount(taxes, item_code):
 	tax_amount = 0
-	item_wise_tax_details = doc.get("item_wise_tax_details") or []
-	for tax_detail in item_wise_tax_details:
-		if tax_detail.item_row == item_row_name:
-			tax_amount += flt(tax_detail.amount)
+	for tax in taxes:
+		if tax.item_wise_tax_detail:
+			item_wise_tax_detail = frappe.parse_json(tax.item_wise_tax_detail)
+			if item_wise_tax_detail.get(item_code):
+				tax_amount += flt(item_wise_tax_detail.get(item_code)[1])
+
 	return tax_amount
 
 
