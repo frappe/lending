@@ -770,6 +770,7 @@ def make_accrual_interest_entry_for_loans(
 			loan_doc.loan_product,
 			loan_doc.penalty_charges_rate,
 			loan_doc.repayment_schedule_type,
+			loan_doc.no_interest_till_month_end,
 		)
 		.where(loan_doc.docstatus == 1)
 		.where(loan_doc.status.isin(["Disbursed", "Partially Disbursed", "Active", "Written Off"]))
@@ -925,6 +926,12 @@ def get_last_accrual_date(
 				final_date = dates.moratorium_end_date
 			else:
 				final_date = dates.posting_date
+
+			no_interest_till_month_end = frappe.db.get_value(
+				"Loan", loan, "no_interest_till_month_end", cache=True
+			)
+			if no_interest_till_month_end:
+				final_date = add_days(get_last_day(final_date), 1)
 
 			return final_date
 
