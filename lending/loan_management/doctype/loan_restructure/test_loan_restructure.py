@@ -261,7 +261,6 @@ class TestLoanRestructure(IntegrationTestCase):
 				"loan": loan.name,
 				"docstatus": 1,
 				"value_date": "2024-04-11",
-				"is_post_restructure_charge": 1,
 			},
 			["outstanding_amount", "status"],
 			as_dict=True,
