@@ -277,7 +277,6 @@ class TestLoanRestructure(LendingTestSuite):
 			posting_date="2025-10-09",
 			rate_of_interest=27,
 			applicant_type="Customer",
-			penalty_charges_rate=36,
 		)
 
 		loan.submit()
@@ -295,7 +294,6 @@ class TestLoanRestructure(LendingTestSuite):
 			restructure_date="2026-02-04",
 			interest_waiver_amount=1001,
 			unaccrued_interest_waiver=1004,
-			penal_waiver_amount=1002,
 		)
 
 		loan_restructure.status = "Approved"
@@ -346,7 +344,6 @@ class TestLoanRestructure(LendingTestSuite):
 			posting_date="2024-09-19",
 			rate_of_interest=24,
 			applicant_type="Customer",
-			penalty_charges_rate=36,
 		)
 
 		loan.submit()
