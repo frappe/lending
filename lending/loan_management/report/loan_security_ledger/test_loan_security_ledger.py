@@ -20,7 +20,6 @@ class TestLoanSecurityLedger(IntegrationTestCase):
 	def setUp(self):
 		for dt in ["Unpledge", "Pledge", "Loan Security Release", "Loan Security Assignment"]:
 			frappe.db.delete(dt)
-		frappe.db.commit()
 
 		master_init()
 		init_customers()
