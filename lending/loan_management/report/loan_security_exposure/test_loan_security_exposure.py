@@ -40,9 +40,17 @@ class TestLoanSecurityExposure(IntegrationTestCase):
 		report = execute({"company": "_Test Company"})
 		columns, data = report
 
-		self.assertTrue(len(columns) > 0)
+		required_columns = {
+			"loan_security",
+			"loan_security_type",
+			"total_qty",
+			"portfolio_percent",
+			"pledged_applicant_count",
+		}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))
 		self.assertTrue(data)
-		row = next(item for item in data if item.get("loan_security") == "Test Security 1")
+		row = next((item for item in data if item.get("loan_security") == "Test Security 1"), None)
+		self.assertIsNotNone(row, "Expected Test Security 1 row in loan security exposure report")
 		expected_data = {
 			"loan_security": "Test Security 1",
 			"loan_security_type": "Stock",
@@ -55,4 +63,11 @@ class TestLoanSecurityExposure(IntegrationTestCase):
 
 	def test_loan_security_exposure_defines_columns(self):
 		columns = get_columns({"company": "_Test Company"})
-		self.assertGreater(len(columns), 5)
+		required_columns = {
+			"loan_security",
+			"loan_security_type",
+			"total_qty",
+			"portfolio_percent",
+			"pledged_applicant_count",
+		}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))

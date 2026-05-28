@@ -53,7 +53,7 @@ class TestPastCashflowReport(IntegrationTestCase):
 		columns, data = report
 
 		self.assertEqual(columns[0].get("fieldname"), "loan")
-		self.assertTrue(data)
+		self.assertEqual(len(data), 1)
 		expected_data = {
 			"loan": loan.name,
 			"applicant": "_Test Loan Customer",
@@ -61,4 +61,4 @@ class TestPastCashflowReport(IntegrationTestCase):
 		}
 		for key, value in expected_data.items():
 			self.assertEqual(data[0].get(key), value)
-		self.assertGreaterEqual(frappe.utils.flt(data[0].get("principal_amount")), 0)
+		self.assertGreater(frappe.utils.flt(data[0].get("principal_amount")), 0)

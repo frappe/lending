@@ -36,10 +36,15 @@ class TestLoanSecurityLedger(IntegrationTestCase):
 		report = execute({"loan": self.loan.name, "applicant": "_Test Loan Customer"})
 		columns, data = report
 
-		self.assertTrue(len(columns) >= 6)
+		required_columns = {"loan", "doctype", "loan_security", "loan_security_type", "qty"}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))
 		self.assertTrue(data)
 
-		assignment_row = next(row for row in data if row.get("doctype") == "Loan Security Assignment")
+		assignment_row = next(
+			(row for row in data if row.get("doctype") == "Loan Security Assignment"),
+			None,
+		)
+		self.assertIsNotNone(assignment_row, "Expected Loan Security Assignment row in ledger report")
 		expected_data = {
 			"doctype": "Loan Security Assignment",
 			"loan": self.loan.name,

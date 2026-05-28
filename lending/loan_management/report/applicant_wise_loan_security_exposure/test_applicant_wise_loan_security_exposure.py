@@ -36,25 +36,42 @@ class TestApplicantWiseLoanSecurityExposure(IntegrationTestCase):
 		self.assertIsInstance(current_pledges, dict)
 		self.assertIsInstance(total_value_map, dict)
 		self.assertIsInstance(applicant_type_map, dict)
-		self.assertTrue(any(key[0] == "_Test Loan Customer" for key in current_pledges))
+		security_key = ("_Test Loan Customer", "Test Security 1")
+		self.assertIn(security_key, current_pledges)
+		self.assertEqual(current_pledges.get(security_key), 4000.0)
 
 	def test_applicant_wise_loan_security_exposure_returns_expected_row(self):
 		report = execute({"company": "_Test Company"})
 		columns, data = report
 
-		self.assertTrue(len(columns) > 0)
+		required_columns = {
+			"applicant_type",
+			"applicant_name",
+			"loan_security",
+			"total_qty",
+			"portfolio_percent",
+		}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))
 		self.assertTrue(data)
-		row = next(item for item in data if item.get("applicant_name") == "_Test Loan Customer")
+		row = next((item for item in data if item.get("applicant_name") == "_Test Loan Customer"), None)
+		self.assertIsNotNone(row, "Expected row for created applicant in exposure report")
 		expected_data = {
 			"applicant_type": "Customer",
 			"applicant_name": "_Test Loan Customer",
 			"loan_security": "Test Security 1",
 			"total_qty": 4000.0,
-			"portfolio_percent": 100.0,
 		}
 		for key, value in expected_data.items():
 			self.assertEqual(row.get(key), value)
+		self.assertAlmostEqual(row.get("portfolio_percent"), 100.0, places=2)
 
 	def test_applicant_wise_loan_security_exposure_defines_columns(self):
 		columns = get_columns({"company": "_Test Company"})
-		self.assertGreater(len(columns), 5)
+		required_columns = {
+			"applicant_type",
+			"applicant_name",
+			"loan_security",
+			"total_qty",
+			"portfolio_percent",
+		}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))

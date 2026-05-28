@@ -37,9 +37,18 @@ class TestLoanSecurityStatus(IntegrationTestCase):
 		report = execute({"company": "_Test Company", "applicant": "_Test Loan Customer"})
 		columns, data = report
 
-		self.assertTrue(len(columns) > 0)
+		required_columns = {
+			"loan_security_assignment",
+			"loan",
+			"applicant",
+			"status",
+			"loan_security",
+			"qty",
+		}
+		self.assertTrue(required_columns.issubset({c.get("fieldname") for c in columns}))
 		self.assertTrue(data)
-		row = next(item for item in data if item.get("loan") == self.loan.name)
+		row = next((item for item in data if item.get("loan") == self.loan.name), None)
+		self.assertIsNotNone(row, "Expected row for created loan in loan security status report")
 		expected_data = {
 			"loan": self.loan.name,
 			"applicant": "_Test Loan Customer",

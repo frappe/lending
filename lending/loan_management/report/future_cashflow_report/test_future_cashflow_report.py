@@ -59,12 +59,12 @@ class TestFutureCashflowReport(IntegrationTestCase):
 
 		self.assertEqual(columns[0].get("fieldname"), "loan")
 		self.assertTrue(data)
-		first_row = data[0]
 		expected_data = {
 			"loan": loan.name,
 			"loan_disbursement": disb.name,
 			"loan_product": "Term Loan Product 4",
 		}
-		for key, value in expected_data.items():
-			self.assertEqual(first_row.get(key), value)
+		for row in data:
+			for key, value in expected_data.items():
+				self.assertEqual(row.get(key), value)
 		self.assertTrue(all(str(row.get("payment_date")) >= "2024-01-01" for row in data))
