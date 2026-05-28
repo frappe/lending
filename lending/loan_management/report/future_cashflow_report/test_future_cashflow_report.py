@@ -1,5 +1,4 @@
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from lending.loan_management.report.future_cashflow_report.future_cashflow_report import (
 	execute,
@@ -12,9 +11,10 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestFutureCashflowReport(IntegrationTestCase):
+class TestFutureCashflowReport(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()

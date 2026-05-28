@@ -1,13 +1,12 @@
-from frappe.tests import IntegrationTestCase
-
 from lending.loan_management.report.alm_audit_report.alm_audit_report import (
 	get_ageing_bucket,
 	get_ageing_map,
 	get_columns,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestALMAuditReport(IntegrationTestCase):
+class TestALMAuditReport(LendingTestSuite):
 	def test_alm_audit_report_gets_ageing_bucket(self):
 		bucket = get_ageing_bucket("2024-01-31", "2024-01-31")
 		self.assertEqual(bucket, "Overdue")

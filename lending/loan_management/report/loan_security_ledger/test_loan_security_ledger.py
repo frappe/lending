@@ -1,5 +1,4 @@
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from lending.loan_management.report.loan_security_ledger.loan_security_ledger import (
@@ -14,9 +13,10 @@ from lending.tests.test_utils import (
 	init_customers,
 	master_init,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanSecurityLedger(IntegrationTestCase):
+class TestLoanSecurityLedger(LendingTestSuite):
 	def setUp(self):
 		for dt in ["Unpledge", "Pledge", "Loan Security Release", "Loan Security Assignment"]:
 			frappe.db.delete(dt)

@@ -1,5 +1,3 @@
-from frappe.tests import IntegrationTestCase
-
 from lending.loan_management.report.loan_outstanding_report.loan_outstanding_report import (
 	execute,
 	get_chart_data,
@@ -12,9 +10,10 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanOutstandingReport(IntegrationTestCase):
+class TestLoanOutstandingReport(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()
