@@ -195,7 +195,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
 
-		sales_invoice = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "Sales Invoice",
 				"customer": "_Test Customer 1",
@@ -212,10 +212,9 @@ class TestLoanRestructure(LendingTestSuite):
 					{"item_code": "Documentation Charge", "qty": 1, "rate": 3000},
 				],
 			}
-		)
-		sales_invoice.submit()
+		).submit()
 
-		sales_invoice = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "Sales Invoice",
 				"customer": "_Test Customer 1",
@@ -227,8 +226,7 @@ class TestLoanRestructure(LendingTestSuite):
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 2000}],
 			}
-		)
-		sales_invoice.submit()
+		).submit()
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
@@ -244,25 +242,31 @@ class TestLoanRestructure(LendingTestSuite):
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
 
-		invoices = frappe.db.get_all(
-			"Sales Invoice",
-			filters={"loan": loan.name, "docstatus": 1, "value_date": "2024-04-11"},
-			pluck="name",
-		)
-		self.assertEqual(len(invoices), 1, "Expected 1 Sales Invoice to be created for post-restructure charges.")
-
 		repayments = frappe.db.get_all(
 			"Loan Repayment",
 			filters={"loan_restructure": loan_restructure.name, "docstatus": 1},
 			pluck="repayment_type",
 		)
 
-		self.assertEqual(len(repayments), 7)
+		self.assertEqual(len(repayments), 8)
 
 		counts = Counter(repayments)
 
 		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
 		self.assertEqual(counts.get("Charges Waiver", 0), 1)
+
+		sales_invoice = frappe.db.get_value(
+			"Sales Invoice",
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"value_date": "2024-04-11",
+			},
+			["outstanding_amount", "status"],
+			as_dict=True,
+		)
+		self.assertEqual(flt(sales_invoice.outstanding_amount), 0, "Expected the Sales Invoice for post-restructure charges to be fully paid.")
+		self.assertEqual(sales_invoice.status, "Paid", "Expected the Sales Invoice for post-restructure charges to have status 'Paid'.")
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
