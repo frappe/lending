@@ -846,7 +846,7 @@ class LoanRestructure(AccountsController):
 					"Principal Capitalization",
 					sales_invoice.grand_total,
 					restructure_name=self.name,
-					charge_code=post_restructure_charges
+					charge_code=post_restructure_charges,
 				)
 
 	def make_loan_repayment_for_adjustment(self):
@@ -899,25 +899,13 @@ def create_loan_repayment(
 	repayment.loan_disbursement = loan_disbursement
 
 	if charge_code and waiver_amount > 0:
-<<<<<<< HEAD
-<<<<<<< HEAD
-		repayment.append("payable_charges", {"charge_code": charge_code, "amount": waiver_amount})
-=======
-		# Check if charge_code is a list or a single value
-=======
->>>>>>> 5d749367 (fix: remove comment)
 		if isinstance(charge_code, list):
 			for charge in charge_code:
-				repayment.append("payable_charges", {
-					"charge_code": charge.get("charge"),
-					"amount": charge.get("amount")
-				})
+				repayment.append(
+					"payable_charges", {"charge_code": charge.get("charge"), "amount": charge.get("amount")}
+				)
 		else:
-			repayment.append("payable_charges", {
-				"charge_code": charge_code,
-				"amount": waiver_amount
-			})
->>>>>>> d005f2b3 (fix: post restructure charges capitalization)
+			repayment.append("payable_charges", {"charge_code": charge_code, "amount": waiver_amount})
 
 	repayment.save()
 	repayment.submit()

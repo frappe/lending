@@ -257,18 +257,6 @@ class TestLoanRestructure(IntegrationTestCase):
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
 
-<<<<<<< HEAD
-		invoices = frappe.db.get_all(
-			"Sales Invoice",
-			filters={"loan": loan.name, "docstatus": 1, "value_date": "2024-04-11"},
-			pluck="name",
-		)
-		self.assertEqual(
-			len(invoices), 1, "Expected 1 Sales Invoice to be created for post-restructure charges."
-		)
-
-=======
->>>>>>> 02cace56 (test: update testcase)
 		repayments = frappe.db.get_all(
 			"Loan Repayment",
 			filters={"loan_restructure": loan_restructure.name, "docstatus": 1},
@@ -292,8 +280,16 @@ class TestLoanRestructure(IntegrationTestCase):
 			["outstanding_amount", "status"],
 			as_dict=True,
 		)
-		self.assertEqual(flt(sales_invoice.outstanding_amount), 0, "Expected the Sales Invoice for post-restructure charges to be fully paid.")
-		self.assertEqual(sales_invoice.status, "Paid", "Expected the Sales Invoice for post-restructure charges to have status 'Paid'.")
+		self.assertEqual(
+			flt(sales_invoice.outstanding_amount),
+			0,
+			"Expected the Sales Invoice for post-restructure charges to be fully paid.",
+		)
+		self.assertEqual(
+			sales_invoice.status,
+			"Paid",
+			"Expected the Sales Invoice for post-restructure charges to have status 'Paid'.",
+		)
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
