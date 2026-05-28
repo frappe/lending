@@ -4,22 +4,11 @@ from lending.loan_management.report.future_cashflow_report.future_cashflow_repor
 	execute,
 	get_data,
 )
-from lending.tests.test_utils import (
-	create_loan,
-	init_customers,
-	init_loan_products,
-	make_loan_disbursement_entry,
-	master_init,
-)
+from lending.tests.test_utils import create_loan, make_loan_disbursement_entry
 from lending.tests.utils import LendingTestSuite
 
 
 class TestFutureCashflowReport(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
 	def test_future_cashflow_report_validates_required_filters(self):
 		with self.assertRaises(frappe.ValidationError):
 			get_data({"as_on_date": "2024-01-01"})

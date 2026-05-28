@@ -7,20 +7,12 @@ from lending.loan_management.report.past_cashflow_report.past_cashflow_report im
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestPastCashflowReport(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
 	def test_past_cashflow_report_validates_required_filters(self):
 		with self.assertRaises(frappe.ValidationError):
 			get_data({})

@@ -6,20 +6,12 @@ from lending.loan_management.report.loan_repayment_and_closure.loan_repayment_an
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanRepaymentAndClosure(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
 	def test_loan_repayment_and_closure_returns_expected_row(self):
 		loan = create_loan(
 			"_Test Loan Customer",

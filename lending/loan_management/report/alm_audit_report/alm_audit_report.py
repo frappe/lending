@@ -157,7 +157,7 @@ def get_future_interest_details(as_on_date, company):
 		filters={
 			"company": company,
 			"docstatus": 1,
-			"status": ("in", "Disbursed", "Partially Disbursed", "Active"),
+			"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
 		},
 		pluck="name",
 	)

@@ -7,20 +7,12 @@ from lending.loan_management.report.loan_statement_of_account.loan_statement_of_
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanStatementOfAccount(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
 	def test_loan_statement_of_account_validates_date_filters(self):
 		filters = {"from_date": "2024-02-01", "to_date": "2024-01-01", "company": "_Test Company"}
 
