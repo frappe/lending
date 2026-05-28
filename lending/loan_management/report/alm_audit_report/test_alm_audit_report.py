@@ -172,7 +172,6 @@ class TestALMAuditReport(LendingTestSuite):
 		)
 		penalty_demand.insert(ignore_permissions=True)
 		frappe.db.set_value("Loan Demand", penalty_demand.name, "docstatus", 1)
-		frappe.db.commit()
 
 		overdue_details = get_overdue_details("2024-03-01", "_Test Company")
 
