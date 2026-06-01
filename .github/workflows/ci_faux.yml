@@ -33,10 +33,3 @@ jobs:
     steps:
       - name: Pass skipped tests unconditionally
         run: "echo Skipped"
-
-  coverage:
-    runs-on: ubuntu-latest
-    name: Coverage Wrap Up
-    steps:
-      - name: Pass skipped coverage unconditionally
-        run: "echo Skipped"
