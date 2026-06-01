@@ -182,6 +182,23 @@ class LoanProduct(Document):
 				)
 			)
 
+	def validate_demand_offset_sequences(self):
+		mandatory_sequences = [
+			"collection_offset_sequence_for_standard_asset",
+			"collection_offset_sequence_for_sub_standard_asset"
+		]
+
+		for seq in mandatory_sequences:
+			sequence_value = self.get(seq)
+			if not sequence_value:
+				sequence_value = frappe.db.get_value("Company", self.company, seq)
+
+			if not sequence_value:
+				frappe.throw(
+					_("{0} is mandatory. Please set it in Loan Product or Company").format(
+						frappe.bold(frappe.unscrub(seq))
+					)
+				)
 
 @frappe.whitelist()
 def get_default_charge_accounts(charge_type, company):
