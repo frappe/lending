@@ -2,8 +2,8 @@
 # See license.txt
 
 # import frappe
-import unittest
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanProduct(unittest.TestCase):
+class TestLoanProduct(LendingTestSuite):
 	pass

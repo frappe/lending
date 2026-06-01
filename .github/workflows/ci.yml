@@ -7,17 +7,31 @@ on:
     paths-ignore:
       - "**.css"
       - "**.js"
+      - "**.svg"
       - "**.md"
       - "**.html"
       - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - "**.vue"
+      - "crowdin.yml"
+      - ".mergify.yml"
+      - ".coderabbit.yml"
 
   pull_request:
     paths-ignore:
       - "**.css"
       - "**.js"
+      - "**.svg"
       - "**.md"
       - "**.html"
       - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - "**.vue"
+      - "crowdin.yml"
+      - ".mergify.yml"
+      - ".coderabbit.yml"
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"
@@ -106,13 +120,14 @@ jobs:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }}
+        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }} --lightmode
         env:
           TYPE: server
           CAPTURE_COVERAGE: True
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           name: coverage-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
@@ -121,6 +136,7 @@ jobs:
     name: Coverage Wrap Up
     needs: tests
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
         uses: actions/checkout@v6

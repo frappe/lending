@@ -2,8 +2,8 @@
 # See license.txt
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanRestructureLimitLog(FrappeTestCase):
+class TestLoanRestructureLimitLog(LendingTestSuite):
 	pass

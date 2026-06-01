@@ -1,25 +1,13 @@
-from frappe.tests import IntegrationTestCase
-
 from lending.loan_management.report.loan_outstanding_report.loan_outstanding_report import (
 	execute,
 	get_chart_data,
 	get_columns,
 )
-from lending.tests.test_utils import (
-	create_loan,
-	init_customers,
-	init_loan_products,
-	make_loan_disbursement_entry,
-	master_init,
-)
+from lending.tests.test_utils import create_loan, make_loan_disbursement_entry
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanOutstandingReport(IntegrationTestCase):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
+class TestLoanOutstandingReport(LendingTestSuite):
 	def test_loan_outstanding_report_returns_expected_row_and_chart(self):
 		loan = create_loan(
 			"_Test Loan Customer",

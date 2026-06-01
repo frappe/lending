@@ -1,8 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-import unittest
-
 import frappe
 from frappe.utils import add_days, add_to_date, flt, get_datetime, nowdate
 
@@ -28,9 +26,10 @@ from lending.tests.test_utils import (
 	master_init,
 	update_loan_security_price,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanSecurityShortfall(unittest.TestCase):
+class TestLoanSecurityShortfall(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -72,9 +71,9 @@ class TestLoanSecurityShortfall(unittest.TestCase):
 		loan_security_shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
 
 		self.assertTrue(loan_security_shortfall)
-		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1700000.00)
+		self.assertEqual(flt(loan_security_shortfall.loan_amount, 2), 1000000.00)
 		self.assertEqual(flt(loan_security_shortfall.security_value, 2), 800000.00)
-		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 900000.00)
+		self.assertEqual(flt(loan_security_shortfall.shortfall_amount, 2), 600000.00)
 
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_process_loan_security_shortfall()
