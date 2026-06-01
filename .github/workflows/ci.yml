@@ -7,17 +7,31 @@ on:
     paths-ignore:
       - "**.css"
       - "**.js"
+      - "**.svg"
       - "**.md"
       - "**.html"
       - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - "**.vue"
+      - "crowdin.yml"
+      - ".mergify.yml"
+      - ".coderabbit.yml"
 
   pull_request:
     paths-ignore:
       - "**.css"
       - "**.js"
+      - "**.svg"
       - "**.md"
       - "**.html"
       - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - "**.vue"
+      - "crowdin.yml"
+      - ".mergify.yml"
+      - ".coderabbit.yml"
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"
