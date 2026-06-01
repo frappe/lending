@@ -912,7 +912,7 @@ def close_unsecured_term_loan(loan: str):
 @frappe.whitelist()
 def make_loan_disbursement(
 	loan: str,
-	disbursement_amount: int | None = 0,
+	disbursement_amount: float | None = None,
 	as_dict: int | None = 0,
 	submit: bool | None = False,
 	repayment_start_date: str | None = None,
