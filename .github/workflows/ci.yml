@@ -1,23 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - develop
-    paths-ignore:
-      - "**.css"
-      - "**.js"
-      - "**.svg"
-      - "**.md"
-      - "**.html"
-      - "**.csv"
-      - "**.po"
-      - "**.pot"
-      - "**.vue"
-      - "crowdin.yml"
-      - ".mergify.yml"
-      - ".coderabbit.yml"
-
   pull_request:
     paths-ignore:
       - "**.css"
@@ -127,7 +110,6 @@ jobs:
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request'
         with:
           name: coverage-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
@@ -136,7 +118,6 @@ jobs:
     name: Coverage Wrap Up
     needs: tests
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
         uses: actions/checkout@v6
