@@ -2302,7 +2302,11 @@ class LoanRepayment(LoanController):
 		payment_party_type = self.applicant_type
 		payment_party = self.applicant
 
-		if (
+		payroll_account = self.get("payroll_payable_account")
+		if payroll_account and account == payroll_account:
+			payment_party_type = self.applicant_type
+			payment_party = self.applicant
+		elif (
 			hasattr(self, "process_payroll_accounting_entry_based_on_employee")
 			and not self.process_payroll_accounting_entry_based_on_employee
 		) or self.applicant_type == "Customer":
