@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
 from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
@@ -1938,3 +1939,44 @@ class TestLoanRepayment(LendingTestSuite):
 			create_repayment_entry(
 				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
 			)
+
+	def test_advance_payment_no_active_schedule(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-01-05",
+			posting_date="2024-12-26",
+			rate_of_interest=31,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-12-26",
+			repayment_start_date="2025-01-05",
+		)
+
+		# Deactivate the repayment schedule to simulate no active schedule
+		schedule_name = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": loan.name, "docstatus": 1, "status": "Active"},
+			"name",
+		)
+		frappe.db.set_value("Loan Repayment Schedule", schedule_name, "status", "Closed")
+
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			create_repayment_entry(
+				loan.name, "2025-01-03", paid_amount=19596, repayment_type="Advance Payment"
+			)
+
+		self.assertIn(
+			_("Cannot process Advance Payment: No active Loan Repayment Schedule found for this loan"),
+			str(ctx.exception),
+		)
