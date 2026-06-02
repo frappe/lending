@@ -188,7 +188,9 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		excess_amount = flt(self.principal_amount_paid, precision) - flt(self.pending_principal_amount, precision)
+		excess_amount = flt(self.principal_amount_paid, precision) - flt(
+			self.pending_principal_amount, precision
+		)
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment") and excess_amount < 0:
 			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
@@ -243,13 +245,9 @@ class LoanRepayment(AccountsController):
 
 		on_settlement_or_closure = False
 
-<<<<<<< HEAD
-		if (
-			self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount
-		):
-=======
-		if flt(self.principal_amount_paid, precision) > 0 and flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision):
->>>>>>> d3571c91 (fix: Round amount comparisons in loan repayment to avoid floating point errors)
+		if flt(self.principal_amount_paid, precision) > 0 and flt(
+			self.principal_amount_paid, precision
+		) >= flt(self.pending_principal_amount, precision):
 			on_settlement_or_closure = True
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
