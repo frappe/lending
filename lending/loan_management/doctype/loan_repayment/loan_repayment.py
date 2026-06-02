@@ -226,6 +226,8 @@ class LoanRepayment(AccountsController):
 		if self.flags.from_bulk_payment:
 			return
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		reversed_accruals = []
 
 		if self.get("prepayment_charges"):
@@ -241,9 +243,13 @@ class LoanRepayment(AccountsController):
 
 		on_settlement_or_closure = False
 
+<<<<<<< HEAD
 		if (
 			self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount
 		):
+=======
+		if flt(self.principal_amount_paid, precision) > 0 and flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision):
+>>>>>>> d3571c91 (fix: Round amount comparisons in loan repayment to avoid floating point errors)
 			on_settlement_or_closure = True
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
@@ -251,7 +257,7 @@ class LoanRepayment(AccountsController):
 				on_settlement_or_closure=on_settlement_or_closure
 			)
 
-		if self.principal_amount_paid < self.pending_principal_amount:
+		if flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision):
 			if (
 				self.is_term_loan
 				and self.repayment_type in ("Advance Payment", "Pre Payment")
@@ -281,7 +287,7 @@ class LoanRepayment(AccountsController):
 					self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid >= self.pending_principal_amount
+			flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision)
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
