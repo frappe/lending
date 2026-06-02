@@ -46,20 +46,19 @@ class LoanApplication(Document):
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink | None
 		applicant_email_address: DF.Data | None
+		applicant_name: DF.Data | None
 		applicant_phone_number: DF.Phone | None
 		applicant_type: DF.Literal["Employee", "Customer"]
 		city: DF.Data | None
 		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
 		country: DF.Link | None
-		description: DF.SmallText | None
 		documents: DF.Table[LoanApplicationDocument]
-		first_name: DF.Data | None
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
-		last_name: DF.Data | None
 		loan_amount: DF.Currency
 		loan_product: DF.Link
+		loan_purpose: DF.Link | None
 		maximum_loan_amount: DF.Currency
 		posting_date: DF.Date
 		proposed_pledges: DF.Table[ProposedPledge]
@@ -92,7 +91,7 @@ class LoanApplication(Document):
 		if self.applicant_type == "Customer":
 			if not self.applicant:
 				customer = frappe.new_doc("Customer")
-				customer.customer_name = self.first_name or "" + " " + self.last_name or ""
+				customer.customer_name = self.applicant_name
 				customer.type = "Company"
 				customer.mobile_number = self.applicant_phone_number
 				customer.email_address = self.applicant_email_address
@@ -101,8 +100,7 @@ class LoanApplication(Document):
 
 				# copying over contact details into the contact doctype
 				contact = frappe.new_doc("Contact")
-				contact.first_name = self.first_name
-				contact.last_name = self.last_name
+				contact.first_name = self.applicant_name
 				contact.append("email_ids", {"email_id": self.applicant_email_address, "is_primary": True})
 				contact.append(
 					"phone_nos", {"phone": self.applicant_phone_number, "is_primary_mobile_no": True}
@@ -222,7 +220,6 @@ class LoanApplication(Document):
 			)
 
 	def get_repayment_details(self):
-
 		if self.is_term_loan:
 			if self.repayment_method == "Repay Over Number of Periods":
 				self.repayment_amount = get_monthly_repayment_amount(

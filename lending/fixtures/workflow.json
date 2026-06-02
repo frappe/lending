@@ -3,6 +3,7 @@
   "docstatus": 0,
   "doctype": "Workflow",
   "document_type": "Loan Application",
+  "enable_action_confirmation": 0,
   "is_active": 0,
   "modified": "2025-06-27 16:33:04.519146",
   "name": "Loan Application Workflow",
@@ -13,6 +14,7 @@
     "allow_edit": "Loan Officer",
     "avoid_status_override": 0,
     "doc_status": "0",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -26,6 +28,7 @@
     "allow_edit": "All",
     "avoid_status_override": 0,
     "doc_status": "0",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -39,6 +42,7 @@
     "allow_edit": "Loan Appraiser",
     "avoid_status_override": 0,
     "doc_status": "0",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -52,6 +56,7 @@
     "allow_edit": "All",
     "avoid_status_override": 0,
     "doc_status": "1",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -65,6 +70,7 @@
     "allow_edit": "Loan Underwriter",
     "avoid_status_override": 0,
     "doc_status": "1",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -78,6 +84,7 @@
     "allow_edit": "All",
     "avoid_status_override": 0,
     "doc_status": "1",
+    "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
     "next_action_email_template": null,
@@ -97,6 +104,7 @@
     "next_state": "Initiated",
     "send_email_to_creator": 0,
     "state": "Draft",
+    "transition_tasks": null,
     "workflow_builder_id": "action-1"
    },
    {
@@ -107,6 +115,7 @@
     "next_state": "KYC Pending",
     "send_email_to_creator": 0,
     "state": "Initiated",
+    "transition_tasks": null,
     "workflow_builder_id": "action-2"
    },
    {
@@ -117,6 +126,7 @@
     "next_state": "Rejected",
     "send_email_to_creator": 0,
     "state": "Initiated",
+    "transition_tasks": null,
     "workflow_builder_id": "action-3"
    },
    {
@@ -127,6 +137,7 @@
     "next_state": "Approved",
     "send_email_to_creator": 0,
     "state": "KYC Pending",
+    "transition_tasks": null,
     "workflow_builder_id": "action-4"
    },
    {
@@ -137,6 +148,7 @@
     "next_state": "Rejected",
     "send_email_to_creator": 0,
     "state": "KYC Pending",
+    "transition_tasks": null,
     "workflow_builder_id": "action-5"
    },
    {
@@ -147,6 +159,7 @@
     "next_state": "Approved",
     "send_email_to_creator": 0,
     "state": "KYC Complete",
+    "transition_tasks": null,
     "workflow_builder_id": "action-6"
    },
    {
@@ -157,11 +170,202 @@
     "next_state": "Rejected",
     "send_email_to_creator": 0,
     "state": "KYC Complete",
+    "transition_tasks": null,
     "workflow_builder_id": "action-7"
    }
   ],
   "workflow_data": "[{\"type\":\"state\",\"dimensions\":{\"width\":85,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":38.86663818359375,\"y\":-11.100006103515625,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":88.8499755859375,\"y\":22.899993896484375,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":38.86663818359375,\"y\":56.899993896484375,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.10003662109375,\"y\":22.899993896484375,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":43.28471691248592,\"y\":12.939374464878739,\"z\":0},\"id\":\"1\",\"position\":{\"x\":43.28471691248592,\"y\":12.939374464878739}},{\"type\":\"state\",\"dimensions\":{\"width\":106,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":49.36663818359375,\"y\":-11.099990844726562,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":109.8499755859375,\"y\":22.900009155273438,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":49.36663818359375,\"y\":56.90000915527344,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.0999755859375,\"y\":22.900009155273438,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":358.5221853067402,\"y\":115.40611897628075,\"z\":0},\"id\":\"2\",\"position\":{\"x\":358.5221853067402,\"y\":115.40611897628075}},{\"type\":\"state\",\"dimensions\":{\"width\":139,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":66.166748046875,\"y\":-11.10003662109375,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":143.4500732421875,\"y\":22.89996337890625,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":66.166748046875,\"y\":56.89996337890625,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.0999755859375,\"y\":22.89996337890625,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":641.0006924774091,\"y\":282.13711646205115,\"z\":0},\"id\":\"3\",\"position\":{\"x\":641.0006924774091,\"y\":282.13711646205115}},{\"type\":\"state\",\"dimensions\":{\"width\":110,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":51.683349609375,\"y\":-11.100006103515625,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":114.4666748046875,\"y\":22.899993896484375,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":51.683349609375,\"y\":56.899993896484375,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.10009765625,\"y\":22.899993896484375,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":879.663185896963,\"y\":-96.42613089171431,\"z\":0},\"id\":\"4\",\"position\":{\"x\":879.663185896963,\"y\":-96.42613089171431}},{\"type\":\"state\",\"dimensions\":{\"width\":149,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":71.2166748046875,\"y\":-11.100006103515625,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":153.550048828125,\"y\":22.899993896484375,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":71.2166748046875,\"y\":56.899993896484375,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.0999755859375,\"y\":22.899993896484375,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":1048.1821076846422,\"y\":395.32081810757313,\"z\":0},\"id\":\"5\",\"position\":{\"x\":1048.1821076846422,\"y\":395.32081810757313}},{\"type\":\"state\",\"dimensions\":{\"width\":117,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":54.8499755859375,\"y\":-11.10003662109375,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":120.7999267578125,\"y\":22.89996337890625,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":54.8499755859375,\"y\":56.89996337890625,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11.0999755859375,\"y\":22.89996337890625,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":1392.383131159386,\"y\":521.43001119912,\"z\":0},\"id\":\"6\",\"position\":{\"x\":1392.383131159386,\"y\":521.43001119912}},{\"type\":\"action\",\"dimensions\":{\"width\":67,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":30.56671142578125,\"y\":-2.100006103515625,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":63.23333740234375,\"y\":13.399993896484375,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":30.56671142578125,\"y\":28.899993896484375,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.399993896484375,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":256.355378556431,\"y\":87.7594764543176,\"z\":0},\"id\":\"action-1\",\"position\":{\"x\":256.355378556431,\"y\":87.7594764543176},\"data\":{\"from_id\":\"1\",\"to_id\":\"2\"}},{\"type\":\"action\",\"dimensions\":{\"width\":70,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":31.816650390625,\"y\":-2.10003662109375,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":65.7332763671875,\"y\":13.39996337890625,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":31.816650390625,\"y\":28.89996337890625,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.39996337890625,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":547.7057422996104,\"y\":211.86716067139673,\"z\":0},\"id\":\"action-2\",\"position\":{\"x\":547.7057422996104,\"y\":211.86716067139673},\"data\":{\"from_id\":\"2\",\"to_id\":\"3\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.8499755859375,\"y\":-2.100006103515625,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.816650390625,\"y\":13.399993896484375,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.8499755859375,\"y\":28.899993896484375,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.399993896484375,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":555.7320626200658,\"y\":44.984091350446676,\"z\":0},\"id\":\"action-3\",\"position\":{\"x\":555.7320626200658,\"y\":44.984091350446676},\"data\":{\"from_id\":\"2\",\"to_id\":\"4\"}},{\"type\":\"action\",\"dimensions\":{\"width\":119,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":56.7166748046875,\"y\":-2.100006103515625,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":115.550048828125,\"y\":13.399993896484375,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":56.7166748046875,\"y\":28.899993896484375,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.399993896484375,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":873.4971156150286,\"y\":388.8128889686171,\"z\":0},\"id\":\"action-4\",\"position\":{\"x\":873.4971156150286,\"y\":388.8128889686171},\"data\":{\"from_id\":\"3\",\"to_id\":\"5\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.8499755859375,\"y\":-2.100006103515625,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.816650390625,\"y\":13.399993896484375,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.8499755859375,\"y\":28.899993896484375,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.399993896484375,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":745.904649878081,\"y\":64.2386579565854,\"z\":0},\"id\":\"action-5\",\"position\":{\"x\":745.904649878081,\"y\":64.2386579565854},\"data\":{\"from_id\":\"3\",\"to_id\":\"4\"}},{\"type\":\"action\",\"dimensions\":{\"width\":78,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":36.0333251953125,\"y\":-2.10003662109375,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":74.183349609375,\"y\":13.39996337890625,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":36.0333251953125,\"y\":28.89996337890625,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.0999755859375,\"y\":13.39996337890625,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1246.7970545040585,\"y\":537.3208181075731,\"z\":0},\"id\":\"action-6\",\"position\":{\"x\":1246.7970545040585,\"y\":537.3208181075731},\"data\":{\"from_id\":\"5\",\"to_id\":\"6\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.8499755859375,\"y\":-2.100006103515625,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.816650390625,\"y\":13.399993896484375,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.8499755859375,\"y\":28.899993896484375,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2.10009765625,\"y\":13.399993896484375,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1254.1726467908027,\"y\":233.32081810757307,\"z\":0},\"id\":\"action-7\",\"position\":{\"x\":1254.1726467908027,\"y\":233.32081810757307},\"data\":{\"from_id\":\"5\",\"to_id\":\"4\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"1\",\"target\":\"action-1\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-1right-action-1left\",\"sourceX\":139.13469249842342,\"sourceY\":39.339368361363114,\"targetX\":254.2554029704935,\"targetY\":104.15947035080198},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-1\",\"target\":\"2\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-1right-2left\",\"sourceX\":325.58871595877474,\"sourceY\":104.15947035080198,\"targetX\":347.4222097208027,\"targetY\":141.8061281315542,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-2\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-2right-action-2left\",\"sourceX\":475.3721608926777,\"sourceY\":141.8061281315542,\"targetX\":545.6057667136729,\"targetY\":228.26712405030298},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-2\",\"target\":\"3\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-2right-3left\",\"sourceX\":619.4390186667979,\"sourceY\":228.26712405030298,\"targetX\":629.9007168914716,\"targetY\":308.5370798409574,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-3\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-2right-action-3left\",\"sourceX\":475.3721608926777,\"sourceY\":141.8061281315542,\"targetX\":553.6320870341283,\"targetY\":61.38408524693105},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-3\",\"target\":\"4\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-3right-4left\",\"sourceX\":621.5487130106908,\"sourceY\":61.38408524693105,\"targetX\":868.563088240713,\"targetY\":-70.02613699522993,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"3\",\"target\":\"action-4\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-3right-action-4left\",\"sourceX\":791.4507657195966,\"sourceY\":308.5370798409574,\"targetX\":871.3971400290911,\"targetY\":405.21288286510145},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-4\",\"target\":\"5\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-4right-5left\",\"sourceX\":995.0471644431536,\"sourceY\":405.21288286510145,\"targetX\":1037.0821320987047,\"targetY\":421.7208120040575,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"3\",\"target\":\"action-5\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-3right-action-5left\",\"sourceX\":791.4507657195966,\"sourceY\":308.5370798409574,\"targetX\":743.8046742921435,\"targetY\":80.63865185306977},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-5\",\"target\":\"4\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-5right-4left\",\"sourceX\":811.721300268706,\"sourceY\":80.63865185306977,\"targetX\":868.563088240713,\"targetY\":-70.02613699522993,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"5\",\"target\":\"action-6\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-5right-action-6left\",\"sourceX\":1208.7321565127672,\"sourceY\":421.7208120040575,\"targetX\":1244.697078918121,\"targetY\":553.7207814864794},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-6\",\"target\":\"6\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-6right-6left\",\"sourceX\":1326.9804041134335,\"sourceY\":553.7207814864794,\"targetX\":1381.2831555734485,\"targetY\":547.8299745780263,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"5\",\"target\":\"action-7\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-5right-action-7left\",\"sourceX\":1208.7321565127672,\"sourceY\":421.7208120040575,\"targetX\":1252.0725491345527,\"targetY\":249.72081200405745},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-7\",\"target\":\"4\",\"updatable\":true,\"animated\":true,\"id\":\"vueflow__edge-action-7right-4left\",\"sourceX\":1319.9892971814277,\"sourceY\":249.72081200405745,\"targetX\":868.563088240713,\"targetY\":-70.02613699522993,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}}]",
   "workflow_name": "Loan Application Workflow",
+  "workflow_state_field": "workflow_state"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow",
+  "document_type": "Loan Lead",
+  "enable_action_confirmation": 0,
+  "is_active": 0,
+  "modified": "2026-02-23 11:34:54.092851",
+  "name": "Loan Lead Workflow",
+  "override_status": 0,
+  "send_email_alert": 0,
+  "states": [
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Incoming",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "1"
+   },
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Scrubbing",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "2"
+   },
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Pre-Qualification",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "3"
+   },
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Pre-Qualified",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "4"
+   },
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Qualified",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "5"
+   },
+   {
+    "allow_edit": "Loan Officer",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 1,
+    "state": "Rejected",
+    "update_field": null,
+    "update_value": null,
+    "workflow_builder_id": "6"
+   }
+  ],
+  "transitions": [
+   {
+    "action": "Run Basic Rules",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Scrubbing",
+    "send_email_to_creator": 0,
+    "state": "Incoming",
+    "transition_tasks": "Loan Lead Basic Rules",
+    "workflow_builder_id": "action-1"
+   },
+   {
+    "action": "Run Pre-Qualification Rules",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Pre-Qualification",
+    "send_email_to_creator": 0,
+    "state": "Scrubbing",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-2"
+   },
+   {
+    "action": "Run Knockout Rules",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Pre-Qualified",
+    "send_email_to_creator": 0,
+    "state": "Pre-Qualification",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-3"
+   },
+   {
+    "action": "Converted to Application",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Qualified",
+    "send_email_to_creator": 0,
+    "state": "Pre-Qualified",
+    "transition_tasks": "Loan Lead Workflow-Converted to Application",
+    "workflow_builder_id": "action-4"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Rejected",
+    "send_email_to_creator": 0,
+    "state": "Incoming",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-5"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Rejected",
+    "send_email_to_creator": 0,
+    "state": "Scrubbing",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-6"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Rejected",
+    "send_email_to_creator": 0,
+    "state": "Pre-Qualification",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-7"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 1,
+    "allowed": "Loan Officer",
+    "condition": null,
+    "next_state": "Rejected",
+    "send_email_to_creator": 0,
+    "state": "Pre-Qualified",
+    "transition_tasks": null,
+    "workflow_builder_id": "action-8"
+   }
+  ],
+  "workflow_data": "[{\"type\":\"state\",\"dimensions\":{\"width\":114,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":53.3125,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":117.63287353515625,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":53.3125,\"y\":57,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":23,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":618.4938561976801,\"y\":113.32737435164415,\"z\":0},\"id\":\"1\",\"position\":{\"x\":618.4938561976801,\"y\":113.32737435164415}},{\"type\":\"state\",\"dimensions\":{\"width\":121,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":56.828125,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":124.6640625,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":56.828125,\"y\":57,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":23,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":596,\"y\":664,\"z\":0},\"id\":\"2\",\"position\":{\"x\":596,\"y\":664}},{\"type\":\"state\",\"dimensions\":{\"width\":162,\"height\":74},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":77.5,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":166,\"y\":33.5,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":77.5,\"y\":78,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":33.5,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":904,\"y\":348,\"z\":0},\"id\":\"3\",\"position\":{\"x\":904,\"y\":348}},{\"type\":\"state\",\"dimensions\":{\"width\":141,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":66.8515625,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":144.703125,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":66.8515625,\"y\":57,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":23,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":1529.1486049009684,\"y\":366.12513861547296,\"z\":0},\"id\":\"4\",\"position\":{\"x\":1529.1486049009684,\"y\":366.12513861547296}},{\"type\":\"state\",\"dimensions\":{\"width\":112,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":52.4140625,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":115.8360595703125,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":52.4140625,\"y\":57,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":23,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":1617.1307279559007,\"y\":121.38100518684683,\"z\":0},\"id\":\"5\",\"position\":{\"x\":1617.1307279559007,\"y\":121.38100518684683}},{\"type\":\"state\",\"dimensions\":{\"width\":111,\"height\":53},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":51.7734375,\"y\":-11,\"width\":7,\"height\":7},{\"id\":\"right\",\"position\":\"right\",\"x\":114.5546875,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":51.7734375,\"y\":57,\"width\":7,\"height\":7},{\"id\":\"left\",\"position\":\"left\",\"x\":-11,\"y\":23,\"width\":7,\"height\":7}]},\"computedPosition\":{\"x\":1549.7117331427473,\"y\":684.7798873187612,\"z\":0},\"id\":\"6\",\"position\":{\"x\":1549.7117331427473,\"y\":684.7798873187612}},{\"type\":\"action\",\"dimensions\":{\"width\":130,\"height\":79},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":61.78125,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":125.5703125,\"y\":36.25,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":61.78125,\"y\":74.5,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":36.25,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":612.6368717582207,\"y\":343.7675997141217,\"z\":0},\"id\":\"action-1\",\"position\":{\"x\":612.6368717582207,\"y\":343.7675997141217},\"data\":{\"from_id\":\"1\",\"to_id\":\"2\",\"transition_tasks\":\"Loan Lead Workflow-Run Basic Rules\"}},{\"type\":\"action\",\"dimensions\":{\"width\":206,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":99.84375,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":201.6953125,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":99.84375,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":880.0603290994143,\"y\":682.8424610986488,\"z\":0},\"id\":\"action-2\",\"position\":{\"x\":880.0603290994143,\"y\":682.8424610986488},\"data\":{\"from_id\":\"2\",\"to_id\":\"3\"}},{\"type\":\"action\",\"dimensions\":{\"width\":156,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":75.0390625,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":152.078125,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":75.0390625,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1144,\"y\":292,\"z\":0},\"id\":\"action-3\",\"position\":{\"x\":1144,\"y\":292},\"data\":{\"from_id\":\"3\",\"to_id\":\"4\"}},{\"type\":\"action\",\"dimensions\":{\"width\":208,\"height\":79},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":101.015625,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":204.03125,\"y\":36.25,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":101.015625,\"y\":74.5,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":36.25,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1347.9999999999998,\"y\":132,\"z\":0},\"id\":\"action-4\",\"position\":{\"x\":1347.9999999999998,\"y\":132},\"data\":{\"from_id\":\"4\",\"to_id\":\"5\",\"transition_tasks\":\"Loan Lead Workflow-Converted to Application\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.953125,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.90625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.953125,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":886.2793328568694,\"y\":121.32737435164412,\"z\":0},\"id\":\"action-5\",\"position\":{\"x\":886.2793328568694,\"y\":121.32737435164412},\"data\":{\"from_id\":\"1\",\"to_id\":\"6\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.953125,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.90625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.953125,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1011.4324181744821,\"y\":511.40558039612597,\"z\":0},\"id\":\"action-6\",\"position\":{\"x\":1011.4324181744821,\"y\":511.40558039612597},\"data\":{\"from_id\":\"2\",\"to_id\":\"6\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.953125,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.90625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.953125,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1348.4044714723423,\"y\":587.5776515825901,\"z\":0},\"id\":\"action-7\",\"position\":{\"x\":1348.4044714723423,\"y\":587.5776515825901},\"data\":{\"from_id\":\"3\",\"to_id\":\"6\"}},{\"type\":\"action\",\"dimensions\":{\"width\":64,\"height\":33},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"position\":\"top\",\"x\":28.953125,\"y\":-2,\"width\":6,\"height\":6},{\"id\":\"right\",\"position\":\"right\",\"x\":59.90625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"position\":\"bottom\",\"x\":28.953125,\"y\":29,\"width\":6,\"height\":6},{\"id\":\"left\",\"position\":\"left\",\"x\":-2,\"y\":13.5,\"width\":6,\"height\":6}]},\"computedPosition\":{\"x\":1576.422348417411,\"y\":566.7441334286261,\"z\":0},\"id\":\"action-8\",\"position\":{\"x\":1576.422348417411,\"y\":566.7441334286261},\"data\":{\"from_id\":\"4\",\"to_id\":\"6\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"1\",\"target\":\"action-1\",\"updatable\":true,\"id\":\"edge-1-action-1\",\"animated\":true,\"sourceX\":743.1267297328363,\"sourceY\":139.82737435164415,\"targetX\":610.6368717582207,\"targetY\":383.0175997141217},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-1\",\"target\":\"2\",\"updatable\":true,\"id\":\"edge-action-1-2\",\"animated\":true,\"sourceX\":744.2071842582207,\"sourceY\":383.0175997141217,\"targetX\":585,\"targetY\":690.5,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-2\",\"updatable\":true,\"id\":\"edge-2-action-2\",\"animated\":true,\"sourceX\":727.6640625,\"sourceY\":690.5,\"targetX\":878.0603290994143,\"targetY\":699.3424610986488},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-2\",\"target\":\"3\",\"updatable\":true,\"id\":\"edge-action-2-3\",\"animated\":true,\"sourceX\":1087.7556415994143,\"sourceY\":699.3424610986488,\"targetX\":893,\"targetY\":385,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"3\",\"target\":\"action-3\",\"updatable\":true,\"id\":\"edge-3-action-3\",\"animated\":true,\"sourceX\":1077,\"sourceY\":385,\"targetX\":1142,\"targetY\":308.5},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-3\",\"target\":\"4\",\"updatable\":true,\"id\":\"edge-action-3-4\",\"animated\":true,\"sourceX\":1302.078125,\"sourceY\":308.5,\"targetX\":1518.1486049009684,\"targetY\":392.62513861547296,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"4\",\"target\":\"action-4\",\"updatable\":true,\"id\":\"edge-4-action-4\",\"animated\":true,\"sourceX\":1680.8517299009684,\"sourceY\":392.62513861547296,\"targetX\":1345.9999999999998,\"targetY\":171.25},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-4\",\"target\":\"5\",\"updatable\":true,\"id\":\"edge-action-4-5\",\"animated\":true,\"sourceX\":1558.0312499999998,\"sourceY\":171.25,\"targetX\":1606.1307279559007,\"targetY\":147.88100518684683,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"1\",\"target\":\"action-5\",\"updatable\":true,\"id\":\"edge-1-action-5\",\"animated\":true,\"sourceX\":743.1267297328363,\"sourceY\":139.82737435164415,\"targetX\":884.2793328568694,\"targetY\":137.82737435164412},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-5\",\"target\":\"6\",\"updatable\":true,\"id\":\"edge-action-5-6\",\"animated\":true,\"sourceX\":952.1855828568694,\"sourceY\":137.82737435164412,\"targetX\":1538.7117331427473,\"targetY\":711.2798873187612,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-6\",\"updatable\":true,\"id\":\"edge-2-action-6\",\"animated\":true,\"sourceX\":727.6640625,\"sourceY\":690.5,\"targetX\":1009.4324181744821,\"targetY\":527.905580396126},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-6\",\"target\":\"6\",\"updatable\":true,\"id\":\"edge-action-6-6\",\"animated\":true,\"sourceX\":1077.338668174482,\"sourceY\":527.905580396126,\"targetX\":1538.7117331427473,\"targetY\":711.2798873187612,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"3\",\"target\":\"action-7\",\"updatable\":true,\"id\":\"edge-3-action-7\",\"animated\":true,\"sourceX\":1077,\"sourceY\":385,\"targetX\":1346.4044714723423,\"targetY\":604.0776515825901},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-7\",\"target\":\"6\",\"updatable\":true,\"id\":\"edge-action-7-6\",\"animated\":true,\"sourceX\":1414.3107214723423,\"sourceY\":604.0776515825901,\"targetX\":1538.7117331427473,\"targetY\":711.2798873187612,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"4\",\"target\":\"action-8\",\"updatable\":true,\"id\":\"edge-4-action-8\",\"animated\":true,\"sourceX\":1680.8517299009684,\"sourceY\":392.62513861547296,\"targetX\":1574.422348417411,\"targetY\":583.2441334286261},{\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"type\":\"transition\",\"source\":\"action-8\",\"target\":\"6\",\"updatable\":true,\"id\":\"edge-action-8-6\",\"animated\":true,\"sourceX\":1642.328598417411,\"sourceY\":583.2441334286261,\"targetX\":1538.7117331427473,\"targetY\":711.2798873187612,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}}]",
+  "workflow_name": "Loan Lead Workflow",
   "workflow_state_field": "workflow_state"
  }
 ]

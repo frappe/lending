@@ -44,7 +44,7 @@ app_include_js = "lending.bundle.js"
 # fixtures
 fixtures = [
 	{"dt": "Role", "filters": [["role_name", "like", "Loan %"]]},
-	{"dt": "Workflow", "filters": [["name", "=", "Loan Application Workflow"]]},
+	{"dt": "Workflow", "filters": [["name", "in", ("Loan Application Workflow", "Loan Lead Workflow")]]},
 	{"dt": "Workflow State", "filters": [["name", "not in", ("Rejected", "Approved", "Pending")]]},
 	{
 		"dt": "Workflow Action Master",
@@ -158,6 +158,9 @@ doc_events = {
 	"Custom Field": {
 		"before_insert": "lending.overrides.custom_field.update_dimensions",
 	},
+	"Journal Entry": {
+		"on_cancel": "lending.overrides.journal_entry.add_ignore_linked_doctypes_for_jv",
+	},
 }
 
 accounting_dimension_doctypes = [
@@ -189,6 +192,9 @@ scheduler_events = {
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",
 	],
+	"hourly_long": [
+		"lending.loan_management.doctype.loan_repayment.loan_repayment.process_pending_credit_notes",
+	]
 }
 
 bank_reconciliation_doctypes = [
@@ -280,3 +286,10 @@ update_gl_dict_with_app_based_fields = ["lending.overrides.gl_entry.update_value
 # auth_hooks = [
 # 	"lending.auth.validate"
 # ]
+
+workflow_methods = [
+	{
+		"name": "Convert to Loan Application",
+		"method": "lending.loan_origination.doctype.loan_lead.loan_lead.convert_to_loan_application"
+	}
+]

@@ -36,9 +36,7 @@ class LoanInterestAccrual(LoanController):
 		from frappe.types import DF
 
 		accrual_date: DF.Date | None
-		accrual_type: DF.Literal[
-			"Regular", "Repayment", "Disbursement", "Credit Adjustment", "Debit Adjustment", "Refund"
-		]
+		accrual_type: DF.Literal["Regular", "Repayment", "Disbursement", "Credit Adjustment", "Debit Adjustment", "Refund"]
 		additional_interest_amount: DF.Currency
 		additional_interest_suspense_entry: DF.Link | None
 		amended_from: DF.Link | None
@@ -49,6 +47,7 @@ class LoanInterestAccrual(LoanController):
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
 		interest_type: DF.Literal["Normal Interest", "Penal Interest"]
+		is_imported: DF.Check
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		last_accrual_date: DF.Date | None
@@ -511,6 +510,7 @@ def make_loan_interest_accrual_entry(
 	accrual_date=None,
 	loan_repayment_schedule_detail=None,
 	loan_disbursement=None,
+	is_imported=False,
 ):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if flt(interest_amount, precision) > 0:
@@ -530,6 +530,7 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.accrual_date = accrual_date
 		loan_interest_accrual.loan_repayment_schedule_detail = loan_repayment_schedule_detail
 		loan_interest_accrual.loan_disbursement = loan_disbursement
+		loan_interest_accrual.is_imported = is_imported
 
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
@@ -575,16 +576,6 @@ def get_principal_amount_for_term_loan(repayment_schedule, date):
 		)
 
 	return principal_amount
-
-
-def get_term_loan_payment_date(loan_repayment_schedule, date):
-	payment_date = frappe.db.get_value(
-		"Repayment Schedule",
-		{"parent": loan_repayment_schedule, "payment_date": ("<=", date)},
-		"MAX(payment_date)",
-	)
-
-	return payment_date
 
 
 def calculate_penal_interest_for_loans(
@@ -654,26 +645,26 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
+			principal_amount = frappe.db.get_value(
+				"Loan Demand",
+				{
+					"loan": loan.name,
+					"repayment_schedule_detail": demand.repayment_schedule_detail,
+					"demand_type": "EMI",
+					"demand_subtype": "Principal",
+				},
+				"outstanding_amount",
+			)
+
+			if not principal_amount:
+				continue
+
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 
 				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
 
 				if flt(penal_interest_amount, precision) > 0:
 					total_penal_interest += penal_interest_amount
-
-					principal_amount = frappe.db.get_value(
-						"Loan Demand",
-						{
-							"loan": loan.name,
-							"repayment_schedule_detail": demand.repayment_schedule_detail,
-							"demand_type": "EMI",
-							"demand_subtype": "Principal",
-						},
-						"outstanding_amount",
-					)
-
-					if not principal_amount:
-						continue
 
 					per_day_interest = get_per_day_interest(
 						principal_amount, loan.rate_of_interest, loan.company, current_date

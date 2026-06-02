@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
@@ -20,9 +19,10 @@ from lending.tests.test_utils import (
 	master_init,
 	update_loan_security_price,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestSanctionedLoanAmount(IntegrationTestCase):
+class TestSanctionedLoanAmount(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()

@@ -209,7 +209,10 @@ def create_loan_security_shortfall(
 	if loan:
 		filters = {"loan": loan, "status": "Pending"}
 	elif applicant:
-		filters = {"applicant": applicant, "status": "Pending"}
+		# Exclude loan-linked shortfalls: the applicant field is auto-filled via
+		# fetch_from="loan.applicant", so without this guard the applicant-wise path
+		# would find and overwrite loan-wise shortfalls with wrong security_value.
+		filters = {"applicant": applicant, "status": "Pending", "loan": ("is", "not set")}
 
 	existing_shortfall = frappe.db.get_value(
 		"Loan Security Shortfall", filters=filters, fieldname="name"

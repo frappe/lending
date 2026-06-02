@@ -34,5 +34,59 @@
   "name": "KYC Complete",
   "style": "",
   "workflow_state_name": "KYC Complete"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.663047",
+  "name": "Incoming",
+  "style": "",
+  "workflow_state_name": "Incoming"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.826370",
+  "name": "Scrubbing",
+  "style": "",
+  "workflow_state_name": "Scrubbing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.831100",
+  "name": "Pre-Qualification",
+  "style": "",
+  "workflow_state_name": "Pre-Qualification"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.834616",
+  "name": "Pre-Qualified",
+  "style": "",
+  "workflow_state_name": "Pre-Qualified"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.838062",
+  "name": "Qualified",
+  "style": "",
+  "workflow_state_name": "Qualified"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.842870",
+  "name": "Converted",
+  "style": "",
+  "workflow_state_name": "Converted"
  }
 ]

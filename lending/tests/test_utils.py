@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, date_diff, now_datetime, nowdate
+from frappe.utils import date_diff, now_datetime, nowdate
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 from erpnext.setup.setup_wizard.operations.install_fixtures import set_global_defaults
@@ -7,10 +7,6 @@ from erpnext.setup.utils import enable_all_roles_and_domains
 
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
-)
-from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
-from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
-	process_daily_loan_demands,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
@@ -79,32 +75,6 @@ def create_secured_demand_loan(applicant, disbursement_amount=None):
 	process_loan_interest_accrual_for_loans(posting_date=last_date)
 
 	return loan
-
-
-def create_loan_scenario_for_penalty(doc):
-	pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
-
-	loan_application = create_loan_application("_Test Company", doc.applicant2, "Demand Loan", pledge)
-	create_loan_security_assignment(loan_application)
-	loan = create_demand_loan(
-		doc.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
-	)
-	loan.submit()
-
-	first_date = "2019-10-01"
-	last_date = "2019-10-30"
-
-	make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-	process_loan_interest_accrual_for_loans(posting_date=last_date)
-	process_daily_loan_demands(posting_date=last_date, loan=loan.name)
-	amounts = calculate_amounts(loan.name, add_days(last_date, 1))
-	paid_amount = amounts["interest_amount"] / 2
-
-	repayment_entry = create_repayment_entry(loan.name, add_days(last_date, 5), paid_amount)
-
-	repayment_entry.submit()
-
-	return loan, amounts
 
 
 def create_loan_accounts():
@@ -493,8 +463,11 @@ def create_loan_security():
 				"loan_security_name": "Test Security 1",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_to_value_ratio": 50,
 			}
 		).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Loan Security", "Test Security 1", "loan_to_value_ratio", 50)
 
 	if not frappe.db.exists("Loan Security", "Test Security 2"):
 		frappe.get_doc(
@@ -505,8 +478,11 @@ def create_loan_security():
 				"loan_security_name": "Test Security 2",
 				"unit_of_measure": "Nos",
 				"haircut": 50.00,
+				"loan_to_value_ratio": 50,
 			}
 		).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 50)
 
 
 def make_loan_disbursement_entry(
@@ -641,11 +617,9 @@ def create_loan_application(
 	if do_not_save:
 		return loan_application
 
-	loan_application.save()
-	loan_application.submit()
-
 	loan_application.status = "Approved"
 	loan_application.save()
+	loan_application.submit()
 
 	return loan_application.name
 
@@ -1100,6 +1074,7 @@ def create_loan_security_release(applicant, applicant_type, securities, loan=Non
 	loan_security_release.applicant = applicant
 	loan_security_release.applicant_type = applicant_type
 	loan_security_release.loan = loan
+	loan_security_release.company = "_Test Company"
 
 	for security in securities:
 		loan_security_release.append("securities", {

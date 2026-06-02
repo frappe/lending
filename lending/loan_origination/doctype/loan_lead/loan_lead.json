@@ -1,0 +1,242 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "LN-LEAD-.#####",
+ "creation": "2026-02-05 17:03:05.201250",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_hmca",
+  "applicant_type",
+  "applicant_name",
+  "email",
+  "pan",
+  "amended_from",
+  "employment_type",
+  "lead_source",
+  "company_name",
+  "income",
+  "column_break_nnmy",
+  "date_of_birth",
+  "loan_product",
+  "mobile_number",
+  "loan_amount",
+  "status",
+  "age",
+  "proposed_tenure",
+  "address_links_section",
+  "address",
+  "column_break_muqd",
+  "contact",
+  "authentication_details_section",
+  "sms_otp",
+  "mobile_verification_status",
+  "column_break_gkzu",
+  "email_otp",
+  "email_verification_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_hmca",
+   "fieldtype": "Section Break",
+   "label": "Basic Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Lead",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Applicant Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pan",
+   "fieldtype": "Data",
+   "label": "PAN"
+  },
+  {
+   "depends_on": "eval:doc.applicant_type == \"Individual\"",
+   "fieldname": "employment_type",
+   "fieldtype": "Select",
+   "label": "Employment Type",
+   "options": "Salaried\nSelf-employed"
+  },
+  {
+   "fieldname": "lead_source",
+   "fieldtype": "Data",
+   "label": "Lead Source"
+  },
+  {
+   "depends_on": "eval:doc.applicant_type == \"Business\"",
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fieldname": "column_break_nnmy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.applicant_type == \"Individual\"",
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date Of Birth",
+   "mandatory_depends_on": "eval:doc.applicant_type == \"Individual\""
+  },
+  {
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Product",
+   "options": "Loan Product",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Loan Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "address_links_section",
+   "fieldtype": "Section Break",
+   "label": "Address Links"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_muqd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Link",
+   "label": "Contact",
+   "options": "Contact"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "authentication_details_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication Details"
+  },
+  {
+   "fieldname": "sms_otp",
+   "fieldtype": "Password",
+   "label": "SMS OTP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mobile_verification_status",
+   "fieldtype": "Select",
+   "label": "Mobile Verification Status",
+   "options": "Pending\nInitiated\nVerified",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gkzu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email_otp",
+   "fieldtype": "Password",
+   "label": "Email OTP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_verification_status",
+   "fieldtype": "Select",
+   "label": "Email Verification Status",
+   "options": "Pending\nInitiated\nVerified",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.applicant_type == \"Individual\"",
+   "fieldname": "income",
+   "fieldtype": "Currency",
+   "label": "Income"
+  },
+  {
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Individual\nBusiness",
+   "reqd": 1
+  },
+  {
+   "fieldname": "age",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Age"
+  },
+  {
+   "fieldname": "proposed_tenure",
+   "fieldtype": "Int",
+   "label": "Proposed Tenure"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-23 11:53:20.712779",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Loan Lead",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "applicant_name"
+}

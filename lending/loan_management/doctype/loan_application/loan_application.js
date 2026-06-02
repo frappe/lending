@@ -4,33 +4,33 @@
 lending.common.setup_filters("Loan Application");
 
 frappe.ui.form.on('Loan Application', {
-	setup: function(frm) {
+	setup: function (frm) {
 		frm.make_methods = {
-			'Loan': function() { frm.trigger('create_loan') },
-			'Loan Security Assignment': function() { frm.trigger('create_loan_security_assignment_from_loan_application') },
+			'Loan': function () { frm.trigger('create_loan') },
+			'Loan Security Assignment': function () { frm.trigger('create_loan_security_assignment_from_loan_application') },
 		}
 
 		frm.can_make_methods = {
-			'Loan': function(frm) {
+			'Loan': function (frm) {
 				return frm.doc.status === "Approved" && frm.doc.docstatus === 1;
 			},
-			'Loan Security Assignment': function(frm) {
+			'Loan Security Assignment': function (frm) {
 				return frm.doc.status === "Approved" && frm.doc.docstatus === 1;
 			}
 		};
-        frappe.db.get_single_value("Loan Origination Settings", "employee_loans")
-            .then(value => {
-                if (value) {
-                    frm.set_df_property("applicant_type", "hidden", 0);
-                } else {
-                    frm.set_df_property("applicant_type", "hidden", 1);
-                }
-            });
-
+		frappe.db.get_single_value("Loan Origination Settings", "employee_loans")
+			.then(value => {
+				if (value) {
+					frm.set_df_property("applicant_type", "hidden", 0);
+				} else {
+					frm.set_df_property("applicant_type", "hidden", 1);
+				}
+			});
 	},
-	refresh: function(frm) {
+	refresh: function (frm) {
 		frm.trigger("toggle_fields");
 		frm.trigger("add_toolbar_buttons");
+		frm.trigger("render_summary_card");
 		frm.set_query('loan_product', () => {
 			return {
 				filters: {
@@ -39,40 +39,106 @@ frappe.ui.form.on('Loan Application', {
 			};
 		});
 	},
-	repayment_method: function(frm) {
+	render_summary_card: function (frm) {
+		if (frm.doc.__islocal) {
+			frm.set_df_property("applicant_details_section", "hidden", 0);
+			frm.set_df_property("applicant_contact_info_section", "hidden", 0);
+			return;
+		}
+
+		frappe.db.get_value("Company", frm.doc.company, "default_currency").then(r => {
+			let currency = r.message.default_currency || frappe.boot.sysdefaults.currency;
+			let amount = frappe.format(frm.doc.loan_amount, { fieldtype: 'Currency', currency: currency }, { only_value: true });
+			let name = frm.doc.applicant_name || '';
+			let phone = frm.doc.applicant_phone_number || 'N/A';
+			let email = frm.doc.applicant_email_address || 'N/A';
+			let app_date = frappe.datetime.str_to_user(frm.doc.posting_date);
+
+			let html = `
+				<div class="summary-card-section loan-summary-card">
+					<div class="row">
+						<div class="col-sm">
+							<h6 class="text-uppercase loan-summary-label">
+								${frappe.utils.icon('user', 'sm', 'margin-right: 4px;')} ${__('Applicant')}
+							</h6>
+							<div class="loan-summary-value-md">${name}</div>
+						</div>
+						<div class="col-sm">
+							<h6 class="text-uppercase loan-summary-label">
+								${frappe.utils.icon('calendar', 'sm', 'margin-right: 4px;')} ${__('Application Date')}
+							</h6>
+							<div class="loan-summary-value-md">${app_date}</div>
+						</div>
+						<div class="col-sm">
+							<h6 class="text-uppercase loan-summary-label">
+								${frappe.utils.icon('hand-coins', 'sm', 'margin-right: 4px;')} ${__('Loan Amount')}
+							</h6>
+							<div class="loan-summary-value-lg">${amount}</div>
+						</div>
+						<div class="col-sm">
+							<h6 class="text-uppercase loan-summary-label">
+								${frappe.utils.icon('call', 'sm', 'margin-right: 4px;')} ${__('Phone')}
+							</h6>
+							<div class="loan-summary-value-md">${phone}</div>
+						</div>
+						<div class="col-sm">
+							<h6 class="text-uppercase loan-summary-label">
+								${frappe.utils.icon('mail', 'sm', 'margin-right: 4px;')} ${__('Email')}
+							</h6>
+							<div class="loan-summary-email">${email}</div>
+						</div>
+					</div>
+				</div>
+			`;
+
+			// Remove any existing summary section first to avoid duplication on refresh
+			$(frm.wrapper).find('.summary-card-section').remove();
+
+			// Insert before the very first section in the form so it is reliably visible inside the first Details tab
+			let section_wrapper = frm.fields_dict["applicant_contact_info_section"].wrapper;
+			if (section_wrapper) {
+				$(html).insertBefore(section_wrapper);
+			}
+
+			// Hide the details and contact info sections as they are now in the summary card
+			frm.set_df_property("applicant_details_section", "hidden", 1);
+			frm.set_df_property("applicant_contact_info_section", "hidden", 1);
+		});
+	},
+	repayment_method: function (frm) {
 		frm.doc.repayment_amount = frm.doc.repayment_periods = "";
 		frm.trigger("toggle_fields");
 		frm.trigger("toggle_required");
 	},
-	toggle_fields: function(frm) {
-		frm.toggle_enable("repayment_amount", frm.doc.repayment_method=="Repay Fixed Amount per Period")
-		frm.toggle_enable("repayment_periods", frm.doc.repayment_method=="Repay Over Number of Periods")
+	toggle_fields: function (frm) {
+		frm.toggle_enable("repayment_amount", frm.doc.repayment_method == "Repay Fixed Amount per Period")
+		frm.toggle_enable("repayment_periods", frm.doc.repayment_method == "Repay Over Number of Periods")
 	},
-	toggle_required: function(frm){
-		frm.toggle_reqd("repayment_amount", cint(frm.doc.repayment_method=='Repay Fixed Amount per Period'))
-		frm.toggle_reqd("repayment_periods", cint(frm.doc.repayment_method=='Repay Over Number of Periods'))
+	toggle_required: function (frm) {
+		frm.toggle_reqd("repayment_amount", cint(frm.doc.repayment_method == 'Repay Fixed Amount per Period'))
+		frm.toggle_reqd("repayment_periods", cint(frm.doc.repayment_method == 'Repay Over Number of Periods'))
 	},
-	add_toolbar_buttons: function(frm) {
+	add_toolbar_buttons: function (frm) {
 		if (frm.doc.status == "Approved" && frm.doc.docstatus == 1) {
 
 			if (frm.doc.is_secured_loan) {
-				frm.add_custom_button(__('Loan Security Assignment'), function() {
+				frm.add_custom_button(__('Loan Security Assignment'), function () {
 					frm.trigger('create_loan_security_assignment_from_loan_application');
-				},__('Create'))
+				}, __('Create'))
 			}
 
-			frappe.db.get_value("Loan", {"loan_application": frm.doc.name}, "name", (r) => {
+			frappe.db.get_value("Loan", { "loan_application": frm.doc.name }, "name", (r) => {
 				if (Object.keys(r).length === 0) {
-					frm.add_custom_button(__('Loan'), function() {
+					frm.add_custom_button(__('Loan'), function () {
 						frm.trigger('create_loan');
-					},__('Create'))
+					}, __('Create'))
 				} else {
 					frm.set_df_property('status', 'read_only', 1);
 				}
 			});
 		}
 	},
-	create_loan: function(frm) {
+	create_loan: function (frm) {
 		if (frm.doc.status != "Approved") {
 			frappe.throw(__("Cannot create loan until application is approved"));
 		}
@@ -82,9 +148,9 @@ frappe.ui.form.on('Loan Application', {
 			frm: frm
 		});
 	},
-	create_loan_security_assignment_from_loan_application: function(frm) {
+	create_loan_security_assignment_from_loan_application: function (frm) {
 
-		if(!frm.doc.is_secured_loan) {
+		if (!frm.doc.is_secured_loan) {
 			frappe.throw(__("Loan Security Assignment can only be created for secured loans"));
 		}
 
@@ -93,27 +159,27 @@ frappe.ui.form.on('Loan Application', {
 			args: {
 				loan_application: frm.doc.name
 			},
-			callback: function(r) {
+			callback: function (r) {
 				frappe.set_route("Form", "Loan Security Assignment", r.message);
 			}
 		})
 	},
-	is_term_loan: function(frm) {
+	is_term_loan: function (frm) {
 		frm.set_df_property('repayment_method', 'hidden', 1 - frm.doc.is_term_loan);
 		frm.set_df_property('repayment_method', 'reqd', frm.doc.is_term_loan);
 	},
-	is_secured_loan: function(frm) {
+	is_secured_loan: function (frm) {
 		frm.set_df_property('proposed_pledges', 'reqd', frm.doc.is_secured_loan);
 	},
 
-	calculate_amounts: function(frm, cdt, cdn) {
+	calculate_amounts: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.model.set_value(cdt, cdn, 'amount', row.qty * row.loan_security_price);
-		frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut/100)));
+		frappe.model.set_value(cdt, cdn, 'post_haircut_amount', cint(row.amount - (row.amount * row.haircut / 100)));
 
 		let maximum_amount = 0;
 
-		$.each(frm.doc.proposed_pledges || [], function(i, item){
+		$.each(frm.doc.proposed_pledges || [], function (i, item) {
 			maximum_amount += item.post_haircut_amount;
 		});
 
@@ -122,13 +188,13 @@ frappe.ui.form.on('Loan Application', {
 		}
 	},
 
-	applicant_phone_number: function(frm) {
+	applicant_phone_number: function (frm) {
 		frm.trigger("check_applicant");
 	},
-	applicant_email_address: function(frm) {
+	applicant_email_address: function (frm) {
 		frm.trigger("check_applicant")
 	},
-	check_applicant: function(frm) {
+	check_applicant: function (frm) {
 		if (!frm.doc.applicant && frm.doc.applicant_type === "Customer") {
 			frappe.call({
 				method: "lending.loan_management.doctype.loan_application.loan_application.check_duplicate_customers",
@@ -136,7 +202,7 @@ frappe.ui.form.on('Loan Application', {
 					applicant_phone_number: frm.doc.applicant_phone_number,
 					applicant_email_address: frm.doc.applicant_email_address
 				},
-				callback: function(r) {
+				callback: function (r) {
 					const duplicates = r.message;
 					if (duplicates.length > 0) {
 						frappe.confirm(__("There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"),
@@ -157,8 +223,7 @@ frappe.ui.form.on('Loan Application', {
 									};
 									if (customer.customer_primary_contact) {
 										frappe.db.get_doc("Contact", customer.customer_primary_contact).then((contact) => {
-											frm.set_value("first_name", customer.first_name);
-											frm.set_value("last_name", customer.last_name);
+											frm.set_value("applicant_name", contact.first_name);
 										});
 									}
 								});
@@ -173,7 +238,7 @@ frappe.ui.form.on('Loan Application', {
 });
 
 frappe.ui.form.on("Proposed Pledge", {
-	loan_security: function(frm, cdt, cdn) {
+	loan_security: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 
 		if (row.loan_security) {
@@ -182,7 +247,7 @@ frappe.ui.form.on("Proposed Pledge", {
 				args: {
 					loan_security: row.loan_security
 				},
-				callback: function(r) {
+				callback: function (r) {
 					frappe.model.set_value(cdt, cdn, 'loan_security_price', r.message);
 					frm.events.calculate_amounts(frm, cdt, cdn);
 				}
@@ -190,11 +255,11 @@ frappe.ui.form.on("Proposed Pledge", {
 		}
 	},
 
-	qty: function(frm, cdt, cdn) {
+	qty: function (frm, cdt, cdn) {
 		frm.events.calculate_amounts(frm, cdt, cdn);
 	},
 
-	loan_security_price: function(frm, cdt, cdn) {
+	loan_security_price: function (frm, cdt, cdn) {
 		frm.events.calculate_amounts(frm, cdt, cdn);
 	},
 })

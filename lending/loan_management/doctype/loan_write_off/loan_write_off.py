@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import cint, flt, getdate
+from frappe.utils import cint, flt, get_datetime, getdate
 
 import erpnext
 
@@ -97,9 +97,6 @@ class LoanWriteOff(LoanController):
 			)
 
 	def on_submit(self):
-		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
-			create_process_loan_classification,
-		)
 		from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 			process_daily_loan_demands,
 		)
@@ -108,15 +105,30 @@ class LoanWriteOff(LoanController):
 			process_daily_loan_demands(self.value_date, loan=self.loan)
 
 		self.process_unbooked_interest()
+		self.make_gl_entries()
+
+		if not frappe.flags.in_test:
+			frappe.enqueue(
+				self.process_write_off_waivers_and_classification,
+				enqueue_after_commit=True,
+				queue="long",
+			)
+		else:
+			self.process_write_off_waivers_and_classification()
+
+		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
+		self.close_employee_loan()
+		self.update_outstanding_amount_and_status()
+
+	def process_write_off_waivers_and_classification(self):
+		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+			create_process_loan_classification,
+		)
 
 		if not self.is_settlement_write_off:
 			make_loan_waivers(self.loan, self.value_date)
 
-		self.make_gl_entries()
 		self.cancel_suspense_entries()
-		write_off_charges(self.loan, self.posting_date, self.value_date, self.company, on_write_off=True)
-		self.close_employee_loan()
-		self.update_outstanding_amount_and_status()
 
 		create_process_loan_classification(
 			posting_date=self.value_date,
@@ -179,15 +191,20 @@ class LoanWriteOff(LoanController):
 
 		if cancel:
 			written_off_amount -= self.write_off_amount
+			update_values = {"written_off_amount": written_off_amount}
+
+			if write_off_count > 0:
+				update_values["status"] = "Written Off"
+			else:
+				update_values["status"] = "Disbursed"
 		else:
 			written_off_amount += self.write_off_amount
+			update_values = {"written_off_amount": written_off_amount}
 
-		update_values = {"written_off_amount": written_off_amount}
-
-		if not (self.is_settlement_write_off or cancel) or write_off_count > 1:
-			update_values["status"] = "Written Off"
-		elif not self.is_settlement_write_off:
-			update_values["status"] = "Disbursed"
+			if not self.is_settlement_write_off or write_off_count > 1:
+				update_values["status"] = "Written Off"
+			elif not self.is_settlement_write_off:
+				update_values["status"] = "Disbursed"
 
 		frappe.db.set_value("Loan", self.loan, update_values)
 
@@ -558,31 +575,13 @@ def write_off_charges(
 			)
 
 
-def get_suspense_entries(loan, loan_product):
-	suspense_accounts = frappe.db.get_value(
-		"Loan Product", loan_product, ["suspense_interest_income", "penalty_suspense_account"]
-	)
-
-	journal_entries = frappe.db.get_all(
-		"Journal Entry Account",
-		filters={
-			"account": ("in", suspense_accounts),
-			"docstatus": 1,
-			"reference_type": "Loan",
-			"reference_name": loan,
-		},
-		pluck="parent",
-	)
-
-	return journal_entries
-
-
 def get_write_off_waivers_for_cancel(loan_name, posting_date):
+	posting_datetime = get_datetime(posting_date)
 	return frappe.db.get_all(
 		"Loan Repayment",
 		filters={
 			"against_loan": loan_name,
-			"value_date": ("<=", posting_date),
+			"value_date": ("<=", posting_datetime),
 			"docstatus": 1,
 			"is_write_off_waiver": 1,
 		},

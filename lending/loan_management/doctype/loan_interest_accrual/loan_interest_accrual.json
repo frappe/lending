@@ -40,6 +40,7 @@
   "section_break_15",
   "process_loan_interest_accrual",
   "amended_from",
+  "is_imported",
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry"
@@ -283,17 +284,24 @@
    "fieldname": "unmark_npa",
    "fieldtype": "Check",
    "label": "Unmark NPA"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_imported",
+   "fieldtype": "Check",
+   "label": "Is Imported",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-16 13:09:22.099819",
+ "modified": "2026-01-28 15:20:16.650685",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

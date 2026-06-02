@@ -47,3 +47,4 @@ lending.patches.v1_0.update_value_date_in_loan_repayment
 lending.patches.v1_0.update_value_date_in_loan_refund
 lending.patches.v1_0.update_value_date_in_pending_doctypes
 lending.patches.v16_0.add_enable_loan_accounting_field
+lending.patches.v16_0.update_is_invoice_generated_field

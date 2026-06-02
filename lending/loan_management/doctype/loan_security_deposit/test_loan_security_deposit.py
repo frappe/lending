@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -17,9 +16,10 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	master_init,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanSecurityDeposit(IntegrationTestCase):
+class TestLoanSecurityDeposit(LendingTestSuite):
 	"""
 	Integration tests for LoanSecurityDeposit.
 	Use this class for testing interactions between multiple components.

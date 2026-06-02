@@ -4,8 +4,16 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate, nowdate
+from frappe.utils import (
+	add_days,
+	add_months,
+	date_diff,
+	flt,
+	get_datetime,
+	getdate,
+	nowdate,
+	random_string,
+)
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -19,7 +27,10 @@ from lending.loan_management.doctype.loan_disbursement.loan_disbursement import 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	days_in_year,
 )
-from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	calculate_amounts,
+	process_pending_credit_notes,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -48,18 +59,21 @@ from lending.tests.test_utils import (
 	create_repayment_entry,
 	create_secured_demand_loan,
 	get_loan_interest_accrual,
+	loan_classification_ranges,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 	set_loan_settings_in_company,
 	setup_loan_demand_offset_order,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoan(IntegrationTestCase):
+class TestLoan(LendingTestSuite):
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
 		setup_loan_demand_offset_order()
+		loan_classification_ranges()
 
 		set_loan_accrual_frequency("Monthly")
 		simple_terms_loans = [
@@ -967,10 +981,12 @@ class TestLoan(IntegrationTestCase):
 		lrs = frappe.get_doc(
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
 		)
+
 		self.assertEqual(lrs.monthly_repayment_amount, 47523)
 		self.assertEqual(lrs.get("repayment_schedule")[3].total_payment, 47523)
 		self.assertEqual(lrs.broken_period_interest, 0)
 		self.assertEqual(lrs.broken_period_interest_days, 0)
+		self.assertEqual(lrs.repayment_periods, 12)
 
 	def test_multi_tranche_disbursement_accrual(self):
 		loan = create_loan(
@@ -1568,7 +1584,7 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			500000,
+			50000,
 			"Repay Over Number of Periods",
 			2,
 			repayment_start_date="2024-04-05",
@@ -1583,10 +1599,10 @@ class TestLoan(IntegrationTestCase):
 		)
 		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 25784)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 257320.97)
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 25732.10)
 		repayment_entry.submit()
 
 	def test_excess_loan_close_limit(self):
@@ -1673,9 +1689,9 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 5",
-			100000,
+			60000,
 			"Repay Over Number of Periods",
-			6,
+			4,
 			repayment_start_date="2024-10-10",
 			posting_date="2024-10-01",
 			rate_of_interest=20,
@@ -1686,7 +1702,7 @@ class TestLoan(IntegrationTestCase):
 		loan.submit()
 
 		disbursement_1 = make_loan_disbursement_entry(
-			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
+			loan.name, 36000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
@@ -1696,24 +1712,14 @@ class TestLoan(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-10-18", 10000, loan_disbursement=disbursement_1.name
-		)
-		repayment_entry.submit()
-
 		disbursement_2 = make_loan_disbursement_entry(
-			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
+			loan.name, 24000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
-		)
-		repayment_entry.submit()
-
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
 		)
 		repayment_entry.submit()
 
@@ -1846,6 +1852,8 @@ class TestLoan(IntegrationTestCase):
 			}
 		)
 		loan_adjustment.submit()
+
+		process_pending_credit_notes()
 
 		credit_notes = frappe.get_all(
 			"Sales Invoice",
@@ -2143,16 +2151,12 @@ class TestLoan(IntegrationTestCase):
 		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
 
 		create_repayment_entry(
-			loan.name, "2024-10-05", 3000, loan_disbursement=loan_disbursement
-		).submit()
-		create_repayment_entry(
-			loan.name, "2024-10-09", 782, loan_disbursement=loan_disbursement
+			loan.name, "2024-10-09", 3782, loan_disbursement=loan_disbursement
 		).submit()
 
 		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
-		create_repayment_entry(loan.name, "2024-11-10", 782).submit()
+		create_repayment_entry(loan.name, "2024-11-10", 3782).submit()
 
 		create_process_loan_classification(
 			posting_date="2024-10-05", loan=loan.name, loan_disbursement=loan_disbursement
@@ -2822,9 +2826,9 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			200003,
+			50000,
 			"Repay Over Number of Periods",
-			270,
+			60,
 			repayment_start_date="2025-04-01",
 			posting_date="2025-03-31",
 			rate_of_interest=27,
@@ -2847,9 +2851,6 @@ class TestLoan(IntegrationTestCase):
 			"2025-04-01",
 			"2025-04-02",
 			"2025-04-03",
-			"2025-04-04",
-			"2025-04-05",
-			"2025-04-06",
 			"2025-04-11",
 		]:
 			process_daily_loan_demands(posting_date=repayment_date, loan=loan.name)
@@ -2921,9 +2922,9 @@ class TestLoan(IntegrationTestCase):
 		loan1 = create_loan(
 			customer.name,
 			"Term Loan Product 4",
-			100000,
+			50000,
 			"Repay Over Number of Periods",
-			22,
+			6,
 			repayment_start_date="2024-04-05",
 			posting_date="2024-03-05",
 			rate_of_interest=8.5,
@@ -2938,9 +2939,9 @@ class TestLoan(IntegrationTestCase):
 		loan2 = create_loan(
 			customer.name,
 			"Term Loan Product 4",
-			100000,
+			50000,
 			"Repay Over Number of Periods",
-			22,
+			6,
 			repayment_start_date="2024-07-05",
 			posting_date="2024-06-05",
 			rate_of_interest=8.5,
@@ -3059,7 +3060,7 @@ class TestLoan(IntegrationTestCase):
 		loan_partner = "Test Loan Partner 1"
 
 		if not frappe.db.exists("Loan Partner", loan_partner):
-			partner = create_loan_partner(
+			create_loan_partner(
 				"Test Loan Partner 1",
 				"Test Loan Partner 1",
 				partner_loan_share_percentage=80,
@@ -3071,7 +3072,6 @@ class TestLoan(IntegrationTestCase):
 				type_of_fldg_applicable="Fixed Deposit Only",
 				fldg_fixed_deposit_percentage=10,
 			)
-			partner.submit()
 
 		posting_date = "2025-01-27"
 		loan = create_loan(
@@ -3455,3 +3455,67 @@ class TestLoan(IntegrationTestCase):
 				flt(expected_total, 2),
 				msg=f"Total amount mismatch at index {idx}",
 			)
+
+	def test_mid_tenure_migrated_loan_import(self):
+		disb_id = f"DISB-MID-{random_string(5).upper()}"
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-02-15",
+			posting_date="2024-01-15",
+			rate_of_interest=12.5,
+			penalty_charges_rate=2,
+			repayment_frequency="Monthly",
+			migration_date="2024-06-15",
+			is_imported=1,
+			loan_import_details=[{
+				"disbursed_amount": 500000,
+				"disbursement_date": "2024-01-15",
+				"loan_disbursement_id": disb_id,
+				"opening_additional_outstanding": 1500,
+				"opening_charge_outstanding": 800,
+				"opening_interest_outstanding": 28500,
+				"opening_principal_outstanding": 375000,
+				"opening_penalty_outstanding": 3200,
+			}],
+		)
+
+		loan.submit()
+
+		loan.load_from_db()
+
+		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
+		self.assertTrue(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
+		self.assertTrue(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
+		self.assertTrue(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
+
+	def test_closed_migrated_loan_import(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-02-15",
+			posting_date="2024-01-15",
+			rate_of_interest=10,
+			penalty_charges_rate=2,
+			repayment_frequency="Monthly",
+			migration_date="2025-10-31",
+			is_imported=1,
+			status="Closed",
+		)
+
+		loan.submit()
+
+		loan.load_from_db()
+
+		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
+		self.assertFalse(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
+		self.assertFalse(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
+		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))

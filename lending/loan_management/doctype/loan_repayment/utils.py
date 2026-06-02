@@ -113,47 +113,6 @@ def process_amount_for_bulk_loans(
 	return amounts
 
 
-def get_unbooked_interest_for_loans(
-	loans, posting_date, interest_type="Normal Interest", last_demand_date=None
-):
-
-	loan_list = [loan.name for loan in loans]
-	loan_type_map = {loan.name: loan.repayment_schedule_type for loan in loans}
-	loan_status_map = {loan.name: loan.status for loan in loans}
-
-	filters = [
-		["loan", "in", loan_list],
-		["docstatus", "=", 1],
-		["posting_date", "<", posting_date],
-		["interest_type", "=", interest_type],
-	]
-
-	if last_demand_date:
-		filters.append(["posting_date", ">", last_demand_date])
-
-	accrued_interests = frappe.db.get_all(
-		"Loan Interest Accrual",
-		filters,
-		["loan", "loan_disbursement", "SUM(interest_amount) as unbooked_interest"],
-		group_by="loan, loan_disbursement",
-	)
-
-	accrued_interest_map = {}
-
-	for accrued_interest in accrued_interests:
-		if loan_status_map.get(accrued_interest.loan) in ("Closed", "Settled"):
-			accrued_interest_map[accrued_interest.loan] = 0
-		elif loan_type_map.get(accrued_interest.loan) == "Line of Credit":
-			accrued_interest_map[
-				(accrued_interest.loan, accrued_interest.loan_disbursement)
-			] = accrued_interest.unbooked_interest
-		else:
-			accrued_interest_map.setdefault(accrued_interest.loan, 0)
-			accrued_interest_map[accrued_interest.loan] += accrued_interest.unbooked_interest
-
-	return accrued_interest_map
-
-
 def get_last_demand_date(posting_date, demand_subtype="Interest", loan=None):
 	LoanDemand = DocType("Loan Demand")
 

@@ -24,6 +24,7 @@
   "repayment_start_date",
   "is_term_loan",
   "withhold_security_deposit",
+  "is_imported",
   "section_break_7",
   "disbursement_date",
   "clearance_date",
@@ -53,6 +54,7 @@
   "column_break_17",
   "reference_number",
   "amended_from",
+  "tranche_number",
   "connections_tab"
  ],
  "fields": [
@@ -390,16 +392,22 @@
    "fieldname": "total_emi_charges",
    "fieldtype": "Currency",
    "label": "Total EMI Charges"
+  },
+  {
+   "fieldname": "tranche_number",
+   "fieldtype": "Int",
+   "label": "Tranche Number",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-09 15:50:09.247885",
+ "modified": "2026-04-09 14:40:00.544954",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

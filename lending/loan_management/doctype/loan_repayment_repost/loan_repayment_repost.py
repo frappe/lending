@@ -11,6 +11,7 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
 	get_pending_principal_amount,
 )
+from lending.loan_management.utils import update_repayment_schedule_demand_generated
 
 
 class LoanRepaymentRepost(Document):
@@ -247,17 +248,10 @@ class LoanRepaymentRepost(Document):
 			frappe.db.set_value("Loan", self.loan, "status", "Disbursed")
 
 		if self.cancel_future_emi_demands:
-			active_schedule = frappe.db.get_value(
-				"Loan Repayment Schedule", {"loan": self.loan, "status": "Active", "docstatus": 1}, "name"
-			)
-
-			frappe.db.sql(
-				"""
-				UPDATE `tabRepayment Schedule`
-				SET demand_generated = 0
-				WHERE parent = %s AND payment_date >= %s
-			""",
-				(active_schedule, self.repost_date),
+			update_repayment_schedule_demand_generated(
+				loan=self.loan,
+				from_date=self.repost_date,
+				demand_generated=0,
 			)
 
 		for entry in reversed(self.get("repayment_entries", [])):
@@ -268,15 +262,6 @@ class LoanRepaymentRepost(Document):
 
 			frappe.get_doc(
 				{
-					"doctype": "Process Loan Interest Accrual",
-					"loan": self.loan,
-					"posting_date": add_days(entry.posting_date, -1),
-					"loan_disbursement": self.loan_disbursement,
-				}
-			).submit()
-
-			frappe.get_doc(
-				{
 					"doctype": "Process Loan Demand",
 					"loan": self.loan,
 					"posting_date": entry.posting_date,
@@ -284,11 +269,17 @@ class LoanRepaymentRepost(Document):
 				}
 			).submit()
 
+			frappe.get_doc(
+				{
+					"doctype": "Process Loan Interest Accrual",
+					"loan": self.loan,
+					"posting_date": add_days(entry.posting_date, -1),
+					"loan_disbursement": self.loan_disbursement,
+				}
+			).submit()
+
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			repayment_doc.flags.from_repost = True
-
-			if repayment_doc.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
-				frappe.db.set_value("Loan", self.loan, "status", "Written Off")
 
 			if repayment_doc.repayment_type == "Security Deposit Adjustment":
 				is_security_deposit_adjustment = True
@@ -333,7 +324,7 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
-			repayment_doc.allocate_amount_against_demands(amounts)
+			repayment_doc.allocate_amounts(amounts)
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
 				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount

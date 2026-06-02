@@ -92,6 +92,9 @@ class LoanRepaymentSchedule(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		if self.docstatus == 0 and not self.status:
+			self.status = "Initiated"
+
 		self.number_of_rows = 0
 		self.set_repayment_period()
 		self.set_repayment_start_date()
@@ -153,6 +156,7 @@ class LoanRepaymentSchedule(Document):
 		principal_balance = prepayment_details.balance_principal
 		paid_interest_amount = interest_amount
 		paid_principal_amount = principal_amount
+		is_partial_pre_paid_interest = 0
 
 		if (
 			prepayment_details.adjusted_unaccrued_interest
@@ -160,6 +164,7 @@ class LoanRepaymentSchedule(Document):
 		):
 			interest_amount = prepayment_details.adjusted_unaccrued_interest
 			paid_interest_amount = interest_amount
+			is_partial_pre_paid_interest = 1
 
 		if flt(interest_amount) > 0:
 			create_loan_demand(
@@ -174,6 +179,7 @@ class LoanRepaymentSchedule(Document):
 				if self.restructure_type == "Advance Payment"
 				else None,
 				paid_amount=paid_interest_amount,
+				is_partial_pre_paid_interest=is_partial_pre_paid_interest,
 			)
 
 		create_loan_demand(
@@ -526,7 +532,7 @@ class LoanRepaymentSchedule(Document):
 			# All the residue amount is added to the last row for "Repay Over Number of Periods"
 			#
 			# Also, when such a Repayment Schedule is rescheduled, its repayment_method changes to Repay Fixed Amount per Period
-			# Here, the tenure shouldn't change. Thus, if this is a restructed repayment schedule, the last row is all the residue amount left.
+			# Here, the tenure shouldn't change. Thus, if this is a restructured repayment schedule, the last row is all the residue amount left.
 			# This is a special case.
 
 			if (
@@ -653,7 +659,7 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 
 		if (
-			self.restructure_type != "Normal Restructure"
+			self.restructure_type not in ("Normal Restructure", "Advance Payment")
 			and self.repayment_frequency == "Monthly"
 			or (self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time")
 		):
@@ -709,14 +715,12 @@ class LoanRepaymentSchedule(Document):
 				):
 					for row in prev_schedule.get(schedule_field):
 						if getdate(row.payment_date) < getdate(self.posting_date) or (
-							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type
-						):
-
-							if getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type in (
+							getdate(row.payment_date) == getdate(self.posting_date) and self.restructure_type in (
 								"Pre Payment",
 								"Advance Payment",
-							):
-								row.balance_loan_amount = self.current_principal_amount
+							)
+						):
+							row.balance_loan_amount = self.current_principal_amount
 
 							self.add_repayment_schedule_row(
 								row.payment_date,
@@ -946,6 +950,36 @@ class LoanRepaymentSchedule(Document):
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
+			days, months = self.get_monthly_interest_days_and_months(
+				payment_date,
+				additional_days,
+				balance_amount,
+				rate_of_interest,
+				schedule_field,
+				principal_share_percentage,
+				interest_share_percentage,
+				months,
+			)
+		else:
+			days = self.get_non_monthly_days(payment_date)
+
+		return days, months
+
+	def get_monthly_interest_days_and_months(
+		self,
+		payment_date,
+		additional_days,
+		balance_amount,
+		rate_of_interest,
+		schedule_field,
+		principal_share_percentage,
+		interest_share_percentage,
+		months,
+	):
+		if self.is_first_emi_after_normal_restructure(payment_date):
+			days = date_diff(payment_date, self.posting_date)
+
+		else:
 			expected_payment_date = get_last_day(payment_date)
 			if self.repayment_date_on == "Start of the next month":
 				expected_payment_date = add_days(expected_payment_date, 1)
@@ -999,21 +1033,38 @@ class LoanRepaymentSchedule(Document):
 					days = date_diff(payment_date, self.posting_date)
 				else:
 					days = date_diff(get_last_day(payment_date), payment_date)
-		else:
-			if payment_date == self.repayment_start_date:
-				days = date_diff(payment_date, self.posting_date)
-			elif self.repayment_frequency == "Bi-Weekly":
-				days = 14
-			elif self.repayment_frequency == "Weekly":
-				days = 7
-			elif self.repayment_frequency == "Daily":
-				days = 1
-			elif self.repayment_frequency == "Quarterly":
-				days = 3
-			elif self.repayment_frequency == "One Time":
-				days = date_diff(self.repayment_start_date, self.posting_date)
 
 		return days, months
+
+	def is_first_emi_after_normal_restructure(self, payment_date):
+		return (
+			self.restructure_type == "Normal Restructure"
+			and self.loan_restructure
+			and getdate(payment_date) == getdate(self.repayment_start_date)
+			and getdate(self.posting_date) < getdate(payment_date)
+			and self.repayment_schedule_type
+			in (
+				"Monthly as per cycle date",
+				"Monthly as per repayment start date",
+				"Line of Credit",
+				"Pro-rated calendar months",
+			)
+		)
+
+
+	def get_non_monthly_days(self, payment_date):
+		if payment_date == self.repayment_start_date:
+			return date_diff(payment_date, self.posting_date)
+		elif self.repayment_frequency == "Bi-Weekly":
+			return 14
+		elif self.repayment_frequency == "Weekly":
+			return 7
+		elif self.repayment_frequency == "Daily":
+			return 1
+		elif self.repayment_frequency == "Quarterly":
+			return 3
+		elif self.repayment_frequency == "One Time":
+			return date_diff(self.repayment_start_date, self.posting_date)
 
 	def add_broken_period_interest(
 		self,

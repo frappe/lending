@@ -3,6 +3,7 @@
 
 
 import json
+from datetime import date, datetime
 
 import frappe
 from frappe import _
@@ -24,20 +25,28 @@ from frappe.utils.caching import redis_cache
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
-from erpnext.controllers.accounts_controller import AccountsController
+from erpnext.accounts.general_ledger import process_gl_map
 
+from lending.loan_management.controllers.loan_controller import LoanController
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+	make_loan_interest_accrual_entry,
+)
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
-from lending.loan_management.utils import loan_accounting_enabled
+from lending.loan_management.utils import (
+	loan_accounting_enabled,
+	update_repayment_schedule_demand_generated,
+)
 from lending.utils import daterange
 
 
 # nosemgrep
-class Loan(AccountsController):
+class Loan(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -48,6 +57,9 @@ class Loan(AccountsController):
 
 		from lending.loan_management.doctype.loan_disbursement_charge.loan_disbursement_charge import (
 			LoanDisbursementCharge,
+		)
+		from lending.loan_management.doctype.loan_import_details.loan_import_details import (
+			LoanImportDetails,
 		)
 
 		amended_from: DF.Link | None
@@ -74,6 +86,7 @@ class Loan(AccountsController):
 		freeze_account: DF.Check
 		freeze_date: DF.Date | None
 		interest_income_account: DF.Link | None
+		is_imported: DF.Check
 		is_npa: DF.Check
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
@@ -84,12 +97,14 @@ class Loan(AccountsController):
 		loan_application: DF.Link | None
 		loan_category: DF.Link | None
 		loan_charges: DF.Table[LoanDisbursementCharge]
+		loan_import_details: DF.Table[LoanImportDetails]
 		loan_partner: DF.Link | None
 		loan_product: DF.Link
 		loan_restructure_count: DF.Int
 		manual_npa: DF.Check
 		maximum_limit_amount: DF.Currency
 		maximum_loan_amount: DF.Currency
+		migration_date: DF.Date | None
 		monthly_repayment_amount: DF.Currency
 		moratorium_tenure: DF.Int
 		moratorium_type: DF.Literal["", "EMI", "Principal"]
@@ -99,26 +114,13 @@ class Loan(AccountsController):
 		posting_date: DF.Date
 		rate_of_interest: DF.Percent
 		refund_amount: DF.Currency
-		repayment_frequency: DF.Literal[
-			"Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"
-		]
+		repayment_frequency: DF.Literal["Monthly", "Daily", "Weekly", "Bi-Weekly", "Quarterly", "One Time"]
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
 		repayment_schedule_type: DF.Data | None
 		repayment_start_date: DF.Date | None
 		settlement_date: DF.Date | None
-		status: DF.Literal[
-			"",
-			"Draft",
-			"Sanctioned",
-			"Partially Disbursed",
-			"Disbursed",
-			"Active",
-			"Loan Closure Requested",
-			"Closed",
-			"Written Off",
-			"Settled",
-		]
+		status: DF.Literal["", "Draft", "Sanctioned", "Partially Disbursed", "Disbursed", "Active", "Loan Closure Requested", "Closed", "Written Off", "Settled"]
 		tenure_post_restructure: DF.Int
 		total_amount_paid: DF.Currency
 		total_interest_payable: DF.Currency
@@ -132,6 +134,10 @@ class Loan(AccountsController):
 	# end: auto-generated types
 
 	def validate(self):
+		if frappe.flags.in_import:
+			if not self.get("is_imported"):
+				self.is_imported = 1
+
 		self.set_status()
 		self.set_loan_amount()
 		self.validate_loan_amount()
@@ -239,10 +245,181 @@ class Loan(AccountsController):
 					_("Flat Interest Rate loans can only have monthly and yearly repayment frequency")
 				)
 
+	def get_migration_date_for_import(self):
+		if not self.get("is_imported"):
+			return None
+
+		if not self.get("migration_date"):
+			frappe.throw(_("Migration Date is mandatory for imported loans"))
+
+		return self.get("migration_date")
+
+	def is_line_of_credit_loan(self):
+		return self.get("repayment_schedule_type") == "Line of Credit"
+
+	def process_migrated_loan_after_submit(self):
+		migration_date = self.get_migration_date_for_import()
+		if not migration_date or self.get("status") == "Closed":
+			return
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		is_loc = self.is_line_of_credit_loan()
+
+		for d in (self.get("loan_import_details")):
+			if is_loc:
+				repayment_method = d.repayment_method
+				repayment_frequency = d.repayment_frequency
+				tenure = d.repayment_periods
+				repayment_start_date = d.repayment_start_date
+			else:
+				repayment_method = self.get("repayment_method")
+				repayment_frequency = self.get("repayment_frequency")
+				tenure = self.get("repayment_periods")
+				repayment_start_date = self.get("repayment_start_date")
+
+			disb_name = self.import_loan_disbursement(
+				d.loan_disbursement_id,
+				d.disbursement_date,
+				flt(d.disbursed_amount, precision),
+				repayment_method,
+				repayment_frequency,
+				tenure,
+				repayment_start_date,
+				is_loc,
+			)
+
+			update_repayment_schedule_demand_generated(
+				loan=self.name,
+				loan_disbursement=disb_name,
+				to_date=migration_date,
+				demand_generated=1,
+			)
+
+			self.create_migrated_interest_accruals(
+				disb_name,
+				migration_date,
+				flt(d.opening_principal_outstanding, precision),
+				flt(d.opening_interest_outstanding, precision),
+				flt(d.opening_penalty_outstanding, precision),
+				flt(d.opening_additional_outstanding, precision),
+			)
+
+			components = [
+				("EMI", "Principal", flt(d.opening_principal_outstanding, precision)),
+				("EMI", "Interest", flt(d.opening_interest_outstanding, precision)),
+				("Penalty", "Penalty", flt(d.opening_penalty_outstanding, precision)),
+				("Additional Interest", "Additional Interest", flt(d.opening_additional_outstanding, precision)),
+				("Charges", "Charges", flt(d.opening_charge_outstanding, precision)),
+			]
+
+			for demand_type, demand_subtype, amount in components:
+				if flt(amount, precision) <= 0:
+					continue
+
+				create_loan_demand(
+					loan=self.name,
+					demand_date=migration_date,
+					demand_type=demand_type,
+					demand_subtype=demand_subtype,
+					amount=flt(amount, precision),
+					loan_disbursement=disb_name,
+					posting_date=migration_date,
+					paid_amount=0,
+					is_imported=1,
+				)
+
+	def import_loan_disbursement(
+		self,
+		loan_disbursement_id,
+		disbursement_date,
+		disbursed_amount,
+		repayment_method,
+		repayment_frequency,
+		tenure,
+		repayment_start_date,
+		is_loc,
+	):
+		data = {
+			"doctype": "Loan Disbursement",
+			"against_loan": self.name,
+			"company": self.company,
+			"loan_disbursement_id": loan_disbursement_id,
+			"disbursement_date": disbursement_date,
+			"posting_date": self.get("posting_date") or disbursement_date,
+			"disbursed_amount": disbursed_amount,
+			"is_imported": 1,
+			"repayment_schedule_type": self.get("repayment_schedule_type"),
+			"repayment_method": repayment_method,
+			"repayment_frequency": repayment_frequency,
+			"tenure": tenure,
+			"repayment_start_date": repayment_start_date,
+		}
+
+		doc = frappe.get_doc(data)
+		doc.insert(ignore_permissions=True)
+		doc.submit()
+		return doc.name
+
+	def create_migrated_interest_accruals(
+		self,
+		disbursement_name,
+		migration_date,
+		principal_outstanding,
+		interest_outstanding,
+		penalty_outstanding,
+		additional_outstanding,
+	):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		principal_outstanding = flt(principal_outstanding, precision)
+		interest_outstanding = flt(interest_outstanding, precision)
+		penalty_outstanding = flt(penalty_outstanding, precision)
+		additional_outstanding = flt(additional_outstanding, precision)
+		rate_of_interest = flt(self.get("rate_of_interest"), precision)
+
+		if flt(interest_outstanding, precision) > 0:
+			make_loan_interest_accrual_entry(
+				loan=self.name,
+				base_amount=principal_outstanding,
+				interest_amount=interest_outstanding,
+				process_loan_interest=0,
+				start_date=migration_date,
+				posting_date=migration_date,
+				accrual_type="Regular",
+				interest_type="Normal Interest",
+				rate_of_interest=rate_of_interest,
+				additional_interest=0,
+				accrual_date=migration_date,
+				loan_disbursement=disbursement_name,
+				is_imported=1,
+			)
+
+		total_penal = flt(penalty_outstanding + additional_outstanding, precision)
+		if flt(total_penal, precision) > 0:
+			make_loan_interest_accrual_entry(
+				loan=self.name,
+				base_amount=0,
+				interest_amount=total_penal,
+				process_loan_interest=0,
+				start_date=migration_date,
+				posting_date=migration_date,
+				accrual_type="Regular",
+				interest_type="Penal Interest",
+				rate_of_interest=rate_of_interest,
+				additional_interest=total_penal,
+				accrual_date=migration_date,
+				loan_disbursement=disbursement_name,
+				is_imported=1,
+			)
+
 	def on_submit(self):
 		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
 		self.create_loan_limit_change_log("Loan Booking", self.posting_date)
+		self.process_migrated_loan_after_submit()
+
+		if self.is_imported:
+			self.make_gl_entries()
 
 		if self.auto_create_disbursement_on_loan_booking:
 			make_loan_disbursement(self.name, submit=True, posting_date=self.posting_date, disbursement_date=self.disbursement_date)
@@ -267,8 +444,14 @@ class Loan(AccountsController):
 		]
 		self.set_status()
 
+		if self.is_imported:
+			self.make_gl_entries(cancel=1)
+
 	# nosemgrep
 	def set_status(self):
+		if self.is_imported and self.get("status") == "Closed":
+			return
+
 		if self.docstatus == 0:
 			self.status = "Draft"
 		elif self.docstatus == 1:
@@ -374,14 +557,6 @@ class Loan(AccountsController):
 				)
 			)
 
-	def submit_draft_schedule(self):
-		draft_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 0}, "name"
-		)
-		if draft_schedule:
-			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
-			schedule.submit()
-
 	def cancel_and_delete_repayment_schedule(self):
 		schedules = frappe.db.get_all(
 			"Loan Repayment Schedule", {"loan": self.name, "docstatus": 1}, pluck="name"
@@ -445,20 +620,6 @@ class Loan(AccountsController):
 
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 
-	def unlink_loan_security_assignment(self):
-		pledges = frappe.get_all(
-			"Loan Security Assignment", fields=["name"], filters={"loan": self.name}
-		)
-		pledge_list = [d.name for d in pledges]
-		if pledge_list:
-			frappe.db.sql(
-				"""UPDATE `tabLoan Security Assignment` SET
-				loan = '', status = 'Unpledged'
-				where name in (%s) """
-				% (", ".join(["%s"] * len(pledge_list))),
-				tuple(pledge_list),
-			)  # nosec
-
 	def cancel_loan_security_assignment(self):
 		if not self.loan_application:
 			for assignment in frappe.get_all(
@@ -469,13 +630,126 @@ class Loan(AccountsController):
 				doc = frappe.get_doc("Loan Security Assignment", assignment.name)
 				doc.cancel()
 
+	def make_gl_entries(self, cancel=0, adv_adj=0):
+		if not loan_accounting_enabled(self.company):
+			return
 
-def update_total_amount_paid(doc):
-	total_amount_paid = 0
-	for data in doc.repayment_schedule:
-		if data.paid:
-			total_amount_paid += data.total_payment
-	frappe.db.set_value("Loan", doc.name, "total_amount_paid", total_amount_paid)
+		loan_account, payment_account = self.get_opening_accounts_from_loan_product()
+
+		outstanding = self.get_outstanding_principal_amount()
+		if outstanding <= 0:
+			return
+
+		posting_date = self.get_opening_posting_date()
+
+		gle_map = []
+		remarks = _("Opening entry for imported loan {0}").format(self.name)
+
+		self.add_opening_gl_entry(
+			gle_map=gle_map,
+			account=payment_account,
+			against_account=loan_account,
+			amount=outstanding,
+			remarks=remarks,
+			posting_date=posting_date,
+		)
+
+		if gle_map:
+			if cancel:
+				gle_map = process_gl_map(gle_map)
+
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+
+	def get_outstanding_principal_amount(self) -> float:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		total_outstanding = sum(
+			flt(row.opening_principal_outstanding)
+			for row in self.get("loan_import_details") or []
+		)
+
+		return flt(total_outstanding, precision)
+
+	def get_opening_posting_date(self):
+		if self.get("migration_date"):
+			return self.get("migration_date")
+
+		return self.get("posting_date") or getdate()
+
+	def get_opening_accounts_from_loan_product(self):
+		accounts = frappe.db.get_value(
+			"Loan Product",
+			self.loan_product,
+			["loan_account", "payment_account"],
+			as_dict=True,
+		) or {}
+
+		if not accounts.get("loan_account"):
+			frappe.throw(
+				_("Please set Loan Account for the Loan Product {0}").format(frappe.bold(self.loan_product))
+			)
+
+		if not accounts.get("payment_account"):
+			frappe.throw(
+				_("Please set Payment Account for the Loan Product {0}").format(frappe.bold(self.loan_product))
+			)
+
+		return accounts.get("loan_account"), accounts.get("payment_account")
+
+	def add_opening_gl_entry(
+		self,
+		gle_map,
+		account,
+		against_account,
+		amount,
+		remarks,
+		posting_date,
+	):
+		account_type = frappe.db.get_value("Account", account, "account_type")
+
+		gle_map.append(
+			self.get_gl_dict(
+				{
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
+					"credit": 0,
+					"credit_in_account_currency": 0,
+					"voucher_type": "Loan",
+					"voucher_no": self.name,
+					"remarks": remarks,
+					"cost_center": self.get("cost_center"),
+					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
+					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
+					"posting_date": posting_date,
+					"is_opening": "Yes",
+				}
+			)
+		)
+
+		account_type = frappe.db.get_value("Account", against_account, "account_type")
+
+		gle_map.append(
+			self.get_gl_dict(
+				{
+					"account": against_account,
+					"against": account,
+					"debit": -1 * amount,  # negative debit becomes credit
+					"debit_in_account_currency": -1 * amount,
+					"credit": 0,
+					"credit_in_account_currency": 0,
+					"voucher_type": "Loan",
+					"voucher_no": self.name,
+					"remarks": remarks,
+					"cost_center": self.get("cost_center"),
+					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
+					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
+					"posting_date": posting_date,
+					"is_opening": "Yes",
+				}
+			)
+		)
 
 
 def get_total_loan_amount(applicant_type, applicant, company):
@@ -638,7 +912,7 @@ def close_unsecured_term_loan(loan: str):
 @frappe.whitelist()
 def make_loan_disbursement(
 	loan: str,
-	disbursement_amount: int | None = 0,
+	disbursement_amount: float | None = None,
 	as_dict: int | None = 0,
 	submit: bool | None = False,
 	repayment_start_date: str | None = None,
@@ -876,15 +1150,15 @@ def make_refund_jv(loan: str, amount: float = 0, reference_number: str | None = 
 
 @frappe.whitelist()
 def update_days_past_due_in_loans(
-	loan_name,
-	posting_date=None,
-	loan_product=None,
-	process_loan_classification=None,
-	loan_disbursement=None,
-	ignore_freeze=False,
-	is_backdated=0,
-	force_update_dpd_in_loan=0,
-):
+	loan_name: str,
+	posting_date: str | date | datetime | None = None,
+	loan_product: str | None = None,
+	process_loan_classification: str | None = None,
+	loan_disbursement: str | None = None,
+	ignore_freeze: bool = False,
+	is_backdated: bool = False,
+	force_update_dpd_in_loan: bool = False,
+) -> None:
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
 	frappe.has_permission("Loan", "write", throw=True)
@@ -943,13 +1217,14 @@ def update_days_past_due_in_loans(
 		threshold_write_off_map = get_dpd_threshold_write_off_map()
 
 		loan_details = frappe.db.get_value(
-			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company"], as_dict=1
+			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"], as_dict=1
 		)
 
 		applicant_type = loan_details.get("applicant_type")
 		applicant = loan_details.get("applicant")
 		company = loan_details.get("company")
 		freeze_date = loan_details.get("freeze_date")
+		existing_watch_period_end_date = loan_details.get("watch_period_end_date")
 
 		if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
 			return
@@ -985,6 +1260,35 @@ def update_days_past_due_in_loans(
 					loan_disbursement=disbursement,
 					is_backdated=is_backdated,
 					dpd_threshold=threshold,
+				)
+
+			watch_period_days = frappe.db.get_value(
+				"Company", company, "watch_period_post_loan_restructure_in_days"
+			)
+
+			restructure_exists = frappe.db.exists(
+				"Loan Restructure",
+				{
+					"loan": loan_name,
+					"status": "Approved",
+					"docstatus": 1,
+					"company": company,
+					"restructure_type": "Normal Restructure",
+				},
+			)
+
+			watch_period_start_date = (
+				demand.demand_date
+				if existing_watch_period_end_date and days_past_due == 1
+				else getdate(posting_date)
+				if is_npa and not existing_watch_period_end_date and restructure_exists
+				else None
+			)
+
+			if watch_period_start_date:
+				watch_period_end_date = add_days(watch_period_start_date, watch_period_days)
+				update_watch_period_date_for_all_loans(
+					watch_period_end_date, applicant_type, applicant
 				)
 
 			create_dpd_record(
@@ -1135,7 +1439,7 @@ def create_dpd_record(
 		{"loan": loan, "posting_date": posting_date, "loan_disbursement": loan_disbursement},
 	)
 	if existing_log:
-		doc = frappe.get_doc("Days Past Due Log", existing_log)
+		doc = frappe.get_doc("Days Past Due Log", existing_log, for_update=True)
 	else:
 		doc = frappe.new_doc("Days Past Due Log")
 
@@ -1169,20 +1473,24 @@ def update_loan_and_customer_status(
 		write_off_suspense_entries,
 	)
 
-	loan_status, repayment_schedule_type, loan_product, unmark_npa, current_npa = frappe.db.get_value(
-		"Loan", loan, ["status", "repayment_schedule_type", "loan_product", "unmark_npa", "is_npa"]
-	)
+	loan_details = frappe.db.get_value(
+		"Loan", loan, ["status", "repayment_schedule_type", "loan_product", "unmark_npa", "is_npa",
+			"watch_period_end_date", "classification_code", "classification_name"], as_dict=1)
 
-	if loan_status == "Written Off":
+	if loan_details.get("status") == "Written Off":
 		is_written_off = 1
 	else:
 		is_written_off = 0
 
-	classification_code, classification_name = get_classification_code_and_name(
-		days_past_due, company, is_written_off=is_written_off
-	)
+	if loan_details.get("watch_period_end_date") and getdate(loan_details.get("watch_period_end_date")) >= getdate(posting_date):
+		classification_code = loan_details.get("classification_code")
+		classification_name = loan_details.get("classification_name")
+	else:
+		classification_code, classification_name = get_classification_code_and_name(
+			days_past_due, company, is_written_off=is_written_off
+		)
 
-	if repayment_schedule_type == "Line of Credit":
+	if loan_details.get("repayment_schedule_type") == "Line of Credit":
 		if loan_disbursement:
 			frappe.db.set_value(
 				"Loan Disbursement",
@@ -1202,8 +1510,8 @@ def update_loan_and_customer_status(
 
 		days_past_due = max_dpd
 
-	if loan_status == "Settled":
-		write_off_suspense_entries(loan, loan_product, posting_date, posting_date, company)
+	if loan_details.get("status") == "Settled":
+		write_off_suspense_entries(loan, loan_details.get("loan_product"), posting_date, posting_date, company)
 		write_off_charges(loan, posting_date, posting_date, company)
 	elif is_backdated and days_past_due < dpd_threshold:
 		is_previous_npa = frappe.db.get_value(
@@ -1231,9 +1539,9 @@ def update_loan_and_customer_status(
 			update_all_linked_loan_customer_npa_status(
 				0, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
 			)
-			write_off_suspense_entries(loan, loan_product, max_date, max_date, company)
+			write_off_suspense_entries(loan, loan_details.get("loan_product"), max_date, max_date, company)
 			write_off_charges(loan, max_date, max_date, company)
-		elif cint(is_previous_npa) and not cint(current_npa) and not cint(unmark_npa):
+		elif cint(is_previous_npa) and not cint(loan_details.get("current_npa")) and not cint(loan_details.get("unmark_npa")):
 			update_all_linked_loan_customer_npa_status(
 				1, applicant_type, applicant, posting_date, loan, event="Loan Repayment"
 			)
@@ -1241,7 +1549,7 @@ def update_loan_and_customer_status(
 			move_unpaid_interest_to_suspense_ledger(loan, max_date, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date, max_date)
 
-	elif is_npa and not cint(unmark_npa) and not cint(current_npa):
+	elif is_npa and not cint(loan_details.get("unmark_npa")) and not cint(loan_details.get("current_npa")):
 		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
 			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
 			if not prev_npa:
@@ -1409,13 +1717,6 @@ def get_dpd_threshold_write_off_map():
 		frappe.get_all(
 			"Company", fields=["name", "days_past_due_threshold_for_auto_write_off"], as_list=1
 		)
-	)
-
-
-@redis_cache(ttl=60 * 60)
-def get_loan_partner_threshold_map():
-	return frappe._dict(
-		frappe.get_all("Loan Partner", fields=["name", "fldg_trigger_dpd"], as_list=1)
 	)
 
 
@@ -1725,92 +2026,6 @@ def make_journal_entry(
 	jv.submit()
 
 	return jv.name
-
-
-def get_unpaid_interest_amount(loan, posting_date, demand_subtype):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
-
-	posting_date = posting_date or getdate()
-	unpaid_demands = get_unpaid_demands(
-		loan, posting_date=posting_date, demand_subtype=demand_subtype
-	)
-
-	amount = 0
-	for demand in unpaid_demands:
-		amount += demand.outstanding_amount
-
-	return amount
-
-
-def make_fldg_invocation_jv(loan, posting_date):
-	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
-		get_pending_principal_amount,
-	)
-
-	loan_partner = frappe.db.get_value("Loan", loan, "loan_partner")
-	partner_details = frappe.db.get_value(
-		"Loan Partner",
-		loan_partner,
-		[
-			"payable_account",
-			"fldg_account",
-			"partner_interest_share",
-			"fldg_limit_calculation_component",
-			"type_of_fldg_applicable",
-			"fldg_fixed_deposit_percentage",
-			"fldg_corporate_guarantee_percentage",
-		],
-		as_dict=1,
-	)
-
-	limit_amount = 0
-
-	if partner_details.fldg_limit_calculation_component == "Disbursement":
-		base_amount = frappe.db.get_value("Loan", loan, "disbursed_amount")
-	elif partner_details.fldg_limit_calculation_component == "POS":
-		base_amount = get_pending_principal_amount(loan)
-
-	if partner_details.type_of_fldg_applicable == "Fixed Deposit Only":
-		limit_amount += base_amount * partner_details.fldg_fixed_deposit_percentage / 100
-	elif partner_details.type_of_fldg_applicable == "Corporate Guarantee Only":
-		limit_amount += base_amount * partner_details.fldg_corporate_guarantee_percentage / 100
-	elif partner_details.type_of_fldg_applicable == "Both Fixed Deposit and Corporate Guarantee":
-		limit_amount += base_amount * partner_details.fldg_fixed_deposit_percentage / 100
-		limit_amount += base_amount * partner_details.fldg_corporate_guarantee_percentage / 100
-
-	if not partner_details.payable_account:
-		frappe.throw(_("Please add partner Payable Account for Loan Partner {0}").format(loan_partner))
-
-	if not partner_details.fldg_account:
-		frappe.throw(_("Please add partner FLGD Account for Loan Partner {0}").format(loan_partner))
-
-	if limit_amount:
-		journal_entry = frappe.new_doc("Journal Entry")
-		journal_entry.posting_date = posting_date
-
-		journal_entry.append(
-			"accounts",
-			{
-				"account": partner_details.payable_account,
-				"credit_in_account_currency": limit_amount,
-				"credit": limit_amount,
-				"reference_type": "Loan",
-				"reference_name": loan,
-			},
-		)
-
-		journal_entry.append(
-			"accounts",
-			{
-				"account": partner_details.fldg_account,
-				"debit_in_account_currency": limit_amount,
-				"debit": limit_amount,
-				"reference_type": "Loan",
-				"reference_name": loan,
-			},
-		)
-
-		journal_entry.submit()
 
 
 @frappe.whitelist()

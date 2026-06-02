@@ -12,5 +12,33 @@
   "modified": "2025-06-27 16:28:02.106474",
   "name": "Complete KYC",
   "workflow_action_name": "Complete KYC"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-02-20 09:40:06.848521",
+  "name": "Run Basic Rules",
+  "workflow_action_name": "Run Basic Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-02-20 09:40:06.861739",
+  "name": "Run Pre-Qualification Rules",
+  "workflow_action_name": "Run Pre-Qualification Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-02-20 09:40:06.864394",
+  "name": "Run Knockout Rules",
+  "workflow_action_name": "Run Knockout Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-02-20 09:40:06.867583",
+  "name": "Converted to Application",
+  "workflow_action_name": "Converted to Application"
  }
 ]

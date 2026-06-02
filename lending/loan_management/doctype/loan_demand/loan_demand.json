@@ -23,6 +23,7 @@
   "sales_invoice",
   "loan_product",
   "is_term_loan",
+  "is_partial_pre_paid_interest",
   "loan_demand_details_section",
   "demand_type",
   "demand_subtype",
@@ -34,6 +35,7 @@
   "outstanding_amount",
   "accounting_dimensions_section",
   "cost_center",
+  "is_imported",
   "column_break_hmrs",
   "amended_from",
   "process_loan_demand",
@@ -124,7 +126,8 @@
    "fieldname": "applicant_type",
    "fieldtype": "Link",
    "label": "Applicant Type",
-   "options": "DocType"
+   "options": "DocType",
+   "search_index": 1
   },
   {
    "fetch_from": "loan.applicant",
@@ -283,17 +286,30 @@
    "fieldtype": "Link",
    "label": "Loan Repayment",
    "options": "Loan Repayment"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_imported",
+   "fieldtype": "Check",
+   "label": "Is Imported",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_partial_pre_paid_interest",
+   "fieldtype": "Check",
+   "label": "Is Partial Pre-Paid Interest"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-28 12:22:19.596834",
+ "modified": "2026-02-16 15:13:09.765918",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

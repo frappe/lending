@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-21 13:43:36.518666",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_disbursement_id",
+  "disbursement_date",
+  "disbursed_amount",
+  "repayment_method",
+  "repayment_frequency",
+  "repayment_periods",
+  "repayment_start_date",
+  "column_break_tkyz",
+  "opening_principal_outstanding",
+  "opening_interest_outstanding",
+  "opening_penalty_outstanding",
+  "opening_additional_outstanding",
+  "opening_charge_outstanding"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "loan_disbursement_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Loan Disbursement ID",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")"
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "opening_principal_outstanding",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening Principal Outstanding",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "opening_interest_outstanding",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening Interest Outstanding",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "opening_penalty_outstanding",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening Penalty Outstanding",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "opening_additional_outstanding",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening Additional Outstanding",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "opening_charge_outstanding",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening Charge Outstanding",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "disbursement_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Disbursement Date",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")"
+  },
+  {
+   "columns": 2,
+   "default": "Company:company:default_currency",
+   "fieldname": "disbursed_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Disbursed Amount",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "repayment_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Repayment Method",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.repayment_schedule_type == \"Line of Credit\" && parent.status !== \"Closed\")",
+   "options": "\nRepay Over Number of Periods\nRepay Fixed Amount per Period"
+  },
+  {
+   "columns": 2,
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Repayment Frequency",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.repayment_schedule_type == \"Line of Credit\" && parent.status !== \"Closed\")",
+   "options": "\nMonthly\nDaily\nWeekly\nBi-Weekly\nQuarterly\nOne Time"
+  },
+  {
+   "columns": 2,
+   "fieldname": "repayment_periods",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Repayment Periods",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.repayment_schedule_type == \"Line of Credit\" && parent.status !== \"Closed\")",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_tkyz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "repayment_start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Repayment Start Date",
+   "mandatory_depends_on": "eval:(parent.migration_date && parent.is_imported && parent.repayment_schedule_type == \"Line of Credit\" && parent.status !== \"Closed\")"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-16 12:27:49.502213",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Import Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

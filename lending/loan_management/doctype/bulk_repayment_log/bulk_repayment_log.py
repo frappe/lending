@@ -19,7 +19,7 @@ class BulkRepaymentLog(Document):
 		failed_repayment: DF.Text | None
 		loan: DF.Link | None
 		loan_disbursement: DF.Link | None
-		status: DF.Data | None
+		status: DF.Literal["", "Success", "Failure"]
 		timestamp: DF.Datetime | None
 		trace_id: DF.Data | None
 		traceback: DF.LongText | None

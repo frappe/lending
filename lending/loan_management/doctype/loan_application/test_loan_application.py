@@ -1,8 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-import unittest
-
 import frappe
 
 from erpnext.setup.doctype.employee.test_employee import make_employee
@@ -12,9 +10,10 @@ from lending.tests.test_utils import (
 	create_loan_product,
 	set_loan_settings_in_company,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanApplication(unittest.TestCase):
+class TestLoanApplication(LendingTestSuite):
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()

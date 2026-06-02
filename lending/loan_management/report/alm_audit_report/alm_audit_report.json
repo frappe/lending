@@ -1,5 +1,6 @@
 {
  "add_total_row": 0,
+ "add_translate_data": 0,
  "columns": [],
  "creation": "2024-03-11 18:55:34.504099",
  "disabled": 0,
@@ -8,9 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "letter_head": "Kinara Loan Repayment Schedule Letter Head",
- "letterhead": null,
- "modified": "2024-03-11 18:55:34.504099",
+ "modified": "2026-04-20 11:39:07.642991",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "ALM Audit Report",
@@ -26,5 +25,6 @@
   {
    "role": "Employee"
   }
- ]
+ ],
+ "timeout": 0
 }

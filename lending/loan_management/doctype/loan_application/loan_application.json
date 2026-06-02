@@ -13,12 +13,10 @@
   "applicant_details_section",
   "applicant_type",
   "applicant",
-  "first_name",
-  "last_name",
+  "applicant_name",
   "column_break_2",
   "company",
   "posting_date",
-  "status",
   "applicant_address_details_section",
   "address_line_1",
   "address_line_2",
@@ -30,13 +28,14 @@
   "co_applicants_section",
   "co_applicants",
   "section_break_4",
+  "status",
   "loan_product",
-  "is_term_loan",
   "loan_amount",
-  "is_secured_loan",
   "rate_of_interest",
   "column_break_7",
-  "description",
+  "loan_purpose",
+  "is_term_loan",
+  "is_secured_loan",
   "loan_security_details_section",
   "proposed_pledges",
   "maximum_loan_amount",
@@ -49,7 +48,8 @@
   "total_payable_interest",
   "amended_from",
   "documents_tab",
-  "documents"
+  "documents",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -78,11 +78,10 @@
    "default": "Today",
    "fieldname": "posting_date",
    "fieldtype": "Date",
-   "label": "Posting Date",
+   "label": "Application Date",
    "reqd": 1
   },
   {
-   "allow_on_submit": 1,
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
@@ -122,11 +121,6 @@
   {
    "fieldname": "column_break_7",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Reason"
   },
   {
    "depends_on": "eval: doc.is_term_loan == 1",
@@ -244,7 +238,8 @@
    "fieldname": "applicant_email_address",
    "fieldtype": "Data",
    "label": "Applicant Email Address",
-   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\""
+   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "options": "Email"
   },
   {
    "depends_on": "eval: doc.applicant_type == \"Customer\"",
@@ -252,19 +247,6 @@
    "fieldtype": "Phone",
    "label": "Applicant Phone Number",
    "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\""
-  },
-  {
-   "depends_on": "eval: doc.applicant_type == \"Customer\"",
-   "fieldname": "first_name",
-   "fieldtype": "Data",
-   "in_global_search": 1,
-   "label": "First Name"
-  },
-  {
-   "depends_on": "eval: doc.applicant_type == \"Customer\"",
-   "fieldname": "last_name",
-   "fieldtype": "Data",
-   "label": "Last Name"
   },
   {
    "fieldname": "applicant_address_details_section",
@@ -332,16 +314,35 @@
    "fieldname": "co_applicants",
    "fieldtype": "Table",
    "options": "Loan Co-Applicants"
+  },
+  {
+   "depends_on": "eval: doc.applicant_type == \"Customer\"",
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "First Name"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "loan_purpose",
+   "fieldtype": "Link",
+   "label": "Loan Purpose",
+   "options": "Loan Purpose"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-05 16:12:50.900024",
+ "modified": "2026-04-02 16:03:38.065821",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
