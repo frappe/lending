@@ -2519,6 +2519,7 @@ def create_repayment_entry(
 	penalty_amount=None,
 	payroll_payable_account=None,
 	process_payroll_accounting_entry_based_on_employee=0,
+	value_date=None,
 ):
 
 	lr = frappe.get_doc(
@@ -2528,7 +2529,7 @@ def create_repayment_entry(
 			"payment_type": payment_type,
 			"company": company,
 			"posting_date": posting_date,
-			"value_date": getdate(),
+			"value_date": value_date or getdate(),
 			"applicant": applicant,
 			"penalty_amount": penalty_amount,
 			"interest_payable": interest_payable,
