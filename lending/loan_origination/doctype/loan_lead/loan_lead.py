@@ -46,6 +46,8 @@ class LoanLead(Document):
 
 @frappe.whitelist()
 def convert_to_loan_application(loan_lead: Document):
+	frappe.has_permission("Loan Application", "create", throw=True)
+
 	loan_application = frappe.new_doc("Loan Application")
 	loan_application.applicant_email_address = loan_lead.email
 	loan_application.applicant_name = loan_lead.applicant_name

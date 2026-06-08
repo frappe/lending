@@ -3,6 +3,7 @@
 
 
 import frappe
+from frappe.query_builder.functions import Sum
 from frappe.utils.dashboard import cache_source
 
 from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
@@ -13,16 +14,16 @@ from lending.loan_management.report.applicant_wise_loan_security_exposure.applic
 @frappe.whitelist()
 @cache_source
 def get_data(
-	chart_name=None,
-	chart=None,
-	no_cache=None,
-	filters=None,
-	from_date=None,
-	to_date=None,
-	timespan=None,
-	time_interval=None,
-	heatmap_year=None,
-):
+	chart_name: str | None = None,
+	chart: str | None = None,
+	no_cache: str | None = None,
+	filters: str | None = None,
+	from_date: str | None = None,
+	to_date: str | None = None,
+	timespan: str | None = None,
+	time_interval: str | None = None,
+	heatmap_year: str | None = None,
+) -> dict:
 	if chart_name:
 		chart = frappe.get_doc("Dashboard Chart", chart_name)
 	else:
@@ -34,48 +35,42 @@ def get_data(
 	if filters:
 		filters = frappe.parse_json(filters)[0]
 
-	conditions = ""
 	labels = []
 	values = []
 
-	if filters.get("company"):
-		conditions = "AND company = %(company)s"
+	company = filters.get("company")
 
 	loan_security_details = get_loan_security_details()
 
-	unpledges = frappe._dict(
-		frappe.db.sql(
-			"""
-		SELECT u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Release` up, `tabUnpledge` u
-		WHERE u.parent = up.name
-		AND up.status = 'Approved'
-		{conditions}
-		GROUP BY u.loan_security
-	""".format(
-				conditions=conditions
-			),
-			filters,
-			as_list=1,
-		)
+	lsr = frappe.qb.DocType("Loan Security Release")
+	unpledge = frappe.qb.DocType("Unpledge")
+	unpledge_query = (
+		frappe.qb.from_(lsr)
+		.inner_join(unpledge)
+		.on(unpledge.parent == lsr.name)
+		.select(unpledge.loan_security, Sum(unpledge.qty).as_("qty"))
+		.where(lsr.status == "Approved")
+		.groupby(unpledge.loan_security)
 	)
+	if company:
+		unpledge_query = unpledge_query.where(lsr.company == company)
 
-	pledges = frappe._dict(
-		frappe.db.sql(
-			"""
-		SELECT p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Assignment` lp, `tabPledge`p
-		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
-		{conditions}
-		GROUP BY p.loan_security
-	""".format(
-				conditions=conditions
-			),
-			filters,
-			as_list=1,
-		)
+	unpledges = frappe._dict(unpledge_query.run(as_list=1))
+
+	lsa = frappe.qb.DocType("Loan Security Assignment")
+	pledge = frappe.qb.DocType("Pledge")
+	pledge_query = (
+		frappe.qb.from_(lsa)
+		.inner_join(pledge)
+		.on(pledge.parent == lsa.name)
+		.select(pledge.loan_security, Sum(pledge.qty).as_("qty"))
+		.where(lsa.status == "Pledged")
+		.groupby(pledge.loan_security)
 	)
+	if company:
+		pledge_query = pledge_query.where(lsa.company == company)
+
+	pledges = frappe._dict(pledge_query.run(as_list=1))
 
 	for security, qty in pledges.items():
 		current_pledges.setdefault(security, qty)

@@ -67,7 +67,7 @@ def update_shortfall_status(loan, security_value, on_cancel=0):
 
 
 @frappe.whitelist()
-def add_security(loan):
+def add_security(loan: str):
 	loan_details = frappe.db.get_value(
 		"Loan", loan, ["applicant", "company", "applicant_type"], as_dict=1
 	)

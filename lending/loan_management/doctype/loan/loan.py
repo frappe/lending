@@ -885,7 +885,7 @@ def request_loan_closure(loan: str, posting_date: str | None = None, auto_close:
 
 
 @frappe.whitelist()
-def get_loan_application(loan_application):
+def get_loan_application(loan_application: str):
 	loan = frappe.get_doc("Loan Application", loan_application)
 	if loan:
 		return loan.as_dict()
@@ -922,6 +922,8 @@ def make_loan_disbursement(
 	bank_account: str | None = None,
 	is_term_loan: int | None = None,
 ):
+	frappe.has_permission("Loan Disbursement", "create", throw=True)
+
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
 	disbursement_entry.against_loan = loan_doc.name
@@ -962,7 +964,13 @@ def make_loan_disbursement(
 
 @frappe.whitelist()
 def make_repayment_entry(
-	loan, applicant_type, applicant, loan_product, company, loan_disbursement=None, as_dict=0
+	loan: str,
+	applicant_type: str,
+	applicant: str,
+	loan_product: str,
+	company: str,
+	loan_disbursement: str | None = None,
+	as_dict: bool = False,
 ):
 	repayment_entry = frappe.new_doc("Loan Repayment")
 	repayment_entry.against_loan = loan
@@ -1028,6 +1036,8 @@ def unpledge_security(
 	submit: int = 0,
 	approve: int = 0,
 ):
+	frappe.has_permission("Loan Security Release", "create", throw=True)
+
 	# if no security_map is passed it will be considered as full unpledge
 	if security_map and isinstance(security_map, str):
 		security_map = json.loads(security_map)
@@ -2029,7 +2039,7 @@ def make_journal_entry(
 
 
 @frappe.whitelist()
-def get_cyclic_date(loan_product, posting_date, ignore_bpi=False):
+def get_cyclic_date(loan_product: str, posting_date: str, ignore_bpi: bool = False):
 	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
 		"Loan Product",
 		loan_product,
