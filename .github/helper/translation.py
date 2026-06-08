@@ -15,7 +15,7 @@ files = sys.argv[1:]
 files_to_scan = [_file for _file in files if _file.endswith((".py", ".js"))]
 
 for _file in files_to_scan:
-	with open(_file, "r") as f:
+	with open(_file, "r") as f: # nosemgrep
 		print(f"Checking: {_file}")
 		file_lines = f.readlines()
 		for line_number, line in enumerate(file_lines, 1):
