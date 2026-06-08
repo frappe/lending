@@ -270,7 +270,9 @@ class LoanApplication(Document):
 
 
 @frappe.whitelist()
-def create_loan(source_name, target_doc=None, submit=0):
+def create_loan(source_name: str, target_doc: str | None = None, submit: int = 0):
+	frappe.has_permission("Loan", "create", throw=True)
+
 	def update_accounts(source_doc, target_doc, source_parent):
 		account_details = frappe.get_all(
 			"Loan Product",
@@ -313,6 +315,8 @@ def create_loan(source_name, target_doc=None, submit=0):
 
 @frappe.whitelist()
 def create_loan_security_assignment(loan_application: str | None = None, loan: str | None = None, securities: list | None = None, applicant_type: str | None = None, applicant: str | None = None, company: str | None = None):
+	frappe.has_permission("Loan Security Assignment", "create", throw=True)
+
 	if loan_application:
 		loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 		applicant_type, applicant, company = frappe.db.get_value("Loan Application", loan_application,
@@ -354,7 +358,7 @@ def create_loan_security_assignment(loan_application: str | None = None, loan: s
 
 # This is a sandbox method to get the proposed pledges
 @frappe.whitelist()
-def get_proposed_pledge(securities):
+def get_proposed_pledge(securities: str | list):
 	if isinstance(securities, str):
 		securities = json.loads(securities)
 
@@ -384,7 +388,9 @@ def get_proposed_pledge(securities):
 
 
 @frappe.whitelist()
-def check_duplicate_customers(applicant_phone_number=None, applicant_email_address=None):
+def check_duplicate_customers(
+	applicant_phone_number: str | None = None, applicant_email_address: str | None = None
+):
 	# check if there are customer entries with the same email and/or phone
 	customer_doc = frappe.qb.DocType("Customer")
 

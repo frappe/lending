@@ -2837,7 +2837,7 @@ def process_amount_for_loan(
 
 
 @frappe.whitelist()
-def get_bulk_due_details(loans, posting_date, consolidated=False):
+def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, consolidated: bool = False):
 	from lending.loan_management.doctype.loan_repayment.utils import (
 		get_disbursement_map,
 		get_pending_principal_amount_for_loans,
@@ -3271,7 +3271,7 @@ def get_net_paid_amount(loan):
 
 
 @frappe.whitelist(methods=["POST"])
-def post_bulk_payments(data):
+def post_bulk_payments(data: str | list[dict]):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["value_date"]))
 
@@ -3364,7 +3364,7 @@ def bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id):
 			bulk_repayment_log.trace_id = trace_id
 			bulk_repayment_log.save()
 
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep
 
 			try:
 				# weird way to do things. Please suggest better ways

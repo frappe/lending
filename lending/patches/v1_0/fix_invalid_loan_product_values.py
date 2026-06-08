@@ -1,4 +1,6 @@
 import frappe
+from frappe.query_builder import Field
+from frappe.query_builder.functions import Cast_
 
 
 def execute():
@@ -21,19 +23,22 @@ def execute():
 	if not frappe.db.table_exists("Loan Product"):
 		return
 
+	loan_product = frappe.qb.DocType("Loan Product")
+
 	for field, default in fields_to_fix.items():
 		if field not in frappe.db.get_table_columns("Loan Product"):
 			continue
 
+		field_col = Field(field)
+		field_as_char = Cast_(field_col, "CHAR")
+
 		# Set only if value is NULL, empty, or starts with non-numeric character
-		condition = (
-			"CAST(`{field}` AS CHAR) IS NULL "
-			"OR CAST(`{field}` AS CHAR) = '' "
-			"OR CAST(`{field}` AS CHAR) NOT REGEXP '^-?[0-9]+(\\.[0-9]+)?$'"
-		).format(field=field)
-
-		query = ("UPDATE `tabLoan Product` SET `{field}` = %s WHERE {condition}").format(
-			field=field, condition=condition
-		)
-
-		frappe.db.sql(query, (default,))
+		(
+			frappe.qb.update(loan_product)
+			.set(field_col, default)
+			.where(
+				field_as_char.isnull()
+				| (field_as_char == "")
+				| (~field_as_char.regexp(r"^-?[0-9]+(\.[0-9]+)?$"))
+			)
+		).run()
