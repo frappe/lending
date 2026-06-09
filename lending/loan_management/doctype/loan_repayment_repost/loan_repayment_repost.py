@@ -70,6 +70,11 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def on_submit(self):
+		# Reposting from a past date regenerates potentially hundreds of accruals, demands,
+		# GL entries and Journal Entries in a single transaction.  Multiply the per-transaction
+		# write limit (default 200 000) by 4 so large reposts don't hit TooManyWritesError.
+		frappe.db.MAX_WRITES_PER_TRANSACTION *= 4
+
 		if self.clear_demand_allocation_before_repost:
 			self.clear_demand_allocation()
 
