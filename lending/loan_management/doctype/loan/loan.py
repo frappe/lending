@@ -832,7 +832,7 @@ def get_sanctioned_amount_limit(applicant_type, applicant, company):
 
 
 @frappe.whitelist()
-def request_loan_closure(loan: str, posting_date: str | None = None, auto_close: int = 0):
+def request_loan_closure(loan: str, posting_date: str | date | datetime | None = None, auto_close: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	frappe.has_permission("Loan", "write", throw=True)
@@ -915,10 +915,10 @@ def make_loan_disbursement(
 	disbursement_amount: float | None = None,
 	as_dict: int | None = 0,
 	submit: bool | None = False,
-	repayment_start_date: str | None = None,
+	repayment_start_date: str | date | datetime | None = None,
 	repayment_frequency: str | None = None,
-	posting_date: str | None = None,
-	disbursement_date: str | None = None,
+	posting_date: str | date | datetime | None = None,
+	disbursement_date: str | date | datetime | None = None,
 	bank_account: str | None = None,
 	is_term_loan: int | None = None,
 ):
@@ -989,7 +989,7 @@ def make_repayment_entry(
 
 
 @frappe.whitelist()
-def make_loan_write_off(loan: str, company: str | None = None, posting_date: str | None = None, amount: float = 0, as_dict: int = 0):
+def make_loan_write_off(loan: str, company: str | None = None, posting_date: str | date | datetime | None = None, amount: float = 0, as_dict: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	frappe.has_permission("Loan Write Off", "write", throw=True)
@@ -2039,7 +2039,7 @@ def make_journal_entry(
 
 
 @frappe.whitelist()
-def get_cyclic_date(loan_product: str, posting_date: str, ignore_bpi: bool = False):
+def get_cyclic_date(loan_product: str, posting_date: str | date | datetime, ignore_bpi: bool = False):
 	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
 		"Loan Product",
 		loan_product,
