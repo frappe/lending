@@ -73,7 +73,7 @@ class LoanAccrualRepost(Document):
 									"voucher_no": entry.name,
 									"account": interest_accrual_account,
 								},
-								["sum(debit) as debit", "sum(credit) as credit"],
+								[{"SUM": "debit", "as": "debit"}, {"SUM": "credit", "as": "credit"}],
 								as_dict=1,
 							)
 							if gl_details and gl_details.debit != gl_details.credit:

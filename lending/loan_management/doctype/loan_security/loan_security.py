@@ -41,7 +41,7 @@ class LoanSecurity(Document):
 
 
 @frappe.whitelist()
-def get_loan_security_price_or_value(loan_security):
+def get_loan_security_price_or_value(loan_security: str):
 	loan_security_price = get_loan_security_price(loan_security)
 
 	if loan_security_price:

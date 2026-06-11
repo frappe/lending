@@ -60,6 +60,8 @@ def update_loan_security_price(data: dict):
 	Note this API assumes only one record exists for updating loan securities
 	"""
 
+	frappe.has_permission("Loan Security Price", "write", throw=True)
+
 	if isinstance(data, str):
 		data = json.loads(data)
 

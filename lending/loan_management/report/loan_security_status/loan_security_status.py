@@ -62,26 +62,36 @@ def get_columns(filters):
 
 def get_data(filters):
 	data = []
-	conditions = get_conditions(filters)
 
-	loan_security_assignments = frappe.db.sql(
-		"""
-		SELECT
-			p.name, p.applicant, p.loan, p.status, p.pledge_time,
-			c.loan_security, c.qty, c.loan_security_price, c.amount
-		FROM
-			`tabLoan Security Assignment` p, `tabPledge` c
-		WHERE
-			p.docstatus = 1
-			AND c.parent = p.name
-			AND p.company = %(company)s
-			{conditions}
-	""".format(
-			conditions=conditions
-		),
-		(filters),
-		as_dict=1,
-	)  # nosec
+	lsa = frappe.qb.DocType("Loan Security Assignment")
+	pledge = frappe.qb.DocType("Pledge")
+
+	query = (
+		frappe.qb.from_(lsa)
+		.inner_join(pledge)
+		.on(pledge.parent == lsa.name)
+		.select(
+			lsa.name,
+			lsa.applicant,
+			lsa.loan,
+			lsa.status,
+			lsa.pledge_time,
+			pledge.loan_security,
+			pledge.qty,
+			pledge.loan_security_price,
+			pledge.amount,
+		)
+		.where(lsa.docstatus == 1)
+		.where(lsa.company == filters.get("company"))
+	)
+
+	if filters.get("applicant"):
+		query = query.where(lsa.applicant == filters.get("applicant"))
+
+	if filters.get("pledge_status"):
+		query = query.where(lsa.status == filters.get("pledge_status"))
+
+	loan_security_assignments = query.run(as_dict=1)
 
 	default_currency = frappe.get_cached_value("Company", filters.get("company"), "default_currency")
 
@@ -101,15 +111,3 @@ def get_data(filters):
 		data.append(row)
 
 	return data
-
-
-def get_conditions(filters):
-	conditions = []
-
-	if filters.get("applicant"):
-		conditions.append("p.applicant = %(applicant)s")
-
-	if filters.get("pledge_status"):
-		conditions.append(" p.status = %(pledge_status)s")
-
-	return "AND {}".format(" AND ".join(conditions)) if conditions else ""

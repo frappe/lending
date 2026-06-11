@@ -1,9 +1,6 @@
 from frappe.utils import add_days, nowdate
 
-from lending.loan_management.report.loan_security_status.loan_security_status import (
-	execute,
-	get_conditions,
-)
+from lending.loan_management.report.loan_security_status.loan_security_status import execute
 from lending.tests.test_utils import (
 	create_loan_security,
 	create_loan_security_price,
@@ -20,10 +17,20 @@ class TestLoanSecurityStatus(LendingTestSuite):
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 5), True)
 		self.loan = create_secured_demand_loan("_Test Loan Customer", disbursement_amount=50000)
 
-	def test_loan_security_status_builds_filter_conditions(self):
-		conditions = get_conditions({"applicant": "APP-1", "pledge_status": "Pledged"})
-		self.assertIn("p.applicant", conditions)
-		self.assertIn("p.status", conditions)
+	def test_loan_security_status_filters_by_applicant_and_status(self):
+		report = execute(
+			{
+				"company": "_Test Company",
+				"applicant": "_Test Loan Customer",
+				"pledge_status": "Pledged",
+			}
+		)
+		_columns, data = report
+
+		# every returned row must respect the applied filters
+		for row in data:
+			self.assertEqual(row.get("applicant"), "_Test Loan Customer")
+			self.assertEqual(row.get("status"), "Pledged")
 
 	def test_loan_security_status_returns_expected_row(self):
 		report = execute({"company": "_Test Company", "applicant": "_Test Loan Customer"})
