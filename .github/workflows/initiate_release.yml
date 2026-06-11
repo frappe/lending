@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["1"]
+        version: ["1", "16"]
 
     steps:
       - uses: octokit/request-action@v2.x
