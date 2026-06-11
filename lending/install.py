@@ -299,7 +299,9 @@ def add_server_scripts():
 	if not frappe.db.exists("Server Script", "Age validation for Loan Lead"):
 		age_check_script = frappe.new_doc("Server Script")
 		age_check_script.name = "Age validation for Loan Lead"
-		age_check_script.script_type = "Workflow Task"
+		age_check_script.script_type = "DocType Event"
+		age_check_script.reference_doctype = "Loan Lead"
+		age_check_script.doctype_event = "Before Save"
 		age_check_script.script = """
 if doc.age < 18:
 	frappe.throw("Applicant should be at least 18 years old.")
