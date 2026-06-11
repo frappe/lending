@@ -15,6 +15,9 @@ LENDING_BRANCH=${BRANCH_TO_CLONE:-develop}
 if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" ]]; then
     FRAPPE_BRANCH="version-15"
     ERPNEXT_BRANCH="version-15"
+elif [[ "$LENDING_BRANCH" == "version-16" || "$LENDING_BRANCH" == "version-16-beta" || "$LENDING_BRANCH" == "version-16-hotfix" ]]; then
+    FRAPPE_BRANCH="version-16"
+    ERPNEXT_BRANCH="version-16"
 else
     FRAPPE_BRANCH="develop"
     ERPNEXT_BRANCH="develop"

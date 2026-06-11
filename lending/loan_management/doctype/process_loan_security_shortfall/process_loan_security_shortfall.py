@@ -41,4 +41,5 @@ def create_process_loan_security_shortfall():
 
 
 def check_for_secured_loans():
-	return frappe.db.count("Loan", {"docstatus": 1, "is_secured_loan": 1})
+	return frappe.db.count("Loan", {"docstatus": 1, "is_secured_loan": 1}) or \
+		frappe.db.count("Loan Security Assignment", {"docstatus": 1, "status": "Pledged"})

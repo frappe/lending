@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate
 
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -19,9 +18,10 @@ from lending.tests.test_utils import (
 	master_init,
 	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanAdjustment(IntegrationTestCase):
+class TestLoanAdjustment(LendingTestSuite):
 	def setUp(self):
 		master_init()
 		init_loan_products()

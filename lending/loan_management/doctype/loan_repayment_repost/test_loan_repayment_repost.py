@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -22,9 +21,10 @@ from lending.tests.test_utils import (
 	master_init,
 	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanRepaymentRepost(IntegrationTestCase):
+class TestLoanRepaymentRepost(LendingTestSuite):
 	"""
 	Integration tests for LoanRepaymentRepost.
 	Use this class for testing interactions between multiple components.

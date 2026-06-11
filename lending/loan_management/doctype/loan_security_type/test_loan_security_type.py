@@ -2,8 +2,8 @@
 # See license.txt
 
 # import frappe
-import unittest
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanSecurityType(unittest.TestCase):
+class TestLoanSecurityType(LendingTestSuite):
 	pass

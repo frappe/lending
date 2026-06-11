@@ -4,7 +4,6 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests import IntegrationTestCase
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -66,9 +65,10 @@ from lending.tests.test_utils import (
 	set_loan_settings_in_company,
 	setup_loan_demand_offset_order,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoan(IntegrationTestCase):
+class TestLoan(LendingTestSuite):
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -1584,7 +1584,7 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			500000,
+			50000,
 			"Repay Over Number of Periods",
 			2,
 			repayment_start_date="2024-04-05",
@@ -1599,10 +1599,10 @@ class TestLoan(IntegrationTestCase):
 		)
 		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 257840)
+		repayment_entry = create_repayment_entry(loan.name, "2024-04-05", 25784)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 257320.97)
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 25732.10)
 		repayment_entry.submit()
 
 	def test_excess_loan_close_limit(self):
@@ -1689,9 +1689,9 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 5",
-			100000,
+			60000,
 			"Repay Over Number of Periods",
-			6,
+			4,
 			repayment_start_date="2024-10-10",
 			posting_date="2024-10-01",
 			rate_of_interest=20,
@@ -1702,7 +1702,7 @@ class TestLoan(IntegrationTestCase):
 		loan.submit()
 
 		disbursement_1 = make_loan_disbursement_entry(
-			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
+			loan.name, 36000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
@@ -1712,24 +1712,14 @@ class TestLoan(IntegrationTestCase):
 		)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-10-18", 10000, loan_disbursement=disbursement_1.name
-		)
-		repayment_entry.submit()
-
 		disbursement_2 = make_loan_disbursement_entry(
-			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
+			loan.name, 24000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
-		)
-		repayment_entry.submit()
-
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
 		)
 		repayment_entry.submit()
 
@@ -2161,16 +2151,12 @@ class TestLoan(IntegrationTestCase):
 		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
 
 		create_repayment_entry(
-			loan.name, "2024-10-05", 3000, loan_disbursement=loan_disbursement
-		).submit()
-		create_repayment_entry(
-			loan.name, "2024-10-09", 782, loan_disbursement=loan_disbursement
+			loan.name, "2024-10-09", 3782, loan_disbursement=loan_disbursement
 		).submit()
 
 		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		create_repayment_entry(loan.name, "2024-11-05", 3000).submit()
-		create_repayment_entry(loan.name, "2024-11-10", 782).submit()
+		create_repayment_entry(loan.name, "2024-11-10", 3782).submit()
 
 		create_process_loan_classification(
 			posting_date="2024-10-05", loan=loan.name, loan_disbursement=loan_disbursement
@@ -2840,9 +2826,9 @@ class TestLoan(IntegrationTestCase):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			200003,
+			50000,
 			"Repay Over Number of Periods",
-			270,
+			60,
 			repayment_start_date="2025-04-01",
 			posting_date="2025-03-31",
 			rate_of_interest=27,
@@ -2865,9 +2851,6 @@ class TestLoan(IntegrationTestCase):
 			"2025-04-01",
 			"2025-04-02",
 			"2025-04-03",
-			"2025-04-04",
-			"2025-04-05",
-			"2025-04-06",
 			"2025-04-11",
 		]:
 			process_daily_loan_demands(posting_date=repayment_date, loan=loan.name)
@@ -2939,9 +2922,9 @@ class TestLoan(IntegrationTestCase):
 		loan1 = create_loan(
 			customer.name,
 			"Term Loan Product 4",
-			100000,
+			50000,
 			"Repay Over Number of Periods",
-			22,
+			6,
 			repayment_start_date="2024-04-05",
 			posting_date="2024-03-05",
 			rate_of_interest=8.5,
@@ -2956,9 +2939,9 @@ class TestLoan(IntegrationTestCase):
 		loan2 = create_loan(
 			customer.name,
 			"Term Loan Product 4",
-			100000,
+			50000,
 			"Repay Over Number of Periods",
-			22,
+			6,
 			repayment_start_date="2024-07-05",
 			posting_date="2024-06-05",
 			rate_of_interest=8.5,

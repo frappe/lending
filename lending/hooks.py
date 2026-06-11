@@ -32,7 +32,9 @@ voucher_subtypes = "lending.loan_management.doctype.loan.loan.get_voucher_subtyp
 
 before_tests = "lending.tests.test_utils.before_tests"
 
+ignore_translatable_strings_from = ["frappe", "erpnext"]
 export_python_type_annotations = True
+require_type_annotated_api_methods = True
 
 # Includes in <head>
 # ------------------

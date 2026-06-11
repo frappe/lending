@@ -124,10 +124,14 @@ class LoanRepayment(LoanController):
 
 		charges = None
 		if self.get("payable_charges"):
-			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
+			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization") and self.loan_restructure):
 				charges = [d.get("charge_code") for d in self.get("payable_charges")]
 			else:
-				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
+				frappe.throw(
+					_(
+						"Payable Charges can only be added for Charge Payment, or for Charges Waiver/Charges Capitalization/Principal Capitalization during Loan Restructure"
+					)
+				)
 
 		amounts = calculate_amounts(
 			self.against_loan,
@@ -164,9 +168,10 @@ class LoanRepayment(LoanController):
 			create_update_loan_reschedule,
 		)
 
-		excess_amount = self.principal_amount_paid - self.pending_principal_amount
-
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		excess_amount = flt(self.principal_amount_paid, precision) - flt(self.pending_principal_amount, precision)
+
 		if self.repayment_type in ("Advance Payment", "Pre Payment") and excess_amount < 0:
 			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				create_update_loan_reschedule(
@@ -207,6 +212,8 @@ class LoanRepayment(LoanController):
 		if self.flags.from_bulk_payment:
 			return
 
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		reversed_accruals = []
 
 		if self.get("prepayment_charges") and loan_accounting_enabled(self.company):
@@ -222,13 +229,13 @@ class LoanRepayment(LoanController):
 
 		on_settlement_or_closure = False
 
-		if self.principal_amount_paid > 0 and self.principal_amount_paid >= self.pending_principal_amount:
+		if flt(self.principal_amount_paid, precision) > 0 and flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision):
 			on_settlement_or_closure = True
 
 		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			reversed_accruals += self.reverse_future_accruals_and_demands(on_settlement_or_closure=on_settlement_or_closure)
 
-		if self.principal_amount_paid < self.pending_principal_amount:
+		if flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision):
 			if (
 				self.is_term_loan
 				and self.repayment_type in ("Advance Payment", "Pre Payment")
@@ -258,7 +265,7 @@ class LoanRepayment(LoanController):
 					self.process_reschedule()
 
 		if self.repayment_type not in ("Advance Payment", "Pre Payment") or (
-			self.principal_amount_paid >= self.pending_principal_amount
+			flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision)
 		):
 			self.book_interest_accrued_not_demanded()
 			if self.is_term_loan:
@@ -1533,7 +1540,14 @@ class LoanRepayment(LoanController):
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
 
-		if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
+		if self.repayment_type == "Charge Payment" or (
+			self.repayment_type in ("Charges Waiver", "Charges Capitalization")
+			and self.loan_restructure
+		) or (
+			self.repayment_type == "Principal Capitalization"
+			and self.loan_restructure
+			and self.get("payable_charges")
+		):
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
@@ -2019,7 +2033,9 @@ class LoanRepayment(LoanController):
 				)
 			return
 
-		if self.repayment_type == "Principal Capitalization" and self.loan_restructure:
+		if self.repayment_type == "Principal Capitalization" and self.loan_restructure and not any(
+			d.sales_invoice for d in self.get("repayment_details")
+		):
 			return
 
 		if cancel:
@@ -2346,6 +2362,7 @@ class LoanRepayment(LoanController):
 			"Interest Capitalization": "loan_account",
 			"Penalty Capitalization": "loan_account",
 			"Charges Capitalization": "loan_account",
+			"Principal Capitalization": "loan_account",
 		}
 
 		if self.repayment_type in (
@@ -2502,6 +2519,7 @@ def create_repayment_entry(
 	penalty_amount=None,
 	payroll_payable_account=None,
 	process_payroll_accounting_entry_based_on_employee=0,
+	value_date=None,
 ):
 
 	lr = frappe.get_doc(
@@ -2511,7 +2529,7 @@ def create_repayment_entry(
 			"payment_type": payment_type,
 			"company": company,
 			"posting_date": posting_date,
-			"value_date": getdate(),
+			"value_date": value_date or getdate(),
 			"applicant": applicant,
 			"penalty_amount": penalty_amount,
 			"interest_payable": interest_payable,
@@ -2819,7 +2837,7 @@ def process_amount_for_loan(
 
 
 @frappe.whitelist()
-def get_bulk_due_details(loans, posting_date, consolidated=False):
+def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, consolidated: bool = False):
 	from lending.loan_management.doctype.loan_repayment.utils import (
 		get_disbursement_map,
 		get_pending_principal_amount_for_loans,
@@ -3253,7 +3271,7 @@ def get_net_paid_amount(loan):
 
 
 @frappe.whitelist(methods=["POST"])
-def post_bulk_payments(data):
+def post_bulk_payments(data: str | list[dict]):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["value_date"]))
 
@@ -3346,7 +3364,7 @@ def bulk_repost(grouped_by_loan_and_loan_disbursement, trace_id):
 			bulk_repayment_log.trace_id = trace_id
 			bulk_repayment_log.save()
 
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep
 
 			try:
 				# weird way to do things. Please suggest better ways

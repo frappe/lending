@@ -1,6 +1,8 @@
 # Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from datetime import date, datetime
+
 import frappe
 from frappe import _
 from frappe.contacts.address_and_contact import load_address_and_contact
@@ -137,7 +139,7 @@ class LoanPartner(Document):
 
 
 @frappe.whitelist()
-def get_colender_payout_details(posting_date):
+def get_colender_payout_details(posting_date: str | date | datetime):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_bulk_due_details
 
 	partner_accounts = get_partner_accounts()
@@ -240,7 +242,12 @@ def get_payable_balances(posting_date, accounts):
 			"account": ("in", accounts),
 			"voucher_type": ("!=", "Loan Disbursement"),
 		},
-		fields=["against_voucher", "account", "sum(debit) as debit", "sum(credit) as credit"],
+		fields=[
+			"against_voucher",
+			"account",
+			{"SUM": "debit", "as": "debit"},
+			{"SUM": "credit", "as": "credit"},
+		],
 		group_by="against_voucher, account",
 	)
 

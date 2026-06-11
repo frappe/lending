@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 
+from datetime import date, datetime
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -78,7 +80,7 @@ class LoanSecurityPrice(Document):
 
 
 @frappe.whitelist()
-def get_loan_security_price(loan_security, valid_time=None):
+def get_loan_security_price(loan_security: str, valid_time: str | date | datetime | None = None):
 	if not valid_time:
 		valid_time = get_datetime()
 

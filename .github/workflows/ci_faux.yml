@@ -1,0 +1,35 @@
+# Tests are skipped for these files but github doesn't allow "passing" hence this is required.
+
+name: Skipped Tests
+
+on:
+  pull_request:
+    paths:
+      - "**.css"
+      - "**.js"
+      - "**.svg"
+      - "**.md"
+      - "**.html"
+      - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - "**.vue"
+      - "crowdin.yml"
+      - ".mergify.yml"
+      - ".coderabbit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container: [1, 2, 3]
+
+    name: Python Unit Tests - ${{ matrix.container }}
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"

@@ -52,17 +52,14 @@ def remove_unique_constraints():
 
 
 def get_fields_with_unique_constraints():
-	field_string = ", ".join(
-		[f"'{i}'" for i in fields_that_can_have_unique_constraints]
-	)  # for raw sql querying
-	fields_with_unique_constraints = frappe.db.sql(
-		f"""
-			select column_name
-			from information_schema.statistics
-			where table_name='tabCustomer'
-			and column_name in ({field_string})
-			and non_unique = 0
-		"""
+	statistics = frappe.qb.Table("statistics", schema="information_schema")
+	fields_with_unique_constraints = (
+		frappe.qb.from_(statistics)
+		.select(statistics.column_name)
+		.where(statistics.table_name == "tabCustomer")
+		.where(statistics.column_name.isin(fields_that_can_have_unique_constraints))
+		.where(statistics.non_unique == 0)
+		.run()
 	)
 	fields_with_unique_constraints = [i[0] for i in fields_with_unique_constraints]
 

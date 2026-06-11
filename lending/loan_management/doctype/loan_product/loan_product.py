@@ -184,7 +184,7 @@ class LoanProduct(Document):
 
 
 @frappe.whitelist()
-def get_default_charge_accounts(charge_type, company):
+def get_default_charge_accounts(charge_type: str, company: str):
 	default_charge_accounts = frappe.db.get_value(
 		"Item Default",
 		{"parent": charge_type, "company": company},
