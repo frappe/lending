@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 
 
 def execute(filters=None):
@@ -65,48 +66,38 @@ def get_data(filters):
 	if not filters.get("as_on_date"):
 		frappe.throw(_("Please select a date."))
 
-	params = {"as_on_date": filters["as_on_date"]}
+	tlr = frappe.qb.DocType("Loan Repayment")
 
-	where_conditions = [
-		"tlr.docstatus = 1",
-		"tlr.posting_date <= %(as_on_date)s",
-		"tlr.repayment_type NOT IN ('Interest Waiver', 'Penalty Waiver', 'Charges Waiver')",
-	]
-
-	for fl in ("company", "loan_product", "applicant", "loan"):
-		if filters.get(fl):
-			if fl == "loan":
-				where_conditions.append("tlr.against_loan = %({})s".format(fl))
-			else:
-				where_conditions.append("tlr.{0} = %({0})s".format(fl))
-			params[fl] = filters[fl]
-
-	where_clause = " AND ".join(where_conditions)
-
-	query = """
-		SELECT
-			tlr.against_loan AS loan,
-			tlr.applicant AS applicant,
-			tlr.loan_product AS loan_product,
-			SUM(tlr.principal_amount_paid) AS principal_amount,
-			SUM(tlr.total_interest_paid) AS interest_amount,
-			SUM(tlr.unbooked_interest_paid) AS additional_interest,
-			SUM(tlr.total_charges_paid) AS total_charges_paid,
-			SUM(tlr.total_penalty_paid) AS total_penalty_paid,
-			SUM(tlr.excess_amount) AS excess_amount
-		FROM
-			`tabLoan Repayment` tlr
-		WHERE
-			{where_clause}
-		GROUP BY
-			tlr.against_loan
-		ORDER BY
-			tlr.against_loan
-	""".format(
-		where_clause=where_clause
+	query = (
+		frappe.qb.from_(tlr)
+		.select(
+			tlr.against_loan.as_("loan"),
+			tlr.applicant.as_("applicant"),
+			tlr.loan_product.as_("loan_product"),
+			Sum(tlr.principal_amount_paid).as_("principal_amount"),
+			Sum(tlr.total_interest_paid).as_("interest_amount"),
+			Sum(tlr.unbooked_interest_paid).as_("additional_interest"),
+			Sum(tlr.total_charges_paid).as_("total_charges_paid"),
+			Sum(tlr.total_penalty_paid).as_("total_penalty_paid"),
+			Sum(tlr.excess_amount).as_("excess_amount"),
+		)
+		.where(tlr.docstatus == 1)
+		.where(tlr.posting_date <= filters["as_on_date"])
+		.where(tlr.repayment_type.notin(["Interest Waiver", "Penalty Waiver", "Charges Waiver"]))
+		.groupby(tlr.against_loan)
+		.orderby(tlr.against_loan)
 	)
 
-	records = frappe.db.sql(query, params, as_dict=True)
+	if filters.get("company"):
+		query = query.where(tlr.company == filters["company"])
+	if filters.get("loan_product"):
+		query = query.where(tlr.loan_product == filters["loan_product"])
+	if filters.get("applicant"):
+		query = query.where(tlr.applicant == filters["applicant"])
+	if filters.get("loan"):
+		query = query.where(tlr.against_loan == filters["loan"])
+
+	records = query.run(as_dict=True)
 
 	for row in records:
 		data.append(

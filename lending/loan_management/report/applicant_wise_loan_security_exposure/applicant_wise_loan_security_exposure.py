@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
 import erpnext
@@ -182,43 +183,41 @@ def get_applicant_wise_total_loan_security_qty(filters, loan_security_details):
 	total_value_map = {}
 	applicant_type_map = {}
 	applicant_wise_unpledges = {}
-	conditions = ""
 
-	if filters.get("company"):
-		conditions = "AND company = %(company)s"
+	company = filters.get("company")
 
-	unpledges = frappe.db.sql(
-		"""
-		SELECT up.applicant, u.loan_security, sum(u.qty) as qty
-		FROM `tabLoan Security Release` up, `tabUnpledge` u
-		WHERE u.parent = up.name
-		AND up.status = 'Approved'
-		{conditions}
-		GROUP BY up.applicant, u.loan_security
-	""".format(
-			conditions=conditions
-		),
-		filters,
-		as_dict=1,
+	lsr = frappe.qb.DocType("Loan Security Release")
+	unpledge = frappe.qb.DocType("Unpledge")
+	unpledge_query = (
+		frappe.qb.from_(lsr)
+		.inner_join(unpledge)
+		.on(unpledge.parent == lsr.name)
+		.select(lsr.applicant, unpledge.loan_security, Sum(unpledge.qty).as_("qty"))
+		.where(lsr.status == "Approved")
+		.groupby(lsr.applicant, unpledge.loan_security)
 	)
+	if company:
+		unpledge_query = unpledge_query.where(lsr.company == company)
 
-	for unpledge in unpledges:
-		applicant_wise_unpledges.setdefault((unpledge.applicant, unpledge.loan_security), unpledge.qty)
+	unpledges = unpledge_query.run(as_dict=1)
 
-	pledges = frappe.db.sql(
-		"""
-		SELECT lp.applicant_type, lp.applicant, p.loan_security, sum(p.qty) as qty
-		FROM `tabLoan Security Assignment` lp, `tabPledge`p
-		WHERE p.parent = lp.name
-		AND lp.status = 'Pledged'
-		{conditions}
-		GROUP BY lp.applicant, p.loan_security
-	""".format(
-			conditions=conditions
-		),
-		filters,
-		as_dict=1,
+	for row in unpledges:
+		applicant_wise_unpledges.setdefault((row.applicant, row.loan_security), row.qty)
+
+	lsa = frappe.qb.DocType("Loan Security Assignment")
+	pledge = frappe.qb.DocType("Pledge")
+	pledge_query = (
+		frappe.qb.from_(lsa)
+		.inner_join(pledge)
+		.on(pledge.parent == lsa.name)
+		.select(lsa.applicant_type, lsa.applicant, pledge.loan_security, Sum(pledge.qty).as_("qty"))
+		.where(lsa.status == "Pledged")
+		.groupby(lsa.applicant, pledge.loan_security)
 	)
+	if company:
+		pledge_query = pledge_query.where(lsa.company == company)
+
+	pledges = pledge_query.run(as_dict=1)
 
 	for security in pledges:
 		current_pledges.setdefault((security.applicant, security.loan_security), security.qty)
