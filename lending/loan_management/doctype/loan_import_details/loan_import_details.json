@@ -31,7 +31,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "opening_principal_outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -41,7 +40,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "opening_interest_outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -51,7 +49,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "opening_penalty_outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -61,7 +58,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "opening_additional_outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -71,7 +67,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "opening_charge_outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -89,7 +84,6 @@
   },
   {
    "columns": 2,
-   "default": "Company:company:default_currency",
    "fieldname": "disbursed_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
