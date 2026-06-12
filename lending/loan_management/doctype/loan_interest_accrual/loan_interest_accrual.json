@@ -41,7 +41,7 @@
   "process_loan_interest_accrual",
   "amended_from",
   "is_imported",
-  "cancel_gl_pending",
+  "is_gl_cancelled",
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry"
@@ -295,10 +295,10 @@
   },
   {
    "default": "0",
-   "fieldname": "cancel_gl_pending",
+   "fieldname": "is_gl_cancelled",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Cancel GL Pending",
+   "label": "Is GL Cancelled",
    "read_only": 1
   }
  ],

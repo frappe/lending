@@ -36,7 +36,7 @@
   "accounting_dimensions_section",
   "cost_center",
   "is_imported",
-  "cancel_gl_pending",
+  "is_gl_cancelled",
   "column_break_hmrs",
   "amended_from",
   "process_loan_demand",
@@ -297,10 +297,10 @@
   },
   {
    "default": "0",
-   "fieldname": "cancel_gl_pending",
+   "fieldname": "is_gl_cancelled",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Cancel GL Pending",
+   "label": "Is GL Cancelled",
    "read_only": 1
   },
   {

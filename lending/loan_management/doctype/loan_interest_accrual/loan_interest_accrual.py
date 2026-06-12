@@ -22,7 +22,7 @@ from frappe.utils import (
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.loan_management.utils import loan_accounting_enabled
+from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
 from lending.utils import daterange
 
 
@@ -43,11 +43,11 @@ class LoanInterestAccrual(LoanController):
 		applicant: DF.DynamicLink | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		base_amount: DF.Currency
-		cancel_gl_pending: DF.Check
 		company: DF.Link | None
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
 		interest_type: DF.Literal["Normal Interest", "Penal Interest"]
+		is_gl_cancelled: DF.Check
 		is_imported: DF.Check
 		is_npa: DF.Check
 		is_term_loan: DF.Check
@@ -148,10 +148,9 @@ class LoanInterestAccrual(LoanController):
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
-		if self.queue_cancel_gl() and not frappe.flags.in_test:
-			self.db_set("cancel_gl_pending", 1)
-		else:
+		if not (self.queue_cancel_gl() and not frappe.flags.in_test):
 			self.make_gl_entries(cancel=1)
+			self.db_set("is_gl_cancelled", 1)
 
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
@@ -164,7 +163,7 @@ class LoanInterestAccrual(LoanController):
 			doc.cancel()
 
 	def queue_cancel_gl(self):
-		return frappe.db.get_value("Company", self.company, "enable_interest_cancel_gl_queue")
+		return async_gl_reversal_enabled(self.company, getdate())
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if not loan_accounting_enabled(self.company):
