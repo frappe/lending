@@ -827,7 +827,7 @@ class LoanRestructure(AccountsController):
 				create_loan_repayment(
 					self.loan,
 					self.restructure_date,
-					"Principal Capitalization",
+					"Charges Capitalization",
 					sales_invoice.grand_total,
 					restructure_name=self.name,
 					charge_code=post_restructure_charges
