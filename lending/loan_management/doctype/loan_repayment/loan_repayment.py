@@ -142,17 +142,16 @@ class LoanRepayment(AccountsController):
 
 		charges = None
 		if self.get("payable_charges"):
-<<<<<<< HEAD
 			if self.repayment_type == "Charge Payment" or (
-				self.repayment_type in ("Charges Waiver", "Charges Capitalization", "Principal Capitalization")
-				and self.loan_restructure
+				self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure
 			):
-=======
-			if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
->>>>>>> a629ebc0 (fix: use Charges Capitalization for post-restructure charges)
 				charges = [d.get("charge_code") for d in self.get("payable_charges")]
 			else:
-				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
+				frappe.throw(
+					_(
+						"Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"
+					)
+				)
 
 		amounts = calculate_amounts(
 			self.against_loan,
@@ -1543,21 +1542,9 @@ class LoanRepayment(AccountsController):
 		amounts = self.update_amounts_for_write_off_recovery(loan_status, amounts)
 		amount_paid = self.amount_paid
 
-<<<<<<< HEAD
-		if (
-			self.repayment_type == "Charge Payment"
-			or (
-				self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure
-			)
-			or (
-				self.repayment_type == "Principal Capitalization"
-				and self.loan_restructure
-				and self.get("payable_charges")
-			)
+		if self.repayment_type == "Charge Payment" or (
+			self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure
 		):
-=======
-		if self.repayment_type == "Charge Payment" or (self.repayment_type in ("Charges Waiver", "Charges Capitalization") and self.loan_restructure):
->>>>>>> a629ebc0 (fix: use Charges Capitalization for post-restructure charges)
 			amount_paid = self.allocate_charges(amount_paid, amounts.get("unpaid_demands"))
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
@@ -2045,15 +2032,7 @@ class LoanRepayment(AccountsController):
 				)
 			return
 
-<<<<<<< HEAD
-		if (
-			self.repayment_type == "Principal Capitalization"
-			and self.loan_restructure
-			and not any(d.sales_invoice for d in self.get("repayment_details"))
-		):
-=======
 		if self.repayment_type == "Principal Capitalization" and self.loan_restructure:
->>>>>>> a629ebc0 (fix: use Charges Capitalization for post-restructure charges)
 			return
 
 		if cancel:
