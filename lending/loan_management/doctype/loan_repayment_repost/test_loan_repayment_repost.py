@@ -227,11 +227,30 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 
 		repayment_entry.load_from_db()
 
+		# After a repost, only the entries the repost generates (reversals + regenerated
+		# bookings) should carry the current posting date.
+		#
+		# This must hold regardless of the Immutable Ledger setting:
+		#   - Immutable Ledger OFF: the original entries are cancelled, so only repost
+		#     entries remain non-cancelled.
+		#   - Immutable Ledger ON:  the original entries are kept non-cancelled at their
+		#     original date by design, so they must be excluded from this check.
+		#
+		# We therefore exclude the original GL entries (captured before the repost) by name.
+		original_gl_entries = [d.name for d in repayments_1]
+
 		repayments_2 = frappe.db.get_all(
 			"GL Entry",
-			{"voucher_type": "Loan Repayment", "voucher_no": repayment_entry.name, "is_cancelled": 0},
-			["posting_date"]
+			{
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+				"is_cancelled": 0,
+				"name": ("not in", original_gl_entries),
+			},
+			["posting_date"],
 		)
+
+		self.assertTrue(repayments_2, "Repost should have generated new GL entries")
 
 		for repayment_2 in repayments_2:
 			self.assertEqual(
