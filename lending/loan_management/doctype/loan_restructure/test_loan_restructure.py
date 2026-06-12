@@ -267,7 +267,7 @@ class TestLoanRestructure(IntegrationTestCase):
 
 		counts = Counter(repayments)
 
-		self.assertEqual(counts.get("Charges Capitalization", 0), 2)
+		self.assertEqual(counts.get("Charges Capitalization", 0), 3)
 		self.assertEqual(counts.get("Charges Waiver", 0), 1)
 
 		sales_invoice = frappe.db.get_value(
