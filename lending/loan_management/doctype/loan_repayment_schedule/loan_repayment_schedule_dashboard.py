@@ -3,7 +3,7 @@ def get_data():
 		"fieldname": "loan_repayment_schedule",
 		"transactions": [
 			{
-				"label": "Repayment",
+				"label": "Demand & Accrual",
 				"items": ["Loan Demand", "Loan Interest Accrual"],
 			},
 		],
