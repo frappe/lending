@@ -78,7 +78,8 @@
   "column_break_uxwo",
   "loan_partner_payment_ratio",
   "loan_partner_share_percentage",
-  "loan_partner_repayment_schedule_type"
+  "loan_partner_repayment_schedule_type",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -575,12 +576,18 @@
    "hidden": 1,
    "label": "Is Invoice generated",
    "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-30 07:46:26.499215",
+ "modified": "2026-06-16 13:58:07.513924",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Repayment",
