@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:34+0000\n"
-"PO-Revision-Date: 2026-06-16 12:06\n"
+"PO-Revision-Date: 2026-06-17 12:37\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -150,7 +150,7 @@ msgstr "Dodaj na prvu mjesečnu ratu"
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Add to Last EMI"
-msgstr ""
+msgstr "Dodaj u posljednju mjesečnu ratu"
 
 #. Option for the 'Treatment of Interest' (Select) field in DocType 'Loan'
 #. Option for the 'Treatment of charge' (Select) field in DocType 'Loan
@@ -251,7 +251,7 @@ msgstr "Adresa HTML"
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Address Links"
-msgstr ""
+msgstr "Linkovi Adresa"
 
 #. Description of the 'Employee Loans' (Check) field in DocType 'Loan
 #. Origination Settings'
@@ -268,7 +268,7 @@ msgstr "Dodaje jedinstvena ograničenja poljima za e-poštu i broj telefona za K
 #. Option for the 'BPI Treatment' (Select) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Adjust within the EMI amount"
-msgstr ""
+msgstr "Prilagodi unutar iznosa mjesečne rate"
 
 #. Label of the adjusted_interest_amount (Currency) field in DocType 'Loan
 #. Restructure'
@@ -419,7 +419,7 @@ msgstr "Plaćeni Iznos"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:414
 msgid "Amount Paid must equal the sum of Principal, Interest, Penalty, Charges, Unbooked Interest, and Unbooked Penalty."
-msgstr ""
+msgstr "Iznos plaćen mora biti jednak zbiru glavnice, kamate, kazne, naknada, neknjižene kamate i neknjižene kazne."
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:50
 msgid "Amount cannot be negative"
@@ -524,7 +524,7 @@ msgstr "Podnositelj "
 #. Security Shortfall'
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 msgid "Applicant (Borrower)"
-msgstr ""
+msgstr "Podnosilac zahtjeva (Zajmoprimac)"
 
 #. Label of the applicant_details_section (Section Break) field in DocType
 #. 'Loan'
@@ -541,7 +541,7 @@ msgstr "Detalji Podnosioca"
 #. Label of the applicant_email (Data) field in DocType 'Loan Co-Applicants'
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
 msgid "Applicant Email"
-msgstr ""
+msgstr "E-pošta Podnosioca Zahtjeva"
 
 #. Label of the applicant_email_address (Data) field in DocType 'Loan
 #. Application'
@@ -552,7 +552,7 @@ msgstr "Adresa E-pošte Podnosioca"
 #. Label of the applicant_mobile (Data) field in DocType 'Loan Co-Applicants'
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
 msgid "Applicant Mobile"
-msgstr ""
+msgstr "Mobilni broj Podnosioca Zahtjeva"
 
 #. Label of the applicant_name (Data) field in DocType 'Loan'
 #. Label of the applicant_name (Data) field in DocType 'Loan Co-Applicants'
@@ -635,7 +635,7 @@ msgstr "Izloženost kredita prema podnosiocu "
 #: lending/loan_management/doctype/loan_application/loan_application.js:68
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Application Date"
-msgstr ""
+msgstr "Datum Podnošenja Zahtjeva"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Application'
 #. Option for the 'Status' (Select) field in DocType 'Loan Restructure'
@@ -654,13 +654,13 @@ msgstr "Kao na Datum"
 
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:90
 msgid "Atlest one security needs to be assigned"
-msgstr ""
+msgstr "Najmanje jedna garancija mora biti dodijeljena"
 
 #. Label of the authentication_details_section (Section Break) field in DocType
 #. 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Authentication Details"
-msgstr ""
+msgstr "Detalji Autentifikacije"
 
 #. Label of the write_off_amount (Currency) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -671,13 +671,13 @@ msgstr "Iznos automatskog otpisa "
 #. Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
 msgid "Auto create customer"
-msgstr ""
+msgstr "Automatski Kreiraj Klijenta"
 
 #. Label of the auto_create_disbursement_on_loan_booking (Check) field in
 #. DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Auto create disbursement on loan booking"
-msgstr ""
+msgstr "Automatski kreiraj isplatu prilikom registracije kredita"
 
 #. Label of the available_amount (Currency) field in DocType 'Loan Security
 #. Deposit'
@@ -735,7 +735,7 @@ msgstr "Metod naplate kamate za nepotpuni period"
 #. Label of the bpi_treatment (Select) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "BPI Treatment"
-msgstr ""
+msgstr "Obrada Kamate Prekinutog Perioda"
 
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:226
 msgid "BPI difference entry"
@@ -763,7 +763,7 @@ msgstr "Iznos Stanja"
 #. Charges'
 #: lending/loan_management/doctype/loan_restructure_charges/loan_restructure_charges.json
 msgid "Balance Charges"
-msgstr ""
+msgstr "Stanje Naknade"
 
 #. Label of the balance_loan_amount (Currency) field in DocType 'Co-Lender
 #. Schedule'
@@ -782,7 +782,7 @@ msgstr "Dospjela Glavnica"
 
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:58
 msgid "Balance Quantity"
-msgstr ""
+msgstr "Količinsko Stanje"
 
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
@@ -811,7 +811,7 @@ msgstr "Osnovni Iznos"
 #. Label of the section_break_hmca (Section Break) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Basic Details"
-msgstr ""
+msgstr "Osnovni Detalji"
 
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
@@ -831,13 +831,13 @@ msgstr "Dvosedmično"
 #. Disbursement Charge'
 #: lending/loan_management/doctype/loan_disbursement_charge/loan_disbursement_charge.json
 msgid "Billed Separately"
-msgstr ""
+msgstr "Fakturira se Zasebno"
 
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
 msgid "Borrower Portal"
-msgstr ""
+msgstr "Portal Zajmoprimaca"
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
@@ -892,7 +892,7 @@ msgstr "Zapisnik masovne otplate"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Business"
-msgstr ""
+msgstr "Poslovno"
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1093,11 +1093,11 @@ msgstr "Oprost Naknada"
 #. Restructure Charges'
 #: lending/loan_management/doctype/loan_restructure_charges/loan_restructure_charges.json
 msgid "Charges Waiver Amount"
-msgstr ""
+msgstr "Iznos Odricanja Naknade"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:225
 msgid "Charges: {0}"
-msgstr ""
+msgstr "Naknade: {0}"
 
 #. Label of the classification_code (Link) field in DocType 'Loan'
 #. Label of the classification_code (Data) field in DocType 'Loan
@@ -1188,7 +1188,7 @@ msgstr "Partner Sukreditiranja"
 #. Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Co-Applicants"
-msgstr ""
+msgstr "Supodnosioci Zahtjeva"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/co_lender_schedule/co_lender_schedule.json
@@ -1448,12 +1448,12 @@ msgstr "Ciklični dan u mjesecu"
 #. Label of a Workspace Sidebar Item
 #: lending/workspace_sidebar/lending.json
 msgid "DPD Log"
-msgstr ""
+msgstr "Zapisnik Dana Prispjeća"
 
 #. Label of the date_of_birth (Date) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Date Of Birth"
-msgstr ""
+msgstr "Datum Rođenja"
 
 #. Description of the 'Cyclic Day Of the Month' (Int) field in DocType 'Loan
 #. Product'
@@ -1686,7 +1686,7 @@ msgstr ""
 #. Repayment Schedule'
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Disbursement Charges"
-msgstr ""
+msgstr "Naknade Isplate"
 
 #. Label of the disbursement_date (Date) field in DocType 'Loan'
 #. Label of the disbursement_date (Date) field in DocType 'Loan Demand'
@@ -1948,7 +1948,7 @@ msgstr "Isključivo fiksni polog"
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Flat Interest Rate"
-msgstr ""
+msgstr "Fiksna Kamatna Stopa"
 
 #: lending/loan_management/doctype/loan/loan.py:245
 msgid "Flat Interest Rate loans can only have monthly and yearly repayment frequency"
@@ -3931,7 +3931,7 @@ msgstr "Stari rok otplate"
 #. Option for the 'BPI Treatment' (Select) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "On top of first EMI"
-msgstr ""
+msgstr "Na prvu mjesečnu ratu"
 
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
@@ -5600,7 +5600,7 @@ msgstr "Ukupan Debit"
 #. Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 msgid "Total EMI Charges"
-msgstr ""
+msgstr "Ukupne Naknade mjesečne rate"
 
 #. Label of the total_installments_overdue (Int) field in DocType 'Loan
 #. Repayment Schedule'
