@@ -2,6 +2,9 @@ def get_data():
 	return {
 		"fieldname": "loan_application",
 		"transactions": [
-			{"items": ["Loan", "Loan Security Assignment"]},
+			{
+				"label": "Loan & Security",
+				"items": ["Loan", "Loan Security Assignment"],
+			},
 		],
 	}
