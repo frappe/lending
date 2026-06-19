@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-06-14 10:34+0000\n"
-"PO-Revision-Date: 2026-06-17 12:37\n"
+"PO-Revision-Date: 2026-06-18 12:36\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2897,7 +2897,7 @@ msgstr "Användare"
 #. Name of a DocType
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Loan Lead"
-msgstr "Lån Lead"
+msgstr "Potentiell Kund"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/loan_limit_change_log/loan_limit_change_log.json
