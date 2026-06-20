@@ -2826,9 +2826,13 @@ def process_amount_for_loan(
 def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, consolidated: bool = False):
 	from lending.loan_management.doctype.loan_repayment.utils import (
 		get_disbursement_map,
+		get_last_demand_date_map,
 		get_pending_principal_amount_for_loans,
 		process_amount_for_bulk_loans,
 	)
+
+	if not loans:
+		return []
 
 	loan_details = frappe.db.get_all(
 		"Loan",
@@ -2861,6 +2865,7 @@ def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, 
 		posting_date=posting_date,
 	)
 	loan_demands = get_all_demands(loans, posting_date)
+	last_demand_date_map = get_last_demand_date_map(loans, posting_date)
 
 	demand_map = {}
 	for loan in loan_demands:
@@ -2901,6 +2906,7 @@ def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, 
 					amounts,
 					posting_date,
 					available_security_deposit_map,
+					last_demand_date=last_demand_date_map.get(loan.name),
 				)
 				due_details.append(amounts)
 		else:
@@ -2917,6 +2923,7 @@ def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, 
 				amounts,
 				posting_date,
 				available_security_deposit_map,
+				last_demand_date=last_demand_date_map.get(loan.name),
 			)
 			due_details.append(amounts)
 

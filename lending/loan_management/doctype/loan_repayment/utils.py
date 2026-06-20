@@ -69,6 +69,32 @@ def get_disbursement_map(loans):
 	return disbursement_map
 
 
+def get_last_demand_date_map(loans, posting_date, demand_subtype="Interest"):
+	"""Return {loan: MAX(demand_date)} for all loans in a single grouped query.
+
+	Bulk equivalent of get_last_demand_date(), used to avoid an N+1 query in
+	the get_bulk_due_details loop. Loans with no matching demand are absent from
+	the map (callers should treat that as None, same as the per-loan function).
+	"""
+	if not loans:
+		return {}
+
+	LoanDemand = DocType("Loan Demand")
+	rows = (
+		frappe.qb.from_(LoanDemand)
+		.select(LoanDemand.loan, fn.Max(LoanDemand.demand_date))
+		.where(
+			(LoanDemand.docstatus == 1)
+			& (LoanDemand.demand_subtype == demand_subtype)
+			& (LoanDemand.demand_date <= posting_date)
+			& (LoanDemand.loan.isin(loans))
+		)
+		.groupby(LoanDemand.loan)
+	).run()
+
+	return {row[0]: row[1] for row in rows}
+
+
 def process_amount_for_bulk_loans(
 	loan,
 	demands,
@@ -78,6 +104,7 @@ def process_amount_for_bulk_loans(
 	amounts,
 	posting_date,
 	available_security_deposit_map,
+	last_demand_date,
 ):
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -85,8 +112,6 @@ def process_amount_for_bulk_loans(
 	charges = 0
 	penalty_amount = 0
 	payable_principal_amount = 0
-
-	last_demand_date = get_last_demand_date(posting_date, loan=loan.name)
 	for demand in demands:
 		if demand.demand_subtype == "Interest":
 			total_pending_interest += demand.outstanding_amount
