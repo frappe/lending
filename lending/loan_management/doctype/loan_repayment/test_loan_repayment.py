@@ -1950,12 +1950,7 @@ class TestLoanRepayment(IntegrationTestCase):
 		).submit()
 
 		with self.assertRaises(frappe.ValidationError):
-<<<<<<< HEAD
 			create_repayment_entry(loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment")
-=======
-			create_repayment_entry(
-				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
-			)
 
 	def test_get_bulk_due_details(self):
 		# get_bulk_due_details should return the same amounts as the per-loan
@@ -1983,9 +1978,14 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		term.submit()
 		make_loan_disbursement_entry(
-			term.name, term.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+			term.name,
+			term.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
 		)
-		process_loan_interest_accrual_for_loans(loan=term.name, posting_date=due_date, company="_Test Company")
+		process_loan_interest_accrual_for_loans(
+			loan=term.name, posting_date=due_date, company="_Test Company"
+		)
 		process_daily_loan_demands(loan=term.name, posting_date=due_date)
 
 		# Term loan that runs past due so penalty builds up.
@@ -2003,10 +2003,15 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		penalty_loan.submit()
 		make_loan_disbursement_entry(
-			penalty_loan.name, penalty_loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+			penalty_loan.name,
+			penalty_loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
 		)
 		process_daily_loan_demands(loan=penalty_loan.name, posting_date="2024-03-05")
-		process_loan_interest_accrual_for_loans(loan=penalty_loan.name, posting_date="2024-03-10", company="_Test Company")
+		process_loan_interest_accrual_for_loans(
+			loan=penalty_loan.name, posting_date="2024-03-10", company="_Test Company"
+		)
 
 		# Loan with an available security deposit.
 		deposit_loan = create_loan(
@@ -2022,7 +2027,10 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		deposit_loan.submit()
 		deposit_disbursement = make_loan_disbursement_entry(
-			deposit_loan.name, deposit_loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+			deposit_loan.name,
+			deposit_loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
 		)
 		frappe.get_doc(
 			{
@@ -2049,7 +2057,10 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		no_demand.submit()
 		make_loan_disbursement_entry(
-			no_demand.name, no_demand.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+			no_demand.name,
+			no_demand.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
 		)
 
 		# Line of Credit loan with two disbursements.
@@ -2073,7 +2084,9 @@ class TestLoanRepayment(IntegrationTestCase):
 		disb_b = make_loan_disbursement_entry(
 			loc.name, 500000, disbursement_date=posting_date, repayment_start_date=repayment_start_date
 		)
-		process_loan_interest_accrual_for_loans(loan=loc.name, posting_date=due_date, company="_Test Company")
+		process_loan_interest_accrual_for_loans(
+			loan=loc.name, posting_date=due_date, company="_Test Company"
+		)
 		process_daily_loan_demands(loan=loc.name, posting_date=due_date)
 
 		loans = [term.name, penalty_loan.name, deposit_loan.name, no_demand.name, loc.name]
@@ -2131,10 +2144,12 @@ class TestLoanRepayment(IntegrationTestCase):
 		)
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
 		)
 		process_daily_loan_demands(loan=loan.name, posting_date=due_date)
 
 		date_map = get_last_demand_date_map([loan.name], due_date)
 		self.assertEqual(date_map.get(loan.name), get_last_demand_date(due_date, loan=loan.name))
->>>>>>> 7316d8d5 (perf: speed up get_bulk_due_details by removing per-loan query)
