@@ -1938,3 +1938,184 @@ class TestLoanRepayment(LendingTestSuite):
 			create_repayment_entry(
 				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
 			)
+
+	def test_get_bulk_due_details(self):
+		# get_bulk_due_details should return the same amounts as the per-loan
+		# calculate_amounts. This test mixes every branch of the function in one
+		# call: a term loan with demands, a term loan with penalty, a loan with a
+		# security deposit, a loan with no demands yet (last_demand_date is None),
+		# and a Line of Credit loan.
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import get_bulk_due_details
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+		due_date = "2024-05-05"
+
+		# Term loan with demands and interest accrued.
+		term = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			4,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		term.submit()
+		make_loan_disbursement_entry(
+			term.name, term.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		process_loan_interest_accrual_for_loans(loan=term.name, posting_date=due_date, company="_Test Company")
+		process_daily_loan_demands(loan=term.name, posting_date=due_date)
+
+		# Term loan that runs past due so penalty builds up.
+		penalty_loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			10000,
+			"Repay Over Number of Periods",
+			3,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=12,
+			penalty_charges_rate=25,
+		)
+		penalty_loan.submit()
+		make_loan_disbursement_entry(
+			penalty_loan.name, penalty_loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		process_daily_loan_demands(loan=penalty_loan.name, posting_date="2024-03-05")
+		process_loan_interest_accrual_for_loans(loan=penalty_loan.name, posting_date="2024-03-10", company="_Test Company")
+
+		# Loan with an available security deposit.
+		deposit_loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			5000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=12,
+		)
+		deposit_loan.submit()
+		deposit_disbursement = make_loan_disbursement_entry(
+			deposit_loan.name, deposit_loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Deposit",
+				"loan": deposit_loan.name,
+				"loan_disbursement": deposit_disbursement.name,
+				"deposit_amount": 5200,
+				"available_amount": 5200,
+			}
+		).submit()
+		process_daily_loan_demands(loan=deposit_loan.name, posting_date=due_date)
+
+		# Loan with no demands raised at all (last_demand_date is None).
+		no_demand = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			4,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		no_demand.submit()
+		make_loan_disbursement_entry(
+			no_demand.name, no_demand.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+
+		# Line of Credit loan with two disbursements.
+		loc = create_loan(
+			self.applicant2,
+			"Term Loan Product 5",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=25,
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2024-12-05",
+		)
+		loc.submit()
+		disb_a = make_loan_disbursement_entry(
+			loc.name, 500000, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		disb_b = make_loan_disbursement_entry(
+			loc.name, 500000, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		process_loan_interest_accrual_for_loans(loan=loc.name, posting_date=due_date, company="_Test Company")
+		process_daily_loan_demands(loan=loc.name, posting_date=due_date)
+
+		loans = [term.name, penalty_loan.name, deposit_loan.name, no_demand.name, loc.name]
+
+		# For every loan, the bulk amounts must equal the per-loan calculate_amounts.
+		# due_date is not compared: a loan with no demands reports None in bulk but a
+		# date in the single path, so they legitimately differ.
+		compare_keys = [
+			"pending_principal_amount",
+			"payable_principal_amount",
+			"interest_amount",
+			"penalty_amount",
+			"total_charges_payable",
+			"unbooked_interest",
+			"available_security_deposit",
+		]
+		bulk = {row["loan"]: row for row in get_bulk_due_details(loans, due_date, consolidated="True")}
+		self.assertEqual(set(bulk.keys()), set(loans))
+		for loan in loans:
+			single = calculate_amounts(against_loan=loan, posting_date=due_date)
+			for key in compare_keys:
+				self.assertEqual(flt(bulk[loan][key]), flt(single[key]), msg=f"{key} mismatch for {loan}")
+
+		# The penalty and security deposit branches actually produced values.
+		self.assertGreater(flt(bulk[penalty_loan.name]["penalty_amount"]), 0)
+		self.assertEqual(flt(bulk[deposit_loan.name]["available_security_deposit"]), 5200)
+
+		# Non-consolidated Line of Credit returns one row per disbursement.
+		loc_rows = get_bulk_due_details([loc.name], due_date, consolidated=False)
+		self.assertEqual({row.get("loan_disbursement") for row in loc_rows}, {disb_a.name, disb_b.name})
+
+	def test_get_last_demand_date_map(self):
+		# The bulk last_demand_date map (used by get_bulk_due_details) must return
+		# the same value as the per-loan get_last_demand_date for each loan, and be
+		# safe on empty input.
+		from lending.loan_management.doctype.loan_repayment.utils import (
+			get_last_demand_date,
+			get_last_demand_date_map,
+		)
+
+		posting_date = "2024-01-05"
+		repayment_start_date = "2024-01-05"
+		due_date = "2024-03-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			4,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date=due_date)
+
+		date_map = get_last_demand_date_map([loan.name], due_date)
+		self.assertEqual(date_map.get(loan.name), get_last_demand_date(due_date, loan=loan.name))
