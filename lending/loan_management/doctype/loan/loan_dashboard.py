@@ -8,33 +8,55 @@ def get_data():
 		},
 		"transactions": [
 			{
+				"label": "Schedule & Disbursement",
 				"items": [
 					"Loan Repayment Schedule",
-					"Loan Security Assignment",
-					"Loan Security Shortfall",
 					"Loan Disbursement",
 					"Loan Demand",
-				]
+				],
 			},
 			{
+				"label": "Repayment",
 				"items": [
 					"Loan Repayment",
 					"Loan Interest Accrual",
-					"Loan Write Off",
-					"Loan Restructure",
 					"Loan Refund",
-					"Loan Freeze Log",
-				]
+					"Loan Repayment Repost",
+				],
 			},
 			{
+				"label": "Security",
 				"items": [
+					"Loan Security Assignment",
+					"Loan Security Shortfall",
+					"Loan Security Deposit",
 					"Loan Security Release",
+				],
+			},
+			{
+				"label": "Adjustments",
+				"items": [
+					"Loan Restructure",
+					"Loan Write Off",
+					"Loan Adjustment",
+					"Loan Balance Adjustment",
+				],
+			},
+			{
+				"label": "Logs",
+				"items": [
 					"Days Past Due Log",
 					"Loan NPA Log",
+					"Loan Freeze Log",
+					"Loan Limit Change Log",
+				],
+			},
+			{
+				"label": "Accounting",
+				"items": [
 					"Journal Entry",
 					"Sales Invoice",
-					"Loan Limit Change Log",
-				]
+				],
 			},
 		],
 	}

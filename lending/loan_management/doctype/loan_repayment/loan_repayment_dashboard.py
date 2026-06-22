@@ -3,9 +3,12 @@ def get_data():
 		"fieldname": "loan_repayment",
 		"transactions": [
 			{
-				"items": [
-					"Loan Restructure",
-				]
+				"label": "Demand",
+				"items": ["Loan Demand"],
+			},
+			{
+				"label": "Adjustments",
+				"items": ["Loan Restructure"],
 			},
 		],
 	}
