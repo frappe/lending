@@ -334,10 +334,10 @@ def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
 		return False
 
 	start_date = settings.async_gl_reversal_start_date
-	if start_date and getdate(cancellation_date or getdate()) < getdate(start_date):
+	if not start_date:
 		return False
 
-	return True
+	return getdate(cancellation_date or getdate()) >= getdate(start_date)
 
 
 def update_repayment_schedule_demand_generated(

@@ -14,6 +14,7 @@ def execute():
 			"label": "Async GL Reversal Start Date",
 			"fieldtype": "Date",
 			"depends_on": "enable_async_gl_reversal",
+			"mandatory_depends_on": "enable_async_gl_reversal",
 			"insert_after": "enable_async_gl_reversal",
 		},
 	]
