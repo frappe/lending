@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-06-14 10:34+0000\n"
-"PO-Revision-Date: 2026-06-18 12:36\n"
+"POT-Creation-Date: 2026-06-21 10:41+0000\n"
+"PO-Revision-Date: 2026-06-22 13:53\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3854,11 +3854,6 @@ msgstr "Nije pronađena važeća cijena kreditne garancije za {0}"
 msgid "No. of days from due date until which penalty won't be charged in case of delay in loan repayment"
 msgstr "Broj dana od datuma dospijeća do kojeg se neće naplaćivati zatezna naknada u slučaju kašnjenja u otplati kredita"
 
-#. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
-#: lending/loan_management/doctype/loan_demand/loan_demand.json
-msgid "Normal"
-msgstr "Normalno"
-
 #. Option for the 'Interest Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -5540,11 +5535,11 @@ msgstr "Isplata kredita {0} je zatvorena."
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr "Uplaćeni iznos ne može biti veći od iznosa koji se plaća za isplatu Prilagodbe Garantnog Pologa."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3288
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3295
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Sljedeće isplate ne postoje ili nisu podnešene: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3281
 msgid "The following loans do not exist: {}"
 msgstr "Sljedeći krediti ne postoje: {}"
 
