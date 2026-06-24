@@ -148,7 +148,7 @@ class LoanInterestAccrual(LoanController):
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 
-		if not (self.queue_cancel_gl() and not frappe.flags.in_test):
+		if not self.queue_cancel_gl() or frappe.flags.in_test:
 			self.make_gl_entries(cancel=1)
 			self.db_set("is_gl_cancelled", 1)
 

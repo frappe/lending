@@ -1,3 +1,4 @@
+import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 
@@ -20,3 +21,7 @@ def execute():
 	]
 
 	create_custom_fields({"Company": company_fields}, update=True)
+
+	for doctype in ("Loan Demand", "Loan Interest Accrual"):
+		table = frappe.qb.DocType(doctype)
+		frappe.qb.update(table).set(table.is_gl_cancelled, 1).where(table.docstatus == 2).run()

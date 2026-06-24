@@ -400,11 +400,18 @@ def process_cancelled_gl_entries():
 
 
 def process_cancelled_documents(doctype, title):
+	companies = frappe.get_all(
+		"Company", filters={"enable_async_gl_reversal": 1}, pluck="name"
+	)
+	if not companies:
+		return
+
 	doc = frappe.qb.DocType(doctype)
 	rows = (
 		frappe.qb.from_(doc)
 		.select(doc.name)
-		.where((doc.docstatus == 2) & (doc.is_gl_cancelled == 0))
+		.where((doc.docstatus == 2) & (doc.is_gl_cancelled == 0) & (doc.company.isin(companies)))
+		.limit(500)
 		.run(as_dict=True)
 	)
 
