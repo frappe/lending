@@ -194,6 +194,10 @@ scheduler_events = {
 	],
 	"hourly_long": [
 		"lending.loan_management.doctype.loan_repayment.loan_repayment.process_pending_credit_notes",
+<<<<<<< HEAD
+=======
+		"lending.loan_management.utils.process_cancelled_gl_entries",
+>>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
 	],
 }
 
