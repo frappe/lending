@@ -46,6 +46,9 @@ class ProcessLoanInterestAccrual(Document):
 			loan_disbursement=self.loan_disbursement,
 		)
 
+	def on_cancel(self):
+		self.ignore_linked_doctypes = ["Loan Interest Accrual"]
+
 
 def schedule_accrual():
 	for company in frappe.get_all("Company", {"is_group": 0}, pluck="name"):
