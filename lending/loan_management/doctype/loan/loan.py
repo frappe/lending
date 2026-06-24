@@ -442,6 +442,7 @@ class Loan(LoanController):
 			"Process Loan Classification",
 			"Loan Restructure",
 			"Process Loan Demand",
+			"Process Loan Security Shortfall",
 		]
 		self.set_status()
 
@@ -650,11 +651,14 @@ class Loan(LoanController):
 			"Process Loan Security Shortfall",
 		]
 		for doctype in process_doctypes:
-			for name in frappe.get_all(
-				doctype,
-				filters={"loan": self.name, "docstatus": 1},
-				pluck="name",
-			):
+			pld = frappe.qb.DocType(doctype)
+			names = (
+				frappe.qb.from_(pld)
+				.select(pld.name)
+				.where((pld.loan == self.name) & (pld.docstatus == 1))
+			).run(pluck=True)
+
+			for name in names:
 				doc = frappe.get_doc(doctype, name)
 				doc.flags.ignore_links = True
 				doc.cancel()
