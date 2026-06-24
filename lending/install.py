@@ -96,11 +96,25 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "loan_column_break",
 		},
 		{
+			"fieldname": "enable_async_gl_reversal",
+			"label": "Enable async reversal of GL for future demand and accruals",
+			"fieldtype": "Check",
+			"insert_after": "enable_loan_accounting",
+		},
+		{
+			"fieldname": "async_gl_reversal_start_date",
+			"label": "Async GL Reversal Start Date",
+			"fieldtype": "Date",
+			"depends_on": "enable_async_gl_reversal",
+			"mandatory_depends_on": "enable_async_gl_reversal",
+			"insert_after": "enable_async_gl_reversal",
+		},
+		{
 			"fieldname": "collection_offset_logic_based_on",
 			"label": "Collection Offset Logic Based On",
 			"fieldtype": "Select",
 			"options": "NPA Flag\nDays Past Due",
-			"insert_after": "enable_loan_accounting",
+			"insert_after": "async_gl_reversal_start_date",
 		},
 		{
 			"fieldname": "days_past_due_threshold",
