@@ -411,7 +411,7 @@ def process_cancelled_documents(doctype, title):
 		frappe.qb.from_(doc)
 		.select(doc.name)
 		.where((doc.docstatus == 2) & (doc.is_gl_cancelled == 0) & (doc.company.isin(companies)))
-		.limit(500)
+		.limit(5000)
 		.run(as_dict=True)
 	)
 
