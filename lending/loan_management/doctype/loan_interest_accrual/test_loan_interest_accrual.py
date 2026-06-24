@@ -25,10 +25,14 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanInterestAccrual(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 		init_customers()
+
+	def setUp(self):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_accrual_in_batch_with_freeze_date(self):

@@ -14,7 +14,9 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanDisbursement(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 		init_customers()
