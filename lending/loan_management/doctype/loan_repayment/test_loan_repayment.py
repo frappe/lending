@@ -77,9 +77,9 @@ class TestLoanRepayment(LendingTestSuite):
 				repayment_start_date=repayment_start_date,
 			)
 			process_loan_interest_accrual_for_loans(
-				loan=loan.name, posting_date=add_months(posting_date, 4), company="_Test Company"
+				loan=loan.name, posting_date=add_months(posting_date, 3), company="_Test Company"
 			)
-			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 4))
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 3))
 
 		create_repayment_entry(
 			loan=loan_a.name, value_date=repayment_start_date, paid_amount=178025
@@ -151,9 +151,9 @@ class TestLoanRepayment(LendingTestSuite):
 				repayment_start_date="2024-05-05",
 			)
 			process_loan_interest_accrual_for_loans(
-				loan=loan.name, posting_date=add_months("2024-05-05", 4), company="_Test Company"
+				loan=loan.name, posting_date=add_months("2024-05-05", 3), company="_Test Company"
 			)
-			process_daily_loan_demands(loan=loan.name, posting_date=add_months("2024-05-05", 4))
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months("2024-05-05", 3))
 
 		create_repayment_entry(loan=loan_a.name, value_date="2024-05-05", paid_amount=178025).submit()
 		entry_to_be_deleted = create_repayment_entry(
@@ -755,9 +755,9 @@ class TestLoanRepayment(LendingTestSuite):
 				repayment_start_date=repayment_start_date,
 			)
 			process_loan_interest_accrual_for_loans(
-				loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+				loan=loan.name, posting_date=add_months(posting_date, 5), company="_Test Company"
 			)
-			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 5))
 
 		data = []
 		for i in range(5):
@@ -843,9 +843,9 @@ class TestLoanRepayment(LendingTestSuite):
 				repayment_start_date=repayment_start_date,
 			)
 			process_loan_interest_accrual_for_loans(
-				loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+				loan=loan.name, posting_date=add_months(posting_date, 5), company="_Test Company"
 			)
-			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+			process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 5))
 
 		data = []
 		for i in range(5):
@@ -1415,9 +1415,9 @@ class TestLoanRepayment(LendingTestSuite):
 			repayment_start_date=repayment_start_date,
 		)
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date=add_months(posting_date, 6), company="_Test Company"
+			loan=loan.name, posting_date=add_months(posting_date, 5), company="_Test Company"
 		)
-		process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 6))
+		process_daily_loan_demands(loan=loan.name, posting_date=add_months(repayment_start_date, 5))
 
 		data = []
 		for i in range(5):
