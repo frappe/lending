@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-06-21 10:41+0000\n"
-"PO-Revision-Date: 2026-06-22 13:52\n"
+"PO-Revision-Date: 2026-06-24 14:53\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -1310,7 +1310,7 @@ msgstr ""
 #. Label of the components (Table) field in DocType 'Loan Demand Offset Order'
 #: lending/loan_management/doctype/loan_demand_offset_order/loan_demand_offset_order.json
 msgid "Components"
-msgstr ""
+msgstr "Komponensek"
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
@@ -4219,7 +4219,7 @@ msgstr ""
 #. Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Payment Details"
-msgstr ""
+msgstr "Fizetési részletek"
 
 #. Label of the payment_reference (Link) field in DocType 'Process Loan
 #. Classification'
@@ -5872,7 +5872,7 @@ msgstr ""
 #. Label of the valid_upto (Datetime) field in DocType 'Loan Security Price'
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.json
 msgid "Valid Upto"
-msgstr ""
+msgstr "Valid Upto"
 
 #. Label of the validate_normal_repayment (Check) field in DocType 'Loan
 #. Product'
