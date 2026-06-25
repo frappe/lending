@@ -32,6 +32,9 @@ class ProcessLoanSecurityShortfall(Document):
 	def on_submit(self):
 		check_for_ltv_shortfall(self.name)
 
+	def on_cancel(self):
+		self.ignore_linked_doctypes = ["Loan Security Shortfall"]
+
 
 def create_process_loan_security_shortfall():
 	if check_for_secured_loans():
