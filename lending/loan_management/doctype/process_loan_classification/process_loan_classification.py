@@ -77,6 +77,9 @@ class ProcessLoanClassification(Document):
 					enqueue_after_commit=True,
 				)
 
+	def on_cancel(self):
+		self.ignore_linked_doctypes = ["Days Past Due Log"]
+
 
 def process_loan_classification_batch(
 	open_loans,
