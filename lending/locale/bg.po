@@ -5,7 +5,7 @@ msgstr ""
 "POT-Creation-Date: 2026-06-21 10:41+0000\n"
 "PO-Revision-Date: 2026-06-24 14:53\n"
 "Last-Translator: contact@frappe.io\n"
-"Language-Team: Hungarian\n"
+"Language-Team: Bulgarian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,10 +13,10 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
-"X-Crowdin-Language: hu\n"
+"X-Crowdin-Language: bg\n"
 "X-Crowdin-File: /[frappe.lending] develop/lending/locale/main.pot\n"
 "X-Crowdin-File-ID: 130\n"
-"Language: hu_HU\n"
+"Language: bg_BG\n"
 
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:84
 msgid "% Of Applicant Portfolio"
@@ -29,12 +29,12 @@ msgstr ""
 #. Header text in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr "<span class=\"h4\"><b>Jelentések &amp; Törzsadatok</b></span>"
+msgstr ""
 
 #. Header text in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr "<span class=\"h4\"><b>Hivatkozásai</b></span>"
+msgstr ""
 
 #. Name of a report
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.json
@@ -52,7 +52,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
-msgstr "A {0}számlához nem tartozik a {1} vállalat"
+msgstr ""
 
 #. Label of the accounting_tab (Tab Break) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -410,7 +410,7 @@ msgstr ""
 #: lending/loan_management/doctype/pledge/pledge.json
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
 msgid "Amount"
-msgstr "Összeg"
+msgstr ""
 
 #. Label of the amount_paid (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
@@ -1310,7 +1310,7 @@ msgstr ""
 #. Label of the components (Table) field in DocType 'Loan Demand Offset Order'
 #: lending/loan_management/doctype/loan_demand_offset_order/loan_demand_offset_order.json
 msgid "Components"
-msgstr "Komponensek"
+msgstr ""
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
@@ -2093,7 +2093,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Initiated"
-msgstr "kezdeményezett"
+msgstr ""
 
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:118
 msgid "Installments Overdue"
@@ -2513,7 +2513,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Loan "
-msgstr "Hitel "
+msgstr ""
 
 #. Label of the loan_details_section (Section Break) field in DocType 'Loan
 #. Security Release'
@@ -4219,7 +4219,7 @@ msgstr ""
 #. Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Payment Details"
-msgstr "Fizetési részletek"
+msgstr ""
 
 #. Label of the payment_reference (Link) field in DocType 'Process Loan
 #. Classification'
@@ -4413,7 +4413,7 @@ msgstr ""
 
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:67
 msgid "Please select Company."
-msgstr "Kérjük, válassza ki a céget."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:839
 msgid "Please select Loan Disbursement for Line of Credit repayment"
@@ -4783,12 +4783,12 @@ msgstr ""
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Code"
-msgstr "Cikkszám"
+msgstr ""
 
 #. Label of the product_name (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Name"
-msgstr "Termék neve"
+msgstr ""
 
 #. Name of a DocType
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
@@ -4891,7 +4891,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 msgid "Reference No"
-msgstr "Hivatkozási szám"
+msgstr ""
 
 #. Label of the reference_number (Data) field in DocType 'Loan Balance
 #. Adjustment'
@@ -5872,7 +5872,7 @@ msgstr ""
 #. Label of the valid_upto (Datetime) field in DocType 'Loan Security Price'
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.json
 msgid "Valid Upto"
-msgstr "Valid Upto"
+msgstr ""
 
 #. Label of the validate_normal_repayment (Check) field in DocType 'Loan
 #. Product'
