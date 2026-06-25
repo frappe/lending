@@ -41,6 +41,7 @@
   "process_loan_interest_accrual",
   "amended_from",
   "is_imported",
+  "is_gl_cancelled",
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry"
@@ -291,13 +292,21 @@
    "fieldtype": "Check",
    "label": "Is Imported",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_gl_cancelled",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is GL Cancelled",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-28 15:20:16.650685",
+ "modified": "2026-05-25 10:36:03.518964",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

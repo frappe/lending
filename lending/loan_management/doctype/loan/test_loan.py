@@ -3519,3 +3519,71 @@ class TestLoan(LendingTestSuite):
 		self.assertFalse(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
 		self.assertFalse(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
 		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
+
+	def test_cancel_loan_cancels_process_loan_documents(self):
+		posting_date = "2025-01-30"
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 1",
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date=posting_date,
+			posting_date=add_months(posting_date, -1),
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=add_months(posting_date, -1),
+			repayment_start_date=posting_date,
+		)
+		process_loan_interest_accrual_for_loans(
+			posting_date=posting_date, loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=posting_date, loan=loan.name)
+
+		process_doctypes = ["Process Loan Demand", "Process Loan Interest Accrual"]
+
+		for doctype in process_doctypes:
+			self.assertTrue(
+				frappe.db.exists(doctype, {"loan": loan.name, "docstatus": 1}),
+				msg=f"Expected a submitted {doctype} for the loan",
+			)
+
+		for demand in frappe.get_all("Loan Demand", filters={"loan": loan.name, "docstatus": 1}, pluck="name"):
+			frappe.get_doc("Loan Demand", demand).cancel()
+		for accrual in frappe.get_all(
+			"Loan Interest Accrual", filters={"loan": loan.name, "docstatus": 1}, pluck="name"
+		):
+			frappe.get_doc("Loan Interest Accrual", accrual).cancel()
+		for disbursement in frappe.get_all(
+			"Loan Disbursement", filters={"against_loan": loan.name, "docstatus": 1}, pluck="name"
+		):
+			frappe.get_doc("Loan Disbursement", disbursement).cancel()
+
+		loan.load_from_db()
+		loan.cancel()
+
+		for doctype in process_doctypes:
+			self.assertFalse(
+				frappe.db.exists(doctype, {"loan": loan.name, "docstatus": 1}),
+				msg=f"{doctype} left in Submitted state after loan cancellation",
+			)
+
+		for doctype, fieldname in (
+			("Loan Demand", "loan"),
+			("Loan Interest Accrual", "loan"),
+			("Loan Disbursement", "against_loan"),
+			("Loan Repayment Schedule", "loan"),
+		):
+			for name in frappe.get_all(doctype, filters={fieldname: loan.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, force=True)
+
+		frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 1)
+		try:
+			frappe.delete_doc("Loan", loan.name)
+		finally:
+			frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 0)
+		self.assertFalse(frappe.db.exists("Loan", loan.name))

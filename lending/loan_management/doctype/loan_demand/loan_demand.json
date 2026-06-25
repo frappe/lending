@@ -36,6 +36,7 @@
   "accounting_dimensions_section",
   "cost_center",
   "is_imported",
+  "is_gl_cancelled",
   "column_break_hmrs",
   "amended_from",
   "process_loan_demand",
@@ -296,6 +297,14 @@
   },
   {
    "default": "0",
+   "fieldname": "is_gl_cancelled",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is GL Cancelled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
    "fieldname": "is_partial_pre_paid_interest",
    "fieldtype": "Check",
    "label": "Is Partial Pre-Paid Interest"
@@ -305,7 +314,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-16 15:13:09.765918",
+ "modified": "2026-05-25 10:35:43.539786",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

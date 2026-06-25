@@ -7,7 +7,7 @@ from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
-from lending.loan_management.utils import loan_accounting_enabled
+from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
 
 
 class LoanDemand(LoanController):
@@ -30,6 +30,7 @@ class LoanDemand(LoanController):
 		demand_type: DF.Literal["EMI", "Penalty", "Normal", "Charges", "BPI", "Additional Interest"]
 		disbursement_date: DF.Date | None
 		invoice_date: DF.Date | None
+		is_gl_cancelled: DF.Check
 		is_imported: DF.Check
 		is_partial_pre_paid_interest: DF.Check
 		is_term_loan: DF.Check
@@ -101,9 +102,16 @@ class LoanDemand(LoanController):
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
-		self.make_gl_entries(cancel=1)
+
+		if not self.queue_cancel_gl() or frappe.flags.in_test:
+			self.make_gl_entries(cancel=1)
+			self.db_set("is_gl_cancelled", 1)
+
 		self.update_repayment_schedule(cancel=1)
 		self.make_credit_note()
+
+	def queue_cancel_gl(self):
+		return async_gl_reversal_enabled(self.company, getdate())
 
 	def make_credit_note(self):
 		if not self.demand_type == "Charges":

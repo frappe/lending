@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-06-14 10:34+0000\n"
-"PO-Revision-Date: 2026-06-14 10:34+0000\n"
+"POT-Creation-Date: 2026-06-21 10:41+0000\n"
+"PO-Revision-Date: 2026-06-21 10:41+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -3852,11 +3852,6 @@ msgstr ""
 msgid "No. of days from due date until which penalty won't be charged in case of delay in loan repayment"
 msgstr ""
 
-#. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
-#: lending/loan_management/doctype/loan_demand/loan_demand.json
-msgid "Normal"
-msgstr ""
-
 #. Option for the 'Interest Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -5538,11 +5533,11 @@ msgstr ""
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3288
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3295
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3281
 msgid "The following loans do not exist: {}"
 msgstr ""
 

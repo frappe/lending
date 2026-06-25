@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-06-14 10:34+0000\n"
-"PO-Revision-Date: 2026-06-18 12:36\n"
+"POT-Creation-Date: 2026-06-21 10:41+0000\n"
+"PO-Revision-Date: 2026-06-22 13:53\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -806,7 +806,7 @@ msgstr "Bankarstvo"
 #. Label of the base_amount (Currency) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Base Amount"
-msgstr "Osnovni Iznos"
+msgstr "Temeljni Iznos"
 
 #. Label of the section_break_hmca (Section Break) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -1680,7 +1680,7 @@ msgstr "Račun isplate"
 #. Name of a report
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.json
 msgid "Disbursement Analysis Report"
-msgstr "Izvješće o analizi isplata"
+msgstr "Izvješće Isplata"
 
 #. Label of the disbursement_charges (Currency) field in DocType 'Loan
 #. Repayment Schedule'
@@ -1715,7 +1715,7 @@ msgstr "Reference isplate"
 
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:763
 msgid "Disbursement against loan:"
-msgstr "Isplata na temelju zajma:"
+msgstr "Isplata na temelju kredita:"
 
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:525
 msgid "Disbursement amount cannot be greater than available limit amount"
@@ -1819,7 +1819,7 @@ msgstr "Status provjere e-pošte"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Employee"
-msgstr "Personal"
+msgstr "Osoblje"
 
 #. Label of the employee_loans (Check) field in DocType 'Loan Origination
 #. Settings'
@@ -1830,7 +1830,7 @@ msgstr "Krediti Osoblja"
 #. Label of the employment_type (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Employment Type"
-msgstr "Tip Personala"
+msgstr "Tip Osoblja"
 
 #. Label of the enable_partner_accounting (Check) field in DocType 'Loan
 #. Partner'
@@ -1931,7 +1931,7 @@ msgstr "FLDG pokrenut"
 #. Label of the failed_repayment (Text) field in DocType 'Bulk Repayment Log'
 #: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
 msgid "Failed Repayment"
-msgstr "Neuspješna otplata"
+msgstr "Neuspješna Otplata"
 
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -2006,7 +2006,7 @@ msgstr "Posao Potpune Nagodbe"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:927
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
-msgstr "Puna otplata se ne može retroaktivno primijeniti. Datum vrijednosti {0} ne može biti raniji od datuma vrijednosti posljednje otplate {1} ({2})."
+msgstr "Puna otplata se ne može retroaktivno primijeniti. Datum vrijednosti {0} ne može biti prije datuma posljednje otplate {1} ({2})."
 
 #. Name of a report
 #. Label of a Link in the Lending Workspace
@@ -2252,7 +2252,7 @@ msgstr "Unutarnja Ovrha"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:848
 msgid "Invalid Loan Disbursement linked for payment"
-msgstr "Nevažeća isplata kredita povezana s uplatom"
+msgstr "Nevažeća isplata kredita povezana je za plaćanje"
 
 #. Label of the invoice_date (Date) field in DocType 'Loan Demand'
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -3854,11 +3854,6 @@ msgstr "Nije pronađena valjana cijena jamstva za kredit za {0}"
 msgid "No. of days from due date until which penalty won't be charged in case of delay in loan repayment"
 msgstr "Broj dana od datuma dospijeća do kojeg se neće naplaćivati kazna u slučaju kašnjenja u otplati kredita"
 
-#. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
-#: lending/loan_management/doctype/loan_demand/loan_demand.json
-msgid "Normal"
-msgstr "Normalan"
-
 #. Option for the 'Interest Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -3883,7 +3878,7 @@ msgstr "Normalno ograničenje"
 #: lending/loan_management/doctype/loan_adjustment_detail/loan_adjustment_detail.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Normal Repayment"
-msgstr "Normalna otplata"
+msgstr "Normalna Otplata"
 
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -5015,7 +5010,7 @@ msgstr "Napomene"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Repay Fixed Amount per Period"
-msgstr "Otplata fiksnog iznosa po razdoblju"
+msgstr "Otplata Fiksnog Iznosa po Razdoblju"
 
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan
@@ -5035,7 +5030,7 @@ msgstr "Otplata fiksnog iznosa po razdoblju"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Repay Over Number of Periods"
-msgstr "Otplata tijekom određenog broja razdoblja"
+msgstr "Otplata tijekom određenog Broja Razdoblja"
 
 #. Option for the 'Accrual Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
@@ -5540,11 +5535,11 @@ msgstr "Isplata kredita {0} je zatvorena."
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr "Uplaćeni iznos ne može biti veći od iznosa koji se plaća za isplatu prilagodbe pologa jamčevine."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3288
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3295
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Sljedeće isplate ne postoje ili nisu podnešene: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3281
 msgid "The following loans do not exist: {}"
 msgstr "Sljedeći krediti ne postoje: {}"
 
@@ -5672,7 +5667,7 @@ msgstr "Ukupno Dospelih Kamata"
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:57
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:64
 msgid "Total Payment"
-msgstr "Ukupna Isplata"
+msgstr "Ukupno Plaćanje"
 
 #. Label of the total_penalty_paid (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json

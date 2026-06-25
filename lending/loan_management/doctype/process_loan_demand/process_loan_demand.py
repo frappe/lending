@@ -41,6 +41,9 @@ class ProcessLoanDemand(Document):
 			process_loan_demand=self.name,
 		)
 
+	def on_cancel(self):
+		self.ignore_linked_doctypes = ["Loan Demand"]
+
 
 def process_daily_loan_demands(posting_date=None, loan_product=None, loan=None):
 	loan_process = frappe.new_doc("Process Loan Demand")

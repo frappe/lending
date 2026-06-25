@@ -322,6 +322,24 @@ def loan_accounting_enabled(company: str) -> bool:
 	return bool(frappe.get_cached_value("Company", company, "enable_loan_accounting"))
 
 
+def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
+	settings = frappe.get_cached_value(
+		"Company",
+		company,
+		["enable_async_gl_reversal", "async_gl_reversal_start_date"],
+		as_dict=True,
+	)
+
+	if not settings or not settings.enable_async_gl_reversal:
+		return False
+
+	start_date = settings.async_gl_reversal_start_date
+	if not start_date:
+		return False
+
+	return getdate(cancellation_date or getdate()) >= getdate(start_date)
+
+
 def update_repayment_schedule_demand_generated(
 	loan,
 	loan_disbursement=None,
@@ -367,3 +385,45 @@ def create_charge_master(charge_type):
 				"is_stock_item": 0,
 			}
 		).insert()
+
+
+def process_cancelled_gl_entries():
+	process_cancelled_documents(
+		doctype="Loan Demand",
+		title="Loan Demand Cancel GL Queue Error",
+	)
+
+	process_cancelled_documents(
+		doctype="Loan Interest Accrual",
+		title="Loan Interest Accrual Cancel GL Queue Error",
+	)
+
+
+def process_cancelled_documents(doctype, title):
+	doc = frappe.qb.DocType(doctype)
+	rows = (
+		frappe.qb.from_(doc)
+		.select(doc.name)
+		.where((doc.docstatus == 2) & (doc.is_gl_cancelled == 0))
+		.limit(5000)
+		.run(as_dict=True)
+	)
+
+	for row in rows:
+		try:
+			docname = row.name
+			document = frappe.get_doc(doctype, docname, for_update=True)
+			if document.is_gl_cancelled:
+				frappe.db.rollback()
+				continue
+			document.make_gl_entries(cancel=1)
+			document.db_set("is_gl_cancelled", 1)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(
+				title=title,
+				message=frappe.get_traceback(),
+				reference_doctype=doctype,
+				reference_name=row.name,
+			)
