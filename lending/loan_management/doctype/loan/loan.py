@@ -427,6 +427,7 @@ class Loan(LoanController):
 	def on_cancel(self):
 		self.cancel_and_delete_repayment_schedule()
 		self.cancel_loan_security_assignment()
+		self.cancel_process_loan_documents()
 		self.ignore_linked_doctypes = [
 			"GL Entry",
 			"Payment Ledger Entry",
@@ -441,11 +442,23 @@ class Loan(LoanController):
 			"Process Loan Classification",
 			"Loan Restructure",
 			"Process Loan Demand",
+			"Process Loan Security Shortfall",
 		]
 		self.set_status()
 
 		if self.is_imported:
 			self.make_gl_entries(cancel=1)
+
+	def on_trash(self):
+		if not frappe.db.get_single_value("Accounts Settings", "delete_linked_ledger_entries"):
+			return
+
+		frappe.db.delete("GL Entry", {"voucher_type": self.doctype, "voucher_no": self.name})
+		frappe.db.delete("GL Entry", {"against_voucher_type": self.doctype, "against_voucher": self.name})
+		frappe.db.delete("Payment Ledger Entry", {"voucher_type": self.doctype, "voucher_no": self.name})
+		frappe.db.delete(
+			"Payment Ledger Entry", {"against_voucher_type": self.doctype, "against_voucher_no": self.name}
+		)
 
 	# nosemgrep
 	def set_status(self):
@@ -628,6 +641,26 @@ class Loan(LoanController):
 				fields=["name"],
 			):
 				doc = frappe.get_doc("Loan Security Assignment", assignment.name)
+				doc.cancel()
+
+	def cancel_process_loan_documents(self):
+		process_doctypes = [
+			"Process Loan Demand",
+			"Process Loan Classification",
+			"Process Loan Interest Accrual",
+			"Process Loan Security Shortfall",
+		]
+		for doctype in process_doctypes:
+			pld = frappe.qb.DocType(doctype)
+			names = (
+				frappe.qb.from_(pld)
+				.select(pld.name)
+				.where((pld.loan == self.name) & (pld.docstatus == 1))
+			).run(pluck=True)
+
+			for name in names:
+				doc = frappe.get_doc(doctype, name)
+				doc.flags.ignore_links = True
 				doc.cancel()
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
