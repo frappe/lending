@@ -50,9 +50,6 @@ frappe.ui.form.on("Process Loan Statement of Accounts", {
 		frm.set_query("loan_product", function () {
 			return { filters: { company: frm.doc.company } };
 		});
-		frm.set_query("currency", function () {
-			return { filters: { enabled: 1 } };
-		});
 	},
 
 	set_collection_label: function (frm) {

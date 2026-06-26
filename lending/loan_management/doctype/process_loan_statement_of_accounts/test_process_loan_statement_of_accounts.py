@@ -45,8 +45,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 				"report": "Loan Statement of Account",
 				"company": "_Test Company",
 				"applicant_type": "Customer",
-				"from_date": "2000-01-01",
-				"to_date": "2099-12-31",
+				"from_date": add_months(today(), -12),
+				"to_date": today(),
 				"group_by": "Detailed",
 				"applicants": applicants,
 			}
@@ -56,6 +56,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		return doc
 
 	def make_loan_with_activity(self, applicant="_Test Loan Customer"):
+		posting_date = add_months(today(), -2)
+		repayment_date = add_months(today(), -1)
 		loan = create_loan(
 			applicant,
 			"Term Loan Product 4",
@@ -63,8 +65,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 			"Repay Over Number of Periods",
 			6,
 			"Customer",
-			repayment_start_date="2024-02-05",
-			posting_date="2024-01-05",
+			repayment_start_date=repayment_date,
+			posting_date=posting_date,
 			rate_of_interest=10,
 		)
 		loan.submit()
@@ -72,14 +74,12 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		disb = make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
-			disbursement_date="2024-01-05",
-			repayment_start_date="2024-02-05",
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_date,
 		)
-		repayment = create_repayment_entry(loan.name, "2024-02-05", 10000, loan_disbursement=disb.name)
+		repayment = create_repayment_entry(loan.name, repayment_date, 10000, loan_disbursement=disb.name)
 		repayment.submit()
 		return loan
-
-	# ---------- validate ----------
 
 	def test_validate_sets_default_email_templates(self):
 		self.make_loan_with_activity()
@@ -97,8 +97,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 				"report": "Loan Statement of Account",
 				"company": "_Test Company",
 				"applicant_type": "Customer",
-				"from_date": "2000-01-01",
-				"to_date": "2099-12-31",
+				"from_date": add_months(today(), -12),
+				"to_date": today(),
 				"applicants": [],
 			}
 		)
@@ -116,8 +116,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		)
 		self.assertEqual(getdate(doc.to_date), getdate(start))
 		self.assertEqual(getdate(doc.from_date), add_months(getdate(start), -6))
-
-	# ---------- helpers ----------
 
 	def test_get_report_filters_maps_doc_to_report(self):
 		self.make_loan_with_activity()
@@ -145,7 +143,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")
 		context = get_context(doc.applicants[0], doc)
-		# applicants child rows are stripped from the template doc
 		self.assertFalse(context["doc"].get("applicants"))
 		self.assertEqual(context["applicant"].applicant, "_Test Loan Customer")
 
@@ -166,8 +163,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		self.assertEqual(recipients, ["a@example.com", "b@example.com"])
 		self.assertEqual(cc, [])
 
-	# ---------- statement / pdf ----------
-
 	def test_statement_dict_renders_html_for_applicant(self):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")
@@ -182,18 +177,30 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		default_currency = frappe.get_cached_value("Company", "_Test Company", "default_currency")
 		self.assertIn(fmt_money(120000, currency=default_currency), html)
 
-	def test_statement_dict_uses_selected_currency(self):
-		self.make_loan_with_activity()
-		doc = self.create_process_doc("_Test Loan Customer", currency="USD")
+	def test_letter_head_jinja_is_rendered(self):
+		from lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts import (
+			get_rendered_letter_head,
+		)
 
-		statement_dict = get_statement_dict(doc)
-		html = statement_dict["_Test Loan Customer"]
-		self.assertIn("$", html)
+		self.make_loan_with_activity()
+		doc = self.create_process_doc("_Test Loan Customer")
+
+		raw = '<div class="lh">{{ doc.doctype }} | {{ doc.name }} | logo=[{{ company_logo }}]</div>'
+		with patch(
+			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.get_letter_head",
+			return_value={"content": raw, "footer": ""},
+		):
+			letter_head = get_rendered_letter_head(doc, applicant="_Test Loan Customer")
+
+		rendered = letter_head["content"]
+		self.assertNotIn("{{", rendered)
+		self.assertNotIn("Process Loan Statement of Accounts", rendered)
+		self.assertIn("Loan Statement of Account | _Test Loan Customer", rendered)
 
 	def test_statement_dict_skips_applicant_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")
-		doc.from_date = "1990-01-01"
-		doc.to_date = "1990-12-31"
+		doc.from_date = add_months(today(), 1)
+		doc.to_date = add_months(today(), 12)
 
 		statement_dict = get_statement_dict(doc)
 		self.assertNotIn("_Test Loan Customer 2", statement_dict)
@@ -214,8 +221,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 
 	def test_get_report_pdf_returns_false_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")
-		doc.from_date = "1990-01-01"
-		doc.to_date = "1990-12-31"
+		doc.from_date = add_months(today(), 1)
+		doc.to_date = add_months(today(), 12)
 		self.assertFalse(get_report_pdf(doc))
 
 	def test_download_statements_sets_response(self):
@@ -224,8 +231,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		download_statements(doc.name)
 		self.assertEqual(frappe.local.response.type, "download")
 		self.assertEqual(frappe.local.response.filename, doc.name + ".pdf")
-
-	# ---------- fetch_applicants ----------
 
 	def test_fetch_applicants_all_loans(self):
 		self.make_loan_with_activity()
@@ -243,8 +248,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			fetch_applicants("_Test Company", "Customer", "Loan Product")
 
-	# ---------- send_emails / scheduler ----------
-
 	def test_send_emails_enqueues_and_returns_true(self):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")
@@ -257,8 +260,8 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 
 	def test_send_emails_returns_false_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")
-		doc.from_date = "1990-01-01"
-		doc.to_date = "1990-12-31"
+		doc.from_date = add_months(today(), 1)
+		doc.to_date = add_months(today(), 12)
 		doc.save()
 		self.assertFalse(send_emails(doc.name))
 
@@ -320,7 +323,6 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.frappe.enqueue"
 		):
 			send_auto_email()
-		# start_date should have been rolled forward past today
 		self.assertGreater(
 			getdate(frappe.db.get_value(doc.doctype, doc.name, "start_date")), getdate(today())
 		)

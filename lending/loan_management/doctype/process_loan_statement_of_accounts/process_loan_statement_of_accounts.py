@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import add_days, add_months, format_date, getdate, today
 from frappe.utils.jinja import validate_template
 from frappe.utils.pdf import get_pdf
-from frappe.www.printview import get_print_style
+from frappe.www.printview import get_letter_head, get_print_style
 
 from lending.loan_management.report.loan_statement_of_account.loan_statement_of_account import (
 	execute as get_loan_soa,
@@ -78,7 +78,6 @@ class ProcessLoanStatementofAccounts(Document):
 		if not self.applicants:
 			frappe.throw(_("Applicants not selected."))
 
-		# Keep the date window in sync for the next scheduled run.
 		if self.enable_auto_email and self.start_date and getdate(self.start_date) >= getdate(today()):
 			self.to_date = self.start_date
 			self.from_date = add_months(self.to_date, -1 * (self.filter_duration or 12))
@@ -99,23 +98,36 @@ def get_report_filters(doc, entry):
 
 
 def get_statement_dict(doc):
-	"""Return {applicant_name_in_table: rendered_html} for each applicant with data."""
 	statement_dict = {}
-	presentation_currency = doc.currency or frappe.get_cached_value(
-		"Company", doc.company, "default_currency"
-	)
 
 	for entry in doc.applicants:
 		filters = get_report_filters(doc, entry)
 		columns, data = get_loan_soa(filters)
 		if not data:
 			continue
-		# Display-only currency code; the report keeps values in company currency.
-		for row in data:
-			row["currency"] = presentation_currency
 		statement_dict[entry.applicant] = get_html(doc, filters, columns, data)
 
 	return statement_dict
+
+
+def get_rendered_letter_head(doc, applicant=None):
+	letter_head = frappe._dict(get_letter_head(doc, 0) or {})
+	company_logo = frappe.get_cached_value("Company", doc.company, "company_logo") or ""
+
+	context_doc = frappe._dict(
+		{
+			"company": doc.company,
+			"doctype": REPORT_NAME,
+			"name": applicant or "",
+		}
+	)
+	context = {"doc": context_doc, "company_logo": company_logo}
+
+	for key in ("content", "footer"):
+		if letter_head.get(key):
+			letter_head[key] = frappe.render_template(letter_head[key], context)  # nosemgrep
+
+	return letter_head
 
 
 def get_html(doc, filters, columns, data):
@@ -123,11 +135,8 @@ def get_html(doc, filters, columns, data):
 
 	letter_head = None
 	if doc.letter_head:
-		from frappe.www.printview import get_letter_head
+		letter_head = get_rendered_letter_head(doc, applicant=filters.applicant)
 
-		letter_head = get_letter_head(doc, 0)
-
-	# TEMPLATE_PATH is a hardcoded module constant (trusted source), not user input.
 	html = frappe.render_template(  # nosemgrep
 		TEMPLATE_PATH,
 		{
@@ -143,7 +152,6 @@ def get_html(doc, filters, columns, data):
 		},
 	)
 
-	# base_template_path is a hardcoded constant (frappe's printview), not user input.
 	html = frappe.render_template(  # nosemgrep
 		base_template_path,
 		{
@@ -259,7 +267,11 @@ def fetch_applicants(company: str, applicant_type: str, collection_based_on: str
 def download_statements(document_name: str):
 	doc = frappe.get_doc("Process Loan Statement of Accounts", document_name)
 	doc.check_permission("read")
-	report = get_report_pdf(doc)
+	try:
+		report = get_report_pdf(doc)
+	except Exception:
+		frappe.log_error(title=f"Loan Statement download failed: {document_name}")
+		raise
 	if report:
 		frappe.local.response.filename = doc.name + ".pdf"
 		frappe.local.response.filecontent = report
@@ -284,8 +296,6 @@ def send_emails(document_name: str, from_scheduler: bool = False):
 			continue
 
 		context = get_context(entry, doc)
-		# pdf_name/subject/body are author-defined templates, validated via
-		# validate_template() and only editable by Loan Manager / System Manager.
 		filename = frappe.render_template(doc.pdf_name, context)  # nosemgrep
 		subject = frappe.render_template(doc.subject, context)  # nosemgrep
 		message = frappe.render_template(doc.body, context)  # nosemgrep
@@ -332,7 +342,6 @@ def set_next_schedule_date(doc):
 
 
 def send_auto_email():
-	"""Scheduled task: send statements for all enabled docs due today."""
 	selected = frappe.get_all(
 		"Process Loan Statement of Accounts",
 		filters={"enable_auto_email": 1, "start_date": today()},

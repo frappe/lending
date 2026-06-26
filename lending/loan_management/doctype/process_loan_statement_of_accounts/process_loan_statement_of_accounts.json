@@ -14,7 +14,6 @@
   "loan_product",
   "column_break_filters",
   "to_date",
-  "currency",
   "group_by",
   "applicants_section",
   "applicant_type",
@@ -92,13 +91,6 @@
    "fieldtype": "Date",
    "label": "To Date",
    "mandatory_depends_on": "eval:!doc.enable_auto_email"
-  },
-  {
-   "description": "Leave blank to use the company's default currency.",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
   },
   {
    "default": "Detailed",
@@ -273,7 +265,7 @@
   }
  ],
  "links": [],
- "modified": "2026-06-16 00:00:00.000000",
+ "modified": "2026-06-26 11:10:15.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Statement of Accounts",
