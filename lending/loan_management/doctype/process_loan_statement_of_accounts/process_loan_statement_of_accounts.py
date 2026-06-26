@@ -238,21 +238,29 @@ def get_applicant_details(applicant_type: str, applicant: str):
 def fetch_applicants(company: str, applicant_type: str, collection_based_on: str, loan_product: str | None = None):
 	frappe.has_permission("Process Loan Statement of Accounts", throw=True)
 
-	filters = {"company": company, "applicant_type": applicant_type, "docstatus": 1}
-	if collection_based_on == "Loan Product":
-		if not loan_product:
-			frappe.throw(_("Please select a Loan Product."))
-		filters["loan_product"] = loan_product
+	if collection_based_on == "Loan Product" and not loan_product:
+		frappe.throw(_("Please select a Loan Product."))
 
-	applicants = frappe.get_all(
-		"Loan",
-		filters=filters,
-		fields=["applicant", "applicant_name"],
-		group_by="applicant",
+	loan = frappe.qb.DocType("Loan")
+	query = (
+		frappe.qb.from_(loan)
+		.select(loan.applicant, loan.applicant_name)
+		.distinct()
+		.where(
+			(loan.company == company)
+			& (loan.applicant_type == applicant_type)
+			& (loan.docstatus == 1)
+		)
 	)
+	if collection_based_on == "Loan Product":
+		query = query.where(loan.loan_product == loan_product)
+
+	applicants = query.run(as_dict=True)
 
 	applicant_list = []
 	for a in applicants:
+		if not frappe.has_permission(applicant_type, "read", a.applicant):
+			continue
 		applicant_list.append(
 			{
 				"applicant_type": applicant_type,
@@ -343,11 +351,12 @@ def set_next_schedule_date(doc):
 
 
 def send_auto_email():
-	selected = frappe.get_all(
-		"Process Loan Statement of Accounts",
-		filters={"enable_auto_email": 1, "start_date": ("<=", today())},
-		pluck="name",
-	)
+	plsoa = frappe.qb.DocType("Process Loan Statement of Accounts")
+	selected = (
+		frappe.qb.from_(plsoa)
+		.select(plsoa.name)
+		.where((plsoa.enable_auto_email == 1) & (plsoa.start_date <= today()))
+	).run(pluck="name")
 	for name in selected:
 		send_emails(name, from_scheduler=True)
 	return True
