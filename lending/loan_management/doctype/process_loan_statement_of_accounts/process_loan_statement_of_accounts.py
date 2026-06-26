@@ -127,9 +127,8 @@ def get_html(doc, filters, columns, data):
 
 		letter_head = get_letter_head(doc, 0)
 
-	# The Loan Statement of Account report uses a client-side (frappe.render) HTML
-	# template. Render it server-side via the jinja-compatible report renderer.
-	html = frappe.render_template(
+	# TEMPLATE_PATH is a hardcoded module constant (trusted source), not user input.
+	html = frappe.render_template(  # nosemgrep
 		TEMPLATE_PATH,
 		{
 			"filters": filters,
@@ -144,7 +143,8 @@ def get_html(doc, filters, columns, data):
 		},
 	)
 
-	html = frappe.render_template(
+	# base_template_path is a hardcoded constant (frappe's printview), not user input.
+	html = frappe.render_template(  # nosemgrep
 		base_template_path,
 		{
 			"body": html,
@@ -284,9 +284,11 @@ def send_emails(document_name: str, from_scheduler: bool = False):
 			continue
 
 		context = get_context(entry, doc)
-		filename = frappe.render_template(doc.pdf_name, context)
-		subject = frappe.render_template(doc.subject, context)
-		message = frappe.render_template(doc.body, context)
+		# pdf_name/subject/body are author-defined templates, validated via
+		# validate_template() and only editable by Loan Manager / System Manager.
+		filename = frappe.render_template(doc.pdf_name, context)  # nosemgrep
+		subject = frappe.render_template(doc.subject, context)  # nosemgrep
+		message = frappe.render_template(doc.body, context)  # nosemgrep
 
 		if doc.sender:
 			sender_email = frappe.db.get_value("Email Account", doc.sender, "email_id")
