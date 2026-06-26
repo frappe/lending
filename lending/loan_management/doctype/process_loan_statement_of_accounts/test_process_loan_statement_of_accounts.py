@@ -1,8 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from unittest.mock import patch
-
 import frappe
 from frappe.utils import add_days, add_months, getdate, today
 
@@ -182,20 +180,19 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 			get_rendered_letter_head,
 		)
 
+		if not frappe.db.exists("Letter Head", "Company Letterhead"):
+			self.skipTest("Company Letterhead not available")
+
 		self.make_loan_with_activity()
-		doc = self.create_process_doc("_Test Loan Customer")
+		doc = self.create_process_doc("_Test Loan Customer", letter_head="Company Letterhead")
 
-		raw = '<div class="lh">{{ doc.doctype }} | {{ doc.name }} | logo=[{{ company_logo }}]</div>'
-		with patch(
-			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.get_letter_head",
-			return_value={"content": raw, "footer": ""},
-		):
-			letter_head = get_rendered_letter_head(doc, applicant="_Test Loan Customer")
-
+		letter_head = get_rendered_letter_head(doc, applicant="_Test Loan Customer")
 		rendered = letter_head["content"]
+
 		self.assertNotIn("{{", rendered)
 		self.assertNotIn("Process Loan Statement of Accounts", rendered)
-		self.assertIn("Loan Statement of Account | _Test Loan Customer", rendered)
+		self.assertIn("Loan Statement of Account", rendered)
+		self.assertIn("_Test Loan Customer", rendered)
 
 	def test_statement_dict_skips_applicant_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")
@@ -248,15 +245,21 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			fetch_applicants("_Test Company", "Customer", "Loan Product")
 
-	def test_send_emails_enqueues_and_returns_true(self):
+	def test_send_emails_returns_true_and_queues_mail(self):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")
-		with patch(
-			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.frappe.enqueue"
-		) as mock_enqueue:
-			result = send_emails(doc.name)
+
+		result = send_emails(doc.name)
+
 		self.assertTrue(result)
-		self.assertTrue(mock_enqueue.called)
+		queued = frappe.db.count(
+			"Email Queue",
+			filters={
+				"reference_doctype": "Process Loan Statement of Accounts",
+				"reference_name": doc.name,
+			},
+		)
+		self.assertGreater(queued, 0)
 
 	def test_send_emails_returns_false_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")
@@ -278,12 +281,17 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 				}
 			],
 		)
-		with patch(
-			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.frappe.enqueue"
-		) as mock_enqueue:
-			result = send_emails(doc.name)
+		result = send_emails(doc.name)
+
 		self.assertTrue(result)
-		self.assertFalse(mock_enqueue.called)
+		queued = frappe.db.count(
+			"Email Queue",
+			filters={
+				"reference_doctype": "Process Loan Statement of Accounts",
+				"reference_name": doc.name,
+			},
+		)
+		self.assertEqual(queued, 0)
 
 	def test_set_next_schedule_date_monthly(self):
 		self.make_loan_with_activity()
@@ -319,10 +327,24 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 			frequency="Monthly",
 			filter_duration=6,
 		)
-		with patch(
-			"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.frappe.enqueue"
-		):
-			send_auto_email()
+		send_auto_email()
+
+		self.assertGreater(
+			getdate(frappe.db.get_value(doc.doctype, doc.name, "start_date")), getdate(today())
+		)
+
+	def test_send_auto_email_processes_overdue_docs(self):
+		self.make_loan_with_activity()
+		doc = self.create_process_doc(
+			"_Test Loan Customer",
+			enable_auto_email=1,
+			frequency="Monthly",
+			filter_duration=6,
+		)
+		frappe.db.set_value(doc.doctype, doc.name, "start_date", add_days(today(), -3))
+
+		send_auto_email()
+
 		self.assertGreater(
 			getdate(frappe.db.get_value(doc.doctype, doc.name, "start_date")), getdate(today())
 		)

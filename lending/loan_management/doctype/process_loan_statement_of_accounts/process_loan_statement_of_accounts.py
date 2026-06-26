@@ -227,6 +227,7 @@ def _get_applicant_name(applicant_type, applicant):
 @frappe.whitelist()
 def get_applicant_details(applicant_type: str, applicant: str):
 	frappe.has_permission("Process Loan Statement of Accounts", throw=True)
+	frappe.has_permission(applicant_type, "read", applicant, throw=True)
 	return {
 		"applicant_name": _get_applicant_name(applicant_type, applicant),
 		"email": get_applicant_email(applicant_type, applicant),
@@ -281,7 +282,7 @@ def download_statements(document_name: str):
 @frappe.whitelist()
 def send_emails(document_name: str, from_scheduler: bool = False):
 	doc = frappe.get_doc("Process Loan Statement of Accounts", document_name)
-	doc.check_permission()
+	doc.check_permission("email")
 	report = get_report_pdf(doc, consolidated=False)
 
 	if not report:
@@ -344,7 +345,7 @@ def set_next_schedule_date(doc):
 def send_auto_email():
 	selected = frappe.get_all(
 		"Process Loan Statement of Accounts",
-		filters={"enable_auto_email": 1, "start_date": today()},
+		filters={"enable_auto_email": 1, "start_date": ("<=", today())},
 		pluck="name",
 	)
 	for name in selected:
