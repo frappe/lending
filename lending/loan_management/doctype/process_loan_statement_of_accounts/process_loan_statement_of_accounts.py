@@ -101,6 +101,8 @@ def get_statement_dict(doc):
 	statement_dict = {}
 
 	for entry in doc.applicants:
+		if not frappe.has_permission(entry.applicant_type, "read", entry.applicant):
+			continue
 		filters = get_report_filters(doc, entry)
 		columns, data = get_loan_soa(filters)
 		if not data:
@@ -337,7 +339,7 @@ def send_emails(document_name: str, from_scheduler: bool = False):
 
 
 def set_next_schedule_date(doc):
-	new_to_date = getdate(today())
+	new_to_date = getdate(doc.start_date or today())
 	if doc.frequency in ("Daily", "Weekly", "Biweekly"):
 		days = {"Daily": 1, "Weekly": 7, "Biweekly": 14}
 		new_to_date = add_days(new_to_date, days[doc.frequency])
