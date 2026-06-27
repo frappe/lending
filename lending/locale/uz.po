@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-06-21 10:41+0000\n"
-"PO-Revision-Date: 2026-06-24 14:53\n"
+"PO-Revision-Date: 2026-06-27 15:51\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Uzbek\n"
 "MIME-Version: 1.0\n"
@@ -96,18 +96,18 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Accounting Dimensions"
-msgstr ""
+msgstr "Buxgalteriya o'lchamlari"
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.js:7
 #: lending/public/js/loan_common.js:14
 msgid "Accounting Ledger"
-msgstr ""
+msgstr "Buxgalteriya hisobi daftari"
 
 #. Label of the accounts_section (Section Break) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Accounts"
-msgstr ""
+msgstr "Hisoblar"
 
 #. Label of the accrual_date (Date) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -324,7 +324,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Advance Payment"
-msgstr ""
+msgstr "Oldindan to'lov"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2199
 msgid "Against Account is mandatory"
@@ -351,7 +351,7 @@ msgstr ""
 #. Label of the age (Int) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Age"
-msgstr ""
+msgstr "Yosh"
 
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:27
 msgid "Ageing"
@@ -370,7 +370,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charge_reference/loan_charge_reference.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Allocated Amount"
-msgstr ""
+msgstr "Ajratilgan miqdor"
 
 #. Label of the allocated_date (Date) field in DocType 'Loan Security Deposit'
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
@@ -410,7 +410,7 @@ msgstr ""
 #: lending/loan_management/doctype/pledge/pledge.json
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
 msgid "Amount"
-msgstr ""
+msgstr "Miqdori"
 
 #. Label of the amount_paid (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
@@ -460,7 +460,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:26
 msgid "Amounts"
-msgstr ""
+msgstr "Miqdorlar"
 
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.py:112
 msgid "Another Loan Restructure is already initiated for this Loan"
