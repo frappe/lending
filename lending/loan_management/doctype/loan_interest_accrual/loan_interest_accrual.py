@@ -24,6 +24,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.utils import async_gl_reversal_enabled
 from lending.utils import daterange
 
 
@@ -50,6 +51,7 @@ class LoanInterestAccrual(AccountsController):
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
 		interest_type: DF.Literal["Normal Interest", "Penal Interest"]
+		is_gl_cancelled: DF.Check
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		last_accrual_date: DF.Date | None
@@ -147,7 +149,11 @@ class LoanInterestAccrual(AccountsController):
 				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
 
 	def on_cancel(self):
-		self.make_gl_entries(cancel=1)
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+
+		if not self.queue_cancel_gl() or frappe.flags.in_test:
+			self.make_gl_entries(cancel=1)
+			self.db_set("is_gl_cancelled", 1)
 
 		if self.normal_interest_journal_entry:
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
@@ -159,7 +165,8 @@ class LoanInterestAccrual(AccountsController):
 			doc.flags.ignore_links = True
 			doc.cancel()
 
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+	def queue_cancel_gl(self):
+		return async_gl_reversal_enabled(self.company, getdate())
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
