@@ -316,12 +316,6 @@ def get_amounts_not_reflected_in_system_for_bank_reconciliation_statement(filter
 		total_amount += flt(amount)
 
 	return total_amount
-<<<<<<< HEAD
-=======
-
-
-def loan_accounting_enabled(company: str) -> bool:
-	return bool(frappe.get_cached_value("Company", company, "enable_loan_accounting"))
 
 
 def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
@@ -340,53 +334,6 @@ def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
 		return False
 
 	return getdate(cancellation_date or getdate()) >= getdate(start_date)
-
-
-def update_repayment_schedule_demand_generated(
-	loan,
-	loan_disbursement=None,
-	from_date=None,
-	to_date=None,
-	demand_generated=0,
-):
-	LRS = frappe.qb.DocType("Loan Repayment Schedule")
-	RS = frappe.qb.DocType("Repayment Schedule")
-
-	lrs_query = (
-		frappe.qb.from_(LRS)
-		.select(LRS.name)
-		.where(LRS.loan == loan)
-		.where(LRS.docstatus == 1)
-		.where(LRS.status == "Active")
-	)
-
-	if loan_disbursement:
-		lrs_query = lrs_query.where(LRS.loan_disbursement == loan_disbursement)
-
-	query = (
-		frappe.qb.update(RS)
-		.set(RS.demand_generated, demand_generated)
-		.where(RS.parent.isin(lrs_query))
-	)
-
-	if from_date:
-		query = query.where(RS.payment_date >= from_date)
-
-	if to_date:
-		query = query.where(RS.payment_date < to_date)
-
-	query.run()
-
-def create_charge_master(charge_type):
-	if not frappe.db.exists("Item", charge_type):
-		frappe.get_doc(
-			{
-				"doctype": "Item",
-				"item_code": charge_type,
-				"item_group": "Services",
-				"is_stock_item": 0,
-			}
-		).insert()
 
 
 def process_cancelled_gl_entries():
@@ -429,4 +376,3 @@ def process_cancelled_documents(doctype, title):
 				reference_doctype=doctype,
 				reference_name=row.name,
 			)
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)

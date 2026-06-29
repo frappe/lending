@@ -35,11 +35,7 @@
   "outstanding_amount",
   "accounting_dimensions_section",
   "cost_center",
-<<<<<<< HEAD
-=======
-  "is_imported",
   "is_gl_cancelled",
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
   "column_break_hmrs",
   "amended_from",
   "process_loan_demand",
@@ -293,15 +289,6 @@
   },
   {
    "default": "0",
-<<<<<<< HEAD
-=======
-   "fieldname": "is_imported",
-   "fieldtype": "Check",
-   "label": "Is Imported",
-   "read_only": 1
-  },
-  {
-   "default": "0",
    "fieldname": "is_gl_cancelled",
    "fieldtype": "Check",
    "hidden": 1,
@@ -310,7 +297,6 @@
   },
   {
    "default": "0",
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
    "fieldname": "is_partial_pre_paid_interest",
    "fieldtype": "Check",
    "label": "Is partial pre-paid interest"
@@ -320,7 +306,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-25 10:35:43.539786",
+ "modified": "2026-06-29 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

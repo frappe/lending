@@ -93,7 +93,7 @@ LOAN_CUSTOM_FIELDS = {
 			"fieldname": "enable_async_gl_reversal",
 			"label": "Enable async reversal of GL for future demand and accruals",
 			"fieldtype": "Check",
-			"insert_after": "enable_loan_accounting",
+			"insert_after": "loan_column_break",
 		},
 		{
 			"fieldname": "async_gl_reversal_start_date",
@@ -108,11 +108,7 @@ LOAN_CUSTOM_FIELDS = {
 			"label": "Collection Offset Logic Based On",
 			"fieldtype": "Select",
 			"options": "NPA Flag\nDays Past Due",
-<<<<<<< HEAD
-			"insert_after": "loan_column_break",
-=======
 			"insert_after": "async_gl_reversal_start_date",
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
 		},
 		{
 			"fieldname": "days_past_due_threshold",

@@ -24,10 +24,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-<<<<<<< HEAD
-=======
-from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
+from lending.loan_management.utils import async_gl_reversal_enabled
 from lending.utils import daterange
 
 
@@ -54,11 +51,7 @@ class LoanInterestAccrual(AccountsController):
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
 		interest_type: DF.Literal["Normal Interest", "Penal Interest"]
-<<<<<<< HEAD
-=======
 		is_gl_cancelled: DF.Check
-		is_imported: DF.Check
->>>>>>> 5aa9c6cb (Merge pull request #1236 from Nihantra-Patel/cancel-gl-in-bg)
 		is_npa: DF.Check
 		is_term_loan: DF.Check
 		last_accrual_date: DF.Date | None

@@ -8,7 +8,7 @@ def execute():
 			"fieldname": "enable_async_gl_reversal",
 			"label": "Enable async reversal of GL for future demand and accruals",
 			"fieldtype": "Check",
-			"insert_after": "enable_loan_accounting",
+			"insert_after": "loan_column_break",
 		},
 		{
 			"fieldname": "async_gl_reversal_start_date",
