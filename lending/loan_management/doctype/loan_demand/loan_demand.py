@@ -156,7 +156,7 @@ class LoanDemand(AccountsController):
 			fields = ["additional_interest_accrued", "additional_interest_receivable"]
 
 		accrual_account, receivable_account = frappe.db.get_value(
-			"Loan Product", self.loan_product, fields
+			"Loan Product", self.loan_product, fields, cache=True
 		)
 
 		if not accrual_account:
@@ -179,7 +179,10 @@ class LoanDemand(AccountsController):
 
 		if self.demand_type == "BPI":
 			receivable_account, accrual_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, ["interest_receivable_account", "interest_accrued_account"]
+				"Loan Product",
+				self.loan_product,
+				["interest_receivable_account", "interest_accrued_account"],
+				cache=True,
 			)
 
 			gl_entries = self.add_gl_entries(
