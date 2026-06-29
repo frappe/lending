@@ -185,7 +185,7 @@ class LoanInterestAccrual(LoanController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
+		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center", cache=True)
 		account_details = frappe.db.get_value(
 			"Loan Product",
 			self.loan_product,
@@ -198,6 +198,7 @@ class LoanInterestAccrual(LoanController):
 				"additional_interest_accrued",
 			],
 			as_dict=1,
+			cache=True,
 		)
 
 		if self.interest_type == "Normal Interest":
@@ -614,6 +615,10 @@ def calculate_penal_interest_for_loans(
 	grace_period_days = cint(
 		frappe.get_value("Loan Product", loan_product, "grace_period_in_days", cache=True)
 	)
+	# Constant for the loan; fetch once instead of re-reading it for every day in the loop below.
+	interest_day_count_convention = frappe.get_cached_value(
+		"Company", loan.company, "interest_day_count_convention"
+	)
 	total_penal_interest = 0
 
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -673,7 +678,11 @@ def calculate_penal_interest_for_loans(
 					total_penal_interest += penal_interest_amount
 
 					per_day_interest = get_per_day_interest(
-						principal_amount, loan.rate_of_interest, loan.company, current_date
+						principal_amount,
+						loan.rate_of_interest,
+						loan.company,
+						current_date,
+						interest_day_count_convention=interest_day_count_convention,
 					)
 					additional_interest = flt(per_day_interest, precision)
 
