@@ -71,17 +71,33 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def submit(self):
+		current_status = frappe.db.get_value(
+			"Loan Repayment Repost", self.name, "status", for_update=True
+		)
+		if current_status in ("Queued", "In Process"):
+			frappe.throw(
+				_("This repost is already {0}. Wait for it to finish before submitting again.").format(
+					current_status
+				)
+			)
+
 		# Run long reposts (over 6 months) in the background to avoid request timeouts.
 		if not frappe.flags.in_test and getdate(self.repost_date) < add_months(getdate(), -6):
 			frappe.msgprint(
 				_(
 					"This repost covers more than 6 months and has been enqueued as a background job. "
 					"Track its progress on the Status field. If it fails while processing, the system "
-					"adds a comment with the error and the document stays in Draft."
+					"adds a comment with the error."
 				)
 			)
 			self.db_set("status", "Queued")
-			self.queue_action("submit", queue="long")
+			frappe.enqueue(
+				process_loan_repayment_repost,
+				queue="long",
+				timeout=36000,
+				enqueue_after_commit=True,
+				repost=self.name,
+			)
 		else:
 			self.db_set("status", "In Process")
 			self._submit()
@@ -476,3 +492,22 @@ class LoanRepaymentRepost(Document):
 				loan=self.loan,
 				loan_disbursement=self.loan_disbursement,
 			)
+
+
+def process_loan_repayment_repost(repost):
+	doc = frappe.get_doc("Loan Repayment Repost", repost)
+	try:
+		doc._submit()
+	except Exception:
+		frappe.db.rollback()
+		# If the repost is already submitted (e.g. a duplicate job ran it), do not reset the
+		# status - that would overwrite a completed repost with Draft.
+		if frappe.db.get_value("Loan Repayment Repost", repost, "docstatus") == 1:
+			return
+		doc.db_set("status", "Draft")
+		doc.add_comment(
+			"Comment",
+			_("The repost did not finish and has been reset to Draft:") + f"<br>{frappe.get_traceback()}",
+		)
+		frappe.db.commit()
+		raise
