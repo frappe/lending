@@ -72,13 +72,20 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def submit(self):
+		if self.status in ("Queued", "In Process"):
+			frappe.throw(
+				_("This repost is already {0}. Wait for it to finish before submitting again.").format(
+					self.status
+				)
+			)
+
 		# Run long reposts (over 6 months) in the background to avoid request timeouts.
 		if not frappe.flags.in_test and getdate(self.repost_date) < add_months(getdate(), -6):
 			frappe.msgprint(
 				_(
 					"This repost covers more than 6 months and has been enqueued as a background job. "
 					"Track its progress on the Status field. If it fails while processing, the system "
-					"adds a comment with the error and the document stays in Draft."
+					"adds a comment with the error."
 				)
 			)
 			self.db_set("status", "Queued")
@@ -86,6 +93,20 @@ class LoanRepaymentRepost(Document):
 		else:
 			self.db_set("status", "In Process")
 			self._submit()
+
+	def _submit(self):
+		# In the background a failure leaves the committed "Queued" status stuck, so reset it to
+		# Draft. Inline failures are rolled back with the request, so leave those to the framework.
+		if not getattr(frappe.local, "job", None):
+			return super()._submit()
+
+		try:
+			super()._submit()
+		except Exception:
+			frappe.db.rollback()
+			self.db_set("status", "Draft")
+			frappe.db.commit()
+			raise
 
 	def on_submit(self):
 		# Reposting from a past date regenerates potentially hundreds of accruals, demands,
