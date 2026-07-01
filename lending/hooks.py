@@ -196,7 +196,8 @@ scheduler_events = {
 	],
 	"hourly_long": [
 		"lending.loan_management.doctype.loan_repayment.loan_repayment.process_pending_credit_notes",
-	]
+		"lending.loan_management.utils.process_cancelled_gl_entries",
+	],
 }
 
 bank_reconciliation_doctypes = [
@@ -247,6 +248,19 @@ update_gl_dict_with_app_based_fields = ["lending.overrides.gl_entry.update_value
 # -----------------------------------------------------------
 
 # ignore_links_on_delete = ["Communication", "ToDo"]
+
+ignore_links_on_delete = [
+	"Bulk Repayment Log",
+	"Days Past Due Log",
+	"Loan Freeze Log",
+	"Loan Limit Change Log",
+	"Loan NPA Log",
+	"Loan Restructure Limit Log",
+	"Process Loan Classification",
+	"Process Loan Demand",
+	"Process Loan Interest Accrual",
+	"Process Loan Security Shortfall",
+]
 
 # Request Events
 # ----------------

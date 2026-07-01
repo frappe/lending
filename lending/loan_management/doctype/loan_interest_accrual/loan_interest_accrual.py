@@ -22,7 +22,7 @@ from frappe.utils import (
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.loan_management.utils import loan_accounting_enabled
+from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
 from lending.utils import daterange
 
 
@@ -47,6 +47,7 @@ class LoanInterestAccrual(LoanController):
 		cost_center: DF.Link | None
 		interest_amount: DF.Currency
 		interest_type: DF.Literal["Normal Interest", "Penal Interest"]
+		is_gl_cancelled: DF.Check
 		is_imported: DF.Check
 		is_npa: DF.Check
 		is_term_loan: DF.Check
@@ -145,7 +146,11 @@ class LoanInterestAccrual(LoanController):
 				self.db_set("additional_interest_suspense_entry", additional_interest_jv)
 
 	def on_cancel(self):
-		self.make_gl_entries(cancel=1)
+		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+
+		if not self.queue_cancel_gl() or frappe.flags.in_test:
+			self.make_gl_entries(cancel=1)
+			self.db_set("is_gl_cancelled", 1)
 
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
@@ -157,7 +162,8 @@ class LoanInterestAccrual(LoanController):
 			doc.flags.ignore_links = True
 			doc.cancel()
 
-		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
+	def queue_cancel_gl(self):
+		return async_gl_reversal_enabled(self.company, getdate())
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		if not loan_accounting_enabled(self.company):
@@ -179,7 +185,7 @@ class LoanInterestAccrual(LoanController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center")
+		cost_center = frappe.db.get_value("Loan", self.loan, "cost_center", cache=True)
 		account_details = frappe.db.get_value(
 			"Loan Product",
 			self.loan_product,
@@ -192,6 +198,7 @@ class LoanInterestAccrual(LoanController):
 				"additional_interest_accrued",
 			],
 			as_dict=1,
+			cache=True,
 		)
 
 		if self.interest_type == "Normal Interest":
@@ -608,6 +615,10 @@ def calculate_penal_interest_for_loans(
 	grace_period_days = cint(
 		frappe.get_value("Loan Product", loan_product, "grace_period_in_days", cache=True)
 	)
+	# Constant for the loan; fetch once instead of re-reading it for every day in the loop below.
+	interest_day_count_convention = frappe.get_cached_value(
+		"Company", loan.company, "interest_day_count_convention"
+	)
 	total_penal_interest = 0
 
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
@@ -667,7 +678,11 @@ def calculate_penal_interest_for_loans(
 					total_penal_interest += penal_interest_amount
 
 					per_day_interest = get_per_day_interest(
-						principal_amount, loan.rate_of_interest, loan.company, current_date
+						principal_amount,
+						loan.rate_of_interest,
+						loan.company,
+						current_date,
+						interest_day_count_convention=interest_day_count_convention,
 					)
 					additional_interest = flt(per_day_interest, precision)
 
