@@ -71,7 +71,9 @@ class LoanRepaymentRepost(Document):
 			)
 
 	def submit(self):
-		current_status = frappe.db.get_value("Loan Repayment Repost", self.name, "status")
+		current_status = frappe.db.get_value(
+			"Loan Repayment Repost", self.name, "status", for_update=True
+		)
 		if current_status in ("Queued", "In Process"):
 			frappe.throw(
 				_("This repost is already {0}. Wait for it to finish before submitting again.").format(
@@ -498,6 +500,10 @@ def process_loan_repayment_repost(repost):
 		doc._submit()
 	except Exception:
 		frappe.db.rollback()
+		# If the repost is already submitted (e.g. a duplicate job ran it), do not reset the
+		# status - that would overwrite a completed repost with Draft.
+		if frappe.db.get_value("Loan Repayment Repost", repost, "docstatus") == 1:
+			return
 		doc.db_set("status", "Draft")
 		doc.add_comment(
 			"Comment",
