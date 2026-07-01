@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-06-21 10:41+0000\n"
-"PO-Revision-Date: 2026-06-22 13:52\n"
+"POT-Creation-Date: 2026-06-28 10:18+0000\n"
+"PO-Revision-Date: 2026-06-29 15:50\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -911,11 +911,11 @@ msgstr ""
 msgid "Cancellation Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:861
+#: lending/loan_management/doctype/loan/loan.py:894
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:909
+#: lending/loan_management/doctype/loan/loan.py:942
 msgid "Cannot close this loan until full repayment"
 msgstr ""
 
@@ -927,7 +927,7 @@ msgstr ""
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:473
+#: lending/loan_management/doctype/loan/loan.py:486
 msgid "Cannot un mark as NPA before watch period end date"
 msgstr ""
 
@@ -2137,7 +2137,7 @@ msgstr ""
 msgid "Interest Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:75
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:76
 msgid "Interest Amount is mandatory"
 msgstr ""
 
@@ -2235,8 +2235,8 @@ msgstr ""
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:251
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:288
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:257
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:294
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr ""
 
@@ -2275,6 +2275,14 @@ msgstr ""
 #. Label of the is_excess_amount_refund (Check) field in DocType 'Loan Refund'
 #: lending/loan_management/doctype/loan_refund/loan_refund.json
 msgid "Is Excess Amount Refund"
+msgstr ""
+
+#. Label of the is_gl_cancelled (Check) field in DocType 'Loan Demand'
+#. Label of the is_gl_cancelled (Check) field in DocType 'Loan Interest
+#. Accrual'
+#: lending/loan_management/doctype/loan_demand/loan_demand.json
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+msgid "Is GL Cancelled"
 msgstr ""
 
 #. Label of the is_imported (Check) field in DocType 'Loan'
@@ -2549,11 +2557,11 @@ msgstr ""
 msgid "Loan Accounts"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1121
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1127
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:410
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:416
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr ""
 
@@ -3529,11 +3537,11 @@ msgstr ""
 msgid "Loan Write Off will be automatically created on loan closure request if pending amount is below this limit"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:591
+#: lending/loan_management/doctype/loan/loan.py:604
 msgid "Loan amount cannot be greater than {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:595
+#: lending/loan_management/doctype/loan/loan.py:608
 msgid "Loan amount is mandatory"
 msgstr ""
 
@@ -3823,7 +3831,7 @@ msgstr ""
 msgid "New Repayment Start Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:526
+#: lending/loan_management/doctype/loan/loan.py:539
 msgid "New maximum limit amount cannot be lesser than the utilized limit amount"
 msgstr ""
 
@@ -3835,7 +3843,7 @@ msgstr ""
 msgid "No Interest Accrual Till Month End"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1135
+#: lending/loan_management/doctype/loan/loan.py:1168
 msgid "No excess amount pending for refund"
 msgstr ""
 
@@ -3942,7 +3950,7 @@ msgstr ""
 msgid "One Time"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1077
+#: lending/loan_management/doctype/loan/loan.py:1110
 msgid "Only submitted unpledge requests can be approved"
 msgstr ""
 
@@ -3976,7 +3984,7 @@ msgstr ""
 msgid "Opening Principal Outstanding"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:646
+#: lending/loan_management/doctype/loan/loan.py:679
 msgid "Opening entry for imported loan {0}"
 msgstr ""
 
@@ -4432,11 +4440,11 @@ msgstr ""
 msgid "Please select at least Loan or Applicant to view the ledger"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:240
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:227
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:233
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4449,19 +4457,19 @@ msgstr ""
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:203
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:209
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:208
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:214
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:689
+#: lending/loan_management/doctype/loan/loan.py:722
 msgid "Please set Loan Account for the Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:694
+#: lending/loan_management/doctype/loan/loan.py:727
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr ""
 
@@ -4469,11 +4477,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:222
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:221
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:227
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4485,11 +4493,11 @@ msgstr ""
 msgid "Please set up Branch as an Accounting Dimension before transferring loans between branches."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:158
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:166
 msgid "Please set {0} Accrual Account in Loan Product {1}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:165
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:173
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr ""
 
@@ -5317,7 +5325,7 @@ msgstr ""
 msgid "Sanctioned Amount Limit"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:555
+#: lending/loan_management/doctype/loan/loan.py:568
 #: lending/loan_management/doctype/loan_application/loan_application.py:194
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr ""
@@ -5553,7 +5561,7 @@ msgstr ""
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:115
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr ""
 
@@ -5709,11 +5717,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:46
 msgid "Tranche Number"
-msgstr ""
-
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:77
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:37
-msgid "Transaction"
 msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:83
@@ -5996,7 +5999,7 @@ msgstr ""
 msgid "Write Off Settlement"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1007
+#: lending/loan_management/doctype/loan/loan.py:1040
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr ""
 
