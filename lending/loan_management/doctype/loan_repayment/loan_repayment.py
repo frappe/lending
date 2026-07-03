@@ -669,13 +669,18 @@ class LoanRepayment(AccountsController):
 
 				return base_amount_details
 
-			for demand in self.get("repayment_details"):
-				demand_doc = frappe.db.get_value(
+			loan_demand_names = [d.loan_demand for d in self.get("repayment_details") if d.loan_demand]
+			demand_doc_map = {}
+			if loan_demand_names:
+				for row in frappe.db.get_all(
 					"Loan Demand",
-					demand.loan_demand,
-					["company", "demand_subtype", "applicant", "loan", "sales_invoice"],
-					as_dict=1,
-				)
+					filters={"name": ("in", loan_demand_names)},
+					fields=["name", "company", "demand_subtype", "applicant", "loan", "sales_invoice"],
+				):
+					demand_doc_map[row.name] = row
+
+			for demand in self.get("repayment_details"):
+				demand_doc = demand_doc_map.get(demand.loan_demand)
 
 				waiver_account = self.get_charges_waiver_account(self.loan_product, demand.demand_subtype)
 				credit_note = make_credit_note(
@@ -2216,9 +2221,23 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
+		charge_invoices = [
+			r.sales_invoice
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
+		]
+		debit_to_map = {}
+		if charge_invoices:
+			for row in frappe.db.get_all(
+				"Sales Invoice",
+				filters={"name": ("in", charge_invoices)},
+				fields=["name", "debit_to"],
+			):
+				debit_to_map[row.name] = row.debit_to
+
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
-				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
+				against_account = debit_to_map.get(repayment.sales_invoice)
 				if not against_account:
 					frappe.throw(_("Against Account is mandatory"))
 				self.add_gl_entry(
