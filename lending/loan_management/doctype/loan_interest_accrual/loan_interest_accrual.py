@@ -539,6 +539,9 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.loan_disbursement = loan_disbursement
 		loan_interest_accrual.is_imported = is_imported
 
+		if frappe.flags.on_repost:
+			loan_interest_accrual.flags.notify_update = False
+
 		loan_interest_accrual.save()
 		loan_interest_accrual.submit()
 
@@ -624,6 +627,23 @@ def calculate_penal_interest_for_loans(
 	if freeze_date and getdate(freeze_date) < getdate(posting_date):
 		posting_date = freeze_date
 
+	principal_amount_map = {}
+	repayment_schedule_details = [d.repayment_schedule_detail for d in demands if d.repayment_schedule_detail]
+	if repayment_schedule_details:
+		for row in frappe.db.get_all(
+			"Loan Demand",
+			filters={
+				"loan": loan.name,
+				"repayment_schedule_detail": ("in", repayment_schedule_details),
+				"demand_type": "EMI",
+				"demand_subtype": "Principal",
+			},
+			fields=["repayment_schedule_detail", "outstanding_amount"],
+			order_by="creation desc",
+		):
+			if row.repayment_schedule_detail not in principal_amount_map:
+				principal_amount_map[row.repayment_schedule_detail] = row.outstanding_amount
+
 	for demand in demands:
 		penal_interest_amount = 0
 		additional_interest = 0
@@ -656,34 +676,33 @@ def calculate_penal_interest_for_loans(
 			else:
 				from_date = add_days(last_accrual_date, 1)
 
-			principal_amount = frappe.db.get_value(
-				"Loan Demand",
-				{
-					"loan": loan.name,
-					"repayment_schedule_detail": demand.repayment_schedule_detail,
-					"demand_type": "EMI",
-					"demand_subtype": "Principal",
-				},
-				"outstanding_amount",
-			)
+			principal_amount = principal_amount_map.get(demand.repayment_schedule_detail)
 
 			if not principal_amount:
 				continue
 
+			pending_amount = flt(demand.pending_amount)
+
+			per_day_interest_cache = {}
+
 			for current_date in daterange(getdate(from_date), getdate(posting_date)):
 
-				penal_interest_amount = flt(demand.pending_amount) * penal_interest_rate / 36500
+				penal_interest_amount = pending_amount * penal_interest_rate / 36500
 
 				if flt(penal_interest_amount, precision) > 0:
 					total_penal_interest += penal_interest_amount
 
-					per_day_interest = get_per_day_interest(
-						principal_amount,
-						loan.rate_of_interest,
-						loan.company,
-						current_date,
-						interest_day_count_convention=interest_day_count_convention,
-					)
+					year = getdate(current_date).year
+					per_day_interest = per_day_interest_cache.get(year)
+					if per_day_interest is None:
+						per_day_interest = get_per_day_interest(
+							principal_amount,
+							loan.rate_of_interest,
+							loan.company,
+							current_date,
+							interest_day_count_convention=interest_day_count_convention,
+						)
+						per_day_interest_cache[year] = per_day_interest
 					additional_interest = flt(per_day_interest, precision)
 
 					if not is_future_accrual:
@@ -1118,6 +1137,8 @@ def cancel_accruals(filters, or_filters):
 		accrual_doc = frappe.get_doc("Loan Interest Accrual", accrual.name, for_update=True)
 		if accrual_doc.docstatus == 1:
 			accrual_doc.flags.ignore_links = True
+			if frappe.flags.on_repost:
+				accrual_doc.flags.notify_update = False
 			accrual_doc.cancel()
 
 	return accruals
