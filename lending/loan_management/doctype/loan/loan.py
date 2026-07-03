@@ -153,7 +153,7 @@ class Loan(AccountsController):
 			self.set_onload("dashboard_info", info)
 
 	def validate_loan_product(self):
-		company = frappe.get_value("Loan Product", self.loan_product, "company")
+		company = frappe.get_cached_value("Loan Product", self.loan_product, "company")
 		if company != self.company:
 			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
 
@@ -205,12 +205,12 @@ class Loan(AccountsController):
 	def set_default_charge_account(self):
 		for charge in self.get("loan_charges"):
 			if not charge.account:
-				account = frappe.get_cached_value(
+				account = frappe.db.get_value(
 					"Loan Charges", {"parent": self.loan_product, "charge_type": charge.charge}, "income_account"
 				)
 
 				if not account:
-					account = frappe.get_cached_value(
+					account = frappe.db.get_value(
 						"Item Default", {"parent": charge.charge, "company": self.company}, "income_account"
 					)
 
@@ -336,7 +336,7 @@ class Loan(AccountsController):
 			self.posting_date = nowdate()
 
 		if self.loan_product and not self.rate_of_interest:
-			self.rate_of_interest = frappe.db.get_value(
+			self.rate_of_interest = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "rate_of_interest"
 			)
 
@@ -452,12 +452,140 @@ class Loan(AccountsController):
 				doc.cancel()
 
 
+<<<<<<< HEAD
 def update_total_amount_paid(doc):
 	total_amount_paid = 0
 	for data in doc.repayment_schedule:
 		if data.paid:
 			total_amount_paid += data.total_payment
 	frappe.db.set_value("Loan", doc.name, "total_amount_paid", total_amount_paid)
+=======
+			for name in names:
+				doc = frappe.get_doc(doctype, name)
+				doc.flags.ignore_links = True
+				doc.cancel()
+
+	def make_gl_entries(self, cancel=0, adv_adj=0):
+		if not loan_accounting_enabled(self.company):
+			return
+
+		loan_account, payment_account = self.get_opening_accounts_from_loan_product()
+
+		outstanding = self.get_outstanding_principal_amount()
+		if outstanding <= 0:
+			return
+
+		posting_date = self.get_opening_posting_date()
+
+		gle_map = []
+		remarks = _("Opening entry for imported loan {0}").format(self.name)
+
+		self.add_opening_gl_entry(
+			gle_map=gle_map,
+			account=payment_account,
+			against_account=loan_account,
+			amount=outstanding,
+			remarks=remarks,
+			posting_date=posting_date,
+		)
+
+		if gle_map:
+			if cancel:
+				gle_map = process_gl_map(gle_map)
+
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+
+	def get_outstanding_principal_amount(self) -> float:
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+		total_outstanding = sum(
+			flt(row.opening_principal_outstanding)
+			for row in self.get("loan_import_details") or []
+		)
+
+		return flt(total_outstanding, precision)
+
+	def get_opening_posting_date(self):
+		if self.get("migration_date"):
+			return self.get("migration_date")
+
+		return self.get("posting_date") or getdate()
+
+	def get_opening_accounts_from_loan_product(self):
+		accounts = frappe.get_cached_value(
+			"Loan Product",
+			self.loan_product,
+			["loan_account", "payment_account"],
+			as_dict=True,
+		) or {}
+
+		if not accounts.get("loan_account"):
+			frappe.throw(
+				_("Please set Loan Account for the Loan Product {0}").format(frappe.bold(self.loan_product))
+			)
+
+		if not accounts.get("payment_account"):
+			frappe.throw(
+				_("Please set Payment Account for the Loan Product {0}").format(frappe.bold(self.loan_product))
+			)
+
+		return accounts.get("loan_account"), accounts.get("payment_account")
+
+	def add_opening_gl_entry(
+		self,
+		gle_map,
+		account,
+		against_account,
+		amount,
+		remarks,
+		posting_date,
+	):
+		account_type = frappe.db.get_value("Account", account, "account_type")
+
+		gle_map.append(
+			self.get_gl_dict(
+				{
+					"account": account,
+					"against": against_account,
+					"debit": amount,
+					"debit_in_account_currency": amount,
+					"credit": 0,
+					"credit_in_account_currency": 0,
+					"voucher_type": "Loan",
+					"voucher_no": self.name,
+					"remarks": remarks,
+					"cost_center": self.get("cost_center"),
+					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
+					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
+					"posting_date": posting_date,
+					"is_opening": "Yes",
+				}
+			)
+		)
+
+		account_type = frappe.db.get_value("Account", against_account, "account_type")
+
+		gle_map.append(
+			self.get_gl_dict(
+				{
+					"account": against_account,
+					"against": account,
+					"debit": -1 * amount,  # negative debit becomes credit
+					"debit_in_account_currency": -1 * amount,
+					"credit": 0,
+					"credit_in_account_currency": 0,
+					"voucher_type": "Loan",
+					"voucher_no": self.name,
+					"remarks": remarks,
+					"cost_center": self.get("cost_center"),
+					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
+					"party": self.applicant if account_type in ("Receivable", "Payable") else None,
+					"posting_date": posting_date,
+					"is_opening": "Yes",
+				}
+			)
+		)
+>>>>>>> 34912b13 (fix: prevent lock-wait timeouts in bulk loan write off and repayment repost)
 
 
 def get_total_loan_amount(applicant_type, applicant, company):
@@ -557,7 +685,7 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 
 	loan_product, loan_status = frappe.get_value("Loan", loan, ["loan_product", "status"])
 
-	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
+	write_off_limit = frappe.get_cached_value("Loan Product", loan_product, "write_off_amount")
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
@@ -1459,7 +1587,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None, value_date=
 
 	unbooked_interest = get_unbooked_interest(loan, posting_date, last_demand_date=last_demand_date)
 
-	accounts = frappe.db.get_value(
+	accounts = frappe.get_cached_value(
 		"Loan Product",
 		loan_product,
 		[
@@ -1832,8 +1960,13 @@ def make_fldg_invocation_jv(loan, posting_date):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_cyclic_date(loan_product, posting_date, ignore_bpi=False):
 	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+=======
+def get_cyclic_date(loan_product: str, posting_date: str | date | datetime, ignore_bpi: bool = False):
+	cycle_day, min_days_bw_disbursement_first_repayment = frappe.get_cached_value(
+>>>>>>> 34912b13 (fix: prevent lock-wait timeouts in bulk loan write off and repayment repost)
 		"Loan Product",
 		loan_product,
 		["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
