@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-06-28 10:18+0000\n"
-"PO-Revision-Date: 2026-06-29 15:50\n"
+"POT-Creation-Date: 2026-07-05 10:16+0000\n"
+"PO-Revision-Date: 2026-07-06 16:41\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -2058,6 +2058,11 @@ msgstr ""
 msgid "Ignore On Cancel Amount Update"
 msgstr ""
 
+#. Option for the 'Status' (Select) field in DocType 'Loan Repayment Repost'
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
+msgid "In Process"
+msgstr ""
+
 #. Label of the in_process_limit (Currency) field in DocType 'Loan Restructure
 #. Limit Log'
 #: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
@@ -2235,8 +2240,8 @@ msgstr ""
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:257
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:294
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr ""
 
@@ -2557,11 +2562,11 @@ msgstr ""
 msgid "Loan Accounts"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1127
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1136
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:416
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr ""
 
@@ -4440,11 +4445,11 @@ msgstr ""
 msgid "Please select at least Loan or Applicant to view the ledger"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:240
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:233
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4457,11 +4462,11 @@ msgstr ""
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:209
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:214
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4477,11 +4482,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:222
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:227
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4912,15 +4917,6 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Reference Number"
 msgstr ""
-
-#. Label of the references_section (Section Break) field in DocType 'Loan
-#. Demand'
-#. Label of the references_section (Section Break) field in DocType 'Loan
-#. Interest Accrual'
-#: lending/loan_management/doctype/loan_demand/loan_demand.json
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
-msgid "References"
-msgstr "Reference"
 
 #. Option for the 'Accrual Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
@@ -5551,6 +5547,10 @@ msgstr ""
 msgid "The following loans do not exist: {}"
 msgstr ""
 
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
+msgid "The repost did not finish and has been reset to Draft:"
+msgstr ""
+
 #. Description of the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -5563,6 +5563,18 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:88
+msgid "This repost covers more than 6 months and has been enqueued as a background job. Track its progress on the Status field. If it fails while processing, the system adds a comment with the error."
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:80
+msgid "This repost is already {0}. Wait for it to finish before submitting again."
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
+msgid "This repost is {0} in the background. Please wait for it to finish."
 msgstr ""
 
 #. Label of the to_branch (Link) field in DocType 'Loan Transfer'
