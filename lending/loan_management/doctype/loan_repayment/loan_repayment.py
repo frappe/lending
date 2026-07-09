@@ -430,12 +430,13 @@ class LoanRepayment(AccountsController):
 		if frappe.flags.in_test:
 			repost.submit()
 		else:
+			repost.db_set("status", "Queued")
 			frappe.enqueue(
 				process_loan_repayment_repost,
 				queue="long",
 				timeout=36000,
 				enqueue_after_commit=True,
-				job_id=f"loan_repayment_repost::{self.against_loan}",
+				job_id=f"loan_repayment_repost::{repost.name}",
 				deduplicate=True,
 				repost=repost.name,
 			)
