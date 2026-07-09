@@ -68,6 +68,7 @@ class LoanProduct(Document):
 		repayment_date_on: DF.Literal["", "Start of the next month", "End of the current month"]
 		repayment_schedule_type: DF.Literal["", "Monthly as per repayment start date", "Pro-rated calendar months", "Monthly as per cycle date", "Line of Credit", "Flat Interest Rate"]
 		same_as_regular_interest_accounts: DF.Check
+		sanctioned_amount_tolerance: DF.Currency
 		security_deposit_account: DF.Link | None
 		subsidy_adjustment_account: DF.Link | None
 		suspense_collection_account: DF.Link | None
