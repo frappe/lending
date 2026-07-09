@@ -415,13 +415,31 @@ class LoanRepayment(AccountsController):
 		self.create_auto_waiver()
 
 	def create_repost(self):
+		from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
+			process_loan_repayment_repost,
+		)
+
 		repost = frappe.new_doc("Loan Repayment Repost")
 		repost.loan = self.against_loan
 		repost.loan_disbursement = self.loan_disbursement
 		repost.repost_date = self.value_date
 		repost.cancel_future_accruals_and_demands = True
 		repost.cancel_future_emi_demands = True
-		repost.submit()
+		repost.insert()
+
+		if frappe.flags.in_test:
+			repost.submit()
+		else:
+			repost.db_set("status", "Queued")
+			frappe.enqueue(
+				process_loan_repayment_repost,
+				queue="long",
+				timeout=36000,
+				enqueue_after_commit=True,
+				job_id=f"loan_repayment_repost::{repost.name}",
+				deduplicate=True,
+				repost=repost.name,
+			)
 
 	def post_suspense_entries(self, base_amount_map=None, cancel=0):
 		from lending.loan_management.doctype.loan_write_off.loan_write_off import (
@@ -610,7 +628,7 @@ class LoanRepayment(AccountsController):
 		}
 
 		if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
-			write_off_recovery_account = frappe.db.get_value(
+			write_off_recovery_account = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "write_off_recovery_account"
 			)
 			if not write_off_recovery_account:
@@ -621,12 +639,14 @@ class LoanRepayment(AccountsController):
 			self.loan_account = write_off_recovery_account
 
 		if not self.payment_account and repayment_account_map.get(self.repayment_type):
-			self.payment_account = frappe.db.get_value(
+			self.payment_account = frappe.get_cached_value(
 				"Loan Product", self.loan_product, repayment_account_map.get(self.repayment_type)
 			)
 
 		if not self.payment_account:
-			self.payment_account = frappe.db.get_value("Loan Product", self.loan_product, "payment_account")
+			self.payment_account = frappe.get_cached_value(
+				"Loan Product", self.loan_product, "payment_account"
+			)
 
 	def make_credit_note_for_charge_waivers(self, cancel=0):
 		base_amount_details = {}
@@ -652,13 +672,18 @@ class LoanRepayment(AccountsController):
 
 				return base_amount_details
 
-			for demand in self.get("repayment_details"):
-				demand_doc = frappe.db.get_value(
+			loan_demand_names = [d.loan_demand for d in self.get("repayment_details") if d.loan_demand]
+			demand_doc_map = {}
+			if loan_demand_names:
+				for row in frappe.db.get_all(
 					"Loan Demand",
-					demand.loan_demand,
-					["company", "demand_subtype", "applicant", "loan", "sales_invoice"],
-					as_dict=1,
-				)
+					filters={"name": ("in", loan_demand_names)},
+					fields=["name", "company", "demand_subtype", "applicant", "loan", "sales_invoice"],
+				):
+					demand_doc_map[row.name] = row
+
+			for demand in self.get("repayment_details"):
+				demand_doc = demand_doc_map.get(demand.loan_demand)
 
 				waiver_account = self.get_charges_waiver_account(self.loan_product, demand.demand_subtype)
 				credit_note = make_credit_note(
@@ -994,7 +1019,7 @@ class LoanRepayment(AccountsController):
 			frappe.throw(_("Amount paid cannot be zero"))
 
 		if self.repayment_type == "Loan Closure":
-			auto_write_off_amount = frappe.db.get_value(
+			auto_write_off_amount = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "write_off_amount"
 			)
 
@@ -1091,7 +1116,7 @@ class LoanRepayment(AccountsController):
 
 		if self.repayment_type == "Write Off Settlement":
 			auto_write_off_amount = flt(
-				frappe.db.get_value("Loan Product", self.loan_product, "write_off_amount")
+				frappe.get_cached_value("Loan Product", self.loan_product, "write_off_amount")
 			)
 			if self.amount_paid >= self.payable_amount - auto_write_off_amount and self.flags.auto_close:
 				if self.repayment_schedule_type != "Line of Credit":
@@ -1281,7 +1306,7 @@ class LoanRepayment(AccountsController):
 
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		auto_write_off_amount, excess_amount_limit = frappe.db.get_value(
+		auto_write_off_amount, excess_amount_limit = frappe.get_cached_value(
 			"Loan Product",
 			self.loan_product,
 			["write_off_amount", "excess_amount_acceptance_limit"],
@@ -2056,7 +2081,7 @@ class LoanRepayment(AccountsController):
 		gle_map = []
 		payment_account = self.get_payment_account()
 
-		account_details = frappe.db.get_value(
+		account_details = frappe.get_cached_value(
 			"Loan Product",
 			self.loan_product,
 			[
@@ -2199,9 +2224,23 @@ class LoanRepayment(AccountsController):
 
 			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
 
+		charge_invoices = [
+			r.sales_invoice
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
+		]
+		debit_to_map = {}
+		if charge_invoices:
+			for row in frappe.db.get_all(
+				"Sales Invoice",
+				filters={"name": ("in", charge_invoices)},
+				fields=["name", "debit_to"],
+			):
+				debit_to_map[row.name] = row.debit_to
+
 		for repayment in self.get("repayment_details"):
 			if repayment.demand_type == "Charges":
-				against_account = frappe.db.get_value("Sales Invoice", repayment.sales_invoice, "debit_to")
+				against_account = debit_to_map.get(repayment.sales_invoice)
 				if not against_account:
 					frappe.throw(_("Against Account is mandatory"))
 				self.add_gl_entry(
@@ -2375,7 +2414,7 @@ class LoanRepayment(AccountsController):
 			else:
 				payment_account = self.payment_account
 		else:
-			payment_account = frappe.db.get_value(
+			payment_account = frappe.get_cached_value(
 				"Loan Product",
 				self.loan_product,
 				payment_account_field_map.get(self.repayment_type),
@@ -2428,7 +2467,7 @@ class LoanRepayment(AccountsController):
 		}
 		offset_field = offset_mapping[offset_name]
 
-		allocation_order = frappe.db.get_value("Loan Product", self.loan_product, offset_field)
+		allocation_order = frappe.get_cached_value("Loan Product", self.loan_product, offset_field)
 		if not allocation_order:
 			allocation_order = frappe.db.get_value("Company", self.company, offset_field)
 

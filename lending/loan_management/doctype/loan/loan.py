@@ -153,7 +153,7 @@ class Loan(AccountsController):
 			self.set_onload("dashboard_info", info)
 
 	def validate_loan_product(self):
-		company = frappe.get_value("Loan Product", self.loan_product, "company")
+		company = frappe.get_cached_value("Loan Product", self.loan_product, "company")
 		if company != self.company:
 			frappe.throw(_("Please select Loan Product for company {0}").format(frappe.bold(self.company)))
 
@@ -336,7 +336,7 @@ class Loan(AccountsController):
 			self.posting_date = nowdate()
 
 		if self.loan_product and not self.rate_of_interest:
-			self.rate_of_interest = frappe.db.get_value(
+			self.rate_of_interest = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "rate_of_interest"
 			)
 
@@ -557,7 +557,7 @@ def request_loan_closure(loan, posting_date=None, auto_close=0):
 
 	loan_product, loan_status = frappe.get_value("Loan", loan, ["loan_product", "status"])
 
-	write_off_limit = frappe.get_value("Loan Product", loan_product, "write_off_amount")
+	write_off_limit = frappe.get_cached_value("Loan Product", loan_product, "write_off_amount")
 
 	if pending_amount and abs(pending_amount) < write_off_limit or loan_status == "Settled":
 		# Auto create loan write off and update status as loan closure requested
@@ -1459,7 +1459,7 @@ def move_unpaid_interest_to_suspense_ledger(loan, posting_date=None, value_date=
 
 	unbooked_interest = get_unbooked_interest(loan, posting_date, last_demand_date=last_demand_date)
 
-	accounts = frappe.db.get_value(
+	accounts = frappe.get_cached_value(
 		"Loan Product",
 		loan_product,
 		[
@@ -1833,7 +1833,7 @@ def make_fldg_invocation_jv(loan, posting_date):
 
 @frappe.whitelist()
 def get_cyclic_date(loan_product, posting_date, ignore_bpi=False):
-	cycle_day, min_days_bw_disbursement_first_repayment = frappe.db.get_value(
+	cycle_day, min_days_bw_disbursement_first_repayment = frappe.get_cached_value(
 		"Loan Product",
 		loan_product,
 		["cyclic_day_of_the_month", "min_days_bw_disbursement_first_repayment"],
