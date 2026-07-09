@@ -35,6 +35,7 @@
   "limits_section",
   "min_days_bw_disbursement_first_repayment",
   "excess_amount_acceptance_limit",
+  "sanctioned_amount_tolerance",
   "column_break_wwhp",
   "write_off_amount",
   "grace_period_in_days",
@@ -448,6 +449,15 @@
    "label": "Excess Amount Acceptance Limit"
   },
   {
+   "default": "0",
+   "description": "Amount by which a new loan is allowed to exceed the applicant's sanctioned amount limit, to absorb rounding differences between LOS and Frappe. Set to 0 to disable.",
+   "fieldname": "sanctioned_amount_tolerance",
+   "fieldtype": "Currency",
+   "label": "Sanctioned Amount Tolerance",
+   "non_negative": 1,
+   "options": "Company:company:default_currency"
+  },
+  {
    "fieldname": "customer_refund_account",
    "fieldtype": "Link",
    "label": "Customer Refund Account",
@@ -535,7 +545,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-09 12:24:09.001135",
+ "modified": "2026-07-09 15:30:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

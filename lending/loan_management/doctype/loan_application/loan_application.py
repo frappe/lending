@@ -186,15 +186,16 @@ class LoanApplication(Document):
 
 		if sanctioned_amount_limit:
 			total_loan_amount = get_total_loan_amount(self.applicant_type, self.applicant, self.company)
-
-		if sanctioned_amount_limit and flt(self.loan_amount) + flt(total_loan_amount) > flt(
-			sanctioned_amount_limit
-		):
-			frappe.throw(
-				_("Sanctioned Amount limit crossed for {0} {1}").format(
-					self.applicant_type, frappe.bold(self.applicant)
-				)
+			tolerance = flt(
+				frappe.db.get_value("Loan Product", self.loan_product, "sanctioned_amount_tolerance")
 			)
+
+			if flt(self.loan_amount) + flt(total_loan_amount) > flt(sanctioned_amount_limit) + tolerance:
+				frappe.throw(
+					_("Sanctioned Amount limit crossed for {0} {1}").format(
+						self.applicant_type, frappe.bold(self.applicant)
+					)
+				)
 
 	def set_pledge_amount(self):
 		for proposed_pledge in self.proposed_pledges:
