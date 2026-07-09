@@ -637,7 +637,9 @@ def calculate_penal_interest_for_loans(
 		posting_date = freeze_date
 
 	principal_amount_map = {}
-	repayment_schedule_details = [d.repayment_schedule_detail for d in demands if d.repayment_schedule_detail]
+	repayment_schedule_details = [
+		d.repayment_schedule_detail for d in demands if d.repayment_schedule_detail
+	]
 	if repayment_schedule_details:
 		for row in frappe.db.get_all(
 			"Loan Demand",

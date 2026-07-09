@@ -644,7 +644,9 @@ class LoanRepayment(AccountsController):
 			)
 
 		if not self.payment_account:
-			self.payment_account = frappe.get_cached_value("Loan Product", self.loan_product, "payment_account")
+			self.payment_account = frappe.get_cached_value(
+				"Loan Product", self.loan_product, "payment_account"
+			)
 
 	def make_credit_note_for_charge_waivers(self, cancel=0):
 		base_amount_details = {}
