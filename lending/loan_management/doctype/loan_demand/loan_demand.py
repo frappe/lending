@@ -535,6 +535,10 @@ def create_loan_demand(
 		demand.loan_repayment = loan_repayment
 		demand.is_imported = is_imported
 		demand.is_partial_pre_paid_interest = is_partial_pre_paid_interest
+
+		if frappe.flags.on_repost:
+			demand.flags.notify_update = False
+
 		demand.save()
 		demand.submit()
 
@@ -584,6 +588,8 @@ def reverse_demands(
 	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
 		doc = frappe.get_doc("Loan Demand", demand.name, for_update=True)
 		doc.flags.ignore_links = True
+		if frappe.flags.on_repost:
+			doc.flags.notify_update = False
 		doc.cancel()
 
 
