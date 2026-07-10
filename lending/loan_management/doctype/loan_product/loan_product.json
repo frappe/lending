@@ -450,7 +450,7 @@
   },
   {
    "default": "0",
-   "description": "Amount by which a new loan is allowed to exceed the applicant's sanctioned amount limit, to absorb rounding differences between LOS and Frappe. Set to 0 to disable.",
+   "description": "Allowed amount by which a new loan can exceed the applicant's sanctioned loan amount limit.",
    "fieldname": "sanctioned_amount_tolerance",
    "fieldtype": "Currency",
    "label": "Sanctioned Amount Tolerance",
@@ -545,7 +545,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-09 15:30:00.000000",
+ "modified": "2026-07-10 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
