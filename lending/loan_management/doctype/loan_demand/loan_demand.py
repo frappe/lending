@@ -158,7 +158,7 @@ class LoanDemand(LoanController):
 			fields = ["additional_interest_accrued", "additional_interest_receivable"]
 
 		accrual_account, receivable_account = frappe.db.get_value(
-			"Loan Product", self.loan_product, fields
+			"Loan Product", self.loan_product, fields, cache=True
 		)
 
 		if not accrual_account:
@@ -181,7 +181,10 @@ class LoanDemand(LoanController):
 
 		if self.demand_type == "BPI":
 			receivable_account, accrual_account = frappe.db.get_value(
-				"Loan Product", self.loan_product, ["interest_receivable_account", "interest_accrued_account"]
+				"Loan Product",
+				self.loan_product,
+				["interest_receivable_account", "interest_accrued_account"],
+				cache=True,
 			)
 
 			gl_entries = self.add_gl_entries(
@@ -532,6 +535,10 @@ def create_loan_demand(
 		demand.loan_repayment = loan_repayment
 		demand.is_imported = is_imported
 		demand.is_partial_pre_paid_interest = is_partial_pre_paid_interest
+
+		if frappe.flags.on_repost:
+			demand.flags.notify_update = False
+
 		demand.save()
 		demand.submit()
 
@@ -581,6 +588,8 @@ def reverse_demands(
 	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
 		doc = frappe.get_doc("Loan Demand", demand.name, for_update=True)
 		doc.flags.ignore_links = True
+		if frappe.flags.on_repost:
+			doc.flags.notify_update = False
 		doc.cancel()
 
 

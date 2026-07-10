@@ -2,10 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, cint, flt, getdate
+from frappe.utils import add_days, add_months, cint, flt, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -41,6 +42,7 @@ class LoanRepaymentRepost(Document):
 		loan_disbursement: DF.Link | None
 		repayment_entries: DF.Table[LoanRepaymentRepostDetail]
 		repost_date: DF.Date
+		status: DF.Literal["Draft", "Queued", "In Process", "Completed", "Cancelled"]
 	# end: auto-generated types
 
 	def validate(self):
@@ -69,11 +71,45 @@ class LoanRepaymentRepost(Document):
 				},
 			)
 
+	def submit(self):
+		current_status = frappe.db.get_value(
+			"Loan Repayment Repost", self.name, "status", for_update=True
+		)
+		if current_status in ("Queued", "In Process"):
+			frappe.throw(
+				_("This repost is already {0}. Wait for it to finish before submitting again.").format(
+					current_status
+				)
+			)
+
+		# Run long reposts (over 6 months) in the background to avoid request timeouts.
+		if not frappe.flags.in_test and getdate(self.repost_date) < add_months(getdate(), -6):
+			frappe.msgprint(
+				_(
+					"This repost covers more than 6 months and has been enqueued as a background job. "
+					"Track its progress on the Status field. If it fails while processing, the system "
+					"adds a comment with the error."
+				)
+			)
+			self.db_set("status", "Queued")
+			frappe.enqueue(
+				process_loan_repayment_repost,
+				queue="long",
+				timeout=36000,
+				enqueue_after_commit=True,
+				repost=self.name,
+			)
+		else:
+			self.db_set("status", "In Process")
+			self._submit()
+
 	def on_submit(self):
 		# Reposting from a past date regenerates potentially hundreds of accruals, demands,
 		# GL entries and Journal Entries in a single transaction.  Multiply the per-transaction
 		# write limit (default 200 000) by 4 so large reposts don't hit TooManyWritesError.
 		frappe.db.MAX_WRITES_PER_TRANSACTION *= 4
+
+		self.db_set("status", "In Process")
 
 		if self.clear_demand_allocation_before_repost:
 			self.clear_demand_allocation()
@@ -81,6 +117,11 @@ class LoanRepaymentRepost(Document):
 		self.trigger_on_cancel_events()
 		self.cancel_demands()
 		self.trigger_on_submit_events()
+
+		self.db_set("status", "Completed")
+
+	def on_cancel(self):
+		self.db_set("status", "Cancelled")
 
 	def cancel_demands(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
@@ -445,3 +486,22 @@ class LoanRepaymentRepost(Document):
 				loan=self.loan,
 				loan_disbursement=self.loan_disbursement,
 			)
+
+
+def process_loan_repayment_repost(repost):
+	doc = frappe.get_doc("Loan Repayment Repost", repost)
+	try:
+		doc._submit()
+	except Exception:
+		frappe.db.rollback()
+		# If the repost is already submitted (e.g. a duplicate job ran it), do not reset the
+		# status - that would overwrite a completed repost with Draft.
+		if frappe.db.get_value("Loan Repayment Repost", repost, "docstatus") == 1:
+			return
+		doc.db_set("status", "Draft")
+		doc.add_comment(
+			"Comment",
+			_("The repost did not finish and has been reset to Draft:") + f"<br>{frappe.get_traceback()}",
+		)
+		frappe.db.commit()
+		raise
