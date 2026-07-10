@@ -78,6 +78,10 @@ class ProcessLoanStatementofAccounts(Document):
 		if not self.applicants:
 			frappe.throw(_("Applicants not selected."))
 
+		for entry in self.applicants:
+			if not entry.applicant_name:
+				entry.applicant_name = _get_applicant_name(entry.applicant_type, entry.applicant)
+
 		if self.enable_auto_email and self.start_date and getdate(self.start_date) >= getdate(today()):
 			self.to_date = self.start_date
 			self.from_date = add_months(self.to_date, -1 * (self.filter_duration or 12))
@@ -184,6 +188,11 @@ def get_context(entry, doc):
 	del template_doc.applicants
 	template_doc.from_date = format_date(template_doc.from_date)
 	template_doc.to_date = format_date(template_doc.to_date)
+
+	if not entry.get("applicant_name"):
+		entry = entry.as_dict() if hasattr(entry, "as_dict") else dict(entry)
+		entry["applicant_name"] = _get_applicant_name(entry["applicant_type"], entry["applicant"])
+
 	return {
 		"doc": template_doc,
 		"applicant": entry,
