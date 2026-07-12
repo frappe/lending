@@ -190,6 +190,7 @@ scheduler_events = {
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
+		"lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl.process_consolidated_loan_gl",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",

@@ -22,7 +22,11 @@ from frappe.utils import (
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
+from lending.loan_management.utils import (
+	async_gl_reversal_enabled,
+	gl_consolidation_enabled,
+	loan_accounting_enabled,
+)
 from lending.utils import daterange
 
 
@@ -169,6 +173,21 @@ class LoanInterestAccrual(LoanController):
 		if not loan_accounting_enabled(self.company):
 			return
 
+		# When monthly consolidation is on, defer GL for BOTH submit and cancel. The consolidation job
+		# posts one voucher from build_gl_map() of deferred docs, and posts a reversing delta for docs
+		# cancelled after consolidation. Posting reversal GL here (on cancel) would defeat consolidation
+		# by creating per-doc GL, so we skip it and let the job net it out.
+		if gl_consolidation_enabled(self.company, self.posting_date):
+			if not cancel and self.gl_posted:
+				self.db_set("gl_posted", 0)
+			return
+
+		gle_map = self.build_gl_map()
+
+		if gle_map:
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+
+	def build_gl_map(self):
 		gle_map = []
 		loan_status = frappe.db.get_value("Loan", self.loan, "status")
 
@@ -319,8 +338,7 @@ class LoanInterestAccrual(LoanController):
 				)
 			)
 
-		if gle_map:
-			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+		return gle_map
 
 
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and

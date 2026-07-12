@@ -45,7 +45,9 @@
   "loan_partner",
   "column_break_swqr",
   "partner_share_allocated",
-  "partner_share"
+  "partner_share",
+  "gl_posted",
+  "consolidated_gl_voucher"
  ],
  "fields": [
   {
@@ -308,13 +310,30 @@
    "fieldname": "is_partial_pre_paid_interest",
    "fieldtype": "Check",
    "label": "Is Partial Pre-Paid Interest"
+  },
+  {
+   "fieldname": "gl_posted",
+   "fieldtype": "Check",
+   "label": "GL Posted",
+   "default": "1",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "0 when GL is deferred for monthly consolidation; set to 1 once the consolidated voucher is posted."
+  },
+  {
+   "fieldname": "consolidated_gl_voucher",
+   "fieldtype": "Data",
+   "label": "Consolidated GL Voucher",
+   "read_only": 1,
+   "no_copy": 1,
+   "depends_on": "eval:!doc.gl_posted || doc.consolidated_gl_voucher"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-25 10:35:43.539786",
+ "modified": "2026-07-12 15:07:28.815504",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

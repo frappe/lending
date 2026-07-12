@@ -7,7 +7,11 @@ from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
-from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
+from lending.loan_management.utils import (
+	async_gl_reversal_enabled,
+	gl_consolidation_enabled,
+	loan_accounting_enabled,
+)
 
 
 class LoanDemand(LoanController):
@@ -131,17 +135,30 @@ class LoanDemand(LoanController):
 		if not loan_accounting_enabled(self.company):
 			return
 
+		# Defer to monthly consolidation on submit AND cancel (see LoanInterestAccrual.make_gl_entries).
+		# Posting reversal GL here on cancel would create per-doc GL and defeat consolidation.
+		if gl_consolidation_enabled(self.company, self.posting_date):
+			if not cancel and self.gl_posted:
+				self.db_set("gl_posted", 0)
+			return
+
+		gl_entries = self.build_gl_map()
+
+		if gl_entries:
+			super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+
+	def build_gl_map(self):
 		gl_entries = []
 
 		if self.demand_subtype == "Principal":
-			return
+			return gl_entries
 
 		if self.demand_type == "Charges":
-			return
+			return gl_entries
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 		if loan_status == "Written Off":
-			return
+			return gl_entries
 
 		party_type = ""
 		party = ""
@@ -191,7 +208,7 @@ class LoanDemand(LoanController):
 				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
-		super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+		return gl_entries
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None

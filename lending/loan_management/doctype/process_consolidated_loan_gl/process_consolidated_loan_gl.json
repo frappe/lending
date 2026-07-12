@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:PCLGL-{loan}-{month_end_date}-{#####}",
+ "creation": "2026-07-12 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "loan",
+  "month_end_date",
+  "posting_date",
+  "column_break_main",
+  "period_start_date",
+  "period_end_date",
+  "is_adjustment",
+  "details_section",
+  "consolidation_details",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loan",
+   "options": "Loan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "month_end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Month End Date",
+   "reqd": 1
+  },
+  {
+   "description": "Date the consolidated GL is actually posted on. Equals Month End Date when the month is open, otherwise today (current open period) for backdated adjustments.",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_start_date",
+   "fieldtype": "Date",
+   "label": "Period Start Date"
+  },
+  {
+   "fieldname": "period_end_date",
+   "fieldtype": "Date",
+   "label": "Period End Date"
+  },
+  {
+   "default": "0",
+   "description": "Set when this voucher is a delta correction for a month already consolidated (e.g. after a backdated repayment or repost).",
+   "fieldname": "is_adjustment",
+   "fieldtype": "Check",
+   "label": "Is Adjustment"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Consolidation Breakdown"
+  },
+  {
+   "description": "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL.",
+   "fieldname": "consolidation_details",
+   "fieldtype": "Table",
+   "label": "Consolidation Details",
+   "options": "Consolidated Loan GL Detail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Process Consolidated Loan GL",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-12 16:09:57.130711",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Process Consolidated Loan GL",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

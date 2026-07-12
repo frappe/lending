@@ -110,6 +110,22 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "enable_async_gl_reversal",
 		},
 		{
+			"fieldname": "loan_gl_consolidation",
+			"label": "Consolidate Loan GL Monthly",
+			"description": "Post a single consolidated GL voucher per month for Loan Interest Accrual and Loan Demand instead of one per accrual/demand. Daily accrual computation is unaffected.",
+			"fieldtype": "Check",
+			"insert_after": "async_gl_reversal_start_date",
+		},
+		{
+			"fieldname": "loan_gl_consolidation_start_date",
+			"label": "Loan GL Consolidation Start Date",
+			"fieldtype": "Date",
+			"depends_on": "loan_gl_consolidation",
+			"mandatory_depends_on": "loan_gl_consolidation",
+			"description": "Only accruals and demands with posting date on or after this date are deferred and consolidated. Earlier entries keep their daily GL.",
+			"insert_after": "loan_gl_consolidation",
+		},
+		{
 			"fieldname": "collection_offset_logic_based_on",
 			"label": "Collection Offset Logic Based On",
 			"fieldtype": "Select",
