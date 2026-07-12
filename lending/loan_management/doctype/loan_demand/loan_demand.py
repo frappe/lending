@@ -9,7 +9,15 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
+<<<<<<< HEAD
 from lending.loan_management.utils import async_gl_reversal_enabled
+=======
+from lending.loan_management.utils import (
+	async_gl_reversal_enabled,
+	gl_consolidation_enabled,
+	loan_accounting_enabled,
+)
+>>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 
 
 class LoanDemand(AccountsController):
@@ -129,17 +137,36 @@ class LoanDemand(AccountsController):
 			)
 
 	def make_gl_entries(self, cancel=0):
+<<<<<<< HEAD
+=======
+		if not loan_accounting_enabled(self.company):
+			return
+
+		# Defer to monthly consolidation on submit AND cancel (see LoanInterestAccrual.make_gl_entries).
+		# Posting reversal GL here on cancel would create per-doc GL and defeat consolidation.
+		if gl_consolidation_enabled(self.company, self.posting_date):
+			if not cancel and self.gl_posted:
+				self.db_set("gl_posted", 0)
+			return
+
+		gl_entries = self.build_gl_map()
+
+		if gl_entries:
+			super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+
+	def build_gl_map(self):
+>>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 		gl_entries = []
 
 		if self.demand_subtype == "Principal":
-			return
+			return gl_entries
 
 		if self.demand_type == "Charges":
-			return
+			return gl_entries
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 		if loan_status == "Written Off":
-			return
+			return gl_entries
 
 		party_type = ""
 		party = ""
@@ -189,7 +216,11 @@ class LoanDemand(AccountsController):
 				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
+<<<<<<< HEAD
 		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+=======
+		return gl_entries
+>>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None
