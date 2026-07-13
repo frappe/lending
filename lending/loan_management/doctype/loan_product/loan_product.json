@@ -450,20 +450,11 @@
   },
   {
    "default": "0",
-<<<<<<< HEAD
-   "description": "Amount by which a new loan is allowed to exceed the applicant's sanctioned amount limit, to absorb rounding differences between LOS and Frappe. Set to 0 to disable.",
-   "fieldname": "sanctioned_amount_tolerance",
-   "fieldtype": "Currency",
-   "label": "Sanctioned Amount Tolerance",
-   "non_negative": 1,
-   "options": "Company:company:default_currency"
-=======
    "description": "Allowed percentage by which a new loan can exceed the applicant's sanctioned loan amount limit.",
    "fieldname": "sanctioned_amount_tolerance_percentage",
    "fieldtype": "Percent",
    "label": "Sanctioned Amount Tolerance (%)",
    "non_negative": 1
->>>>>>> 1257f5b4 (fix: Make the tolerance limit percentage based instead of amount based)
   },
   {
    "fieldname": "customer_refund_account",
