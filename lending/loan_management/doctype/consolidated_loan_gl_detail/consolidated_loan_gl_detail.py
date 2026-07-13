@@ -17,9 +17,8 @@ class ConsolidatedLoanGLDetail(Document):
 		credit: DF.Currency
 		debit: DF.Currency
 		loan_disbursement: DF.Link | None
-		party: DF.DynamicLink | None
-		party_type: DF.Link | None
 		source_doc_count: DF.Int
+		source_document: DF.DynamicLink | None
 		source_type: DF.Literal["Loan Interest Accrual", "Loan Demand"]
 	# end: auto-generated types
 

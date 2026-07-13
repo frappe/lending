@@ -73,14 +73,14 @@ class ProcessConsolidatedLoanGL(LoanController):
 		# build_consolidated_gl fills self.consolidation_details; persist it (doc is already submitted).
 		self.save_consolidation_details()
 
-		if not gl_map:
-			# Nothing to post (all buckets netted to zero, or no deferred docs). Still flag covered
-			# docs so they are not re-scanned next run.
-			self.flag_covered_docs(covered)
-			return
+		if gl_map:
+			self.make_gl_entries(gl_map, merge_entries=False)
 
-		self.make_gl_entries(gl_map, merge_entries=False)
 		self.flag_covered_docs(covered)
+
+		# NPA suspense JE: recompute from live accruals AFTER flagging, so the "live" set reflects
+		# this run's cancellations/recreations. One JE per month, always equal to live NPA income.
+		self.sync_consolidated_suspense_je()
 
 	def save_consolidation_details(self):
 		for row in self.consolidation_details:
@@ -96,6 +96,15 @@ class ProcessConsolidatedLoanGL(LoanController):
 		# The consolidated GL rows are read back from the ledger and reversed (immutable-ledger safe:
 		# reversal is a fresh forward-dated entry, not an in-place edit).
 		make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
+
+		# Cancel this loan+month's consolidated NPA suspense JE(s) (tagged by loan+month).
+		for je in frappe.get_all(
+			"Journal Entry", {"user_remark": self.suspense_je_tag(), "docstatus": 1}, pluck="name"
+		):
+			doc = frappe.get_doc("Journal Entry", je)
+			doc.flags.ignore_links = True
+			doc.cancel()
+
 		# Re-open the covered source docs so a subsequent run reconsolidates them.
 		for doctype in CONSOLIDATED_SOURCES:
 			frappe.db.set_value(
@@ -130,11 +139,12 @@ class ProcessConsolidatedLoanGL(LoanController):
 
 					detail_key = (doctype, source.get("loan_disbursement")) + key
 					detail = detail_buckets.setdefault(
-						detail_key, {"debit": 0.0, "credit": 0.0, "doc_count": 0}
+						detail_key, {"debit": 0.0, "credit": 0.0, "source_docs": set()}
 					)
 					detail["debit"] += sign * flt(line.get("debit"))
 					detail["credit"] += sign * flt(line.get("credit"))
-					detail["doc_count"] += 1
+					detail["source_docs"].add(source.name)
+
 				covered[doctype].append(name)
 
 		gl_map = self.buckets_to_gl_map(gl_buckets)
@@ -221,19 +231,139 @@ class ProcessConsolidatedLoanGL(LoanController):
 
 			source_type, loan_disbursement = key[0], key[1]
 			line = dict(zip(BUCKET_KEYS, key[2:], strict=True))
+			source_docs = amounts["source_docs"]
 			self.append(
 				"consolidation_details",
 				{
 					"source_type": source_type,
+					# Link the actual source doc only when a single one feeds this line; a merged
+					# line (many docs) leaves it blank -- trace those via # Docs / View Ledger.
+					"source_document": next(iter(source_docs)) if len(source_docs) == 1 else None,
 					"loan_disbursement": loan_disbursement,
 					"account": line.get("account"),
-					"party_type": line.get("party_type"),
-					"party": line.get("party"),
 					"debit": net if net > 0 else 0,
 					"credit": -net if net < 0 else 0,
-					"source_doc_count": amounts["doc_count"],
+					"source_doc_count": len(source_docs),
 				},
 			)
+
+	def sync_consolidated_suspense_je(self):
+		"""Make the month's consolidated NPA suspense JE equal the sum of its LIVE NPA accruals.
+
+		Recompute-from-live (not delta): cancel any existing consolidated suspense JE for this
+		loan+month, then post one fresh JE for the current total. This is self-correcting -- after any
+		cancel/repost, the JE always matches reality, so debugging is a single check: does the live
+		suspense JE for a month equal the sum of live NPA accruals in that month?
+		"""
+		# Cancel any suspense JE already posted for this loan+month (tagged with the month-end date).
+		tag = self.suspense_je_tag()
+		for je in frappe.get_all("Journal Entry", {"user_remark": tag, "docstatus": 1}, pluck="name"):
+			doc = frappe.get_doc("Journal Entry", je)
+			doc.flags.ignore_links = True
+			doc.cancel()
+
+		buckets = self.live_suspense_buckets()
+		if not buckets:
+			return
+
+		import erpnext
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		cost_center = erpnext.get_default_cost_center(self.company)
+		remark = _("Consolidated NPA suspense for {0} ({1} to {2})").format(
+			self.loan, self.period_start_date, self.period_end_date
+		)
+
+		for (debit_account, credit_account), amount in buckets.items():
+			amount = flt(amount, precision)
+			if not amount:
+				continue
+			je = frappe.get_doc(
+				{
+					"doctype": "Journal Entry",
+					"voucher_type": "Journal Entry",
+					"posting_date": self.posting_date,
+					"company": self.company,
+					"accounts": [
+						{
+							"account": debit_account,
+							"debit_in_account_currency": amount,
+							"debit": amount,
+							"reference_type": "Loan",
+							"reference_name": self.loan,
+							"cost_center": cost_center,
+						},
+						{
+							"account": credit_account,
+							"credit_in_account_currency": amount,
+							"credit": amount,
+							"reference_type": "Loan",
+							"reference_name": self.loan,
+							"cost_center": cost_center,
+						},
+					],
+					"remarks": remark,
+					"user_remark": tag,
+				}
+			)
+			je.flags.ignore_permissions = True
+			je.submit()
+
+	def suspense_je_tag(self):
+		"""Stable tag linking suspense JEs to this loan+month (survives voucher delta re-runs)."""
+		return f"CONS-SUSPENSE::{self.loan}::{self.month_end_date}"
+
+	def live_suspense_buckets(self):
+		"""Target suspense amounts (income -> suspense) from all LIVE NPA accruals in the month."""
+		if frappe.db.get_value("Loan", self.loan, "status") == "Written Off":
+			return {}
+
+		accruals = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": self.loan,
+				"docstatus": 1,
+				"is_npa": 1,
+				"unmark_npa": 0,
+				"posting_date": ["between", [self.period_start_date, self.period_end_date]],
+			},
+			fields=["loan_product", "interest_type", "interest_amount", "additional_interest_amount"],
+		)
+
+		buckets = {}
+		for a in accruals:
+			accounts = frappe.get_cached_value(
+				"Loan Product",
+				a.loan_product,
+				(
+					"suspense_interest_income",
+					"interest_income_account",
+					"penalty_suspense_account",
+					"penalty_income_account",
+					"additional_interest_income",
+					"additional_interest_suspense",
+				),
+				as_dict=1,
+			)
+			if not accounts:
+				continue
+
+			if a.interest_type == "Normal Interest":
+				debit_account, credit_account = accounts.interest_income_account, accounts.suspense_interest_income
+			else:
+				debit_account, credit_account = accounts.penalty_income_account, accounts.penalty_suspense_account
+
+			normal_amount = flt(a.interest_amount) - flt(a.additional_interest_amount)
+			if normal_amount and debit_account and credit_account:
+				key = (debit_account, credit_account)
+				buckets[key] = buckets.get(key, 0.0) + normal_amount
+
+			if flt(a.additional_interest_amount):
+				key = (accounts.additional_interest_income, accounts.additional_interest_suspense)
+				if all(key):
+					buckets[key] = buckets.get(key, 0.0) + flt(a.additional_interest_amount)
+
+		return buckets
 
 	def flag_covered_docs(self, covered):
 		for doctype, names in covered.items():
