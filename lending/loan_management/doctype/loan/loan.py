@@ -560,15 +560,19 @@ class Loan(LoanController):
 		)
 		if sanctioned_amount_limit:
 			total_loan_amount = get_total_loan_amount(self.applicant_type, self.applicant, self.company)
-
-		if sanctioned_amount_limit and flt(self.loan_amount) + flt(total_loan_amount) > flt(
-			sanctioned_amount_limit
-		):
-			frappe.throw(
-				_("Sanctioned Amount limit crossed for {0} {1}").format(
-					self.applicant_type, frappe.bold(self.applicant)
+			tolerance_percentage = flt(
+				frappe.db.get_value(
+					"Loan Product", self.loan_product, "sanctioned_amount_tolerance_percentage"
 				)
 			)
+			allowed_limit = flt(sanctioned_amount_limit) * (1 + tolerance_percentage / 100)
+
+			if flt(self.loan_amount) + flt(total_loan_amount) > allowed_limit:
+				frappe.throw(
+					_("Sanctioned Amount limit crossed for {0} {1}").format(
+						self.applicant_type, frappe.bold(self.applicant)
+					)
+				)
 
 	def cancel_and_delete_repayment_schedule(self):
 		schedules = frappe.db.get_all(
