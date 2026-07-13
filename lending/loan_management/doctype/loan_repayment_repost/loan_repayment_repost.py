@@ -132,16 +132,20 @@ class LoanRepaymentRepost(Document):
 		from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
 			run_consolidation_for_loan,
 		)
-		from lending.loan_management.utils import gl_consolidation_enabled
 
 		company = frappe.db.get_value("Loan", self.loan, "company")
-		if not company or not gl_consolidation_enabled(company, self.repost_date):
+		start_date = frappe.db.get_value("Company", company, "loan_gl_consolidation_start_date")
+		if not company or not start_date:
 			return
 
-		# Reposting cancels + recreates this loan's accruals/demands, re-deferring their GL. Re-run
-		# consolidation for this loan across every month from the repost date to today; each run posts
-		# only the delta, so repeated reposts in the same month stay correct.
-		month_end = get_last_day(self.repost_date)
+		# Reposting cancels + recreates this loan's accruals/demands, re-deferring GL for months on or
+		# after the consolidation start date. Re-run consolidation for every such month up to today
+		# (run_consolidation_for_loan itself gates by the start date and skips months with nothing to
+		# do). Do NOT gate on repost_date: a repost from before the start date still regenerates
+		# deferred docs in later months that must be reconsolidated.
+		from frappe.utils import get_first_day
+
+		month_end = get_last_day(max(getdate(self.repost_date), get_first_day(getdate(start_date))))
 		last_month_end = get_last_day(getdate())
 		while getdate(month_end) <= getdate(last_month_end):
 			run_consolidation_for_loan(self.loan, month_end, company=company)
