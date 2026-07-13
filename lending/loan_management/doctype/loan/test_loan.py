@@ -370,7 +370,10 @@ class TestLoan(LendingTestSuite):
 		)
 		self.assertEqual(sanctioned_amount_limit, 1000000)
 
-		frappe.db.set_value("Loan Product", "Demand Loan", "sanctioned_amount_tolerance", 100)
+		# 0.01% tolerance on a 1,000,000 limit -> allowed limit of 1,000,100
+		frappe.db.set_value(
+			"Loan Product", "Demand Loan", "sanctioned_amount_tolerance_percentage", 0.01
+		)
 
 		# qty 4000.4 * price 500 * (1 - 50% haircut) = 1,000,100, exactly limit + tolerance -> allowed
 		at_tolerance_pledge = [{"loan_security": "Test Security 1", "qty": 4000.40}]
@@ -388,7 +391,7 @@ class TestLoan(LendingTestSuite):
 		)
 		self.assertRaises(frappe.ValidationError, loan_application.save)
 
-		frappe.db.set_value("Loan Product", "Demand Loan", "sanctioned_amount_tolerance", 0)
+		frappe.db.set_value("Loan Product", "Demand Loan", "sanctioned_amount_tolerance_percentage", 0)
 
 	def test_loan_closure(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
