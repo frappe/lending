@@ -2,10 +2,16 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import get_last_day
+from frappe.utils import flt, get_last_day
 
 from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
 	run_consolidation_for_loan,
+)
+from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
+	create_process_loan_classification,
+)
+from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
+	process_daily_loan_demands,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
@@ -110,10 +116,32 @@ class TestProcessConsolidatedLoanGL(LendingTestSuite):
 		details = frappe.get_all(
 			"Consolidated Loan GL Detail",
 			{"parent": voucher},
-			["source_type", "account", "source_doc_count"],
+			["source_type", "source_document", "account", "debit", "credit", "source_doc_count"],
 		)
 		self.assertTrue(details, "consolidation_details should be populated")
 		self.assertTrue(all(d.source_doc_count > 0 for d in details))
+
+		# a single-doc line links its source document; a merged line does not
+		for d in details:
+			if d.source_doc_count == 1:
+				self.assertTrue(d.source_document, "single-doc line should link its source")
+				self.assertTrue(
+					frappe.db.exists(d.source_type, d.source_document),
+					"linked source document must exist and match its type",
+				)
+			else:
+				self.assertFalse(d.source_document, "merged line must not link one document")
+
+		# the breakdown reconciles to the posted GL exactly
+		detail_debit = sum(flt(d.debit) for d in details)
+		detail_credit = sum(flt(d.credit) for d in details)
+		gl_totals = frappe.db.sql(
+			"select sum(debit), sum(credit) from `tabGL Entry` where voucher_no=%s and is_cancelled=0",
+			voucher,
+		)[0]
+		self.assertAlmostEqual(detail_debit, flt(gl_totals[0]), places=2)
+		self.assertAlmostEqual(detail_credit, flt(gl_totals[1]), places=2)
+		self.assertAlmostEqual(detail_debit, detail_credit, places=2)
 
 		# all accruals flagged posted and linked to the voucher
 		accruals = frappe.get_all(
@@ -176,3 +204,86 @@ class TestProcessConsolidatedLoanGL(LendingTestSuite):
 		self.assertTrue(all(a.gl_posted == 1 for a in accruals))
 		posted = sum(self.gl_count(a.name) for a in accruals)
 		self.assertTrue(posted > 0, "daily GL should be posted when consolidation is off")
+
+	def test_npa_suspense_je_consolidated(self):
+		"""NPA suspense JE is deferred per-accrual and consolidated to one JE per loan/month.
+
+		Invariant: each month's consolidated suspense JE equals the sum of that month's live NPA
+		accrual interest, with no duplicate JEs and a balanced ledger.
+		"""
+		from frappe.utils import get_first_day
+
+		start = "2024-04-01"
+		self.enable_consolidation(start)
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
+		)
+
+		loan = create_loan(
+			self.applicant,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			applicant_type="Customer",
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
+			process_daily_loan_demands(posting_date=d, loan=loan.name)
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+		for d in ["2024-08-31", "2024-09-30"]:
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+
+		# NPA accruals defer their suspense JE (no per-accrual JE link)
+		self.assertEqual(
+			frappe.db.count(
+				"Loan Interest Accrual",
+				{"loan": loan.name, "docstatus": 1, "normal_interest_journal_entry": ["is", "set"]},
+			),
+			0,
+			"per-accrual suspense JE should be deferred under consolidation",
+		)
+
+		for me in ["2024-08-31", "2024-09-30"]:
+			run_consolidation_for_loan(loan.name, me, force=True)
+
+		# one consolidated suspense JE per NPA month, each equal to that month's live NPA interest
+		tags = frappe.get_all(
+			"Journal Entry",
+			{"user_remark": ["like", f"CONS-SUSPENSE::{loan.name}::%"], "docstatus": 1},
+			["name", "user_remark"],
+		)
+		self.assertTrue(tags, "consolidated suspense JEs should exist for NPA months")
+		seen = set()
+		for je in tags:
+			self.assertNotIn(je.user_remark, seen, "no duplicate suspense JE per month")
+			seen.add(je.user_remark)
+			month_end = je.user_remark.split("::")[-1]
+			je_credit = frappe.db.sql(
+				"""select sum(credit) - sum(debit) from `tabGL Entry`
+				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
+				je.name,
+			)[0][0] or 0
+			live = frappe.db.sql(
+				"""select sum(interest_amount) from `tabLoan Interest Accrual`
+				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
+					and posting_date between %s and %s""",
+				(loan.name, get_first_day(month_end), month_end),
+			)[0][0] or 0
+			self.assertAlmostEqual(je_credit, live, places=2)
+
+		# ledger balances
+		net = frappe.db.sql(
+			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+			loan.name,
+		)[0][0] or 0
+		self.assertAlmostEqual(net, 0, places=2)
