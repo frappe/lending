@@ -345,6 +345,54 @@ class TestLoan(LendingTestSuite):
 		)
 		self.assertRaises(frappe.ValidationError, loan_application.save)
 
+	def test_sanctioned_amount_tolerance(self):
+		frappe.db.sql("DELETE FROM `tabLoan` where applicant = '_Test Loan Customer 1'")
+		frappe.db.sql("DELETE FROM `tabLoan Application` where applicant = '_Test Loan Customer 1'")
+		frappe.db.sql(
+			"DELETE FROM `tabLoan Security Assignment` where applicant = '_Test Loan Customer 1'"
+		)
+		frappe.db.delete(
+			"Sanctioned Loan Amount",
+			{"applicant": "_Test Loan Customer 1", "company": "_Test Company"},
+		)
+
+		create_loan_security_assignment(
+			applicant_type="Customer",
+			applicant=self.applicant3,
+			company="_Test Company",
+			securities=[{"loan_security": "Test Security 1", "qty": 4000.00}],
+		)
+
+		sanctioned_amount_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount",
+			{"applicant": "_Test Loan Customer 1", "company": "_Test Company"},
+			"sanctioned_amount_limit",
+		)
+		self.assertEqual(sanctioned_amount_limit, 1000000)
+
+		# 0.01% tolerance on a 1,000,000 limit -> allowed limit of 1,000,100
+		frappe.db.set_value(
+			"Loan Product", "Demand Loan", "sanctioned_amount_tolerance_percentage", 0.01
+		)
+
+		# qty 4000.4 * price 500 * (1 - 50% haircut) = 1,000,100, exactly limit + tolerance -> allowed
+		at_tolerance_pledge = [{"loan_security": "Test Security 1", "qty": 4000.40}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant3, "Demand Loan", at_tolerance_pledge
+		)
+		self.assertTrue(frappe.db.exists("Loan Application", loan_application))
+
+		frappe.db.delete("Loan Application", {"applicant": "_Test Loan Customer 1"})
+
+		# qty 4000.8 * price 500 * (1 - 50% haircut) = 1,000,200, beyond limit + tolerance -> rejected
+		beyond_tolerance_pledge = [{"loan_security": "Test Security 1", "qty": 4000.80}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant3, "Demand Loan", beyond_tolerance_pledge, do_not_save=True
+		)
+		self.assertRaises(frappe.ValidationError, loan_application.save)
+
+		frappe.db.set_value("Loan Product", "Demand Loan", "sanctioned_amount_tolerance_percentage", 0)
+
 	def test_loan_closure(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
