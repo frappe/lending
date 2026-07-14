@@ -1,0 +1,98 @@
+<style>
+	.print-format {
+		padding: 4mm;
+		font-size: 9.0pt !important;
+	}
+	.print-format td {
+		vertical-align: middle !important;
+	}
+</style>
+
+<div id="header-html" class="hidden-pdf">
+	{% if letter_head and letter_head.content %}
+	<div class="letter-head text-center">{{ letter_head.content }}</div>
+	<hr style="height:2px;border-width:0;color:black;background-color:black;">
+	{% endif %}
+</div>
+<div id="footer-html" class="visible-pdf">
+	{% if letter_head and letter_head.footer %}
+	<div class="letter-head-footer">
+		<hr style="border-width:0;color:black;background-color:black;padding-bottom:2px;">
+		{{ letter_head.footer }}
+	</div>
+	{% endif %}
+</div>
+
+<h2 class="text-center" style="margin-top:0">{{ _("LOAN STATEMENT OF ACCOUNT") }}</h2>
+<h4 class="text-center">{{ filters.applicant }}</h4>
+<h5 class="text-center">
+	{{ _("{0} to {1}").format(
+		frappe.format(filters.from_date, 'Date'),
+		frappe.format(filters.to_date, 'Date')
+	) }}
+</h5>
+<h6 class="text-center">
+	{% if filters.loan_product %}{{ _("Loan Product: {0}").format(filters.loan_product) }}{% endif %}
+</h6>
+
+{% set ns = namespace(total_debit=0, total_credit=0) %}
+<table class="table table-bordered table-condensed">
+	<thead>
+		<tr>
+			<th style="width: 12%">{{ _("Date") }}</th>
+			<th style="width: 18%">{{ _("Transaction Type") }}</th>
+			{% if filters.group_by != "Grouped" %}
+				<th style="width: 20%">{{ _("Transaction") }}</th>
+			{% endif %}
+			<th style="width: 18%">{{ _("Loan") }}</th>
+			<th style="width: 11%; text-align:right">{{ _("Debit") }}</th>
+			<th style="width: 11%; text-align:right">{{ _("Credit") }}</th>
+			<th style="width: 12%; text-align:right">{{ _("Balance") }}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in data %}
+			{% set ns.total_debit = ns.total_debit + (row.debit or 0) %}
+			{% set ns.total_credit = ns.total_credit + (row.credit or 0) %}
+			<tr>
+				<td>{{ frappe.format(row.posting_date, 'Date') }}</td>
+				<td>{{ row.transaction_type }}</td>
+				{% if filters.group_by != "Grouped" %}
+					<td>{{ row.transaction_name or "" }}</td>
+				{% endif %}
+				<td>{{ row.loan or "" }}</td>
+				<td style="text-align:right">
+					{% if row.debit %}{{ frappe.utils.fmt_money(row.debit, currency=row.currency) }}{% endif %}
+				</td>
+				<td style="text-align:right">
+					{% if row.credit %}{{ frappe.utils.fmt_money(row.credit, currency=row.currency) }}{% endif %}
+				</td>
+				<td style="text-align:right">{{ frappe.utils.fmt_money(row.balance, currency=row.currency) }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+{% if data %}
+<table class="table table-bordered" style="width:40%; float:right;">
+	<tr>
+		<td><b>{{ _("Total Debit") }}</b></td>
+		<td style="text-align:right">{{ frappe.utils.fmt_money(ns.total_debit, currency=data[0]["currency"]) }}</td>
+	</tr>
+	<tr>
+		<td><b>{{ _("Total Credit") }}</b></td>
+		<td style="text-align:right">{{ frappe.utils.fmt_money(ns.total_credit, currency=data[0]["currency"]) }}</td>
+	</tr>
+	<tr>
+		<td><b>{{ _("Closing Balance") }}</b></td>
+		<td style="text-align:right">{{ frappe.utils.fmt_money(data[-1]["balance"], currency=data[0]["currency"]) }}</td>
+	</tr>
+</table>
+<div style="clear:both;"></div>
+{% endif %}
+
+{% if terms_and_conditions %}
+<div>{{ terms_and_conditions }}</div>
+{% endif %}
+
+<p class="text-right text-muted">{{ _("Printed on {0}").format(frappe.utils.now()) }}</p>
