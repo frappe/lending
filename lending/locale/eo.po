@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-07-05 10:16+0000\n"
-"PO-Revision-Date: 2026-07-06 16:41\n"
+"POT-Creation-Date: 2026-07-12 10:52+0000\n"
+"PO-Revision-Date: 2026-07-13 18:22\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -163,7 +163,7 @@ msgstr "crwdns204077:0crwdne204077:0"
 msgid "Add to first repayment"
 msgstr "crwdns162174:0crwdne162174:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2132
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2155
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "crwdns162176:0crwdne162176:0"
 
@@ -200,7 +200,7 @@ msgstr "crwdns162184:0crwdne162184:0"
 msgid "Additional Interest Income"
 msgstr "crwdns162186:0crwdne162186:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2148
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2171
 msgid "Additional Interest Income Account is mandatory"
 msgstr "crwdns162188:0crwdne162188:0"
 
@@ -210,7 +210,7 @@ msgstr "crwdns162188:0crwdne162188:0"
 msgid "Additional Interest Receivable"
 msgstr "crwdns162190:0crwdne162190:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2142
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2165
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "crwdns162192:0crwdne162192:0"
 
@@ -232,7 +232,7 @@ msgstr "crwdns162196:0crwdne162196:0"
 msgid "Additional Interest Waiver"
 msgstr "crwdns162198:0crwdne162198:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "crwdns162200:0crwdne162200:0"
 
@@ -326,7 +326,7 @@ msgstr "crwdns162228:0crwdne162228:0"
 msgid "Advance Payment"
 msgstr "crwdns162230:0crwdne162230:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2199
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2236
 msgid "Against Account is mandatory"
 msgstr "crwdns162232:0crwdne162232:0"
 
@@ -417,7 +417,7 @@ msgstr "crwdns162256:0crwdne162256:0"
 msgid "Amount Paid"
 msgstr "crwdns162258:0crwdne162258:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:414
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:432
 msgid "Amount Paid must equal the sum of Principal, Interest, Penalty, Charges, Unbooked Interest, and Unbooked Penalty."
 msgstr "crwdns204085:0crwdne204085:0"
 
@@ -429,7 +429,7 @@ msgstr "crwdns162260:0crwdne162260:0"
 msgid "Amount cannot be zero"
 msgstr "crwdns162262:0crwdne162262:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1739
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1762
 msgid "Amount for advance payment must be between one to two EMI amount"
 msgstr "crwdns162264:0crwdne162264:0"
 
@@ -439,19 +439,19 @@ msgstr "crwdns162264:0crwdne162264:0"
 msgid "Amount on which interest is calculated"
 msgstr "crwdns162266:0crwdne162266:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:889
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:912
 msgid "Amount paid cannot be greater than available security deposit"
 msgstr "crwdns162268:0crwdne162268:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:967
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "crwdns162270:0crwdne162270:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:982
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1005
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "crwdns162272:0crwdne162272:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:974
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:997
 msgid "Amount paid cannot be zero"
 msgstr "crwdns162274:0crwdne162274:0"
 
@@ -923,7 +923,7 @@ msgstr "crwdns162368:0crwdne162368:0"
 msgid "Cannot create loan until application is approved"
 msgstr "crwdns162370:0crwdne162370:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2489
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2526
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "crwdns162372:0crwdne162372:0"
 
@@ -1354,7 +1354,7 @@ msgstr "crwdns204145:0{0}crwdne204145:0"
 msgid "Credit Account"
 msgstr "crwdns162474:0crwdne162474:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2294
 msgid "Credit Account is mandatory"
 msgstr "crwdns162476:0crwdne162476:0"
 
@@ -1436,7 +1436,7 @@ msgstr "crwdns162492:0crwdne162492:0"
 msgid "Customer Refund Account"
 msgstr "crwdns162494:0crwdne162494:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
 msgid "Customer Refund Account is mandatory"
 msgstr "crwdns162496:0crwdne162496:0"
 
@@ -2004,7 +2004,7 @@ msgstr "crwdns162680:0crwdne162680:0"
 msgid "Full Settlement Job"
 msgstr "crwdns204177:0crwdne204177:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:927
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:950
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "crwdns204179:0{0}crwdnd204179:0{1}crwdnd204179:0{2}crwdne204179:0"
 
@@ -2079,7 +2079,7 @@ msgstr "crwdns204183:0crwdne204183:0"
 msgid "Income Account"
 msgstr "crwdns162696:0crwdne162696:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:970
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:993
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "crwdns162698:0crwdne162698:0"
 
@@ -2169,7 +2169,7 @@ msgstr "crwdns162720:0crwdne162720:0"
 msgid "Interest Income Account"
 msgstr "crwdns162722:0crwdne162722:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2088
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2111
 msgid "Interest Income Account is mandatory"
 msgstr "crwdns162724:0crwdne162724:0"
 
@@ -2198,7 +2198,7 @@ msgstr "crwdns162730:0crwdne162730:0"
 msgid "Interest Receivable Account"
 msgstr "crwdns162732:0crwdne162732:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2083
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2106
 msgid "Interest Receivable Account is mandatory"
 msgstr "crwdns162734:0crwdne162734:0"
 
@@ -2226,7 +2226,7 @@ msgstr "crwdns162740:0crwdne162740:0"
 msgid "Interest Waiver Account"
 msgstr "crwdns162742:0crwdne162742:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2165
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2188
 msgid "Interest Waiver Account is mandatory"
 msgstr "crwdns162744:0crwdne162744:0"
 
@@ -2255,7 +2255,7 @@ msgstr "crwdns204189:0{0}crwdne204189:0"
 msgid "Internal Foreclosure"
 msgstr "crwdns162752:0crwdne162752:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:848
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:871
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "crwdns162754:0crwdne162754:0"
 
@@ -2550,9 +2550,9 @@ msgstr "crwdns162806:0crwdne162806:0"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "crwdns162808:0crwdne162808:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2079
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2109
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2102
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2132
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2160
 msgid "Loan Account is mandatory"
 msgstr "crwdns162810:0crwdne162810:0"
 
@@ -2562,7 +2562,7 @@ msgstr "crwdns162810:0crwdne162810:0"
 msgid "Loan Accounts"
 msgstr "crwdns162812:0crwdne162812:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1136
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "crwdns162814:0{0}crwdne162814:0"
 
@@ -3559,7 +3559,7 @@ msgstr "crwdns163056:0crwdne163056:0"
 msgid "Loan {0} closed"
 msgstr "crwdns163058:0{0}crwdne163058:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:951
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:974
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "crwdns204229:0{0}crwdnd204229:0{1}crwdne204229:0"
 
@@ -4107,7 +4107,7 @@ msgstr "crwdns163208:0crwdne163208:0"
 msgid "Partner Interest Share"
 msgstr "crwdns163210:0crwdne163210:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2261
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2298
 msgid "Partner Interest Share is mandatory"
 msgstr "crwdns163212:0crwdne163212:0"
 
@@ -4183,7 +4183,7 @@ msgstr "crwdns163232:0crwdne163232:0"
 msgid "Payable Account"
 msgstr "crwdns163234:0crwdne163234:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2259
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2296
 msgid "Payable Account is mandatory"
 msgstr "crwdns163236:0crwdne163236:0"
 
@@ -4214,9 +4214,9 @@ msgstr "crwdns163244:0crwdne163244:0"
 msgid "Payment Account"
 msgstr "crwdns163246:0crwdne163246:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2090
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2236
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2378
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2113
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2273
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2415
 msgid "Payment Account is mandatory"
 msgstr "crwdns163248:0crwdne163248:0"
 
@@ -4315,7 +4315,7 @@ msgstr "crwdns163276:0crwdne163276:0"
 msgid "Penalty Income Account"
 msgstr "crwdns163278:0crwdne163278:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2119
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2142
 msgid "Penalty Income Account is mandatory"
 msgstr "crwdns163280:0crwdne163280:0"
 
@@ -4341,7 +4341,7 @@ msgstr "crwdns163286:0crwdne163286:0"
 msgid "Penalty Receivable Account"
 msgstr "crwdns163288:0crwdne163288:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2113
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2136
 msgid "Penalty Receivable Account is mandatory"
 msgstr "crwdns163290:0crwdne163290:0"
 
@@ -4428,7 +4428,7 @@ msgstr "crwdns163326:0crwdne163326:0"
 msgid "Please select Company."
 msgstr "crwdns163328:0crwdne163328:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:839
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:862
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "crwdns163330:0crwdne163330:0"
 
@@ -4458,7 +4458,7 @@ msgstr "crwdns163338:0{0}crwdne163338:0"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "crwdns163340:0{0}crwdne163340:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2197
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "crwdns163342:0{0}crwdne163342:0"
 
@@ -4478,7 +4478,7 @@ msgstr "crwdns204269:0{0}crwdne204269:0"
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "crwdns204271:0{0}crwdne204271:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:826
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:849
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "crwdns163348:0crwdne163348:0"
 
@@ -4490,7 +4490,7 @@ msgstr "crwdns163350:0{0}crwdne163350:0"
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "crwdns163352:0{0}crwdne163352:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:609
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:627
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "crwdns163354:0{0}crwdne163354:0"
 
@@ -4506,7 +4506,7 @@ msgstr "crwdns163356:0{0}crwdnd163356:0{1}crwdne163356:0"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "crwdns163358:0{0}crwdnd163358:0{1}crwdne163358:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2429
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2466
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "crwdns163360:0{0}crwdne163360:0"
 
@@ -5187,7 +5187,7 @@ msgstr "crwdns204295:0{0}crwdnd204295:0{1}crwdne204295:0"
 msgid "Repayment Type"
 msgstr "crwdns163544:0crwdne163544:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:906
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
 msgid "Repayment cannot be made for closed loan"
 msgstr "crwdns163546:0crwdne163546:0"
 
@@ -5195,7 +5195,7 @@ msgstr "crwdns163546:0crwdne163546:0"
 msgid "Repayment periods is mandatory for term loans"
 msgstr "crwdns163548:0crwdne163548:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:961
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:984
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "crwdns163550:0crwdne163550:0"
 
@@ -5267,7 +5267,7 @@ msgstr "crwdns163576:0crwdne163576:0"
 msgid "Restructured"
 msgstr "crwdns163578:0crwdne163578:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2238
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2275
 msgid "Round Off Account is mandatory"
 msgstr "crwdns163580:0crwdne163580:0"
 
@@ -5531,19 +5531,19 @@ msgstr "crwdns163668:0crwdne163668:0"
 msgid "Term Details"
 msgstr "crwdns163670:0crwdne163670:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1006
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1029
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "crwdns163672:0{0}crwdne163672:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:892
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:915
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr "crwdns163674:0crwdne163674:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3295
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3332
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "crwdns163676:0crwdne163676:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3281
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3318
 msgid "The following loans do not exist: {}"
 msgstr "crwdns163678:0crwdne163678:0"
 
@@ -5925,7 +5925,7 @@ msgstr "crwdns163800:0crwdne163800:0"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "crwdns163802:0{0}crwdnd163802:0{1}crwdne163802:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1013
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "crwdns163804:0{0}crwdnd163804:0{1}crwdnd163804:0{2}crwdne163804:0"
 
@@ -5934,7 +5934,7 @@ msgstr "crwdns163804:0{0}crwdnd163804:0{1}crwdnd163804:0{2}crwdne163804:0"
 msgid "Waiver Account"
 msgstr "crwdns163806:0crwdne163806:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2389
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2426
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "crwdns163808:0{0}crwdnd163808:0{1}crwdne163808:0"
 
@@ -6002,7 +6002,7 @@ msgstr "crwdns163826:0crwdne163826:0"
 msgid "Write Off Recovery Account"
 msgstr "crwdns163828:0crwdne163828:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2191
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2214
 msgid "Write Off Recovery Account is mandatory"
 msgstr "crwdns163830:0crwdne163830:0"
 
