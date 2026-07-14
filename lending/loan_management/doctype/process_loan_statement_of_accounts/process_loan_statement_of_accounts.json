@@ -1,0 +1,304 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2026-06-16 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report",
+  "filters_section",
+  "company",
+  "from_date",
+  "loan_product",
+  "column_break_filters",
+  "to_date",
+  "group_by",
+  "applicants_section",
+  "applicant_type",
+  "collection_based_on",
+  "column_break_collection",
+  "fetch_applicants",
+  "applicants",
+  "print_section",
+  "letter_head",
+  "orientation",
+  "column_break_print",
+  "terms_and_conditions",
+  "include_break",
+  "email_section",
+  "enable_auto_email",
+  "sender",
+  "column_break_email",
+  "cc_to",
+  "schedule_section",
+  "frequency",
+  "filter_duration",
+  "column_break_schedule",
+  "start_date",
+  "content_section",
+  "pdf_name",
+  "subject",
+  "column_break_content",
+  "body",
+  "note_section",
+  "help_text"
+ ],
+ "fields": [
+  {
+   "default": "Loan Statement of Account",
+   "fieldname": "report",
+   "fieldtype": "Select",
+   "label": "Report",
+   "options": "Loan Statement of Account",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Report Filters"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!doc.enable_auto_email",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "mandatory_depends_on": "eval:!doc.enable_auto_email"
+  },
+  {
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fieldname": "column_break_filters",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.enable_auto_email",
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "mandatory_depends_on": "eval:!doc.enable_auto_email"
+  },
+  {
+   "default": "Detailed",
+   "fieldname": "group_by",
+   "fieldtype": "Select",
+   "label": "View",
+   "options": "Detailed\nGrouped"
+  },
+  {
+   "fieldname": "applicants_section",
+   "fieldtype": "Section Break",
+   "label": "Applicants"
+  },
+  {
+   "default": "Customer",
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Customer\nEmployee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "collection_based_on",
+   "fieldtype": "Select",
+   "label": "Select Applicants By",
+   "options": "\nLoan Product\nAll Loans"
+  },
+  {
+   "fieldname": "column_break_collection",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.collection_based_on",
+   "fieldname": "fetch_applicants",
+   "fieldtype": "Button",
+   "label": "Fetch Applicants",
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "applicants",
+   "fieldtype": "Table",
+   "label": "Applicants",
+   "options": "Process Loan Statement of Accounts Applicant",
+   "reqd": 1
+  },
+  {
+   "fieldname": "print_section",
+   "fieldtype": "Section Break",
+   "label": "Print Preferences"
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letter Head",
+   "options": "Letter Head"
+  },
+  {
+   "default": "Portrait",
+   "fieldname": "orientation",
+   "fieldtype": "Select",
+   "label": "Orientation",
+   "options": "Portrait\nLandscape"
+  },
+  {
+   "fieldname": "column_break_print",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "terms_and_conditions",
+   "fieldtype": "Link",
+   "label": "Terms and Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "default": "1",
+   "fieldname": "include_break",
+   "fieldtype": "Check",
+   "label": "Page Break After Each Statement"
+  },
+  {
+   "fieldname": "email_section",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_auto_email",
+   "fieldtype": "Check",
+   "label": "Enable Auto Email"
+  },
+  {
+   "fieldname": "sender",
+   "fieldtype": "Link",
+   "label": "Sender",
+   "options": "Email Account"
+  },
+  {
+   "fieldname": "column_break_email",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cc_to",
+   "fieldtype": "Table MultiSelect",
+   "label": "CC To",
+   "options": "Process Statement Of Accounts CC"
+  },
+  {
+   "depends_on": "eval:doc.enable_auto_email",
+   "fieldname": "schedule_section",
+   "fieldtype": "Section Break",
+   "label": "Schedule"
+  },
+  {
+   "default": "Monthly",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Daily\nWeekly\nBiweekly\nMonthly\nQuarterly"
+  },
+  {
+   "default": "12",
+   "description": "Number of months of history to include in each statement.",
+   "fieldname": "filter_duration",
+   "fieldtype": "Int",
+   "label": "Filter Duration (Months)"
+  },
+  {
+   "fieldname": "column_break_schedule",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Email Content"
+  },
+  {
+   "fieldname": "pdf_name",
+   "fieldtype": "Data",
+   "label": "PDF Name"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject"
+  },
+  {
+   "fieldname": "column_break_content",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Text Editor",
+   "label": "Body"
+  },
+  {
+   "fieldname": "note_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "help_text",
+   "fieldtype": "HTML",
+   "label": "Help Text",
+   "options": "<br>\n<h4>Note</h4>\n<ul>\n<li>\nYou can use <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja tags</a> in <b>Subject</b>, <b>Body</b> and <b>PDF Name</b> fields for dynamic values.\n</li><li>\n    All fields in this doctype are available under the <b>doc</b> object and the applicant row is available under the <b>applicant</b> object (fields: applicant, applicant_name, email).\n</li></ul>\n<h4> Examples</h4>\n<!-- {% raw %} -->\n<ul>\n    <li><b>Subject</b>:<br><br><pre><code>Loan Statement Of Account for {{ applicant.applicant_name }}</code></pre><br></li>\n    <li><b>Body</b>: <br><br>\n<pre><code>Hello {{ applicant.applicant_name }},<br>PFA your Loan Statement Of Account from {{ doc.from_date }} to {{ doc.to_date }}.</code> </pre></li>\n</ul>\n<!-- {% endraw %} -->"
+  }
+ ],
+ "links": [],
+ "modified": "2026-06-26 11:10:15.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Process Loan Statement of Accounts",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

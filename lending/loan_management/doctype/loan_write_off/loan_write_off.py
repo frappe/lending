@@ -51,7 +51,7 @@ class LoanWriteOff(LoanController):
 			self.cost_center = erpnext.get_default_cost_center(self.company)
 
 		if not self.write_off_account:
-			self.write_off_account = frappe.db.get_value(
+			self.write_off_account = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "write_off_account"
 			)
 
@@ -355,7 +355,7 @@ def write_off_suspense_entries(
 	if is_settled and not on_payment_allocation:
 		is_write_off = 1
 
-	accounts = frappe.db.get_value(
+	accounts = frappe.get_cached_value(
 		"Loan Product",
 		loan_product,
 		[
