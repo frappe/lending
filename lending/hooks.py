@@ -191,6 +191,7 @@ scheduler_events = {
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 		"lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl.process_consolidated_loan_gl",
+		"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.send_auto_email",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",
