@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-07-05 10:16+0000\n"
-"PO-Revision-Date: 2026-07-06 16:41\n"
+"POT-Creation-Date: 2026-07-12 10:52+0000\n"
+"PO-Revision-Date: 2026-07-15 18:44\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -163,7 +163,7 @@ msgstr "Lägg till i sista Likställda Månadsvisa Avbetalning"
 msgid "Add to first repayment"
 msgstr "Lägg till första återbetalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2132
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2155
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Tillägg Ränta Avskrivning Konto erfordras"
 
@@ -200,7 +200,7 @@ msgstr "Extra Ränta Belopp"
 msgid "Additional Interest Income"
 msgstr "Extra Ränta Intäkt"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2148
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2171
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Extra Ränta Intäkt Konto erfordras"
 
@@ -210,7 +210,7 @@ msgstr "Extra Ränta Intäkt Konto erfordras"
 msgid "Additional Interest Receivable"
 msgstr "Extra Ränta Fordring"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2142
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2165
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Extra Ränta Fordring Konto erfordras"
 
@@ -232,7 +232,7 @@ msgstr "Extra Uppskjuten Ränta Post"
 msgid "Additional Interest Waiver"
 msgstr "Extra Ränta Avskrivning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Extra Ränta Avskrivning Konto erfordras"
 
@@ -326,7 +326,7 @@ msgstr "Justeringar"
 msgid "Advance Payment"
 msgstr "Förskott Betalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2199
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2236
 msgid "Against Account is mandatory"
 msgstr "Mot konto erfordras"
 
@@ -417,7 +417,7 @@ msgstr "Belopp"
 msgid "Amount Paid"
 msgstr "Betald Belopp"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:414
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:432
 msgid "Amount Paid must equal the sum of Principal, Interest, Penalty, Charges, Unbooked Interest, and Unbooked Penalty."
 msgstr "Betalt belopp måste vara lika med summan av Kapitalbelopp, Ränta, Straffavgifter, Avgifter, Ej bokförd ränta och Ej bokförd straffavgift."
 
@@ -429,7 +429,7 @@ msgstr "Belopp kan inte vara negativ"
 msgid "Amount cannot be zero"
 msgstr "Belopp kan inte vara noll"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1739
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1762
 msgid "Amount for advance payment must be between one to two EMI amount"
 msgstr "Belopp för förskott betalning måste vara mellan ett och två Likställda Månadsvisa Avbetalningar"
 
@@ -439,19 +439,19 @@ msgstr "Belopp för förskott betalning måste vara mellan ett och två Likstäl
 msgid "Amount on which interest is calculated"
 msgstr "Belopp på vilket ränta beräknas"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:889
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:912
 msgid "Amount paid cannot be greater than available security deposit"
 msgstr "Betald belopp kan inte vara högre än tillgänglig säkerhetsdeposition"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:967
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Betald belopp kan inte vara högre än belopp som ska betalas"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:982
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1005
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Betald belopp får inte vara lägre än belopp som ska betalas för låneavslut"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:974
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:997
 msgid "Amount paid cannot be zero"
 msgstr "Betalt belopp kan inte vara noll"
 
@@ -923,7 +923,7 @@ msgstr "Kan inte avsluta detta lån förrän full återbetalning"
 msgid "Cannot create loan until application is approved"
 msgstr "Kan inte skapa lån förrän ansökan är godkänd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2489
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2526
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Kan inte göra förskott eller förskottsbetalningar under moratorieperiod. (Moratoriet Slutdatum: {}, Registrering Datum: {})"
 
@@ -1354,7 +1354,7 @@ msgstr "Kredit ({0})"
 msgid "Credit Account"
 msgstr "Kredit Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2294
 msgid "Credit Account is mandatory"
 msgstr "Kredit Konto erfordras"
 
@@ -1436,7 +1436,7 @@ msgstr "Kund"
 msgid "Customer Refund Account"
 msgstr "Kund Återbetalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
 msgid "Customer Refund Account is mandatory"
 msgstr "Kund Återbetalning Konto erfordras"
 
@@ -2004,7 +2004,7 @@ msgstr "Fullständig Förlikning"
 msgid "Full Settlement Job"
 msgstr "Fullständig Förlikning Uppdrag"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:927
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:950
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Fullständig Uppgörelse kan inte dateras retroaktivt. Värdedagen {0} kan inte infalla före senaste återbetalning dag {1} ({2})."
 
@@ -2079,7 +2079,7 @@ msgstr "Intäkt"
 msgid "Income Account"
 msgstr "Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:970
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:993
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Felaktig återbetalning typ, skriv av lån först"
 
@@ -2169,7 +2169,7 @@ msgstr "Ränta Vidarebefordrad"
 msgid "Interest Income Account"
 msgstr "Ränte Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2088
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2111
 msgid "Interest Income Account is mandatory"
 msgstr "Ränta Intäkt Konto erfordras"
 
@@ -2198,7 +2198,7 @@ msgstr "Räntesats (%)"
 msgid "Interest Receivable Account"
 msgstr "Räntefordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2083
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2106
 msgid "Interest Receivable Account is mandatory"
 msgstr "Räntefordring Konto erfordras"
 
@@ -2226,7 +2226,7 @@ msgstr "Ränta Avskrivning"
 msgid "Interest Waiver Account"
 msgstr "Ränta Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2165
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2188
 msgid "Interest Waiver Account is mandatory"
 msgstr "Ränta Avstånd Konto erfordras"
 
@@ -2255,7 +2255,7 @@ msgstr "Ränta: {0}"
 msgid "Internal Foreclosure"
 msgstr "Intern Utmätning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:848
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:871
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Ogiltig Utbetalning länkad för betalning"
 
@@ -2550,9 +2550,9 @@ msgstr "Lån Konto"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Lånekonto och Betalkonto får inte vara samma"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2079
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2109
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2102
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2132
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2160
 msgid "Loan Account is mandatory"
 msgstr "Lånekonto erfordras"
 
@@ -2562,7 +2562,7 @@ msgstr "Lånekonto erfordras"
 msgid "Loan Accounts"
 msgstr "Lån Konto"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1136
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Beräkning Frekvens är inte angiven för {0}"
 
@@ -3559,7 +3559,7 @@ msgstr "Ouppbördig Tillgång"
 msgid "Loan {0} closed"
 msgstr "Lån {0} stängd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:951
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:974
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Lån {0}: Kan inte bokföras {1} efter full förlikning. Endast Ränta, Straff eller Avgift Avskrivning kan bokföras efter Full Förlikning."
 
@@ -4107,7 +4107,7 @@ msgstr "Partner Inkasso Procentuellt"
 msgid "Partner Interest Share"
 msgstr "Partner Ränta Andel"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2261
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2298
 msgid "Partner Interest Share is mandatory"
 msgstr "Partner Ränta Delning erfordras"
 
@@ -4183,7 +4183,7 @@ msgstr "Tidigare Kassaflöde Rapport"
 msgid "Payable Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2259
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2296
 msgid "Payable Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -4214,9 +4214,9 @@ msgstr "Betalbar Belopp"
 msgid "Payment Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2090
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2236
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2378
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2113
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2273
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2415
 msgid "Payment Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -4315,7 +4315,7 @@ msgstr "Straffavgift Sats"
 msgid "Penalty Income Account"
 msgstr "Straffavgift Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2119
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2142
 msgid "Penalty Income Account is mandatory"
 msgstr "Straffavgift Intäkt Konto erfordras"
 
@@ -4341,7 +4341,7 @@ msgstr "Straffavgift Försenad"
 msgid "Penalty Receivable Account"
 msgstr "Straffavgift Fordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2113
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2136
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Straffavgift Fordring Konto erfordras"
 
@@ -4428,7 +4428,7 @@ msgstr "Välj Som på Datum."
 msgid "Please select Company."
 msgstr "Välj Bolag."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:839
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:862
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Välj Utbetalning för Kredit Återbetalning"
 
@@ -4458,7 +4458,7 @@ msgstr "Ange konto för Extra Ränta Intäkt Konto i {0}"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Ange Bruten Period Ränta Återställning Konto för {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2197
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Ange Kund Återbetalning Konto i {0}"
 
@@ -4478,7 +4478,7 @@ msgstr "Vänligen ange Lån Konto för Lån Artikel {0}"
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Vänligen ange Betalning Konto för Lån Artikel {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:826
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:849
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Ange Lönekonto i Låneåterbetalning"
 
@@ -4490,7 +4490,7 @@ msgstr "Ange Beräknad Straffavgift Konto i {0}"
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Ange Straffavgift Intäkt Konto i {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:609
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:627
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "Ange Avskrivning Återställning Konto i {0}"
 
@@ -4506,7 +4506,7 @@ msgstr "Ange {0} Upplupen Konto i {1}"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Ange {0} Fordring Konto i {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2429
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2466
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Ange {0} i antingen Bolag eller Artikel"
 
@@ -5187,7 +5187,7 @@ msgstr "Återbetalning Start Datum {0} får inte infalla före Utbetalning Datum
 msgid "Repayment Type"
 msgstr "Återbetalning Typ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:906
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
 msgid "Repayment cannot be made for closed loan"
 msgstr "Återbetalning kan inte göras för avslutad lån"
 
@@ -5195,7 +5195,7 @@ msgstr "Återbetalning kan inte göras för avslutad lån"
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Återbetalning perioder erfordras för termin lån"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:961
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:984
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Återbetalning Typ kan endast vara Avskrivning Återställning eller Avskrivning Förlikning"
 
@@ -5267,7 +5267,7 @@ msgstr "Omstrukturering av tillämpliga lån"
 msgid "Restructured"
 msgstr "Omstrukturerad"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2238
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2275
 msgid "Round Off Account is mandatory"
 msgstr "Avrundning Konto erfordras"
 
@@ -5531,19 +5531,19 @@ msgstr "Period Efter Omstrukturering"
 msgid "Term Details"
 msgstr "Villkor Detaljer"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1006
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1029
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Låneutbetalning {0} är avslutad."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:892
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:915
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr "Betald belopp kan inte vara högre än belopp som ska betalas för återbetalningar av justering av garanti deposition."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3295
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3332
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3281
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3318
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
@@ -5925,7 +5925,7 @@ msgstr "Avstånd Belopp"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Avstånd Belopp {0} kan inte vara högre än utestående belopp {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1013
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Avstånd {0} belopp {1} kan inte vara högre än förfallet belopp {2}"
 
@@ -5934,7 +5934,7 @@ msgstr "Avstånd {0} belopp {1} kan inte vara högre än förfallet belopp {2}"
 msgid "Waiver Account"
 msgstr "Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2389
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2426
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Avskrivning Konto inte angiven för avgift {0} i {1}"
 
@@ -6002,7 +6002,7 @@ msgstr "Avskrivning Återställning"
 msgid "Write Off Recovery Account"
 msgstr "Avskrivning Återställning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2191
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2214
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Avskrivning Återställning Konto erfordras"
 
