@@ -82,7 +82,8 @@ class LoanSecurityAssignment(Document):
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
 		self.db_set("pledge_time", None)
-		update_loan(self.loan, self.maximum_loan_value, cancel=1)
+		if self.loan:
+			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_securities(self):
@@ -131,23 +132,27 @@ class LoanSecurityAssignment(Document):
 		self.maximum_loan_value = maximum_loan_value
 
 	def check_loan_securities_capability_to_book_additional_loans(self):
+		if not self.loan:
+			return
+
 		loan_amount, status = frappe.db.get_value("Loan", self.loan, ["loan_amount", "status"])
 
 		if status != "Sanctioned":
 			return
 
-		total_security_value_needed = loan_amount
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		total_security_value_needed = flt(loan_amount, precision)
 
 		total_available_security_value = 0
 		for d in self.get("securities"):
-			total_available_security_value += frappe.db.get_value(
-				"Loan Security", d.loan_security, "available_security_value"
+			total_available_security_value += flt(
+				frappe.db.get_value("Loan Security", d.loan_security, "available_security_value"), precision
 			)
 
 		if total_security_value_needed > total_available_security_value:
 			frappe.throw(
 				_("Loan Securities worth {0} needed more to book the loan").format(
-					frappe.bold(flt(total_security_value_needed - total_available_security_value, 2)),
+					frappe.bold(flt(total_security_value_needed - total_available_security_value, precision)),
 				)
 			)
 
@@ -155,7 +160,9 @@ class LoanSecurityAssignment(Document):
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):
-	maximum_loan_value = frappe.db.get_value("Loan", {"name": loan}, ["maximum_loan_amount"])
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	maximum_loan_value = flt(frappe.db.get_value("Loan", {"name": loan}, "maximum_loan_amount"), precision)
+	maximum_value_against_pledge = flt(maximum_value_against_pledge, precision)
 
 	if cancel:
 		frappe.db.sql(
@@ -179,6 +186,8 @@ def update_loan_securities_values(
 ):
 	if not frappe.db.get_value("Loan", loan, "is_secured_loan"):
 		return
+
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	utilized_value_increased = (
 		True
@@ -211,25 +220,27 @@ def update_loan_securities_values(
 		if amount <= 0:
 			break
 
+		utilized_security_value = flt(loan_security.utilized_security_value, precision)
+		available_security_value = flt(loan_security.available_security_value, precision)
+		original_security_value = flt(loan_security.original_security_value, precision)
+
 		if utilized_value_increased:
-			if loan_security.utilized_security_value + amount > loan_security.original_security_value:
-				new_utilized_security_value = loan_security.original_security_value
+			if utilized_security_value + amount > original_security_value:
+				new_utilized_security_value = original_security_value
 				new_available_security_value = 0
-				amount = amount + loan_security.utilized_security_value - loan_security.original_security_value
+				amount = amount + utilized_security_value - original_security_value
 			else:
-				new_utilized_security_value = loan_security.utilized_security_value + amount
-				new_available_security_value = loan_security.available_security_value - amount
+				new_utilized_security_value = utilized_security_value + amount
+				new_available_security_value = available_security_value - amount
 				amount = 0
 		else:
-			if loan_security.available_security_value + amount > loan_security.original_security_value:
-				new_available_security_value = loan_security.original_security_value
+			if available_security_value + amount > original_security_value:
+				new_available_security_value = original_security_value
 				new_utilized_security_value = 0
-				amount = (
-					amount + loan_security.available_security_value - loan_security.original_security_value
-				)
+				amount = amount + available_security_value - original_security_value
 			else:
-				new_utilized_security_value = loan_security.utilized_security_value - amount
-				new_available_security_value = loan_security.available_security_value + amount
+				new_utilized_security_value = utilized_security_value - amount
+				new_available_security_value = available_security_value + amount
 				amount = 0
 
 		frappe.db.set_value(
