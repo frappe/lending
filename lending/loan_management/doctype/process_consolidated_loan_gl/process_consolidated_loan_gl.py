@@ -115,7 +115,7 @@ class ProcessConsolidatedLoanGL(LoanController):
 			for name in self.get_deferred_docs(doctype):
 				source = frappe.get_doc(doctype, name)
 				sign = -1 if source.docstatus == 2 else 1
-				for line in source.build_gl_map():
+				for line in source.build_gl_map() or []:
 					key = tuple(line.get(k) for k in BUCKET_KEYS)
 					gl = gl_buckets.setdefault(key, {"debit": 0.0, "credit": 0.0})
 					gl["debit"] += sign * flt(line.get("debit"))
