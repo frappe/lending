@@ -536,5 +536,6 @@ def reconsolidate_gl_for_loan(loan, company, repost_date, start_date):
 	last_month_end = get_last_day(getdate())
 	while getdate(month_end) <= getdate(last_month_end):
 		run_consolidation_for_loan(loan, month_end, company=company)
-		frappe.db.commit()
+		# Commit per month so a later failure doesn't roll back earlier months in this long loop.
+		frappe.db.commit()  # nosemgrep
 		month_end = get_last_day(add_days(month_end, 1))

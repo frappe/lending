@@ -465,7 +465,8 @@ def run_consolidation_for_loan_batch(loans, month_end_date, company):
 				reference_doctype="Loan",
 				reference_name=loan,
 			)
-		frappe.db.commit()
+		# Commit per loan so one failure in the batch doesn't roll back earlier loans.
+		frappe.db.commit()  # nosemgrep
 
 
 def process_consolidated_loan_gl(month_end_date=None):
