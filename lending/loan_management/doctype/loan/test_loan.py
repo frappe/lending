@@ -3770,6 +3770,7 @@ class TestLoan(LendingTestSuite):
 		)
 =======
 
+<<<<<<< HEAD
 	def test_loan_gl_consolidation(self):
 		from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
 			run_consolidation_for_company,
@@ -3828,3 +3829,5 @@ class TestLoan(LendingTestSuite):
 		for month_end in month_ends:
 			run_consolidation_for_company("_Test Company", month_end_date=month_end)
 >>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
+=======
+>>>>>>> 4b84a49 (fix: batch GL consolidation and simplify comments)
