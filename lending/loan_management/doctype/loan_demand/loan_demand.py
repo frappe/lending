@@ -135,9 +135,9 @@ class LoanDemand(LoanController):
 		if not loan_accounting_enabled(self.company):
 			return
 
-		# Defer to monthly consolidation on submit AND cancel (see LoanInterestAccrual.make_gl_entries).
-		# Posting reversal GL here on cancel would create per-doc GL and defeat consolidation.
-		if gl_consolidation_enabled(self.company, self.posting_date):
+		# Gated on demand_date, not posting_date (always today) -- must match the date field
+		# consolidation queries scope by, or a demand can defer into a period never consolidated.
+		if gl_consolidation_enabled(self.company, self.demand_date):
 			if not cancel and self.gl_posted:
 				self.db_set("gl_posted", 0)
 			return
