@@ -127,8 +127,7 @@ class LoanInterestAccrual(LoanController):
 
 		self.make_gl_entries()
 		if self.is_npa and not self.unmark_npa:
-			# The NPA suspense JE (income -> suspense) is deferred alongside the GL when consolidation
-			# is enabled; the consolidation job creates one consolidated suspense JE per loan/month.
+			# Deferred to the monthly consolidation job when consolidation is enabled.
 			if gl_consolidation_enabled(self.company, self.posting_date):
 				return
 

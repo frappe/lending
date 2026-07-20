@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, cint, flt, get_last_day, getdate
+from frappe.utils import add_days, add_months, cint, flt, get_first_day, get_last_day, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -123,33 +123,21 @@ class LoanRepaymentRepost(Document):
 		self.db_set("status", "Completed")
 
 	def reconsolidate_gl(self):
-		"""If GL consolidation is on, settle every month touched by this repost via a delta voucher.
-
-		Repost cancels and recreates accruals/demands, which re-defer their GL. Consolidation is
-		idempotent per month, so re-running from the repost date to today reconciles each affected
-		month without waiting for month-end.
-		"""
-		from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
-			run_consolidation_for_loan,
-		)
-
+		"""Enqueue reconsolidation for every month touched by this repost (delta, idempotent)."""
 		company = frappe.db.get_value("Loan", self.loan, "company")
 		start_date = frappe.db.get_value("Company", company, "loan_gl_consolidation_start_date")
 		if not company or not start_date:
 			return
 
-		# Reposting cancels + recreates this loan's accruals/demands, re-deferring GL for months on or
-		# after the consolidation start date. Re-run consolidation for every such month up to today
-		# (run_consolidation_for_loan itself gates by the start date and skips months with nothing to
-		# do). Do NOT gate on repost_date: a repost from before the start date still regenerates
-		# deferred docs in later months that must be reconsolidated.
-		from frappe.utils import get_first_day
-
-		month_end = get_last_day(max(getdate(self.repost_date), get_first_day(getdate(start_date))))
-		last_month_end = get_last_day(getdate())
-		while getdate(month_end) <= getdate(last_month_end):
-			run_consolidation_for_loan(self.loan, month_end, company=company)
-			month_end = get_last_day(add_days(month_end, 1))
+		frappe.enqueue(
+			reconsolidate_gl_for_loan,
+			queue="long",
+			enqueue_after_commit=True,
+			loan=self.loan,
+			company=company,
+			repost_date=self.repost_date,
+			start_date=start_date,
+		)
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
@@ -536,3 +524,17 @@ def process_loan_repayment_repost(repost):
 		)
 		frappe.db.commit()
 		raise
+
+
+def reconsolidate_gl_for_loan(loan, company, repost_date, start_date):
+	"""Settle every month from repost_date to today via a delta voucher."""
+	from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
+		run_consolidation_for_loan,
+	)
+
+	month_end = get_last_day(max(getdate(repost_date), get_first_day(getdate(start_date))))
+	last_month_end = get_last_day(getdate())
+	while getdate(month_end) <= getdate(last_month_end):
+		run_consolidation_for_loan(loan, month_end, company=company)
+		frappe.db.commit()
+		month_end = get_last_day(add_days(month_end, 1))

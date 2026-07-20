@@ -54,11 +54,7 @@ class ProcessConsolidatedLoanGL(LoanController):
 		if not self.period_end_date:
 			self.period_end_date = self.month_end_date
 
-		# Consolidated GL always posts on the run date (today), matching the original per-doc demand
-		# behaviour (Loan Demand set posting_date = today). When the daily scheduler runs on month-end,
-		# "today" is month-end; a repost/backdated run posts in the current open period. This avoids
-		# ever writing into a closed accounting period. The month it belongs to is identified by
-		# month_end_date + the period fields, not by the GL date.
+		# Posts on run date, not month_end_date, so it never writes into a closed period.
 		if not self.posting_date:
 			self.posting_date = getdate(nowdate())
 
@@ -69,17 +65,13 @@ class ProcessConsolidatedLoanGL(LoanController):
 			return
 
 		gl_map, covered = self.build_consolidated_gl()
-
-		# build_consolidated_gl fills self.consolidation_details; persist it (doc is already submitted).
 		self.save_consolidation_details()
 
 		if gl_map:
 			self.make_gl_entries(gl_map, merge_entries=False)
 
 		self.flag_covered_docs(covered)
-
-		# NPA suspense JE: recompute from live accruals AFTER flagging, so the "live" set reflects
-		# this run's cancellations/recreations. One JE per month, always equal to live NPA income.
+		# Runs after flagging so the "live" NPA set reflects this run's cancellations/recreations.
 		self.sync_consolidated_suspense_je()
 
 	def save_consolidation_details(self):
@@ -93,11 +85,8 @@ class ProcessConsolidatedLoanGL(LoanController):
 		from erpnext.accounts.general_ledger import make_reverse_gl_entries
 
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
-		# The consolidated GL rows are read back from the ledger and reversed (immutable-ledger safe:
-		# reversal is a fresh forward-dated entry, not an in-place edit).
 		make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
-		# Cancel this loan+month's consolidated NPA suspense JE(s) (tagged by loan+month).
 		for je in frappe.get_all(
 			"Journal Entry", {"user_remark": self.suspense_je_tag(), "docstatus": 1}, pluck="name"
 		):
@@ -105,7 +94,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 			doc.flags.ignore_links = True
 			doc.cancel()
 
-		# Re-open the covered source docs so a subsequent run reconsolidates them.
 		for doctype in CONSOLIDATED_SOURCES:
 			frappe.db.set_value(
 				doctype,
@@ -117,12 +105,8 @@ class ProcessConsolidatedLoanGL(LoanController):
 	def build_consolidated_gl(self):
 		"""Aggregate deferred source GL into one consolidated map.
 
-		Returns (gl_map, covered) where covered maps doctype -> list of source doc names to flag
-		as posted once the voucher is submitted. Also fills the consolidation_details child table so
-		the voucher shows what it rolled up (account, source type, amount, source doc count).
+		Returns (gl_map, covered) where covered maps doctype -> source doc names to flag as posted.
 		"""
-		# GL buckets are loan-wise (against_voucher = Loan). Detail buckets add loan_disbursement so
-		# LOC loans (accrual/demand tracked per disbursement) are traceable in the breakdown table.
 		gl_buckets = {}
 		detail_buckets = {}
 		covered = {doctype: [] for doctype in CONSOLIDATED_SOURCES}
@@ -152,19 +136,13 @@ class ProcessConsolidatedLoanGL(LoanController):
 		return gl_map, covered
 
 	def get_deferred_docs(self, doctype):
-		"""Source docs in this period whose GL is not yet reflected in a consolidated voucher.
-
-		- docstatus 1 with gl_posted 0: newly accrued/demanded, not yet consolidated.
-		- docstatus 2 with a consolidated voucher: cancelled after consolidation, needs reversing delta.
-		"""
+		"""Source docs in this period not yet reflected in a consolidated voucher (or cancelled after one)."""
 		date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
 
 		src = frappe.qb.DocType(doctype)
 		date_col = src[date_field]
 		in_period = date_col[self.period_start_date : self.period_end_date]
 
-		# gl_posted=0 AND no live consolidated voucher: guards against re-posting a doc whose GL is
-		# already in the ledger (double-count protection if a doc is ever left half-reset).
 		pending = (
 			frappe.qb.from_(src)
 			.select(src.name)
@@ -178,7 +156,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 			.run(pluck=True)
 		)
 
-		# cancelled after consolidation -> needs a reversing delta
 		reversed_after = (
 			frappe.qb.from_(src)
 			.select(src.name)
@@ -201,7 +178,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 		for key, amounts in buckets.items():
 			net = flt(amounts["debit"], precision) - flt(amounts["credit"], precision)
 			if not net:
-				# Fully offset within the period (e.g. accrued then reversed) -> no GL row.
 				continue
 
 			args = dict(zip(BUCKET_KEYS, key, strict=True))
@@ -236,8 +212,7 @@ class ProcessConsolidatedLoanGL(LoanController):
 				"consolidation_details",
 				{
 					"source_type": source_type,
-					# Link the actual source doc only when a single one feeds this line; a merged
-					# line (many docs) leaves it blank -- trace those via # Docs / View Ledger.
+					# Blank when multiple docs merge into one line; trace those via # Docs / Ledger.
 					"source_document": next(iter(source_docs)) if len(source_docs) == 1 else None,
 					"loan_disbursement": loan_disbursement,
 					"account": line.get("account"),
@@ -248,14 +223,8 @@ class ProcessConsolidatedLoanGL(LoanController):
 			)
 
 	def sync_consolidated_suspense_je(self):
-		"""Make the month's consolidated NPA suspense JE equal the sum of its LIVE NPA accruals.
-
-		Recompute-from-live (not delta): cancel any existing consolidated suspense JE for this
-		loan+month, then post one fresh JE for the current total. This is self-correcting -- after any
-		cancel/repost, the JE always matches reality, so debugging is a single check: does the live
-		suspense JE for a month equal the sum of live NPA accruals in that month?
-		"""
-		# Cancel any suspense JE already posted for this loan+month (tagged with the month-end date).
+		"""Recompute-from-live: cancel any existing consolidated NPA suspense JE for this loan+month,
+		then post one fresh JE equal to the sum of live NPA accruals in the month."""
 		tag = self.suspense_je_tag()
 		for je in frappe.get_all("Journal Entry", {"user_remark": tag, "docstatus": 1}, pluck="name"):
 			doc = frappe.get_doc("Journal Entry", je)
@@ -310,11 +279,10 @@ class ProcessConsolidatedLoanGL(LoanController):
 			je.submit()
 
 	def suspense_je_tag(self):
-		"""Stable tag linking suspense JEs to this loan+month (survives voucher delta re-runs)."""
 		return f"CONS-SUSPENSE::{self.loan}::{self.month_end_date}"
 
 	def live_suspense_buckets(self):
-		"""Target suspense amounts (income -> suspense) from all LIVE NPA accruals in the month."""
+		"""Suspense amounts (income -> suspense) from all live NPA accruals in the month."""
 		if frappe.db.get_value("Loan", self.loan, "status") == "Written Off":
 			return {}
 
@@ -370,7 +338,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 			for name in names:
 				docstatus = frappe.db.get_value(doctype, name, "docstatus")
 				if docstatus == 2:
-					# Reversal absorbed: clear the link so it is not reversed again.
 					frappe.db.set_value(
 						doctype, name, "consolidated_gl_voucher", None, update_modified=False
 					)
@@ -386,9 +353,8 @@ class ProcessConsolidatedLoanGL(LoanController):
 def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=False):
 	"""Create and submit one consolidated voucher for a single loan + month.
 
-	Idempotent: re-running for the same loan+month posts only the delta of newly deferred / newly
-	reversed source docs, so mid-month cancellations, backdated repayments and repeated reposts all
-	settle without rewriting history. Returns the voucher name, or None if nothing to consolidate.
+	Idempotent: re-running for the same loan+month posts only the delta. Returns the voucher name,
+	or None if nothing to consolidate.
 	"""
 	company = company or frappe.db.get_value("Loan", loan, "company")
 	if not company or not loan_accounting_enabled(company):
@@ -400,8 +366,6 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 	month_end_date = get_last_day(month_end_date or nowdate())
 	period_start = get_first_day(month_end_date)
 
-	# Skip months with nothing to consolidate so we never create empty vouchers (e.g. a repost that
-	# loops from its date up to today across months that have no accrual/demand yet).
 	if not loan_has_deferred_gl(loan, period_start, month_end_date):
 		return
 
@@ -423,9 +387,7 @@ def loan_has_deferred_gl(loan, period_start, period_end):
 
 		deferred = (src.docstatus == 1) & (src.gl_posted == 0)
 		reversal_pending = (
-			(src.docstatus == 2)
-			& (src.gl_posted == 1)
-			& src.consolidated_gl_voucher.isnotnull()
+			(src.docstatus == 2) & (src.gl_posted == 1) & src.consolidated_gl_voucher.isnotnull()
 		)
 		exists = (
 			frappe.qb.from_(src)
@@ -447,12 +409,9 @@ def loans_with_deferred_gl(company, period_start, period_end):
 		src = frappe.qb.DocType(doctype)
 		in_period = src[date_field][period_start:period_end]
 
-		# deferred (not yet consolidated) or cancelled-after-consolidation (needs reversing delta)
 		deferred = (src.docstatus == 1) & (src.gl_posted == 0)
 		reversal_pending = (
-			(src.docstatus == 2)
-			& (src.gl_posted == 1)
-			& src.consolidated_gl_voucher.isnotnull()
+			(src.docstatus == 2) & (src.gl_posted == 1) & src.consolidated_gl_voucher.isnotnull()
 		)
 		loans.update(
 			frappe.qb.from_(src)
@@ -464,23 +423,49 @@ def loans_with_deferred_gl(company, period_start, period_end):
 	return [x for x in loans if x]
 
 
+CONSOLIDATION_BATCH_SIZE = 3000
+
+
 def run_consolidation_for_company(company, month_end_date=None, force=False):
-	"""Consolidate every loan of a company for the month: one voucher per loan. Returns voucher names."""
+	"""Enqueue consolidation of every loan of a company for the month, in batches (see process_loan_interest_accrual)."""
 	if not loan_accounting_enabled(company):
-		return []
+		return
 
 	if not force and not gl_consolidation_enabled(company, month_end_date or nowdate()):
-		return []
+		return
 
 	month_end_date = get_last_day(month_end_date or nowdate())
 	period_start = get_first_day(month_end_date)
 
-	vouchers = []
-	for loan in loans_with_deferred_gl(company, period_start, month_end_date):
-		v = run_consolidation_for_loan(loan, month_end_date, company=company, force=True)
-		if v:
-			vouchers.append(v)
-	return vouchers
+	loans = loans_with_deferred_gl(company, period_start, month_end_date)
+	for batch in get_batches(loans, CONSOLIDATION_BATCH_SIZE):
+		frappe.enqueue(
+			run_consolidation_for_loan_batch,
+			loans=batch,
+			month_end_date=month_end_date,
+			company=company,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+
+
+def get_batches(items, batch_size):
+	for i in range(0, len(items), batch_size):
+		yield items[i : i + batch_size]
+
+
+def run_consolidation_for_loan_batch(loans, month_end_date, company):
+	"""Consolidate a batch of loans for the month."""
+	for loan in loans:
+		try:
+			run_consolidation_for_loan(loan, month_end_date, company=company, force=True)
+		except Exception:
+			frappe.log_error(
+				title=f"Consolidated Loan GL failed for {loan}",
+				reference_doctype="Loan",
+				reference_name=loan,
+			)
+		frappe.db.commit()
 
 
 def process_consolidated_loan_gl(month_end_date=None):
