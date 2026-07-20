@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import flt, get_last_day
+from frappe.utils import flt, get_last_day, getdate
 
 from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
 	run_consolidation_for_loan,
@@ -629,3 +629,54 @@ class TestProcessConsolidatedLoanGL(LendingTestSuite):
 		)
 		self.assertTrue(all(d.gl_posted == 1 for d in demands))
 		self.assertTrue(all(d.consolidated_gl_voucher == voucher for d in demands))
+
+	def test_demand_deferral_gated_on_demand_date_not_posting_date(self):
+		"""Deferral must gate on demand_date, not posting_date (always today), matching the date field
+		the consolidation queries scope by -- otherwise a backdated demand can defer with no month
+		that ever consolidates it."""
+		demand_date = "2024-04-10"
+		start_date = "2024-05-01"
+		self.enable_consolidation(start_date)
+
+		loan = create_loan(
+			self.applicant,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=demand_date,
+			posting_date=demand_date,
+			rate_of_interest=23,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			1000000,
+			disbursement_date=demand_date,
+			repayment_start_date=demand_date,
+		)
+
+		process_daily_loan_demands(posting_date=demand_date, loan=loan.name)
+
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["name", "demand_date", "posting_date", "gl_posted"],
+		)
+		self.assertTrue(demands, "expected a demand for the backdated period")
+		for d in demands:
+			self.assertLess(get_last_day(d.demand_date), getdate(start_date))
+			self.assertGreaterEqual(getdate(d.posting_date), getdate(start_date))
+
+		# with the fix, demand_date < start_date means consolidation is not enabled for this demand:
+		# it must post its own daily GL immediately (gl_posted=1), not defer.
+		self.assertTrue(
+			all(d.gl_posted == 1 for d in demands),
+			"a demand dated before start_date must post its own GL, not defer into a dead zone",
+		)
+
+		# consolidation for the (pre-start-date) demand month must find nothing to do -- the demand
+		# already carries its own GL and was never deferred.
+		voucher = run_consolidation_for_loan(loan.name, get_last_day(demand_date), force=True)
+		self.assertFalse(voucher, "nothing should be deferred for a pre-start-date month")
