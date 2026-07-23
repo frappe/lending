@@ -129,16 +129,6 @@ class LoanRepayment(LoanController):
 			else:
 				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
 
-		amounts = calculate_amounts(
-			self.against_loan,
-			self.value_date,
-			payment_type=self.repayment_type,
-			charges=charges,
-			loan_disbursement=self.loan_disbursement,
-			for_update=True,
-		)
-
-		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
 
@@ -150,9 +140,19 @@ class LoanRepayment(LoanController):
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
 		self.check_future_entries()
-		self.validate_security_deposit_amount()
-		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
+
+		amounts = calculate_amounts(
+			self.against_loan,
+			self.value_date,
+			payment_type=self.repayment_type,
+			charges=charges,
+			loan_disbursement=self.loan_disbursement,
+			for_update=True,
+		)
+
+		self.set_missing_values(amounts)
+		self.validate_security_deposit_amount()
 		self.validate_amount(amounts)
 		self.allocate_amounts(amounts)
 
