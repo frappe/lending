@@ -14,6 +14,9 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 )
 from lending.loan_management.utils import update_repayment_schedule_demand_generated
 
+# Max wait for another repost's lock; 1.5x the longest observed repost run time (~4h).
+REPOST_LOCK_TIMEOUT = 21600
+
 
 class LoanRepaymentRepost(Document):
 	# begin: auto-generated types
@@ -489,6 +492,16 @@ class LoanRepaymentRepost(Document):
 
 
 def process_loan_repayment_repost(repost):
+	# Only one repost runs at a time to avoid deadlocks on shared GL/accrual rows.
+	try:
+		with frappe.db.advisory_lock("loan_repayment_repost", timeout=REPOST_LOCK_TIMEOUT):
+			_process_loan_repayment_repost(repost)
+	except frappe.QueryTimeoutError:
+		# Lock held far longer than any repost should take; retry once instead of failing outright.
+		raise frappe.RetryBackgroundJobError
+
+
+def _process_loan_repayment_repost(repost):
 	doc = frappe.get_doc("Loan Repayment Repost", repost)
 	try:
 		doc._submit()
@@ -501,7 +514,8 @@ def process_loan_repayment_repost(repost):
 		doc.db_set("status", "Draft")
 		doc.add_comment(
 			"Comment",
-			_("The repost did not finish and has been reset to Draft:") + f"<br>{frappe.get_traceback()}",
+			_("The repost did not finish and has been reset to Draft:")
+			+ f"<br>{frappe.get_traceback()}",
 		)
 		frappe.db.commit()
 		raise
