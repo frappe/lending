@@ -204,6 +204,14 @@ class LoanRepayment(AccountsController):
 				)
 
 	def on_submit(self):
+<<<<<<< HEAD
+=======
+		if self.is_imported:
+			frappe.db.get_value("Loan", self.against_loan, "name", for_update=True)
+			self.update_paid_amounts()
+			return
+
+>>>>>>> efa3b187 (fix: Reduce loan repayment transaction time)
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 			make_sales_invoice_for_charge,
@@ -296,7 +304,7 @@ class LoanRepayment(AccountsController):
 		self.update_security_deposit_amount()
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
@@ -305,6 +313,7 @@ class LoanRepayment(AccountsController):
 			else:
 				self.post_write_off_settlements()
 
+		self.enqueue_shortfall_status_update()
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
@@ -764,7 +773,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries(cancel=1)
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		self.check_future_entries(cancel=1)
 
@@ -1170,7 +1179,27 @@ class LoanRepayment(AccountsController):
 		query = self.update_limits(query, loan)
 		query.run()
 
-		update_shortfall_status(self.against_loan, self.principal_amount_paid)
+	def enqueue_installment_count_update(self):
+		if frappe.flags.in_test:
+			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+		else:
+			frappe.enqueue(
+				update_installment_counts,
+				against_loan=self.against_loan,
+				loan_disbursement=self.loan_disbursement,
+				enqueue_after_commit=True,
+			)
+
+	def enqueue_shortfall_status_update(self):
+		if frappe.flags.in_test:
+			update_shortfall_status(self.against_loan, self.principal_amount_paid)
+		else:
+			frappe.enqueue(
+				update_shortfall_status,
+				loan=self.against_loan,
+				security_value=self.principal_amount_paid,
+				enqueue_after_commit=True,
+			)
 
 	def handle_auto_demand_write_off(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
