@@ -12,7 +12,7 @@ pip install frappe-bench
 
 LENDING_BRANCH=${BRANCH_TO_CLONE:-develop}
 
-if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" ]]; then
+if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" || "$LENDING_BRANCH" == "version-2-beta" ]]; then
     FRAPPE_BRANCH="version-15"
     ERPNEXT_BRANCH="version-15"
 else

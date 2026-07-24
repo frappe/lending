@@ -4,7 +4,7 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -30,7 +30,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepaymentSchedule(IntegrationTestCase):
+class TestLoanRepaymentSchedule(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
