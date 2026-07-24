@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:52+0000\n"
-"PO-Revision-Date: 2026-07-20 19:37\n"
+"PO-Revision-Date: 2026-07-22 19:48\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -896,7 +896,7 @@ msgstr ""
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Biweekly"
-msgstr ""
+msgstr "Dvotedensko"
 
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
@@ -4591,7 +4591,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:8
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:23
 msgid "Please save before proceeding."
-msgstr ""
+msgstr "Pred nadaljevanjem shranite."
 
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:37
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:37
@@ -4933,7 +4933,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Print Preferences"
-msgstr ""
+msgstr "Nastavitve za tisk"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:98
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:155
@@ -5179,7 +5179,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Regular"
-msgstr ""
+msgstr "Redno"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5201,7 +5201,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:73
 msgid "Remarks"
-msgstr ""
+msgstr "Opombe"
 
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan
