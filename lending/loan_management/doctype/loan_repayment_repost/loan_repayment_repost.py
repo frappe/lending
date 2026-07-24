@@ -370,6 +370,9 @@ class LoanRepaymentRepost(Document):
 			repayment_doc.set("pending_principal_amount", flt(pending_principal_amount, precision))
 			repayment_doc.run_method("before_validate")
 
+			if is_security_deposit_adjustment:
+				repayment_doc.repayment_type = "Security Deposit Adjustment"
+
 			repayment_doc.allocate_amounts(amounts)
 
 			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
@@ -428,14 +431,6 @@ class LoanRepaymentRepost(Document):
 						doc.make_gl_entries()
 
 					frappe.db.set_value("Loan", self.loan, "written_off_amount", write_off_amount)
-
-			if is_security_deposit_adjustment:
-				frappe.db.set_value(
-					"Loan Repayment",
-					entry.loan_repayment,
-					"repayment_type",
-					"Security Deposit Adjustment",
-				)
 
 			repayment_doc.flags.from_repost = False
 			frappe.flags.on_repost = False
