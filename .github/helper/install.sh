@@ -12,16 +12,19 @@ pip install frappe-bench
 
 LENDING_BRANCH=${BRANCH_TO_CLONE:-develop}
 
-if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" ]]; then
+if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix" || "$LENDING_BRANCH" == "version-2-beta" ]]; then
     FRAPPE_BRANCH="version-15"
     ERPNEXT_BRANCH="version-15"
+    PAYMENTS_BRANCH="version-15"
 else
     FRAPPE_BRANCH="develop"
     ERPNEXT_BRANCH="develop"
+    PAYMENTS_BRANCH="develop"
 fi
 
 echo "Using Frappe branch: $FRAPPE_BRANCH"
 echo "Using ERPNext branch: $ERPNEXT_BRANCH"
+echo "Using Payments branch: $PAYMENTS_BRANCH"
 echo "Using Lending branch: $LENDING_BRANCH"
 
 git clone https://github.com/frappe/frappe --branch $FRAPPE_BRANCH --depth 1
@@ -54,7 +57,7 @@ sed -i 's/schedule:/# schedule:/g' Procfile
 sed -i 's/socketio:/# socketio:/g' Procfile
 sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
 
-bench get-app payments
+bench get-app https://github.com/frappe/payments --branch $PAYMENTS_BRANCH
 bench get-app https://github.com/frappe/erpnext --branch $ERPNEXT_BRANCH --resolve-deps
 bench setup requirements --dev
 

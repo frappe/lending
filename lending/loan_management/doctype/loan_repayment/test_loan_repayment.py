@@ -4,7 +4,7 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -31,7 +31,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRepayment(IntegrationTestCase):
+class TestLoanRepayment(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()

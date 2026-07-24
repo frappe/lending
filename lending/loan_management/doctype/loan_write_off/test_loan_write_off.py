@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime
 
 from lending.tests.test_utils import (
@@ -14,7 +14,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanWriteOff(IntegrationTestCase):
+class TestLoanWriteOff(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()

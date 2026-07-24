@@ -106,10 +106,14 @@ jobs:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }}
+        run: |
+          cd ~/frappe-bench/
+          bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }} --with-coverage
+          if [ -f coverage.xml ] && [ ! -f sites/coverage.xml ]; then
+            mv coverage.xml sites/coverage.xml
+          fi
         env:
           TYPE: server
-          CAPTURE_COVERAGE: True
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4

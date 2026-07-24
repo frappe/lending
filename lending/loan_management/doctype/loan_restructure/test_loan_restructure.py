@@ -6,7 +6,7 @@ from collections import Counter
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, date_diff, flt, getdate
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
@@ -33,7 +33,7 @@ from lending.tests.test_utils import (
 )
 
 
-class TestLoanRestructure(IntegrationTestCase):
+class TestLoanRestructure(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
