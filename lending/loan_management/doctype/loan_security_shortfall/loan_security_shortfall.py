@@ -42,6 +42,7 @@ def update_shortfall_status(loan, security_value, on_cancel=0):
 		{"loan": loan, "status": "Pending"},
 		["name", "shortfall_amount"],
 		as_dict=1,
+		for_update=True,
 	)
 
 	if not loan_security_shortfall:
