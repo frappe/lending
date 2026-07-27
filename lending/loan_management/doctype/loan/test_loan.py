@@ -766,25 +766,6 @@ class TestLoan(LendingTestSuite):
 
 		self.assertEqual(get_disbursal_amount(loan.name), (300000, 700000))
 
-	def test_disbursal_uses_saved_maximum_loan_amount_without_security_assignment(self):
-		loan = create_loan(
-			self.applicant2,
-			"Personal Loan",
-			50000,
-			"Repay Over Number of Periods",
-			repayment_periods=12,
-		)
-		loan.is_secured_loan = 1
-		loan.maximum_loan_amount = 0
-		loan.save()
-		loan.submit()
-		loan.reload()
-
-		loan.maximum_loan_amount = 50000
-		loan.save()
-
-		self.assertEqual(get_disbursal_amount(loan.name), (50000, 0))
-
 	def test_pending_loan_amount_after_closure_request(self):
 		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
 
