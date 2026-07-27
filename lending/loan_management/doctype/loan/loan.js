@@ -324,6 +324,5 @@ frappe.ui.form.on('Loan', {
 	toggle_fields: function (frm) {
 		frm.toggle_enable("monthly_repayment_amount", frm.doc.repayment_method == "Repay Fixed Amount per Period")
 		frm.toggle_enable("repayment_periods", frm.doc.repayment_method == "Repay Over Number of Periods")
-		frm.toggle_enable("maximum_loan_amount", !frm.doc.loan_application)
 	}
 });
