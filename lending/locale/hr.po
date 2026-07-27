@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:52+0000\n"
-"PO-Revision-Date: 2026-07-20 19:37\n"
+"PO-Revision-Date: 2026-07-26 20:30\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,22 @@ msgid "<br>\n"
 "<pre><code>Hello {{ applicant.applicant_name }},<br>PFA your Loan Statement Of Account from {{ doc.from_date }} to {{ doc.to_date }}.</code> </pre></li>\n"
 "</ul>\n"
 "<!-- {% endraw %} -->"
-msgstr ""
+msgstr "<br>\n"
+"<h4>Napomena</h4>\n"
+"<ul>\n"
+"<li>\n"
+"Možete koristiti <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja oznake</a> u poljima <b>Subject</b>, <b>Body</b> i <b>PDF Name</b> za dinamičke vrijednosti.\n"
+"</li><li>\n"
+"    Sva polja u ovom doctype dostupna su pod <b>doc</b>, a red podnositelja dostupan je pod <b>applicant</b> (polja: applicant, applicant_name, email).\n"
+"</li></ul>\n"
+"<h4> Primjeri</h4>\n"
+"<!-- {% raw %} -->\n"
+"<ul>\n"
+"    <li><b>Predmet</b>:<br><br><pre><code>Izvod Računa Kredita za {{ applicant.applicant_name }}</code></pre><br></li>\n"
+"    <li><b>Text</b>: <br><br>\n"
+"<pre><code>Pozdrav {{ applicant.applicant_name }},<br>U prilogu je vaš izvod stanja kredita od {{ doc.from_date }} do {{ doc.to_date }}.</code> </pre></li>\n"
+"</ul>\n"
+"<!-- {% endraw %} -->"
 
 #. Header text in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
@@ -383,7 +398,7 @@ msgstr "Starenje"
 #. Loan Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "All Loans"
-msgstr ""
+msgstr "Svi Krediti"
 
 #. Description of the 'Repost Date' (Date) field in DocType 'Loan Repayment
 #. Repost'
@@ -415,7 +430,7 @@ msgstr "Dodeljeni Zahtjevi"
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Allowed percentage by which a new loan can exceed the applicant's sanctioned loan amount limit."
-msgstr ""
+msgstr "Dopušteni postotak za koji novi kredit može premašiti odobreni iznos kredita podnositelja zahtjeva."
 
 #. Description of the 'Shortfall Time' (Datetime) field in DocType 'Loan
 #. Security Shortfall'
@@ -683,11 +698,11 @@ msgstr "Izloženost podnositelja zahtjeva garancija zajma "
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Applicants"
-msgstr ""
+msgstr "Podnositelji"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:79
 msgid "Applicants not selected."
-msgstr ""
+msgstr "Podnositelji nisu odabrani."
 
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.js:68
@@ -1704,7 +1719,7 @@ msgstr "Datum Pologa"
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Detailed"
-msgstr ""
+msgstr "Detaljno"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -2048,7 +2063,7 @@ msgstr "Neuspješna Otplata"
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Fetch Applicants"
-msgstr ""
+msgstr "Preuzmi Podnositelje"
 
 #. Label of the filter_duration (Int) field in DocType 'Process Loan Statement
 #. of Accounts'
@@ -2149,7 +2164,7 @@ msgstr "Razdoblje odgode u danima"
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Grouped"
-msgstr ""
+msgstr "Grupirano"
 
 #. Label of the haircut (Percent) field in DocType 'Unpledge'
 #: lending/loan_management/doctype/unpledge/unpledge.json
@@ -3274,7 +3289,7 @@ msgstr "Partner Artikal"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:35
 msgid "Loan Product: {0}"
-msgstr ""
+msgstr "Kreditni Artikal: {0}"
 
 #. Label of the loan_purpose (Link) field in DocType 'Loan Application'
 #. Name of a DocType
@@ -3992,7 +4007,7 @@ msgstr "Novi maksimalni iznos ograničenja ne može biti manji od iskorišćenog
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:91
 msgid "No Applicants found with selected options."
-msgstr ""
+msgstr "Nisu pronađeni podnositelji s odabranim opcijama."
 
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan'
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan
@@ -4072,7 +4087,7 @@ msgstr "Broj dana"
 #. 'Process Loan Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Number of months of history to include in each statement."
-msgstr ""
+msgstr "Broj mjeseci povijesti koji treba uključiti u svaki izvod."
 
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -4228,7 +4243,7 @@ msgstr "Odbitak preostale glavnice plus kamata na povrat ulaganja partnera"
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Page Break After Each Statement"
-msgstr ""
+msgstr "Prelom Stranice Nakon Svakog Izvoda"
 
 #. Label of the paid_amount (Currency) field in DocType 'Loan Demand'
 #. Label of the paid_amount (Currency) field in DocType 'Loan Repayment Detail'
@@ -4621,7 +4636,7 @@ msgstr "Molimo odaberite kreditni artikal za {0}"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:253
 msgid "Please select a Loan Product."
-msgstr ""
+msgstr "Odaberi Kreditni Artikal."
 
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:67
 msgid "Please select a date."
@@ -4633,7 +4648,7 @@ msgstr "Odaberite barem Kredit ili Podnositelja zahtjeva za pregled registra"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:68
 msgid "Please select how to collect Applicants."
-msgstr ""
+msgstr "Odaberi kako prikupiti Podnositelje."
 
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
@@ -4993,12 +5008,12 @@ msgstr "Obradi Nedostatak Jamstva"
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Process Loan Statement of Accounts"
-msgstr ""
+msgstr "Obrada Izvoda Računa Kredita"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 msgid "Process Loan Statement of Accounts Applicant"
-msgstr ""
+msgstr "Obrada Izvoda Računa Podnositelja"
 
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -5532,7 +5547,7 @@ msgstr "Ograničenje odobrenog iznosa"
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Sanctioned Amount Tolerance (%)"
-msgstr ""
+msgstr "Tolerancija Odobrenog Iznosa (%)"
 
 #: lending/loan_management/doctype/loan/loan.py:572
 #: lending/loan_management/doctype/loan_application/loan_application.py:198
@@ -5600,7 +5615,7 @@ msgstr "Vrijednost Jamčevine "
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Select Applicants By"
-msgstr ""
+msgstr "Odaberi Podnositelje prema"
 
 #. Description of the 'Repayment Date On' (Select) field in DocType 'Loan
 #. Product'
@@ -5610,7 +5625,7 @@ msgstr "Odaberite treba li datum otplate biti kraj tekućeg mjeseca ili početak
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:56
 msgid "Select {0}s By"
-msgstr ""
+msgstr "Odaberi {0} Po"
 
 #: lending/loan_management/doctype/loan/loan.py:173
 #: lending/loan_management/doctype/loan_application/loan_application.py:158
