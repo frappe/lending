@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-07-12 10:52+0000\n"
-"PO-Revision-Date: 2026-07-13 18:22\n"
+"POT-Creation-Date: 2026-07-19 10:52+0000\n"
+"PO-Revision-Date: 2026-07-20 19:37\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -26,6 +26,28 @@ msgstr "crwdns162128:0crwdne162128:0"
 msgid "% Of Total Portfolio"
 msgstr "crwdns162130:0crwdne162130:0"
 
+#. Content of the 'Help Text' (HTML) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#, python-format
+msgid "<br>\n"
+"<h4>Note</h4>\n"
+"<ul>\n"
+"<li>\n"
+"You can use <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja tags</a> in <b>Subject</b>, <b>Body</b> and <b>PDF Name</b> fields for dynamic values.\n"
+"</li><li>\n"
+"    All fields in this doctype are available under the <b>doc</b> object and the applicant row is available under the <b>applicant</b> object (fields: applicant, applicant_name, email).\n"
+"</li></ul>\n"
+"<h4> Examples</h4>\n"
+"<!-- {% raw %} -->\n"
+"<ul>\n"
+"    <li><b>Subject</b>:<br><br><pre><code>Loan Statement Of Account for {{ applicant.applicant_name }}</code></pre><br></li>\n"
+"    <li><b>Body</b>: <br><br>\n"
+"<pre><code>Hello {{ applicant.applicant_name }},<br>PFA your Loan Statement Of Account from {{ doc.from_date }} to {{ doc.to_date }}.</code> </pre></li>\n"
+"</ul>\n"
+"<!-- {% endraw %} -->"
+msgstr "crwdns239885:0{% raw %}crwdnd239885:0{{ applicant.applicant_name }}crwdnd239885:0{{ applicant.applicant_name }}crwdnd239885:0{{ doc.from_date }}crwdnd239885:0{{ doc.to_date }}crwdnd239885:0{% endraw %}crwdne239885:0"
+
 #. Header text in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
@@ -46,7 +68,7 @@ msgstr "crwdns162138:0crwdne162138:0"
 msgid "Account Info"
 msgstr "crwdns162142:0crwdne162142:0"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:115
+#: lending/loan_management/doctype/loan_product/loan_product.py:116
 msgid "Account {0} does not belong to company {1}"
 msgstr "crwdns162144:0{0}crwdnd162144:0{1}crwdne162144:0"
 
@@ -357,6 +379,12 @@ msgstr "crwdns204083:0crwdne204083:0"
 msgid "Ageing"
 msgstr "crwdns162240:0crwdne162240:0"
 
+#. Option for the 'Select Applicants By' (Select) field in DocType 'Process
+#. Loan Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "All Loans"
+msgstr "crwdns239887:0crwdne239887:0"
+
 #. Description of the 'Repost Date' (Date) field in DocType 'Loan Repayment
 #. Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -382,6 +410,12 @@ msgstr "crwdns162246:0crwdne162246:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Allocated Demands"
 msgstr "crwdns162248:0crwdne162248:0"
+
+#. Description of the 'Sanctioned Amount Tolerance (%)' (Percent) field in
+#. DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Allowed percentage by which a new loan can exceed the applicant's sanctioned loan amount limit."
+msgstr "crwdns239889:0crwdne239889:0"
 
 #. Description of the 'Shortfall Time' (Datetime) field in DocType 'Loan
 #. Security Shortfall'
@@ -480,6 +514,8 @@ msgstr "crwdns162278:0crwdne162278:0"
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant (Link) field in DocType 'Loan Transfer'
+#. Label of the applicant (Dynamic Link) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Label of the applicant (Dynamic Link) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Link in the Lending Workspace
@@ -495,6 +531,7 @@ msgstr "crwdns162278:0crwdne162278:0"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:31
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:33
@@ -555,9 +592,12 @@ msgid "Applicant Mobile"
 msgstr "crwdns204091:0crwdne204091:0"
 
 #. Label of the applicant_name (Data) field in DocType 'Loan'
+#. Label of the applicant_name (Data) field in DocType 'Process Loan Statement
+#. of Accounts Applicant'
 #. Label of the applicant_name (Data) field in DocType 'Loan Co-Applicants'
 #. Label of the applicant_name (Data) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:28
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:40
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:16
@@ -590,6 +630,10 @@ msgstr "crwdns162294:0crwdne162294:0"
 #. Label of the applicant_type (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant_type (Select) field in DocType 'Loan Write Off'
+#. Label of the applicant_type (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Label of the applicant_type (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Label of the applicant_type (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
@@ -606,6 +650,8 @@ msgstr "crwdns162294:0crwdne162294:0"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:22
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:16
@@ -631,6 +677,18 @@ msgstr "crwdns162298:0crwdne162298:0"
 msgid "Applicant-Wise Loan Security Exposure "
 msgstr "crwdns204093:0crwdne204093:0"
 
+#. Label of the applicants_section (Section Break) field in DocType 'Process
+#. Loan Statement of Accounts'
+#. Label of the applicants (Table) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Applicants"
+msgstr "crwdns239891:0crwdne239891:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:79
+msgid "Applicants not selected."
+msgstr "crwdns239893:0crwdne239893:0"
+
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.js:68
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -652,7 +710,7 @@ msgstr "crwdns162302:0crwdne162302:0"
 msgid "As on Date"
 msgstr "crwdns162304:0crwdne162304:0"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:90
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr "crwdns204097:0crwdne204097:0"
 
@@ -741,6 +799,7 @@ msgstr "crwdns204105:0crwdne204105:0"
 msgid "BPI difference entry"
 msgstr "crwdns162326:0crwdne162326:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:50
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:82
 msgid "Balance"
 msgstr "crwdns204107:0crwdne204107:0"
@@ -833,6 +892,12 @@ msgstr "crwdns162342:0crwdne162342:0"
 msgid "Billed Separately"
 msgstr "crwdns204117:0crwdne204117:0"
 
+#. Option for the 'Frequency' (Select) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Biweekly"
+msgstr "crwdns239895:0crwdne239895:0"
+
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -894,6 +959,12 @@ msgstr "crwdns162356:0crwdne162356:0"
 msgid "Business"
 msgstr "crwdns204121:0crwdne204121:0"
 
+#. Label of the cc_to (Table MultiSelect) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "CC To"
+msgstr "crwdns239897:0crwdne239897:0"
+
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -911,11 +982,11 @@ msgstr "crwdns162360:0crwdne162360:0"
 msgid "Cancellation Date"
 msgstr "crwdns162362:0crwdne162362:0"
 
-#: lending/loan_management/doctype/loan/loan.py:894
+#: lending/loan_management/doctype/loan/loan.py:898
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr "crwdns162366:0{0}crwdne162366:0"
 
-#: lending/loan_management/doctype/loan/loan.py:942
+#: lending/loan_management/doctype/loan/loan.py:946
 msgid "Cannot close this loan until full repayment"
 msgstr "crwdns162368:0crwdne162368:0"
 
@@ -1152,6 +1223,7 @@ msgstr "crwdns162420:0crwdne162420:0"
 msgid "Close Loan"
 msgstr "crwdns162422:0crwdne162422:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:87
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:144
 msgid "Closing Balance"
 msgstr "crwdns204139:0crwdne204139:0"
@@ -1259,6 +1331,8 @@ msgstr "crwdns162450:0crwdne162450:0"
 #. Label of the company (Link) field in DocType 'Loan Transfer'
 #. Label of the company (Link) field in DocType 'Loan Write Off'
 #. Label of the company (Link) field in DocType 'Process Loan Interest Accrual'
+#. Label of the company (Link) field in DocType 'Process Loan Statement of
+#. Accounts'
 #. Label of the company (Link) field in DocType 'Sanctioned Loan Amount'
 #. Label of a shortcut in the Lending Workspace
 #. Label of a Workspace Sidebar Item
@@ -1280,6 +1354,7 @@ msgstr "crwdns162450:0crwdne162450:0"
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.js:8
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.js:9
@@ -1341,6 +1416,7 @@ msgstr "crwdns162466:0crwdne162466:0"
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
 msgstr "crwdns162468:0crwdne162468:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
 msgstr "crwdns204143:0crwdne204143:0"
@@ -1411,6 +1487,10 @@ msgstr "crwdns162488:0crwdne162488:0"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Write Off'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Workspace Sidebar Item
@@ -1426,6 +1506,8 @@ msgstr "crwdns162488:0crwdne162488:0"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
@@ -1489,6 +1571,7 @@ msgstr "crwdns162512:0crwdne162512:0"
 msgid "Days Past Due Threshold for NPA"
 msgstr "crwdns162514:0crwdne162514:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
 msgstr "crwdns204151:0crwdne204151:0"
@@ -1616,6 +1699,12 @@ msgstr "crwdns162552:0crwdne162552:0"
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Deposit Date"
 msgstr "crwdns162554:0crwdne162554:0"
+
+#. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Detailed"
+msgstr "crwdns239899:0crwdne239899:0"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -1770,9 +1859,15 @@ msgstr "crwdns162612:0crwdne162612:0"
 msgid "Effective Date"
 msgstr "crwdns162614:0crwdne162614:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:329
+#: lending/loan_management/doctype/loan_application/loan_application.py:333
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr "crwdns204161:0crwdne204161:0"
+
+#. Label of the content_section (Section Break) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Email Content"
+msgstr "crwdns239901:0crwdne239901:0"
 
 #. Label of the email_otp (Password) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -1783,6 +1878,10 @@ msgstr "crwdns204163:0crwdne204163:0"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Email Verification Status"
 msgstr "crwdns204165:0crwdne204165:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:14
+msgid "Emails Queued"
+msgstr "crwdns239903:0crwdne239903:0"
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Name of a role
@@ -1803,6 +1902,10 @@ msgstr "crwdns204165:0crwdne204165:0"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Write Off'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #: lending/loan_management/doctype/loan/loan.json
@@ -1817,6 +1920,8 @@ msgstr "crwdns204165:0crwdne204165:0"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Employee"
 msgstr "crwdns162616:0crwdne162616:0"
@@ -1831,6 +1936,12 @@ msgstr "crwdns162618:0crwdne162618:0"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Employment Type"
 msgstr "crwdns204167:0crwdne204167:0"
+
+#. Label of the enable_auto_email (Check) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Enable Auto Email"
+msgstr "crwdns239905:0crwdne239905:0"
 
 #. Label of the enable_partner_accounting (Check) field in DocType 'Loan
 #. Partner'
@@ -1933,6 +2044,18 @@ msgstr "crwdns162654:0crwdne162654:0"
 msgid "Failed Repayment"
 msgstr "crwdns162656:0crwdne162656:0"
 
+#. Label of the fetch_applicants (Button) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Fetch Applicants"
+msgstr "crwdns239907:0crwdne239907:0"
+
+#. Label of the filter_duration (Int) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Filter Duration (Months)"
+msgstr "crwdns239909:0crwdne239909:0"
+
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 msgid "Fixed Amount"
@@ -2022,6 +2145,12 @@ msgstr "crwdns162682:0crwdne162682:0"
 msgid "Grace Period in Days"
 msgstr "crwdns162684:0crwdne162684:0"
 
+#. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Grouped"
+msgstr "crwdns239911:0crwdne239911:0"
+
 #. Label of the haircut (Percent) field in DocType 'Unpledge'
 #: lending/loan_management/doctype/unpledge/unpledge.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:53
@@ -2045,6 +2174,12 @@ msgstr "crwdns162688:0crwdne162688:0"
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
 msgid "Haircut percentage is the percentage difference between market value of the Loan Security and the value ascribed to that Loan Security when used as collateral for that loan."
 msgstr "crwdns162690:0crwdne162690:0"
+
+#. Label of the help_text (HTML) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Help Text"
+msgstr "crwdns239913:0crwdne239913:0"
 
 #. Description of the 'No Interest Accrual Till Month End' (Check) field in
 #. DocType 'Loan Product'
@@ -2374,6 +2509,7 @@ msgstr "crwdns162774:0crwdne162774:0"
 msgid "Is Written Off"
 msgstr "crwdns162776:0crwdne162776:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:26
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:49
 msgid "LOAN STATEMENT OF ACCOUNT"
 msgstr "crwdns204197:0crwdne204197:0"
@@ -2498,6 +2634,7 @@ msgstr "crwdns162798:0crwdne162798:0"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:47
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:18
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:81
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:41
@@ -2546,7 +2683,7 @@ msgstr "crwdns162804:0crwdne162804:0"
 msgid "Loan Account"
 msgstr "crwdns162806:0crwdne162806:0"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:122
+#: lending/loan_management/doctype/loan_product/loan_product.py:123
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "crwdns162808:0crwdne162808:0"
 
@@ -2952,6 +3089,7 @@ msgstr "crwdns204217:0crwdne204217:0"
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Loan Manager"
 msgstr "crwdns162912:0crwdne162912:0"
@@ -3090,6 +3228,10 @@ msgstr "crwdns162946:0crwdne162946:0"
 #. Label of the loan_product (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan_product (Link) field in DocType 'Process Loan Interest
 #. Accrual'
+#. Label of the loan_product (Link) field in DocType 'Process Loan Statement of
+#. Accounts'
+#. Option for the 'Select Applicants By' (Select) field in DocType 'Process
+#. Loan Statement of Accounts'
 #. Label of a Link in the Lending Workspace
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
 #. Label of a Workspace Sidebar Item
@@ -3107,6 +3249,7 @@ msgstr "crwdns162946:0crwdne162946:0"
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:20
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:62
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:23
@@ -3128,6 +3271,10 @@ msgstr "crwdns162948:0crwdne162948:0"
 #: lending/loan_management/doctype/loan_product_loan_partner/loan_product_loan_partner.json
 msgid "Loan Product Loan Partner"
 msgstr "crwdns162950:0crwdne162950:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:35
+msgid "Loan Product: {0}"
+msgstr "crwdns239915:0{0}crwdne239915:0"
 
 #. Label of the loan_purpose (Link) field in DocType 'Loan Application'
 #. Name of a DocType
@@ -3283,7 +3430,7 @@ msgstr "crwdns162986:0crwdne162986:0"
 msgid "Loan Restructure is in process. Cannot make any loan adjustment"
 msgstr "crwdns162988:0crwdne162988:0"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:149
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:154
 msgid "Loan Securities worth {0} needed more to book the loan"
 msgstr "crwdns162992:0{0}crwdne162992:0"
 
@@ -3322,7 +3469,7 @@ msgstr "crwdns162994:0crwdne162994:0"
 msgid "Loan Security Assignment"
 msgstr "crwdns162996:0crwdne162996:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:353
+#: lending/loan_management/doctype/loan_application/loan_application.py:357
 msgid "Loan Security Assignment Created : {0}"
 msgstr "crwdns162998:0{0}crwdne162998:0"
 
@@ -3476,11 +3623,14 @@ msgstr "crwdns163026:0crwdne163026:0"
 msgid "Loan Security Value after unpledge is {0}"
 msgstr "crwdns163028:0{0}crwdne163028:0"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:98
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:99
 msgid "Loan Security {0} added multiple times"
 msgstr "crwdns163030:0{0}crwdne163030:0"
 
+#. Option for the 'Report' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
 #. Name of a report
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.json
 msgid "Loan Statement of Account"
 msgstr "crwdns204227:0crwdne204227:0"
@@ -3542,11 +3692,11 @@ msgstr "crwdns163046:0crwdne163046:0"
 msgid "Loan Write Off will be automatically created on loan closure request if pending amount is below this limit"
 msgstr "crwdns163048:0crwdne163048:0"
 
-#: lending/loan_management/doctype/loan/loan.py:604
+#: lending/loan_management/doctype/loan/loan.py:608
 msgid "Loan amount cannot be greater than {0}"
 msgstr "crwdns163052:0{0}crwdne163052:0"
 
-#: lending/loan_management/doctype/loan/loan.py:608
+#: lending/loan_management/doctype/loan/loan.py:612
 msgid "Loan amount is mandatory"
 msgstr "crwdns163054:0crwdne163054:0"
 
@@ -3840,6 +3990,10 @@ msgstr "crwdns163130:0crwdne163130:0"
 msgid "New maximum limit amount cannot be lesser than the utilized limit amount"
 msgstr "crwdns163132:0crwdne163132:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:91
+msgid "No Applicants found with selected options."
+msgstr "crwdns239917:0crwdne239917:0"
+
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan'
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan
 #. Product'
@@ -3848,7 +4002,12 @@ msgstr "crwdns163132:0crwdne163132:0"
 msgid "No Interest Accrual Till Month End"
 msgstr "crwdns204243:0crwdne204243:0"
 
-#: lending/loan_management/doctype/loan/loan.py:1168
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:16
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:34
+msgid "No Records for these settings."
+msgstr "crwdns239919:0crwdne239919:0"
+
+#: lending/loan_management/doctype/loan/loan.py:1172
 msgid "No excess amount pending for refund"
 msgstr "crwdns163134:0crwdne163134:0"
 
@@ -3856,8 +4015,8 @@ msgstr "crwdns163134:0crwdne163134:0"
 msgid "No loans found for this applicant or branch"
 msgstr "crwdns163136:0crwdne163136:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:212
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:116
+#: lending/loan_management/doctype/loan_application/loan_application.py:216
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
 msgstr "crwdns163138:0{0}crwdne163138:0"
 
@@ -3909,6 +4068,12 @@ msgstr "crwdns163152:0crwdne163152:0"
 msgid "Number Of Days"
 msgstr "crwdns163154:0crwdne163154:0"
 
+#. Description of the 'Filter Duration (Months)' (Int) field in DocType
+#. 'Process Loan Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Number of months of history to include in each statement."
+msgstr "crwdns239921:0crwdne239921:0"
+
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Old EMI"
@@ -3955,7 +4120,7 @@ msgstr "crwdns204245:0crwdne204245:0"
 msgid "One Time"
 msgstr "crwdns163166:0crwdne163166:0"
 
-#: lending/loan_management/doctype/loan/loan.py:1110
+#: lending/loan_management/doctype/loan/loan.py:1114
 msgid "Only submitted unpledge requests can be approved"
 msgstr "crwdns163168:0crwdne163168:0"
 
@@ -3989,7 +4154,7 @@ msgstr "crwdns204253:0crwdne204253:0"
 msgid "Opening Principal Outstanding"
 msgstr "crwdns204255:0crwdne204255:0"
 
-#: lending/loan_management/doctype/loan/loan.py:679
+#: lending/loan_management/doctype/loan/loan.py:683
 msgid "Opening entry for imported loan {0}"
 msgstr "crwdns204257:0{0}crwdne204257:0"
 
@@ -4047,11 +4212,23 @@ msgstr "crwdns163190:0crwdne163190:0"
 msgid "PAN"
 msgstr "crwdns204261:0crwdne204261:0"
 
+#. Label of the pdf_name (Data) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "PDF Name"
+msgstr "crwdns239923:0crwdne239923:0"
+
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "POS reduction plus interest at partner ROI"
 msgstr "crwdns163192:0crwdne163192:0"
+
+#. Label of the include_break (Check) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Page Break After Each Statement"
+msgstr "crwdns239925:0crwdne239925:0"
 
 #. Label of the paid_amount (Currency) field in DocType 'Loan Demand'
 #. Label of the paid_amount (Currency) field in DocType 'Loan Repayment Detail'
@@ -4411,6 +4588,11 @@ msgstr "crwdns163320:0crwdne163320:0"
 msgid "Please enter repayment Amount"
 msgstr "crwdns163322:0crwdne163322:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:8
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:23
+msgid "Please save before proceeding."
+msgstr "crwdns239927:0crwdne239927:0"
+
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:37
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:37
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:59
@@ -4437,6 +4619,10 @@ msgstr "crwdns163330:0crwdne163330:0"
 msgid "Please select Loan Product for company {0}"
 msgstr "crwdns163332:0{0}crwdne163332:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:253
+msgid "Please select a Loan Product."
+msgstr "crwdns239929:0crwdne239929:0"
+
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:67
 msgid "Please select a date."
 msgstr "crwdns163334:0crwdne163334:0"
@@ -4444,6 +4630,10 @@ msgstr "crwdns163334:0crwdne163334:0"
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:73
 msgid "Please select at least Loan or Applicant to view the ledger"
 msgstr "crwdns204267:0crwdne204267:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:68
+msgid "Please select how to collect Applicants."
+msgstr "crwdns239931:0crwdne239931:0"
 
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
@@ -4470,11 +4660,11 @@ msgstr "crwdns163344:0{0}crwdne163344:0"
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "crwdns163346:0{0}crwdne163346:0"
 
-#: lending/loan_management/doctype/loan/loan.py:722
+#: lending/loan_management/doctype/loan/loan.py:726
 msgid "Please set Loan Account for the Loan Product {0}"
 msgstr "crwdns204269:0{0}crwdne204269:0"
 
-#: lending/loan_management/doctype/loan/loan.py:727
+#: lending/loan_management/doctype/loan/loan.py:731
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "crwdns204271:0{0}crwdne204271:0"
 
@@ -4739,6 +4929,13 @@ msgstr "crwdns163410:0crwdne163410:0"
 msgid "Principal: {0}"
 msgstr "crwdns204289:0{0}crwdne204289:0"
 
+#. Label of the print_section (Section Break) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Print Preferences"
+msgstr "crwdns239933:0crwdne239933:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:98
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:155
 msgid "Printed on {0}"
 msgstr "crwdns204291:0{0}crwdne204291:0"
@@ -4793,6 +4990,16 @@ msgstr "crwdns163420:0crwdne163420:0"
 msgid "Process Loan Security Shortfall"
 msgstr "crwdns163422:0crwdne163422:0"
 
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Process Loan Statement of Accounts"
+msgstr "crwdns239935:0crwdne239935:0"
+
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
+msgid "Process Loan Statement of Accounts Applicant"
+msgstr "crwdns239937:0crwdne239937:0"
+
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Code"
@@ -4813,7 +5020,7 @@ msgstr "crwdns163428:0crwdne163428:0"
 msgid "Proposed Pledges"
 msgstr "crwdns163430:0crwdne163430:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:261
+#: lending/loan_management/doctype/loan_application/loan_application.py:265
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr "crwdns163432:0crwdne163432:0"
 
@@ -4828,12 +5035,12 @@ msgstr "crwdns204293:0crwdne204293:0"
 msgid "Provision Rate"
 msgstr "crwdns163434:0crwdne163434:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:203
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:107
+#: lending/loan_management/doctype/loan_application/loan_application.py:207
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr "crwdns163436:0crwdne163436:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:371
+#: lending/loan_management/doctype/loan_application/loan_application.py:375
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "crwdns163438:0crwdne163438:0"
 
@@ -5055,7 +5262,7 @@ msgstr "crwdns163508:0crwdne163508:0"
 msgid "Repayment Account"
 msgstr "crwdns163510:0crwdne163510:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:234
+#: lending/loan_management/doctype/loan_application/loan_application.py:238
 msgid "Repayment Amount must be greater than "
 msgstr "crwdns163512:0crwdne163512:0"
 
@@ -5321,8 +5528,14 @@ msgstr "crwdns163592:0crwdne163592:0"
 msgid "Sanctioned Amount Limit"
 msgstr "crwdns163594:0crwdne163594:0"
 
-#: lending/loan_management/doctype/loan/loan.py:568
-#: lending/loan_management/doctype/loan_application/loan_application.py:194
+#. Label of the sanctioned_amount_tolerance_percentage (Percent) field in
+#. DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Sanctioned Amount Tolerance (%)"
+msgstr "crwdns239939:0crwdne239939:0"
+
+#: lending/loan_management/doctype/loan/loan.py:572
+#: lending/loan_management/doctype/loan_application/loan_application.py:198
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr "crwdns163596:0{0}crwdnd163596:0{1}crwdne163596:0"
 
@@ -5383,11 +5596,21 @@ msgstr "crwdns163610:0crwdne163610:0"
 msgid "Security Value "
 msgstr "crwdns163612:0crwdne163612:0"
 
+#. Label of the collection_based_on (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Select Applicants By"
+msgstr "crwdns239941:0crwdne239941:0"
+
 #. Description of the 'Repayment Date On' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Select whether the repayment date should be the end of the current month or start of the upcoming month"
 msgstr "crwdns163614:0crwdne163614:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:56
+msgid "Select {0}s By"
+msgstr "crwdns239943:0{0}crwdne239943:0"
 
 #: lending/loan_management/doctype/loan/loan.py:173
 #: lending/loan_management/doctype/loan_application/loan_application.py:158
@@ -5404,6 +5627,10 @@ msgstr "crwdns204305:0crwdne204305:0"
 #: lending/loan_management/doctype/loan_irac_provisioning_configuration/loan_irac_provisioning_configuration.json
 msgid "Semi-Secured"
 msgstr "crwdns163618:0crwdne163618:0"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:7
+msgid "Send Emails"
+msgstr "crwdns239945:0crwdne239945:0"
 
 #. Label of the servicer_fee (Check) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -5531,6 +5758,12 @@ msgstr "crwdns163668:0crwdne163668:0"
 msgid "Term Details"
 msgstr "crwdns163670:0crwdne163670:0"
 
+#. Label of the terms_and_conditions (Link) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Terms and Conditions"
+msgstr "crwdns239947:0crwdne239947:0"
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1029
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "crwdns163672:0{0}crwdne163672:0"
@@ -5603,10 +5836,12 @@ msgstr "crwdns163698:0crwdne163698:0"
 msgid "Total Charges Payable"
 msgstr "crwdns163700:0crwdne163700:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:83
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:138
 msgid "Total Credit"
 msgstr "crwdns204307:0crwdne204307:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:79
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
 msgstr "crwdns204309:0crwdne204309:0"
@@ -5735,6 +5970,7 @@ msgstr "crwdns204317:0crwdne204317:0"
 msgid "Transaction DocType"
 msgstr "crwdns204321:0crwdne204321:0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:43
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:25
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:75
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:28
@@ -6011,7 +6247,7 @@ msgstr "crwdns163830:0crwdne163830:0"
 msgid "Write Off Settlement"
 msgstr "crwdns163832:0crwdne163832:0"
 
-#: lending/loan_management/doctype/loan/loan.py:1040
+#: lending/loan_management/doctype/loan/loan.py:1044
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr "crwdns163834:0crwdne163834:0"
 
@@ -6042,11 +6278,11 @@ msgstr "crwdns163846:0crwdne163846:0"
 msgid "with reference no. {}"
 msgstr "crwdns163848:0crwdne163848:0"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:127
+#: lending/loan_management/doctype/loan_product/loan_product.py:128
 msgid "{0} cannot be negative"
 msgstr "crwdns163850:0{0}crwdne163850:0"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:142
+#: lending/loan_management/doctype/loan_product/loan_product.py:143
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "crwdns204331:0{0}crwdne204331:0"
 
@@ -6055,7 +6291,7 @@ msgstr "crwdns204331:0{0}crwdne204331:0"
 msgid "{0} should be between 1 and 99"
 msgstr "crwdns163852:0{0}crwdne163852:0"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:178
+#: lending/loan_management/doctype/loan_product/loan_product.py:179
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
 msgstr "crwdns204333:0{0}crwdnd204333:0{1}crwdnd204333:0{2}crwdne204333:0"
 

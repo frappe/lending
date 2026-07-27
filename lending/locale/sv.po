@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-07-12 10:52+0000\n"
-"PO-Revision-Date: 2026-07-15 18:44\n"
+"POT-Creation-Date: 2026-07-19 10:52+0000\n"
+"PO-Revision-Date: 2026-07-21 19:44\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -26,6 +26,43 @@ msgstr "% av Sökande Portfölj"
 msgid "% Of Total Portfolio"
 msgstr "% av Total Portfölj"
 
+#. Content of the 'Help Text' (HTML) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#, python-format
+msgid "<br>\n"
+"<h4>Note</h4>\n"
+"<ul>\n"
+"<li>\n"
+"You can use <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja tags</a> in <b>Subject</b>, <b>Body</b> and <b>PDF Name</b> fields for dynamic values.\n"
+"</li><li>\n"
+"    All fields in this doctype are available under the <b>doc</b> object and the applicant row is available under the <b>applicant</b> object (fields: applicant, applicant_name, email).\n"
+"</li></ul>\n"
+"<h4> Examples</h4>\n"
+"<!-- {% raw %} -->\n"
+"<ul>\n"
+"    <li><b>Subject</b>:<br><br><pre><code>Loan Statement Of Account for {{ applicant.applicant_name }}</code></pre><br></li>\n"
+"    <li><b>Body</b>: <br><br>\n"
+"<pre><code>Hello {{ applicant.applicant_name }},<br>PFA your Loan Statement Of Account from {{ doc.from_date }} to {{ doc.to_date }}.</code> </pre></li>\n"
+"</ul>\n"
+"<!-- {% endraw %} -->"
+msgstr "<br>\n"
+"<h4>Anteckning</h4>\n"
+"<ul>\n"
+"<li>\n"
+"Du kan använda <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja-taggar</a> i <b>Subject</b>, <b>Body</b> och <b>PDF Name</b> fält för  dynamiska värden.\n"
+"</li><li>\n"
+"    Alla fält i denna doctype är tillgängliga under <b>doc</b> objekt och sökande rad är tillgänglig under <b>applicant</b> -objekt (fält: applicant, applicant_name, email).\n"
+"</li></ul>\n"
+"<h4> Exempel</h4>\n"
+"<!-- {% raw %} -->\n"
+"<ul>\n"
+"    <li><b>Ämne</b>:<br><br><pre><code>Lånekontoutdrag för {{ applicant.applicant_name }}</code></pre><br></li>\n"
+"    <li><b>Brödtext</b>: <br><br>\n"
+"<pre><code>Hej {{ applicant.applicant_name }},<br>Vänligen se bifogad Lånekontoutdrag från {{ doc.from_date }} till {{ doc.to_date }}.</code> </pre></li>\n"
+"</ul>\n"
+"<!-- {% endraw %} -->"
+
 #. Header text in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
@@ -46,7 +83,7 @@ msgstr "Tillgång & Skuldförvaltning Revision Rapport"
 msgid "Account Info"
 msgstr "Konto Information"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:115
+#: lending/loan_management/doctype/loan_product/loan_product.py:116
 msgid "Account {0} does not belong to company {1}"
 msgstr "Kontot {0} tillhör inte bolag {1}"
 
@@ -357,6 +394,12 @@ msgstr "Ålder"
 msgid "Ageing"
 msgstr "Åldrande"
 
+#. Option for the 'Select Applicants By' (Select) field in DocType 'Process
+#. Loan Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "All Loans"
+msgstr "Alla Lån"
+
 #. Description of the 'Repost Date' (Date) field in DocType 'Loan Repayment
 #. Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -382,6 +425,12 @@ msgstr "Tilldelat Datum"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Allocated Demands"
 msgstr "Tilldelade Krav"
+
+#. Description of the 'Sanctioned Amount Tolerance (%)' (Percent) field in
+#. DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Allowed percentage by which a new loan can exceed the applicant's sanctioned loan amount limit."
+msgstr "Tillåten procentandel med vilken ett nytt lån kan överstiga sökandens beviljade lånebelopp gräns."
 
 #. Description of the 'Shortfall Time' (Datetime) field in DocType 'Loan
 #. Security Shortfall'
@@ -480,6 +529,8 @@ msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant (Link) field in DocType 'Loan Transfer'
+#. Label of the applicant (Dynamic Link) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Label of the applicant (Dynamic Link) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Link in the Lending Workspace
@@ -495,6 +546,7 @@ msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:31
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:33
@@ -555,9 +607,12 @@ msgid "Applicant Mobile"
 msgstr "Sökande Mobilnummer"
 
 #. Label of the applicant_name (Data) field in DocType 'Loan'
+#. Label of the applicant_name (Data) field in DocType 'Process Loan Statement
+#. of Accounts Applicant'
 #. Label of the applicant_name (Data) field in DocType 'Loan Co-Applicants'
 #. Label of the applicant_name (Data) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:28
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:40
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:16
@@ -590,6 +645,10 @@ msgstr "Sökandes Telefonnummer"
 #. Label of the applicant_type (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant_type (Select) field in DocType 'Loan Write Off'
+#. Label of the applicant_type (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Label of the applicant_type (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Label of the applicant_type (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
@@ -606,6 +665,8 @@ msgstr "Sökandes Telefonnummer"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:22
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:16
@@ -631,6 +692,18 @@ msgstr "Sökandebaserad Lånegaranti Exponering"
 msgid "Applicant-Wise Loan Security Exposure "
 msgstr "Sökandebaserad Lånegaranti Exponering "
 
+#. Label of the applicants_section (Section Break) field in DocType 'Process
+#. Loan Statement of Accounts'
+#. Label of the applicants (Table) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Applicants"
+msgstr "Sökande"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:79
+msgid "Applicants not selected."
+msgstr "Sökande ej vald."
+
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.js:68
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -652,7 +725,7 @@ msgstr "Godkänd"
 msgid "As on Date"
 msgstr "Datum"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:90
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr "Minst ett garanti måste tilldelas"
 
@@ -741,6 +814,7 @@ msgstr "Bruten Period Ränta Behandling"
 msgid "BPI difference entry"
 msgstr "Bruten Period Ränta Differens Post"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:50
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:82
 msgid "Balance"
 msgstr "Saldo"
@@ -833,6 +907,12 @@ msgstr "Varannan vecka"
 msgid "Billed Separately"
 msgstr "Faktureras Separat"
 
+#. Option for the 'Frequency' (Select) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Biweekly"
+msgstr "Varannan Vecka"
+
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -894,6 +974,12 @@ msgstr "Massåterbetalning Logg"
 msgid "Business"
 msgstr "Bolag"
 
+#. Label of the cc_to (Table MultiSelect) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "CC To"
+msgstr "Kopia till"
+
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -911,11 +997,11 @@ msgstr "Annullera framtida Likställda Månadsvisa Avbetalning Krav"
 msgid "Cancellation Date"
 msgstr "Annullering Datum"
 
-#: lending/loan_management/doctype/loan/loan.py:894
+#: lending/loan_management/doctype/loan/loan.py:898
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr "Kan inte avsluta lånet eftersom det finns utestående skuld på {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:942
+#: lending/loan_management/doctype/loan/loan.py:946
 msgid "Cannot close this loan until full repayment"
 msgstr "Kan inte avsluta detta lån förrän full återbetalning"
 
@@ -1152,6 +1238,7 @@ msgstr "Klarering Datum"
 msgid "Close Loan"
 msgstr "Avsluta Lån"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:87
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:144
 msgid "Closing Balance"
 msgstr "Stängning Saldo"
@@ -1259,6 +1346,8 @@ msgstr "Inkasso enligt partnerns procentandel"
 #. Label of the company (Link) field in DocType 'Loan Transfer'
 #. Label of the company (Link) field in DocType 'Loan Write Off'
 #. Label of the company (Link) field in DocType 'Process Loan Interest Accrual'
+#. Label of the company (Link) field in DocType 'Process Loan Statement of
+#. Accounts'
 #. Label of the company (Link) field in DocType 'Sanctioned Loan Amount'
 #. Label of a shortcut in the Lending Workspace
 #. Label of a Workspace Sidebar Item
@@ -1280,6 +1369,7 @@ msgstr "Inkasso enligt partnerns procentandel"
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.js:8
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.js:9
@@ -1341,6 +1431,7 @@ msgstr "Resultat Enheter"
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
 msgstr "Resultatenhet erfordras för lån som har räntesats som är högre än 0"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
 msgstr "Kredit"
@@ -1411,6 +1502,10 @@ msgstr "Aktuell Omstrukturering Antal"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Write Off'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Workspace Sidebar Item
@@ -1426,6 +1521,8 @@ msgstr "Aktuell Omstrukturering Antal"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
@@ -1489,6 +1586,7 @@ msgstr "Dagar Efter Förfallodatum Logg"
 msgid "Days Past Due Threshold for NPA"
 msgstr "Dagar Efter Förfallodatum Tröskelvärde för ouppbördig tillgång"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
 msgstr "Debet"
@@ -1616,6 +1714,12 @@ msgstr "Insättning Belopp"
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Deposit Date"
 msgstr "Insättning Datum"
+
+#. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Detailed"
+msgstr "Detaljerad"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -1770,9 +1874,15 @@ msgstr "Initierade Likställda Månadsvisa Avbetalningar"
 msgid "Effective Date"
 msgstr "Effektiv Datum"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:329
+#: lending/loan_management/doctype/loan_application/loan_application.py:333
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr "Antingen Låneansökan, Lån eller Sökande detaljer erfordras för att skapa garanti tilldelning"
+
+#. Label of the content_section (Section Break) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Email Content"
+msgstr "E-post Innehåll"
 
 #. Label of the email_otp (Password) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -1783,6 +1893,10 @@ msgstr "E-posta engångslösenord"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Email Verification Status"
 msgstr "E-posta Verifiering Status"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:14
+msgid "Emails Queued"
+msgstr "E-post i Kö"
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Name of a role
@@ -1803,6 +1917,10 @@ msgstr "E-posta Verifiering Status"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Security
 #. Shortfall'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Write Off'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Process Loan
+#. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
 #: lending/loan_management/doctype/loan/loan.json
@@ -1817,6 +1935,8 @@ msgstr "E-posta Verifiering Status"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Employee"
 msgstr "Personal"
@@ -1831,6 +1951,12 @@ msgstr "Personal Lån"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Employment Type"
 msgstr "Personal Typ"
+
+#. Label of the enable_auto_email (Check) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Enable Auto Email"
+msgstr "Aktivera Automatisk E-post"
 
 #. Label of the enable_partner_accounting (Check) field in DocType 'Loan
 #. Partner'
@@ -1933,6 +2059,18 @@ msgstr "Första Förlust Standard Garanti Utlöst"
 msgid "Failed Repayment"
 msgstr "Misslyckad Återbetalning"
 
+#. Label of the fetch_applicants (Button) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Fetch Applicants"
+msgstr "Hämta Sökande"
+
+#. Label of the filter_duration (Int) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Filter Duration (Months)"
+msgstr "Filtrera Varaktighet (Månader)"
+
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 msgid "Fixed Amount"
@@ -2022,6 +2160,12 @@ msgstr "Framtida Kassaflöde Rapport"
 msgid "Grace Period in Days"
 msgstr "Anståndstid i Dagar"
 
+#. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Grouped"
+msgstr "Grupperad"
+
 #. Label of the haircut (Percent) field in DocType 'Unpledge'
 #: lending/loan_management/doctype/unpledge/unpledge.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:53
@@ -2045,6 +2189,12 @@ msgstr "Värderingsavdrag %"
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
 msgid "Haircut percentage is the percentage difference between market value of the Loan Security and the value ascribed to that Loan Security when used as collateral for that loan."
 msgstr "Värderingsavdrag är procentuell skillnad mellan marknadsvärde på lånesäkerhet och det värde som tillskrivs lånesäkerhet när den används som säkerhet för lån i fråga."
+
+#. Label of the help_text (HTML) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Help Text"
+msgstr "Hjälp Text"
 
 #. Description of the 'No Interest Accrual Till Month End' (Check) field in
 #. DocType 'Loan Product'
@@ -2374,6 +2524,7 @@ msgstr "Är Avstånd Befrielse"
 msgid "Is Written Off"
 msgstr "Är Avskriven"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:26
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:49
 msgid "LOAN STATEMENT OF ACCOUNT"
 msgstr "LÅNEUTDRAG"
@@ -2498,6 +2649,7 @@ msgstr "Kredit Gräns"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:47
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:18
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:81
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:41
@@ -2546,7 +2698,7 @@ msgstr "Lån Detaljer"
 msgid "Loan Account"
 msgstr "Lån Konto"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:122
+#: lending/loan_management/doctype/loan_product/loan_product.py:123
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Lånekonto och Betalkonto får inte vara samma"
 
@@ -2952,6 +3104,7 @@ msgstr "Lån Hantering"
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Loan Manager"
 msgstr "Ansvarig"
@@ -3090,6 +3243,10 @@ msgstr "Processer"
 #. Label of the loan_product (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan_product (Link) field in DocType 'Process Loan Interest
 #. Accrual'
+#. Label of the loan_product (Link) field in DocType 'Process Loan Statement of
+#. Accounts'
+#. Option for the 'Select Applicants By' (Select) field in DocType 'Process
+#. Loan Statement of Accounts'
 #. Label of a Link in the Lending Workspace
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
 #. Label of a Workspace Sidebar Item
@@ -3107,6 +3264,7 @@ msgstr "Processer"
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:20
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:62
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:23
@@ -3128,6 +3286,10 @@ msgstr "Artikel"
 #: lending/loan_management/doctype/loan_product_loan_partner/loan_product_loan_partner.json
 msgid "Loan Product Loan Partner"
 msgstr "Partner Artikel"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:35
+msgid "Loan Product: {0}"
+msgstr "Artikel: {0}"
 
 #. Label of the loan_purpose (Link) field in DocType 'Loan Application'
 #. Name of a DocType
@@ -3283,7 +3445,7 @@ msgstr "Omstrukturering Gräns Logg"
 msgid "Loan Restructure is in process. Cannot make any loan adjustment"
 msgstr "Omstrukturering pågår. Det går inte att göra någon lånejustering"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:149
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:154
 msgid "Loan Securities worth {0} needed more to book the loan"
 msgstr "Värdepapper värda {0} behövs mer för att bokföra lån"
 
@@ -3322,7 +3484,7 @@ msgstr "Garanti"
 msgid "Loan Security Assignment"
 msgstr "Garanti Tilldelning"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:353
+#: lending/loan_management/doctype/loan_application/loan_application.py:357
 msgid "Loan Security Assignment Created : {0}"
 msgstr "Garanti Tilldelning Skapad : {0}"
 
@@ -3476,11 +3638,14 @@ msgstr "Garanti Värde"
 msgid "Loan Security Value after unpledge is {0}"
 msgstr "Garanti Värde efter att pantsättning har återställts är {0}"
 
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:98
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:99
 msgid "Loan Security {0} added multiple times"
 msgstr "Lånegaranti {0} tillagd flera gånger"
 
+#. Option for the 'Report' (Select) field in DocType 'Process Loan Statement of
+#. Accounts'
 #. Name of a report
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.json
 msgid "Loan Statement of Account"
 msgstr "Lån Kontoutdrag"
@@ -3542,11 +3707,11 @@ msgstr "Avskrivning"
 msgid "Loan Write Off will be automatically created on loan closure request if pending amount is below this limit"
 msgstr "Avskrivning skapas automatiskt vid begäran om avslut om utestående belopp är lägre än denna gräns"
 
-#: lending/loan_management/doctype/loan/loan.py:604
+#: lending/loan_management/doctype/loan/loan.py:608
 msgid "Loan amount cannot be greater than {0}"
 msgstr "Lånebelopp kan inte vara högre än {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:608
+#: lending/loan_management/doctype/loan/loan.py:612
 msgid "Loan amount is mandatory"
 msgstr "Belopp erfordras"
 
@@ -3840,6 +4005,10 @@ msgstr "Nytt Återbetalning Start Datum"
 msgid "New maximum limit amount cannot be lesser than the utilized limit amount"
 msgstr "Nya högsta gränsbelopp kan inte vara lägre än utnyttjad gränsbelopp"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:91
+msgid "No Applicants found with selected options."
+msgstr "Inga sökande hittades med valda alternativ."
+
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan'
 #. Label of the no_interest_till_month_end (Check) field in DocType 'Loan
 #. Product'
@@ -3848,7 +4017,12 @@ msgstr "Nya högsta gränsbelopp kan inte vara lägre än utnyttjad gränsbelopp
 msgid "No Interest Accrual Till Month End"
 msgstr "Ingen ränteberäkning Till Månad Slutet"
 
-#: lending/loan_management/doctype/loan/loan.py:1168
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:16
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:34
+msgid "No Records for these settings."
+msgstr "Inga Poster för dessa inställningar."
+
+#: lending/loan_management/doctype/loan/loan.py:1172
 msgid "No excess amount pending for refund"
 msgstr "Inget överskottsbelopp väntar på återbetalning"
 
@@ -3856,8 +4030,8 @@ msgstr "Inget överskottsbelopp väntar på återbetalning"
 msgid "No loans found for this applicant or branch"
 msgstr "Inga lån hittades för denna sökande eller filial"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:212
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:116
+#: lending/loan_management/doctype/loan_application/loan_application.py:216
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
 msgstr "Inget giltigt Lånegaranti Pris hittades för {0}"
 
@@ -3909,6 +4083,12 @@ msgstr "Normal Omstrukturering"
 msgid "Number Of Days"
 msgstr "Antal Dagar"
 
+#. Description of the 'Filter Duration (Months)' (Int) field in DocType
+#. 'Process Loan Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Number of months of history to include in each statement."
+msgstr "Antal månader som ska ingå i varje kontoutdrag."
+
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Old EMI"
@@ -3955,7 +4135,7 @@ msgstr "Utöver första Likställda Månadsvisa Avbetalning"
 msgid "One Time"
 msgstr "En Gång"
 
-#: lending/loan_management/doctype/loan/loan.py:1110
+#: lending/loan_management/doctype/loan/loan.py:1114
 msgid "Only submitted unpledge requests can be approved"
 msgstr "Endast inlämnade ej pantsatta ansökningar kan godkännas"
 
@@ -3989,7 +4169,7 @@ msgstr "Utestående Öppning Straffavgift"
 msgid "Opening Principal Outstanding"
 msgstr "Öppning Utestående Belopp"
 
-#: lending/loan_management/doctype/loan/loan.py:679
+#: lending/loan_management/doctype/loan/loan.py:683
 msgid "Opening entry for imported loan {0}"
 msgstr "Öppning post för importerat lån {0}"
 
@@ -4047,11 +4227,23 @@ msgstr "Egen Förhållande"
 msgid "PAN"
 msgstr "PAN"
 
+#. Label of the pdf_name (Data) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "PDF Name"
+msgstr "PDF Namn"
+
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "POS reduction plus interest at partner ROI"
 msgstr "Amortering belopp minskning plus ränta vid partner avkastning på investering"
+
+#. Label of the include_break (Check) field in DocType 'Process Loan Statement
+#. of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Page Break After Each Statement"
+msgstr "Sidbrytning efter varje Kontoutdrag"
 
 #. Label of the paid_amount (Currency) field in DocType 'Loan Demand'
 #. Label of the paid_amount (Currency) field in DocType 'Loan Repayment Detail'
@@ -4411,6 +4603,11 @@ msgstr "Ange månatlig återbetalning belopp"
 msgid "Please enter repayment Amount"
 msgstr "Ange återbetalning belopp"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:8
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:23
+msgid "Please save before proceeding."
+msgstr "Spara innan du fortsätter."
+
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:37
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:37
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:59
@@ -4437,6 +4634,10 @@ msgstr "Välj Utbetalning för Kredit Återbetalning"
 msgid "Please select Loan Product for company {0}"
 msgstr "Välj Låneartikel för {0}"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:253
+msgid "Please select a Loan Product."
+msgstr "Välj Artikel."
+
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:67
 msgid "Please select a date."
 msgstr "Välj Datum"
@@ -4444,6 +4645,10 @@ msgstr "Välj Datum"
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:73
 msgid "Please select at least Loan or Applicant to view the ledger"
 msgstr "Välj åtminstone Lån eller Sökande för att visa register"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:68
+msgid "Please select how to collect Applicants."
+msgstr "Välj hur du vill samla in Sökande."
 
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
@@ -4470,11 +4675,11 @@ msgstr "Ange Beräknad Ränta Konto i {0}"
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Ange Ränta Intäkt Konto i {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:722
+#: lending/loan_management/doctype/loan/loan.py:726
 msgid "Please set Loan Account for the Loan Product {0}"
 msgstr "Vänligen ange Lån Konto för Lån Artikel {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:727
+#: lending/loan_management/doctype/loan/loan.py:731
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Vänligen ange Betalning Konto för Lån Artikel {0}"
 
@@ -4739,6 +4944,13 @@ msgstr "Förfallen Belopp"
 msgid "Principal: {0}"
 msgstr "Belopp: {0}"
 
+#. Label of the print_section (Section Break) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Print Preferences"
+msgstr "Utskrift Inställningar"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:98
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:155
 msgid "Printed on {0}"
 msgstr "Utskriven {0}"
@@ -4793,6 +5005,16 @@ msgstr "Behandla Omstrukturering Gräns"
 msgid "Process Loan Security Shortfall"
 msgstr "Behandla Garanti Underskott"
 
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Process Loan Statement of Accounts"
+msgstr "Behandla Kontoutdrag "
+
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
+msgid "Process Loan Statement of Accounts Applicant"
+msgstr "Behandla Sökande Kontoutdrag "
+
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Code"
@@ -4813,7 +5035,7 @@ msgstr "Föreslagen Pant"
 msgid "Proposed Pledges"
 msgstr "Föreslagna Pant"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:261
+#: lending/loan_management/doctype/loan_application/loan_application.py:265
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr "Föreslagna Pant erfordras för garanterad lån"
 
@@ -4828,12 +5050,12 @@ msgstr "Föreslagen Period"
 msgid "Provision Rate"
 msgstr "Provision Sats"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:203
-#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:107
+#: lending/loan_management/doctype/loan_application/loan_application.py:207
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr "Kvantitet erfordras för lånegaranti!"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:371
+#: lending/loan_management/doctype/loan_application/loan_application.py:375
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "Kvantitet eller Belopp erfordras för lånegaranti"
 
@@ -5055,7 +5277,7 @@ msgstr "Återbetalning"
 msgid "Repayment Account"
 msgstr "Återbetalning Konto"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:234
+#: lending/loan_management/doctype/loan_application/loan_application.py:238
 msgid "Repayment Amount must be greater than "
 msgstr "Återbetalningsbelopp måste vara högre än "
 
@@ -5321,8 +5543,14 @@ msgstr "Godkänd"
 msgid "Sanctioned Amount Limit"
 msgstr "Sanktionerad Belopp Gräns"
 
-#: lending/loan_management/doctype/loan/loan.py:568
-#: lending/loan_management/doctype/loan_application/loan_application.py:194
+#. Label of the sanctioned_amount_tolerance_percentage (Percent) field in
+#. DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Sanctioned Amount Tolerance (%)"
+msgstr "Sanktionerat Belopp Tolerans (%)"
+
+#: lending/loan_management/doctype/loan/loan.py:572
+#: lending/loan_management/doctype/loan_application/loan_application.py:198
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr "Sanktionerad Belopp Gräns överskriden för {0} {1}"
 
@@ -5383,11 +5611,21 @@ msgstr "Garanti Typ"
 msgid "Security Value "
 msgstr "Garanti Värde "
 
+#. Label of the collection_based_on (Select) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Select Applicants By"
+msgstr "Välj Sökande Efter"
+
 #. Description of the 'Repayment Date On' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Select whether the repayment date should be the end of the current month or start of the upcoming month"
 msgstr "Välj om återbetalning datum ska vara slutet av innevarande månad eller början av kommande månad"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:56
+msgid "Select {0}s By"
+msgstr "Välj {0} efter"
 
 #: lending/loan_management/doctype/loan/loan.py:173
 #: lending/loan_management/doctype/loan_application/loan_application.py:158
@@ -5404,6 +5642,10 @@ msgstr "Självanställd"
 #: lending/loan_management/doctype/loan_irac_provisioning_configuration/loan_irac_provisioning_configuration.json
 msgid "Semi-Secured"
 msgstr "Halvsäkrad"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:7
+msgid "Send Emails"
+msgstr "Skicka E-post"
 
 #. Label of the servicer_fee (Check) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -5531,6 +5773,12 @@ msgstr "Period Efter Omstrukturering"
 msgid "Term Details"
 msgstr "Villkor Detaljer"
 
+#. Label of the terms_and_conditions (Link) field in DocType 'Process Loan
+#. Statement of Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Terms and Conditions"
+msgstr "Regler och Villkor"
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1029
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Låneutbetalning {0} är avslutad."
@@ -5603,10 +5851,12 @@ msgstr "Totalt Betalda Avgifter"
 msgid "Total Charges Payable"
 msgstr "Totalt Avgifter att Betala"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:83
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:138
 msgid "Total Credit"
 msgstr "Totalt Kredit"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:79
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
 msgstr "Totalt Debet"
@@ -5735,6 +5985,7 @@ msgstr "Tranch Nummer"
 msgid "Transaction DocType"
 msgstr "Transaktions DocType"
 
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:43
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:25
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:75
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:28
@@ -6011,7 +6262,7 @@ msgstr "Avskrivning Återställning Konto erfordras"
 msgid "Write Off Settlement"
 msgstr "Avskrivning Uppgörelse"
 
-#: lending/loan_management/doctype/loan/loan.py:1040
+#: lending/loan_management/doctype/loan/loan.py:1044
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr "Avskrivning belopp kan inte vara högre än utestående lånebelopp"
 
@@ -6042,11 +6293,11 @@ msgstr "Postnummer"
 msgid "with reference no. {}"
 msgstr "med referensnummer {}"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:127
+#: lending/loan_management/doctype/loan_product/loan_product.py:128
 msgid "{0} cannot be negative"
 msgstr "{0} kan inte vara negativ"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:142
+#: lending/loan_management/doctype/loan_product/loan_product.py:143
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "{0} erfordras. Ange det i Lån Artikel eller Bolag"
 
@@ -6055,7 +6306,7 @@ msgstr "{0} erfordras. Ange det i Lån Artikel eller Bolag"
 msgid "{0} should be between 1 and 99"
 msgstr "{0} ska vara mellan 1 och 99"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:178
+#: lending/loan_management/doctype/loan_product/loan_product.py:179
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
 msgstr "{0} {1} erfordras när Lån Bokföring är aktiverad för {2}"
 
