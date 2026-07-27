@@ -15,7 +15,9 @@ frappe.ui.form.on('Loan', {
 		}
 	},
 	onload: function (frm) {
-		frm.trigger("loan_application")
+		if (frm.doc.__islocal) {
+			frm.trigger("loan_application")
+		}
 
 		// Ignore Loan Security Assignment on cancel of loan
 		frm.ignore_doctypes_on_cancel_all = ["Loan Security Assignment", "Loan Repayment Schedule", "Sales Invoice",
