@@ -992,7 +992,9 @@ def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 		security_value = get_total_pledged_security_value(loan)
 
 	if loan_details.is_secured_loan and not on_current_security_price:
-		security_value = get_maximum_amount_as_per_pledged_security(loan)
+		security_value = get_maximum_amount_as_per_pledged_security(loan) or flt(
+			loan_details.maximum_loan_amount
+		)
 
 	if not security_value and not loan_details.is_secured_loan:
 		security_value = flt(loan_details.loan_amount)
