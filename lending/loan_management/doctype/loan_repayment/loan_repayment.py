@@ -204,14 +204,6 @@ class LoanRepayment(AccountsController):
 				)
 
 	def on_submit(self):
-<<<<<<< HEAD
-=======
-		if self.is_imported:
-			frappe.db.get_value("Loan", self.against_loan, "name", for_update=True)
-			self.update_paid_amounts()
-			return
-
->>>>>>> efa3b187 (fix: Reduce loan repayment transaction time)
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 			make_sales_invoice_for_charge,
