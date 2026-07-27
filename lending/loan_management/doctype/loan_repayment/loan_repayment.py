@@ -153,16 +153,6 @@ class LoanRepayment(AccountsController):
 					)
 				)
 
-		amounts = calculate_amounts(
-			self.against_loan,
-			self.value_date,
-			payment_type=self.repayment_type,
-			charges=charges,
-			loan_disbursement=self.loan_disbursement,
-			for_update=True,
-		)
-
-		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
 
@@ -174,9 +164,19 @@ class LoanRepayment(AccountsController):
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
 		self.check_future_entries()
-		self.validate_security_deposit_amount()
-		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
+
+		amounts = calculate_amounts(
+			self.against_loan,
+			self.value_date,
+			payment_type=self.repayment_type,
+			charges=charges,
+			loan_disbursement=self.loan_disbursement,
+			for_update=True,
+		)
+
+		self.set_missing_values(amounts)
+		self.validate_security_deposit_amount()
 		self.validate_amount(amounts)
 		self.allocate_amounts(amounts)
 
@@ -296,7 +296,7 @@ class LoanRepayment(AccountsController):
 		self.update_security_deposit_amount()
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
@@ -305,6 +305,7 @@ class LoanRepayment(AccountsController):
 			else:
 				self.post_write_off_settlements()
 
+		self.enqueue_shortfall_status_update()
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
@@ -764,7 +765,7 @@ class LoanRepayment(AccountsController):
 		self.post_suspense_entries(cancel=1)
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		self.check_future_entries(cancel=1)
 
@@ -1170,7 +1171,27 @@ class LoanRepayment(AccountsController):
 		query = self.update_limits(query, loan)
 		query.run()
 
-		update_shortfall_status(self.against_loan, self.principal_amount_paid)
+	def enqueue_installment_count_update(self):
+		if frappe.flags.in_test:
+			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+		else:
+			frappe.enqueue(
+				update_installment_counts,
+				against_loan=self.against_loan,
+				loan_disbursement=self.loan_disbursement,
+				enqueue_after_commit=True,
+			)
+
+	def enqueue_shortfall_status_update(self):
+		if frappe.flags.in_test:
+			update_shortfall_status(self.against_loan, self.principal_amount_paid)
+		else:
+			frappe.enqueue(
+				update_shortfall_status,
+				loan=self.against_loan,
+				security_value=self.principal_amount_paid,
+				enqueue_after_commit=True,
+			)
 
 	def handle_auto_demand_write_off(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
