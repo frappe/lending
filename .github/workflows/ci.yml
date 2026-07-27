@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: [1, 2, 3]
+        container: [1, 2, 3, 4]
 
     name: Python Unit Tests - ${{ matrix.container }}
 
