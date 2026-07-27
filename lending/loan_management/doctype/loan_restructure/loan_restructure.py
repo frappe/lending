@@ -952,7 +952,7 @@ def get_restructure_details(
 		"loan_disbursement": loan_disbursement,
 	}
 
-	if repayment_type == "Advance Payment":
+	if repayment_type == "Advance Payment" and get_advance_payment_handling(loan) == "Reduce EMI":
 		loan_restructure["new_repayment_method"] = "Repay Over Number of Periods"
 		loan_restructure["new_repayment_period_in_months"] = pending_tenure
 	else:
@@ -961,6 +961,13 @@ def get_restructure_details(
 		loan_restructure["new_repayment_period_in_months"] = pending_tenure
 
 	return loan_restructure
+
+
+def get_advance_payment_handling(loan):
+	loan_product = frappe.db.get_value("Loan", loan, "loan_product")
+	return (
+		frappe.db.get_value("Loan Product", loan_product, "advance_payment_handling") or "Reduce Tenure"
+	)
 
 
 def get_pending_tenure_and_start_date(loan, posting_date, repayment_type, loan_disbursement=None):
