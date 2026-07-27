@@ -83,6 +83,7 @@ class LoanApplication(Document):
 
 		self.validate_loan_product()
 		self.validate_employee()
+		self.validate_applicant_details()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
@@ -91,7 +92,7 @@ class LoanApplication(Document):
 		if self.applicant_type == "Customer":
 			if not self.applicant:
 				customer = frappe.new_doc("Customer")
-				customer.customer_name = self.applicant_name
+				customer.customer_name = (self.applicant_name or "").strip() or "Unknown"
 				customer.type = "Company"
 				customer.mobile_number = self.applicant_phone_number
 				customer.email_address = self.applicant_email_address
@@ -100,7 +101,7 @@ class LoanApplication(Document):
 
 				# copying over contact details into the contact doctype
 				contact = frappe.new_doc("Contact")
-				contact.first_name = self.applicant_name
+				contact.first_name = (self.applicant_name or "").strip() or "Unknown"
 				contact.append("email_ids", {"email_id": self.applicant_email_address, "is_primary": True})
 				contact.append(
 					"phone_nos", {"phone": self.applicant_phone_number, "is_primary_mobile_no": True}
@@ -159,6 +160,11 @@ class LoanApplication(Document):
 						frappe.bold(employee_company), frappe.bold(self.company)
 					)
 				)
+
+	def validate_applicant_details(self):
+		if self.applicant_type == "Customer" and not self.applicant:
+			if not self.applicant_name or not self.applicant_name.strip():
+				frappe.throw(_("Applicant Name is required when creating a new Customer"))
 
 	def validate_loan_amount(self):
 		if not self.loan_amount:
