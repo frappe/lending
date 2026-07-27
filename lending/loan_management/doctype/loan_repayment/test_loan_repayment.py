@@ -906,6 +906,66 @@ class TestLoanRepayment(LendingTestSuite):
 
 		self.assertTrue(repayment_schedule)
 
+	def test_partial_emi_advance_payment(self):
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test EMI Based Standard Loan Demand Offset Order",
+		)
+
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "advance_payment_handling", "Reduce EMI")
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-01",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-04-01", repayment_start_date="2024-05-05"
+		)
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		# Clear the first EMI as a scheduled repayment
+		repayment_entry = create_repayment_entry(loan.name, "2024-05-05", 47523)
+		repayment_entry.submit()
+
+		# Make an advance payment smaller than one EMI
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-05-29", 20000, repayment_type="Advance Payment"
+		)
+		repayment_entry.submit()
+
+		lrs = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+
+		# A partial advance payment neither changes the tenure nor the EMI
+		self.assertEqual(lrs.repayment_periods, 12)
+		self.assertEqual(lrs.monthly_repayment_amount, 47523)
+
+		# The paid amount is adjusted against the upcoming demand as a principal demand
+		adjusted_principal = frappe.db.get_value(
+			"Loan Demand",
+			{
+				"loan": loan.name,
+				"demand_type": "EMI",
+				"demand_subtype": "Principal",
+				"demand_date": "2024-05-29",
+				"docstatus": 1,
+			},
+			"demand_amount",
+		)
+		self.assertEqual(adjusted_principal, 20000)
+
 	def test_advance_payment_before_first_payment(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
