@@ -611,6 +611,9 @@ class Loan(LoanController):
 		if not self.loan_amount and self.repayment_schedule_type != "Line of Credit":
 			frappe.throw(_("Loan amount is mandatory"))
 
+		if self.is_secured_loan and not self.maximum_loan_amount and not self.loan_application:
+			frappe.throw(_("Maximum Loan Amount is mandatory for secured Loans without a Loan Application"))
+
 	def link_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
 			lsa_details = frappe.db.get_value(
