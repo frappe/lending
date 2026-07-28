@@ -1587,8 +1587,6 @@ class LoanRepayment(LoanController):
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
 
 		if flt(amount_paid, precision) > 0:
-			self.validate_advance_payment(amount_paid, amounts, on_submit)
-
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
@@ -1763,25 +1761,6 @@ class LoanRepayment(LoanController):
 			last_principal_demand = self.get("repayment_details")[-1]
 			last_principal_demand.paid_amount += abs(self.excess_amount)
 
-	def validate_advance_payment(self, amount_paid, amounts, on_submit):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		if self.is_term_loan and not on_submit:
-			if self.repayment_type == "Advance Payment":
-				filters = {"loan": self.against_loan, "status": "Active", "docstatus": 1}
-
-				if self.loan_disbursement:
-					filters["loan_disbursement"] = self.loan_disbursement
-
-				monthly_repayment_amount = frappe.db.get_value(
-					"Loan Repayment Schedule",
-					filters,
-					"monthly_repayment_amount",
-				)
-
-				if (flt(amount_paid, precision) < monthly_repayment_amount) or (
-					flt(amount_paid, precision) > (2 * monthly_repayment_amount)
-				):
-					frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
 	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
