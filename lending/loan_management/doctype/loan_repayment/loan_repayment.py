@@ -129,16 +129,6 @@ class LoanRepayment(LoanController):
 			else:
 				frappe.throw(_("Payable Charges can only be added if Charge Payment, or for Charges Waiver/Capitalization during Loan Restructure"))
 
-		amounts = calculate_amounts(
-			self.against_loan,
-			self.value_date,
-			payment_type=self.repayment_type,
-			charges=charges,
-			loan_disbursement=self.loan_disbursement,
-			for_update=True,
-		)
-
-		self.set_missing_values(amounts)
 		self.validate_repayment_type()
 		self.validate_disbursement_link()
 
@@ -150,9 +140,19 @@ class LoanRepayment(LoanController):
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
 		self.check_future_entries()
-		self.validate_security_deposit_amount()
-		self.validate_repayment_type()
 		self.set_partner_payment_ratio()
+
+		amounts = calculate_amounts(
+			self.against_loan,
+			self.value_date,
+			payment_type=self.repayment_type,
+			charges=charges,
+			loan_disbursement=self.loan_disbursement,
+			for_update=True,
+		)
+
+		self.set_missing_values(amounts)
+		self.validate_security_deposit_amount()
 		self.validate_amount(amounts)
 		self.allocate_amounts(amounts)
 
@@ -182,6 +182,7 @@ class LoanRepayment(LoanController):
 
 	def on_submit(self):
 		if self.is_imported:
+			frappe.db.get_value("Loan", self.against_loan, "name", for_update=True)
 			self.update_paid_amounts()
 			return
 
@@ -273,7 +274,7 @@ class LoanRepayment(LoanController):
 		self.update_security_deposit_amount()
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		if self.repayment_type == "Full Settlement":
 			if not frappe.flags.in_test:
@@ -282,6 +283,7 @@ class LoanRepayment(LoanController):
 			else:
 				self.post_write_off_settlements()
 
+		self.enqueue_shortfall_status_update()
 		update_loan_securities_values(self.against_loan, self.principal_amount_paid, self.doctype)
 		self.create_loan_limit_change_log()
 		self.make_gl_entries()
@@ -753,7 +755,7 @@ class LoanRepayment(LoanController):
 		self.post_suspense_entries(cancel=1)
 
 		if not self.is_write_off_waiver:
-			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+			self.enqueue_installment_count_update()
 
 		self.check_future_entries(cancel=1)
 
@@ -1162,7 +1164,27 @@ class LoanRepayment(LoanController):
 		query = self.update_limits(query, loan)
 		query.run()
 
-		update_shortfall_status(self.against_loan, self.principal_amount_paid)
+	def enqueue_installment_count_update(self):
+		if frappe.flags.in_test:
+			update_installment_counts(self.against_loan, loan_disbursement=self.loan_disbursement)
+		else:
+			frappe.enqueue(
+				update_installment_counts,
+				against_loan=self.against_loan,
+				loan_disbursement=self.loan_disbursement,
+				enqueue_after_commit=True,
+			)
+
+	def enqueue_shortfall_status_update(self):
+		if frappe.flags.in_test:
+			update_shortfall_status(self.against_loan, self.principal_amount_paid)
+		else:
+			frappe.enqueue(
+				update_shortfall_status,
+				loan=self.against_loan,
+				security_value=self.principal_amount_paid,
+				enqueue_after_commit=True,
+			)
 
 	def handle_auto_demand_write_off(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -1565,8 +1587,6 @@ class LoanRepayment(LoanController):
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
 
 		if flt(amount_paid, precision) > 0:
-			self.validate_advance_payment(amount_paid, amounts, on_submit)
-
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
 			)
@@ -1741,25 +1761,6 @@ class LoanRepayment(LoanController):
 			last_principal_demand = self.get("repayment_details")[-1]
 			last_principal_demand.paid_amount += abs(self.excess_amount)
 
-	def validate_advance_payment(self, amount_paid, amounts, on_submit):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		if self.is_term_loan and not on_submit:
-			if self.repayment_type == "Advance Payment":
-				filters = {"loan": self.against_loan, "status": "Active", "docstatus": 1}
-
-				if self.loan_disbursement:
-					filters["loan_disbursement"] = self.loan_disbursement
-
-				monthly_repayment_amount = frappe.db.get_value(
-					"Loan Repayment Schedule",
-					filters,
-					"monthly_repayment_amount",
-				)
-
-				if (flt(amount_paid, precision) < monthly_repayment_amount) or (
-					flt(amount_paid, precision) > (2 * monthly_repayment_amount)
-				):
-					frappe.throw(_("Amount for advance payment must be between one to two EMI amount"))
 
 	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2

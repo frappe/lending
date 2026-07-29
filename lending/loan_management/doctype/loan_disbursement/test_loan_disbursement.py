@@ -3,6 +3,9 @@
 
 import frappe
 
+from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+	get_disbursal_amount,
+)
 from lending.tests.test_utils import (
 	create_loan,
 	init_customers,
@@ -53,6 +56,37 @@ class TestLoanDisbursement(LendingTestSuite):
 		self.assertTrue(
 			len(invoices) == 1, "Expected 1 Sales Invoice to be created for Loan Disbursement charge."
 		)
+
+	def test_disbursal_uses_saved_maximum_loan_amount_without_security_assignment(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Personal Loan",
+			50000,
+			"Repay Over Number of Periods",
+			2,
+		)
+		loan.is_secured_loan = 1
+		loan.maximum_loan_amount = 50000
+		loan.save()
+		loan.submit()
+
+		self.assertEqual(get_disbursal_amount(loan.name), (50000, 0))
+
+		disbursement = make_loan_disbursement_entry(loan.name, 50000)
+		self.assertEqual(disbursement.docstatus, 1)
+
+	def test_maximum_loan_amount_mandatory_for_secured_loan_without_loan_application(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Personal Loan",
+			50000,
+			"Repay Over Number of Periods",
+			2,
+		)
+		loan.is_secured_loan = 1
+		loan.maximum_loan_amount = 0
+
+		self.assertRaises(frappe.ValidationError, loan.save)
 
 	def test_tranche_number_assignment_on_loan_disbursement(self):
 		loan = create_loan(
