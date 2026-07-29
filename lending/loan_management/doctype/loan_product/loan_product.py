@@ -28,6 +28,7 @@ class LoanProduct(Document):
 		additional_interest_receivable: DF.Link | None
 		additional_interest_suspense: DF.Link | None
 		additional_interest_waiver: DF.Link | None
+		advance_payment_handling: DF.Literal["Reduce Tenure", "Reduce EMI"]
 		amended_from: DF.Link | None
 		bpi_recovery_method: DF.Literal["", "Upfront Deduction", "Amortized Over Tenure", "Add to First EMI", "Add to Last EMI"]
 		bpi_treatment: DF.Literal["On top of first EMI", "Adjust within the EMI amount"]

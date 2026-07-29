@@ -82,12 +82,10 @@ class LoanRefund(LoanController):
 			fieldname = "refund_amount"
 			amount = self.refund_amount
 
-		refund_amount = frappe.db.get_value("Loan", self.loan, fieldname)
-
 		if cancel:
-			refund_amount -= amount
-		else:
-			refund_amount += amount
+			amount = -1 * amount
+
+		refund_amount = frappe.db.get_value("Loan", self.loan, fieldname) + amount
 
 		if self.is_excess_amount_refund:
 			if not flt(refund_amount):
@@ -97,7 +95,7 @@ class LoanRefund(LoanController):
 		elif self.is_security_amount_refund:
 			loan_security_deposit = frappe.qb.DocType("Loan Security Deposit")
 
-			if self.refund_amount > flt(security_deposit_available_amount):
+			if not cancel and self.refund_amount > flt(security_deposit_available_amount):
 				frappe.throw(_("Refund amount cannot be more than available amount"))
 
 			frappe.qb.update(loan_security_deposit).set(
