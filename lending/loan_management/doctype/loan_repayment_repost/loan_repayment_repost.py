@@ -218,7 +218,12 @@ class LoanRepaymentRepost(Document):
 					repayment_doc.pending_principal_amount > 0
 					and repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
 				):
-					frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
+					if repayment_doc.repayment_type not in (
+						"Write Off Recovery",
+						"Write Off Settlement",
+						"Full Settlement",
+					):
+						frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
 			LoanRepayment = DocType("Loan Repayment")
