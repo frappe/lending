@@ -300,3 +300,46 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Settled")
+
+	def test_loan_write_off_recovery_status_after_repost(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2500000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			repayment_start_date="2024-11-05",
+			posting_date="2024-10-05",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+		)
+
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
+
+		create_loan_write_off(loan.name, "2024-11-05", write_off_amount=250000)
+
+		repayment_1 = create_repayment_entry(
+			loan.name, "2025-01-05", 750000, repayment_type="Write Off Recovery"
+		)
+		repayment_1.submit()
+
+		repayment_2 = create_repayment_entry(
+			loan.name, "2025-01-06", 1750000, repayment_type="Write Off Recovery"
+		)
+		repayment_2.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Written Off")
+
+		# repayment_1 is backdated relative to repayment_2, so cancelling it
+		# triggers an auto repost that replays repayment_2. The loan must remain
+		# Written Off after the repost, not fall back to "Disbursed".
+		repayment_1.cancel()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Written Off")
