@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-07-19 10:52+0000\n"
-"PO-Revision-Date: 2026-07-21 19:44\n"
+"POT-Creation-Date: 2026-08-02 10:57+0000\n"
+"PO-Revision-Date: 2026-08-04 08:22\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -83,7 +83,7 @@ msgstr "Tillgång & Skuldförvaltning Revision Rapport"
 msgid "Account Info"
 msgstr "Konto Information"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:116
+#: lending/loan_management/doctype/loan_product/loan_product.py:117
 msgid "Account {0} does not belong to company {1}"
 msgstr "Kontot {0} tillhör inte bolag {1}"
 
@@ -200,7 +200,7 @@ msgstr "Lägg till i sista Likställda Månadsvisa Avbetalning"
 msgid "Add to first repayment"
 msgstr "Lägg till första återbetalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2155
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2156
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Tillägg Ränta Avskrivning Konto erfordras"
 
@@ -237,7 +237,7 @@ msgstr "Extra Ränta Belopp"
 msgid "Additional Interest Income"
 msgstr "Extra Ränta Intäkt"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2171
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2172
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Extra Ränta Intäkt Konto erfordras"
 
@@ -247,7 +247,7 @@ msgstr "Extra Ränta Intäkt Konto erfordras"
 msgid "Additional Interest Receivable"
 msgstr "Extra Ränta Fordring"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2165
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Extra Ränta Fordring Konto erfordras"
 
@@ -269,7 +269,7 @@ msgstr "Extra Uppskjuten Ränta Post"
 msgid "Additional Interest Waiver"
 msgstr "Extra Ränta Avskrivning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Extra Ränta Avskrivning Konto erfordras"
 
@@ -363,7 +363,7 @@ msgstr "Justeringar"
 msgid "Advance Payment"
 msgstr "Förskott Betalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2236
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2237
 msgid "Against Account is mandatory"
 msgstr "Mot konto erfordras"
 
@@ -378,8 +378,8 @@ msgstr "Mot Lån"
 msgid "Against Loan "
 msgstr "Mot Lån "
 
-#: lending/loan_management/doctype/loan_refund/loan_refund.py:160
-#: lending/loan_management/doctype/loan_refund/loan_refund.py:176
+#: lending/loan_management/doctype/loan_refund/loan_refund.py:158
+#: lending/loan_management/doctype/loan_refund/loan_refund.py:174
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.py:229
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.py:247
 msgid "Against Loan:"
@@ -466,7 +466,7 @@ msgstr "Belopp"
 msgid "Amount Paid"
 msgstr "Betald Belopp"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:432
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:434
 msgid "Amount Paid must equal the sum of Principal, Interest, Penalty, Charges, Unbooked Interest, and Unbooked Penalty."
 msgstr "Betalt belopp måste vara lika med summan av Kapitalbelopp, Ränta, Straffavgifter, Avgifter, Ej bokförd ränta och Ej bokförd straffavgift."
 
@@ -478,29 +478,25 @@ msgstr "Belopp kan inte vara negativ"
 msgid "Amount cannot be zero"
 msgstr "Belopp kan inte vara noll"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1762
-msgid "Amount for advance payment must be between one to two EMI amount"
-msgstr "Belopp för förskott betalning måste vara mellan ett och två Likställda Månadsvisa Avbetalningar"
-
 #. Description of the 'Base Amount' (Currency) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Amount on which interest is calculated"
 msgstr "Belopp på vilket ränta beräknas"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:912
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:914
 msgid "Amount paid cannot be greater than available security deposit"
 msgstr "Betald belopp kan inte vara högre än tillgänglig säkerhetsdeposition"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:992
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Betald belopp kan inte vara högre än belopp som ska betalas"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1005
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Betald belopp får inte vara lägre än belopp som ska betalas för låneavslut"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:997
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:999
 msgid "Amount paid cannot be zero"
 msgstr "Betalt belopp kan inte vara noll"
 
@@ -997,11 +993,11 @@ msgstr "Annullera framtida Likställda Månadsvisa Avbetalning Krav"
 msgid "Cancellation Date"
 msgstr "Annullering Datum"
 
-#: lending/loan_management/doctype/loan/loan.py:898
+#: lending/loan_management/doctype/loan/loan.py:901
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr "Kan inte avsluta lånet eftersom det finns utestående skuld på {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:946
+#: lending/loan_management/doctype/loan/loan.py:949
 msgid "Cannot close this loan until full repayment"
 msgstr "Kan inte avsluta detta lån förrän full återbetalning"
 
@@ -1009,7 +1005,7 @@ msgstr "Kan inte avsluta detta lån förrän full återbetalning"
 msgid "Cannot create loan until application is approved"
 msgstr "Kan inte skapa lån förrän ansökan är godkänd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2526
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2527
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Kan inte göra förskott eller förskottsbetalningar under moratorieperiod. (Moratoriet Slutdatum: {}, Registrering Datum: {})"
 
@@ -1234,7 +1230,7 @@ msgstr "Ta bort efterfråga tilldelning före ombokning"
 msgid "Clearance Date"
 msgstr "Klarering Datum"
 
-#: lending/loan_management/doctype/loan/loan.js:107
+#: lending/loan_management/doctype/loan/loan.js:109
 msgid "Close Loan"
 msgstr "Avsluta Lån"
 
@@ -1445,7 +1441,7 @@ msgstr "Kredit ({0})"
 msgid "Credit Account"
 msgstr "Kredit Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2294
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2295
 msgid "Credit Account is mandatory"
 msgstr "Kredit Konto erfordras"
 
@@ -1533,7 +1529,7 @@ msgstr "Kund"
 msgid "Customer Refund Account"
 msgstr "Kund Återbetalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2194
 msgid "Customer Refund Account is mandatory"
 msgstr "Kund Återbetalning Konto erfordras"
 
@@ -1721,6 +1717,12 @@ msgstr "Insättning Datum"
 msgid "Detailed"
 msgstr "Detaljerad"
 
+#. Description of the 'How to Handle Advance Payments' (Select) field in
+#. DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Determines how an advance payment is handled while restructuring the loan schedule. \"Reduce Tenure\" keeps the EMI fixed and reduces the number of periods, while \"Reduce EMI\" keeps the number of periods fixed and reduces the EMI."
+msgstr "Bestämmer hur förskottsbetalning ska hanteras vid omstrukturering av låneschema. Alternativet ”Förkorta Löptid” håller månatliga avbetalning (EMI) oförändrad och minskar antalet perioder, medan alternativet ”Minska Månatlig Avbetalning” håller antalet perioder oförändrat och minskar månatlig avbetalning (EMI)."
+
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Disbursed"
@@ -1748,7 +1750,7 @@ msgstr "Utbetald Belopp"
 msgid "Disbursed Amount cannot be more than {0} as per loan limit or assigned security value"
 msgstr "Utbetalt belopp får inte vara högre än {0} enligt lånegräns eller tilldelad garanti värde"
 
-#: lending/loan_management/doctype/loan/loan.js:132
+#: lending/loan_management/doctype/loan/loan.js:134
 msgid "Disbursed Amount: {0}"
 msgstr "Utbetald Belopp: {0}"
 
@@ -1834,7 +1836,7 @@ msgstr "Utbetalning & Återbetalning"
 msgid "Disbursement date is out of approved limit dates"
 msgstr "Utbetalning datum är utanför godkänd datum intervall"
 
-#: lending/loan_management/doctype/loan/loan.js:254
+#: lending/loan_management/doctype/loan/loan.js:256
 msgid "Do you really want to close this loan"
 msgstr "Vill du verkligen stänga detta lån"
 
@@ -2001,7 +2003,7 @@ msgstr "Överskott Belopp Godkännande Gräns"
 msgid "Excess Amount Paid"
 msgstr "Betald Överskjutande Belopp"
 
-#: lending/loan_management/doctype/loan_refund/loan_refund.py:96
+#: lending/loan_management/doctype/loan_refund/loan_refund.py:94
 msgid "Excess amount refund cannot be more than excess amount paid"
 msgstr "Återbetalning av överskjutande belopp kan inte vara högre än överskjutande belopp som betalats"
 
@@ -2142,7 +2144,7 @@ msgstr "Fullständig Förlikning"
 msgid "Full Settlement Job"
 msgstr "Fullständig Förlikning Uppdrag"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:950
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:952
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Fullständig Uppgörelse kan inte dateras retroaktivt. Värdedagen {0} kan inte infalla före senaste återbetalning dag {1} ({2})."
 
@@ -2196,6 +2198,12 @@ msgstr "Värderingsavdrag är procentuell skillnad mellan marknadsvärde på lå
 msgid "Help Text"
 msgstr "Hjälp Text"
 
+#. Label of the advance_payment_handling (Select) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "How to Handle Advance Payments"
+msgstr "Hur Hanterar Förskott Betalningar"
+
 #. Description of the 'No Interest Accrual Till Month End' (Check) field in
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -2229,7 +2237,7 @@ msgstr "Intäkt"
 msgid "Income Account"
 msgstr "Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:993
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:995
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Felaktig återbetalning typ, skriv av lån först"
 
@@ -2319,7 +2327,7 @@ msgstr "Ränta Vidarebefordrad"
 msgid "Interest Income Account"
 msgstr "Ränte Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2111
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2112
 msgid "Interest Income Account is mandatory"
 msgstr "Ränta Intäkt Konto erfordras"
 
@@ -2348,7 +2356,7 @@ msgstr "Räntesats (%)"
 msgid "Interest Receivable Account"
 msgstr "Räntefordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2106
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2107
 msgid "Interest Receivable Account is mandatory"
 msgstr "Räntefordring Konto erfordras"
 
@@ -2376,7 +2384,7 @@ msgstr "Ränta Avskrivning"
 msgid "Interest Waiver Account"
 msgstr "Ränta Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2188
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2189
 msgid "Interest Waiver Account is mandatory"
 msgstr "Ränta Avstånd Konto erfordras"
 
@@ -2405,7 +2413,7 @@ msgstr "Ränta: {0}"
 msgid "Internal Foreclosure"
 msgstr "Intern Utmätning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:871
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:873
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Ogiltig Utbetalning länkad för betalning"
 
@@ -2698,13 +2706,13 @@ msgstr "Lån Detaljer"
 msgid "Loan Account"
 msgstr "Lån Konto"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:123
+#: lending/loan_management/doctype/loan_product/loan_product.py:124
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Lånekonto och Betalkonto får inte vara samma"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2102
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2132
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2160
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2103
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2161
 msgid "Loan Account is mandatory"
 msgstr "Lånekonto erfordras"
 
@@ -2971,7 +2979,7 @@ msgstr "Lån Detaljer"
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
-#: lending/loan_management/doctype/loan/loan.js:85
+#: lending/loan_management/doctype/loan/loan.js:87
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -3303,7 +3311,7 @@ msgstr "Lån Syfte"
 
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
-#: lending/loan_management/doctype/loan/loan.js:101
+#: lending/loan_management/doctype/loan/loan.js:103
 #: lending/loan_management/doctype/loan_refund/loan_refund.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Loan Refund"
@@ -3320,7 +3328,7 @@ msgstr "Låneåterbetalning"
 #. Label of the loan_repayment (Link) field in DocType 'Loan Restructure'
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan/loan.js:79
+#: lending/loan_management/doctype/loan/loan.js:81
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.js:21
@@ -3399,6 +3407,41 @@ msgstr "Återbetalning Typ"
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Repayment and Closure"
 msgstr "Återbetalning & Avslut"
+
+#. Name of a role
+#: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
+#: lending/loan_management/doctype/loan/loan.json
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
+#: lending/loan_management/doctype/loan_category/loan_category.json
+#: lending/loan_management/doctype/loan_classification/loan_classification.json
+#: lending/loan_management/doctype/loan_demand/loan_demand.json
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+#: lending/loan_management/doctype/loan_partner/loan_partner.json
+#: lending/loan_management/doctype/loan_product/loan_product.json
+#: lending/loan_management/doctype/loan_refund/loan_refund.json
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.json
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.json
+#: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
+#: lending/loan_management/doctype/loan_security/loan_security.json
+#: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
+#: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
+#: lending/loan_management/doctype/loan_security_price/loan_security_price.json
+#: lending/loan_management/doctype/loan_security_release/loan_security_release.json
+#: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
+#: lending/loan_management/doctype/loan_security_type/loan_security_type.json
+#: lending/loan_management/doctype/loan_transfer/loan_transfer.json
+#: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
+#: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
+#: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+#: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+msgid "Loan Reporter"
+msgstr "Lån Rapporter"
 
 #. Option for the 'Reference Document Type' (Select) field in DocType 'Loan
 #. Balance Adjustment'
@@ -3532,7 +3575,7 @@ msgid "Loan Security Exposure"
 msgstr "Säkerhetsexponering"
 
 #. Name of a report
-#: lending/loan_management/doctype/loan/loan.js:114
+#: lending/loan_management/doctype/loan/loan.js:116
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.json
 msgid "Loan Security Ledger"
 msgstr "Garanti Register"
@@ -3581,7 +3624,7 @@ msgstr "Garanti Priser uppdaterade"
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan/loan.js:91
+#: lending/loan_management/doctype/loan/loan.js:93
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
@@ -3694,7 +3737,7 @@ msgstr "Överföringar"
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan/loan.js:97
+#: lending/loan_management/doctype/loan/loan.js:99
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
@@ -3724,7 +3767,7 @@ msgstr "Ouppbördig Tillgång"
 msgid "Loan {0} closed"
 msgstr "Lån {0} stängd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:974
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:976
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Lån {0}: Kan inte bokföras {1} efter full förlikning. Endast Ränta, Straff eller Avgift Avskrivning kan bokföras efter Full Förlikning."
 
@@ -3795,6 +3838,10 @@ msgstr "Högsta Gränsbelopp"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Maximum Loan Amount"
 msgstr "Högsta Lånebelopp"
+
+#: lending/loan_management/doctype/loan/loan.py:615
+msgid "Maximum Loan Amount is mandatory for secured Loans without a Loan Application"
+msgstr "Maximalt lånebelopp erfordras för säkrade lån utan Låneansökan"
 
 #. Label of the maximum_loan_value (Currency) field in DocType 'Loan Security
 #. Assignment'
@@ -4022,7 +4069,7 @@ msgstr "Ingen ränteberäkning Till Månad Slutet"
 msgid "No Records for these settings."
 msgstr "Inga Poster för dessa inställningar."
 
-#: lending/loan_management/doctype/loan/loan.py:1172
+#: lending/loan_management/doctype/loan/loan.py:1175
 msgid "No excess amount pending for refund"
 msgstr "Inget överskottsbelopp väntar på återbetalning"
 
@@ -4135,7 +4182,7 @@ msgstr "Utöver första Likställda Månadsvisa Avbetalning"
 msgid "One Time"
 msgstr "En Gång"
 
-#: lending/loan_management/doctype/loan/loan.py:1114
+#: lending/loan_management/doctype/loan/loan.py:1117
 msgid "Only submitted unpledge requests can be approved"
 msgstr "Endast inlämnade ej pantsatta ansökningar kan godkännas"
 
@@ -4169,7 +4216,7 @@ msgstr "Utestående Öppning Straffavgift"
 msgid "Opening Principal Outstanding"
 msgstr "Öppning Utestående Belopp"
 
-#: lending/loan_management/doctype/loan/loan.py:683
+#: lending/loan_management/doctype/loan/loan.py:686
 msgid "Opening entry for imported loan {0}"
 msgstr "Öppning post för importerat lån {0}"
 
@@ -4299,7 +4346,7 @@ msgstr "Partner Inkasso Procentuellt"
 msgid "Partner Interest Share"
 msgstr "Partner Ränta Andel"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2298
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2299
 msgid "Partner Interest Share is mandatory"
 msgstr "Partner Ränta Delning erfordras"
 
@@ -4375,7 +4422,7 @@ msgstr "Tidigare Kassaflöde Rapport"
 msgid "Payable Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2296
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2297
 msgid "Payable Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -4406,9 +4453,9 @@ msgstr "Betalbar Belopp"
 msgid "Payment Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2113
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2273
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2415
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2114
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2416
 msgid "Payment Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -4507,7 +4554,7 @@ msgstr "Straffavgift Sats"
 msgid "Penalty Income Account"
 msgstr "Straffavgift Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2142
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2143
 msgid "Penalty Income Account is mandatory"
 msgstr "Straffavgift Intäkt Konto erfordras"
 
@@ -4533,7 +4580,7 @@ msgstr "Straffavgift Försenad"
 msgid "Penalty Receivable Account"
 msgstr "Straffavgift Fordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2136
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Straffavgift Fordring Konto erfordras"
 
@@ -4578,7 +4625,7 @@ msgstr "Väntande Avgift Belopp"
 msgid "Pending Principal Amount"
 msgstr "Utestående Amortering Belopp"
 
-#: lending/loan_management/doctype/loan/loan.js:142
+#: lending/loan_management/doctype/loan/loan.js:144
 msgid "Pending Principal: {0}"
 msgstr "Utestående Belopp: {0}"
 
@@ -4586,7 +4633,7 @@ msgstr "Utestående Belopp: {0}"
 msgid "Pending principal amount for loan {0} is {1}"
 msgstr "Utestående Belopp för {0} är {1}"
 
-#: lending/loan_management/doctype/loan_refund/loan_refund.py:139
+#: lending/loan_management/doctype/loan_refund/loan_refund.py:137
 msgid "Please add customer refund account in Loan Product"
 msgstr "Lägg till Kund Äterbetalning Konto i Låneartikel"
 
@@ -4625,7 +4672,7 @@ msgstr "Välj Som på Datum."
 msgid "Please select Company."
 msgstr "Välj Bolag."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:862
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:864
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Välj Utbetalning för Kredit Återbetalning"
 
@@ -4663,7 +4710,7 @@ msgstr "Ange konto för Extra Ränta Intäkt Konto i {0}"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Ange Bruten Period Ränta Återställning Konto för {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2197
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Ange Kund Återbetalning Konto i {0}"
 
@@ -4675,15 +4722,15 @@ msgstr "Ange Beräknad Ränta Konto i {0}"
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Ange Ränta Intäkt Konto i {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:726
+#: lending/loan_management/doctype/loan/loan.py:729
 msgid "Please set Loan Account for the Loan Product {0}"
 msgstr "Vänligen ange Lån Konto för Lån Artikel {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:731
+#: lending/loan_management/doctype/loan/loan.py:734
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Vänligen ange Betalning Konto för Lån Artikel {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:849
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:851
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Ange Lönekonto i Låneåterbetalning"
 
@@ -4695,7 +4742,7 @@ msgstr "Ange Beräknad Straffavgift Konto i {0}"
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Ange Straffavgift Intäkt Konto i {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:627
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:629
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "Ange Avskrivning Återställning Konto i {0}"
 
@@ -4711,7 +4758,7 @@ msgstr "Ange {0} Upplupen Konto i {1}"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Ange {0} Fordring Konto i {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2466
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2467
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Ange {0} i antingen Bolag eller Artikel"
 
@@ -5121,6 +5168,18 @@ msgstr "Omstrukturering Anledning"
 msgid "Receivable Account"
 msgstr "Fordring Konto"
 
+#. Option for the 'How to Handle Advance Payments' (Select) field in DocType
+#. 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Reduce EMI"
+msgstr "Minska Månatlig Avbetalning"
+
+#. Option for the 'How to Handle Advance Payments' (Select) field in DocType
+#. 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Reduce Tenure"
+msgstr "Förkorta Löptid"
+
 #. Label of the reference_no (Data) field in DocType 'Loan Security Assignment'
 #. Label of the reference_no (Data) field in DocType 'Loan Security Release'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5183,7 +5242,7 @@ msgstr "Återbetalning Belopp"
 msgid "Refund amount cannot be greater than net paid amount"
 msgstr "Återbetalningsbelopp kan inte vara högre än netto betald belopp"
 
-#: lending/loan_management/doctype/loan_refund/loan_refund.py:101
+#: lending/loan_management/doctype/loan_refund/loan_refund.py:99
 msgid "Refund amount cannot be more than available amount"
 msgstr "Återbetalningsbelopp kan inte vara högre än tillgänglig belopp"
 
@@ -5409,7 +5468,7 @@ msgstr "Återbetalning Start Datum {0} får inte infalla före Utbetalning Datum
 msgid "Repayment Type"
 msgstr "Återbetalning Typ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:931
 msgid "Repayment cannot be made for closed loan"
 msgstr "Återbetalning kan inte göras för avslutad lån"
 
@@ -5417,7 +5476,7 @@ msgstr "Återbetalning kan inte göras för avslutad lån"
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Återbetalning perioder erfordras för termin lån"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:984
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:986
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Återbetalning Typ kan endast vara Avskrivning Återställning eller Avskrivning Förlikning"
 
@@ -5431,7 +5490,7 @@ msgstr "Återtagen"
 msgid "Repost Date"
 msgstr "Återpublicering Datum"
 
-#: lending/loan_management/doctype/loan/loan.js:75
+#: lending/loan_management/doctype/loan/loan.js:77
 msgid "Request Loan Closure"
 msgstr "Begär Låneavslut"
 
@@ -5489,7 +5548,7 @@ msgstr "Omstrukturering av tillämpliga lån"
 msgid "Restructured"
 msgstr "Omstrukturerad"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2275
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2276
 msgid "Round Off Account is mandatory"
 msgstr "Avrundning Konto erfordras"
 
@@ -5779,23 +5838,23 @@ msgstr "Villkor Detaljer"
 msgid "Terms and Conditions"
 msgstr "Regler och Villkor"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1029
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1031
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Låneutbetalning {0} är avslutad."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:915
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
 msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
 msgstr "Betald belopp kan inte vara högre än belopp som ska betalas för återbetalningar av justering av garanti deposition."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3332
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3333
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3318
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3319
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ombokning slutfördes inte och har återställts till Utkast:"
 
@@ -6176,7 +6235,7 @@ msgstr "Avstånd Belopp"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Avstånd Belopp {0} kan inte vara högre än utestående belopp {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1013
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1015
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Avstånd {0} belopp {1} kan inte vara högre än förfallet belopp {2}"
 
@@ -6185,7 +6244,7 @@ msgstr "Avstånd {0} belopp {1} kan inte vara högre än förfallet belopp {2}"
 msgid "Waiver Account"
 msgstr "Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2426
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2427
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Avskrivning Konto inte angiven för avgift {0} i {1}"
 
@@ -6253,7 +6312,7 @@ msgstr "Avskrivning Återställning"
 msgid "Write Off Recovery Account"
 msgstr "Avskrivning Återställning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2214
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Avskrivning Återställning Konto erfordras"
 
@@ -6262,7 +6321,7 @@ msgstr "Avskrivning Återställning Konto erfordras"
 msgid "Write Off Settlement"
 msgstr "Avskrivning Uppgörelse"
 
-#: lending/loan_management/doctype/loan/loan.py:1044
+#: lending/loan_management/doctype/loan/loan.py:1047
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr "Avskrivning belopp kan inte vara högre än utestående lånebelopp"
 
@@ -6293,11 +6352,11 @@ msgstr "Postnummer"
 msgid "with reference no. {}"
 msgstr "med referensnummer {}"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:128
+#: lending/loan_management/doctype/loan_product/loan_product.py:129
 msgid "{0} cannot be negative"
 msgstr "{0} kan inte vara negativ"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:143
+#: lending/loan_management/doctype/loan_product/loan_product.py:144
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "{0} erfordras. Ange det i Lån Artikel eller Bolag"
 
@@ -6306,7 +6365,7 @@ msgstr "{0} erfordras. Ange det i Lån Artikel eller Bolag"
 msgid "{0} should be between 1 and 99"
 msgstr "{0} ska vara mellan 1 och 99"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:179
+#: lending/loan_management/doctype/loan_product/loan_product.py:180
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
 msgstr "{0} {1} erfordras när Lån Bokföring är aktiverad för {2}"
 
