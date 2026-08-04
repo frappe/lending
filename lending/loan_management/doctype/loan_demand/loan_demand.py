@@ -321,7 +321,14 @@ def process_term_loan_batch(
 
 	emi_rows = query.run(as_dict=True)
 
+	installment_count_updates_remaining = {}
 	for row in emi_rows:
+		installment_count_updates_remaining[row.parent] = (
+			installment_count_updates_remaining.get(row.parent, 0) + 1
+		)
+
+	for row in emi_rows:
+		row_raised = False
 		try:
 			freeze_date = freeze_dates.get(loan_repayment_schedule_map.get(row.parent))
 			if freeze_date and getdate(freeze_date) <= getdate(row.payment_date):
@@ -367,10 +374,8 @@ def process_term_loan_batch(
 					posting_date=posting_date,
 				)
 
-			update_installment_counts(loan_repayment_schedule_map.get(row.parent))
-
 			if len(loans) > 1:
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep
 		except Exception as e:
 			if len(loans) > 1:
 				frappe.log_error(
@@ -380,10 +385,17 @@ def process_term_loan_batch(
 					reference_name=loan_repayment_schedule_map.get(row.parent),
 				)
 			else:
+				row_raised = True
 				raise e
 
 			if len(loans) > 1:
 				frappe.db.rollback()
+		finally:
+			installment_count_updates_remaining[row.parent] -= 1
+			if installment_count_updates_remaining[row.parent] == 0 and not row_raised:
+				update_installment_counts(loan_repayment_schedule_map.get(row.parent))
+				if len(loans) > 1:
+					frappe.db.commit()  # nosemgrep
 
 
 def make_loan_demand_for_demand_loans(
