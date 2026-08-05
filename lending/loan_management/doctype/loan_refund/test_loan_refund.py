@@ -159,9 +159,7 @@ class TestLoanRefund(FrappeTestCase):
 			"Loan Security Deposit", loan_security_deposit, "available_amount"
 		)
 
-		refund = create_loan_refund(
-			loan.name, posting_date, 50000, is_security_amount_refund=1
-		)
+		refund = create_loan_refund(loan.name, posting_date, 50000, is_security_amount_refund=1)
 
 		available_amount_after_refund = frappe.db.get_value(
 			"Loan Security Deposit", loan_security_deposit, "available_amount"
