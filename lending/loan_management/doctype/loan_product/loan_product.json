@@ -22,6 +22,7 @@
   "repayment_date_on",
   "repayment_schedule_type",
   "no_interest_till_month_end",
+  "advance_payment_handling",
   "days_past_due_threshold_for_npa",
   "is_term_loan",
   "validate_normal_repayment",
@@ -217,6 +218,14 @@
    "label": "Repayment Date On",
    "mandatory_depends_on": "eval:doc.repayment_schedule_type == \"Pro-rated calendar months\"",
    "options": "\nStart of the next month\nEnd of the current month"
+  },
+  {
+   "default": "Reduce Tenure",
+   "description": "Determines how an advance payment is handled while restructuring the loan schedule. \"Reduce Tenure\" keeps the EMI fixed and reduces the number of periods, while \"Reduce EMI\" keeps the number of periods fixed and reduces the EMI.",
+   "fieldname": "advance_payment_handling",
+   "fieldtype": "Select",
+   "label": "How to Handle Advance Payments",
+   "options": "Reduce Tenure\nReduce EMI"
   },
   {
    "description": "Loans will be marked as NPA when the days past due count exceed this threshold",
@@ -576,6 +585,14 @@
    "role": "Loan Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Reporter"
   }
  ],
  "row_format": "Dynamic",
