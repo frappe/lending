@@ -874,7 +874,10 @@ def update_days_past_due_in_loans(
 	disbursements = frappe.db.get_all("Loan Repayment Schedule", filters, pluck="loan_disbursement")
 
 	loan_details = frappe.db.get_value(
-		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"], as_dict=1
+		"Loan",
+		loan_name,
+		["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"],
+		as_dict=1,
 	)
 
 	applicant_type = loan_details.get("applicant_type")
@@ -934,22 +937,6 @@ def update_days_past_due_in_loans(
 		threshold_map = get_dpd_threshold_map()
 		threshold_write_off_map = get_dpd_threshold_write_off_map()
 
-<<<<<<< HEAD
-		loan_details = frappe.db.get_value(
-			"Loan",
-			loan_name,
-			["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"],
-			as_dict=1,
-		)
-
-		applicant_type = loan_details.get("applicant_type")
-		applicant = loan_details.get("applicant")
-		company = loan_details.get("company")
-		freeze_date = loan_details.get("freeze_date")
-		existing_watch_period_end_date = loan_details.get("watch_period_end_date")
-
-=======
->>>>>>> 338e741a (perf: remove repeated queries in daily accrual, demand and classification jobs)
 		if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
 			return
 
@@ -1276,25 +1263,21 @@ def update_loan_and_customer_status(
 			move_unpaid_interest_to_suspense_ledger(loan, max_date, max_date)
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date, max_date)
 
-<<<<<<< HEAD
 	elif (
 		is_npa and not cint(loan_details.get("unmark_npa")) and not cint(loan_details.get("current_npa"))
 	):
-		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
-=======
-	elif is_npa and not cint(loan_details.get("unmark_npa")) and not cint(loan_details.get("current_npa")):
 		active_loans = get_all_active_loans_for_the_customer(applicant, applicant_type)
 		is_npa_map = (
 			frappe._dict(
-				frappe.get_all("Loan", filters={"name": ("in", active_loans)}, fields=["name", "is_npa"], as_list=1)
+				frappe.get_all(
+					"Loan", filters={"name": ("in", active_loans)}, fields=["name", "is_npa"], as_list=1
+				)
 			)
 			if active_loans
 			else {}
 		)
 		for loan_id in active_loans:
 			prev_npa = is_npa_map.get(loan_id)
->>>>>>> 338e741a (perf: remove repeated queries in daily accrual, demand and classification jobs)
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date, value_date=posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date, posting_date)
