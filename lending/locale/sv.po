@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:22\n"
+"PO-Revision-Date: 2026-08-06 08:26\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -6032,7 +6032,7 @@ msgstr "Totalt netto belopp att betala är {0} och det total justering belopp ä
 
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.py:530
 msgid "Total overdue amount for charge {0} is {1}, but table shows {2}. Please remove the duplicate charges and refresh the page."
-msgstr "Totalt förfallet belopp för avgift {0} är {1}, men tabell visar {2}. Ta bort dubbla avgifter och uppdatera sida."
+msgstr "Totalt förfallet belopp för avgift {0} är {1}, men tabell visar {2}. Ta bort dubblett avgifter och uppdatera sida."
 
 #. Label of the tranche_number (Int) field in DocType 'Loan Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
