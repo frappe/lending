@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:PCLGL-{loan}-{month_end_date}-{#####}",
+ "autoname": "format:PLA-{month_end_date}-{#####}",
  "creation": "2026-07-12 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -90,17 +90,17 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Process Consolidated Loan GL",
+   "options": "Process Loan Accounting",
    "print_hide": 1,
    "read_only": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-12 16:09:57.130711",
+ "modified": "2026-08-07 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
- "name": "Process Consolidated Loan GL",
+ "name": "Process Loan Accounting",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

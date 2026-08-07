@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Process Consolidated Loan GL", {
+frappe.ui.form.on("Process Loan Accounting", {
 	refresh(frm) {
 		if (frm.doc.docstatus > 0) {
 			frm.add_custom_button(
