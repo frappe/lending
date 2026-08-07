@@ -191,6 +191,10 @@ scheduler_events = {
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+		"lending.loan_management.doctype.process_loan_accounting.process_loan_accounting.process_loan_accounting",
+>>>>>>> 228d6ad (refactor: rename doctype to Process Loan Accounting, drop gl_posted)
 		"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.send_auto_email",
 =======
 		"lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl.process_consolidated_loan_gl",

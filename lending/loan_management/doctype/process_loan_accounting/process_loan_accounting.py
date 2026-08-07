@@ -24,7 +24,14 @@ BUCKET_KEYS = (
 )
 
 
-class ProcessConsolidatedLoanGL(LoanController):
+def _consolidation_start_date(company, fallback):
+	"""Docs dated before this were posted with their own daily GL and never got a voucher link --
+	pending-consolidation queries must not pick them up just because consolidated_gl_voucher is null."""
+	start_date = frappe.get_cached_value("Company", company, "loan_gl_consolidation_start_date")
+	return getdate(start_date) if start_date else getdate(fallback)
+
+
+class ProcessLoanAccounting(LoanController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -98,7 +105,7 @@ class ProcessConsolidatedLoanGL(LoanController):
 			frappe.db.set_value(
 				doctype,
 				{"consolidated_gl_voucher": self.name},
-				{"gl_posted": 0, "consolidated_gl_voucher": None},
+				{"consolidated_gl_voucher": None},
 				update_modified=False,
 			)
 
@@ -141,7 +148,10 @@ class ProcessConsolidatedLoanGL(LoanController):
 
 		src = frappe.qb.DocType(doctype)
 		date_col = src[date_field]
-		in_period = date_col[self.period_start_date : self.period_end_date]
+		# Docs dated before the company's consolidation start date already posted their own daily
+		# GL and never got a voucher link -- exclude them or they'd be wrongly folded in here too.
+		period_start = max(getdate(self.period_start_date), self.consolidation_start_date())
+		in_period = date_col[period_start : self.period_end_date]
 
 		pending = (
 			frappe.qb.from_(src)
@@ -149,7 +159,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 			.where(
 				(src.loan == self.loan)
 				& (src.docstatus == 1)
-				& (src.gl_posted == 0)
 				& src.consolidated_gl_voucher.isnull()
 				& in_period
 			)
@@ -162,7 +171,6 @@ class ProcessConsolidatedLoanGL(LoanController):
 			.where(
 				(src.loan == self.loan)
 				& (src.docstatus == 2)
-				& (src.gl_posted == 1)
 				& src.consolidated_gl_voucher.isnotnull()
 				& in_period
 			)
@@ -170,6 +178,9 @@ class ProcessConsolidatedLoanGL(LoanController):
 		)
 
 		return pending + reversed_after
+
+	def consolidation_start_date(self):
+		return _consolidation_start_date(self.company, self.period_start_date)
 
 	def buckets_to_gl_map(self, buckets):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -345,7 +356,7 @@ class ProcessConsolidatedLoanGL(LoanController):
 					frappe.db.set_value(
 						doctype,
 						name,
-						{"gl_posted": 1, "consolidated_gl_voucher": self.name},
+						{"consolidated_gl_voucher": self.name},
 						update_modified=False,
 					)
 
@@ -366,10 +377,10 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 	month_end_date = get_last_day(month_end_date or nowdate())
 	period_start = get_first_day(month_end_date)
 
-	if not loan_has_deferred_gl(loan, period_start, month_end_date):
+	if not loan_has_deferred_gl(loan, company, period_start, month_end_date):
 		return
 
-	doc = frappe.new_doc("Process Consolidated Loan GL")
+	doc = frappe.new_doc("Process Loan Accounting")
 	doc.company = company
 	doc.loan = loan
 	doc.month_end_date = month_end_date
@@ -378,21 +389,20 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 	return doc.name
 
 
-def loan_has_deferred_gl(loan, period_start, period_end):
+def loan_has_deferred_gl(loan, company, period_start, period_end):
 	"""Whether the loan has any deferred or reversal-pending accrual/demand in the period."""
+	start_date = _consolidation_start_date(company, period_start)
 	for doctype in CONSOLIDATED_SOURCES:
 		date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
 		src = frappe.qb.DocType(doctype)
-		in_period = src[date_field][period_start:period_end]
+		in_period = src[date_field][start_date:period_end]
 
-		deferred = (src.docstatus == 1) & (src.gl_posted == 0)
-		reversal_pending = (
-			(src.docstatus == 2) & (src.gl_posted == 1) & src.consolidated_gl_voucher.isnotnull()
-		)
+		pending = (src.docstatus == 1) & src.consolidated_gl_voucher.isnull()
+		reversal_pending = (src.docstatus == 2) & src.consolidated_gl_voucher.isnotnull()
 		exists = (
 			frappe.qb.from_(src)
 			.select(src.name)
-			.where((src.loan == loan) & in_period & (deferred | reversal_pending))
+			.where((src.loan == loan) & in_period & (pending | reversal_pending))
 			.limit(1)
 			.run()
 		)
@@ -403,21 +413,20 @@ def loan_has_deferred_gl(loan, period_start, period_end):
 
 def loans_with_deferred_gl(company, period_start, period_end):
 	"""Loans of a company that have any deferred (or reversal-pending) accrual/demand in the period."""
+	start_date = _consolidation_start_date(company, period_start)
 	loans = set()
 	for doctype in CONSOLIDATED_SOURCES:
 		date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
 		src = frappe.qb.DocType(doctype)
-		in_period = src[date_field][period_start:period_end]
+		in_period = src[date_field][start_date:period_end]
 
-		deferred = (src.docstatus == 1) & (src.gl_posted == 0)
-		reversal_pending = (
-			(src.docstatus == 2) & (src.gl_posted == 1) & src.consolidated_gl_voucher.isnotnull()
-		)
+		pending = (src.docstatus == 1) & src.consolidated_gl_voucher.isnull()
+		reversal_pending = (src.docstatus == 2) & src.consolidated_gl_voucher.isnotnull()
 		loans.update(
 			frappe.qb.from_(src)
 			.select(src.loan)
 			.distinct()
-			.where((src.company == company) & in_period & (deferred | reversal_pending))
+			.where((src.company == company) & in_period & (pending | reversal_pending))
 			.run(pluck=True)
 		)
 	return [x for x in loans if x]
@@ -469,7 +478,7 @@ def run_consolidation_for_loan_batch(loans, month_end_date, company):
 		frappe.db.commit()  # nosemgrep
 
 
-def process_consolidated_loan_gl(month_end_date=None):
+def process_loan_accounting(month_end_date=None):
 	"""Scheduler entry point. Runs on the last day of the month for every enabled company."""
 	posting_date = getdate(month_end_date or nowdate())
 

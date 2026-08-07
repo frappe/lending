@@ -138,8 +138,6 @@ class LoanDemand(LoanController):
 		# Gated on demand_date, not posting_date (always today) -- must match the date field
 		# consolidation queries scope by, or a demand can defer into a period never consolidated.
 		if gl_consolidation_enabled(self.company, self.demand_date):
-			if not cancel and self.gl_posted:
-				self.db_set("gl_posted", 0)
 			return
 
 		gl_entries = self.build_gl_map()
