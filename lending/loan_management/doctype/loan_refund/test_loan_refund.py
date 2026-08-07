@@ -125,3 +125,56 @@ class TestLoanRefund(LendingTestSuite):
 		)
 
 		self.assertTrue(repayment_schedule, "Repayment schedule not closed after refund")
+
+	def test_security_amount_refund_cancel_restores_available_amount(self):
+		set_loan_accrual_frequency("Daily")
+
+		posting_date = "2024-04-05"
+		repayment_start_date = "2024-05-05"
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			6,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=23,
+		)
+
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			withhold_security_deposit=True,
+		)
+
+		loan_security_deposit = frappe.db.get_value(
+			"Loan Security Deposit", {"loan": loan.name, "docstatus": 1}, "name"
+		)
+		available_amount_before_refund = frappe.db.get_value(
+			"Loan Security Deposit", loan_security_deposit, "available_amount"
+		)
+
+		refund = create_loan_refund(
+			loan.name, posting_date, 50000, is_security_amount_refund=1
+		)
+
+		available_amount_after_refund = frappe.db.get_value(
+			"Loan Security Deposit", loan_security_deposit, "available_amount"
+		)
+		self.assertEqual(available_amount_after_refund, available_amount_before_refund - 50000)
+
+		refund.cancel()
+
+		available_amount_after_cancel = frappe.db.get_value(
+			"Loan Security Deposit", loan_security_deposit, "available_amount"
+		)
+		refund_amount_after_cancel = frappe.db.get_value(
+			"Loan Security Deposit", loan_security_deposit, "refund_amount"
+		)
+		self.assertEqual(available_amount_after_cancel, available_amount_before_refund)
+		self.assertEqual(refund_amount_after_cancel, 0)

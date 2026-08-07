@@ -611,6 +611,9 @@ class Loan(LoanController):
 		if not self.loan_amount and self.repayment_schedule_type != "Line of Credit":
 			frappe.throw(_("Loan amount is mandatory"))
 
+		if self.is_secured_loan and not self.maximum_loan_amount and not self.loan_application:
+			frappe.throw(_("Maximum Loan Amount is mandatory for secured Loans without a Loan Application"))
+
 	def link_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
 			lsa_details = frappe.db.get_value(
@@ -1227,6 +1230,31 @@ def update_days_past_due_in_loans(
 
 	disbursements = frappe.db.get_all("Loan Repayment Schedule", filters, pluck="loan_disbursement")
 
+	loan_details = frappe.db.get_value(
+		"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"], as_dict=1
+	)
+
+	applicant_type = loan_details.get("applicant_type")
+	applicant = loan_details.get("applicant")
+	company = loan_details.get("company")
+	freeze_date = loan_details.get("freeze_date")
+	existing_watch_period_end_date = loan_details.get("watch_period_end_date")
+
+	watch_period_days = frappe.db.get_value(
+		"Company", company, "watch_period_post_loan_restructure_in_days"
+	)
+
+	restructure_exists = frappe.db.exists(
+		"Loan Restructure",
+		{
+			"loan": loan_name,
+			"status": "Approved",
+			"docstatus": 1,
+			"company": company,
+			"restructure_type": "Normal Restructure",
+		},
+	)
+
 	for disbursement in disbursements:
 		if getdate(posting_date) >= add_days(getdate(), -1) or force_update_dpd_in_loan:
 			demand = get_unpaid_demands(
@@ -1263,16 +1291,6 @@ def update_days_past_due_in_loans(
 		threshold_map = get_dpd_threshold_map()
 		threshold_write_off_map = get_dpd_threshold_write_off_map()
 
-		loan_details = frappe.db.get_value(
-			"Loan", loan_name, ["applicant_type", "applicant", "freeze_date", "company", "watch_period_end_date"], as_dict=1
-		)
-
-		applicant_type = loan_details.get("applicant_type")
-		applicant = loan_details.get("applicant")
-		company = loan_details.get("company")
-		freeze_date = loan_details.get("freeze_date")
-		existing_watch_period_end_date = loan_details.get("watch_period_end_date")
-
 		if not ignore_freeze and freeze_date and getdate(freeze_date) < getdate(posting_date):
 			return
 
@@ -1308,21 +1326,6 @@ def update_days_past_due_in_loans(
 					is_backdated=is_backdated,
 					dpd_threshold=threshold,
 				)
-
-			watch_period_days = frappe.db.get_value(
-				"Company", company, "watch_period_post_loan_restructure_in_days"
-			)
-
-			restructure_exists = frappe.db.exists(
-				"Loan Restructure",
-				{
-					"loan": loan_name,
-					"status": "Approved",
-					"docstatus": 1,
-					"company": company,
-					"restructure_type": "Normal Restructure",
-				},
-			)
 
 			watch_period_start_date = (
 				demand.demand_date
@@ -1597,8 +1600,16 @@ def update_loan_and_customer_status(
 			move_receivable_charges_to_suspense_ledger(loan, company, max_date, max_date)
 
 	elif is_npa and not cint(loan_details.get("unmark_npa")) and not cint(loan_details.get("current_npa")):
-		for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-			prev_npa = frappe.db.get_value("Loan", loan_id, "is_npa")
+		active_loans = get_all_active_loans_for_the_customer(applicant, applicant_type)
+		is_npa_map = (
+			frappe._dict(
+				frappe.get_all("Loan", filters={"name": ("in", active_loans)}, fields=["name", "is_npa"], as_list=1)
+			)
+			if active_loans
+			else {}
+		)
+		for loan_id in active_loans:
+			prev_npa = is_npa_map.get(loan_id)
 			if not prev_npa:
 				move_unpaid_interest_to_suspense_ledger(loan_id, posting_date, value_date=posting_date)
 				move_receivable_charges_to_suspense_ledger(loan_id, company, posting_date, posting_date)
@@ -1615,10 +1626,20 @@ def update_loan_and_customer_status(
 
 		""" if max_dpd is greater than 0 loan still NPA, do nothing"""
 		if max_dpd == 0 or freeze_date:
-			prev_npa = frappe.db.get_value("Loan", loan, "is_npa")
+			prev_npa = loan_details.get("is_npa")
 			if prev_npa:
-				for loan_id in get_all_active_loans_for_the_customer(applicant, applicant_type):
-					loan_product = frappe.db.get_value("Loan", loan_id, "loan_product")
+				active_loans = get_all_active_loans_for_the_customer(applicant, applicant_type)
+				loan_product_map = (
+					frappe._dict(
+						frappe.get_all(
+							"Loan", filters={"name": ("in", active_loans)}, fields=["name", "loan_product"], as_list=1
+						)
+					)
+					if active_loans
+					else {}
+				)
+				for loan_id in active_loans:
+					loan_product = loan_product_map.get(loan_id)
 					write_off_suspense_entries(loan_id, loan_product, posting_date, posting_date, company)
 					write_off_charges(loan_id, posting_date, posting_date, company)
 
