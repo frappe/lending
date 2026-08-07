@@ -183,8 +183,6 @@ class LoanInterestAccrual(LoanController):
 		# cancelled after consolidation. Posting reversal GL here (on cancel) would defeat consolidation
 		# by creating per-doc GL, so we skip it and let the job net it out.
 		if gl_consolidation_enabled(self.company, self.posting_date):
-			if not cancel and self.gl_posted:
-				self.db_set("gl_posted", 0)
 			return
 
 		gle_map = self.build_gl_map()

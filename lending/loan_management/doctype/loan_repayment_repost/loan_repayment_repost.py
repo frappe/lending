@@ -528,7 +528,7 @@ def process_loan_repayment_repost(repost):
 
 def reconsolidate_gl_for_loan(loan, company, repost_date, start_date):
 	"""Settle every month from repost_date to today via a delta voucher."""
-	from lending.loan_management.doctype.process_consolidated_loan_gl.process_consolidated_loan_gl import (
+	from lending.loan_management.doctype.process_loan_accounting.process_loan_accounting import (
 		run_consolidation_for_loan,
 	)
 

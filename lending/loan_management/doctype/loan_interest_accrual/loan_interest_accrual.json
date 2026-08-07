@@ -45,7 +45,6 @@
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry",
-  "gl_posted",
   "consolidated_gl_voucher"
  ],
  "fields": [
@@ -304,28 +303,19 @@
    "read_only": 1
   },
   {
-   "fieldname": "gl_posted",
-   "fieldtype": "Check",
-   "label": "GL Posted",
-   "default": "1",
-   "read_only": 1,
-   "no_copy": 1,
-   "description": "0 when GL is deferred for monthly consolidation; set to 1 once the consolidated voucher is posted."
-  },
-  {
    "fieldname": "consolidated_gl_voucher",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Consolidated GL Voucher",
+   "options": "Process Loan Accounting",
    "read_only": 1,
-   "no_copy": 1,
-   "depends_on": "eval:!doc.gl_posted || doc.consolidated_gl_voucher"
+   "no_copy": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-12 15:07:28.815504",
+ "modified": "2026-08-07 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
