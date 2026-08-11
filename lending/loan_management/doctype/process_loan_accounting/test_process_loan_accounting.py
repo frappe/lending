@@ -197,6 +197,52 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
 		self.assertEqual(self.consolidated_income(loan), income_after)
 
+	def test_cancelling_delta_voucher_reopens_its_reversal(self):
+		"""Cancelling the delta voucher that reversed a cancelled accrual must not strand the ledger.
+
+		V0 consolidates the accrual. The accrual is cancelled, so V1's delta reverses it (income
+		drops). If V1 is itself cancelled, its own reversal GL cancels out that delta (income is
+		back up), but the accrual must still be picked up by the next run so its GL nets to zero
+		again -- it must not become invisible to both the pending and reversal-pending queries.
+		"""
+		posting_date = "2024-04-05"
+		self.enable_consolidation(posting_date)
+		loan = self.make_loan_with_daily_accruals(posting_date, "2024-04-15")
+
+		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+		income_before = self.consolidated_income(loan)
+
+		acc = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"loan": loan,
+				"docstatus": 1,
+				"process_loan_accounting_voucher": ["is", "set"],
+				"interest_amount": [">", 0],
+			},
+			"name",
+		)
+		frappe.get_doc("Loan Interest Accrual", acc).cancel()
+
+		v1 = run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+		income_after_delta = self.consolidated_income(loan)
+		self.assertLess(income_after_delta, income_before)
+
+		frappe.get_doc("Process Loan Accounting", v1).cancel()
+
+		# V1's own reversal undoes its delta, so income is back to the pre-cancel amount.
+		self.assertEqual(self.consolidated_income(loan), income_before)
+		self.assertEqual(
+			frappe.db.get_value("Loan Interest Accrual", acc, "process_loan_accounting_voucher"),
+			v1,
+			"accrual must be reversal-pending again, not stranded with a null voucher link",
+		)
+
+		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+
+		# the reversal is reapplied, settling back to the same net income as before V1 was cancelled
+		self.assertEqual(self.consolidated_income(loan), income_after_delta)
+
 	def test_disabled_company_posts_daily_gl(self):
 		"""Consolidation off -> unchanged daily behaviour."""
 		posting_date = "2024-04-05"
