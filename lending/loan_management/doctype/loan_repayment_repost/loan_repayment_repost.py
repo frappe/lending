@@ -129,10 +129,13 @@ class LoanRepaymentRepost(Document):
 		if not company or not start_date:
 			return
 
+		# Dedup per loan so an overlapping repost can't double-post GL.
 		frappe.enqueue(
 			reconsolidate_gl_for_loan,
 			queue="long",
 			enqueue_after_commit=True,
+			job_id=f"reconsolidate-loan-gl::{self.loan}",
+			deduplicate=True,
 			loan=self.loan,
 			company=company,
 			repost_date=self.repost_date,
