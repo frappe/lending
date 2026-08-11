@@ -45,7 +45,7 @@
   "column_break_swqr",
   "partner_share_allocated",
   "partner_share",
-  "consolidated_gl_voucher"
+  "process_loan_accounting_voucher"
  ],
  "fields": [
   {
@@ -306,9 +306,9 @@
    "label": "Is Partial Pre-Paid Interest"
   },
   {
-   "fieldname": "consolidated_gl_voucher",
+   "fieldname": "process_loan_accounting_voucher",
    "fieldtype": "Link",
-   "label": "Consolidated GL Voucher",
+   "label": "Process Loan Accounting Voucher",
    "options": "Process Loan Accounting",
    "read_only": 1,
 <<<<<<< HEAD
@@ -326,6 +326,7 @@
  "links": [],
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2026-06-29 12:00:00.000000",
 =======
  "modified": "2026-07-12 15:07:28.815504",
@@ -333,6 +334,9 @@
 =======
  "modified": "2026-08-07 10:00:00.000000",
 >>>>>>> 228d6ad (refactor: rename doctype to Process Loan Accounting, drop gl_posted)
+=======
+ "modified": "2026-08-07 13:00:00.000000",
+>>>>>>> b6c3929 (fix: mid-month start dates, missed scheduler runs, and stale doc references)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",
