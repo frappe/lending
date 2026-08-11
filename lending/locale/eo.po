@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:23\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-10 09:36\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -2383,8 +2383,8 @@ msgstr "crwdns162746:0crwdne162746:0"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "crwdns162748:0crwdne162748:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "crwdns162750:0{0}crwdnd162750:0{1}crwdnd162750:0{2}crwdne162750:0"
 
@@ -2707,11 +2707,11 @@ msgstr "crwdns162810:0crwdne162810:0"
 msgid "Loan Accounts"
 msgstr "crwdns162812:0crwdne162812:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "crwdns162814:0{0}crwdne162814:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "crwdns162816:0crwdne162816:0"
 
@@ -4682,11 +4682,11 @@ msgstr "crwdns204267:0crwdne204267:0"
 msgid "Please select how to collect Applicants."
 msgstr "crwdns239931:0crwdne239931:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "crwdns163336:0{0}crwdne163336:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "crwdns163338:0{0}crwdne163338:0"
 
@@ -4699,11 +4699,11 @@ msgstr "crwdns163340:0{0}crwdne163340:0"
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "crwdns163342:0{0}crwdne163342:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "crwdns163344:0{0}crwdne163344:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "crwdns163346:0{0}crwdne163346:0"
 
@@ -4719,11 +4719,11 @@ msgstr "crwdns204271:0{0}crwdne204271:0"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "crwdns163348:0crwdne163348:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "crwdns163350:0{0}crwdne163350:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "crwdns163352:0{0}crwdne163352:0"
 
@@ -5839,7 +5839,7 @@ msgstr "crwdns163676:0crwdne163676:0"
 msgid "The following loans do not exist: {}"
 msgstr "crwdns163678:0crwdne163678:0"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "crwdns207181:0crwdne207181:0"
 
@@ -5853,7 +5853,7 @@ msgstr "crwdns163680:0crwdne163680:0"
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "crwdns163682:0crwdne163682:0"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "crwdns163684:0crwdne163684:0"
 
