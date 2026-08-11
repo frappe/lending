@@ -8,7 +8,6 @@ from frappe.utils import add_days, cint, flt, get_first_day, get_last_day, getda
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.utils import gl_consolidation_enabled, loan_accounting_enabled
 
-# Doctypes whose GL is deferred and folded into the consolidated voucher.
 CONSOLIDATED_SOURCES = ("Loan Interest Accrual", "Loan Demand")
 
 # GL dict keys that identify a distinct consolidated line. Amounts (debit/credit) are summed
@@ -131,6 +130,22 @@ class ProcessLoanAccounting(LoanController):
 				doctype,
 				{"process_loan_accounting_voucher": self.name},
 				{"process_loan_accounting_voucher": None},
+				update_modified=False,
+			)
+			# Reversal deltas for cancelled source docs cleared their link to None once captured
+			# (see flag_covered_docs). Undoing this voucher undoes that capture too, so those docs
+			# must reappear as reversal-pending -- else their +1x GL this cancel just posted back
+			# would have no source doc to net against on the next run.
+			date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
+			frappe.db.set_value(
+				doctype,
+				{
+					"loan": self.loan,
+					"docstatus": 2,
+					"process_loan_accounting_voucher": ["is", "not set"],
+					date_field: ["between", [self.period_start_date, self.period_end_date]],
+				},
+				{"process_loan_accounting_voucher": self.name},
 				update_modified=False,
 			)
 
@@ -375,17 +390,10 @@ class ProcessLoanAccounting(LoanController):
 		for doctype, names in covered.items():
 			for name in names:
 				docstatus = frappe.db.get_value(doctype, name, "docstatus")
-				if docstatus == 2:
-					frappe.db.set_value(
-						doctype, name, "process_loan_accounting_voucher", None, update_modified=False
-					)
-				else:
-					frappe.db.set_value(
-						doctype,
-						name,
-						{"process_loan_accounting_voucher": self.name},
-						update_modified=False,
-					)
+				voucher = None if docstatus == 2 else self.name
+				frappe.db.set_value(
+					doctype, name, "process_loan_accounting_voucher", voucher, update_modified=False
+				)
 
 
 def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=False):
