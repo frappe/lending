@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_first_day, get_last_day, getdate, nowdate
@@ -132,22 +134,18 @@ class ProcessLoanAccounting(LoanController):
 				{"process_loan_accounting_voucher": None},
 				update_modified=False,
 			)
-			# Reversal deltas for cancelled source docs cleared their link to None once captured
-			# (see flag_covered_docs). Undoing this voucher undoes that capture too, so those docs
-			# must reappear as reversal-pending -- else their +1x GL this cancel just posted back
-			# would have no source doc to net against on the next run.
-			date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
+
+		# Cancelled source docs whose reversal this voucher captured had their link cleared to None
+		# (see flag_covered_docs). Undoing this voucher undoes that capture too, so exactly those
+		# docs -- by name, not by a period/status guess that could also match a doc cancelled on
+		# its own and never consolidated at all -- must reappear as reversal-pending.
+		for doctype, name in self.get_reversed_source_docs():
 			frappe.db.set_value(
-				doctype,
-				{
-					"loan": self.loan,
-					"docstatus": 2,
-					"process_loan_accounting_voucher": ["is", "not set"],
-					date_field: ["between", [self.period_start_date, self.period_end_date]],
-				},
-				{"process_loan_accounting_voucher": self.name},
-				update_modified=False,
+				doctype, name, "process_loan_accounting_voucher", self.name, update_modified=False
 			)
+
+	def get_reversed_source_docs(self):
+		return json.loads(self.reversed_source_docs) if self.reversed_source_docs else []
 
 	def build_consolidated_gl(self):
 		"""Aggregate deferred source GL into one consolidated map.
@@ -387,6 +385,7 @@ class ProcessLoanAccounting(LoanController):
 		return buckets
 
 	def flag_covered_docs(self, covered):
+		reversed_docs = []
 		for doctype, names in covered.items():
 			for name in names:
 				docstatus = frappe.db.get_value(doctype, name, "docstatus")
@@ -394,6 +393,12 @@ class ProcessLoanAccounting(LoanController):
 				frappe.db.set_value(
 					doctype, name, "process_loan_accounting_voucher", voucher, update_modified=False
 				)
+				if docstatus == 2:
+					reversed_docs.append((doctype, name))
+
+		# Remember exactly which cancelled docs this voucher reversed, so cancelling this voucher
+		# later can reopen those docs by name instead of guessing from period + status alone.
+		self.db_set("reversed_source_docs", json.dumps(reversed_docs), update_modified=False)
 
 
 def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=False):
