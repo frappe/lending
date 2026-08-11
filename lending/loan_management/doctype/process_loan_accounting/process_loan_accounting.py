@@ -114,16 +114,20 @@ class ProcessLoanAccounting(LoanController):
 		self.ignore_linked_doctypes = ["GL Entry", "Payment Ledger Entry"]
 		make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
-		for je in frappe.get_all(
-			"Journal Entry",
-			{
-				"loan": self.loan,
-				"process_loan_accounting_month_end": self.month_end_date,
-				"docstatus": 1,
-			},
-			pluck="name",
-		):
-			doc = frappe.get_doc("Journal Entry", je)
+		je = frappe.qb.DocType("Journal Entry")
+		voucher_jes = (
+			frappe.qb.from_(je)
+			.select(je.name)
+			.where(
+				(je.loan == self.loan)
+				& (je.process_loan_accounting_voucher == self.name)
+				& (je.process_loan_accounting_month_end == self.month_end_date)
+				& (je.docstatus == 1)
+			)
+			.run(pluck=True)
+		)
+		for name in voucher_jes:
+			doc = frappe.get_doc("Journal Entry", name)
 			doc.flags.ignore_links = True
 			doc.cancel()
 
@@ -274,12 +278,19 @@ class ProcessLoanAccounting(LoanController):
 	def sync_consolidated_suspense_je(self):
 		"""Recompute-from-live: cancel any existing consolidated NPA suspense JE for this loan+month,
 		then post one fresh JE equal to the sum of live NPA accruals in the month."""
-		for je in frappe.get_all(
-			"Journal Entry",
-			{"loan": self.loan, "process_loan_accounting_month_end": self.month_end_date, "docstatus": 1},
-			pluck="name",
-		):
-			doc = frappe.get_doc("Journal Entry", je)
+		je = frappe.qb.DocType("Journal Entry")
+		month_jes = (
+			frappe.qb.from_(je)
+			.select(je.name)
+			.where(
+				(je.loan == self.loan)
+				& (je.process_loan_accounting_month_end == self.month_end_date)
+				& (je.docstatus == 1)
+			)
+			.run(pluck=True)
+		)
+		for name in month_jes:
+			doc = frappe.get_doc("Journal Entry", name)
 			doc.flags.ignore_links = True
 			doc.cancel()
 
@@ -337,16 +348,18 @@ class ProcessLoanAccounting(LoanController):
 		if frappe.db.get_value("Loan", self.loan, "status") == "Written Off":
 			return {}
 
-		accruals = frappe.get_all(
-			"Loan Interest Accrual",
-			filters={
-				"loan": self.loan,
-				"docstatus": 1,
-				"is_npa": 1,
-				"unmark_npa": 0,
-				"posting_date": ["between", [self.period_start_date, self.period_end_date]],
-			},
-			fields=["loan_product", "interest_type", "interest_amount", "additional_interest_amount"],
+		lia = frappe.qb.DocType("Loan Interest Accrual")
+		accruals = (
+			frappe.qb.from_(lia)
+			.select(lia.loan_product, lia.interest_type, lia.interest_amount, lia.additional_interest_amount)
+			.where(
+				(lia.loan == self.loan)
+				& (lia.docstatus == 1)
+				& (lia.is_npa == 1)
+				& (lia.unmark_npa == 0)
+				& lia.posting_date[self.period_start_date : self.period_end_date]
+			)
+			.run(as_dict=True)
 		)
 
 		buckets = {}

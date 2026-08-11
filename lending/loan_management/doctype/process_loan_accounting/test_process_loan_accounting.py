@@ -392,6 +392,70 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		)[0][0] or 0
 		self.assertAlmostEqual(net, 0, places=2)
 
+	def test_cancelling_older_voucher_does_not_touch_a_later_delta_voucher_suspense_je(self):
+		"""Cancelling an earlier voucher out of order must not cancel a later delta voucher's live
+		suspense JE for the same month.
+
+		A month can get more than one voucher: the first run, then a delta after new NPA activity.
+		Each run recomputes-from-live and replaces that month's suspense JE, so the delta voucher's
+		JE is the only live one once both have run. Cancelling the first (older) voucher must only
+		touch the JE it itself created for that month -- not the delta voucher's still-live JE that
+		replaced it, or the ledger loses a suspense entry with no matching GL to explain why.
+		"""
+		start = "2024-04-01"
+		self.enable_consolidation(start)
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			self.applicant,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			applicant_type="Customer",
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
+			process_daily_loan_demands(posting_date=d, loan=loan.name)
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+		create_process_loan_classification(posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1)
+		process_loan_interest_accrual_for_loans(posting_date="2024-08-15", loan=loan.name)
+
+		first_voucher = run_consolidation_for_loan(loan.name, "2024-08-31", force=True)
+		first_je = frappe.db.get_value(
+			"Journal Entry",
+			{"loan": loan.name, "process_loan_accounting_month_end": "2024-08-31", "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(first_je)
+
+		# more NPA interest accrues in the same month, so a second, delta voucher runs and replaces the JE
+		process_loan_interest_accrual_for_loans(posting_date="2024-08-31", loan=loan.name)
+		delta_voucher = run_consolidation_for_loan(loan.name, "2024-08-31", force=True)
+		self.assertNotEqual(first_voucher, delta_voucher)
+
+		delta_je = frappe.db.get_value(
+			"Journal Entry",
+			{"loan": loan.name, "process_loan_accounting_month_end": "2024-08-31", "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(delta_je, "the delta voucher should have replaced the month's suspense JE")
+		self.assertNotEqual(first_je, delta_je)
+
+		frappe.get_doc("Process Loan Accounting", first_voucher).cancel()
+
+		self.assertEqual(
+			frappe.db.get_value("Journal Entry", delta_je, "docstatus"),
+			1,
+			"the delta voucher's suspense JE must survive cancelling the older voucher for the same month",
+		)
+
 	def test_non_npa_loan_has_no_suspense_je(self):
 		"""A loan that never goes NPA should not get a consolidated suspense JE."""
 		posting_date = "2024-04-05"
