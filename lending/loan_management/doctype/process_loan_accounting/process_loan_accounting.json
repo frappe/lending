@@ -16,6 +16,7 @@
   "is_adjustment",
   "details_section",
   "consolidation_details",
+  "reversed_source_docs",
   "amended_from"
  ],
  "fields": [
@@ -86,6 +87,16 @@
    "read_only": 1
   },
   {
+   "description": "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period.",
+   "fieldname": "reversed_source_docs",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Reversed Source Docs",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -97,7 +108,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-11 12:00:00.000000",
+ "modified": "2026-08-11 15:53:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Process Loan Accounting",

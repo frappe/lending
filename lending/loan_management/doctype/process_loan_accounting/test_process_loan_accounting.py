@@ -200,10 +200,11 @@ class TestProcessLoanAccounting(LendingTestSuite):
 	def test_cancelling_delta_voucher_reopens_its_reversal(self):
 		"""Cancelling the delta voucher that reversed a cancelled accrual must not strand the ledger.
 
-		V0 consolidates the accrual. The accrual is cancelled, so V1's delta reverses it (income
-		drops). If V1 is itself cancelled, its own reversal GL cancels out that delta (income is
-		back up), but the accrual must still be picked up by the next run so its GL nets to zero
-		again -- it must not become invisible to both the pending and reversal-pending queries.
+		The first voucher consolidates the accrual. The accrual is then cancelled, so the next
+		("delta") voucher reverses it and income drops. If that delta voucher is itself cancelled,
+		its own reversal GL cancels out the delta (income goes back up), but the accrual must still
+		be picked up by the next run so its GL nets to zero again -- it must not become invisible to
+		both the pending and reversal-pending queries.
 		"""
 		posting_date = "2024-04-05"
 		self.enable_consolidation(posting_date)
@@ -224,23 +225,79 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		)
 		frappe.get_doc("Loan Interest Accrual", acc).cancel()
 
-		v1 = run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+		delta_voucher = run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
 		income_after_delta = self.consolidated_income(loan)
 		self.assertLess(income_after_delta, income_before)
 
-		frappe.get_doc("Process Loan Accounting", v1).cancel()
+		frappe.get_doc("Process Loan Accounting", delta_voucher).cancel()
 
-		# V1's own reversal undoes its delta, so income is back to the pre-cancel amount.
+		# cancelling the delta voucher undoes its own reversal, so income is back to the pre-cancel amount
 		self.assertEqual(self.consolidated_income(loan), income_before)
 		self.assertEqual(
 			frappe.db.get_value("Loan Interest Accrual", acc, "process_loan_accounting_voucher"),
-			v1,
+			delta_voucher,
 			"accrual must be reversal-pending again, not stranded with a null voucher link",
 		)
 
 		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
 
-		# the reversal is reapplied, settling back to the same net income as before V1 was cancelled
+		# the reversal is reapplied, settling back to the same net income as before the delta voucher was cancelled
+		self.assertEqual(self.consolidated_income(loan), income_after_delta)
+
+	def test_cancelling_voucher_does_not_reopen_unrelated_cancelled_docs(self):
+		"""Cancelling a voucher must only reopen the specific docs it reversed, not every cancelled,
+		never-consolidated doc that happens to fall in the same period.
+
+		An accrual is cancelled before any voucher ever ran (it never carried any GL), so it must
+		never be touched by consolidation. A second, unrelated accrual is consolidated and then
+		cancelled, producing a delta voucher covering it. Cancelling that delta voucher must reopen
+		only the accrual it actually reversed -- the never-consolidated accrual must stay untouched,
+		or the next run would post a reversal for GL that was never posted in the first place.
+		"""
+		posting_date = "2024-04-05"
+		self.enable_consolidation(posting_date)
+		loan = self.make_loan_with_daily_accruals(posting_date, "2024-04-15")
+
+		never_consolidated = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{"loan": loan, "docstatus": 1, "interest_amount": [">", 0]},
+			"name",
+			order_by="posting_date asc",
+		)
+		frappe.get_doc("Loan Interest Accrual", never_consolidated).cancel()
+
+		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+		self.assertIsNone(
+			frappe.db.get_value("Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"),
+			"an accrual cancelled before ever being consolidated must never get a voucher link",
+		)
+		income_before = self.consolidated_income(loan)
+
+		consolidated_acc = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{
+				"loan": loan,
+				"docstatus": 1,
+				"process_loan_accounting_voucher": ["is", "set"],
+				"interest_amount": [">", 0],
+			},
+			"name",
+		)
+		frappe.get_doc("Loan Interest Accrual", consolidated_acc).cancel()
+		delta_voucher = run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
+		income_after_delta = self.consolidated_income(loan)
+		self.assertLess(income_after_delta, income_before)
+
+		frappe.get_doc("Process Loan Accounting", delta_voucher).cancel()
+
+		self.assertIsNone(
+			frappe.db.get_value("Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"),
+			"cancelling the delta voucher must not re-link an accrual it never covered",
+		)
+
+		# re-running must reapply only the real reversal (settling back to income_after_delta),
+		# not a phantom reversal for the never-consolidated accrual (which would drop it further)
+		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
 		self.assertEqual(self.consolidated_income(loan), income_after_delta)
 
 	def test_disabled_company_posts_daily_gl(self):
