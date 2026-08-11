@@ -139,10 +139,7 @@ class ProcessLoanAccounting(LoanController):
 				update_modified=False,
 			)
 
-		# Cancelled source docs whose reversal this voucher captured had their link cleared to None
-		# (see flag_covered_docs). Undoing this voucher undoes that capture too, so exactly those
-		# docs -- by name, not by a period/status guess that could also match a doc cancelled on
-		# its own and never consolidated at all -- must reappear as reversal-pending.
+		# Reopen the exact cancelled docs this voucher reversed, so they're reversal-pending again.
 		for doctype, name in self.get_reversed_source_docs():
 			frappe.db.set_value(
 				doctype, name, "process_loan_accounting_voucher", self.name, update_modified=False
@@ -409,8 +406,7 @@ class ProcessLoanAccounting(LoanController):
 				if docstatus == 2:
 					reversed_docs.append((doctype, name))
 
-		# Remember exactly which cancelled docs this voucher reversed, so cancelling this voucher
-		# later can reopen those docs by name instead of guessing from period + status alone.
+		# Remember which cancelled docs this voucher reversed, so on_cancel can reopen them by name.
 		self.db_set("reversed_source_docs", json.dumps(reversed_docs), update_modified=False)
 
 
@@ -431,6 +427,10 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 	# Not just this calendar month's start: a doc from an earlier month that never got consolidated
 	# (a skipped run, or this loan's very first, possibly mid-month, period) must still be picked up.
 	period_start = consolidation_start_date_for_company(company, get_first_day(month_end_date))
+
+	# Lock the loan row so a concurrent caller can't pass the deferred-GL check at the same
+	# time and double-post a voucher for the same delta.
+	frappe.db.get_value("Loan", loan, "name", for_update=True)
 
 	if not loan_has_deferred_gl(loan, company, period_start, month_end_date):
 		return
