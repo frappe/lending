@@ -83,8 +83,9 @@ class LoanInterestAccrual(LoanController):
 				loan_disbursement=self.loan_disbursement,
 			)
 
-		if self.interest_type == "Normal Interest":
+		if self.interest_type == "Normal Interest" and not self.flags.overlapping_accruals_checked:
 			self.validate_overlapping_accruals()
+			self.flags.overlapping_accruals_checked = True
 
 	def validate_overlapping_accruals(self):
 		if self.interest_type != "Normal Interest":
@@ -859,8 +860,12 @@ def process_interest_accrual_batch(
 	from_demand=False,
 	loan_disbursement=None,
 ):
+	accrual_frequency_map = {}
+
 	for loan in loans:
-		loan_accrual_frequency = get_loan_accrual_frequency(loan.company)
+		if loan.company not in accrual_frequency_map:
+			accrual_frequency_map[loan.company] = get_loan_accrual_frequency(loan.company)
+		loan_accrual_frequency = accrual_frequency_map[loan.company]
 
 		try:
 			if not from_demand:
