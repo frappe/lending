@@ -273,6 +273,25 @@ LOAN_CUSTOM_FIELDS = {
 			"insert_after": "posting_date",
 			"search_index": 1,
 		},
+		{
+			"fieldname": "process_loan_accounting_voucher",
+			"fieldtype": "Link",
+			"label": "Process Loan Accounting Voucher",
+			"insert_after": "loan",
+			"options": "Process Loan Accounting",
+			"search_index": 1,
+			"no_copy": 1,
+			"read_only": 1,
+		},
+		{
+			"fieldname": "process_loan_accounting_month_end",
+			"fieldtype": "Date",
+			"label": "Process Loan Accounting Month End",
+			"insert_after": "process_loan_accounting_voucher",
+			"search_index": 1,
+			"no_copy": 1,
+			"read_only": 1,
+		},
 	],
 	"GL Entry": [
 		{

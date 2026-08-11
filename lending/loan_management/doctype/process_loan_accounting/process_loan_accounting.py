@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils import add_days, cint, flt, get_first_day, get_last_day, getdate, nowdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.utils import gl_consolidation_enabled, loan_accounting_enabled
@@ -24,9 +24,9 @@ BUCKET_KEYS = (
 )
 
 
-def _consolidation_start_date(company, fallback):
+def consolidation_start_date_for_company(company, fallback):
 	"""Docs dated before this were posted with their own daily GL and never got a voucher link --
-	pending-consolidation queries must not pick them up just because consolidated_gl_voucher is null."""
+	pending-consolidation queries must not pick them up just because process_loan_accounting_voucher is null."""
 	start_date = frappe.get_cached_value("Company", company, "loan_gl_consolidation_start_date")
 	return getdate(start_date) if start_date else getdate(fallback)
 
@@ -40,8 +40,13 @@ class ProcessLoanAccounting(LoanController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from lending.loan_management.doctype.process_loan_accounting_detail.process_loan_accounting_detail import (
+			ProcessLoanAccountingDetail,
+		)
+
 		amended_from: DF.Link | None
 		company: DF.Link
+		consolidation_details: DF.Table[ProcessLoanAccountingDetail]
 		is_adjustment: DF.Check
 		loan: DF.Link
 		month_end_date: DF.Date
@@ -57,7 +62,7 @@ class ProcessLoanAccounting(LoanController):
 		self.month_end_date = get_last_day(self.month_end_date)
 
 		if not self.period_start_date:
-			self.period_start_date = get_first_day(self.month_end_date)
+			self.period_start_date = self.default_period_start_date()
 		if not self.period_end_date:
 			self.period_end_date = self.month_end_date
 
@@ -66,6 +71,20 @@ class ProcessLoanAccounting(LoanController):
 			self.posting_date = getdate(nowdate())
 
 		self.is_adjustment = cint(getdate(self.posting_date) != getdate(self.month_end_date))
+
+	def default_period_start_date(self):
+		"""Day after this loan's last period from an earlier month, else the company start date --
+		gives a mid-month start a partial first period. Only looks at earlier months so a re-run
+		for the same month reuses that month's own period instead of skipping past it."""
+		last_period_end = frappe.db.get_value(
+			"Process Loan Accounting",
+			{"loan": self.loan, "docstatus": 1, "month_end_date": ["<", self.month_end_date]},
+			"period_end_date",
+			order_by="month_end_date desc",
+		)
+		if last_period_end:
+			return add_days(getdate(last_period_end), 1)
+		return max(self.consolidation_start_date(), get_first_day(self.month_end_date))
 
 	def on_submit(self):
 		if not loan_accounting_enabled(self.company):
@@ -95,7 +114,13 @@ class ProcessLoanAccounting(LoanController):
 		make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
 		for je in frappe.get_all(
-			"Journal Entry", {"user_remark": self.suspense_je_tag(), "docstatus": 1}, pluck="name"
+			"Journal Entry",
+			{
+				"loan": self.loan,
+				"process_loan_accounting_month_end": self.month_end_date,
+				"docstatus": 1,
+			},
+			pluck="name",
 		):
 			doc = frappe.get_doc("Journal Entry", je)
 			doc.flags.ignore_links = True
@@ -104,8 +129,8 @@ class ProcessLoanAccounting(LoanController):
 		for doctype in CONSOLIDATED_SOURCES:
 			frappe.db.set_value(
 				doctype,
-				{"consolidated_gl_voucher": self.name},
-				{"consolidated_gl_voucher": None},
+				{"process_loan_accounting_voucher": self.name},
+				{"process_loan_accounting_voucher": None},
 				update_modified=False,
 			)
 
@@ -159,7 +184,7 @@ class ProcessLoanAccounting(LoanController):
 			.where(
 				(src.loan == self.loan)
 				& (src.docstatus == 1)
-				& src.consolidated_gl_voucher.isnull()
+				& src.process_loan_accounting_voucher.isnull()
 				& in_period
 			)
 			.run(pluck=True)
@@ -171,7 +196,7 @@ class ProcessLoanAccounting(LoanController):
 			.where(
 				(src.loan == self.loan)
 				& (src.docstatus == 2)
-				& src.consolidated_gl_voucher.isnotnull()
+				& src.process_loan_accounting_voucher.isnotnull()
 				& in_period
 			)
 			.run(pluck=True)
@@ -180,7 +205,7 @@ class ProcessLoanAccounting(LoanController):
 		return pending + reversed_after
 
 	def consolidation_start_date(self):
-		return _consolidation_start_date(self.company, self.period_start_date)
+		return consolidation_start_date_for_company(self.company, self.period_start_date)
 
 	def buckets_to_gl_map(self, buckets):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -236,8 +261,11 @@ class ProcessLoanAccounting(LoanController):
 	def sync_consolidated_suspense_je(self):
 		"""Recompute-from-live: cancel any existing consolidated NPA suspense JE for this loan+month,
 		then post one fresh JE equal to the sum of live NPA accruals in the month."""
-		tag = self.suspense_je_tag()
-		for je in frappe.get_all("Journal Entry", {"user_remark": tag, "docstatus": 1}, pluck="name"):
+		for je in frappe.get_all(
+			"Journal Entry",
+			{"loan": self.loan, "process_loan_accounting_month_end": self.month_end_date, "docstatus": 1},
+			pluck="name",
+		):
 			doc = frappe.get_doc("Journal Entry", je)
 			doc.flags.ignore_links = True
 			doc.cancel()
@@ -264,6 +292,9 @@ class ProcessLoanAccounting(LoanController):
 					"voucher_type": "Journal Entry",
 					"posting_date": self.posting_date,
 					"company": self.company,
+					"loan": self.loan,
+					"process_loan_accounting_voucher": self.name,
+					"process_loan_accounting_month_end": self.month_end_date,
 					"accounts": [
 						{
 							"account": debit_account,
@@ -283,14 +314,10 @@ class ProcessLoanAccounting(LoanController):
 						},
 					],
 					"remarks": remark,
-					"user_remark": tag,
 				}
 			)
 			je.flags.ignore_permissions = True
 			je.submit()
-
-	def suspense_je_tag(self):
-		return f"CONS-SUSPENSE::{self.loan}::{self.month_end_date}"
 
 	def live_suspense_buckets(self):
 		"""Suspense amounts (income -> suspense) from all live NPA accruals in the month."""
@@ -350,13 +377,13 @@ class ProcessLoanAccounting(LoanController):
 				docstatus = frappe.db.get_value(doctype, name, "docstatus")
 				if docstatus == 2:
 					frappe.db.set_value(
-						doctype, name, "consolidated_gl_voucher", None, update_modified=False
+						doctype, name, "process_loan_accounting_voucher", None, update_modified=False
 					)
 				else:
 					frappe.db.set_value(
 						doctype,
 						name,
-						{"consolidated_gl_voucher": self.name},
+						{"process_loan_accounting_voucher": self.name},
 						update_modified=False,
 					)
 
@@ -375,7 +402,9 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 		return
 
 	month_end_date = get_last_day(month_end_date or nowdate())
-	period_start = get_first_day(month_end_date)
+	# Not just this calendar month's start: a doc from an earlier month that never got consolidated
+	# (a skipped run, or this loan's very first, possibly mid-month, period) must still be picked up.
+	period_start = consolidation_start_date_for_company(company, get_first_day(month_end_date))
 
 	if not loan_has_deferred_gl(loan, company, period_start, month_end_date):
 		return
@@ -391,14 +420,14 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 
 def loan_has_deferred_gl(loan, company, period_start, period_end):
 	"""Whether the loan has any deferred or reversal-pending accrual/demand in the period."""
-	start_date = _consolidation_start_date(company, period_start)
+	start_date = consolidation_start_date_for_company(company, period_start)
 	for doctype in CONSOLIDATED_SOURCES:
 		date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
 		src = frappe.qb.DocType(doctype)
 		in_period = src[date_field][start_date:period_end]
 
-		pending = (src.docstatus == 1) & src.consolidated_gl_voucher.isnull()
-		reversal_pending = (src.docstatus == 2) & src.consolidated_gl_voucher.isnotnull()
+		pending = (src.docstatus == 1) & src.process_loan_accounting_voucher.isnull()
+		reversal_pending = (src.docstatus == 2) & src.process_loan_accounting_voucher.isnotnull()
 		exists = (
 			frappe.qb.from_(src)
 			.select(src.name)
@@ -413,15 +442,15 @@ def loan_has_deferred_gl(loan, company, period_start, period_end):
 
 def loans_with_deferred_gl(company, period_start, period_end):
 	"""Loans of a company that have any deferred (or reversal-pending) accrual/demand in the period."""
-	start_date = _consolidation_start_date(company, period_start)
+	start_date = consolidation_start_date_for_company(company, period_start)
 	loans = set()
 	for doctype in CONSOLIDATED_SOURCES:
 		date_field = "posting_date" if doctype == "Loan Interest Accrual" else "demand_date"
 		src = frappe.qb.DocType(doctype)
 		in_period = src[date_field][start_date:period_end]
 
-		pending = (src.docstatus == 1) & src.consolidated_gl_voucher.isnull()
-		reversal_pending = (src.docstatus == 2) & src.consolidated_gl_voucher.isnotnull()
+		pending = (src.docstatus == 1) & src.process_loan_accounting_voucher.isnull()
+		reversal_pending = (src.docstatus == 2) & src.process_loan_accounting_voucher.isnotnull()
 		loans.update(
 			frappe.qb.from_(src)
 			.select(src.loan)
@@ -444,7 +473,9 @@ def run_consolidation_for_company(company, month_end_date=None, force=False):
 		return
 
 	month_end_date = get_last_day(month_end_date or nowdate())
-	period_start = get_first_day(month_end_date)
+	# Not just this calendar month's start: loans with pending GL from an earlier month that never
+	# got consolidated (a skipped run) must still be picked up.
+	period_start = consolidation_start_date_for_company(company, get_first_day(month_end_date))
 
 	loans = loans_with_deferred_gl(company, period_start, month_end_date)
 	for batch in get_batches(loans, CONSOLIDATION_BATCH_SIZE):
@@ -479,29 +510,42 @@ def run_consolidation_for_loan_batch(loans, month_end_date, company):
 
 
 def process_loan_accounting(month_end_date=None):
-	"""Scheduler entry point. Runs on the last day of the month for every enabled company."""
+	"""Scheduler entry point. Runs daily; enqueues consolidation for every completed month since the
+	start date, not just today's -- job_id-deduplicated per company+month, so a month that already
+	ran is a cheap no-op and a month a prior tick missed gets caught up here instead of being skipped
+	forever."""
 	posting_date = getdate(month_end_date or nowdate())
-
-	# Only act on an actual month-end unless a date is passed explicitly.
-	if not month_end_date and posting_date != getdate(get_last_day(posting_date)):
-		return
 
 	company = frappe.qb.DocType("Company")
 	companies = (
 		frappe.qb.from_(company)
-		.select(company.name)
+		.select(company.name, company.loan_gl_consolidation_start_date)
 		.where((company.loan_gl_consolidation == 1) & (company.enable_loan_accounting == 1))
-		.run(pluck=True)
+		.run(as_dict=True)
 	)
 
-	for company in companies:
-		if not gl_consolidation_enabled(company, posting_date):
+	for row in companies:
+		if not gl_consolidation_enabled(row.name, posting_date):
 			continue
-		frappe.enqueue(
-			run_consolidation_for_company,
-			queue="long",
-			company=company,
-			month_end_date=posting_date,
-			job_id=f"consolidate-loan-gl::{company}::{posting_date}",
-			deduplicate=True,
-		)
+
+		for me in completed_month_ends(row.loan_gl_consolidation_start_date, posting_date):
+			frappe.enqueue(
+				run_consolidation_for_company,
+				queue="long",
+				company=row.name,
+				month_end_date=me,
+				job_id=f"consolidate-loan-gl::{row.name}::{me}",
+				deduplicate=True,
+			)
+
+
+def completed_month_ends(start_date, posting_date):
+	"""Every month-end from start_date through the most recently completed month as of
+	posting_date, inclusive -- a month whose last day IS posting_date still counts, since the
+	scheduler runs on that day, not the day after."""
+	month_end = get_last_day(start_date)
+	completed = []
+	while month_end <= posting_date:
+		completed.append(month_end)
+		month_end = get_last_day(add_days(month_end, 1))
+	return completed
