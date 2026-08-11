@@ -45,7 +45,7 @@
   "column_break_svgc",
   "normal_interest_journal_entry",
   "additional_interest_suspense_entry",
-  "consolidated_gl_voucher"
+  "process_loan_accounting_voucher"
  ],
  "fields": [
   {
@@ -303,9 +303,9 @@
    "read_only": 1
   },
   {
-   "fieldname": "consolidated_gl_voucher",
+   "fieldname": "process_loan_accounting_voucher",
    "fieldtype": "Link",
-   "label": "Consolidated GL Voucher",
+   "label": "Process Loan Accounting Voucher",
    "options": "Process Loan Accounting",
    "read_only": 1,
    "no_copy": 1
@@ -315,7 +315,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-07 10:00:00.000000",
+ "modified": "2026-08-07 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

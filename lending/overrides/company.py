@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 from frappe.query_builder import Order
-from frappe.utils import get_first_day, getdate, nowdate
+from frappe.utils import getdate, nowdate
 
 
 def validate_loan_tables(doc, method=None):
@@ -28,24 +28,13 @@ def validate_loan_tables(doc, method=None):
 
 
 def validate_gl_consolidation_start_date(doc):
-	"""Keep GL consolidation clean by only allowing it to start from a future month.
-
-	Enabling it mid-stream would leave daily GL already posted for the on/after-start period
-	un-consolidated (it stays daily and the job never sees it). Requiring a first-of-month start
-	that is later than the last posted loan GL means every consolidated month starts empty, so
-	prior months stay daily and every new month consolidates -- no data migration needed.
-	"""
+	"""Start date can be any future date, including mid-month -- each loan's first period runs from
+	the start date to that month's end (a partial first month), then full calendar months after.
+	Just needs to be after existing daily GL, so nothing already posted is disturbed."""
 	if not doc.get("loan_gl_consolidation") or not doc.get("loan_gl_consolidation_start_date"):
 		return
 
 	start_date = getdate(doc.loan_gl_consolidation_start_date)
-
-	if start_date != get_first_day(start_date):
-		frappe.throw(
-			_("Loan GL Consolidation Start Date must be the first day of a month, e.g. {0}.").format(
-				get_first_day(start_date)
-			)
-		)
 
 	# Only enforce the "future" rule when the setting is being turned on or the date is changed,
 	# so saving an unrelated Company field later does not fail.
@@ -63,15 +52,15 @@ def validate_gl_consolidation_start_date(doc):
 		frappe.throw(
 			_(
 				"Loan GL Consolidation Start Date {0} must be after the last posted loan GL "
-				"({1}). Set it to the first day of a future month so existing daily GL is left "
-				"untouched and only new months are consolidated."
+				"({1}), so existing daily GL is left untouched and only new activity is "
+				"consolidated."
 			).format(start_date, getdate(last_gl_date))
 		)
 
 	if start_date <= getdate(nowdate()):
 		frappe.throw(
 			_(
-				"Loan GL Consolidation Start Date {0} must be a future month. Existing GL up to "
+				"Loan GL Consolidation Start Date {0} must be a future date. Existing GL up to "
 				"today stays daily; consolidation applies only from the start date onward."
 			).format(start_date)
 		)
