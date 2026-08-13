@@ -178,3 +178,57 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			flt(security_deposit_after.available_amount, 2),
 			flt(security_deposit_before - amount_paid, 2),
 		)
+
+	def test_unaccrued_interest_depends_on_for_update(self):
+		# calculate_amounts() only computes unaccrued_interest (interest projected
+		# after the latest accrual) when for_update is False. LoanRepayment.validate()
+		# always calls it with for_update=True, so unaccrued_interest is 0 there even
+		# when real projected interest exists. unbooked_interest has no such gap.
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-01-06",
+			repayment_start_date="2025-02-05",
+			withhold_security_deposit=1,
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-01-20", company="_Test Company"
+		)
+
+		# posting_date is after the latest accrual, so unaccrued_interest applies.
+		posting_date = "2025-01-25"
+
+		locked_amounts = calculate_amounts(loan.name, posting_date, for_update=True)
+		unlocked_amounts = calculate_amounts(loan.name, posting_date, for_update=False)
+
+		self.assertEqual(
+			flt(locked_amounts.get("unaccrued_interest", 0), 2),
+			0,
+			"unaccrued_interest should be 0 when for_update=True",
+		)
+		self.assertGreater(
+			flt(unlocked_amounts.get("unaccrued_interest", 0), 2),
+			0,
+			"unaccrued_interest should be non-zero when for_update=False",
+		)
+		self.assertEqual(
+			flt(locked_amounts.get("unbooked_interest", 0), 2),
+			flt(unlocked_amounts.get("unbooked_interest", 0), 2),
+			"unbooked_interest should not depend on for_update",
+		)
