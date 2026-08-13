@@ -903,6 +903,8 @@ class LoanRepayment(LoanController):
 
 	def validate_security_deposit_amount(self, amounts):
 		if self.repayment_type == "Security Deposit Adjustment":
+			precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 			available_deposit = frappe.db.get_value(
 				"Loan Security Deposit",
 				{"loan": self.against_loan, "docstatus": 1},
@@ -910,29 +912,37 @@ class LoanRepayment(LoanController):
 				for_update=True,
 			)
 
-			if flt(self.amount_paid) > flt(available_deposit):
+			if flt(self.amount_paid, precision) > flt(available_deposit, precision):
 				frappe.throw(
 					_("Amount paid ({0}) cannot be greater than available security deposit ({1})").format(
-						flt(self.amount_paid), flt(available_deposit)
+						flt(self.amount_paid, precision), flt(available_deposit, precision)
 					)
 				)
 
-			# unaccrued_interest is only computed when for_update is False, but this
-			# amounts dict was built with for_update=True, so fetch it separately.
-			unaccrued_interest = calculate_amounts(
-				self.against_loan, self.value_date, payment_type=self.repayment_type
-			).get("unaccrued_interest", 0)
-
-			total_payable_amount = (
-				flt(self.payable_amount) + flt(amounts.get("unbooked_interest", 0)) + flt(unaccrued_interest)
+			total_payable_amount = flt(
+				flt(self.payable_amount, precision) + flt(amounts.get("unbooked_interest", 0), precision),
+				precision,
 			)
 
-			if flt(self.amount_paid) > total_payable_amount and not self.loan_adjustment:
+			if flt(self.amount_paid, precision) > total_payable_amount and not self.loan_adjustment:
+				# amounts was built with for_update=True, under which unaccrued_interest
+				# (interest projected after the latest accrual) is always 0. Fetch it
+				# separately, only when needed, and write it back into amounts so
+				# allocate_amounts() also books this portion as interest, not principal.
+				amounts["unaccrued_interest"] = flt(
+					calculate_amounts(
+						self.against_loan, self.value_date, payment_type=self.repayment_type
+					).get("unaccrued_interest", 0),
+					precision,
+				)
+				total_payable_amount = flt(total_payable_amount + amounts["unaccrued_interest"], precision)
+
+			if flt(self.amount_paid, precision) > total_payable_amount and not self.loan_adjustment:
 				frappe.throw(
 					_(
 						"The amount paid ({0}) cannot be greater than the payable amount ({1}) for"
 						" Security Deposit Adjustment repayments."
-					).format(flt(self.amount_paid), total_payable_amount)
+					).format(flt(self.amount_paid, precision), total_payable_amount)
 				)
 
 	def validate_repayment_type(self):

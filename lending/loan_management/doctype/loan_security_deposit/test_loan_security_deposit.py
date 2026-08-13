@@ -232,3 +232,63 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			flt(unlocked_amounts.get("unbooked_interest", 0), 2),
 			"unbooked_interest should not depend on for_update",
 		)
+
+	def test_security_deposit_adjustment_books_unaccrued_interest_as_interest(self):
+		# An adjustment amount that only fits within payable_amount + unbooked_interest
+		# + unaccrued_interest must still be booked as interest, not principal or excess.
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-01-06",
+			repayment_start_date="2025-02-05",
+			withhold_security_deposit=1,
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-01-20", company="_Test Company"
+		)
+
+		# posting_date is after the latest accrual, so unaccrued_interest applies.
+		posting_date = "2025-01-25"
+		unlocked_amounts = calculate_amounts(loan.name, posting_date, for_update=False)
+		payable_amount = flt(unlocked_amounts.get("payable_amount", 0), 2)
+		unbooked_interest = flt(unlocked_amounts.get("unbooked_interest", 0), 2)
+		unaccrued_interest = flt(unlocked_amounts.get("unaccrued_interest", 0), 2)
+		self.assertGreater(unaccrued_interest, 0, "No unaccrued interest projected for test loan")
+
+		pending_principal_before = frappe.db.get_value("Loan", loan.name, "total_principal_paid") or 0
+
+		amount_paid = flt(payable_amount + unbooked_interest + unaccrued_interest, 2)
+		repayment = create_repayment_entry(
+			loan.name, posting_date, amount_paid, repayment_type="Security Deposit Adjustment"
+		)
+		repayment.submit()
+
+		self.assertEqual(
+			flt(repayment.unbooked_interest_paid, 2),
+			flt(unbooked_interest + unaccrued_interest, 2),
+			"unaccrued_interest portion should be booked as interest",
+		)
+		self.assertEqual(flt(repayment.excess_amount, 2), 0, "No excess amount expected")
+
+		pending_principal_after = frappe.db.get_value("Loan", loan.name, "total_principal_paid") or 0
+		self.assertEqual(
+			pending_principal_after,
+			pending_principal_before,
+			"unaccrued_interest portion should not be booked as principal",
+		)
