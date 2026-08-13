@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:22\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-13 10:48\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
@@ -2383,8 +2383,8 @@ msgstr "Rentefritagelsesbeløb"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Rentefraskrivelsesbeløbet kan ikke være større end forfaldne renter"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Renter påløbet fra {0} til {1} på lånet: {2}"
 
@@ -2707,11 +2707,11 @@ msgstr "Lånekonto er obligatorisk"
 msgid "Loan Accounts"
 msgstr "Lånekonti"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Låneperiodiseringsfrekvens er ikke angivet for virksomhed {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Låneperiodiseringsfrekvens er ikke angivet i virksomhedens dokumenttype."
 
@@ -4682,11 +4682,11 @@ msgstr "Vælg mindst Lån eller Ansøger for at se regnskabet"
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Angiv venligst konto for yderligere påløbne renter i låneproduktet {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Angiv venligst konto for yderligere renteindtægter i låneprodukt {0}"
 
@@ -4699,11 +4699,11 @@ msgstr "Angiv venligst en konto for rentegendannelse for brudt periode for låne
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Angiv venligst kunderefusionskonto i låneprodukt {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Angiv venligst konto for påløbne renter i låneprodukt {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Angiv venligst renteindtægtskonto i låneprodukt {0}"
 
@@ -4719,11 +4719,11 @@ msgstr "Angiv venligst betalingskonto for låneproduktet {0}"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Angiv venligst lønkonto i tilbagebetaling af lån"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Angiv venligst konto for påløbne bøder i låneprodukt {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Angiv venligst kontoen for strafindkomst i låneproduktet {0}"
 
@@ -5839,7 +5839,7 @@ msgstr "Følgende udbetalinger findes ikke eller er ikke indsendt: {}"
 msgid "The following loans do not exist: {}"
 msgstr "Følgende lån findes ikke: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -5853,7 +5853,7 @@ msgstr "Den tidsplantype, der skal bruges til at generere tidsplanerne for termi
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Der findes allerede en låner med de samme kontaktoplysninger. Vil du hente låneren her?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Der er overlappende periodiseringer her {}, den aktuelle periodiseringsdato periodiseres fra {} til {}"
 
