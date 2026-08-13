@@ -8,6 +8,9 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
+from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+	process_loan_interest_accrual_for_loans,
+)
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
@@ -15,6 +18,7 @@ from lending.tests.test_utils import (
 	init_loan_products,
 	make_loan_disbursement_entry,
 	master_init,
+	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
@@ -118,3 +122,59 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 
 		self.assertEqual(flt(security_deposit.allocated_amount, 2), 0)
 		self.assertEqual(flt(security_deposit.available_amount, 2), flt(repayment_doc.amount_paid, 2))
+
+	def test_security_deposit_adjustment_with_unbooked_interest(self):
+		# Accrued interest not yet billed (unbooked_interest) should still count
+		# as payable for a Security Deposit Adjustment.
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			24,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+			rate_of_interest=28,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2025-01-06",
+			repayment_start_date="2025-02-05",
+			withhold_security_deposit=1,
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-01-20", company="_Test Company"
+		)
+
+		amounts = calculate_amounts(loan.name, "2025-01-21", for_update=True)
+		payable_amount = flt(amounts.get("payable_amount", 0), 2)
+		unbooked_interest = flt(amounts.get("unbooked_interest", 0), 2)
+		self.assertGreater(unbooked_interest, 0, "No unbooked interest accrued for test loan")
+
+		security_deposit_before = frappe.db.get_value(
+			"Loan Security Deposit", {"loan": loan.name, "docstatus": 1}, "available_amount"
+		)
+
+		amount_paid = flt(payable_amount + unbooked_interest, 2)
+		repayment = create_repayment_entry(
+			loan.name, "2025-01-21", amount_paid, repayment_type="Security Deposit Adjustment"
+		)
+		repayment.submit()
+
+		self.assertEqual(repayment.docstatus, 1, "Repayment should submit")
+
+		security_deposit_after = frappe.get_doc(
+			"Loan Security Deposit", {"loan": loan.name, "docstatus": 1}
+		)
+		self.assertEqual(flt(security_deposit_after.allocated_amount, 2), amount_paid)
+		self.assertEqual(
+			flt(security_deposit_after.available_amount, 2),
+			flt(security_deposit_before - amount_paid, 2),
+		)
