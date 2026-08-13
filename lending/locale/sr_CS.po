@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:23\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-13 10:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -2383,8 +2383,8 @@ msgstr "Iznos oprosta kamate"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Iznos oprosta kamate ne može biti veći od dospele kamate"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Kamata obračunata od {0} do {1} na zajam: {2}"
 
@@ -2707,11 +2707,11 @@ msgstr "Račun zajma je obavezan"
 msgid "Loan Accounts"
 msgstr "Računi zajma"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Učestalost obračuna kamate za zajam nije podešena za kompaniju {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Učestalost obračuna kamate za zajam nije podešena u DocType kompanije."
 
@@ -4682,11 +4682,11 @@ msgstr ""
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun obračunate dodatne kamate u kreditnom proizvodu {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun prihoda od dodatne kamate u kreditnom proizvodu {0}"
 
@@ -4699,11 +4699,11 @@ msgstr "Molimo Vas da postavite račun naplate kamate za nepotpuni period za kre
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun za povraćaj sredstava klijentu u okviru kreditnog proizvoda {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun obračunate kamate u kreditnom proizvodu {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun prihoda od kamate u kreditnom proizvodu {0}"
 
@@ -4719,11 +4719,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Molimo Vas da podesite račun obaveza za obračun zarada u otplati zajma"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun obračunate zatezne naknade u kreditnom proizvodu {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Molimo Vas da postavite račun prihoda od zatezne naknade u kreditnom proizvodu {0}"
 
@@ -5839,7 +5839,7 @@ msgstr "Sledeće isplate ne postoje ili nisu podnete: {}"
 msgid "The following loans do not exist: {}"
 msgstr "Sledeći zajmovi ne postoje: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -5853,7 +5853,7 @@ msgstr "Vrsta rasporeda koji se koristi za generisanje rasporeda otplate zajmova
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Već postoji zajmoprimac sa istim kontakt podacima. Da li želite da učitate tog zajmoprimca?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Postoje preklapajući obračuni ovde {}, trenutni obračun kamate se računa od {} do {}"
 
