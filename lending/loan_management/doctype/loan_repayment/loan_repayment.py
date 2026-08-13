@@ -935,9 +935,16 @@ class LoanRepayment(AccountsController):
 						flt(self.amount_paid), flt(available_deposit)
 					)
 				)
-			total_payable_amount = flt(self.payable_amount) + flt(
-				amounts.get("unbooked_interest", 0)
-			) + flt(amounts.get("unaccrued_interest", 0))
+
+			# unaccrued_interest is only computed when for_update is False, but this
+			# amounts dict was built with for_update=True, so fetch it separately.
+			unaccrued_interest = calculate_amounts(
+				self.against_loan, self.value_date, payment_type=self.repayment_type
+			).get("unaccrued_interest", 0)
+
+			total_payable_amount = (
+				flt(self.payable_amount) + flt(amounts.get("unbooked_interest", 0)) + flt(unaccrued_interest)
+			)
 
 			if flt(self.amount_paid) > total_payable_amount and not self.loan_adjustment:
 				frappe.throw(
