@@ -176,7 +176,7 @@ class LoanRepayment(AccountsController):
 		)
 
 		self.set_missing_values(amounts)
-		self.validate_security_deposit_amount()
+		self.validate_security_deposit_amount(amounts)
 		self.validate_amount(amounts)
 		self.allocate_amounts(amounts)
 
@@ -920,7 +920,7 @@ class LoanRepayment(AccountsController):
 
 		self.db_set("is_backdated", self.is_backdated)
 
-	def validate_security_deposit_amount(self):
+	def validate_security_deposit_amount(self, amounts):
 		if self.repayment_type == "Security Deposit Adjustment":
 			available_deposit = frappe.db.get_value(
 				"Loan Security Deposit",
@@ -930,12 +930,21 @@ class LoanRepayment(AccountsController):
 			)
 
 			if flt(self.amount_paid) > flt(available_deposit):
-				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
-			if flt(self.amount_paid) > flt(self.payable_amount) and not self.loan_adjustment:
+				frappe.throw(
+					_("Amount paid ({0}) cannot be greater than available security deposit ({1})").format(
+						flt(self.amount_paid), flt(available_deposit)
+					)
+				)
+			total_payable_amount = flt(self.payable_amount) + flt(
+				amounts.get("unbooked_interest", 0)
+			) + flt(amounts.get("unaccrued_interest", 0))
+
+			if flt(self.amount_paid) > total_payable_amount and not self.loan_adjustment:
 				frappe.throw(
 					_(
-						"The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-					)
+						"The amount paid ({0}) cannot be greater than the payable amount ({1}) for"
+						" Security Deposit Adjustment repayments."
+					).format(flt(self.amount_paid), total_payable_amount)
 				)
 
 	def validate_repayment_type(self):
