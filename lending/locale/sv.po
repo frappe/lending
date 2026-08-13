@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-06 08:26\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-13 10:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2398,8 +2398,8 @@ msgstr "Ränta Avskrivning Belopp"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Ränta Avskrivning Belopp kan inte vara högre än förfallen ränta"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Ränta beräknad från {0} till {1} mot lån: {2}"
 
@@ -2722,11 +2722,11 @@ msgstr "Lånekonto erfordras"
 msgid "Loan Accounts"
 msgstr "Lån Konto"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Beräkning Frekvens är inte angiven för {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Beräkning Frekvens är inte angiven."
 
@@ -4697,11 +4697,11 @@ msgstr "Välj åtminstone Lån eller Sökande för att visa register"
 msgid "Please select how to collect Applicants."
 msgstr "Välj hur du vill samla in Sökande."
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Ange Extra Beräknad Ränta Konto i {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Ange konto för Extra Ränta Intäkt Konto i {0}"
 
@@ -4714,11 +4714,11 @@ msgstr "Ange Bruten Period Ränta Återställning Konto för {0}"
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Ange Kund Återbetalning Konto i {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Ange Beräknad Ränta Konto i {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Ange Ränta Intäkt Konto i {0}"
 
@@ -4734,11 +4734,11 @@ msgstr "Vänligen ange Betalning Konto för Lån Artikel {0}"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Ange Lönekonto i Låneåterbetalning"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Ange Beräknad Straffavgift Konto i {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Ange Straffavgift Intäkt Konto i {0}"
 
@@ -5854,7 +5854,7 @@ msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ombokning slutfördes inte och har återställts till Utkast:"
 
@@ -5868,7 +5868,7 @@ msgstr "Schema typ som ska användas för att skapa schema för termin lån (kom
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Det finns redan en låntagare med samma kontaktuppgifter. Vill du hämta låntagare här?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Det finns överlappande beräkningar här {}, det aktuella datumet blev bertäknad från {} till {}"
 

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:22\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-13 10:48\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -2383,8 +2383,8 @@ msgstr "Zinserlass-Betrag"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Zinserlass-Betrag darf nicht größer als die überfälligen Zinsen sein"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Aufgelaufene Zinsen von {0} bis {1} für Darlehen: {2}"
 
@@ -2707,11 +2707,11 @@ msgstr "Darlehenskonto ist erforderlich"
 msgid "Loan Accounts"
 msgstr "Darlehenskonten"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Darlehens-Abgrenzungshäufigkeit für Unternehmen {0} nicht festgelegt"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Darlehens-Abgrenzungshäufigkeit ist im DocType Unternehmen nicht festgelegt."
 
@@ -4682,11 +4682,11 @@ msgstr ""
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Konto für aufgelaufene Zusatzzinsen im Darlehensprodukt {0} fest"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Ertragskonto für Zusatzzinsen im Darlehensprodukt {0} fest"
 
@@ -4699,11 +4699,11 @@ msgstr "Bitte legen Sie das Konto für die Rückgewinnung von Zinsen für den ge
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Kundenerstattungskonto im Darlehensprodukt {0} fest"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Konto für aufgelaufene Zinsen im Darlehensprodukt {0} fest"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Zinsertrags-Konto im Darlehensprodukt {0} fest"
 
@@ -4719,11 +4719,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Bitte legen Sie das Lohnverbindlichkeitskonto in der Darlehensrückzahlung fest"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Konto für aufgelaufene Strafen im Darlehensprodukt {0} fest"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Strafertragskonto im Darlehensprodukt {0} fest"
 
@@ -5839,7 +5839,7 @@ msgstr "Die folgenden Auszahlungen existieren nicht oder wurden nicht eingereich
 msgid "The following loans do not exist: {}"
 msgstr "Die folgenden Darlehen existieren nicht: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -5853,7 +5853,7 @@ msgstr "Der Plantyp, der zur Erstellung der Laufzeitdarlehenspläne verwendet wi
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Es gibt bereits einen Kreditnehmer mit denselben Kontaktdaten. Möchten Sie den Kreditnehmer hier abrufen?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Es gibt überlappende Abgrenzungen hier {}, das aktuelle Abgrenzungsdatum wird von {} bis {} abgegrenzt"
 
