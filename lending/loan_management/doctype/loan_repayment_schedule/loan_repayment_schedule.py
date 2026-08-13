@@ -617,8 +617,9 @@ class LoanRepaymentSchedule(Document):
 		return amortized_bpi, first_emi_adjustment
 
 	def get_next_payment_date(self, payment_date):
-		if (
-			self.repayment_schedule_type
+		if self.repayment_frequency == "Monthly" and (
+			not self.repayment_schedule_type
+			or self.repayment_schedule_type
 			in [
 				"Monthly as per repayment start date",
 				"Monthly as per cycle date",
@@ -626,7 +627,7 @@ class LoanRepaymentSchedule(Document):
 				"Pro-rated calendar months",
 				"Flat Interest Rate",
 			]
-		) and self.repayment_frequency == "Monthly":
+		):
 			payment_date = add_single_month(payment_date)
 		elif self.repayment_frequency == "Bi-Weekly":
 			payment_date = add_days(payment_date, 14)
