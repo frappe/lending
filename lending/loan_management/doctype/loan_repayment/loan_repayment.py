@@ -949,9 +949,9 @@ class LoanRepayment(AccountsController):
 				# separately, only when needed, and write it back into amounts so
 				# allocate_amounts() also books this portion as interest, not principal.
 				amounts["unaccrued_interest"] = flt(
-					calculate_amounts(
-						self.against_loan, self.value_date, payment_type=self.repayment_type
-					).get("unaccrued_interest", 0),
+					calculate_amounts(self.against_loan, self.value_date, payment_type=self.repayment_type).get(
+						"unaccrued_interest", 0
+					),
 					precision,
 				)
 				total_payable_amount = flt(total_payable_amount + amounts["unaccrued_interest"], precision)
