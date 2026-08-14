@@ -156,11 +156,15 @@ class LoanInterestAccrual(LoanController):
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
 			doc.flags.ignore_links = True
+			if frappe.flags.on_repost:
+				doc.flags.notify_update = False
 			doc.cancel()
 
 		if self.additional_interest_suspense_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry)
 			doc.flags.ignore_links = True
+			if frappe.flags.on_repost:
+				doc.flags.notify_update = False
 			doc.cancel()
 
 	def queue_cancel_gl(self):
@@ -171,7 +175,7 @@ class LoanInterestAccrual(LoanController):
 			return
 
 		gle_map = []
-		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 
 		if loan_status == "Written Off":
 			write_off_date = frappe.db.get_value(
@@ -645,19 +649,50 @@ def calculate_penal_interest_for_loans(
 			if row.repayment_schedule_detail not in principal_amount_map:
 				principal_amount_map[row.repayment_schedule_detail] = row.outstanding_amount
 
+	# Batch-fetch the last Penal Interest accrual date per repayment_schedule_detail
+	# instead of issuing a `MAX(posting_date) ... FOR UPDATE` query per demand below.
+	last_accrual_date_map = {}
+	if repayment_schedule_details:
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+		accrual_query = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(
+				LoanInterestAccrual.loan_repayment_schedule_detail,
+				fn.Max(LoanInterestAccrual.posting_date).as_("last_posting_date"),
+			)
+			.where(
+				(LoanInterestAccrual.loan == loan.name)
+				& (LoanInterestAccrual.docstatus == 1)
+				& (LoanInterestAccrual.interest_type == "Penal Interest")
+				& (LoanInterestAccrual.loan_repayment_schedule_detail.isin(repayment_schedule_details))
+			)
+			.groupby(LoanInterestAccrual.loan_repayment_schedule_detail)
+			.for_update()
+		)
+
+		if loan_disbursement:
+			accrual_query = accrual_query.where(
+				LoanInterestAccrual.loan_disbursement == loan_disbursement
+			)
+
+		for row in accrual_query.run(as_dict=True):
+			last_accrual_date_map[row.loan_repayment_schedule_detail] = row.last_posting_date
+
 	for demand in demands:
 		penal_interest_amount = 0
 		additional_interest = 0
 		on_migrate = False
 
 		if getdate(posting_date) >= add_days(getdate(demand.demand_date), grace_period_days):
-			last_accrual_date = get_last_accrual_date(
-				loan.name,
-				posting_date,
-				"Penal Interest",
-				repayment_schedule_detail=demand.repayment_schedule_detail,
-				loan_disbursement=loan_disbursement,
-			)
+			if demand.repayment_schedule_detail:
+				last_accrual_date = last_accrual_date_map.get(demand.repayment_schedule_detail)
+			else:
+				last_accrual_date = get_last_accrual_date(
+					loan.name,
+					posting_date,
+					"Penal Interest",
+					loan_disbursement=loan_disbursement,
+				)
 
 			if not last_accrual_date:
 				last_accrual_date = get_last_accrual_date(
