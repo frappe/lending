@@ -115,7 +115,14 @@ class LoanRepaymentRepost(Document):
 			self.clear_demand_allocation()
 
 		self.trigger_on_cancel_events()
+
+		# cancel_demands() cancels potentially hundreds of existing demands/accruals.
+		# Suppress realtime UI events here too, not just in trigger_on_submit_events
+		# below, since no UI is watching during a repost either way.
+		frappe.flags.on_repost = True
 		self.cancel_demands()
+		frappe.flags.on_repost = False
+
 		self.trigger_on_submit_events()
 
 		self.db_set("status", "Completed")
@@ -194,6 +201,7 @@ class LoanRepaymentRepost(Document):
 			if entry.loan_repayment in entries_to_cancel:
 				repayment_doc.flags.ignore_links = True
 				repayment_doc.flags.from_repost = True
+				repayment_doc.flags.notify_update = False
 				repayment_doc.cancel()
 				repayment_doc.flags.from_repost = False
 			else:
@@ -331,6 +339,7 @@ class LoanRepaymentRepost(Document):
 
 			repayment_doc = frappe.get_doc("Loan Repayment", entry.loan_repayment)
 			repayment_doc.flags.from_repost = True
+			repayment_doc.flags.notify_update = False
 
 			if repayment_doc.repayment_type == "Security Deposit Adjustment":
 				is_security_deposit_adjustment = True
