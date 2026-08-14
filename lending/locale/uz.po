@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:23\n"
+"POT-Creation-Date: 2026-08-09 10:04+0000\n"
+"PO-Revision-Date: 2026-08-13 10:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Uzbek\n"
 "MIME-Version: 1.0\n"
@@ -2383,8 +2383,8 @@ msgstr "Foizlardan ozod qilish miqdori"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Foizlardan ozod qilish miqdori muddati o'tgan foizlardan ko'p bo'lmasligi kerak"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Kredit bo'yicha {0} dan {1} gacha hisoblangan foizlar: {2}"
 
@@ -2707,11 +2707,11 @@ msgstr "Kredit hisobi majburiy"
 msgid "Loan Accounts"
 msgstr "Kredit hisoblari"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "{0} kompaniyasi uchun kredit hisoblash chastotasi belgilanmagan"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Kreditni hisoblash chastotasi Kompaniya DocType’da belgilanmagan."
 
@@ -4682,11 +4682,11 @@ msgstr "Buxgalteriya hisobini ko'rish uchun hech bo'lmaganda Kreditor yoki Ariza
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida qo'shimcha foizlar hisoblangan hisobni {0} qilib belgilang"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida Qo'shimcha foizli daromad hisobini {0} ga o'rnating"
 
@@ -4699,11 +4699,11 @@ msgstr "Iltimos, Kredit mahsuloti uchun buzilgan davr foizlarini qaytarish hisob
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida Mijozga Qaytariladigan Hisobni o'rnating {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida foizlar hisoblangan hisobni {0} qilib belgilang"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida Foizli daromad hisobini {0} ga o'rnating"
 
@@ -4719,11 +4719,11 @@ msgstr "Kredit mahsuloti uchun to'lov hisobini {0} ga o'rnating"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Iltimos, Kreditni qaytarish bo'limida Ish haqi to'lanadigan hisobni o'rnating"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida Jarima hisoblangan hisobni {0} qilib belgilang"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Iltimos, Kredit mahsulotida Jarima daromadi hisobini {0} ga o'rnating"
 
@@ -5839,7 +5839,7 @@ msgstr "Quyidagi toʻlovlar mavjud emas yoki taqdim etilmagan: {}"
 msgid "The following loans do not exist: {}"
 msgstr "Quyidagi kreditlar mavjud emas: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -5853,7 +5853,7 @@ msgstr "Muddatli kredit jadvallarini yaratish uchun ishlatiladigan jadval turi (
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Xuddi shu aloqa ma'lumotlariga ega qarz oluvchi allaqachon mavjud. Qarz oluvchini bu yerga olib kelmoqchimisiz?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Bu yerda {} bir-birining ustiga chiqadigan hisob-kitoblar mavjud, joriy hisob-kitob sanasi {} dan {} gacha hisoblanadi."
 
