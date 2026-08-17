@@ -30,79 +30,12 @@ frappe.ui.form.on('Loan Application', {
 	refresh: function (frm) {
 		frm.trigger("toggle_fields");
 		frm.trigger("add_toolbar_buttons");
-		frm.trigger("render_summary_card");
 		frm.set_query('loan_product', () => {
 			return {
 				filters: {
 					company: frm.doc.company
 				}
 			};
-		});
-	},
-	render_summary_card: function (frm) {
-		if (frm.doc.__islocal) {
-			frm.set_df_property("applicant_details_section", "hidden", 0);
-			frm.set_df_property("applicant_contact_info_section", "hidden", 0);
-			return;
-		}
-
-		frappe.db.get_value("Company", frm.doc.company, "default_currency").then(r => {
-			let currency = r.message.default_currency || frappe.boot.sysdefaults.currency;
-			let amount = frappe.format(frm.doc.loan_amount, { fieldtype: 'Currency', currency: currency }, { only_value: true });
-			let name = frm.doc.applicant_name || '';
-			let phone = frm.doc.applicant_phone_number || 'N/A';
-			let email = frm.doc.applicant_email_address || 'N/A';
-			let app_date = frappe.datetime.str_to_user(frm.doc.posting_date);
-
-			let html = `
-				<div class="summary-card-section loan-summary-card">
-					<div class="row">
-						<div class="col-sm">
-							<h6 class="text-uppercase loan-summary-label">
-								${frappe.utils.icon('user', 'sm', 'margin-right: 4px;')} ${__('Applicant')}
-							</h6>
-							<div class="loan-summary-value-md">${name}</div>
-						</div>
-						<div class="col-sm">
-							<h6 class="text-uppercase loan-summary-label">
-								${frappe.utils.icon('calendar', 'sm', 'margin-right: 4px;')} ${__('Application Date')}
-							</h6>
-							<div class="loan-summary-value-md">${app_date}</div>
-						</div>
-						<div class="col-sm">
-							<h6 class="text-uppercase loan-summary-label">
-								${frappe.utils.icon('hand-coins', 'sm', 'margin-right: 4px;')} ${__('Loan Amount')}
-							</h6>
-							<div class="loan-summary-value-lg">${amount}</div>
-						</div>
-						<div class="col-sm">
-							<h6 class="text-uppercase loan-summary-label">
-								${frappe.utils.icon('call', 'sm', 'margin-right: 4px;')} ${__('Phone')}
-							</h6>
-							<div class="loan-summary-value-md">${phone}</div>
-						</div>
-						<div class="col-sm">
-							<h6 class="text-uppercase loan-summary-label">
-								${frappe.utils.icon('mail', 'sm', 'margin-right: 4px;')} ${__('Email')}
-							</h6>
-							<div class="loan-summary-email">${email}</div>
-						</div>
-					</div>
-				</div>
-			`;
-
-			// Remove any existing summary section first to avoid duplication on refresh
-			$(frm.wrapper).find('.summary-card-section').remove();
-
-			// Insert before the very first section in the form so it is reliably visible inside the first Details tab
-			let section_wrapper = frm.fields_dict["applicant_contact_info_section"].wrapper;
-			if (section_wrapper) {
-				$(html).insertBefore(section_wrapper);
-			}
-
-			// Hide the details and contact info sections as they are now in the summary card
-			frm.set_df_property("applicant_details_section", "hidden", 1);
-			frm.set_df_property("applicant_contact_info_section", "hidden", 1);
 		});
 	},
 	repayment_method: function (frm) {
