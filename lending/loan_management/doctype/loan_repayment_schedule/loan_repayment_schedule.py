@@ -811,6 +811,11 @@ class LoanRepaymentSchedule(Document):
 					total_payment = principal_amount + interest_amount
 
 					balance_principal_amount = self.current_principal_amount - principal_amount
+					# A prior restructure (e.g. Advance Payment) may have already marked this same
+					# next_emi_date as demand_generated=1 on prev_schedule, meaning that EMI was
+					# already skipped and does not need a fresh demand. Carry that flag forward
+					# here instead of always starting at 0, otherwise this Pre Payment rebuild
+					# undoes the earlier skip and the EMI wrongly shows up as due again.
 					self.add_repayment_schedule_row(
 						next_emi_date,
 						principal_amount,
@@ -818,7 +823,7 @@ class LoanRepaymentSchedule(Document):
 						total_payment,
 						balance_principal_amount,
 						pending_prev_days,
-						0,
+						self.get_prev_schedule_demand_generated(prev_schedule, schedule_field, next_emi_date),
 						repayment_schedule_field=schedule_field,
 						principal_share_percentage=principal_share_percentage,
 						interest_share_percentage=interest_share_percentage,
@@ -835,6 +840,12 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount,
 			pending_prev_days,
 		)
+
+	def get_prev_schedule_demand_generated(self, prev_schedule, schedule_field, payment_date):
+		for row in prev_schedule.get(schedule_field):
+			if getdate(row.payment_date) == getdate(payment_date):
+				return row.demand_generated
+		return 0
 
 	def set_repayment_start_date(self):
 		if self.repayment_schedule_type == "Pro-rated calendar months" and not self.restructure_type:
