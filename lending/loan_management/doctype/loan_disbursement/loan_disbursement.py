@@ -605,6 +605,23 @@ class LoanDisbursement(LoanController):
 				for data in schedule.repayment_schedule:
 					total_payment -= data.total_payment
 					total_interest_payable -= data.interest_amount
+			else:
+				RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
+				LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
+				total_payment, total_interest_payable = (
+					frappe.qb.from_(RepaymentSchedule)
+					.join(LoanRepaymentSchedule)
+					.on(RepaymentSchedule.parent == LoanRepaymentSchedule.name)
+					.select(fn.Sum(RepaymentSchedule.total_payment), fn.Sum(RepaymentSchedule.interest_amount))
+					.where(
+						(LoanRepaymentSchedule.loan == self.against_loan)
+						& (LoanRepaymentSchedule.docstatus == 1)
+						& (LoanRepaymentSchedule.loan_disbursement != self.name)
+					)
+					.run()[0]
+				)
+				total_payment = flt(total_payment)
+				total_interest_payable = flt(total_interest_payable)
 		else:
 			total_payment -= self.disbursed_amount
 
