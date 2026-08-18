@@ -245,6 +245,8 @@ class LoanRepaymentSchedule(Document):
 			reverse_loan_interest_accruals,
 		)
 
+		self.validate_loan_disbursement_status()
+
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		bpi_accrual = frappe.db.get_value(
@@ -295,6 +297,20 @@ class LoanRepaymentSchedule(Document):
 		self.ignore_linked_doctypes = ["Loan Interest Accrual", "Loan Demand"]
 
 		self.db_set("status", "Cancelled")
+
+	def validate_loan_disbursement_status(self):
+		if self.flags.ignore_links or not self.loan_disbursement:
+			return
+
+		loan_disbursement_docstatus = frappe.db.get_value(
+			"Loan Disbursement", self.loan_disbursement, "docstatus"
+		)
+		if loan_disbursement_docstatus == 1:
+			frappe.throw(
+				_(
+					"Cannot cancel Loan Repayment Schedule {0} while Loan Disbursement {1} is submitted. Cancel the Loan Disbursement first."
+				).format(frappe.bold(self.name), frappe.bold(self.loan_disbursement))
+			)
 
 	def set_repayment_period(self):
 		if self.repayment_frequency == "One Time":
