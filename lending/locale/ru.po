@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:51+0000\n"
-"PO-Revision-Date: 2026-08-17 11:08\n"
+"PO-Revision-Date: 2026-08-18 11:17\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -74,7 +74,7 @@ msgstr "Аккаунт {0} не принадлежит компании {1}"
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
-msgstr "РЎС‡РµС‚ {0} РЅРµ РїСЂРёРЅР°РґР»РµР¶РёС‚ РєРѕРјРїР°РЅРёРё {1}"
+msgstr "Счет {0} не принадлежит компании {1}"
 
 #. Label of the accounting_tab (Tab Break) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -4661,7 +4661,7 @@ msgstr ""
 
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:67
 msgid "Please select Company."
-msgstr "РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РІС‹Р±РµСЂРёС‚Рµ РєРѕРјРїР°РЅРёСЋ."
+msgstr "Пожалуйста, выберите компанию."
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:864
 msgid "Please select Loan Disbursement for Line of Credit repayment"
