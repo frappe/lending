@@ -1227,6 +1227,80 @@ class TestLoan(LendingTestSuite):
 		)
 		self.assertTrue(demands)
 
+	def test_advance_payment_then_prepayment(self):
+		# Purpose: check that an EMI skipped by an Advance Payment stays skipped even
+		# after more Pre Payments are made later. Without this, the skipped EMI can
+		# wrongly come back as due again, even though the customer already paid for it.
+		loan = create_loan(
+			self.applicant1,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2025-01-05",
+			posting_date="2024-12-05",
+			rate_of_interest=10,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-05", repayment_start_date="2025-01-05"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+		create_repayment_entry(loan.name, "2025-02-01", 8792.00).submit()
+		create_repayment_entry(loan.name, "2025-02-01", 10000, repayment_type="Advance Payment").submit()
+
+		active_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
+		)
+		demand_generated = frappe.db.get_value(
+			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+		)
+		self.assertEqual(demand_generated, 1)
+
+		create_repayment_entry(loan.name, "2025-02-01", 20000, repayment_type="Pre Payment").submit()
+
+		active_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
+		)
+		demand_generated = frappe.db.get_value(
+			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+		)
+		self.assertEqual(demand_generated, 1)
+
+		live_demands = frappe.db.get_all(
+			"Loan Demand",
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"demand_date": "2025-02-05",
+				"demand_type": "EMI",
+			},
+		)
+		self.assertFalse(live_demands)
+
+		create_repayment_entry(loan.name, "2025-02-04", 15000, repayment_type="Pre Payment").submit()
+
+		active_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
+		)
+		demand_generated = frappe.db.get_value(
+			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+		)
+		self.assertEqual(demand_generated, 1)
+
+		live_demands = frappe.db.get_all(
+			"Loan Demand",
+			{
+				"loan": loan.name,
+				"docstatus": 1,
+				"demand_date": "2025-02-05",
+				"demand_type": "EMI",
+			},
+		)
+		self.assertFalse(live_demands)
+
 	def test_interest_accrual_and_demand_on_freeze_and_unfreeze(self):
 		loan = create_loan(
 			self.applicant1,
