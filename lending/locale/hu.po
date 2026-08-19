@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:51+0000\n"
-"PO-Revision-Date: 2026-08-17 11:09\n"
+"PO-Revision-Date: 2026-08-18 11:18\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -70,7 +70,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:117
 msgid "Account {0} does not belong to company {1}"
-msgstr ""
+msgstr "A {0} számla nem tartozik a {1} vállalathoz"
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
@@ -123,7 +123,7 @@ msgstr "Számviteli dimenziók"
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.js:7
 #: lending/public/js/loan_common.js:14
 msgid "Accounting Ledger"
-msgstr ""
+msgstr "Számviteli Főkönyvi kivonat"
 
 #. Label of the accounts_section (Section Break) field in DocType 'Loan
 #. Partner'
@@ -267,7 +267,7 @@ msgstr ""
 #. Label of the address_html (HTML) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Address HTML"
-msgstr ""
+msgstr "HTML Cím"
 
 #. Label of the address_links_section (Section Break) field in DocType 'Loan
 #. Lead'
@@ -398,7 +398,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charge_reference/loan_charge_reference.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Allocated Amount"
-msgstr ""
+msgstr "Lekötött összeg"
 
 #. Label of the allocated_date (Date) field in DocType 'Loan Security Deposit'
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
@@ -704,7 +704,7 @@ msgstr ""
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:16
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:16
 msgid "As on Date"
-msgstr ""
+msgstr "Dátum Szerint"
 
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
@@ -802,7 +802,7 @@ msgstr "Egyenleg"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:67
 msgid "Balance ({0})"
-msgstr ""
+msgstr "Mérleg ({0})"
 
 #. Label of the balance_interest_amount (Currency) field in DocType 'Loan
 #. Restructure'
@@ -892,7 +892,7 @@ msgstr ""
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Biweekly"
-msgstr ""
+msgstr "Kéthetente"
 
 #. Label of the body (Text Editor) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -917,7 +917,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Branch"
-msgstr ""
+msgstr "Ágazat"
 
 #. Label of the branch_details_section (Section Break) field in DocType 'Loan
 #. Transfer'
@@ -965,7 +965,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "CC To"
-msgstr ""
+msgstr "Másolat ide"
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1219,11 +1219,11 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Clearance Date"
-msgstr ""
+msgstr "Végső dátum"
 
 #: lending/loan_management/doctype/loan/loan.js:109
 msgid "Close Loan"
-msgstr ""
+msgstr "Bezárja a kölcsönt"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:87
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:144
@@ -1425,12 +1425,12 @@ msgstr "Követel"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:60
 msgid "Credit ({0})"
-msgstr ""
+msgstr "Tőlünk követelés ({0})"
 
 #. Label of the credit_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Credit Account"
-msgstr ""
+msgstr "Követelésszámla"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2321
 msgid "Credit Account is mandatory"
@@ -1580,7 +1580,7 @@ msgstr "Tartozik"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:53
 msgid "Debit ({0})"
-msgstr ""
+msgstr "Tartozás ({0})"
 
 #. Option for the 'Adjustment Type' (Select) field in DocType 'Loan Balance
 #. Adjustment'
@@ -1717,7 +1717,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Disbursed"
-msgstr ""
+msgstr "folyósított"
 
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan'
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan
@@ -1932,7 +1932,7 @@ msgstr "E-mailek várakozási sorban"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Employee"
-msgstr ""
+msgstr "Alkalmazott"
 
 #. Label of the employee_loans (Check) field in DocType 'Loan Origination
 #. Settings'
@@ -1949,7 +1949,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Enable Auto Email"
-msgstr ""
+msgstr "Engedélyezze az automatikus e-mailt"
 
 #. Label of the enable_partner_accounting (Check) field in DocType 'Loan
 #. Partner'
@@ -2210,7 +2210,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
 msgid "In Process"
-msgstr ""
+msgstr "A feldolgozásban"
 
 #. Label of the in_process_limit (Currency) field in DocType 'Loan Restructure
 #. Limit Log'
@@ -2221,12 +2221,12 @@ msgstr ""
 #. Label of the income (Currency) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Income"
-msgstr ""
+msgstr "Bevétel"
 
 #. Label of the income_account (Link) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 msgid "Income Account"
-msgstr ""
+msgstr "Bevételi számla"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1021
 msgid "Incorrect repayment type, please write off the loan first"
@@ -2257,7 +2257,7 @@ msgstr ""
 #. Detail'
 #: lending/loan_management/doctype/loan_demand_offset_detail/loan_demand_offset_detail.json
 msgid "Interest"
-msgstr ""
+msgstr "Érdek"
 
 #. Label of the interest_accounts_section (Section Break) field in DocType
 #. 'Loan Product'
@@ -2416,7 +2416,7 @@ msgstr "Számla dátuma"
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Invoices"
-msgstr ""
+msgstr "számlák"
 
 #. Label of the is_backdated (Check) field in DocType 'Loan Repayment'
 #. Label of the is_backdated (Check) field in DocType 'Process Loan
@@ -2547,7 +2547,7 @@ msgstr ""
 #. Label of the lead_source (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
-msgstr ""
+msgstr "Érdeklődő forrása"
 
 #. Name of a Workspace
 #. Title of a Workspace Sidebar
@@ -4269,7 +4269,7 @@ msgstr ""
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "PDF Name"
-msgstr ""
+msgstr "PDF név"
 
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Partner'
@@ -4411,7 +4411,7 @@ msgstr ""
 #. Label of the payable_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Payable Account"
-msgstr ""
+msgstr "Szállítói kötelezettségek számlája"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2323
 msgid "Payable Account is mandatory"
@@ -4442,7 +4442,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
 msgid "Payment Account"
-msgstr ""
+msgstr "Fizetési számla"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2300
@@ -4478,7 +4478,7 @@ msgstr "Fizetés hivatkozásai"
 
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:34
 msgid "Payment Type"
-msgstr ""
+msgstr "Fizetési mód"
 
 #. Option for the 'Interest Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
@@ -4991,7 +4991,7 @@ msgstr "Nyomtatási beállítások"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:98
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:155
 msgid "Printed on {0}"
-msgstr ""
+msgstr "Nyomtatva ekkor: {0}"
 
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
@@ -5132,7 +5132,7 @@ msgstr ""
 #. Label of the rate_of_interest (Percent) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Rate of Interest (%) Yearly"
-msgstr ""
+msgstr "Rate of Interest (%) Yearly"
 
 #. Option for the 'Sharing Parameter' (Select) field in DocType 'Loan Partner
 #. Adhoc Charges Shared'
@@ -5157,7 +5157,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Receivable Account"
-msgstr ""
+msgstr "Vevőkövetelések számlája"
 
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
@@ -5188,7 +5188,7 @@ msgstr "Hivatkozási szám"
 #: lending/loan_management/doctype/loan_refund/loan_refund.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Reference Number"
-msgstr ""
+msgstr "Referencia szám"
 
 #. Option for the 'Accrual Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
@@ -5244,7 +5244,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Regular"
-msgstr ""
+msgstr "Szabályos"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5585,7 +5585,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Sanctioned"
-msgstr ""
+msgstr "Szankcionált"
 
 #. Label of the sanctioned_amount_limit (Currency) field in DocType 'Sanctioned
 #. Loan Amount'
@@ -5695,7 +5695,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:7
 msgid "Send Emails"
-msgstr ""
+msgstr "E-mailek küldése"
 
 #. Label of the servicer_fee (Check) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -5705,7 +5705,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Settled"
-msgstr ""
+msgstr "telepedett"
 
 #. Label of the settlement_date (Date) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -5821,13 +5821,13 @@ msgstr ""
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Term Details"
-msgstr ""
+msgstr "ÁSZF részletek"
 
 #. Label of the terms_and_conditions (Link) field in DocType 'Process Loan
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "Általános Szerződési Feltételek"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1057
 msgid "The Loan Disbursement {0} has been closed."
@@ -5904,12 +5904,12 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:83
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:138
 msgid "Total Credit"
-msgstr ""
+msgstr "Követelés összesen"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:79
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
-msgstr ""
+msgstr "Tartozás összesen"
 
 #. Label of the total_emi_charges (Currency) field in DocType 'Loan
 #. Disbursement'
@@ -6009,7 +6009,7 @@ msgstr ""
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:62
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:52
 msgid "Total Qty"
-msgstr ""
+msgstr "Összesen Mennyiség"
 
 #. Label of the total_security_value (Currency) field in DocType 'Loan Security
 #. Assignment'
@@ -6040,7 +6040,7 @@ msgstr ""
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:75
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:28
 msgid "Transaction Type"
-msgstr ""
+msgstr "Tranzakció Típusa"
 
 #. Label of the transfer_date (Date) field in DocType 'Loan Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
@@ -6179,7 +6179,7 @@ msgstr ""
 #. Label of the valid_from (Datetime) field in DocType 'Loan Security Price'
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.json
 msgid "Valid From"
-msgstr ""
+msgstr "Től érvényes"
 
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.py:63
 msgid "Valid From Time must be lesser than Valid Upto Time."
@@ -6273,7 +6273,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_product/loan_product.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Account"
-msgstr ""
+msgstr "Leíró számla"
 
 #. Label of the write_off_accounts_section (Section Break) field in DocType
 #. 'Loan Product'
@@ -6284,7 +6284,7 @@ msgstr ""
 #. Label of the write_off_amount (Currency) field in DocType 'Loan Write Off'
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Amount"
-msgstr ""
+msgstr "Írja le az összeget"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Loan Write
 #. Off'
