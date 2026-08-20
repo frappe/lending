@@ -852,6 +852,11 @@ class LoanRepayment(LoanController):
 			elif not self.repay_from_salary and self.payroll_payable_account:
 				self.repay_from_salary = 1
 
+			if self.repay_from_salary and self.is_new():
+				self.process_payroll_accounting_entry_based_on_employee = frappe.db.get_single_value(
+					"Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
+				)
+
 		if self.repayment_type in ("Full Settlement", "Write Off Settlement", "Charges Waiver"):
 			self.total_charges_payable = amounts.get("total_charges_payable")
 
