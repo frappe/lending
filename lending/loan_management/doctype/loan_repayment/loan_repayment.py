@@ -2089,7 +2089,13 @@ class LoanRepayment(LoanController):
 			merge_entries = False
 
 		if gle_map:
+			previous_flag = frappe.flags.party_not_required
+			if self.get("repay_from_salary") and not self.get("process_payroll_accounting_entry_based_on_employee"):
+				frappe.flags.party_not_required = True
+
 			super().make_gl_entries(gle_map, merge_entries=merge_entries, cancel=cancel, adv_adj=adv_adj)
+
+			frappe.flags.party_not_required = previous_flag
 
 	def get_gl_map(self):
 		if not loan_accounting_enabled(self.company):
