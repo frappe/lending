@@ -852,6 +852,11 @@ class LoanRepayment(LoanController):
 			elif not self.repay_from_salary and self.payroll_payable_account:
 				self.repay_from_salary = 1
 
+			if self.repay_from_salary and self.is_new():
+				self.process_payroll_accounting_entry_based_on_employee = frappe.db.get_single_value(
+					"Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
+				)
+
 		if self.repayment_type in ("Full Settlement", "Write Off Settlement", "Charges Waiver"):
 			self.total_charges_payable = amounts.get("total_charges_payable")
 
@@ -2089,7 +2094,13 @@ class LoanRepayment(LoanController):
 			merge_entries = False
 
 		if gle_map:
+			previous_flag = frappe.flags.party_not_required
+			if self.get("repay_from_salary") and not self.get("process_payroll_accounting_entry_based_on_employee"):
+				frappe.flags.party_not_required = True
+
 			super().make_gl_entries(gle_map, merge_entries=merge_entries, cancel=cancel, adv_adj=adv_adj)
+
+			frappe.flags.party_not_required = previous_flag
 
 	def get_gl_map(self):
 		if not loan_accounting_enabled(self.company):
