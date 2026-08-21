@@ -3422,3 +3422,297 @@ class TestLoan(FrappeTestCase):
 			flt(repayment.excess_amount, 2),
 			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
 		)
+<<<<<<< HEAD
+=======
+
+	def test_loan_accounting_disabled(self):
+		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2024-07-15",
+			"2024-06-25",
+			10,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-06-25", repayment_start_date="2024-07-15"
+		)
+		process_daily_loan_demands(posting_date="2025-01-05", loan=loan.name)
+
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2025-01-16")
+		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, get_datetime("2025-01-16 00:03:10"), payable_amount
+		)
+		repayment_entry.submit()
+
+		gl_entries = frappe.db.get_all(
+			"GL Entry",
+			filters={"against_voucher_type": "Loan", "against_voucher": loan.name},
+		)
+
+		self.assertEqual(len(gl_entries), 0)
+
+	def test_flat_rate_interest_method(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Flat Interest Rate Loan",
+			12000,
+			"Repay Over Number of Periods",
+			4,
+			"Customer",
+			repayment_start_date="2024-11-01",
+			posting_date="2024-10-01",
+			rate_of_interest=10,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-10-01", repayment_start_date="2024-11-01"
+		)
+
+		expected_repayment_schedule = [
+			["2024-11-01", 3000, 100, 3100],
+			["2024-12-01", 3000, 100, 3100],
+			["2025-01-01", 3000, 100, 3100],
+			["2025-02-01", 3000, 100, 3100],
+		]
+
+		repayment_schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+
+		for idx, schedule in enumerate(repayment_schedule.repayment_schedule):
+			(
+				expected_date,
+				expected_principal,
+				expected_interest,
+				expected_total,
+			) = expected_repayment_schedule[idx]
+			self.assertEqual(
+				getdate(schedule.payment_date), getdate(expected_date), f"Due date mismatch at index {idx}"
+			)
+			self.assertEqual(
+				flt(schedule.principal_amount, 2),
+				flt(expected_principal, 2),
+				msg=f"Principal amount mismatch at index {idx}",
+			)
+			self.assertEqual(
+				flt(schedule.interest_amount, 2),
+				flt(expected_interest),
+				msg=f"Interest amount mismatch at index {idx}",
+			)
+			self.assertEqual(
+				flt(schedule.total_payment, 2),
+				flt(expected_total, 2),
+				msg=f"Total amount mismatch at index {idx}",
+			)
+
+	def test_mid_tenure_migrated_loan_import(self):
+		disb_id = f"DISB-MID-{random_string(5).upper()}"
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-02-15",
+			posting_date="2024-01-15",
+			rate_of_interest=12.5,
+			penalty_charges_rate=2,
+			repayment_frequency="Monthly",
+			migration_date="2024-06-15",
+			is_imported=1,
+			loan_import_details=[{
+				"disbursed_amount": 500000,
+				"disbursement_date": "2024-01-15",
+				"loan_disbursement_id": disb_id,
+				"opening_additional_outstanding": 1500,
+				"opening_charge_outstanding": 800,
+				"opening_interest_outstanding": 28500,
+				"opening_principal_outstanding": 375000,
+				"opening_penalty_outstanding": 3200,
+			}],
+		)
+
+		loan.submit()
+
+		loan.load_from_db()
+
+		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
+		self.assertTrue(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
+		self.assertTrue(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
+		self.assertTrue(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
+
+	def test_closed_migrated_loan_import(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-02-15",
+			posting_date="2024-01-15",
+			rate_of_interest=10,
+			penalty_charges_rate=2,
+			repayment_frequency="Monthly",
+			migration_date="2025-10-31",
+			is_imported=1,
+			status="Closed",
+		)
+
+		loan.submit()
+
+		loan.load_from_db()
+
+		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
+		self.assertFalse(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
+		self.assertFalse(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
+		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
+
+	def test_cancel_loan_cancels_process_loan_documents(self):
+		posting_date = "2025-01-30"
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 1",
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date=posting_date,
+			posting_date=add_months(posting_date, -1),
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=add_months(posting_date, -1),
+			repayment_start_date=posting_date,
+		)
+		process_loan_interest_accrual_for_loans(
+			posting_date=posting_date, loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=posting_date, loan=loan.name)
+
+		process_doctypes = ["Process Loan Demand", "Process Loan Interest Accrual"]
+
+		for doctype in process_doctypes:
+			self.assertTrue(
+				frappe.db.exists(doctype, {"loan": loan.name, "docstatus": 1}),
+				msg=f"Expected a submitted {doctype} for the loan",
+			)
+
+		for demand in frappe.get_all("Loan Demand", filters={"loan": loan.name, "docstatus": 1}, pluck="name"):
+			frappe.get_doc("Loan Demand", demand).cancel()
+		for accrual in frappe.get_all(
+			"Loan Interest Accrual", filters={"loan": loan.name, "docstatus": 1}, pluck="name"
+		):
+			frappe.get_doc("Loan Interest Accrual", accrual).cancel()
+		for disbursement in frappe.get_all(
+			"Loan Disbursement", filters={"against_loan": loan.name, "docstatus": 1}, pluck="name"
+		):
+			frappe.get_doc("Loan Disbursement", disbursement).cancel()
+
+		loan.load_from_db()
+		loan.cancel()
+
+		for doctype in process_doctypes:
+			self.assertFalse(
+				frappe.db.exists(doctype, {"loan": loan.name, "docstatus": 1}),
+				msg=f"{doctype} left in Submitted state after loan cancellation",
+			)
+
+		for doctype, fieldname in (
+			("Loan Demand", "loan"),
+			("Loan Interest Accrual", "loan"),
+			("Loan Disbursement", "against_loan"),
+			("Loan Repayment Schedule", "loan"),
+		):
+			for name in frappe.get_all(doctype, filters={fieldname: loan.name}, pluck="name"):
+				frappe.delete_doc(doctype, name, force=True)
+
+		frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 1)
+		try:
+			frappe.delete_doc("Loan", loan.name)
+		finally:
+			frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 0)
+		self.assertFalse(frappe.db.exists("Loan", loan.name))
+
+	def test_partial_settlement_overshoot_creates_orphan_principal_demand(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			posting_date="2024-07-05",
+			repayment_start_date="2024-08-05",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+		process_daily_loan_demands(posting_date="2025-10-05", loan=loan.name)
+
+		overshoot = 2000
+		reps = []
+		for value_date in ("2024-08-05", "2024-09-05", "2024-10-05"):
+			amounts = calculate_amounts(against_loan=loan.name, posting_date=value_date)
+			pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
+			rep = create_repayment_entry(loan.name, value_date, pay_amount, repayment_type="Partial Settlement")
+			rep.submit()
+			reps.append(rep)
+
+		last_rep = reps[-1]
+
+		# The overshoot must be paid as interest, not silently folded into
+		# principal_amount_paid.
+		self.assertEqual(last_rep.total_interest_paid, overshoot)
+
+		# The last repayment's principal_amount_paid must be fully backed by its
+		# own repayment_details allocation rows - no leftover should have been
+		# booked as a new, separately-created Principal demand.
+		allocated_principal = sum(
+			d.paid_amount
+			for d in frappe.db.get_all(
+				"Loan Repayment Detail",
+				{"parent": last_rep.name, "demand_subtype": "Principal"},
+				["paid_amount"],
+			)
+		)
+		self.assertEqual(flt(last_rep.principal_amount_paid), flt(allocated_principal))
+
+		new_principal_demands_by_this_repayment = frappe.db.get_all(
+			"Loan Demand",
+			{
+				"loan": loan.name,
+				"loan_repayment": last_rep.name,
+				"demand_type": "EMI",
+				"demand_subtype": "Principal",
+				"docstatus": 1,
+			},
+		)
+		self.assertEqual(
+			new_principal_demands_by_this_repayment,
+			[],
+			"Partial Settlement should not create a new Principal demand for its overshoot",
+		)
+
+		final_amounts = calculate_amounts(against_loan=loan.name, posting_date=get_datetime())
+		principal_not_due = flt(final_amounts["pending_principal_amount"]) - flt(final_amounts["payable_principal_amount"])
+		self.assertEqual(principal_not_due, 0)
+>>>>>>> 1b56d2be (fix: Partial Settlement overshoot no longer creates orphan principal demand)
