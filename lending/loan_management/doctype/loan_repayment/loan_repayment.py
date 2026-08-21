@@ -543,6 +543,13 @@ class LoanRepayment(LoanController):
 		if (
 			self.principal_amount_paid - overdue_principal_paid > 0
 			and overdue_principal_paid >= self.payable_principal_amount
+			# Partial Settlement doesn't auto-waive leftover interest/penalty like
+			# Full Settlement/Write Off flows do, so only book ahead-of-schedule
+			# principal once the full payable amount is actually covered.
+			and not (
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
+			)
 		):
 			amount = self.principal_amount_paid - overdue_principal_paid
 			create_loan_demand(
@@ -1949,6 +1956,8 @@ class LoanRepayment(LoanController):
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands, status=None):
 		"""Allocate amount based on allocation order"""
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		allocation_order_doc = frappe.get_doc("Loan Demand Offset Order", allocation_order)
 		for d in allocation_order_doc.get("components"):
 			if d.demand_type == "EMI (Principal + Interest)" and pending_amount > 0:
@@ -1972,6 +1981,12 @@ class LoanRepayment(LoanController):
 					)
 					or status == "Settled"
 					and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
+					# Partial Settlement doesn't auto-waive leftover interest/penalty like
+					# Full Settlement/Write Off flows do, so only pay principal ahead of
+					# schedule once the full payable amount is actually covered.
+				) and not (
+					self.repayment_type == "Partial Settlement"
+					and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 				):
 					principal_amount_paid = sum(
 						d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
@@ -1984,7 +1999,7 @@ class LoanRepayment(LoanController):
 						self.principal_amount_paid += pending_amount
 						pending_amount = 0
 
-			if d.demand_type == "Normal" and pending_amount > 0:
+			if (d.demand_type == "Normal" and pending_amount > 0) or (d.demand_type == "Interest" and pending_amount > 0):
 				pending_amount = self.adjust_component(
 					pending_amount, "Normal", demands, demand_subtype="Interest"
 				)
