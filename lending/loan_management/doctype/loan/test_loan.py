@@ -3712,7 +3712,7 @@ class TestLoan(FrappeTestCase):
 			"Partial Settlement should not create a new Principal demand for its overshoot",
 		)
 
-		final_amounts = calculate_amounts(against_loan=loan.name, posting_date=get_datetime())
+		final_amounts = calculate_amounts(against_loan=loan.name, posting_date="2025-10-05")
 		principal_not_due = flt(final_amounts["pending_principal_amount"]) - flt(final_amounts["payable_principal_amount"])
 		self.assertEqual(principal_not_due, 0)
 >>>>>>> 1b56d2be (fix: Partial Settlement overshoot no longer creates orphan principal demand)
