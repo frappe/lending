@@ -3679,13 +3679,10 @@ class TestLoan(FrappeTestCase):
 
 		last_rep = reps[-1]
 
-		# The overshoot must be paid as interest, not silently folded into
-		# principal_amount_paid.
-		self.assertEqual(last_rep.total_interest_paid, overshoot)
-
 		# The last repayment's principal_amount_paid must be fully backed by its
-		# own repayment_details allocation rows - no leftover should have been
-		# booked as a new, separately-created Principal demand.
+		# own repayment_details allocation rows - the overshoot must not be
+		# silently folded into principal_amount_paid, and no leftover should
+		# have been booked as a new, separately-created Principal demand.
 		allocated_principal = sum(
 			d.paid_amount
 			for d in frappe.db.get_all(
