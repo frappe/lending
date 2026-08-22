@@ -3649,7 +3649,7 @@ class TestLoan(FrappeTestCase):
 			frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 0)
 		self.assertFalse(frappe.db.exists("Loan", loan.name))
 
-	def test_partial_settlement_overshoot_creates_orphan_principal_demand(self):
+	def test_partial_settlement_extra_amount_not_added_to_principal(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
