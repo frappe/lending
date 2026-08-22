@@ -1666,6 +1666,13 @@ class LoanRepayment(LoanController):
 			if self.repayment_type not in (
 				"Interest Waiver", "Penalty Waiver", "Charges Waiver",
 				"Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"
+			) and not (
+				# Partial Settlement doesn't auto-waive leftover interest/penalty like
+				# Full Settlement/Write Off flows do, so any amount that couldn't be
+				# matched to a real demand shouldn't be booked as principal paid
+				# unless the full payable amount was actually covered.
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
@@ -1999,7 +2006,7 @@ class LoanRepayment(LoanController):
 						self.principal_amount_paid += pending_amount
 						pending_amount = 0
 
-			if (d.demand_type == "Normal" and pending_amount > 0) or (d.demand_type == "Interest" and pending_amount > 0):
+			if d.demand_type == "Normal" and pending_amount > 0:
 				pending_amount = self.adjust_component(
 					pending_amount, "Normal", demands, demand_subtype="Interest"
 				)
