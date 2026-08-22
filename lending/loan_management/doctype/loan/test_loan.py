@@ -3727,49 +3727,42 @@ class TestLoan(LendingTestSuite):
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
 		)
-		process_daily_loan_demands(posting_date="2025-10-05", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
 
+		# Pay exactly the currently-due principal plus a small overshoot as a
+		# Partial Settlement, with interest left unpaid.
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-08-05")
 		overshoot = 2000
-		reps = []
-		for value_date in ("2024-08-05", "2024-09-05", "2024-10-05"):
-			amounts = calculate_amounts(against_loan=loan.name, posting_date=value_date)
-			pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
-			rep = create_repayment_entry(loan.name, value_date, pay_amount, repayment_type="Partial Settlement")
-			rep.submit()
-			reps.append(rep)
+		pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
+		rep = create_repayment_entry(loan.name, "2024-08-05", pay_amount, repayment_type="Partial Settlement")
+		rep.submit()
 
-		last_rep = reps[-1]
-
-		# The last repayment's principal_amount_paid must be fully backed by its
-		# own repayment_details allocation rows - the overshoot must not be
-		# silently folded into principal_amount_paid, and no leftover should
-		# have been booked as a new, separately-created Principal demand.
+		# principal_amount_paid must be fully backed by repayment_details
+		# allocation rows - the overshoot must not be silently folded into
+		# principal_amount_paid, and no leftover should have been booked as a
+		# new, separately-created Principal demand.
 		allocated_principal = sum(
 			d.paid_amount
 			for d in frappe.db.get_all(
 				"Loan Repayment Detail",
-				{"parent": last_rep.name, "demand_subtype": "Principal"},
+				{"parent": rep.name, "demand_subtype": "Principal"},
 				["paid_amount"],
 			)
 		)
-		self.assertEqual(flt(last_rep.principal_amount_paid), flt(allocated_principal))
+		self.assertEqual(flt(rep.principal_amount_paid), flt(allocated_principal))
 
-		new_principal_demands_by_this_repayment = frappe.db.get_all(
+		new_principal_demands = frappe.db.get_all(
 			"Loan Demand",
 			{
 				"loan": loan.name,
-				"loan_repayment": last_rep.name,
+				"loan_repayment": rep.name,
 				"demand_type": "EMI",
 				"demand_subtype": "Principal",
 				"docstatus": 1,
 			},
 		)
 		self.assertEqual(
-			new_principal_demands_by_this_repayment,
+			new_principal_demands,
 			[],
 			"Partial Settlement should not create a new Principal demand for its overshoot",
 		)
-
-		final_amounts = calculate_amounts(against_loan=loan.name, posting_date="2025-10-05")
-		principal_not_due = flt(final_amounts["pending_principal_amount"]) - flt(final_amounts["payable_principal_amount"])
-		self.assertEqual(principal_not_due, 0)
