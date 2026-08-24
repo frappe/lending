@@ -40,6 +40,8 @@
   "column_break_wwhp",
   "write_off_amount",
   "grace_period_in_days",
+  "cooling_period_days",
+  "maximum_live_loans",
   "section_break_ia6s",
   "loan_charges",
   "amended_from",
@@ -160,6 +162,20 @@
    "fieldname": "grace_period_in_days",
    "fieldtype": "Int",
    "label": "Grace Period in Days",
+   "non_negative": 1
+  },
+  {
+   "description": "No. of days a rejected applicant has to wait before a lead for this product can be taken forward. Overrides the workflow task's value; 0 falls back to it.",
+   "fieldname": "cooling_period_days",
+   "fieldtype": "Int",
+   "label": "Cooling Period in Days",
+   "non_negative": 1
+  },
+  {
+   "description": "Most live loans an applicant may already hold for a lead for this product to be taken forward. Overrides the workflow task's value; 0 falls back to it.",
+   "fieldname": "maximum_live_loans",
+   "fieldtype": "Int",
+   "label": "Maximum Live Loans",
    "non_negative": 1
   },
   {
@@ -553,7 +569,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-10 10:00:00.000000",
+ "modified": "2026-08-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

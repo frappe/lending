@@ -50,3 +50,7 @@ lending.patches.v16_0.add_enable_loan_accounting_field
 lending.patches.v16_0.update_is_invoice_generated_field
 lending.patches.v16_0.add_cancel_gl_queue_settings_in_company
 lending.patches.v16_0.update_status_in_loan_repayment_repost
+lending.patches.v16_0.remove_loan_lead_otp_fields
+lending.patches.v16_0.set_rejected_on_for_rejected_loan_leads
+lending.patches.v16_0.remove_cooling_period_setting
+lending.patches.v16_0.move_loan_lead_rules_to_workflow_methods

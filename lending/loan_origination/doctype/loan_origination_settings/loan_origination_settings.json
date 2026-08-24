@@ -6,7 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "unique_customer",
-  "employee_loans"
+  "employee_loans",
+  "otp_settings_section",
+  "otp_for_email",
+  "column_break_otp_settings",
+  "otp_for_sms",
+  "otp_policy_section",
+  "otp_verification_mandatory"
  ],
  "fields": [
   {
@@ -22,13 +28,50 @@
    "fieldname": "employee_loans",
    "fieldtype": "Check",
    "label": "Employee Loans"
+  },
+  {
+   "description": "Code length, validity and attempt limits are set in TP OTP Settings.",
+   "fieldname": "otp_settings_section",
+   "fieldtype": "Section Break",
+   "label": "OTP Settings"
+  },
+  {
+   "default": "0",
+   "description": "Verify a lead's email address. Requires Email OTP in TP OTP Settings.",
+   "fieldname": "otp_for_email",
+   "fieldtype": "Check",
+   "label": "OTP for Email"
+  },
+  {
+   "fieldname": "column_break_otp_settings",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Verify a lead's mobile number. Requires SMS in TP OTP Settings.",
+   "fieldname": "otp_for_sms",
+   "fieldtype": "Check",
+   "label": "OTP for SMS"
+  },
+  {
+   "depends_on": "eval:doc.otp_for_email || doc.otp_for_sms",
+   "fieldname": "otp_policy_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.otp_for_email || doc.otp_for_sms",
+   "description": "A lead cannot be converted to a Loan Application until every enabled medium is verified.",
+   "fieldname": "otp_verification_mandatory",
+   "fieldtype": "Check",
+   "label": "OTP Verification Mandatory"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-21 17:35:48.628799",
+ "modified": "2026-08-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Origination Settings",

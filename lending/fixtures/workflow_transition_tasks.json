@@ -1,0 +1,28 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Transition Tasks",
+  "modified": "2026-08-23 12:00:00.000000",
+  "name": "Loan Lead Basic Rules",
+  "tasks": [
+   {
+    "asynchronous": 0,
+    "enabled": 1,
+    "link": "Age validation for Loan Lead",
+    "task": "Server Script"
+   },
+   {
+    "asynchronous": 0,
+    "enabled": 1,
+    "link": null,
+    "task": "Validate Cooling Period"
+   },
+   {
+    "asynchronous": 0,
+    "enabled": 1,
+    "link": null,
+    "task": "Validate Live Loan Limit"
+   }
+  ]
+ }
+]

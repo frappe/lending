@@ -315,7 +315,7 @@ def add_server_scripts():
 		age_check_script.name = "Age validation for Loan Lead"
 		age_check_script.script_type = "Workflow Task"
 		age_check_script.script = """
-if doc.age < 18:
+if doc.applicant_type == "Individual" and (doc.age or 0) < 18:
 	frappe.throw("Applicant should be at least 18 years old.")
 	"""
 		age_check_script.save(ignore_permissions=True)

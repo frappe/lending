@@ -3,9 +3,18 @@
 
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 fields_that_can_have_unique_constraints = ["mobile_no", "email_id"]
+
+TELEPHONY_APP = "telephony"
+
+# Maps each medium to the TP OTP Settings switch it is delivered through.
+OTP_MEDIUM_TELEPHONY_SETTING = {
+	"otp_for_email": ("enable_email_otp", "Email OTP"),
+	"otp_for_sms": ("enabled", "SMS"),
+}
 
 
 class LoanOriginationSettings(Document):
@@ -18,10 +27,39 @@ class LoanOriginationSettings(Document):
 		from frappe.types import DF
 
 		employee_loans: DF.Check
+		otp_for_email: DF.Check
+		otp_for_sms: DF.Check
+		otp_verification_mandatory: DF.Check
 		unique_customer: DF.Check
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_otp_mediums()
+
+	def validate_otp_mediums(self):
+		# Only mediums switched on by this save, so the document stays saveable later.
+		enabled_mediums = [
+			fieldname
+			for fieldname in OTP_MEDIUM_TELEPHONY_SETTING
+			if self.get(fieldname) and self.has_value_changed(fieldname)
+		]
+		if not enabled_mediums:
+			return
+
+		if TELEPHONY_APP not in frappe.get_installed_apps():
+			frappe.throw(
+				_("Please install the Telephony app to send OTPs, or turn OTP for Email and SMS off.")
+			)
+
+		otp_settings = frappe.get_cached_doc("TP OTP Settings")
+		for fieldname in enabled_mediums:
+			telephony_field, label = OTP_MEDIUM_TELEPHONY_SETTING[fieldname]
+			if not otp_settings.get(telephony_field):
+				frappe.throw(
+					_("Please enable {0} in TP OTP Settings to use {1}.").format(
+						_(label), _(self.meta.get_label(fieldname))
+					)
+				)
 
 	def before_save(self):
 		if self.unique_customer:

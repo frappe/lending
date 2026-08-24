@@ -38,6 +38,7 @@ class LoanProduct(Document):
 		collection_offset_sequence_for_sub_standard_asset: DF.Link | None
 		collection_offset_sequence_for_written_off_asset: DF.Link | None
 		company: DF.Link
+		cooling_period_days: DF.Int
 		customer_refund_account: DF.Link | None
 		cyclic_day_of_the_month: DF.Int
 		days_past_due_threshold_for_npa: DF.Int
@@ -54,6 +55,7 @@ class LoanProduct(Document):
 		loan_category: DF.Link | None
 		loan_charges: DF.Table[LoanCharges]
 		loan_partners: DF.TableMultiSelect[LoanProductLoanPartner]
+		maximum_live_loans: DF.Int
 		maximum_loan_amount: DF.Currency
 		min_days_bw_disbursement_first_repayment: DF.Int
 		payment_account: DF.Link | None
