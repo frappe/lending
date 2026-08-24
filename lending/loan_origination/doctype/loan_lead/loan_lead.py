@@ -138,11 +138,11 @@ def verify_otp(loan_lead: str, medium: str, otp: str):
 
 
 def mark_otp_status(doc: Document, fields: dict, recipient: str, status: str):
-	# The Telephony call can run long enough for the lead to be edited in the meantime.
-	# Filtering the update on the recipient as well as the name makes the check and the
-	# write one atomic UPDATE...WHERE, so a status earned by the recipient loaded before
-	# that call can never land on whatever the field holds once the call returns -- there
-	# is no separate read of the current recipient for a concurrent commit to slip past.
+	# The Telephony call can run long enough for the lead to be edited in the meantime, so
+	# the write is filtered on the recipient as well as the name. One atomic UPDATE...WHERE
+	# leaves no read of the current recipient for a concurrent commit to slip past, so a
+	# status earned by the recipient loaded before that call can never land on whatever the
+	# field holds once it returns.
 	frappe.db.set_value(
 		"Loan Lead",
 		{"name": doc.name, fields["recipient_field"]: recipient},
@@ -150,7 +150,21 @@ def mark_otp_status(doc: Document, fields: dict, recipient: str, status: str):
 		status,
 	)
 
-	if frappe.db.get_value("Loan Lead", doc.name, fields["status_field"]) != status:
+	# Whether that matched a row is read back on the same terms. Reading the status alone
+	# cannot tell our own write apart from one a concurrent request made for a replacement
+	# recipient, so a caller whose update matched nothing would still be told the recipient
+	# it loaded was marked.
+	marked = frappe.db.get_value(
+		"Loan Lead",
+		{
+			"name": doc.name,
+			fields["recipient_field"]: recipient,
+			fields["status_field"]: status,
+		},
+		"name",
+	)
+
+	if not marked:
 		frappe.throw(
 			_("{0} changed while the OTP was in flight. Please try again.").format(
 				_(doc.meta.get_label(fields["recipient_field"]))

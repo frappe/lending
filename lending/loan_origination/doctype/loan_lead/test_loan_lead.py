@@ -33,8 +33,10 @@ from lending.loan_origination.doctype.loan_lead.test_applicant_exposure import (
 from lending.tests.utils import LendingTestSuite
 
 TEST_EMAIL = "loan-lead-otp@example.com"
+SWAPPED_EMAIL = "swapped-otp@example.com"
 TEST_MOBILE = "+911234500011"
 TEST_OTP = "123456"
+IN_FLIGHT_ERROR = "changed while the OTP was in flight"
 
 COOLING_PERIOD_DAYS = 30
 SHORTER_COOLING_PERIOD_DAYS = 5
@@ -395,38 +397,6 @@ class TestLoanLeadOTP(LendingTestSuite):
 		self.assertEqual(lead.email_verification_status, "Pending")
 		self.assertEqual(lead.mobile_verification_status, "Verified")
 
-	def test_a_send_in_flight_when_the_recipient_changes_does_not_mark_the_new_one_initiated(
-		self,
-	):
-		lead = make_loan_lead()
-
-		def swap_recipient_then_send(*args, **kwargs):
-			frappe.db.set_value("Loan Lead", lead.name, "email", "swapped-otp@example.com")
-			return {"sent": True}
-
-		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
-			mock_get_otp.return_value.send_otp.side_effect = swap_recipient_then_send
-
-			with self.assertRaises(frappe.ValidationError):
-				send_otp(lead.name, "Email")
-
-		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
-
-	def test_a_verify_in_flight_when_the_recipient_changes_does_not_verify_the_new_one(self):
-		lead = make_loan_lead()
-
-		def swap_recipient_then_verify(*args, **kwargs):
-			frappe.db.set_value("Loan Lead", lead.name, "email", "swapped-otp@example.com")
-			return {"verified": True}
-
-		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
-			mock_get_otp.return_value.verify_otp.side_effect = swap_recipient_then_verify
-
-			with self.assertRaises(frappe.ValidationError):
-				verify_otp(lead.name, "Email", TEST_OTP)
-
-		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
-
 	@patch("telephony.email_otp.dispatch_email_otp")
 	@patch("telephony.email_otp.generate_otp_code", return_value=TEST_OTP)
 	def test_otp_endpoints_require_write_access_to_the_lead(self, mock_code, mock_dispatch):
@@ -577,6 +547,97 @@ class TestLoanLeadOTP(LendingTestSuite):
 
 		self.assertTrue(frappe.db.exists("TP OTP", {"recipient": "bulk-good@example.com"}))
 		self.assertEqual(get_status(good_lead, "email_verification_status"), "Initiated")
+
+
+class TestLoanLeadOTPRecipientRace(LendingTestSuite):
+	# Telephony is mocked out whole here, so unlike the rest of the OTP tests these run
+	# wherever lending does -- including CI, which installs no Telephony app. The in-flight
+	# rules are the part of the flow that needs no provider to exercise.
+	def setUp(self):
+		frappe.db.set_single_value(
+			"Loan Origination Settings", {"otp_for_email": 1, "otp_for_sms": 0}
+		)
+		frappe.clear_cache(doctype="Loan Origination Settings")
+
+		# Cached Singles would keep serving these to later tests in this process.
+		self.addCleanup(frappe.clear_cache, doctype="Loan Origination Settings")
+
+	def test_a_send_in_flight_when_the_recipient_changes_does_not_mark_the_new_one_initiated(
+		self,
+	):
+		lead = make_loan_lead()
+
+		def swap_recipient_then_send(*args, **kwargs):
+			frappe.db.set_value("Loan Lead", lead.name, "email", SWAPPED_EMAIL)
+			return {"sent": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.send_otp.side_effect = swap_recipient_then_send
+
+			with self.assertRaises(frappe.ValidationError):
+				send_otp(lead.name, "Email")
+
+		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
+
+	def test_a_verify_in_flight_when_the_recipient_changes_does_not_verify_the_new_one(self):
+		lead = make_loan_lead()
+
+		def swap_recipient_then_verify(*args, **kwargs):
+			frappe.db.set_value("Loan Lead", lead.name, "email", SWAPPED_EMAIL)
+			return {"verified": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.verify_otp.side_effect = swap_recipient_then_verify
+
+			with self.assertRaises(frappe.ValidationError):
+				verify_otp(lead.name, "Email", TEST_OTP)
+
+		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
+
+	def test_a_verify_in_flight_does_not_ride_on_a_status_the_new_recipient_earned(self):
+		lead = make_loan_lead()
+
+		# The replacement recipient is verified by another request while this one is in
+		# flight, so the status field on its own reads as this request's own success.
+		def swap_recipient_and_verify_it(*args, **kwargs):
+			frappe.db.set_value(
+				"Loan Lead",
+				lead.name,
+				{"email": SWAPPED_EMAIL, "email_verification_status": "Verified"},
+			)
+			return {"verified": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.verify_otp.side_effect = swap_recipient_and_verify_it
+
+			with self.assertRaisesRegex(frappe.ValidationError, IN_FLIGHT_ERROR):
+				verify_otp(lead.name, "Email", TEST_OTP)
+
+		# The status the other request earned stands, since it belongs to the recipient the
+		# lead now holds. Asserting the swap landed keeps the test from passing on a throw
+		# raised before the side effect ever ran.
+		self.assertEqual(frappe.db.get_value("Loan Lead", lead.name, "email"), SWAPPED_EMAIL)
+		self.assertEqual(get_status(lead, "email_verification_status"), "Verified")
+
+	def test_a_send_in_flight_does_not_ride_on_a_status_the_new_recipient_earned(self):
+		lead = make_loan_lead()
+
+		def swap_recipient_and_initiate_it(*args, **kwargs):
+			frappe.db.set_value(
+				"Loan Lead",
+				lead.name,
+				{"email": SWAPPED_EMAIL, "email_verification_status": "Initiated"},
+			)
+			return {"sent": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.send_otp.side_effect = swap_recipient_and_initiate_it
+
+			with self.assertRaisesRegex(frappe.ValidationError, IN_FLIGHT_ERROR):
+				send_otp(lead.name, "Email")
+
+		self.assertEqual(frappe.db.get_value("Loan Lead", lead.name, "email"), SWAPPED_EMAIL)
+		self.assertEqual(get_status(lead, "email_verification_status"), "Initiated")
 
 
 def enable_email_otp_in_telephony():
