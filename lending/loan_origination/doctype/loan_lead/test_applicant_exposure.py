@@ -11,6 +11,7 @@ from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_origination.doctype.loan_lead.applicant_exposure import (
 	ADVERSE_LOAN_STATUSES,
+	CUSTOMER_FIELD_BY_LEAD_FIELD,
 	DEFAULT_MAXIMUM_LIVE_LOANS,
 	LIVE_LOAN_STATUSES,
 	get_applicant_exposure,
@@ -32,6 +33,8 @@ OTHER_MOBILE = "+911234599002"
 PAN = "ABCDE1234F"
 OTHER_PAN = "ZYXWV9876E"
 
+CUSTOMER_PAN_FIELD = CUSTOMER_FIELD_BY_LEAD_FIELD["pan"]
+
 
 class TestApplicantExposureIdentity(LendingTestSuite):
 	def test_a_customer_is_matched_by_email(self):
@@ -47,6 +50,9 @@ class TestApplicantExposureIdentity(LendingTestSuite):
 		self.assertEqual(get_matching_customers(lead), [customer])
 
 	def test_an_indian_applicant_is_matched_by_pan_alone(self):
+		if not customer_carries_pan():
+			self.skipTest("requires PAN on Customer (India Compliance)")
+
 		customer = make_customer(
 			"_Test Exposure By PAN", email=OTHER_EMAIL, mobile=OTHER_MOBILE, pan=PAN
 		)
@@ -55,12 +61,18 @@ class TestApplicantExposureIdentity(LendingTestSuite):
 		self.assertEqual(get_matching_customers(lead), [customer])
 
 	def test_contact_details_are_not_consulted_once_a_pan_identifies_the_applicant(self):
+		if not customer_carries_pan():
+			self.skipTest("requires PAN on Customer (India Compliance)")
+
 		make_customer("_Test Exposure Shared Address", email=EMAIL, mobile=MOBILE)
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE, pan=PAN, applicant_country=PAN_COUNTRY)
 
 		self.assertEqual(get_matching_customers(lead), [])
 
 	def test_a_different_pan_is_a_different_applicant(self):
+		if not customer_carries_pan():
+			self.skipTest("requires PAN on Customer (India Compliance)")
+
 		make_customer("_Test Exposure Other PAN", email=OTHER_EMAIL, mobile=OTHER_MOBILE, pan=OTHER_PAN)
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE, pan=PAN, applicant_country=PAN_COUNTRY)
 
@@ -239,15 +251,27 @@ def make_lead(email, mobile_number, pan=None, applicant_country=None):
 	).insert()
 
 
+def customer_carries_pan() -> bool:
+	"""PAN on Customer is an India Compliance custom field, so it is not always there.
+
+	Without it the app identifies the applicant by contact details instead, which is a
+	different rule -- the tests that are about PAN skip rather than assert the fallback.
+	"""
+	return frappe.get_meta("Customer").has_field(CUSTOMER_PAN_FIELD)
+
+
 def make_customer(customer_name, email=None, mobile=None, pan=None):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
 
 	# email_id and mobile_no are fetched from the primary contact, so save() would blank them.
-	frappe.db.set_value(
-		"Customer", customer_name, {"email_id": email, "mobile_no": mobile, "pan": pan},
-		update_modified=False,
-	)
+	values = {"email_id": email, "mobile_no": mobile}
+
+	# Writing a column the site does not have would error, so pan only goes in where it exists.
+	if customer_carries_pan():
+		values[CUSTOMER_PAN_FIELD] = pan
+
+	frappe.db.set_value("Customer", customer_name, values, update_modified=False)
 
 	return customer_name
 

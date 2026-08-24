@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.permissions
+from frappe import _
 from frappe.model.workflow import apply_workflow
 from frappe.utils import add_days, cint, getdate, now_datetime
 from frappe.utils.safe_exec import is_safe_exec_enabled
@@ -546,7 +547,7 @@ class TestLoanLeadOTP(LendingTestSuite):
 		bad_lead = make_loan_lead(email="bulk-bad@example.com")
 
 		mock_dispatch.side_effect = lambda email, *args, **kwargs: (
-			frappe.throw("Delivery failed.") if email == "bulk-bad@example.com" else None
+			frappe.throw(_("Delivery failed.")) if email == "bulk-bad@example.com" else None
 		)
 
 		result = bulk_send_otp([good_lead.name, bad_lead.name], "Email")
