@@ -1670,16 +1670,12 @@ class LoanRepayment(AccountsController):
 					amount_paid -= self.total_charges_payable
 
 			if self.repayment_type not in (
-<<<<<<< HEAD
 				"Interest Waiver",
 				"Penalty Waiver",
 				"Charges Waiver",
 				"Penalty Capitalization",
 				"Interest Capitalization",
 				"Charges Capitalization",
-=======
-				"Interest Waiver", "Penalty Waiver", "Charges Waiver",
-				"Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"
 			) and not (
 				# Partial Settlement doesn't auto-waive leftover interest/penalty like
 				# Full Settlement/Write Off flows do, so any amount that couldn't be
@@ -1687,7 +1683,6 @@ class LoanRepayment(AccountsController):
 				# unless the full payable amount was actually covered.
 				self.repayment_type == "Partial Settlement"
 				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
->>>>>>> 2ae630ac (fix: stop unbacked Partial Settlement overshoot from inflating principal)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):

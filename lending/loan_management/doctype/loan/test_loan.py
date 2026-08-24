@@ -1300,7 +1300,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -1310,7 +1312,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -1331,7 +1335,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -3422,8 +3428,6 @@ class TestLoan(FrappeTestCase):
 			flt(repayment.excess_amount, 2),
 			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
 		)
-<<<<<<< HEAD
-=======
 
 	def test_loan_accounting_disabled(self):
 		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
@@ -3533,16 +3537,18 @@ class TestLoan(FrappeTestCase):
 			repayment_frequency="Monthly",
 			migration_date="2024-06-15",
 			is_imported=1,
-			loan_import_details=[{
-				"disbursed_amount": 500000,
-				"disbursement_date": "2024-01-15",
-				"loan_disbursement_id": disb_id,
-				"opening_additional_outstanding": 1500,
-				"opening_charge_outstanding": 800,
-				"opening_interest_outstanding": 28500,
-				"opening_principal_outstanding": 375000,
-				"opening_penalty_outstanding": 3200,
-			}],
+			loan_import_details=[
+				{
+					"disbursed_amount": 500000,
+					"disbursement_date": "2024-01-15",
+					"loan_disbursement_id": disb_id,
+					"opening_additional_outstanding": 1500,
+					"opening_charge_outstanding": 800,
+					"opening_interest_outstanding": 28500,
+					"opening_principal_outstanding": 375000,
+					"opening_penalty_outstanding": 3200,
+				}
+			],
 		)
 
 		loan.submit()
@@ -3550,7 +3556,9 @@ class TestLoan(FrappeTestCase):
 		loan.load_from_db()
 
 		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
-		self.assertTrue(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
+		self.assertTrue(
+			frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1})
+		)
 		self.assertTrue(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
 		self.assertTrue(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
 
@@ -3577,8 +3585,12 @@ class TestLoan(FrappeTestCase):
 		loan.load_from_db()
 
 		self.assertTrue(frappe.db.exists("Loan", {"name": loan.name}))
-		self.assertFalse(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
-		self.assertFalse(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
+		self.assertFalse(
+			frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1})
+		)
+		self.assertFalse(
+			frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1})
+		)
 		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
 
 	def test_cancel_loan_cancels_process_loan_documents(self):
@@ -3613,7 +3625,9 @@ class TestLoan(FrappeTestCase):
 				msg=f"Expected a submitted {doctype} for the loan",
 			)
 
-		for demand in frappe.get_all("Loan Demand", filters={"loan": loan.name, "docstatus": 1}, pluck="name"):
+		for demand in frappe.get_all(
+			"Loan Demand", filters={"loan": loan.name, "docstatus": 1}, pluck="name"
+		):
 			frappe.get_doc("Loan Demand", demand).cancel()
 		for accrual in frappe.get_all(
 			"Loan Interest Accrual", filters={"loan": loan.name, "docstatus": 1}, pluck="name"
@@ -3673,7 +3687,9 @@ class TestLoan(FrappeTestCase):
 		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-08-05")
 		overshoot = 2000
 		pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
-		rep = create_repayment_entry(loan.name, "2024-08-05", pay_amount, repayment_type="Partial Settlement")
+		rep = create_repayment_entry(
+			loan.name, "2024-08-05", pay_amount, repayment_type="Partial Settlement"
+		)
 		rep.submit()
 
 		# principal_amount_paid must be fully backed by repayment_details
@@ -3704,13 +3720,4 @@ class TestLoan(FrappeTestCase):
 			new_principal_demands,
 			[],
 			"Partial Settlement should not create a new Principal demand for its overshoot",
-<<<<<<< HEAD
 		)
-
-		final_amounts = calculate_amounts(against_loan=loan.name, posting_date="2025-10-05")
-		principal_not_due = flt(final_amounts["pending_principal_amount"]) - flt(final_amounts["payable_principal_amount"])
-		self.assertEqual(principal_not_due, 0)
->>>>>>> 1b56d2be (fix: Partial Settlement overshoot no longer creates orphan principal demand)
-=======
-		)
->>>>>>> 351cc91d (test: simplify regression test to a single Partial Settlement)
