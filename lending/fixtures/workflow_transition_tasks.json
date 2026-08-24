@@ -14,14 +14,14 @@
    {
     "asynchronous": 0,
     "enabled": 1,
-    "link": null,
-    "task": "Validate Cooling Period"
+    "link": "Cooling period validation for Loan Lead",
+    "task": "Server Script"
    },
    {
     "asynchronous": 0,
     "enabled": 1,
-    "link": null,
-    "task": "Validate Live Loan Limit"
+    "link": "Live loan limit validation for Loan Lead",
+    "task": "Server Script"
    }
   ]
  }

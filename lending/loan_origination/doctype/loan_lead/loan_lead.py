@@ -266,14 +266,19 @@ def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
 
-# Deliberately not whitelisted; reached through run_cooling_period_task.
+# Whitelisted so a site's own Server Script can run the rule with its own numbers;
+# run_cooling_period_task is the no-script path.
+@frappe.whitelist(methods=["POST"])
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
 ):
 	if isinstance(loan_lead, str):
 		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
 
-	loan_lead.check_permission("read")
+	# Write, not read: the rule gates taking the lead forward, and it answers a question
+	# about the applicant's other records. A caller who cannot act on the lead must not be
+	# able to use it as a lookup on any identity they name.
+	loan_lead.check_permission("write")
 
 	cooling_period_days = cint(get_product_cooling_period(loan_lead) or cooling_period_days)
 	if cooling_period_days <= 0:

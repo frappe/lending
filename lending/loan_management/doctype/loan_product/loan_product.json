@@ -41,7 +41,6 @@
   "write_off_amount",
   "grace_period_in_days",
   "cooling_period_days",
-  "maximum_live_loans",
   "section_break_ia6s",
   "loan_charges",
   "amended_from",
@@ -169,13 +168,6 @@
    "fieldname": "cooling_period_days",
    "fieldtype": "Int",
    "label": "Cooling Period in Days",
-   "non_negative": 1
-  },
-  {
-   "description": "Most live loans an applicant may already hold for a lead for this product to be taken forward. Overrides the workflow task's value; 0 falls back to it.",
-   "fieldname": "maximum_live_loans",
-   "fieldtype": "Int",
-   "label": "Maximum Live Loans",
    "non_negative": 1
   },
   {

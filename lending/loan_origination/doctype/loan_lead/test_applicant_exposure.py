@@ -1,7 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from contextlib import contextmanager
+from unittest.mock import patch
+
 import frappe
+import frappe.permissions
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -319,30 +323,7 @@ class TestApplicantExposureLiveLoanLimit(LendingTestSuite):
 
 		self.assertNotIn("4", str(raised.exception))
 
-	def test_the_products_limit_wins_over_the_fallback(self):
-		set_product_live_loan_limit(self, LOAN_PRODUCT, 2)
-		customer = make_customer("_Test Limit Product", email=EMAIL)
-		for _ in range(2):
-			make_live_loan(customer, "Disbursed")
-
-		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
-
-		with self.assertRaises(frappe.ValidationError):
-			validate_live_loan_limit(lead, 10)
-
-	def test_the_fallback_applies_where_the_product_asks_for_no_limit(self):
-		set_product_live_loan_limit(self, LOAN_PRODUCT, 0)
-		customer = make_customer("_Test Limit Fallback", email=EMAIL)
-		for _ in range(2):
-			make_live_loan(customer, "Disbursed")
-
-		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
-
-		with self.assertRaises(frappe.ValidationError):
-			validate_live_loan_limit(lead, 2)
-
 	def test_the_workflow_task_takes_its_limit_from_the_server_not_the_caller(self):
-		set_product_live_loan_limit(self, LOAN_PRODUCT, 0)
 		customer = make_customer("_Test Limit Task", email=EMAIL)
 		for _ in range(2):
 			make_live_loan(customer, "Disbursed")
@@ -354,20 +335,51 @@ class TestApplicantExposureLiveLoanLimit(LendingTestSuite):
 
 
 class TestApplicantExposureIsNotReachableOverHTTP(LendingTestSuite):
-	def test_nothing_that_reads_the_loan_book_is_whitelisted(self):
-		# Whitelisting these would put the loan book behind a lead the caller can create.
+	def test_nothing_that_returns_the_loan_book_is_whitelisted(self):
+		# These hand back figures. Whitelisting them would put the loan book behind a lead
+		# the caller can create; only the rule that throws is reachable, and it is gated.
 		for method in (
 			get_applicant_exposure,
 			get_live_loan_count,
-			validate_live_loan_limit,
 			run_live_loan_limit_task,
 		):
 			self.assertNotIn(method, frappe.whitelisted, f"{method.__name__} is whitelisted")
 
 
-def set_product_live_loan_limit(test, loan_product, maximum_live_loans):
-	previous = frappe.db.get_value("Loan Product", loan_product, "maximum_live_loans")
-	test.addCleanup(
-		frappe.db.set_value, "Loan Product", loan_product, "maximum_live_loans", previous
-	)
-	frappe.db.set_value("Loan Product", loan_product, "maximum_live_loans", maximum_live_loans)
+class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
+	def test_the_rule_is_callable_so_a_site_script_can_run_it(self):
+		self.assertIn(validate_live_loan_limit, frappe.whitelisted)
+
+	def test_only_post_reaches_it(self):
+		allowed = frappe.allowed_http_methods_for_whitelisted_func[validate_live_loan_limit]
+		self.assertEqual(tuple(allowed), ("POST",))
+
+	def test_a_guest_cannot_reach_it(self):
+		self.assertNotIn(validate_live_loan_limit, frappe.guest_methods)
+
+	def test_a_caller_who_cannot_write_the_lead_is_refused(self):
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertRaises(frappe.PermissionError, validate_live_loan_limit, lead.name, 1)
+
+	def test_write_on_the_lead_alone_does_not_open_the_loan_book(self):
+		# The leak the whitelist has to not reopen: a caller who can create a lead must
+		# not be able to name any identity and probe it for live loans.
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		with only_loan_reads_denied():
+			self.assertRaises(frappe.PermissionError, validate_live_loan_limit, lead, 1)
+
+
+@contextmanager
+def only_loan_reads_denied():
+	"""Deny read on Loan, leaving every other permission alone."""
+
+	def has_permission(doctype, ptype="read", *args, **kwargs):
+		return not (doctype == "Loan" and ptype == "read")
+
+	with patch.object(frappe.permissions, "has_permission", side_effect=has_permission):
+		yield

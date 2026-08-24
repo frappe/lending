@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+import frappe.permissions
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt
@@ -11,7 +12,8 @@ from lending.loan_origination.doctype.loan_lead.loan_lead import (
 	get_applicant_identity,
 )
 
-# Off as shipped; set Maximum Live Loans on the Loan Product, or raise this, to turn it on.
+# Off as shipped, and only reached by the no-script path: the Server Script that runs the
+# rule carries the limit a site actually sets.
 DEFAULT_MAXIMUM_LIVE_LOANS = 0
 
 # Committed, whether or not the money has gone out.
@@ -28,6 +30,8 @@ ADVERSE_LOAN_STATUSES = ("Written Off", "Settled")
 # Employee loans are left out: an Employee is not matched by the fields a Customer carries.
 LOAN_APPLICANT_TYPE = "Customer"
 
+LOAN_DOCTYPE = "Loan"
+
 CUSTOMER_FIELD_BY_LEAD_FIELD = {
 	"pan": "pan",
 	"email": "email_id",
@@ -41,13 +45,29 @@ def run_live_loan_limit_task(loan_lead: Document):
 
 # Throws rather than rejecting the lead: Rejected would stamp rejected_on and start a
 # cooling period over a rule the applicant did not fail.
+#
+# Whitelisted so a site's own Server Script can run the rule with its own limit;
+# run_live_loan_limit_task is the no-script path.
+@frappe.whitelist(methods=["POST"])
 def validate_live_loan_limit(
 	loan_lead: Document | str, maximum_live_loans: int | str | None = None
 ):
 	if isinstance(loan_lead, str):
 		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
 
-	maximum_live_loans = cint(get_product_live_loan_limit(loan_lead) or maximum_live_loans)
+	# Write, not read: the rule gates taking the lead forward, so a caller who cannot act
+	# on the lead has no business running it.
+	loan_lead.check_permission("write")
+
+	# And read on Loan on top of that. The count below comes out of the loan book without
+	# permissions, so write on a lead is not enough on its own: a caller who can create a
+	# lead could otherwise name any identity and probe whether it holds live loans. This
+	# check keeps the answer to callers who could have looked the loans up anyway.
+	check_loan_book_permission()
+
+	# The caller's number is the only one there is: the limit lives in the Server Script
+	# that runs this rule, so a site sets it in one place for every product.
+	maximum_live_loans = cint(maximum_live_loans)
 	if maximum_live_loans <= 0:
 		return
 
@@ -63,15 +83,9 @@ def validate_live_loan_limit(
 	)
 
 
-def get_product_live_loan_limit(loan_lead: Document) -> int:
-	if not loan_lead.get("loan_product"):
-		return 0
-
-	return cint(
-		frappe.get_value(
-			"Loan Product", loan_lead.loan_product, "maximum_live_loans", cache=True
-		)
-	)
+def check_loan_book_permission():
+	if not frappe.permissions.has_permission(LOAN_DOCTYPE, "read"):
+		frappe.throw(_("Not permitted to read {0}").format(_(LOAN_DOCTYPE)), frappe.PermissionError)
 
 
 def get_live_loan_count(loan_lead: Document | str) -> int:

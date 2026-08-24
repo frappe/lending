@@ -55,7 +55,6 @@ class LoanProduct(Document):
 		loan_category: DF.Link | None
 		loan_charges: DF.Table[LoanCharges]
 		loan_partners: DF.TableMultiSelect[LoanProductLoanPartner]
-		maximum_live_loans: DF.Int
 		maximum_loan_amount: DF.Currency
 		min_days_bw_disbursement_first_repayment: DF.Int
 		payment_account: DF.Link | None

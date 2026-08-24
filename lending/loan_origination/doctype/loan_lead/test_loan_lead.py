@@ -5,8 +5,9 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
+import frappe.permissions
 from frappe.model.workflow import apply_workflow
-from frappe.utils import add_days, getdate, now_datetime
+from frappe.utils import add_days, cint, getdate, now_datetime
 from frappe.utils.safe_exec import is_safe_exec_enabled
 
 from lending.loan_origination.doctype.loan_lead.loan_lead import (
@@ -27,7 +28,6 @@ from lending.loan_origination.doctype.loan_lead.loan_lead import (
 from lending.loan_origination.doctype.loan_lead.test_applicant_exposure import (
 	make_customer,
 	make_live_loan,
-	set_product_live_loan_limit,
 )
 from lending.tests.utils import LendingTestSuite
 
@@ -46,6 +46,7 @@ WORKFLOW_STATE_FIELD = "workflow_state"
 
 LOAN_LEAD_WORKFLOW = "Loan Lead Workflow"
 BASIC_RULES_TASKS = "Loan Lead Basic Rules"
+LIVE_LOAN_LIMIT_SCRIPT = "Live loan limit validation for Loan Lead"
 BASIC_RULES_ACTION = "Run Basic Rules"
 REJECT_ACTION = "Reject"
 INCOMING_WORKFLOW_STATE = "Incoming"
@@ -582,9 +583,48 @@ def set_product_cooling_period(test, loan_product, cooling_period_days):
 	frappe.db.set_value("Loan Product", loan_product, "cooling_period_days", cooling_period_days)
 
 
+def set_script_live_loan_limit(test, maximum_live_loans):
+	"""Turn the live loan limit on the way a site does it: in the Server Script.
+
+	The shipped script passes 0, so the rule is off until someone edits that number.
+	There is nowhere else to set it -- Loan Product does not carry a limit.
+	"""
+	previous = frappe.db.get_value("Server Script", LIVE_LOAN_LIMIT_SCRIPT, "script")
+
+	test.addCleanup(frappe.clear_cache)
+	test.addCleanup(
+		frappe.db.set_value, "Server Script", LIVE_LOAN_LIMIT_SCRIPT, "script", previous
+	)
+
+	frappe.db.set_value(
+		"Server Script",
+		LIVE_LOAN_LIMIT_SCRIPT,
+		"script",
+		previous.replace(
+			"maximum_live_loans = 0", f"maximum_live_loans = {cint(maximum_live_loans)}"
+		),
+	)
+	frappe.clear_cache()
+
+
 def reject(lead, rejected_on=None):
 	frappe.db.set_value("Loan Lead", lead.name, "rejected_on", rejected_on or now_datetime())
 	return lead
+
+
+@contextmanager
+def no_write_permission_on(doctype):
+	"""Deny write on one doctype, leaving every other permission alone.
+
+	Document.check_permission reaches frappe.permissions.has_permission through the
+	module, so patching it there is what the real call actually goes through.
+	"""
+
+	def has_permission(dt, ptype="read", *args, **kwargs):
+		return not (dt == doctype and ptype == "write")
+
+	with patch.object(frappe.permissions, "has_permission", side_effect=has_permission):
+		yield
 
 
 @contextmanager
@@ -646,11 +686,31 @@ def get_status(lead, fieldname):
 	return frappe.db.get_value("Loan Lead", lead.name, fieldname)
 
 
-class TestLoanLeadCoolingPeriodIsNotReachableOverHTTP(LendingTestSuite):
-	def test_the_gate_is_not_whitelisted(self):
-		# Whitelisting these would hand a caller a lookup on any identity they name.
-		for method in (validate_cooling_period, run_cooling_period_task):
-			self.assertNotIn(method, frappe.whitelisted, f"{method.__name__} is whitelisted")
+class TestLoanLeadCoolingPeriodIsGatedOnWritePermission(LendingTestSuite):
+	def test_the_rule_is_callable_so_a_site_script_can_run_it(self):
+		# The shipped Server Script calls this; un-whitelisting it would close the only
+		# place a site can change the rule without forking the app.
+		self.assertIn(validate_cooling_period, frappe.whitelisted)
+
+	def test_only_post_reaches_it(self):
+		allowed = frappe.allowed_http_methods_for_whitelisted_func[validate_cooling_period]
+		self.assertEqual(tuple(allowed), ("POST",))
+
+	def test_a_guest_cannot_reach_it(self):
+		self.assertNotIn(validate_cooling_period, frappe.guest_methods)
+
+	def test_the_task_wrapper_stays_unreachable_over_http(self):
+		# The wrapper hardcodes the server's window; exposing it buys nothing and the
+		# script path already covers the customisable case.
+		self.assertNotIn(run_cooling_period_task, frappe.whitelisted)
+
+	def test_a_caller_who_cannot_write_the_lead_is_refused(self):
+		# Otherwise the rule is a lookup on any identity the caller names.
+		reject(make_loan_lead(email="cooling-perm@example.com"))
+		lead = make_loan_lead(email="cooling-perm@example.com")
+
+		with no_write_permission_on("Loan Lead"), self.assertRaises(frappe.PermissionError):
+			validate_cooling_period(lead.name, COOLING_PERIOD_DAYS)
 
 	def test_the_workflow_task_takes_its_window_from_the_server_not_the_caller(self):
 		reject(make_loan_lead(email="cooling-task@example.com"))
@@ -728,7 +788,7 @@ class TestLoanLeadWorkflowTransition(LendingTestSuite):
 			"_Test Workflow Live Loan Applicant", email="workflow-live@example.com"
 		)
 		make_live_loan(customer, "Active")
-		set_product_live_loan_limit(self, TEST_LOAN_PRODUCT, 1)
+		set_script_live_loan_limit(self, 1)
 
 		lead = make_loan_lead(email="workflow-live@example.com")
 
