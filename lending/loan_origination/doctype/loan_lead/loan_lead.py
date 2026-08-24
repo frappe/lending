@@ -117,8 +117,7 @@ def send_otp_for_lead(loan_lead: str, medium: str):
 		frappe.throw(_("{0} is already verified for this lead.").format(medium))
 
 	result = get_telephony_otp().send_otp(recipient, medium, purpose=get_otp_purpose(loan_lead))
-	assert_recipient_unchanged(doc, fields, recipient)
-	doc.db_set(fields["status_field"], "Initiated")
+	mark_otp_status(doc, fields, recipient, "Initiated")
 
 	return result
 
@@ -133,18 +132,25 @@ def verify_otp(loan_lead: str, medium: str, otp: str):
 	)
 
 	if result.get("verified"):
-		assert_recipient_unchanged(doc, fields, recipient)
-		doc.db_set(fields["status_field"], "Verified")
+		mark_otp_status(doc, fields, recipient, "Verified")
 
 	return result
 
 
-def assert_recipient_unchanged(doc: Document, fields: dict, recipient: str):
-	# The Telephony call can run long enough for the lead to be edited in the meantime;
-	# a status written for the recipient loaded before that call must not land on
-	# whatever the field holds once the call returns.
-	current_recipient = frappe.db.get_value("Loan Lead", doc.name, fields["recipient_field"])
-	if current_recipient != recipient:
+def mark_otp_status(doc: Document, fields: dict, recipient: str, status: str):
+	# The Telephony call can run long enough for the lead to be edited in the meantime.
+	# Filtering the update on the recipient as well as the name makes the check and the
+	# write one atomic UPDATE...WHERE, so a status earned by the recipient loaded before
+	# that call can never land on whatever the field holds once the call returns -- there
+	# is no separate read of the current recipient for a concurrent commit to slip past.
+	frappe.db.set_value(
+		"Loan Lead",
+		{"name": doc.name, fields["recipient_field"]: recipient},
+		fields["status_field"],
+		status,
+	)
+
+	if frappe.db.get_value("Loan Lead", doc.name, fields["status_field"]) != status:
 		frappe.throw(
 			_("{0} changed while the OTP was in flight. Please try again.").format(
 				_(doc.meta.get_label(fields["recipient_field"]))
