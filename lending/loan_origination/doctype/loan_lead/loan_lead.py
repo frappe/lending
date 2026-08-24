@@ -117,6 +117,7 @@ def send_otp_for_lead(loan_lead: str, medium: str):
 		frappe.throw(_("{0} is already verified for this lead.").format(medium))
 
 	result = get_telephony_otp().send_otp(recipient, medium, purpose=get_otp_purpose(loan_lead))
+	assert_recipient_unchanged(doc, fields, recipient)
 	doc.db_set(fields["status_field"], "Initiated")
 
 	return result
@@ -132,9 +133,23 @@ def verify_otp(loan_lead: str, medium: str, otp: str):
 	)
 
 	if result.get("verified"):
+		assert_recipient_unchanged(doc, fields, recipient)
 		doc.db_set(fields["status_field"], "Verified")
 
 	return result
+
+
+def assert_recipient_unchanged(doc: Document, fields: dict, recipient: str):
+	# The Telephony call can run long enough for the lead to be edited in the meantime;
+	# a status written for the recipient loaded before that call must not land on
+	# whatever the field holds once the call returns.
+	current_recipient = frappe.db.get_value("Loan Lead", doc.name, fields["recipient_field"])
+	if current_recipient != recipient:
+		frappe.throw(
+			_("{0} changed while the OTP was in flight. Please try again.").format(
+				_(doc.meta.get_label(fields["recipient_field"]))
+			)
+		)
 
 
 @frappe.whitelist(methods=["POST"])

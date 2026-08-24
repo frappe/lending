@@ -394,6 +394,38 @@ class TestLoanLeadOTP(LendingTestSuite):
 		self.assertEqual(lead.email_verification_status, "Pending")
 		self.assertEqual(lead.mobile_verification_status, "Verified")
 
+	def test_a_send_in_flight_when_the_recipient_changes_does_not_mark_the_new_one_initiated(
+		self,
+	):
+		lead = make_loan_lead()
+
+		def swap_recipient_then_send(*args, **kwargs):
+			frappe.db.set_value("Loan Lead", lead.name, "email", "swapped-otp@example.com")
+			return {"sent": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.send_otp.side_effect = swap_recipient_then_send
+
+			with self.assertRaises(frappe.ValidationError):
+				send_otp(lead.name, "Email")
+
+		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
+
+	def test_a_verify_in_flight_when_the_recipient_changes_does_not_verify_the_new_one(self):
+		lead = make_loan_lead()
+
+		def swap_recipient_then_verify(*args, **kwargs):
+			frappe.db.set_value("Loan Lead", lead.name, "email", "swapped-otp@example.com")
+			return {"verified": True}
+
+		with patch(f"{LOAN_LEAD_MODULE}.get_telephony_otp") as mock_get_otp:
+			mock_get_otp.return_value.verify_otp.side_effect = swap_recipient_then_verify
+
+			with self.assertRaises(frappe.ValidationError):
+				verify_otp(lead.name, "Email", TEST_OTP)
+
+		self.assertEqual(get_status(lead, "email_verification_status"), "Pending")
+
 	@patch("telephony.email_otp.dispatch_email_otp")
 	@patch("telephony.email_otp.generate_otp_code", return_value=TEST_OTP)
 	def test_otp_endpoints_require_write_access_to_the_lead(self, mock_code, mock_dispatch):
