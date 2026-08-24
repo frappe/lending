@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:23\n"
+"POT-Creation-Date: 2026-08-16 09:51+0000\n"
+"PO-Revision-Date: 2026-08-17 11:09\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -200,7 +200,7 @@ msgstr "Dodaj u posljednju mjesečnu ratu"
 msgid "Add to first repayment"
 msgstr "Dodaj na prvu otplatu"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2156
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2182
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Dodatni račun oprosta kamata je obavezan"
 
@@ -237,7 +237,7 @@ msgstr "Dodatni iznos kamate"
 msgid "Additional Interest Income"
 msgstr "Dodatni prihod od kamata"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2172
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Dodatni račun za prihod od kamata je obavezan"
 
@@ -247,7 +247,7 @@ msgstr "Dodatni račun za prihod od kamata je obavezan"
 msgid "Additional Interest Receivable"
 msgstr "Dodatna potraživanja po osnovu kamate"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2192
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Račun potraživanja za dodatnu kamatu je obavezan"
 
@@ -269,7 +269,7 @@ msgstr "Unos Suspenzije Dodatne Kamate"
 msgid "Additional Interest Waiver"
 msgstr "Oprost dodatne kamate"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2201
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Račun oprosta dodatne kamate je obavezan"
 
@@ -363,7 +363,7 @@ msgstr "Podešavanje"
 msgid "Advance Payment"
 msgstr "Predujamska Plaćanja"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2237
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2263
 msgid "Against Account is mandatory"
 msgstr "Protiv račun je obavezan"
 
@@ -484,19 +484,19 @@ msgstr "Iznos ne može biti nula"
 msgid "Amount on which interest is calculated"
 msgstr "Iznos na koji se obračunava kamata"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:914
-msgid "Amount paid cannot be greater than available security deposit"
-msgstr "Uplaćeni iznos ne može biti veći od raspoloživog garantnog pologa"
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
+msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
+msgstr "Plaćeni iznos ({0}) ne može biti veći od raspoloživog sigurnosnog pologa ({1})"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:992
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1018
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Plaćeni iznos ne može biti veći od iznosa za plaćanje"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1033
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Iznos plaćanja ne može biti manji od iznosa koji se plaća za zatvaranje kredita"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:999
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1025
 msgid "Amount paid cannot be zero"
 msgstr "Plaćeni iznos ne može biti nula"
 
@@ -909,6 +909,12 @@ msgstr "Fakturira se Zasebno"
 msgid "Biweekly"
 msgstr "Dvosedmično"
 
+#. Label of the body (Text Editor) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Body"
+msgstr "Sadržaj"
+
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -1005,7 +1011,7 @@ msgstr "Nije moguće zatvoriti ovaj kredit dok se ne otplati u potpunosti"
 msgid "Cannot create loan until application is approved"
 msgstr "Nije moguće izraditi kredit dok se zahtjev ne odobri"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2527
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2553
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Nije moguće izvršiti avansna plaćanja ili preduplate tokom perioda moratorija. (Datum završetka moratorija: {}, Datum knjiženja: {})"
 
@@ -1441,7 +1447,7 @@ msgstr "Kredit ({0})"
 msgid "Credit Account"
 msgstr "Kreditni Račun"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2295
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2321
 msgid "Credit Account is mandatory"
 msgstr "Kreditni račun je obavezan"
 
@@ -1529,7 +1535,7 @@ msgstr "Klijent"
 msgid "Customer Refund Account"
 msgstr "Račun za povrat novca klijentu"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2194
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2220
 msgid "Customer Refund Account is mandatory"
 msgstr "Račun Povrata Novca klijentu je obavezan"
 
@@ -1721,7 +1727,7 @@ msgstr "Detaljno"
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Determines how an advance payment is handled while restructuring the loan schedule. \"Reduce Tenure\" keeps the EMI fixed and reduces the number of periods, while \"Reduce EMI\" keeps the number of periods fixed and reduces the EMI."
-msgstr ""
+msgstr "Određuje kako se avansna uplata obrađuje prilikom restrukturiranja kreditnog plana. \"Smanji Rok Otplate\" održava fiksnu Mjesečnu Ratu i smanjuje broj otpata, dok \"Smanji Mjesečnu Ratu\" održava fiksni broj otplata i smanjuje Mjesečnu Ratu."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -2144,7 +2150,7 @@ msgstr "Potpuno poravnanje"
 msgid "Full Settlement Job"
 msgstr "Posao Potpunog Poravnanja"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:952
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:978
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Potpuno poravnanje ne može biti retroaktivno. Datum {0} ne može biti raniji od datuma posljednje otplate {1} ({2})."
 
@@ -2202,7 +2208,7 @@ msgstr "Tekst Pomoći"
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "How to Handle Advance Payments"
-msgstr ""
+msgstr "Kako Postupati s Avansnim Plaćanjima"
 
 #. Description of the 'No Interest Accrual Till Month End' (Check) field in
 #. DocType 'Loan Product'
@@ -2237,7 +2243,7 @@ msgstr "Prihod"
 msgid "Income Account"
 msgstr "Račun Prihoda"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:995
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1021
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Pogrešan tip otplate, prvo otpiši kredit"
 
@@ -2327,7 +2333,7 @@ msgstr "Prenos kamate u naredni period"
 msgid "Interest Income Account"
 msgstr "Račun Prihoda Kamata"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2112
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2138
 msgid "Interest Income Account is mandatory"
 msgstr "Račun prihoda kamata je obavezan"
 
@@ -2356,7 +2362,7 @@ msgstr "Kamatna stopa (%)"
 msgid "Interest Receivable Account"
 msgstr "Račun potraživanja za kamatu"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2107
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
 msgid "Interest Receivable Account is mandatory"
 msgstr "Račun potraživanja kamata je obavezan"
 
@@ -2384,7 +2390,7 @@ msgstr "Oprost kamate"
 msgid "Interest Waiver Account"
 msgstr "Račun oprosta kamate"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2189
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
 msgid "Interest Waiver Account is mandatory"
 msgstr "Račun oprosta kamate je obavezan"
 
@@ -2398,8 +2404,8 @@ msgstr "Iznos oprosta kamate"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Iznos oprosta kamate ne može biti veći od dospjele kamate"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Kamata obračunata od {0} do {1} na kredit: {2}"
 
@@ -2710,9 +2716,9 @@ msgstr "Kreditni Račun"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Kreditni Račun i Račun Plaćanje ne mogu biti isti"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2103
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2161
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2129
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2159
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2187
 msgid "Loan Account is mandatory"
 msgstr "Kreditni račun je obavezan"
 
@@ -2722,11 +2728,11 @@ msgstr "Kreditni račun je obavezan"
 msgid "Loan Accounts"
 msgstr "Računi"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Učestalost obračuna kredita nije postavljena za {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Učestalost obračuna kredita nije postavljena u vrsti dokumenta poduzeća."
 
@@ -3441,7 +3447,7 @@ msgstr "Otplaća i Zatvaranje"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 msgid "Loan Reporter"
-msgstr ""
+msgstr "Kreditni Izvještač"
 
 #. Option for the 'Reference Document Type' (Select) field in DocType 'Loan
 #. Balance Adjustment'
@@ -3767,7 +3773,7 @@ msgstr "Kredit je Nenaplativ"
 msgid "Loan {0} closed"
 msgstr "Kredit {0} je zatvoren"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:976
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1002
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Kredit {0}: Ne može se knjižiti {1} nakon potpunog poravnanja. Nakon potpunog poravnanja mogu se knjižiti samo odricanje od kamate, kazne ili troškova."
 
@@ -3784,7 +3790,7 @@ msgstr "Krediti"
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
-msgstr "Krediti će biti označeni kao nenaplativ kada broj dana kašnjenja premaši ovaj prag"
+msgstr "Krediti će biti odabrani kao nenaplativ kada broj dana kašnjenja premaši ovaj prag"
 
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
@@ -3841,7 +3847,7 @@ msgstr "Maksimalni iznos"
 
 #: lending/loan_management/doctype/loan/loan.py:615
 msgid "Maximum Loan Amount is mandatory for secured Loans without a Loan Application"
-msgstr ""
+msgstr "Maksimalni iznos kredita je obavezan za osigurane kredite bez zahtjeva za kredit"
 
 #. Label of the maximum_loan_value (Currency) field in DocType 'Loan Security
 #. Assignment'
@@ -4346,7 +4352,7 @@ msgstr "Procenat naplate partnera"
 msgid "Partner Interest Share"
 msgstr "Udio partnera u interesu"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2299
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2325
 msgid "Partner Interest Share is mandatory"
 msgstr "Udio partnera u kamati je obavezan"
 
@@ -4422,7 +4428,7 @@ msgstr "Izveštaj o prethodnim tokovima gotovine"
 msgid "Payable Account"
 msgstr "Račun Obaveza"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2297
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2323
 msgid "Payable Account is mandatory"
 msgstr "Platni račun je obavezan"
 
@@ -4453,9 +4459,9 @@ msgstr "Iznos Glavnice"
 msgid "Payment Account"
 msgstr "Račun Plaćanja"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2114
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2416
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2300
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2442
 msgid "Payment Account is mandatory"
 msgstr "Račun za plaćanje je obavezan"
 
@@ -4554,7 +4560,7 @@ msgstr "Stopa zateznih naknada"
 msgid "Penalty Income Account"
 msgstr "Račun prihoda zatezne naknade"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2143
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2169
 msgid "Penalty Income Account is mandatory"
 msgstr "Račun prihoda zatezne naknade je obavezan"
 
@@ -4580,7 +4586,7 @@ msgstr "Dospjeli zatezni iznos"
 msgid "Penalty Receivable Account"
 msgstr "Račun potraživanja zatezne kamate"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2163
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Račun potraživanja zatezne kamate je obavezan"
 
@@ -4697,11 +4703,11 @@ msgstr "Odaberi barem Kredit ili Podnosioca zahtjeva da biste vidjeli registar"
 msgid "Please select how to collect Applicants."
 msgstr "Odaberi kako prikupiti podatke o podnosiocima."
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Postavi Dodatni Račun Obračunate Kamate u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Postavi Dodatni Račun Prihoda od Kamata u {0}"
 
@@ -4710,15 +4716,15 @@ msgstr "Postavi Dodatni Račun Prihoda od Kamata u {0}"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Postavi Račun Naplate Kamate za Nepotpuni Period za {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2224
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Postavi Račun Povrata Novca klijentu u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Postavi Račun Obračunate Kamate u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Postavi Račun Kamatnih Prihoda u {0}"
 
@@ -4734,11 +4740,11 @@ msgstr "Postavi Platni Rračun za Kreditni Artikal {0}"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Podesi račun obaveza za obračun zarada u otplati kredita"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Postavi račun obračunate zatezne naknade u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Postavi Račun Prihoda Zatezne Naknade u {0}"
 
@@ -4758,7 +4764,7 @@ msgstr "Postavi Račun Obaveza za {0} u {1}"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Postavi Račun Potraživanja za {0} u {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2467
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2493
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Postavi {0} ili na nivou poduzeča ili u kreditu"
 
@@ -5172,13 +5178,13 @@ msgstr "Račun Potraživanja"
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Reduce EMI"
-msgstr ""
+msgstr "Smanjiti Mjesečnu Ratu"
 
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Reduce Tenure"
-msgstr ""
+msgstr "Smanji Rok Otplate"
 
 #. Label of the reference_no (Data) field in DocType 'Loan Security Assignment'
 #. Label of the reference_no (Data) field in DocType 'Loan Security Release'
@@ -5468,7 +5474,7 @@ msgstr "Datum početka otplate {0} ne može biti prije Datuma isplate {1}"
 msgid "Repayment Type"
 msgstr "Tip otplate"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:931
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:957
 msgid "Repayment cannot be made for closed loan"
 msgstr "Otplaća zatvorenog kredita nije moguća"
 
@@ -5476,7 +5482,7 @@ msgstr "Otplaća zatvorenog kredita nije moguća"
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Periodi otplate su obavezni za dugoročne kredite"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:986
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1012
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Tip otplate može biti samo naplaća otpisanog ili otpis u okviru poravnanja"
 
@@ -5548,7 +5554,7 @@ msgstr "Primjenjivo restrukturiranje kredita"
 msgid "Restructured"
 msgstr "Restrukturirano"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2276
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2302
 msgid "Round Off Account is mandatory"
 msgstr "Račun Zaokruživanja je obavezan"
 
@@ -5817,7 +5823,7 @@ msgstr "PDV i Naknade"
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:124
 msgid "Tenure"
-msgstr "Rok otplate"
+msgstr "Rok Otplate"
 
 #. Label of the tenure_post_restructure (Int) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -5838,23 +5844,23 @@ msgstr "Detalji Uslova"
 msgid "Terms and Conditions"
 msgstr "Odredbe i Uslovi"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1031
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1057
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Isplaća kredita {0} je zatvorena."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
-msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-msgstr "Uplaćeni iznos ne može biti veći od iznosa koji se plaća za isplatu Prilagodbe Garantnog Pologa."
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:942
+msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
+msgstr "Plaćeni iznos ({0}) ne može biti veći od iznosa koji se plaća ({1}) za isplatu prilagođavanja sigurnosnog pologa."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3333
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3359
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Sljedeće isplate ne postoje ili nisu podnešene: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3319
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3345
 msgid "The following loans do not exist: {}"
 msgstr "Sljedeći krediti ne postoje: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ponovno knjiženje nije završeno i vraćeno je na Nacrt:"
 
@@ -5868,7 +5874,7 @@ msgstr "Tip rasporeda koja će se koristiti za izradu rasporeda otplate kredita 
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Već postoji kreditni klijent s istim kontakt podacima. Želite li ovdje pronaći kreditnog klijenta?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Ovdje postoje preklapajuća obračunavanja {}, trenutni datum obračunavanja obračunava se od {} do {}"
 
@@ -6235,7 +6241,7 @@ msgstr "Oprošteni iznos"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Oprošteni iznos {0} ne može biti viši od neizmirenog iznosa {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1015
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1041
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Oprošteni iznos {0} {1} ne može biti veći od dospjelog iznosa {2}"
 
@@ -6244,7 +6250,7 @@ msgstr "Oprošteni iznos {0} {1} ne može biti veći od dospjelog iznosa {2}"
 msgid "Waiver Account"
 msgstr "Račun Oprosta"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2427
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Račun oprosta nije postavljen za naknadu {0} u {1}"
 
@@ -6312,7 +6318,7 @@ msgstr "Naplaća otpisanog potraživanja"
 msgid "Write Off Recovery Account"
 msgstr "Račun naplate otpisanih potraživanja"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2241
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Račun naplate otpisanih potraživanja je obavezan"
 

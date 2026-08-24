@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-02 10:57+0000\n"
-"PO-Revision-Date: 2026-08-04 08:23\n"
+"POT-Creation-Date: 2026-08-16 09:51+0000\n"
+"PO-Revision-Date: 2026-08-17 11:09\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -185,7 +185,7 @@ msgstr ""
 msgid "Add to first repayment"
 msgstr "เพิ่มในการชำระเงินครั้งแรก"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2156
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2182
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "บัญชีการยกเว้นดอกเบี้ยเพิ่มเติมเป็นสิ่งที่จำเป็น"
 
@@ -222,7 +222,7 @@ msgstr "จำนวนดอกเบี้ยเพิ่มเติม"
 msgid "Additional Interest Income"
 msgstr "รายได้ดอกเบี้ยเพิ่มเติม"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2172
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
 msgid "Additional Interest Income Account is mandatory"
 msgstr "บัญชีรายได้ดอกเบี้ยเพิ่มเติม เป็นข้อบังคับ"
 
@@ -232,7 +232,7 @@ msgstr "บัญชีรายได้ดอกเบี้ยเพิ่ม
 msgid "Additional Interest Receivable"
 msgstr "ดอกเบี้ยรับเพิ่มเติม"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2192
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "บัญชีดอกเบี้ยรับเพิ่มเติม เป็นบัญชีที่จำเป็น"
 
@@ -254,7 +254,7 @@ msgstr "รายการค้างชำระดอกเบี้ยเพ
 msgid "Additional Interest Waiver"
 msgstr "การยกเว้นดอกเบี้ยเพิ่มเติม"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2201
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "บัญชีการยกเว้นดอกเบี้ยเพิ่มเติมเป็นสิ่งที่จำเป็น"
 
@@ -348,7 +348,7 @@ msgstr "การปรับเปลี่ยน"
 msgid "Advance Payment"
 msgstr "การชำระเงินล่วงหน้า"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2237
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2263
 msgid "Against Account is mandatory"
 msgstr "บัญชีที่ต้องหักเป็นบัญชีบังคับ"
 
@@ -469,19 +469,19 @@ msgstr "จำนวนไม่สามารถเป็นศูนย์ไ
 msgid "Amount on which interest is calculated"
 msgstr "จำนวนเงินที่ใช้คำนวณดอกเบี้ย"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:914
-msgid "Amount paid cannot be greater than available security deposit"
-msgstr "จำนวนเงินที่ชำระไม่สามารถมากกว่าเงินประกันที่มีอยู่ได้"
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
+msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
+msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:992
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1018
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "จำนวนเงินที่ชำระไม่สามารถมากกว่าจำนวนเงินที่ต้องชำระได้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1033
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "จำนวนเงินที่ชำระไม่สามารถน้อยกว่าจำนวนเงินที่ต้องชำระสำหรับการปิดบัญชีเงินกู้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:999
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1025
 msgid "Amount paid cannot be zero"
 msgstr "จำนวนเงินที่ชำระไม่สามารถเป็นศูนย์ได้"
 
@@ -894,6 +894,12 @@ msgstr ""
 msgid "Biweekly"
 msgstr "ทุกสองสัปดาห์"
 
+#. Label of the body (Text Editor) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Body"
+msgstr "เนื้อหา"
+
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -990,7 +996,7 @@ msgstr "ไม่สามารถปิดเงินกู้นี้ได
 msgid "Cannot create loan until application is approved"
 msgstr "ไม่สามารถสร้างเงินกู้ได้จนกว่าการสมัครจะได้รับการอนุมัติ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2527
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2553
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "ไม่สามารถทำการชำระเงินล่วงหน้าหรือชำระเงินล่วงหน้าได้ในช่วงระยะเวลาพักชำระหนี้ (วันสิ้นสุดระยะเวลาพักชำระหนี้: {}, วันบันทึกบัญชี: {})"
 
@@ -1426,7 +1432,7 @@ msgstr "เครดิต ({0})"
 msgid "Credit Account"
 msgstr "บัญชีเครดิต"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2295
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2321
 msgid "Credit Account is mandatory"
 msgstr "บัญชีเครดิตเป็นสิ่งที่จำเป็น"
 
@@ -1514,7 +1520,7 @@ msgstr "ลูกค้า"
 msgid "Customer Refund Account"
 msgstr "บัญชีคืนเงินลูกค้า"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2194
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2220
 msgid "Customer Refund Account is mandatory"
 msgstr "บัญชีคืนเงินลูกค้าเป็นสิ่งที่จำเป็น"
 
@@ -2129,7 +2135,7 @@ msgstr "การชำระหนี้ครบถ้วน"
 msgid "Full Settlement Job"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:952
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:978
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr ""
 
@@ -2222,7 +2228,7 @@ msgstr "รายได้"
 msgid "Income Account"
 msgstr "บัญชีรายได้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:995
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1021
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "ประเภทการชำระคืนไม่ถูกต้อง กรุณาลบหนี้เงินกู้ก่อน"
 
@@ -2312,7 +2318,7 @@ msgstr "การยกยอดดอกเบี้ย"
 msgid "Interest Income Account"
 msgstr "บัญชีรายได้ดอกเบี้ย"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2112
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2138
 msgid "Interest Income Account is mandatory"
 msgstr "บัญชีรายได้ดอกเบี้ยเป็นข้อบังคับ"
 
@@ -2341,7 +2347,7 @@ msgstr "อัตราดอกเบี้ย (%)"
 msgid "Interest Receivable Account"
 msgstr "บัญชีดอกเบี้ยรับ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2107
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
 msgid "Interest Receivable Account is mandatory"
 msgstr "บัญชีดอกเบี้ยรับ เป็นบัญชีที่จำเป็น"
 
@@ -2369,7 +2375,7 @@ msgstr "การยกเว้นดอกเบี้ย"
 msgid "Interest Waiver Account"
 msgstr "บัญชีการยกเว้นดอกเบี้ย"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2189
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
 msgid "Interest Waiver Account is mandatory"
 msgstr "บัญชีการยกเว้นดอกเบี้ยเป็นสิ่งที่จำเป็น"
 
@@ -2383,8 +2389,8 @@ msgstr "จำนวนเงินที่ได้รับการยกเ
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "จำนวนเงินที่ได้รับการยกเว้นดอกเบี้ยไม่สามารถมากกว่าดอกเบี้ยค้างชำระ"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:258
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:295
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "ดอกเบี้ยที่เกิดขึ้นจาก {0} ถึง {1} จากเงินกู้: {2}"
 
@@ -2695,9 +2701,9 @@ msgstr "บัญชีเงินกู้"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "บัญชีเงินกู้และบัญชีชำระเงินไม่สามารถใช้บัญชีเดียวกันได้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2103
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2161
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2129
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2159
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2187
 msgid "Loan Account is mandatory"
 msgstr "บัญชีเงินกู้เป็นสิ่งที่จำเป็น"
 
@@ -2707,11 +2713,11 @@ msgstr "บัญชีเงินกู้เป็นสิ่งที่จ
 msgid "Loan Accounts"
 msgstr "บัญชีเงินกู้"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1157
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "ความถี่ในการคำนวณดอกเบี้ยเงินกู้ไม่ได้รับการตั้งค่าสำหรับบริษัท {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:417
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "ความถี่การสะสมเงินกู้ไม่ได้รับการตั้งค่าในประเภทเอกสารของบริษัท"
 
@@ -3752,7 +3758,7 @@ msgstr "เงินกู้เป็นสินทรัพย์ด้อย
 msgid "Loan {0} closed"
 msgstr "เงินกู้ {0} ปิดแล้ว"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:976
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1002
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr ""
 
@@ -4331,7 +4337,7 @@ msgstr "เปอร์เซ็นต์การเก็บเงินจา
 msgid "Partner Interest Share"
 msgstr "ส่วนแบ่งผลประโยชน์ของหุ้นส่วน"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2299
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2325
 msgid "Partner Interest Share is mandatory"
 msgstr "หุ้นส่วนต้องถือหุ้น"
 
@@ -4407,7 +4413,7 @@ msgstr "รายงานกระแสเงินสดที่ผ่าน
 msgid "Payable Account"
 msgstr "บัญชีเจ้าหนี้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2297
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2323
 msgid "Payable Account is mandatory"
 msgstr "บัญชีที่ต้องชำระเป็นข้อบังคับ"
 
@@ -4438,9 +4444,9 @@ msgstr "จำนวนเงินต้นที่ต้องชำระ"
 msgid "Payment Account"
 msgstr "บัญชีการชำระเงิน"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2114
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2416
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2300
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2442
 msgid "Payment Account is mandatory"
 msgstr "บัญชีการชำระเงินเป็นสิ่งจำเป็น"
 
@@ -4539,7 +4545,7 @@ msgstr "อัตราค่าปรับ"
 msgid "Penalty Income Account"
 msgstr "บัญชีรายได้จากค่าปรับ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2143
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2169
 msgid "Penalty Income Account is mandatory"
 msgstr "บัญชีรายได้จากค่าปรับเป็นข้อบังคับ"
 
@@ -4565,7 +4571,7 @@ msgstr "ค่าปรับค้างชำระ"
 msgid "Penalty Receivable Account"
 msgstr "บัญชีค่าปรับที่รับได้"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2163
 msgid "Penalty Receivable Account is mandatory"
 msgstr "บัญชีค่าปรับที่รับได้ เป็นข้อบังคับ"
 
@@ -4682,11 +4688,11 @@ msgstr ""
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีดอกเบี้ยเพิ่มเติมที่เกิดในผลิตภัณฑ์สินเชื่อ {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:234
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีรายได้ดอกเบี้ยเพิ่มเติมในผลิตภัณฑ์เงินกู้ {0}"
 
@@ -4695,15 +4701,15 @@ msgstr "กรุณาตั้งค่าบัญชีรายได้ด
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีการเรียกเก็บดอกเบี้ยที่เสียหายสำหรับผลิตภัณฑ์เงินกู้ {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2224
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีคืนเงินลูกค้าในผลิตภัณฑ์เงินกู้ {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:210
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีดอกเบี้ยสะสมในผลิตภัณฑ์เงินกู้ {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีรายได้ดอกเบี้ยในผลิตภัณฑ์เงินกู้ {0}"
 
@@ -4719,11 +4725,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "กรุณาตั้งค่าบัญชีเจ้าหนี้เงินเดือนในรายการชำระคืนเงินกู้"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:223
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีสะสมค่าปรับในผลิตภัณฑ์เงินกู้ {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "กรุณาตั้งค่าบัญชีรายได้ค่าปรับในผลิตภัณฑ์เงินกู้ {0}"
 
@@ -4743,7 +4749,7 @@ msgstr "กรุณาตั้งค่าบัญชีสะสมในผ
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "กรุณาตั้งค่า {0} บัญชีลูกหนี้ในผลิตภัณฑ์เงินกู้ {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2467
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2493
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "กรุณาตั้งค่า {0} ในส่วนของบริษัทหรือผลิตภัณฑ์เงินกู้"
 
@@ -5453,7 +5459,7 @@ msgstr ""
 msgid "Repayment Type"
 msgstr "ประเภทการชำระคืน"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:931
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:957
 msgid "Repayment cannot be made for closed loan"
 msgstr "ไม่สามารถชำระเงินคืนได้สำหรับเงินกู้ที่ปิดแล้ว"
 
@@ -5461,7 +5467,7 @@ msgstr "ไม่สามารถชำระเงินคืนได้ส
 msgid "Repayment periods is mandatory for term loans"
 msgstr "ระยะเวลาการชำระคืนเป็นข้อบังคับสำหรับเงินกู้ที่มีกำหนดระยะเวลา"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:986
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1012
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "ประเภทการชำระคืนสามารถเลือกได้เพียงการตัดหนี้สูญเพื่อเรียกคืนหรือการตัดหนี้สูญเพื่อชำระหนี้"
 
@@ -5533,7 +5539,7 @@ msgstr "การปรับโครงสร้างเงินกู้ท
 msgid "Restructured"
 msgstr "ปรับโครงสร้างใหม่"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2276
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2302
 msgid "Round Off Account is mandatory"
 msgstr "บัญชีต้องปิดยอดเป็นจำนวนเต็ม"
 
@@ -5823,23 +5829,23 @@ msgstr "รายละเอียดเงื่อนไข"
 msgid "Terms and Conditions"
 msgstr "ข้อกำหนดและเงื่อนไข"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1031
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1057
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "การเบิกจ่ายเงินกู้ {0} ได้ปิดแล้ว"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
-msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-msgstr "จำนวนเงินที่ชำระไม่สามารถมากกว่าจำนวนเงินที่ต้องชำระสำหรับการคืนเงินปรับเงินประกัน"
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:942
+msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
+msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3333
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3359
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "รายการเบิกจ่ายต่อไปนี้ไม่มีอยู่จริงหรือยังไม่ได้ยื่น: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3319
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3345
 msgid "The following loans do not exist: {}"
 msgstr "เงินกู้ต่อไปนี้ไม่มีอยู่: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:499
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -5853,7 +5859,7 @@ msgstr "ประเภทของตารางที่จะใช้สำ
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "มีผู้กู้ที่มีรายละเอียดการติดต่อเดียวกันอยู่แล้ว คุณต้องการดึงข้อมูลผู้กู้มาที่นี่หรือไม่"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:116
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "มีการสะสมที่ทับซ้อนกันที่นี่ {}, วันที่สะสมปัจจุบันถูกสะสมจาก {} ถึง {}"
 
@@ -6220,7 +6226,7 @@ msgstr "จำนวนที่สละสิทธิ์"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "จำนวนเงินที่สละสิทธิ์ {0} ไม่สามารถมากกว่าจำนวนเงินที่ค้างชำระ {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1015
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1041
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "ยกเว้น {0} จำนวน {1} ไม่สามารถมากกว่าจำนวนค้างชำระ {2}"
 
@@ -6229,7 +6235,7 @@ msgstr "ยกเว้น {0} จำนวน {1} ไม่สามารถ�
 msgid "Waiver Account"
 msgstr "บัญชีสละสิทธิ์"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2427
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "บัญชีสละสิทธิ์ยังไม่ตั้งค่าสำหรับการเรียกเก็บเงิน {0} ในผลิตภัณฑ์สินเชื่อ {1}"
 
@@ -6297,7 +6303,7 @@ msgstr "การเรียกคืนจากการตัดจำหน
 msgid "Write Off Recovery Account"
 msgstr "บัญชีการกู้คืนการตัดจำหน่าย"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2241
 msgid "Write Off Recovery Account is mandatory"
 msgstr "บัญชีการกู้คืนการตัดจำหน่ายเป็นข้อบังคับ"
 

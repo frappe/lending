@@ -152,7 +152,7 @@ class LoanRepayment(LoanController):
 		)
 
 		self.set_missing_values(amounts)
-		self.validate_security_deposit_amount()
+		self.validate_security_deposit_amount(amounts)
 		self.validate_amount(amounts)
 		self.allocate_amounts(amounts)
 
@@ -543,6 +543,13 @@ class LoanRepayment(LoanController):
 		if (
 			self.principal_amount_paid - overdue_principal_paid > 0
 			and overdue_principal_paid >= self.payable_principal_amount
+			# Partial Settlement doesn't auto-waive leftover interest/penalty like
+			# Full Settlement/Write Off flows do, so only book ahead-of-schedule
+			# principal once the full payable amount is actually covered.
+			and not (
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
+			)
 		):
 			amount = self.principal_amount_paid - overdue_principal_paid
 			create_loan_demand(
@@ -852,6 +859,11 @@ class LoanRepayment(LoanController):
 			elif not self.repay_from_salary and self.payroll_payable_account:
 				self.repay_from_salary = 1
 
+			if self.repay_from_salary and self.is_new():
+				self.process_payroll_accounting_entry_based_on_employee = frappe.db.get_single_value(
+					"Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
+				)
+
 		if self.repayment_type in ("Full Settlement", "Write Off Settlement", "Charges Waiver"):
 			self.total_charges_payable = amounts.get("total_charges_payable")
 
@@ -901,8 +913,10 @@ class LoanRepayment(LoanController):
 
 		self.db_set("is_backdated", self.is_backdated)
 
-	def validate_security_deposit_amount(self):
+	def validate_security_deposit_amount(self, amounts):
 		if self.repayment_type == "Security Deposit Adjustment":
+			precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 			available_deposit = frappe.db.get_value(
 				"Loan Security Deposit",
 				{"loan": self.against_loan, "docstatus": 1},
@@ -910,13 +924,37 @@ class LoanRepayment(LoanController):
 				for_update=True,
 			)
 
-			if flt(self.amount_paid) > flt(available_deposit):
-				frappe.throw(_("Amount paid cannot be greater than available security deposit"))
-			if flt(self.amount_paid) > flt(self.payable_amount) and not self.loan_adjustment:
+			if flt(self.amount_paid, precision) > flt(available_deposit, precision):
+				frappe.throw(
+					_("Amount paid ({0}) cannot be greater than available security deposit ({1})").format(
+						flt(self.amount_paid, precision), flt(available_deposit, precision)
+					)
+				)
+
+			total_payable_amount = flt(
+				flt(self.payable_amount, precision) + flt(amounts.get("unbooked_interest", 0), precision),
+				precision,
+			)
+
+			if flt(self.amount_paid, precision) > total_payable_amount and not self.loan_adjustment:
+				# amounts was built with for_update=True, under which unaccrued_interest
+				# (interest projected after the latest accrual) is always 0. Fetch it
+				# separately, only when needed, and write it back into amounts so
+				# allocate_amounts() also books this portion as interest, not principal.
+				amounts["unaccrued_interest"] = flt(
+					calculate_amounts(
+						self.against_loan, self.value_date, payment_type=self.repayment_type
+					).get("unaccrued_interest", 0),
+					precision,
+				)
+				total_payable_amount = flt(total_payable_amount + amounts["unaccrued_interest"], precision)
+
+			if flt(self.amount_paid, precision) > total_payable_amount and not self.loan_adjustment:
 				frappe.throw(
 					_(
-						"The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-					)
+						"The amount paid ({0}) cannot be greater than the payable amount ({1}) for"
+						" Security Deposit Adjustment repayments."
+					).format(flt(self.amount_paid, precision), total_payable_amount)
 				)
 
 	def validate_repayment_type(self):
@@ -1628,6 +1666,13 @@ class LoanRepayment(LoanController):
 			if self.repayment_type not in (
 				"Interest Waiver", "Penalty Waiver", "Charges Waiver",
 				"Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"
+			) and not (
+				# Partial Settlement doesn't auto-waive leftover interest/penalty like
+				# Full Settlement/Write Off flows do, so any amount that couldn't be
+				# matched to a real demand shouldn't be booked as principal paid
+				# unless the full payable amount was actually covered.
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
@@ -1918,6 +1963,8 @@ class LoanRepayment(LoanController):
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands, status=None):
 		"""Allocate amount based on allocation order"""
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		allocation_order_doc = frappe.get_doc("Loan Demand Offset Order", allocation_order)
 		for d in allocation_order_doc.get("components"):
 			if d.demand_type == "EMI (Principal + Interest)" and pending_amount > 0:
@@ -1941,6 +1988,12 @@ class LoanRepayment(LoanController):
 					)
 					or status == "Settled"
 					and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
+					# Partial Settlement doesn't auto-waive leftover interest/penalty like
+					# Full Settlement/Write Off flows do, so only pay principal ahead of
+					# schedule once the full payable amount is actually covered.
+				) and not (
+					self.repayment_type == "Partial Settlement"
+					and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 				):
 					principal_amount_paid = sum(
 						d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
@@ -2063,7 +2116,13 @@ class LoanRepayment(LoanController):
 			merge_entries = False
 
 		if gle_map:
+			previous_flag = frappe.flags.party_not_required
+			if self.get("repay_from_salary") and not self.get("process_payroll_accounting_entry_based_on_employee"):
+				frappe.flags.party_not_required = True
+
 			super().make_gl_entries(gle_map, merge_entries=merge_entries, cancel=cancel, adv_adj=adv_adj)
+
+			frappe.flags.party_not_required = previous_flag
 
 	def get_gl_map(self):
 		if not loan_accounting_enabled(self.company):
