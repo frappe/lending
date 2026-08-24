@@ -1300,7 +1300,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -1310,7 +1312,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -1331,7 +1335,9 @@ class TestLoan(FrappeTestCase):
 			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
 		)
 		demand_generated = frappe.db.get_value(
-			"Repayment Schedule", {"parent": active_schedule, "payment_date": "2025-02-05"}, "demand_generated"
+			"Repayment Schedule",
+			{"parent": active_schedule, "payment_date": "2025-02-05"},
+			"demand_generated",
 		)
 		self.assertEqual(demand_generated, 1)
 
@@ -3421,4 +3427,63 @@ class TestLoan(FrappeTestCase):
 		self.assertEqual(
 			flt(repayment.excess_amount, 2),
 			flt(repayment.amount_paid - repayment.pending_principal_amount - interest_waiver_amount, 2),
+		)
+
+	def test_partial_settlement_extra_amount_not_added_to_principal(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			posting_date="2024-07-05",
+			repayment_start_date="2024-08-05",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
+
+		# Pay exactly the currently-due principal plus a small overshoot as a
+		# Partial Settlement, with interest left unpaid.
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-08-05")
+		overshoot = 2000
+		pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
+		rep = create_repayment_entry(
+			loan.name, "2024-08-05", pay_amount, repayment_type="Partial Settlement"
+		)
+		rep.submit()
+
+		# principal_amount_paid must be fully backed by repayment_details
+		# allocation rows - the overshoot must not be silently folded into
+		# principal_amount_paid, and no leftover should have been booked as a
+		# new, separately-created Principal demand.
+		allocated_principal = sum(
+			d.paid_amount
+			for d in frappe.db.get_all(
+				"Loan Repayment Detail",
+				{"parent": rep.name, "demand_subtype": "Principal"},
+				["paid_amount"],
+			)
+		)
+		self.assertEqual(flt(rep.principal_amount_paid), flt(allocated_principal))
+
+		new_principal_demands = frappe.db.get_all(
+			"Loan Demand",
+			{
+				"loan": loan.name,
+				"loan_repayment": rep.name,
+				"demand_type": "EMI",
+				"demand_subtype": "Principal",
+				"docstatus": 1,
+			},
+		)
+		self.assertEqual(
+			new_principal_demands,
+			[],
+			"Partial Settlement should not create a new Principal demand for its overshoot",
 		)
