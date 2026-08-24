@@ -540,6 +540,21 @@ class TestLoanLeadOTP(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			bulk_send_otp([f"LN-LEAD-{i:05d}" for i in range(MAX_BULK_OTP_LEADS + 1)], "Email")
 
+	def test_bulk_send_otp_is_not_a_way_to_send_one_lead_many_otps(self):
+		with self.assertRaises(frappe.ValidationError):
+			bulk_send_otp([{"applicant_name": "Test Exposure Applicant"}], "Email")
+
+	@patch("telephony.email_otp.dispatch_email_otp")
+	@patch("telephony.email_otp.generate_otp_code", return_value=TEST_OTP)
+	def test_a_lead_repeated_down_the_batch_is_sent_one_otp(self, mock_code, mock_dispatch):
+		lead = make_loan_lead(email="bulk-repeat@example.com")
+
+		result = bulk_send_otp([lead.name] * MAX_BULK_OTP_LEADS, "Email")
+
+		self.assertEqual(result["sent"], [lead.name])
+		self.assertEqual(result["failed"], [])
+		self.assertEqual(mock_dispatch.call_count, 1)
+
 	@patch("telephony.email_otp.dispatch_email_otp")
 	@patch("telephony.email_otp.generate_otp_code", return_value=TEST_OTP)
 	def test_bulk_send_otp_leaves_nothing_behind_for_a_failed_lead(self, mock_code, mock_dispatch):

@@ -165,13 +165,21 @@ def bulk_send_otp(loan_leads: list[str] | str, medium: str):
 		loan_leads = frappe.parse_json(loan_leads)
 
 	# parse_json returns undecodable input unchanged, so a bare name would stay a string.
-	if not isinstance(loan_leads, (list, tuple)):
+	if not isinstance(loan_leads, (list, tuple)) or not all(
+		isinstance(loan_lead, str) for loan_lead in loan_leads
+	):
 		frappe.throw(_("Please pass Loan Leads as a list of lead names."))
 
 	if len(loan_leads) > MAX_BULK_OTP_LEADS:
 		frappe.throw(
 			_("Cannot send an OTP to more than {0} leads at a time.").format(MAX_BULK_OTP_LEADS)
 		)
+
+	# One OTP per lead, order kept. Initiated does not block a resend, so a name repeated
+	# down the list would reach Telephony once per copy -- one request becomes a burst at
+	# a single recipient. The list view only ever sends distinct names; a direct caller
+	# need not.
+	loan_leads = list(dict.fromkeys(loan_leads))
 
 	sent, failed = [], []
 	for loan_lead in loan_leads:
