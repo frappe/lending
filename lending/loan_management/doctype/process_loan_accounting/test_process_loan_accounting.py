@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import add_months, flt, get_last_day, getdate
+from frappe.utils import add_months, flt, get_first_day, get_last_day, getdate
 
 from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
 	reconsolidate_gl_for_loan,
@@ -1123,6 +1123,37 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			"Process Loan Accounting", {"loan": loan, "docstatus": 1}, pluck="name"
 		)
 		self.assertEqual(set(vouchers_before), set(vouchers_after), "no duplicate vouchers on re-run")
+		self.assertEqual(self.consolidated_income(loan), income_before, "idempotent, no double posting")
+
+	def test_two_overlapping_reposts_both_get_fully_reconsolidated(self):
+		"""A narrower repost followed by a wider one must not let the wider one's earlier
+		months get silently dropped (guards against job_id-dedup style enqueue collisions)."""
+		start_date = "2024-01-01"
+		self.enable_consolidation(start_date)
+		loan = self.make_loan_with_daily_accruals("2024-01-05", "2024-03-20")
+		company = frappe.db.get_value("Loan", loan, "company")
+
+		reconsolidate_gl_for_loan(loan, company, repost_date="2024-03-01", start_date=start_date)
+		reconsolidate_gl_for_loan(loan, company, repost_date="2024-01-01", start_date=start_date)
+
+		for month_end in ["2024-01-31", "2024-02-29", "2024-03-31"]:
+			accruals = frappe.get_all(
+				"Loan Interest Accrual",
+				{
+					"loan": loan,
+					"docstatus": 1,
+					"posting_date": ["between", [get_first_day(month_end), month_end]],
+				},
+				pluck="process_loan_accounting_voucher",
+			)
+			self.assertTrue(accruals, f"expected accruals in {month_end}")
+			self.assertTrue(
+				all(accruals), f"{month_end} must be consolidated even though a narrower repost ran first"
+			)
+
+		income_before = self.consolidated_income(loan)
+		reconsolidate_gl_for_loan(loan, company, repost_date="2024-03-01", start_date=start_date)
+		reconsolidate_gl_for_loan(loan, company, repost_date="2024-01-01", start_date=start_date)
 		self.assertEqual(self.consolidated_income(loan), income_before, "idempotent, no double posting")
 
 	def test_mid_month_start_date_gives_partial_first_period(self):
