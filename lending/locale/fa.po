@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:51+0000\n"
-"PO-Revision-Date: 2026-08-24 13:13\n"
+"PO-Revision-Date: 2026-08-25 13:23\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1389,7 +1389,7 @@ msgstr ""
 #. Label of the components (Table) field in DocType 'Loan Demand Offset Order'
 #: lending/loan_management/doctype/loan_demand_offset_order/loan_demand_offset_order.json
 msgid "Components"
-msgstr ""
+msgstr "اجزاء"
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
