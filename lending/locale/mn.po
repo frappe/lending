@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-23 09:51+0000\n"
-"PO-Revision-Date: 2026-08-26 14:07\n"
+"PO-Revision-Date: 2026-08-28 15:34\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Mongolian\n"
 "MIME-Version: 1.0\n"
@@ -1131,7 +1131,7 @@ msgstr "Төлбөр төлөгдөөгүй шаардлагад {0} төлбө�
 
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.py:537
 msgid "Charge {0} with overdue amount {1} is missing from the charges table. Please refresh the page to get latest charges."
-msgstr ""
+msgstr "Хугацаа хэтэрсэн {1} дүнтэй {0} төлбөр төлбөрүүдийн хүснэгтэд байхгүй байна. Хамгийн сүүлийн төлбөрүүдийг авахын тулд хуудсыг сэргээнэ үү."
 
 #. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
 #. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand Offset
@@ -6044,7 +6044,7 @@ msgstr "Нийт цэвэр төлбөрийн хэмжээ нь {0} бөгөө�
 
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.py:530
 msgid "Total overdue amount for charge {0} is {1}, but table shows {2}. Please remove the duplicate charges and refresh the page."
-msgstr ""
+msgstr "{0} төлбөрийн нийт хугацаа хэтэрсэн дүн {1} боловч хүснэгтэд {2} гэж харагдаж байна. Давхардсан төлбөрүүдийг устгаад хуудсыг сэргээнэ үү."
 
 #. Label of the tranche_number (Int) field in DocType 'Loan Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
