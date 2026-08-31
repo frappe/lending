@@ -26,11 +26,6 @@ LIVE_LOAN_STATUSES = (
 	"Loan Closure Requested",
 )
 
-# Employee loans are left out: an Employee is not matched by the fields a Customer carries.
-LOAN_APPLICANT_TYPE = "Customer"
-
-LOAN_DOCTYPE = "Loan"
-
 CUSTOMER_FIELD_BY_LEAD_FIELD = {
 	"pan": "pan",
 	"email": "email_id",
@@ -65,8 +60,8 @@ def validate_live_loan_limit(
 
 
 def check_loan_book_permission():
-	if not frappe.permissions.has_permission(LOAN_DOCTYPE, "read"):
-		frappe.throw(_("Not permitted to read {0}").format(_(LOAN_DOCTYPE)), frappe.PermissionError)
+	if not frappe.permissions.has_permission("Loan", "read"):
+		frappe.throw(_("Not permitted to read {0}").format(_("Loan")), frappe.PermissionError)
 
 
 # Deliberately not whitelisted: it answers a question about whoever the lead's contact
@@ -80,10 +75,12 @@ def get_live_loan_count(loan_lead: Document | str) -> int:
 
 	# Counted without permissions; the check above is what fences that in.
 	return frappe.db.count(
-		LOAN_DOCTYPE,
+		"Loan",
 		{
 			"docstatus": 1,
-			"applicant_type": LOAN_APPLICANT_TYPE,
+			# Customer only: an Employee is not matched by the fields a Customer carries, so
+			# employee loans are left out.
+			"applicant_type": "Customer",
 			"applicant": ("in", customers),
 			"status": ("in", LIVE_LOAN_STATUSES),
 		},
