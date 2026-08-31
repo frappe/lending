@@ -76,11 +76,26 @@ class LoanLead(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if self.applicant_type == "Individual":
-			self.age = getdate().year - getdate(self.date_of_birth).year
-
+		self.set_age()
 		self.set_verification_statuses()
 		self.set_rejected_on()
+
+	def set_age(self):
+		# Only an individual has one, and a lead that changes type must not keep the age it
+		# was given as the other.
+		if self.applicant_type != "Individual":
+			self.age = 0
+			return
+
+		today, date_of_birth = getdate(), getdate(self.date_of_birth)
+
+		# Subtracting the years alone assumes the birthday has already come round this year,
+		# which reads as 18 for somebody who only turns 18 later in the year.
+		self.age = (
+			today.year
+			- date_of_birth.year
+			- ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
+		)
 
 	def set_rejected_on(self):
 		workflow = get_workflow_name(self.doctype)
@@ -98,7 +113,9 @@ class LoanLead(Document):
 			self.rejected_on = None
 
 	def set_verification_statuses(self):
-		# read_only is not enforced server-side, so statuses are restored from the stored copy.
+		# read_only is not enforced server-side, so statuses are restored from the stored copy:
+		# a client cannot talk its way to Verified through a save. mark_otp_status is the only
+		# thing that sets one, and it writes with db.set_value, which never runs this.
 		before_save = self.get_doc_before_save()
 
 		for fields in OTP_MEDIUM_FIELD_MAP.values():
@@ -316,7 +333,8 @@ def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
 
-# Whitelisted so a site's own Server Script can run the rule with its own numbers;
+# Whitelisted so a site's own Server Script can run the rule with its own number, though
+# Cooling Period (Days) on the lead's Loan Product still beats what the script passes;
 # run_cooling_period_task is the no-script path.
 @frappe.whitelist(methods=["POST"])
 def validate_cooling_period(
@@ -350,11 +368,23 @@ def get_product_cooling_period(loan_lead: Document) -> int:
 	)
 
 
+def get_contact_identity(loan_lead: Document) -> dict:
+	return {
+		fieldname: loan_lead.get(fieldname)
+		for fieldname in CONTACT_IDENTITY_FIELDS
+		if loan_lead.get(fieldname)
+	}
+
+
 def get_applicant_identity(loan_lead: Document) -> dict:
-	fieldnames = PAN_IDENTITY_FIELDS if loan_lead.get("pan") else CONTACT_IDENTITY_FIELDS
+	# A PAN identifies the applicant on its own, whether or not the country was ever set.
+	if not loan_lead.get("pan"):
+		return get_contact_identity(loan_lead)
 
 	return {
-		fieldname: loan_lead.get(fieldname) for fieldname in fieldnames if loan_lead.get(fieldname)
+		fieldname: loan_lead.get(fieldname)
+		for fieldname in PAN_IDENTITY_FIELDS
+		if loan_lead.get(fieldname)
 	}
 
 
@@ -374,6 +404,10 @@ def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe.
 	if loan_lead.name:
 		filters["name"] = ("!=", loan_lead.name)
 
+	# or_filters, so either detail matching is enough. Deliberately loose: an applicant who
+	# comes back under a new email is the case worth catching, and the cost is that people
+	# genuinely sharing a number cool off together. The refusal names no lead and no date,
+	# so a shared match cannot be used to read anything about the other applicant.
 	rejections = frappe.db.get_all(
 		"Loan Lead",
 		filters=filters,
@@ -386,7 +420,8 @@ def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe.
 	return rejections[0] if rejections else None
 
 
-@frappe.whitelist()
+# A workflow task, called as method(doc). Not whitelisted: over HTTP loan_lead would
+# arrive as a name rather than the document this reads fields off.
 def convert_to_loan_application(loan_lead: Document):
 	frappe.has_permission("Loan Application", "create", throw=True)
 	validate_otp_verification(loan_lead)

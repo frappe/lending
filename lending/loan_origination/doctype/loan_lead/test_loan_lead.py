@@ -8,7 +8,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.model.workflow import apply_workflow
-from frappe.utils import add_days, cint, getdate, now_datetime
+from frappe.utils import add_days, add_years, cint, getdate, now_datetime
 from frappe.utils.safe_exec import is_safe_exec_enabled
 
 from lending.loan_origination.doctype.loan_lead.loan_lead import (
@@ -58,8 +58,38 @@ SCRUBBING_WORKFLOW_STATE = "Scrubbing"
 TELEPHONY_RATE_LIMITER = "telephony.otp.enforce_rate_limit"
 
 
-class TestLoanLead(LendingTestSuite):
-	pass
+class TestLoanLeadAge(LendingTestSuite):
+	def test_an_applicant_whose_birthday_is_still_ahead_is_a_year_younger(self):
+		# Turns 18 tomorrow, so 17 today. Subtracting the years alone would say 18.
+		lead = make_loan_lead(
+			email="age-tomorrow@example.com",
+			date_of_birth=add_days(add_years(getdate(), -18), 1),
+		)
+
+		self.assertEqual(lead.age, 17)
+
+	def test_an_applicant_whose_birthday_is_today_has_had_it(self):
+		lead = make_loan_lead(
+			email="age-today@example.com",
+			date_of_birth=add_years(getdate(), -18),
+		)
+
+		self.assertEqual(lead.age, 18)
+
+	def test_a_business_applicant_carries_no_age(self):
+		lead = make_business_loan_lead("age-business@example.com", "+911234500601")
+
+		self.assertEqual(lead.age, 0)
+
+	def test_an_individual_turned_business_does_not_keep_the_age_it_had(self):
+		lead = make_loan_lead(email="age-switch@example.com")
+		self.assertGreater(lead.age, 0)
+
+		lead.applicant_type = "Business"
+		lead.company_name = "Age Switch Pvt Ltd"
+		lead.save()
+
+		self.assertEqual(lead.age, 0)
 
 
 class TestLoanLeadCoolingPeriod(LendingTestSuite):

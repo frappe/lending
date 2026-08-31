@@ -8,8 +8,8 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 from lending.loan_origination.doctype.loan_lead.loan_lead import (
-	CONTACT_IDENTITY_FIELDS,
 	get_applicant_identity,
+	get_contact_identity,
 	resolve_lead,
 )
 
@@ -106,9 +106,7 @@ def get_customer_identity(loan_lead: Document) -> dict:
 
 	# Nothing translated means PAN with no Customer field to hold it (an India Compliance
 	# custom field), so fall back to contact details.
-	return translate_identity_to_customer(
-		{fieldname: loan_lead.get(fieldname) for fieldname in CONTACT_IDENTITY_FIELDS}
-	)
+	return translate_identity_to_customer(get_contact_identity(loan_lead))
 
 
 def translate_identity_to_customer(identity: dict) -> dict:
