@@ -4,7 +4,6 @@ from lending.loan_origination.doctype.loan_lead.loan_lead import REJECTED_WORKFL
 
 
 def execute():
-	# workflow_state is a custom field the Workflow DocType adds.
 	if not frappe.db.has_column("Loan Lead", "workflow_state"):
 		return
 

@@ -64,12 +64,18 @@ class LoanLead(Document):
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		employment_type: DF.Literal["Salaried", "Self-employed"]
 		income: DF.Currency
+		indicative_amount: DF.Currency
+		indicative_roi: DF.Percent
+		indicative_tenure: DF.Int
 		lead_source: DF.Data | None
 		loan_amount: DF.Currency
 		loan_product: DF.Link
 		mobile_number: DF.Phone
 		mobile_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		pan: DF.Data | None
+		prequalification_reason_codes: DF.SmallText | None
+		prequalification_status: DF.Literal["", "Pre-Qualified", "Not Pre-Qualified", "Referred"]
+		prequalified_on: DF.Datetime | None
 		proposed_tenure: DF.Int
 		rejected_on: DF.Datetime | None
 		status: DF.Data | None
@@ -133,7 +139,6 @@ def send_otp(loan_lead: str, medium: str):
 	return send_otp_for_lead(loan_lead, medium)
 
 
-# @rate_limit buckets on frappe.form_dict.cmd, so bulk_send_otp cannot call send_otp directly.
 def send_otp_for_lead(loan_lead: str, medium: str):
 	doc, fields, recipient = resolve_otp_request(loan_lead, medium)
 
@@ -192,7 +197,6 @@ def bulk_send_otp(loan_leads: list[str] | str, medium: str):
 	if isinstance(loan_leads, str):
 		loan_leads = frappe.parse_json(loan_leads)
 
-	# parse_json returns undecodable input unchanged, so a bare name would stay a string.
 	if not isinstance(loan_leads, (list, tuple)) or not all(
 		isinstance(loan_lead, str) for loan_lead in loan_leads
 	):
@@ -255,7 +259,6 @@ def resolve_otp_request(loan_lead: str, medium: str) -> tuple[Document, dict, st
 			frappe.PermissionError,
 		)
 
-	# db_set bypasses allow_on_submit, so the draft-only rule is enforced here.
 	if not doc.docstatus.is_draft():
 		frappe.throw(_("An OTP can only be sent while the lead is a draft."))
 
@@ -329,6 +332,20 @@ def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
 	return loan_lead
 
 
+def assert_called_from_a_rule():
+	"""The rules below are whitelisted only so a Workflow Task Server Script can reach
+	them with frappe.call. They take their threshold from whoever calls them, and they
+	read the loan book past the caller's own permissions, so a direct API call would let
+	its caller pick the threshold and read an applicant's history back out of whether the
+	rule threw. Server Scripts run inside safe_exec; an HTTP caller does not.
+	"""
+	if frappe.request and not frappe.flags.in_safe_exec:
+		frappe.throw(
+			_("This rule runs as a workflow task and cannot be called directly."),
+			frappe.PermissionError,
+		)
+
+
 def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
@@ -340,6 +357,8 @@ def run_cooling_period_task(loan_lead: Document):
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
 ):
+	assert_called_from_a_rule()
+
 	loan_lead = resolve_lead(loan_lead, "write")
 
 	cooling_period_days = cint(get_product_cooling_period(loan_lead) or cooling_period_days)
@@ -389,18 +408,15 @@ def get_applicant_identity(loan_lead: Document) -> dict:
 
 
 def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe._dict | None:
-	# Read without permissions: a lead the user cannot see still rejected the applicant.
 	identity = get_applicant_identity(loan_lead)
 	if not identity:
 		return None
 
 	filters = {
 		"rejected_on": (">", add_days(now_datetime(), -cooling_period_days)),
-		# Cancelling does not run validate, so rejected_on outlives the cancelled document.
 		"docstatus": ("!=", 2),
 	}
 
-	# `!= NULL` is never true in SQL, so an unsaved lead's empty name would match nothing.
 	if loan_lead.name:
 		filters["name"] = ("!=", loan_lead.name)
 
@@ -423,10 +439,12 @@ def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe.
 # A workflow task, called as method(doc). Not whitelisted: over HTTP loan_lead would
 # arrive as a name rather than the document this reads fields off.
 def convert_to_loan_application(loan_lead: Document):
+	loan_lead.check_permission("read")
 	frappe.has_permission("Loan Application", "create", throw=True)
 	validate_otp_verification(loan_lead)
 
 	loan_application = frappe.new_doc("Loan Application")
+	loan_application.loan_lead = loan_lead.name
 	loan_application.applicant_email_address = loan_lead.email
 	loan_application.applicant_name = loan_lead.applicant_name
 	loan_application.applicant_phone_number = loan_lead.mobile_number

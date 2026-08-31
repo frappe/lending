@@ -8,16 +8,14 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 from lending.loan_origination.doctype.loan_lead.loan_lead import (
+	assert_called_from_a_rule,
 	get_applicant_identity,
 	get_contact_identity,
 	resolve_lead,
 )
 
-# Off as shipped, and only reached by the no-script path: the Server Script that runs the
-# rule carries the limit a site actually sets.
 DEFAULT_MAXIMUM_LIVE_LOANS = 0
 
-# Committed, whether or not the money has gone out.
 LIVE_LOAN_STATUSES = (
 	"Sanctioned",
 	"Partially Disbursed",
@@ -41,6 +39,8 @@ def run_live_loan_limit_task(loan_lead: Document):
 def validate_live_loan_limit(
 	loan_lead: Document | str, maximum_live_loans: int | str | None = None
 ):
+	assert_called_from_a_rule()
+
 	loan_lead = resolve_lead(loan_lead, "write")
 	check_loan_book_permission()
 	maximum_live_loans = cint(maximum_live_loans)
@@ -92,7 +92,6 @@ def get_matching_customers(loan_lead: Document) -> list[str]:
 	if not identity:
 		return []
 
-	# Read without permissions; OR-matched, each identity field identifies the applicant.
 	return frappe.db.get_all("Customer", or_filters=identity, pluck="name")
 
 
@@ -101,8 +100,6 @@ def get_customer_identity(loan_lead: Document) -> dict:
 	if identity:
 		return identity
 
-	# Nothing translated means PAN with no Customer field to hold it (an India Compliance
-	# custom field), so fall back to contact details.
 	return translate_identity_to_customer(get_contact_identity(loan_lead))
 
 

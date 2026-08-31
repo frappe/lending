@@ -54,3 +54,5 @@ lending.patches.v16_0.remove_loan_lead_otp_fields
 lending.patches.v16_0.set_rejected_on_for_rejected_loan_leads
 lending.patches.v16_0.remove_cooling_period_setting
 lending.patches.v16_0.make_loan_lead_rules_customizable
+lending.patches.v16_0.add_adverse_action_reasons
+lending.patches.v16_0.backfill_recommended_terms_on_loan_application

@@ -54,7 +54,17 @@ fixtures = [
 	},
 	{
 		"dt": "Workflow Transition Tasks",
-		"filters": [["name", "in", ("Loan Lead Basic Rules",)]],
+		"filters": [
+			[
+				"name",
+				"in",
+				(
+					"Loan Lead Basic Rules",
+					"Loan Lead Pre-Qualification Rules",
+					"Loan Lead Knockout Rules",
+				),
+			]
+		],
 	},
 ]
 
@@ -308,7 +318,6 @@ ignore_links_on_delete = [
 # 	"lending.auth.validate"
 # ]
 
-# Tasks are called as method(doc) and need no @frappe.whitelist(), unlike Server Scripts.
 workflow_methods = [
 	{
 		"name": "Convert to Loan Application",
@@ -321,5 +330,13 @@ workflow_methods = [
 	{
 		"name": "Validate Live Loan Limit",
 		"method": "lending.loan_origination.doctype.loan_lead.applicant_exposure.run_live_loan_limit_task"
+	},
+	{
+		"name": "Run Pre-Qualification Rules",
+		"method": "lending.loan_origination.decisioning.run_pre_qualification_rules"
+	},
+	{
+		"name": "Run Knockout Rules",
+		"method": "lending.loan_origination.decisioning.run_knockout_rules"
 	}
 ]

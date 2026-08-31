@@ -1,5 +1,4 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
-# See license.txt
 
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -98,7 +97,6 @@ class TestApplicantExposureIdentity(LendingTestSuite):
 
 class TestApplicantExposureWhichLoansCount(LendingTestSuite):
 	def test_every_committed_status_is_live(self):
-		# Spelled out, not read from LIVE_LOAN_STATUSES, so a missing status is noticed.
 		committed = (
 			"Sanctioned",
 			"Partially Disbursed",
@@ -199,11 +197,6 @@ def make_lead(email, mobile_number, pan=None, applicant_country=None):
 
 
 def customer_carries_pan() -> bool:
-	"""PAN on Customer is an India Compliance custom field, so it is not always there.
-
-	Without it the app identifies the applicant by contact details instead, which is a
-	different rule -- the tests that are about PAN skip rather than assert the fallback.
-	"""
 	return frappe.get_meta("Customer").has_field(CUSTOMER_PAN_FIELD)
 
 
@@ -211,10 +204,8 @@ def make_customer(customer_name, email=None, mobile=None, pan=None):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
 
-	# email_id and mobile_no are fetched from the primary contact, so save() would blank them.
 	values = {"email_id": email, "mobile_no": mobile}
 
-	# Writing a column the site does not have would error, so pan only goes in where it exists.
 	if customer_carries_pan():
 		values[CUSTOMER_PAN_FIELD] = pan
 
@@ -286,8 +277,6 @@ class TestApplicantExposureLiveLoanLimit(LendingTestSuite):
 
 class TestApplicantExposureIsNotReachableOverHTTP(LendingTestSuite):
 	def test_nothing_that_returns_the_loan_book_is_whitelisted(self):
-		# These hand back figures. Whitelisting them would put the loan book behind a lead
-		# the caller can create; only the rule that throws is reachable, and it is gated.
 		for method in (
 			get_live_loan_count,
 			get_matching_customers,
@@ -316,8 +305,6 @@ class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
 		self.assertRaises(frappe.PermissionError, validate_live_loan_limit, lead.name, 1)
 
 	def test_write_on_the_lead_alone_does_not_open_the_loan_book(self):
-		# The leak the whitelist has to not reopen: a caller who can create a lead must
-		# not be able to name any identity and probe it for live loans.
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
 
 		with only_loan_reads_denied():
@@ -326,10 +313,51 @@ class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
 
 @contextmanager
 def only_loan_reads_denied():
-	"""Deny read on Loan, leaving every other permission alone."""
-
 	def has_permission(doctype, ptype="read", *args, **kwargs):
 		return not (doctype == "Loan" and ptype == "read")
 
 	with patch.object(frappe.permissions, "has_permission", side_effect=has_permission):
 		yield
+
+
+@contextmanager
+def as_a_direct_api_call():
+	"""An HTTP request with no Server Script above it, which is what a caller reaching
+	/api/method themselves looks like.
+	"""
+	previous_request = getattr(frappe.local, "request", None)
+	previous_flag = frappe.flags.in_safe_exec
+
+	frappe.local.request = frappe._dict(method="POST")
+	frappe.flags.in_safe_exec = 0
+
+	try:
+		yield
+	finally:
+		frappe.local.request = previous_request
+		frappe.flags.in_safe_exec = previous_flag
+
+
+@contextmanager
+def as_a_workflow_task():
+	"""The same request, with a Workflow Task Server Script running the rule."""
+	with as_a_direct_api_call():
+		frappe.flags.in_safe_exec = 1
+		yield
+
+
+class TestTheLiveLoanRuleIsNotAPlainEndpoint(LendingTestSuite):
+	def test_a_direct_api_call_is_refused(self):
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		with as_a_direct_api_call(), self.assertRaises(frappe.PermissionError):
+			validate_live_loan_limit(lead.name, 1)
+
+	def test_the_workflow_task_still_reaches_it(self):
+		customer = make_customer("_Test Exposure Rule Path", email=EMAIL)
+		make_live_loan(customer, "Disbursed")
+
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		with as_a_workflow_task(), self.assertRaises(frappe.ValidationError):
+			validate_live_loan_limit(lead.name, 1)

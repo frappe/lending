@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:scorecard_name",
+ "creation": "2026-08-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "scorecard_name",
+  "loan_product",
+  "column_break_config",
+  "base_score",
+  "attributes_section",
+  "attributes",
+  "grade_bands_section",
+  "grade_bands"
+ ],
+ "fields": [
+  {
+   "fieldname": "scorecard_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Scorecard Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Leave blank to apply this scorecard to every loan product.",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fieldname": "column_break_config",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Every applicant starts here. Attribute points are added on top.",
+   "fieldname": "base_score",
+   "fieldtype": "Int",
+   "label": "Base Score"
+  },
+  {
+   "fieldname": "attributes_section",
+   "fieldtype": "Section Break",
+   "label": "Attributes"
+  },
+  {
+   "fieldname": "attributes",
+   "fieldtype": "Table",
+   "label": "Attributes",
+   "options": "Scorecard Attribute",
+   "reqd": 1
+  },
+  {
+   "fieldname": "grade_bands_section",
+   "fieldtype": "Section Break",
+   "label": "Grade Bands"
+  },
+  {
+   "fieldname": "grade_bands",
+   "fieldtype": "Table",
+   "label": "Grade Bands",
+   "options": "Scorecard Grade Band",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Scorecard",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Underwriter",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "scorecard_name"
+}

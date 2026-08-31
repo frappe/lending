@@ -304,17 +304,13 @@ def after_install():
 	create_custom_fields(LOAN_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter_for_journal_entry()
 	add_server_scripts()
+	add_adverse_action_reasons()
 
 
 def before_uninstall():
 	delete_custom_fields(LOAN_CUSTOM_FIELDS)
 
 
-# The Loan Lead basic rules, shipped as Server Scripts so a site can edit the rule
-# itself -- change the number, add a condition, drop it entirely -- without forking the
-# app. The two that call into Python keep the logic there, where it is tested; the script
-# is the thin, editable bit. A number set on Loan Product still overrides what the script
-# passes, so a site that only wants a different limit does not have to touch the script.
 # The one place the age condition is written. The patch that guards an older, unguarded
 # copy of this script replaces its condition with this one, so the two cannot drift.
 GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
@@ -350,11 +346,6 @@ frappe.call(
 
 
 def add_server_scripts():
-	"""Create any shipped rule script a site does not have yet.
-
-	Idempotent, and never touches a script that already exists: once a site has edited
-	the rule, its copy wins. Safe to call from install and from a patch.
-	"""
 	for name, script in LOAN_LEAD_RULE_SCRIPTS.items():
 		if frappe.db.exists("Server Script", name):
 			continue
@@ -364,6 +355,31 @@ def add_server_scripts():
 		doc.script_type = "Workflow Task"
 		doc.script = script
 		doc.save(ignore_permissions=True)
+
+
+ADVERSE_ACTION_REASONS = {
+	"LOW_BUREAU_SCORE": "Credit bureau score is below the minimum for this product.",
+	"NO_CREDIT_HISTORY": "No credit bureau record was found for this applicant.",
+	"INSUFFICIENT_INCOME": "Income is too low for the amount requested.",
+	"EXCESSIVE_OBLIGATIONS": "Monthly obligations are too high against income.",
+	"AGE_OUT_OF_RANGE": "Applicant's age is outside the range for this product.",
+	"EMPLOYMENT_NOT_ELIGIBLE": "Employment type is not eligible for this product.",
+	"LOAN_AMOUNT_TOO_HIGH": "Requested amount is above the limit for this applicant.",
+	"TENURE_NOT_ELIGIBLE": "Requested tenure is outside the range for this product.",
+	"INSUFFICIENT_SECURITY": "Security offered does not cover the amount requested.",
+	"INCOMPLETE_INFORMATION": "Information needed to assess this application was not provided.",
+}
+
+
+def add_adverse_action_reasons():
+	for reason_code, description in ADVERSE_ACTION_REASONS.items():
+		if frappe.db.exists("Adverse Action Reason", reason_code):
+			continue
+
+		doc = frappe.new_doc("Adverse Action Reason")
+		doc.reason_code = reason_code
+		doc.description = description
+		doc.insert(ignore_permissions=True)
 
 
 def delete_custom_fields(custom_fields):

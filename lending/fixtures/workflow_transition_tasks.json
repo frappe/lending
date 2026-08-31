@@ -24,5 +24,33 @@
     "task": "Server Script"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Transition Tasks",
+  "modified": "2026-08-25 12:00:00.000000",
+  "name": "Loan Lead Pre-Qualification Rules",
+  "tasks": [
+   {
+    "asynchronous": 0,
+    "enabled": 1,
+    "link": null,
+    "task": "Run Pre-Qualification Rules"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Transition Tasks",
+  "modified": "2026-08-25 12:00:00.000000",
+  "name": "Loan Lead Knockout Rules",
+  "tasks": [
+   {
+    "asynchronous": 0,
+    "enabled": 1,
+    "link": null,
+    "task": "Run Knockout Rules"
+   }
+  ]
  }
 ]
