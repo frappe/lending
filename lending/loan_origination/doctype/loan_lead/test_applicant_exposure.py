@@ -10,11 +10,9 @@ import frappe.permissions
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_origination.doctype.loan_lead.applicant_exposure import (
-	ADVERSE_LOAN_STATUSES,
 	CUSTOMER_FIELD_BY_LEAD_FIELD,
 	DEFAULT_MAXIMUM_LIVE_LOANS,
 	LIVE_LOAN_STATUSES,
-	get_applicant_exposure,
 	get_live_loan_count,
 	get_matching_customers,
 	run_live_loan_limit_task,
@@ -86,17 +84,16 @@ class TestApplicantExposureIdentity(LendingTestSuite):
 		self.assertEqual(get_matching_customers(lead), [])
 		self.assertEqual(get_live_loan_count(lead), 0)
 
-	def test_exposure_is_added_up_across_every_matching_customer(self):
+	def test_loans_are_counted_across_every_matching_customer(self):
 		by_email = make_customer("_Test Exposure Split A", email=EMAIL, mobile=OTHER_MOBILE)
 		by_mobile = make_customer("_Test Exposure Split B", email=OTHER_EMAIL, mobile=MOBILE)
 		make_live_loan(by_email, "Disbursed")
 		make_live_loan(by_mobile, "Disbursed")
 
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
-		exposure = get_applicant_exposure(lead)
 
-		self.assertCountEqual(exposure["matched_customers"], [by_email, by_mobile])
-		self.assertEqual(exposure["live_loan_count"], 2)
+		self.assertCountEqual(get_matching_customers(lead), [by_email, by_mobile])
+		self.assertEqual(get_live_loan_count(lead), 2)
 
 
 class TestApplicantExposureWhichLoansCount(LendingTestSuite):
@@ -119,19 +116,14 @@ class TestApplicantExposureWhichLoansCount(LendingTestSuite):
 
 		self.assertEqual(get_live_loan_count(lead), len(committed))
 
-	def test_a_finished_loan_is_reported_as_history_and_not_as_live(self):
-		adverse = ("Written Off", "Settled")
-		self.assertCountEqual(ADVERSE_LOAN_STATUSES, adverse)
-
+	def test_a_finished_loan_is_not_live(self):
 		customer = make_customer("_Test Exposure Finished", email=EMAIL)
-		for status in adverse:
+		for status in ("Written Off", "Settled", "Closed"):
 			make_live_loan(customer, status)
-		make_live_loan(customer, "Closed")
 
-		exposure = get_applicant_exposure(make_lead(email=EMAIL, mobile_number=MOBILE))
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
 
-		self.assertEqual(exposure["live_loan_count"], 0)
-		self.assertEqual(exposure["adverse_loan_count"], len(adverse))
+		self.assertEqual(get_live_loan_count(lead), 0)
 
 	def test_a_loan_that_was_never_submitted_is_not_counted(self):
 		customer = make_customer("_Test Exposure Draft", email=EMAIL)
@@ -161,58 +153,8 @@ class TestApplicantExposureWhichLoansCount(LendingTestSuite):
 		self.assertEqual(get_live_loan_count(make_lead(email=EMAIL, mobile_number=MOBILE)), 0)
 
 
-class TestApplicantExposureFigures(LendingTestSuite):
-	def test_outstanding_is_the_principal_left_on_the_loan(self):
-		customer = make_customer("_Test Exposure Outstanding", email=EMAIL)
-		# 600000 - 100000 (unearned interest) - 150000 (repaid)
-		make_live_loan(
-			customer, "Disbursed", loan_amount=500000, total_payment=600000,
-			total_interest_payable=100000, total_principal_paid=150000,
-		)
-
-		exposure = get_applicant_exposure(make_lead(email=EMAIL, mobile_number=MOBILE))
-
-		self.assertEqual(exposure["total_sanctioned"], 500000)
-		self.assertEqual(exposure["total_outstanding"], 350000)
-
-	def test_an_overpaid_loan_does_not_cancel_out_a_loan_that_is_owed(self):
-		customer = make_customer("_Test Exposure Overpaid", email=EMAIL)
-		make_live_loan(
-			customer, "Disbursed", total_payment=100000, total_interest_payable=0,
-			total_principal_paid=100000 + 40000,   # overpaid by 40000
-		)
-		make_live_loan(
-			customer, "Active", total_payment=200000, total_interest_payable=0,
-			total_principal_paid=50000,            # 150000 genuinely owed
-		)
-
-		exposure = get_applicant_exposure(make_lead(email=EMAIL, mobile_number=MOBILE))
-
-		self.assertEqual(exposure["total_outstanding"], 150000)
-
-	def test_the_worst_arrears_and_every_npa_are_reported(self):
-		customer = make_customer("_Test Exposure Arrears", email=EMAIL)
-		make_live_loan(customer, "Active", days_past_due=12)
-		make_live_loan(customer, "Active", days_past_due=97, is_npa=1)
-		make_live_loan(customer, "Disbursed", days_past_due=0)
-
-		exposure = get_applicant_exposure(make_lead(email=EMAIL, mobile_number=MOBILE))
-
-		self.assertEqual(exposure["max_days_past_due"], 97)
-		self.assertEqual(exposure["npa_count"], 1)
-
-	def test_an_applicant_with_no_history_reports_zeroes(self):
-		exposure = get_applicant_exposure(make_lead(email=EMAIL, mobile_number=MOBILE))
-
-		self.assertEqual(exposure["live_loan_count"], 0)
-		self.assertEqual(exposure["total_sanctioned"], 0)
-		self.assertEqual(exposure["total_outstanding"], 0)
-		self.assertEqual(exposure["max_days_past_due"], 0)
-		self.assertEqual(exposure["npa_count"], 0)
-		self.assertEqual(exposure["adverse_loan_count"], 0)
-		self.assertEqual(exposure["matched_customers"], [])
-
-	def test_the_count_is_reported_on_its_own_for_a_rule_to_read(self):
+class TestApplicantExposureCount(LendingTestSuite):
+	def test_the_count_is_reported_for_a_rule_to_read(self):
 		customer = make_customer("_Test Exposure Count", email=EMAIL)
 		make_live_loan(customer, "Disbursed")
 		make_live_loan(customer, "Active")
@@ -222,6 +164,11 @@ class TestApplicantExposureFigures(LendingTestSuite):
 		self.assertEqual(get_live_loan_count(lead), 2)
 		self.assertEqual(get_live_loan_count(lead.name), 2)
 
+	def test_an_applicant_with_no_history_counts_zero(self):
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		self.assertEqual(get_live_loan_count(lead), 0)
+
 
 class TestApplicantExposurePermissions(LendingTestSuite):
 	def test_a_caller_who_cannot_read_the_lead_is_told_nothing(self):
@@ -230,7 +177,7 @@ class TestApplicantExposurePermissions(LendingTestSuite):
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
 
-		self.assertRaises(frappe.PermissionError, get_applicant_exposure, lead.name)
+		self.assertRaises(frappe.PermissionError, get_live_loan_count, lead.name)
 
 
 def make_lead(email, mobile_number, pan=None, applicant_country=None):
@@ -276,32 +223,11 @@ def make_customer(customer_name, email=None, mobile=None, pan=None):
 	return customer_name
 
 
-def make_live_loan(
-	applicant,
-	status,
-	loan_amount=100000,
-	total_payment=0,
-	total_interest_payable=0,
-	total_principal_paid=0,
-	days_past_due=0,
-	is_npa=0,
-):
+def make_live_loan(applicant, status, loan_amount=100000):
 	loan = create_loan(applicant, LOAN_PRODUCT, loan_amount, "Repay Over Number of Periods", 12)
 	loan.submit()
 
-	frappe.db.set_value(
-		"Loan",
-		loan.name,
-		{
-			"status": status,
-			"total_payment": total_payment,
-			"total_interest_payable": total_interest_payable,
-			"total_principal_paid": total_principal_paid,
-			"days_past_due": days_past_due,
-			"is_npa": is_npa,
-		},
-		update_modified=False,
-	)
+	frappe.db.set_value("Loan", loan.name, "status", status, update_modified=False)
 
 	return loan.name
 
@@ -363,8 +289,8 @@ class TestApplicantExposureIsNotReachableOverHTTP(LendingTestSuite):
 		# These hand back figures. Whitelisting them would put the loan book behind a lead
 		# the caller can create; only the rule that throws is reachable, and it is gated.
 		for method in (
-			get_applicant_exposure,
 			get_live_loan_count,
+			get_matching_customers,
 			run_live_loan_limit_task,
 		):
 			self.assertNotIn(method, frappe.whitelisted, f"{method.__name__} is whitelisted")

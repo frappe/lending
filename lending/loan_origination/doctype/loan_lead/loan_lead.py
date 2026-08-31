@@ -21,16 +21,23 @@ OTP_VERIFY_LIMIT = 60
 BULK_OTP_SEND_LIMIT = 5
 OTP_RATE_LIMIT_WINDOW = 60 * 60
 
+# The one table describing a medium: the lead fields it uses, the Loan Origination
+# Settings switch that turns it on, and the TP OTP Settings switch it is delivered
+# through. Loan Origination Settings validates against the last of these.
 OTP_MEDIUM_FIELD_MAP = {
 	"Email": {
 		"recipient_field": "email",
 		"status_field": "email_verification_status",
 		"enable_field": "otp_for_email",
+		"telephony_field": "enable_email_otp",
+		"telephony_label": "Email OTP",
 	},
 	"SMS": {
 		"recipient_field": "mobile_number",
 		"status_field": "mobile_verification_status",
 		"enable_field": "otp_for_sms",
+		"telephony_field": "enabled",
+		"telephony_label": "SMS",
 	},
 }
 
@@ -138,22 +145,12 @@ def verify_otp(loan_lead: str, medium: str, otp: str):
 
 
 def mark_otp_status(doc: Document, fields: dict, recipient: str, status: str):
-	# The Telephony call can run long enough for the lead to be edited in the meantime, so
-	# the write is filtered on the recipient as well as the name. One atomic UPDATE...WHERE
-	# leaves no read of the current recipient for a concurrent commit to slip past, so a
-	# status earned by the recipient loaded before that call can never land on whatever the
-	# field holds once it returns.
 	frappe.db.set_value(
 		"Loan Lead",
 		{"name": doc.name, fields["recipient_field"]: recipient},
 		fields["status_field"],
 		status,
 	)
-
-	# Whether that matched a row is read back on the same terms. Reading the status alone
-	# cannot tell our own write apart from one a concurrent request made for a replacement
-	# recipient, so a caller whose update matched nothing would still be told the recipient
-	# it loaded was marked.
 	marked = frappe.db.get_value(
 		"Loan Lead",
 		{
@@ -189,10 +186,6 @@ def bulk_send_otp(loan_leads: list[str] | str, medium: str):
 			_("Cannot send an OTP to more than {0} leads at a time.").format(MAX_BULK_OTP_LEADS)
 		)
 
-	# One OTP per lead, order kept. Initiated does not block a resend, so a name repeated
-	# down the list would reach Telephony once per copy -- one request becomes a burst at
-	# a single recipient. The list view only ever sends distinct names; a direct caller
-	# need not.
 	loan_leads = list(dict.fromkeys(loan_leads))
 
 	sent, failed = [], []
@@ -305,6 +298,20 @@ def validate_otp_verification(loan_lead: Document):
 		)
 
 
+def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
+	"""Coerce a lead name to a document and check the caller may act on it.
+
+	The rules read other applicants' records without permissions, so this check is what
+	stops a caller using a rule as a lookup on any identity they name.
+	"""
+	if isinstance(loan_lead, str):
+		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
+
+	loan_lead.check_permission(ptype)
+
+	return loan_lead
+
+
 def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
@@ -315,13 +322,7 @@ def run_cooling_period_task(loan_lead: Document):
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
 ):
-	if isinstance(loan_lead, str):
-		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
-
-	# Write, not read: the rule gates taking the lead forward, and it answers a question
-	# about the applicant's other records. A caller who cannot act on the lead must not be
-	# able to use it as a lookup on any identity they name.
-	loan_lead.check_permission("write")
+	loan_lead = resolve_lead(loan_lead, "write")
 
 	cooling_period_days = cint(get_product_cooling_period(loan_lead) or cooling_period_days)
 	if cooling_period_days <= 0:

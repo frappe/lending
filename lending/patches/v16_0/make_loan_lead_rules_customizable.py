@@ -1,10 +1,10 @@
 import frappe
 
-from lending.install import add_server_scripts
+from lending.install import GUARDED_AGE_CONDITION, add_server_scripts
 
-# Only this line is rewritten, so a site's own edits to the rule survive.
+# Only this line is rewritten, so a site's own edits to the rule survive. What replaces it
+# is the condition install.py ships, imported rather than repeated.
 UNGUARDED_AGE_CONDITION = "if doc.age < 18:"
-GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
 
 # An earlier build of this release moved the cooling period and live loan limit rules out
 # of applicant_exposure, and for a while ran them as workflow_methods with no script in
