@@ -12,6 +12,10 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	init_amounts,
 	post_bulk_payments,
 )
+from lending.loan_management.doctype.loan_write_off.loan_write_off import (
+	get_write_off_recovery_details,
+	get_write_off_waivers,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -1108,8 +1112,6 @@ class TestLoanRepayment(LendingTestSuite):
 			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
 		)
 
-		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
-
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
 		)
@@ -1127,12 +1129,23 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 		sales_invoice.submit()
 
-		# Overpay beyond principal so any waived interest/penalty is cleared
-		# too, leaving nothing to block the invoiced charge from being paid.
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", 102000, repayment_type="Write Off Recovery")
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		charge_amount = 750
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		waivers = get_write_off_waivers(loan.name, "2024-12-31")
+		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		pay_amount = (
+			flt(amounts.get("pending_principal_amount"))
+			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+		)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
 		repayment_entry.submit()
 
-		self.assertEqual(repayment_entry.total_charges_paid, 750)
+		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
 
 		payment_account_debit = frappe.get_all(
 			"GL Entry",
@@ -1186,10 +1199,21 @@ class TestLoanRepayment(LendingTestSuite):
 
 		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", 102000, repayment_type="Write Off Recovery")
+		charge_amount = 750
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		waivers = get_write_off_waivers(loan.name, "2024-12-31")
+		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		pay_amount = (
+			flt(amounts.get("pending_principal_amount"))
+			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+		)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
 		repayment_entry.submit()
 
-		self.assertEqual(repayment_entry.total_charges_paid, 750)
+		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
 		self.assertFalse(
 			any(d.demand_type == "Charges" for d in repayment_entry.repayment_details)
 		)
