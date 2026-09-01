@@ -2269,7 +2269,16 @@ class LoanRepayment(LoanController):
 				is_waiver_entry=is_waiver_entry,
 			)
 
-		if flt(self.total_charges_paid, precision) > 0 and self.repayment_type in (
+		charges_paid_with_sales_invoice = sum(
+			flt(r.paid_amount)
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
+		)
+		charges_paid_without_sales_invoice = flt(self.total_charges_paid, precision) - flt(
+			charges_paid_with_sales_invoice, precision
+		)
+
+		if charges_paid_without_sales_invoice > 0 and self.repayment_type in (
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
@@ -2277,7 +2286,7 @@ class LoanRepayment(LoanController):
 			if not against_account:
 				frappe.throw(_("Write Off Recovery Account is mandatory"))
 
-			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
+			self.add_gl_entry(self.payment_account, against_account, charges_paid_without_sales_invoice, gle_map)
 
 		charge_invoices = [
 			r.sales_invoice
