@@ -2270,7 +2270,9 @@ class LoanRepayment(LoanController):
 			)
 
 		charges_paid_with_sales_invoice = sum(
-			flt(r.paid_amount) for r in self.get("repayment_details") if r.demand_type == "Charges"
+			flt(r.paid_amount)
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
 		)
 		charges_paid_without_sales_invoice = flt(self.total_charges_paid, precision) - flt(
 			charges_paid_with_sales_invoice, precision
