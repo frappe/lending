@@ -1088,6 +1088,7 @@ class TestLoanRepayment(LendingTestSuite):
 		self.assertEqual(loan.status, "Written Off")
 
 	def test_write_off_recovery_with_charges(self):
+		"""Charge with its own sales invoice is paid off without debiting the payment account twice."""
 		set_loan_accrual_frequency("Daily")
 
 		loan = create_loan(
@@ -1138,6 +1139,66 @@ class TestLoanRepayment(LendingTestSuite):
 		repayment_entry.submit()
 
 		self.assertEqual(repayment_entry.total_charges_paid, 750)
+
+		payment_account_debit = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+				"account": repayment_entry.payment_account,
+				"is_cancelled": 0,
+			},
+			pluck="debit",
+		)
+		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
+
+	def test_write_off_recovery_with_waived_charges(self):
+		"""Charge waived at write-off time is paid back with no sales invoice involved."""
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-31",
+				"value_date": "2024-12-31",
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
+			}
+		)
+		sales_invoice.submit()
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", 102000, repayment_type="Write Off Recovery")
+		repayment_entry.submit()
+
+		self.assertEqual(repayment_entry.total_charges_paid, 750)
+		self.assertFalse(
+			any(d.demand_type == "Charges" for d in repayment_entry.repayment_details)
+		)
 
 		payment_account_debit = frappe.get_all(
 			"GL Entry",
