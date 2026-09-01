@@ -1027,11 +1027,12 @@ class LoanRepayment(LoanController):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
 	def validate_amount(self, amounts):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
 
 		if self.repayment_type == "Normal Repayment":
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
 			validate_repayment = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "validate_normal_repayment"
 			)
@@ -1049,7 +1050,6 @@ class LoanRepayment(LoanController):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
 			payable_amount = self.get_waiver_amount(amounts)
 
 			if flt(self.amount_paid, precision) > flt(payable_amount, precision):
