@@ -1127,15 +1127,9 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 		sales_invoice.submit()
 
-		amounts = calculate_amounts(loan.name, "2024-12-31", payment_type="Write Off Recovery")
-		pay_amount = (
-			flt(amounts.get("pending_principal_amount"))
-			+ flt(amounts.get("interest_amount"))
-			+ flt(amounts.get("penalty_amount"))
-			+ flt(amounts.get("total_charges_payable"))
-		)
-
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		# Overpay beyond principal so any waived interest/penalty is cleared
+		# too, leaving nothing to block the invoiced charge from being paid.
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", 102000, repayment_type="Write Off Recovery")
 		repayment_entry.submit()
 
 		self.assertEqual(repayment_entry.total_charges_paid, 750)
