@@ -958,7 +958,6 @@ class LoanRepayment(LoanController):
 				)
 
 	def validate_repayment_type(self):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
 		if loan_status == "Closed" and self.repayment_type not in [
@@ -1023,12 +1022,6 @@ class LoanRepayment(LoanController):
 				and not self.is_write_off_waiver
 			):
 				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
-		elif self.repayment_type == "Normal Repayment":
-			validate_repayment = frappe.get_cached_value(
-				"Loan Product", self.loan_product, "validate_normal_repayment"
-			)
-			if validate_repayment and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 		elif loan_status != "Settled":
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
@@ -1036,6 +1029,16 @@ class LoanRepayment(LoanController):
 	def validate_amount(self, amounts):
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
+
+		if self.repayment_type == "Normal Repayment":
+			precision = cint(frappe.db.get_default("currency_precision")) or 2
+			validate_repayment = frappe.get_cached_value(
+				"Loan Product", self.loan_product, "validate_normal_repayment"
+			)
+			if validate_repayment and flt(self.amount_paid, precision) > flt(
+				amounts.get("payable_amount"), precision
+			):
+				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 
 		if self.repayment_type == "Loan Closure":
 			auto_write_off_amount = frappe.get_cached_value(
