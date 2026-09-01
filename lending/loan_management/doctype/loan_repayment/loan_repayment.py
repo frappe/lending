@@ -2300,7 +2300,9 @@ class LoanRepayment(AccountsController):
 			if not against_account:
 				frappe.throw(_("Write Off Recovery Account is mandatory"))
 
-			self.add_gl_entry(self.payment_account, against_account, charges_paid_without_sales_invoice, gle_map)
+			self.add_gl_entry(
+				self.payment_account, against_account, charges_paid_without_sales_invoice, gle_map
+			)
 
 		charge_invoices = [
 			r.sales_invoice

@@ -1102,16 +1102,23 @@ class TestLoanRepayment(FrappeTestCase):
 		charge_amount = 750
 		waivers = get_write_off_waivers(loan.name, "2024-12-31")
 		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery"
+		)
 		pay_amount = (
 			flt(amounts.get("pending_principal_amount"))
-			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
-			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
-			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+			+ flt(waivers.get("Interest Waiver"))
+			- flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver"))
+			- flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver"))
+			- flt(recovery.get("total_charges"))
 			+ flt(amounts.get("total_charges_payable"))
 		)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery"
+		)
 		repayment_entry.submit()
 
 		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
@@ -1171,21 +1178,26 @@ class TestLoanRepayment(FrappeTestCase):
 		charge_amount = 750
 		waivers = get_write_off_waivers(loan.name, "2024-12-31")
 		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery"
+		)
 		pay_amount = (
 			flt(amounts.get("pending_principal_amount"))
-			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
-			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
-			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+			+ flt(waivers.get("Interest Waiver"))
+			- flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver"))
+			- flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver"))
+			- flt(recovery.get("total_charges"))
 		)
 
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery"
+		)
 		repayment_entry.submit()
 
 		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
-		self.assertFalse(
-			any(d.demand_type == "Charges" for d in repayment_entry.repayment_details)
-		)
+		self.assertFalse(any(d.demand_type == "Charges" for d in repayment_entry.repayment_details))
 
 		payment_account_debit = frappe.get_all(
 			"GL Entry",
