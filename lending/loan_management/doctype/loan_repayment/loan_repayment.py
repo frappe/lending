@@ -958,6 +958,7 @@ class LoanRepayment(LoanController):
 				)
 
 	def validate_repayment_type(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
 		loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 
 		if loan_status == "Closed" and self.repayment_type not in [
@@ -1026,7 +1027,7 @@ class LoanRepayment(LoanController):
 			validate_repayment = frappe.get_cached_value(
 				"Loan Product", self.loan_product, "validate_normal_repayment"
 			)
-			if validate_repayment and self.amount_paid > self.payable_amount:
+			if validate_repayment and flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
 				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 		elif loan_status != "Settled":
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
