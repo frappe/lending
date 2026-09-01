@@ -2179,3 +2179,44 @@ class TestLoanRepayment(LendingTestSuite):
 
 		date_map = get_last_demand_date_map([loan.name], due_date)
 		self.assertEqual(date_map.get(loan.name), get_last_demand_date(due_date, loan=loan.name))
+
+	def test_normal_repayment_with_validate_normal_repayment(self):
+		posting_date = get_datetime("2024-04-18")
+		repayment_start_date = get_datetime("2024-05-05")
+
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			4,
+			applicant_type="Customer",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
+			rate_of_interest=10,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date=posting_date,
+			repayment_start_date=repayment_start_date,
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date=add_months(posting_date, 1), company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date=repayment_start_date)
+
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "validate_normal_repayment", 1)
+		self.addCleanup(
+			lambda: frappe.db.set_value("Loan Product", "Term Loan Product 4", "validate_normal_repayment", 0)
+		)
+
+		payable_amount = calculate_amounts(loan.name, repayment_start_date)["payable_amount"]
+
+		repayment = create_repayment_entry(
+			loan=loan.name, value_date=repayment_start_date, paid_amount=payable_amount
+		)
+		repayment.submit()
+
+		self.assertEqual(repayment.docstatus, 1)
