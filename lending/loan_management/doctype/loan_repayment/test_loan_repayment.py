@@ -1058,7 +1058,7 @@ class TestLoanRepayment(FrappeTestCase):
 		self.assertEqual(loan.status, "Written Off")
 
 	def test_write_off_recovery_with_charges(self):
-		"""Charge with its own sales invoice is paid off without debiting the payment account twice."""
+		"""Charge raised after write-off stays as an ordinary outstanding invoice, paid off along with principal and interest."""
 		set_loan_accrual_frequency("Daily")
 
 		loan = create_loan(
@@ -1082,6 +1082,10 @@ class TestLoanRepayment(FrappeTestCase):
 			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
 		)
 
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		# Charge raised after write-off is never part of the write-off
+		# waiver, so it stays as an ordinary outstanding sales invoice.
 		sales_invoice = frappe.get_doc(
 			{
 				"doctype": "Sales Invoice",
@@ -1095,17 +1099,16 @@ class TestLoanRepayment(FrappeTestCase):
 		)
 		sales_invoice.submit()
 
-		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
-
 		charge_amount = 750
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
 		waivers = get_write_off_waivers(loan.name, "2024-12-31")
 		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
 		pay_amount = (
 			flt(amounts.get("pending_principal_amount"))
 			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
 			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
 			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+			+ flt(amounts.get("total_charges_payable"))
 		)
 
 		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
@@ -1126,7 +1129,7 @@ class TestLoanRepayment(FrappeTestCase):
 		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
 
 	def test_write_off_recovery_with_waived_charges(self):
-		"""Charge waived at write-off time is paid back with no sales invoice involved."""
+		"""Charge raised before write-off is waived automatically, paid back with no invoice or repayment_details row."""
 		set_loan_accrual_frequency("Daily")
 
 		loan = create_loan(
@@ -1166,9 +1169,9 @@ class TestLoanRepayment(FrappeTestCase):
 		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
 
 		charge_amount = 750
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
 		waivers = get_write_off_waivers(loan.name, "2024-12-31")
 		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
 		pay_amount = (
 			flt(amounts.get("pending_principal_amount"))
 			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
