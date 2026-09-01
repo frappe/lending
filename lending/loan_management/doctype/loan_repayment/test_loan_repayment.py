@@ -1087,6 +1087,70 @@ class TestLoanRepayment(LendingTestSuite):
 		self.assertEqual(loan.total_principal_paid, 0)
 		self.assertEqual(loan.status, "Written Off")
 
+	def test_write_off_recovery_with_charges(self):
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-31",
+				"value_date": "2024-12-31",
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
+			}
+		)
+		sales_invoice.submit()
+
+		amounts = calculate_amounts(loan.name, "2024-12-31", payment_type="Write Off Recovery")
+		pay_amount = (
+			flt(amounts.get("pending_principal_amount"))
+			+ flt(amounts.get("interest_amount"))
+			+ flt(amounts.get("penalty_amount"))
+			+ flt(amounts.get("total_charges_payable"))
+		)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		repayment_entry.submit()
+
+		self.assertEqual(repayment_entry.total_charges_paid, 750)
+
+		payment_account_debit = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+				"account": repayment_entry.payment_account,
+				"is_cancelled": 0,
+			},
+			pluck="debit",
+		)
+		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
+
 	def test_pre_payment_with_partial_unbooked_interest(self):
 		set_loan_accrual_frequency("Daily")
 
