@@ -321,14 +321,7 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
 
 	def test_get_next_payment_date_advances_when_schedule_type_is_blank(self):
-		# repayment_schedule_type is a hidden field fetched from Loan Product's
-		# Select field of the same name, and that Select's own default option
-		# is blank. get_next_payment_date's Monthly branch only recognized five
-		# named values though, so a Loan Product that never had this field set
-		# produced a schedule where every row landed on the same payment_date
-		# instead of one that advances a month at a time (#1055). Calling the
-		# method directly against a stand-in with just the two fields it reads
-		# is enough here; no loan or site setup is involved in the bug.
+		# Blank repayment_schedule_type should still advance the date for Monthly frequency
 		schedule = frappe._dict(repayment_schedule_type="", repayment_frequency="Monthly")
 		next_date = LoanRepaymentSchedule.get_next_payment_date(schedule, getdate("2025-01-13"))
 		self.assertEqual(next_date, getdate("2025-02-13"))
