@@ -1,6 +1,11 @@
 import frappe
+from frappe.utils import nowdate
 
-from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	calculate_amounts,
+	get_pending_principal_amount,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -115,6 +120,70 @@ class TestLoanOutstandingReport(LendingTestSuite):
 
 		data_after, _ = self.run_report(loan, disb, "2024-03-01")
 		self.assertEqual(data_after[0].get("principal_overdue"), overdue_before_payment)
+
+	def test_loan_outstanding_report_uses_disbursed_status_as_on_date(self):
+		loan = create_loan(
+			"_Test Loan Customer",
+			"Term Loan Product 4",
+			110000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			repayment_start_date="2024-02-05",
+			posting_date="2024-01-05",
+			rate_of_interest=10,
+		)
+		loan.submit()
+		disb = make_loan_disbursement_entry(
+			loan.name,
+			55000,
+			disbursement_date="2024-01-05",
+			repayment_start_date="2024-02-05",
+		)
+
+		# Only half the loan is out as of this date: outstanding should be
+		# bounded by what was actually disbursed, not the full EMI schedule.
+		data, _ = self.run_report(loan, disb, "2024-01-10")
+		self.assertLessEqual(data[0].get("pending_principal_amount"), 55000)
+
+		make_loan_disbursement_entry(
+			loan.name,
+			55000,
+			disbursement_date="2024-02-10",
+			repayment_start_date="2024-03-05",
+		)
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Disbursed")
+
+		# Loan is now fully Disbursed, but the same earlier as_on_date must
+		# still reflect that only the first tranche was out at that time.
+		data, _ = self.run_report(loan, disb, "2024-01-10")
+		self.assertLessEqual(data[0].get("pending_principal_amount"), 55000)
+
+	def test_loan_outstanding_report_ignores_demand_paid_at_creation(self):
+		loan, disb = self.make_loan_and_disbursement()
+
+		# A demand created already fully paid (e.g. interest booked as part of
+		# a repayment, with no separate Loan Repayment Detail allocation).
+		create_loan_demand(
+			loan.name,
+			"2024-02-05",
+			"Normal",
+			"Interest",
+			500,
+			loan_disbursement=disb.name,
+			paid_amount=500,
+		)
+
+		data, _ = self.run_report(loan, disb, "2024-02-10")
+		self.assertEqual(data[0].get("interest_overdue"), 0)
+
+	def test_loan_outstanding_report_matches_live_calculation_for_today(self):
+		loan, disb = self.make_loan_and_disbursement()
+
+		data, _ = self.run_report(loan, disb, nowdate())
+		loan.load_from_db()
+		self.assertEqual(data[0].get("pending_principal_amount"), get_pending_principal_amount(loan))
 
 	def test_loan_outstanding_report_defines_columns(self):
 		columns = get_columns()
