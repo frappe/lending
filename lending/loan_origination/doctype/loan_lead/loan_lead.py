@@ -64,12 +64,18 @@ class LoanLead(Document):
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		employment_type: DF.Literal["Salaried", "Self-employed"]
 		income: DF.Currency
+		indicative_amount: DF.Currency
+		indicative_roi: DF.Percent
+		indicative_tenure: DF.Int
 		lead_source: DF.Data | None
 		loan_amount: DF.Currency
 		loan_product: DF.Link
 		mobile_number: DF.Phone
 		mobile_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		pan: DF.Data | None
+		prequalification_reason_codes: DF.SmallText | None
+		prequalification_status: DF.Literal["", "Pre-Qualified", "Not Pre-Qualified", "Referred"]
+		prequalified_on: DF.Datetime | None
 		proposed_tenure: DF.Int
 		rejected_on: DF.Datetime | None
 		status: DF.Data | None
