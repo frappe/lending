@@ -650,30 +650,36 @@ def calculate_penal_interest_for_loans(
 				principal_amount_map[row.repayment_schedule_detail] = row.outstanding_amount
 
 	# Batch-fetch the last Penal Interest accrual date per repayment_schedule_detail
-	# instead of issuing a `MAX(posting_date) ... FOR UPDATE` query per demand below.
+	# instead of one query per demand below. Split into a lock query and a separate
+	# aggregate query since PostgreSQL rejects FOR UPDATE combined with GROUP BY.
 	last_accrual_date_map = {}
 	if repayment_schedule_details:
 		LoanInterestAccrual = DocType("Loan Interest Accrual")
+		base_filters = (
+			(LoanInterestAccrual.loan == loan.name)
+			& (LoanInterestAccrual.docstatus == 1)
+			& (LoanInterestAccrual.interest_type == "Penal Interest")
+			& (LoanInterestAccrual.loan_repayment_schedule_detail.isin(repayment_schedule_details))
+		)
+		if loan_disbursement:
+			base_filters = base_filters & (LoanInterestAccrual.loan_disbursement == loan_disbursement)
+
+		(
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(LoanInterestAccrual.name)
+			.where(base_filters)
+			.for_update()
+		).run()
+
 		accrual_query = (
 			frappe.qb.from_(LoanInterestAccrual)
 			.select(
 				LoanInterestAccrual.loan_repayment_schedule_detail,
 				fn.Max(LoanInterestAccrual.posting_date).as_("last_posting_date"),
 			)
-			.where(
-				(LoanInterestAccrual.loan == loan.name)
-				& (LoanInterestAccrual.docstatus == 1)
-				& (LoanInterestAccrual.interest_type == "Penal Interest")
-				& (LoanInterestAccrual.loan_repayment_schedule_detail.isin(repayment_schedule_details))
-			)
+			.where(base_filters)
 			.groupby(LoanInterestAccrual.loan_repayment_schedule_detail)
-			.for_update()
 		)
-
-		if loan_disbursement:
-			accrual_query = accrual_query.where(
-				LoanInterestAccrual.loan_disbursement == loan_disbursement
-			)
 
 		for row in accrual_query.run(as_dict=True):
 			last_accrual_date_map[row.loan_repayment_schedule_detail] = row.last_posting_date
@@ -949,9 +955,10 @@ def get_last_accrual_date(
 ):
 	LoanInterestAccrual = DocType("Loan Interest Accrual")
 
+	# Max taken in Python, not SQL, since PostgreSQL rejects FOR UPDATE with MAX().
 	query = (
 		frappe.qb.from_(LoanInterestAccrual)
-		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.select(LoanInterestAccrual.posting_date)
 		.where(
 			(LoanInterestAccrual.loan == loan)
 			& (LoanInterestAccrual.docstatus == 1)
@@ -974,7 +981,8 @@ def get_last_accrual_date(
 	if loan_disbursement:
 		query = query.where(LoanInterestAccrual.loan_disbursement == loan_disbursement)
 
-	last_interest_accrual_date = query.run()[0][0]
+	posting_dates = [row[0] for row in query.run()]
+	last_interest_accrual_date = max(posting_dates) if posting_dates else None
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
