@@ -1,4 +1,5 @@
 import frappe
+from frappe.model import delete_fields
 
 from lending.install import GUARDED_AGE_CONDITION, add_server_scripts
 
@@ -36,9 +37,7 @@ def drop_product_live_loan_limit():
 	frappe.db.delete(
 		"Property Setter", {"doc_type": LOAN_PRODUCT_DOCTYPE, "field_name": PRODUCT_LIMIT_FIELD}
 	)
-	frappe.db.sql_ddl(
-		f"ALTER TABLE `tab{LOAN_PRODUCT_DOCTYPE}` DROP COLUMN `{PRODUCT_LIMIT_FIELD}`"
-	)
+	delete_fields({LOAN_PRODUCT_DOCTYPE: [PRODUCT_LIMIT_FIELD]}, delete=1)
 	frappe.clear_cache(doctype=LOAN_PRODUCT_DOCTYPE)
 
 
