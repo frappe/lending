@@ -1760,6 +1760,8 @@ def make_journal_entry(
 	)
 
 	jv.flags.ignore_validate = True
+	if frappe.flags.on_repost:
+		jv.flags.notify_update = False
 	jv.submit()
 
 	return jv.name

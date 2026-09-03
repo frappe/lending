@@ -2723,9 +2723,29 @@ def get_unpaid_demands(
 	if emi_wise:
 		query = query.where(loan_demand.demand_type == "EMI")
 		query = query.where(loan_demand.repayment_schedule_detail.isnotnull())
+
+		if for_update:
+			# PostgreSQL rejects FOR UPDATE with SUM/GROUP BY, so sum in Python instead.
+			query = query.select(
+				loan_demand.repayment_schedule_detail, loan_demand.outstanding_amount
+			).for_update()
+			rows = query.run(as_dict=1)
+
+			totals = {}
+			for row in rows:
+				detail = row.repayment_schedule_detail
+				totals[detail] = totals.get(detail, 0) + row.outstanding_amount
+
+			return [
+				frappe._dict(repayment_schedule_detail=detail, pending_amount=pending_amount)
+				for detail, pending_amount in totals.items()
+			]
+
 		query = query.select(Sum(loan_demand.outstanding_amount).as_("pending_amount"))
 		query = query.select(loan_demand.repayment_schedule_detail)
 		query = query.groupby(loan_demand.repayment_schedule_detail)
+
+		return query.run(as_dict=1)
 
 	if for_update:
 		query = query.for_update()
