@@ -539,6 +539,42 @@ class TestADecisionOnlyGovernsAnOpenApplication(LendingTestSuite):
 			frappe.db.get_value("Loan Application", application.name, "decision"), decision.name
 		)
 
+	def test_a_decision_a_submitted_application_still_links_to_cannot_be_cancelled(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+
+		decision = make_decision(application, approving_strategy().name)
+		decision.submit()
+		application.reload()
+		application.submit()
+
+		with self.assertRaises(frappe.LinkExistsError):
+			decision.cancel()
+
+	def test_cancelling_leaves_a_closed_application_as_it_was_decided(self):
+		"""The link checks above keep a live decision and a live application tied to each
+		other, so this state is only reached by stepping around them - a bulk cancel, a
+		script that ignores links. The terms were still acted on, so they stay as they are.
+		"""
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+
+		decision = make_decision(application, approving_strategy(term_amount_cap=100000).name)
+		decision.submit()
+		application.reload()
+		application.submit()
+		application.flags.ignore_links = True
+		application.cancel()
+
+		decision.cancel()
+
+		self.assertEqual(
+			frappe.db.get_value("Loan Application", application.name, "decision"), decision.name
+		)
+		self.assertEqual(
+			frappe.db.get_value("Loan Application", application.name, "recommended_amount"), 100000
+		)
+
 
 class TestTheComparisonHonoursTheForm(LendingTestSuite):
 	def test_the_scorecard_on_the_form_is_the_one_scored(self):

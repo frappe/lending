@@ -179,6 +179,19 @@ class LoanDecision(Document):
 		if application.decision != self.name:
 			return
 
+		if not application.docstatus.is_draft():
+			# assert_application_is_open, from the other end: the terms have been acted on
+			# and the Loan has been made from them, so what governed them stays on the
+			# application. Link integrity keeps a live decision and a live application tied
+			# together, so this is only reached when something stepped around it.
+			application.add_comment(
+				"Comment",
+				_(
+					"{0} was cancelled, but this application is no longer a draft, so the decision it recorded stands."
+				).format(self.name),
+			)
+			return
+
 		frappe.db.set_value(
 			"Loan Application",
 			self.loan_application,
