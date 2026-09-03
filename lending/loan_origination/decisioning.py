@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from operator import eq, ge, gt, le, lt, ne
+from operator import ge, gt, le, lt
 
 import frappe
 from frappe import _
@@ -21,20 +21,22 @@ PREQUALIFICATION_STATUS = {
 	DECLINE: "Not Pre-Qualified",
 }
 
+# The operators that compare by size, and so are the ones a rule has to write a number
+# against. Equality reads either kind of value, so it is kept apart from them.
 COMPARISONS = {
 	">": gt,
 	">=": ge,
 	"<": lt,
 	"<=": le,
-	"==": eq,
-	"!=": ne,
 }
+
+SCALAR_OPERATORS = tuple(COMPARISONS)
+
+EQUALITY_OPERATORS = ("==", "!=")
 
 MEMBERSHIP_OPERATORS = ("in", "not in")
 
-ALLOWED_OPERATORS = (*COMPARISONS, *MEMBERSHIP_OPERATORS, "between")
-
-SCALAR_OPERATORS = (">", ">=", "<", "<=")
+ALLOWED_OPERATORS = (*SCALAR_OPERATORS, *EQUALITY_OPERATORS, *MEMBERSHIP_OPERATORS, "between")
 
 APPLICANT_TYPES = {
 	PRE_QUALIFICATION: ("Individual", "Business"),
@@ -423,6 +425,10 @@ def _cmp(lhs, operator, rhs):
 		found = _member_of(lhs, rhs)
 		return found if operator == "in" else not found
 
+	if operator in EQUALITY_OPERATORS:
+		equal = _equal(lhs, rhs)
+		return equal if operator == "==" else not equal
+
 	return COMPARISONS[operator](*_comparable(lhs, rhs))
 
 
@@ -455,6 +461,20 @@ def _member_of(lhs, rhs):
 			return True
 
 	return False
+
+
+def _equal(lhs, rhs):
+	"""Equality is the one comparison a rule may write against either kind of value, so it
+	never demands a number: two numbers are held against each other as numbers, and
+	anything else as text. A number is simply not equal to a word.
+	"""
+	left = _numeric(lhs)
+	right = _numeric(rhs)
+
+	if left is not None and right is not None:
+		return left == right
+
+	return str(lhs).strip() == str(rhs).strip()
 
 
 def _comparable(lhs, rhs):

@@ -7,9 +7,11 @@ from frappe.utils import add_to_date, now_datetime, nowdate
 
 from lending.loan_origination.decisioning import (
 	ALLOWED_OPERATORS,
+	APPROVE,
 	KNOCKOUT,
 	KNOWN_VARIABLES,
 	PRE_QUALIFICATION,
+	_cmp,
 	build_variable_context,
 	evaluate_strategy,
 	run_strategy,
@@ -381,10 +383,32 @@ class TestOperatorList(LendingTestSuite):
 			strategy.insert(ignore_permissions=True)
 
 	def test_an_operator_the_engine_does_not_know_is_refused(self):
-		from lending.loan_origination.decisioning import _cmp
-
 		with self.assertRaises(frappe.ValidationError):
 			_cmp(1, "**", 2)
+
+
+class TestEqualityReadsBothKindsOfValue(LendingTestSuite):
+	def test_two_numbers_are_compared_as_numbers(self):
+		self.assertTrue(_cmp(700, "==", "700.0"))
+		self.assertFalse(_cmp(700, "!=", "700.0"))
+
+	def test_text_is_compared_as_text(self):
+		self.assertTrue(_cmp("Salaried", "==", " Salaried "))
+		self.assertTrue(_cmp("Salaried", "!=", "Self Employed"))
+
+	def test_a_number_is_simply_not_equal_to_a_word(self):
+		"""A rule may hold any variable against any value with == and !=, so the engine
+		answers rather than throwing when only one side happens to be a number.
+		"""
+		self.assertFalse(_cmp(700, "==", "Not Available"))
+		self.assertTrue(_cmp(700, "!=", "Not Available"))
+
+	def test_such_a_rule_still_reaches_a_decision(self):
+		strategy = make_strategy([rule(10, "bureau_score", "!=", "Not Available", "Approve")])
+
+		verdict = evaluate_strategy(strategy.name, {"bureau_score": 712})
+
+		self.assertEqual(verdict.decision, APPROVE)
 
 
 class TestVariableSnapshotIsSerialisable(LendingTestSuite):
