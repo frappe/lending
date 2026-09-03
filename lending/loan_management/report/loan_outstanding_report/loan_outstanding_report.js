@@ -12,6 +12,16 @@ frappe.query_reports["Loan Outstanding Report"] = {
 			"reqd": 1
 		},
 		{
+			"fieldname":"as_on_date",
+			"label": __("As on Date"),
+			"fieldtype": "Date",
+			"default": frappe.datetime.get_today(),
+			"reqd": 1,
+			on_change: function() {
+				frappe.query_report.refresh();
+			}
+		},
+		{
 			"fieldname":"applicant_type",
 			"label": __("Applicant Type"),
 			"fieldtype": "Select",

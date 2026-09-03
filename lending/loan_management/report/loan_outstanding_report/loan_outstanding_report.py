@@ -2,10 +2,14 @@ import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import flt
+from frappe.utils import flt, getdate, nowdate
 
 
 def execute(filters=None):
+	filters = filters or {}
+	if not filters.get("as_on_date"):
+		frappe.throw(_("Please select an As on Date."))
+
 	columns = get_columns()
 	data = get_data(filters)
 	chart = get_chart_data(data)
@@ -146,6 +150,8 @@ def get_data(filters):
 	Loan = DocType("Loan")
 	LoanDisbursement = DocType("Loan Disbursement")
 
+	as_on_date = getdate(filters.get("as_on_date") or nowdate())
+
 	loan_disbursement_query = (
 		frappe.qb.from_(LoanDisbursement)
 		.inner_join(Loan)
@@ -172,6 +178,8 @@ def get_data(filters):
 			Loan.disbursed_amount.as_("loan_disbursed_amount"),
 		)
 		.where((Loan.docstatus == 1) & (Loan.status != "Closed"))
+		.where(LoanDisbursement.docstatus == 1)
+		.where(LoanDisbursement.disbursement_date <= as_on_date)
 	)
 
 	if filters.get("company"):
@@ -203,8 +211,12 @@ def get_data(filters):
 		r["loan"]: r.get("repayment_schedule_type") for r in disbursement_records
 	}
 
-	principal_overdue_map, interest_overdue_map = get_overdues_for_loans(loan_disbursement_keys)
-	repayment_summary_map = get_bulk_repayment_details(loan_disbursement_keys, repayment_type_by_loan)
+	principal_overdue_map, interest_overdue_map = get_overdues_for_loans(
+		loan_disbursement_keys, as_on_date
+	)
+	repayment_summary_map = get_bulk_repayment_details(
+		loan_disbursement_keys, repayment_type_by_loan, as_on_date
+	)
 	emi_summary_map = get_bulk_emi_details(disbursement_names)
 
 	report_rows = []
@@ -214,9 +226,11 @@ def get_data(filters):
 
 		repayment_summary = repayment_summary_map.get((loan, disb), {})
 		emi_summary = emi_summary_map.get(disb, {})
+		principal_paid_as_on_date = flt(repayment_summary.get("principal_amount_paid"))
+		interest_paid_as_on_date = flt(repayment_summary.get("total_interest_paid"))
 
 		if record.repayment_schedule_type == "Line of Credit" and disb:
-			pending_principal = flt(record.disbursed_amount) - flt(record.disbursement_principal_paid)
+			pending_principal = flt(record.disbursed_amount) - principal_paid_as_on_date
 		elif (
 			record.status in ("Disbursed", "Closed", "Active", "Written Off", "Settled")
 			and record.repayment_schedule_type != "Line of Credit"
@@ -225,15 +239,15 @@ def get_data(filters):
 				flt(record.total_payment)
 				+ flt(record.debit_adjustment_amount)
 				- flt(record.credit_adjustment_amount)
-				- flt(record.total_principal_paid)
-				- flt(record.total_interest_payable)
+				- principal_paid_as_on_date
+				- interest_paid_as_on_date
 			)
 		else:
 			pending_principal = (
 				flt(record.loan_disbursed_amount)
 				+ flt(record.debit_adjustment_amount)
 				- flt(record.credit_adjustment_amount)
-				- flt(record.total_principal_paid)
+				- principal_paid_as_on_date
 			)
 
 		report_rows.append(
@@ -255,7 +269,7 @@ def get_data(filters):
 	return report_rows
 
 
-def get_bulk_repayment_details(loan_disbursement_keys, repayment_type_by_loan):
+def get_bulk_repayment_details(loan_disbursement_keys, repayment_type_by_loan, as_on_date):
 	Repayment = DocType("Loan Repayment")
 	loans = list({loan for loan, _ in loan_disbursement_keys})
 	disbursements = list({disb for _, disb in loan_disbursement_keys})
@@ -273,6 +287,7 @@ def get_bulk_repayment_details(loan_disbursement_keys, repayment_type_by_loan):
 			(Repayment.docstatus == 1)
 			& (Repayment.against_loan.isin(loans))
 			& ((Repayment.loan_disbursement.isin(disbursements)) | (Repayment.loan_disbursement.isnull()))
+			& (Repayment.value_date <= as_on_date)
 		)
 		.groupby(Repayment.against_loan, Repayment.loan_disbursement)
 	).run(as_dict=True)
@@ -351,7 +366,7 @@ def get_bulk_emi_details(disbursement_names):
 	return emi_summary_map
 
 
-def get_overdues_for_loans(loan_disbursement_keys):
+def get_overdues_for_loans(loan_disbursement_keys, as_on_date):
 	LoanDemand = DocType("Loan Demand")
 	disbursement_names = [disb for _, disb in loan_disbursement_keys]
 
@@ -363,7 +378,11 @@ def get_overdues_for_loans(loan_disbursement_keys):
 			LoanDemand.demand_subtype,
 			fn.Sum(LoanDemand.outstanding_amount).as_("outstanding"),
 		)
-		.where((LoanDemand.docstatus == 1) & (LoanDemand.loan_disbursement.isin(disbursement_names)))
+		.where(
+			(LoanDemand.docstatus == 1)
+			& (LoanDemand.loan_disbursement.isin(disbursement_names))
+			& (LoanDemand.demand_date <= as_on_date)
+		)
 		.groupby(LoanDemand.loan, LoanDemand.loan_disbursement, LoanDemand.demand_subtype)
 	).run(as_dict=True)
 
