@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-09 10:04+0000\n"
-"PO-Revision-Date: 2026-08-13 10:48\n"
+"POT-Creation-Date: 2026-08-23 09:51+0000\n"
+"PO-Revision-Date: 2026-08-24 13:12\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -185,7 +185,7 @@ msgstr ""
 msgid "Add to first repayment"
 msgstr "Zur ersten Rückzahlung hinzufügen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2156
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Konto für zusätzlichen Zinserlass ist erforderlich"
 
@@ -222,7 +222,7 @@ msgstr "Zusätzlicher Zinsbetrag"
 msgid "Additional Interest Income"
 msgstr "Zusätzliche Zinseinnahmen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2172
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2209
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Konto für zusätzliche Zinseinnahmen ist erforderlich"
 
@@ -232,7 +232,7 @@ msgstr "Konto für zusätzliche Zinseinnahmen ist erforderlich"
 msgid "Additional Interest Receivable"
 msgstr "Zusätzliche Zinsforderungen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2203
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Konto für zusätzliche Zinsforderungen ist erforderlich"
 
@@ -254,7 +254,7 @@ msgstr "Buchung Zwischenkonto für zusätzliche Zinsen"
 msgid "Additional Interest Waiver"
 msgstr "Erlass zusätzlicher Zinsen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2212
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Konto für Erlass zusätzlicher Zinsen ist erforderlich"
 
@@ -348,7 +348,7 @@ msgstr "Anpassungen"
 msgid "Advance Payment"
 msgstr "Anzahlung"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2237
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
 msgid "Against Account is mandatory"
 msgstr "Gegenkonto ist erforderlich"
 
@@ -469,19 +469,19 @@ msgstr "Betrag darf nicht null sein"
 msgid "Amount on which interest is calculated"
 msgstr "Betrag, auf den Zinsen berechnet werden"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:914
-msgid "Amount paid cannot be greater than available security deposit"
-msgstr "Der gezahlte Betrag darf nicht höher sein als die verfügbare Sicherheitsleistung"
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:922
+msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
+msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:992
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1023
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Der gezahlte Betrag darf nicht höher sein als der fällige Betrag"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1038
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Der gezahlte Betrag darf für die Darlehensablösung nicht geringer sein als der fällige Betrag"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:999
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
 msgid "Amount paid cannot be zero"
 msgstr "Der gezahlte Betrag darf nicht null sein"
 
@@ -516,7 +516,6 @@ msgstr "Für dieses Darlehen wurde bereits eine andere Darlehensumstrukturierung
 #. Amount'
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/doctype/loan/loan.json
-#: lending/loan_management/doctype/loan_application/loan_application.js:62
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -686,7 +685,6 @@ msgid "Applicants not selected."
 msgstr ""
 
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.js:68
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Application Date"
 msgstr ""
@@ -894,6 +892,12 @@ msgstr ""
 msgid "Biweekly"
 msgstr "Zweiwöchentlich"
 
+#. Label of the body (Text Editor) field in DocType 'Process Loan Statement of
+#. Accounts'
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
+msgid "Body"
+msgstr "Körper"
+
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -978,6 +982,10 @@ msgstr "Zukünftige Ratenforderungen stornieren"
 msgid "Cancellation Date"
 msgstr "Stornierungsdatum"
 
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:310
+msgid "Cannot cancel Loan Repayment Schedule {0} while Loan Disbursement {1} is submitted. Cancel the Loan Disbursement first."
+msgstr ""
+
 #: lending/loan_management/doctype/loan/loan.py:901
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr "Darlehen kann nicht geschlossen werden, da ein ausstehender Betrag von {0} vorhanden ist"
@@ -986,11 +994,11 @@ msgstr "Darlehen kann nicht geschlossen werden, da ein ausstehender Betrag von {
 msgid "Cannot close this loan until full repayment"
 msgstr "Dieses Darlehen kann erst nach vollständiger Rückzahlung geschlossen werden"
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:143
+#: lending/loan_management/doctype/loan_application/loan_application.js:76
 msgid "Cannot create loan until application is approved"
 msgstr "Darlehen kann erst erstellt werden, wenn der Antrag genehmigt ist"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2527
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2564
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Vorauszahlungen oder vorzeitige Zahlungen sind während der Moratoriumsperiode nicht möglich. (Moratorium-Enddatum: {}, Buchungsdatum: {})"
 
@@ -1426,7 +1434,7 @@ msgstr "Guthaben ({0})"
 msgid "Credit Account"
 msgstr "Guthabenkonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2295
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2332
 msgid "Credit Account is mandatory"
 msgstr "Habenkonto ist erforderlich"
 
@@ -1514,7 +1522,7 @@ msgstr "Kunde"
 msgid "Customer Refund Account"
 msgstr "Kundenrückerstattungskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2194
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
 msgid "Customer Refund Account is mandatory"
 msgstr "Kundenrückerstattungskonto ist erforderlich"
 
@@ -1731,7 +1739,7 @@ msgstr "Ausgezahlt"
 msgid "Disbursed Amount"
 msgstr "Ausgezahlter Betrag"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:513
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:517
 msgid "Disbursed Amount cannot be more than {0} as per loan limit or assigned security value"
 msgstr ""
 
@@ -1739,7 +1747,7 @@ msgstr ""
 msgid "Disbursed Amount: {0}"
 msgstr "Ausgezahlter Betrag: {0}"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:508
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:512
 msgid "Disbursed amount cannot be zero"
 msgstr "Ausgezahlter Betrag darf nicht null sein"
 
@@ -1804,11 +1812,11 @@ msgstr "Auszahlungsdetails"
 msgid "Disbursement References"
 msgstr "Auszahlungsreferenzen"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:763
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:786
 msgid "Disbursement against loan:"
 msgstr "Auszahlung für Darlehen:"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:525
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:529
 msgid "Disbursement amount cannot be greater than available limit amount"
 msgstr "Auszahlungsbetrag darf nicht größer als der verfügbare Limitbetrag sein"
 
@@ -1817,7 +1825,7 @@ msgstr "Auszahlungsbetrag darf nicht größer als der verfügbare Limitbetrag se
 msgid "Disbursement and Repayment"
 msgstr "Auszahlung und Rückzahlung"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:520
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:524
 msgid "Disbursement date is out of approved limit dates"
 msgstr "Auszahlungsdatum liegt außerhalb der genehmigten Limitdaten"
 
@@ -2129,7 +2137,7 @@ msgstr "Vollständige Ablösung"
 msgid "Full Settlement Job"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:952
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:983
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr ""
 
@@ -2222,7 +2230,7 @@ msgstr "Ertrag"
 msgid "Income Account"
 msgstr "Ertragskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:995
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1026
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Falscher Rückzahlungstyp, bitte schreiben Sie das Darlehen zuerst ab"
 
@@ -2312,7 +2320,7 @@ msgstr "Zinsvortrag"
 msgid "Interest Income Account"
 msgstr "Konto für Zinserträge"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2112
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2149
 msgid "Interest Income Account is mandatory"
 msgstr "Zinsertragskonto ist erforderlich"
 
@@ -2341,7 +2349,7 @@ msgstr "Zinssatz (%)"
 msgid "Interest Receivable Account"
 msgstr "Zinsforderungskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2107
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2144
 msgid "Interest Receivable Account is mandatory"
 msgstr "Zinsforderungskonto ist erforderlich"
 
@@ -2369,7 +2377,7 @@ msgstr "Zinserlass"
 msgid "Interest Waiver Account"
 msgstr "Zinserlasskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2189
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2226
 msgid "Interest Waiver Account is mandatory"
 msgstr "Zinserlasskonto ist erforderlich"
 
@@ -2398,7 +2406,7 @@ msgstr ""
 msgid "Internal Foreclosure"
 msgstr "Interne vorzeitige Ablösung"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:873
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:878
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Ungültige Darlehensauszahlung für Zahlung verknüpft"
 
@@ -2624,7 +2632,7 @@ msgstr "Kreditlinie"
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_accrual_repost_detail/loan_accrual_repost_detail.json
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
-#: lending/loan_management/doctype/loan_application/loan_application.js:132
+#: lending/loan_management/doctype/loan_application/loan_application.js:65
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
@@ -2695,9 +2703,9 @@ msgstr "Darlehenskonto"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Darlehenskonto und Zahlungskonto dürfen nicht identisch sein"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2103
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2133
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2161
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
 msgid "Loan Account is mandatory"
 msgstr "Darlehenskonto ist erforderlich"
 
@@ -2752,7 +2760,6 @@ msgstr "Darlehensanpassungen"
 #. Shortfall'
 #. Label of the loan_amount (Currency) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
-#: lending/loan_management/doctype/loan_application/loan_application.js:74
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
@@ -3504,7 +3511,7 @@ msgstr "Darlehenssicherheit"
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan_application/loan_application.js:125
+#: lending/loan_management/doctype/loan_application/loan_application.js:58
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:18
 #: lending/loan_management/workspace/lending/lending.json
@@ -3516,7 +3523,7 @@ msgstr "Darlehenssicherheitszuweisung"
 msgid "Loan Security Assignment Created : {0}"
 msgstr "Darlehenssicherheitszuweisung erstellt: {0}"
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:154
+#: lending/loan_management/doctype/loan_application/loan_application.js:87
 msgid "Loan Security Assignment can only be created for secured loans"
 msgstr "Darlehenssicherheitszuweisung kann nur für besicherte Darlehen erstellt werden"
 
@@ -3752,7 +3759,7 @@ msgstr "Darlehen ist ein notleidender Vermögenswert (NPA)"
 msgid "Loan {0} closed"
 msgstr "Darlehen {0} geschlossen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:976
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr ""
 
@@ -3925,7 +3932,7 @@ msgid "Monthly Repayment Amount"
 msgstr "Monatlicher Rückzahlungsbetrag"
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:146
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:939
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "Monatlicher Rückzahlungsbetrag darf nicht größer als der Darlehensbetrag sein"
 
@@ -4331,7 +4338,7 @@ msgstr "Inkassoprozentsatz des Partners"
 msgid "Partner Interest Share"
 msgstr "Zinsanteil des Partners"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2299
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2336
 msgid "Partner Interest Share is mandatory"
 msgstr "Zinsanteil des Partners ist erforderlich"
 
@@ -4407,7 +4414,7 @@ msgstr "Vergangener Cashflow-Bericht"
 msgid "Payable Account"
 msgstr "Verbindlichkeiten-Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2297
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2334
 msgid "Payable Account is mandatory"
 msgstr "Verbindlichkeitskonto ist erforderlich"
 
@@ -4438,9 +4445,9 @@ msgstr "Fälliger Kapitalbetrag"
 msgid "Payment Account"
 msgstr "Zahlungskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2114
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2416
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2311
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
 msgid "Payment Account is mandatory"
 msgstr "Zahlungskonto ist obligatorisch"
 
@@ -4539,7 +4546,7 @@ msgstr "Strafgebührensatz"
 msgid "Penalty Income Account"
 msgstr "Ertragskonto für Strafen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2143
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2180
 msgid "Penalty Income Account is mandatory"
 msgstr "Ertragskonto für Strafen ist erforderlich"
 
@@ -4565,7 +4572,7 @@ msgstr "Überfällige Strafe"
 msgid "Penalty Receivable Account"
 msgstr "Forderungskonto für Strafen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2137
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Forderungskonto für Strafen ist erforderlich"
 
@@ -4623,11 +4630,11 @@ msgid "Please add customer refund account in Loan Product"
 msgstr "Bitte fügen Sie ein Kundenerstattungskonto im Darlehensprodukt hinzu"
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:140
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:930
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:957
 msgid "Please enter Repayment Periods"
 msgstr "Bitte geben Sie Rückzahlungszeiträume ein"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:937
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:964
 msgid "Please enter monthly repayment amount"
 msgstr "Bitte geben Sie den monatlichen Rückzahlungsbetrag ein"
 
@@ -4657,7 +4664,7 @@ msgstr "Bitte wählen Sie das Stichtag aus."
 msgid "Please select Company."
 msgstr "Bitte wählen Sie ein Unternehmen aus."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:864
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:869
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Bitte wählen Sie eine Darlehensauszahlung für die Rückzahlung der Kreditlinie aus"
 
@@ -4691,11 +4698,11 @@ msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Ertragskonto für Zusatzzinsen im Darlehensprodukt {0} fest"
 
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:217
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:799
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:822
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Bitte legen Sie das Konto für die Rückgewinnung von Zinsen für den gebrochenen Zeitraum für das Darlehensprodukt {0} fest"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Bitte legen Sie das Kundenerstattungskonto im Darlehensprodukt {0} fest"
 
@@ -4743,7 +4750,7 @@ msgstr "Bitte legen Sie das {0}-Abgrenzungskonto im Darlehensprodukt {1} fest"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Bitte legen Sie das {0}-Forderungskonto im Darlehensprodukt {1} fest"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2467
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2504
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Bitte legen Sie {0} entweder im Unternehmen oder im Darlehensprodukt fest"
 
@@ -4888,6 +4895,11 @@ msgstr "Vorfälligkeitsentgelte"
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:61
 msgid "Price Valid Upto"
 msgstr "Preis gültig bis"
+
+#. Label of the primary_address (Link) field in DocType 'Loan Partner'
+#: lending/loan_management/doctype/loan_partner/loan_partner.json
+msgid "Primary Address"
+msgstr "Hauptadresse"
 
 #. Label of the applicant_address_details_section (Section Break) field in
 #. DocType 'Loan Application'
@@ -5440,11 +5452,11 @@ msgstr "Rückzahlungsplantyp"
 msgid "Repayment Start Date"
 msgstr "Rückzahlungsstartdatum"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:927
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:954
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "Rückzahlungsstartdatum ist für Laufzeitdarlehen obligatorisch"
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:413
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:417
 msgid "Repayment Start Date {0} cannot be before Disbursement Date {1}"
 msgstr ""
 
@@ -5453,7 +5465,7 @@ msgstr ""
 msgid "Repayment Type"
 msgstr "Rückzahlungsart"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:931
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:962
 msgid "Repayment cannot be made for closed loan"
 msgstr "Rückzahlung kann für ein geschlossenes Darlehen nicht vorgenommen werden"
 
@@ -5461,7 +5473,7 @@ msgstr "Rückzahlung kann für ein geschlossenes Darlehen nicht vorgenommen werd
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Rückzahlungszeiträume sind für Laufzeitdarlehen erforderlich"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:986
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1017
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Rückzahlungstyp kann nur Abschreibungsrückgewinnung oder Abschreibungsvergleich sein"
 
@@ -5533,7 +5545,7 @@ msgstr "Umstrukturierung von Darlehen anwendbar"
 msgid "Restructured"
 msgstr "Umstrukturiert"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2276
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2313
 msgid "Round Off Account is mandatory"
 msgstr "Konto für Rundungsdifferenzen ist erforderlich"
 
@@ -5823,19 +5835,19 @@ msgstr "Details der Geschäftsbedingungen"
 msgid "Terms and Conditions"
 msgstr "Allgemeine Geschäftsbedingungen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1031
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1062
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Die Darlehensauszahlung {0} wurde geschlossen."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:917
-msgid "The amount paid cannot be greater than the payable amount for Security Deposit Adjustment repayments."
-msgstr "Der gezahlte Betrag kann nicht größer als der zahlbare Betrag für Rückzahlungen der Sicherheitshinterlegungsanpassung sein."
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:947
+msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
+msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3333
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3370
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Die folgenden Auszahlungen existieren nicht oder wurden nicht eingereicht: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3319
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3356
 msgid "The following loans do not exist: {}"
 msgstr "Die folgenden Darlehen existieren nicht: {}"
 
@@ -5849,7 +5861,7 @@ msgstr ""
 msgid "The schedule type that will be used for generating the term loan schedules (will affect the payment date and monthly repayment amount)"
 msgstr "Der Plantyp, der zur Erstellung der Laufzeitdarlehenspläne verwendet wird (beeinflusst das Zahlungsdatum und den monatlichen Rückzahlungsbetrag)"
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:208
+#: lending/loan_management/doctype/loan_application/loan_application.js:141
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Es gibt bereits einen Kreditnehmer mit denselben Kontaktdaten. Möchten Sie den Kreditnehmer hier abrufen?"
 
@@ -6220,7 +6232,7 @@ msgstr "Erlassener Betrag"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Erlassener Betrag {0} darf den ausstehenden Betrag {1} nicht übersteigen"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1015
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1046
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Erlassener {0} Betrag {1} darf den überfälligen Betrag {2} nicht überschreiten"
 
@@ -6229,7 +6241,7 @@ msgstr "Erlassener {0} Betrag {1} darf den überfälligen Betrag {2} nicht über
 msgid "Waiver Account"
 msgstr "Erlassskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2427
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2464
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Erlassskonto für Gebühr {0} in Darlehensprodukt {1} nicht festgelegt"
 
@@ -6297,7 +6309,7 @@ msgstr "Abschreibungsrückholung"
 msgid "Write Off Recovery Account"
 msgstr "Abschreibungsrückgewinnungskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Abschreibungsrückgewinnungskonto ist obligatorisch"
 

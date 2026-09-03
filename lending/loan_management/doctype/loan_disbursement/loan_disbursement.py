@@ -242,7 +242,11 @@ class LoanDisbursement(LoanController):
 			"docstatus": 1,
 			"loan_disbursement": self.name,
 		}
-		schedule = frappe.get_doc("Loan Repayment Schedule", filters)
+		schedule_name = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
+		if not schedule_name:
+			return
+
+		schedule = frappe.get_doc("Loan Repayment Schedule", schedule_name)
 		schedule.reverse_interest_accruals = self.get("reverse_interest_accruals")
 		schedule.flags.ignore_links = True
 		schedule.cancel()
@@ -593,12 +597,31 @@ class LoanDisbursement(LoanController):
 		total_interest_payable = loan_details.total_interest_payable
 
 		if self.is_term_loan:
-			schedule = frappe.get_doc(
-				"Loan Repayment Schedule", {"loan_disbursement": self.name, "docstatus": 1}
+			schedule_name = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan_disbursement": self.name, "docstatus": 1}, "name"
 			)
-			for data in schedule.repayment_schedule:
-				total_payment -= data.total_payment
-				total_interest_payable -= data.interest_amount
+			if schedule_name:
+				schedule = frappe.get_doc("Loan Repayment Schedule", schedule_name)
+				for data in schedule.repayment_schedule:
+					total_payment -= data.total_payment
+					total_interest_payable -= data.interest_amount
+			else:
+				RepaymentSchedule = frappe.qb.DocType("Repayment Schedule")
+				LoanRepaymentSchedule = frappe.qb.DocType("Loan Repayment Schedule")
+				total_payment, total_interest_payable = (
+					frappe.qb.from_(RepaymentSchedule)
+					.join(LoanRepaymentSchedule)
+					.on(RepaymentSchedule.parent == LoanRepaymentSchedule.name)
+					.select(fn.Sum(RepaymentSchedule.total_payment), fn.Sum(RepaymentSchedule.interest_amount))
+					.where(
+						(LoanRepaymentSchedule.loan == self.against_loan)
+						& (LoanRepaymentSchedule.docstatus == 1)
+						& (LoanRepaymentSchedule.loan_disbursement != self.name)
+					)
+					.run()[0]
+				)
+				total_payment = flt(total_payment)
+				total_interest_payable = flt(total_interest_payable)
 		else:
 			total_payment -= self.disbursed_amount
 

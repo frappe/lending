@@ -543,6 +543,13 @@ class LoanRepayment(LoanController):
 		if (
 			self.principal_amount_paid - overdue_principal_paid > 0
 			and overdue_principal_paid >= self.payable_principal_amount
+			# Partial Settlement doesn't auto-waive leftover interest/penalty like
+			# Full Settlement/Write Off flows do, so only book ahead-of-schedule
+			# principal once the full payable amount is actually covered.
+			and not (
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
+			)
 		):
 			amount = self.principal_amount_paid - overdue_principal_paid
 			create_loan_demand(
@@ -852,6 +859,11 @@ class LoanRepayment(LoanController):
 			elif not self.repay_from_salary and self.payroll_payable_account:
 				self.repay_from_salary = 1
 
+			if self.repay_from_salary and self.is_new():
+				self.process_payroll_accounting_entry_based_on_employee = frappe.db.get_single_value(
+					"Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
+				)
+
 		if self.repayment_type in ("Full Settlement", "Write Off Settlement", "Charges Waiver"):
 			self.total_charges_payable = amounts.get("total_charges_payable")
 
@@ -1010,19 +1022,24 @@ class LoanRepayment(LoanController):
 				and not self.is_write_off_waiver
 			):
 				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
-		elif self.repayment_type == "Normal Repayment":
-			validate_repayment = frappe.get_cached_value(
-				"Loan Product", self.loan_product, "validate_normal_repayment"
-			)
-			if validate_repayment and self.amount_paid > self.payable_amount:
-				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 		elif loan_status != "Settled":
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
 	def validate_amount(self, amounts):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
+
+		if self.repayment_type == "Normal Repayment":
+			validate_repayment = frappe.get_cached_value(
+				"Loan Product", self.loan_product, "validate_normal_repayment"
+			)
+			if validate_repayment and flt(self.amount_paid, precision) > flt(
+				amounts.get("payable_amount"), precision
+			):
+				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 
 		if self.repayment_type == "Loan Closure":
 			auto_write_off_amount = frappe.get_cached_value(
@@ -1033,7 +1050,6 @@ class LoanRepayment(LoanController):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
 			payable_amount = self.get_waiver_amount(amounts)
 
 			if flt(self.amount_paid, precision) > flt(payable_amount, precision):
@@ -1654,6 +1670,13 @@ class LoanRepayment(LoanController):
 			if self.repayment_type not in (
 				"Interest Waiver", "Penalty Waiver", "Charges Waiver",
 				"Penalty Capitalization", "Interest Capitalization", "Charges Capitalization"
+			) and not (
+				# Partial Settlement doesn't auto-waive leftover interest/penalty like
+				# Full Settlement/Write Off flows do, so any amount that couldn't be
+				# matched to a real demand shouldn't be booked as principal paid
+				# unless the full payable amount was actually covered.
+				self.repayment_type == "Partial Settlement"
+				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
@@ -1944,6 +1967,8 @@ class LoanRepayment(LoanController):
 
 	def apply_allocation_order(self, allocation_order, pending_amount, demands, status=None):
 		"""Allocate amount based on allocation order"""
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		allocation_order_doc = frappe.get_doc("Loan Demand Offset Order", allocation_order)
 		for d in allocation_order_doc.get("components"):
 			if d.demand_type == "EMI (Principal + Interest)" and pending_amount > 0:
@@ -1967,6 +1992,12 @@ class LoanRepayment(LoanController):
 					)
 					or status == "Settled"
 					and self.repayment_type not in ("Interest Waiver", "Penalty Waiver", "Charges Waiver")
+					# Partial Settlement doesn't auto-waive leftover interest/penalty like
+					# Full Settlement/Write Off flows do, so only pay principal ahead of
+					# schedule once the full payable amount is actually covered.
+				) and not (
+					self.repayment_type == "Partial Settlement"
+					and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 				):
 					principal_amount_paid = sum(
 						d.paid_amount for d in self.get("repayment_details") if d.demand_subtype == "Principal"
@@ -2089,7 +2120,13 @@ class LoanRepayment(LoanController):
 			merge_entries = False
 
 		if gle_map:
+			previous_flag = frappe.flags.party_not_required
+			if self.get("repay_from_salary") and not self.get("process_payroll_accounting_entry_based_on_employee"):
+				frappe.flags.party_not_required = True
+
 			super().make_gl_entries(gle_map, merge_entries=merge_entries, cancel=cancel, adv_adj=adv_adj)
+
+			frappe.flags.party_not_required = previous_flag
 
 	def get_gl_map(self):
 		if not loan_accounting_enabled(self.company):
@@ -2232,7 +2269,16 @@ class LoanRepayment(LoanController):
 				is_waiver_entry=is_waiver_entry,
 			)
 
-		if flt(self.total_charges_paid, precision) > 0 and self.repayment_type in (
+		charges_paid_with_sales_invoice = sum(
+			flt(r.paid_amount)
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
+		)
+		charges_paid_without_sales_invoice = flt(self.total_charges_paid, precision) - flt(
+			charges_paid_with_sales_invoice, precision
+		)
+
+		if charges_paid_without_sales_invoice > 0 and self.repayment_type in (
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
@@ -2240,7 +2286,7 @@ class LoanRepayment(LoanController):
 			if not against_account:
 				frappe.throw(_("Write Off Recovery Account is mandatory"))
 
-			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
+			self.add_gl_entry(self.payment_account, against_account, charges_paid_without_sales_invoice, gle_map)
 
 		charge_invoices = [
 			r.sales_invoice
