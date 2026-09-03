@@ -175,12 +175,7 @@ class LoanInterestAccrual(AccountsController):
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		gle_map = []
-<<<<<<< HEAD
-
-		loan_status = frappe.db.get_value("Loan", self.loan, "status")
-=======
 		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
->>>>>>> 5c0e58e (perf: speed up loan repayment repost by cutting extra queries and events)
 
 		if loan_status == "Written Off":
 			write_off_date = frappe.db.get_value(
