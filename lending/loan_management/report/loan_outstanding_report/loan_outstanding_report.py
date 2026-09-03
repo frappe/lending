@@ -221,6 +221,9 @@ def get_data(filters):
 	)
 	emi_summary_map = get_bulk_emi_details(disbursement_names)
 	adjustment_map = get_bulk_balance_adjustments(loan_disbursement_keys, as_on_date)
+	disbursed_as_on_date_map = get_disbursed_amount_as_on_date(
+		[loan for loan, _ in loan_disbursement_keys], as_on_date
+	)
 
 	report_rows = []
 	for record in disbursement_records:
@@ -231,23 +234,26 @@ def get_data(filters):
 		emi_summary = emi_summary_map.get(disb, {})
 		adjustments = adjustment_map.get(loan, {})
 		principal_paid_as_on_date = flt(repayment_summary.get("principal_amount_paid"))
-		interest_paid_as_on_date = flt(repayment_summary.get("total_interest_paid"))
 		debit_adjustment_as_on_date = flt(adjustments.get("debit_adjustment_amount"))
 		credit_adjustment_as_on_date = flt(adjustments.get("credit_adjustment_amount"))
 
 		if record.repayment_schedule_type == "Line of Credit" and disb:
 			pending_principal = flt(record.disbursed_amount) - principal_paid_as_on_date
 		else:
+			disbursed_as_on_date = flt(disbursed_as_on_date_map.get(loan))
+			was_fully_disbursed_as_on_date = disbursed_as_on_date >= flt(record.loan_amount)
+			status_for_formula = record.status if was_fully_disbursed_as_on_date else "Partially Disbursed"
+
 			pending_principal = get_pending_principal_amount(
 				frappe._dict(
-					status=record.status,
+					status=status_for_formula,
 					repayment_schedule_type=record.repayment_schedule_type,
-					disbursed_amount=record.loan_disbursed_amount,
+					disbursed_amount=disbursed_as_on_date,
 					total_payment=record.total_payment,
 					debit_adjustment_amount=debit_adjustment_as_on_date,
 					credit_adjustment_amount=credit_adjustment_as_on_date,
 					total_principal_paid=principal_paid_as_on_date,
-					total_interest_payable=interest_paid_as_on_date,
+					total_interest_payable=record.total_interest_payable,
 				)
 			)
 
@@ -369,6 +375,23 @@ def get_bulk_balance_adjustments(loan_disbursement_keys, as_on_date):
 	return adjustment_map
 
 
+def get_disbursed_amount_as_on_date(loans, as_on_date):
+	LoanDisbursement = DocType("Loan Disbursement")
+
+	raw_data = (
+		frappe.qb.from_(LoanDisbursement)
+		.select(LoanDisbursement.against_loan.as_("loan"), fn.Sum(LoanDisbursement.disbursed_amount))
+		.where(
+			(LoanDisbursement.docstatus == 1)
+			& (LoanDisbursement.against_loan.isin(loans))
+			& (LoanDisbursement.disbursement_date <= as_on_date)
+		)
+		.groupby(LoanDisbursement.against_loan)
+	).run()
+
+	return {row[0]: flt(row[1]) for row in raw_data}
+
+
 def get_bulk_emi_details(disbursement_names):
 	RepaymentSchedule = DocType("Loan Repayment Schedule")
 	raw_emi_data = (
@@ -406,62 +429,70 @@ def get_overdues_for_loans(loan_disbursement_keys, as_on_date):
 	raw_demand_data = (
 		frappe.qb.from_(LoanDemand)
 		.select(
+			LoanDemand.name.as_("demand"),
 			LoanDemand.loan.as_("loan"),
 			LoanDemand.loan_disbursement.as_("loan_disbursement"),
 			LoanDemand.demand_subtype,
-			fn.Sum(LoanDemand.demand_amount).as_("demanded"),
+			LoanDemand.demand_amount,
+			LoanDemand.paid_amount,
 		)
 		.where(
 			(LoanDemand.docstatus == 1)
 			& (LoanDemand.loan_disbursement.isin(disbursement_names))
 			& (LoanDemand.demand_date <= as_on_date)
 		)
-		.groupby(LoanDemand.loan, LoanDemand.loan_disbursement, LoanDemand.demand_subtype)
 	).run(as_dict=True)
 
-	RepaymentDetail = DocType("Loan Repayment Detail")
-	Repayment = DocType("Loan Repayment")
+	demand_names = [row["demand"] for row in raw_demand_data]
 
-	raw_paid_data = (
-		frappe.qb.from_(RepaymentDetail)
-		.inner_join(Repayment)
-		.on(Repayment.name == RepaymentDetail.parent)
-		.inner_join(LoanDemand)
-		.on(LoanDemand.name == RepaymentDetail.loan_demand)
-		.select(
-			LoanDemand.loan.as_("loan"),
-			LoanDemand.loan_disbursement.as_("loan_disbursement"),
-			RepaymentDetail.demand_subtype,
-			fn.Sum(RepaymentDetail.paid_amount).as_("paid"),
-		)
-		.where(
-			(Repayment.docstatus == 1)
-			& (LoanDemand.loan_disbursement.isin(disbursement_names))
-			& (LoanDemand.demand_date <= as_on_date)
-			& (Repayment.value_date <= as_on_date)
-		)
-		.groupby(LoanDemand.loan, LoanDemand.loan_disbursement, RepaymentDetail.demand_subtype)
-	).run(as_dict=True)
+	demands_with_repayment_detail = set()
+	paid_via_repayment_detail = {}
+	if demand_names:
+		RepaymentDetail = DocType("Loan Repayment Detail")
+		Repayment = DocType("Loan Repayment")
 
-	demanded_map = {}
-	for row in raw_demand_data:
-		key = (row["loan"], row["loan_disbursement"], row["demand_subtype"])
-		demanded_map[key] = flt(row["demanded"])
+		all_repayment_detail_demands = (
+			frappe.qb.from_(RepaymentDetail)
+			.select(RepaymentDetail.loan_demand)
+			.where(RepaymentDetail.loan_demand.isin(demand_names))
+			.distinct()
+		).run()
+		demands_with_repayment_detail = {row[0] for row in all_repayment_detail_demands}
 
-	paid_map = {}
-	for row in raw_paid_data:
-		key = (row["loan"], row["loan_disbursement"], row["demand_subtype"])
-		paid_map[key] = flt(row["paid"])
+		raw_paid_data = (
+			frappe.qb.from_(RepaymentDetail)
+			.inner_join(Repayment)
+			.on(Repayment.name == RepaymentDetail.parent)
+			.select(
+				RepaymentDetail.loan_demand.as_("demand"),
+				fn.Sum(RepaymentDetail.paid_amount).as_("paid"),
+			)
+			.where(
+				(Repayment.docstatus == 1)
+				& (RepaymentDetail.loan_demand.isin(demand_names))
+				& (Repayment.value_date <= as_on_date)
+			)
+			.groupby(RepaymentDetail.loan_demand)
+		).run(as_dict=True)
+
+		paid_via_repayment_detail = {row["demand"]: flt(row["paid"]) for row in raw_paid_data}
 
 	principal_overdue_map = {}
 	interest_overdue_map = {}
 
-	for key, demanded in demanded_map.items():
-		loan, loan_disbursement, demand_subtype = key
-		outstanding = demanded - paid_map.get(key, 0.0)
-		if demand_subtype == "Principal":
-			principal_overdue_map[(loan, loan_disbursement)] = outstanding
-		elif demand_subtype == "Interest":
-			interest_overdue_map[(loan, loan_disbursement)] = outstanding
+	for row in raw_demand_data:
+		key = (row["loan"], row["loan_disbursement"])
+		if row["demand"] in demands_with_repayment_detail:
+			paid = paid_via_repayment_detail.get(row["demand"], 0.0)
+		else:
+			# Some demands are created already fully paid, with no Loan
+			# Repayment Detail allocation, and never get one later.
+			paid = flt(row["paid_amount"])
+
+		outstanding = flt(row["demand_amount"]) - paid
+		if row["demand_subtype"] == "Principal":
+			principal_overdue_map[key] = principal_overdue_map.get(key, 0.0) + outstanding
+		elif row["demand_subtype"] == "Interest":
+			interest_overdue_map[key] = interest_overdue_map.get(key, 0.0) + outstanding
 
 	return principal_overdue_map, interest_overdue_map
