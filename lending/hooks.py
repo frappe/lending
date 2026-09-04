@@ -52,6 +52,20 @@ fixtures = [
 		"dt": "Workflow Action Master",
 		"filters": [["name", "not in", ("Reject", "Approve", "Review")]],
 	},
+	{
+		"dt": "Workflow Transition Tasks",
+		"filters": [
+			[
+				"name",
+				"in",
+				(
+					"Loan Lead Basic Rules",
+					"Loan Lead Pre-Qualification Rules",
+					"Loan Lead Knockout Rules",
+				),
+			]
+		],
+	},
 ]
 
 
@@ -308,5 +322,21 @@ workflow_methods = [
 	{
 		"name": "Convert to Loan Application",
 		"method": "lending.loan_origination.doctype.loan_lead.loan_lead.convert_to_loan_application"
+	},
+	{
+		"name": "Validate Cooling Period",
+		"method": "lending.loan_origination.doctype.loan_lead.loan_lead.run_cooling_period_task"
+	},
+	{
+		"name": "Validate Live Loan Limit",
+		"method": "lending.loan_origination.doctype.loan_lead.applicant_exposure.run_live_loan_limit_task"
+	},
+	{
+		"name": "Run Pre-Qualification Rules",
+		"method": "lending.loan_origination.decisioning.run_pre_qualification_rules"
+	},
+	{
+		"name": "Run Knockout Rules",
+		"method": "lending.loan_origination.decisioning.run_knockout_rules"
 	}
 ]

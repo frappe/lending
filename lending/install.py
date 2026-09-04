@@ -304,21 +304,82 @@ def after_install():
 	create_custom_fields(LOAN_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter_for_journal_entry()
 	add_server_scripts()
+	add_adverse_action_reasons()
 
 
 def before_uninstall():
 	delete_custom_fields(LOAN_CUSTOM_FIELDS)
 
-def add_server_scripts():
-	if not frappe.db.exists("Server Script", "Age validation for Loan Lead"):
-		age_check_script = frappe.new_doc("Server Script")
-		age_check_script.name = "Age validation for Loan Lead"
-		age_check_script.script_type = "Workflow Task"
-		age_check_script.script = """
-if doc.age < 18:
+
+# The one place the age condition is written. The patch that guards an older, unguarded
+# copy of this script replaces its condition with this one, so the two cannot drift.
+GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
+
+LOAN_LEAD_RULE_SCRIPTS = {
+	"Age validation for Loan Lead": f"""
+{GUARDED_AGE_CONDITION}
 	frappe.throw("Applicant should be at least 18 years old.")
-	"""
-		age_check_script.save(ignore_permissions=True)
+""",
+	"Cooling period validation for Loan Lead": """
+# An applicant rejected within this many days is held back. 0 turns the rule off.
+# Cooling Period (Days) on the lead's Loan Product overrides this when set.
+cooling_period_days = 30
+
+frappe.call(
+	"lending.loan_origination.doctype.loan_lead.loan_lead.validate_cooling_period",
+	loan_lead=doc.name,
+	cooling_period_days=cooling_period_days,
+)
+""",
+	"Live loan limit validation for Loan Lead": """
+# An applicant already holding this many live loans is held back. 0 turns the rule off.
+# This is the only place the limit is set; it applies to every Loan Product.
+maximum_live_loans = 0
+
+frappe.call(
+	"lending.loan_origination.doctype.loan_lead.applicant_exposure.validate_live_loan_limit",
+	loan_lead=doc.name,
+	maximum_live_loans=maximum_live_loans,
+)
+""",
+}
+
+
+def add_server_scripts():
+	for name, script in LOAN_LEAD_RULE_SCRIPTS.items():
+		if frappe.db.exists("Server Script", name):
+			continue
+
+		doc = frappe.new_doc("Server Script")
+		doc.name = name
+		doc.script_type = "Workflow Task"
+		doc.script = script
+		doc.save(ignore_permissions=True)
+
+
+ADVERSE_ACTION_REASONS = {
+	"LOW_BUREAU_SCORE": "Credit bureau score is below the minimum for this product.",
+	"NO_CREDIT_HISTORY": "No credit bureau record was found for this applicant.",
+	"INSUFFICIENT_INCOME": "Income is too low for the amount requested.",
+	"EXCESSIVE_OBLIGATIONS": "Monthly obligations are too high against income.",
+	"AGE_OUT_OF_RANGE": "Applicant's age is outside the range for this product.",
+	"EMPLOYMENT_NOT_ELIGIBLE": "Employment type is not eligible for this product.",
+	"LOAN_AMOUNT_TOO_HIGH": "Requested amount is above the limit for this applicant.",
+	"TENURE_NOT_ELIGIBLE": "Requested tenure is outside the range for this product.",
+	"INSUFFICIENT_SECURITY": "Security offered does not cover the amount requested.",
+	"INCOMPLETE_INFORMATION": "Information needed to assess this application was not provided.",
+}
+
+
+def add_adverse_action_reasons():
+	for reason_code, description in ADVERSE_ACTION_REASONS.items():
+		if frappe.db.exists("Adverse Action Reason", reason_code):
+			continue
+
+		doc = frappe.new_doc("Adverse Action Reason")
+		doc.reason_code = reason_code
+		doc.description = description
+		doc.insert(ignore_permissions=True)
 
 
 def delete_custom_fields(custom_fields):

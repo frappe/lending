@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-25 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "attribute",
+  "min_range",
+  "max_range",
+  "points"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "description": "A key from the decision variable context. Bands compare numbers, so an attribute that never carries one scores nothing.",
+   "fieldname": "attribute",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "label": "Attribute",
+   "options": "age\napplicant_type\nbureau_score\ndti_ratio\nemployment_type\nexisting_obligations\nfoir_ratio\nloan_amount\nloan_product\nltv_ratio\nmonthly_income\nproposed_emi\nrate_of_interest\ntenure",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "min_range",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Min Range",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "max_range",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Max Range",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "points",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Points",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Scorecard Attribute",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

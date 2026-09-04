@@ -3,7 +3,13 @@
 
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+
+from lending.loan_origination.doctype.loan_lead.loan_lead import (
+	OTP_MEDIUM_FIELD_MAP,
+	TELEPHONY_APP,
+)
 
 fields_that_can_have_unique_constraints = ["mobile_no", "email_id"]
 
@@ -18,10 +24,38 @@ class LoanOriginationSettings(Document):
 		from frappe.types import DF
 
 		employee_loans: DF.Check
+		otp_for_email: DF.Check
+		otp_for_sms: DF.Check
+		otp_verification_mandatory: DF.Check
 		unique_customer: DF.Check
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_otp_mediums()
+
+	def validate_otp_mediums(self):
+		enabled = [
+			fields
+			for fields in OTP_MEDIUM_FIELD_MAP.values()
+			if self.get(fields["enable_field"]) and self.has_value_changed(fields["enable_field"])
+		]
+		if not enabled:
+			return
+
+		if TELEPHONY_APP not in frappe.get_installed_apps():
+			frappe.throw(
+				_("Please install the Telephony app to send OTPs, or turn OTP for Email and SMS off.")
+			)
+
+		otp_settings = frappe.get_cached_doc("TP OTP Settings")
+		for fields in enabled:
+			if not otp_settings.get(fields["telephony_field"]):
+				frappe.throw(
+					_("Please enable {0} in TP OTP Settings to use {1}.").format(
+						_(fields["telephony_label"]),
+						_(self.meta.get_label(fields["enable_field"])),
+					)
+				)
 
 	def before_save(self):
 		if self.unique_customer:
@@ -33,7 +67,6 @@ class LoanOriginationSettings(Document):
 def add_unique_constraints():
 	fields_with_unique_constraints = get_fields_with_unique_constraints()
 
-	# for field in fields_with_unique_constraints
 	for field in set(fields_that_can_have_unique_constraints).difference(
 		set(fields_with_unique_constraints)
 	):
@@ -41,7 +74,6 @@ def add_unique_constraints():
 			frappe.db.add_unique("Customer", field)
 
 		except Exception:
-			# remove any added constraints
 			remove_unique_constraints()
 
 
