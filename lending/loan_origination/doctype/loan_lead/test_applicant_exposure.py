@@ -322,9 +322,6 @@ def only_loan_reads_denied():
 
 @contextmanager
 def as_a_direct_api_call():
-	"""An HTTP request with no Server Script above it, which is what a caller reaching
-	/api/method themselves looks like.
-	"""
 	previous_request = getattr(frappe.local, "request", None)
 	previous_flag = frappe.flags.in_safe_exec
 

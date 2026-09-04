@@ -89,11 +89,8 @@ class LoanDecision(Document):
 		self.assert_application_is_open()
 
 	def assert_application_is_open(self):
-		"""Submitting writes the decision onto the application below, deliberately past
-		the permission and on-submit checks that guard it. Keep that write to an
-		application that is still open, so it can never reach a submitted or cancelled
-		one - by then the terms have been acted on and the Loan has been made from it.
-		"""
+		# Submitting writes onto the application past the checks that guard it, so hold
+		# that write to a draft: past that, the Loan has already been made from the terms.
 		docstatus = frappe.db.get_value("Loan Application", self.loan_application, "docstatus")
 
 		if docstatus == 0:
@@ -122,9 +119,7 @@ class LoanDecision(Document):
 	def write_back_to_application(self):
 		application = self.get_application()
 
-		# A deliberate system write: an underwriter holds read on Loan Application and
-		# nothing more, so these four fields are the only thing a decision may change on
-		# it, and only while it is a draft (see assert_application_is_open).
+		# Deliberate system write: an underwriter holds nothing but read on Loan Application.
 		frappe.db.set_value(
 			"Loan Application",
 			self.loan_application,
@@ -180,10 +175,7 @@ class LoanDecision(Document):
 			return
 
 		if not application.docstatus.is_draft():
-			# assert_application_is_open, from the other end: the terms have been acted on
-			# and the Loan has been made from them, so what governed them stays on the
-			# application. Link integrity keeps a live decision and a live application tied
-			# together, so this is only reached when something stepped around it.
+			# The terms have been acted on, so what governed them stays on the application.
 			application.add_comment(
 				"Comment",
 				_(
@@ -244,8 +236,7 @@ class LoanDecision(Document):
 
 		self.score = scored.score
 		self.grade = scored.grade
-		# Kept on flags so a dry run can reuse it instead of scoring the applicant again
-		# for every candidate strategy it compares.
+		# On flags so a dry run can reuse it instead of rescoring per candidate strategy.
 		self.flags.uncollected = scored.uncollected
 		log.extend(scored.log)
 		log.append(_("Score {0}, grade {1}.").format(scored.score, scored.grade or _("ungraded")))

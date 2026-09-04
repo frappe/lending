@@ -124,10 +124,6 @@ def run_strategy(doc, strategy_type=None):
 
 
 def _enforce_knockout(verdict):
-	"""A knockout is a hard gate, so it fails closed. Declining stops the transition,
-	and so does a Decline rule that could not be evaluated at all: clearing an
-	applicant because the data needed to reject them was never collected is not a pass.
-	"""
 	if verdict.decision == DECLINE:
 		frappe.throw(
 			_("Knockout rules declined this applicant. {0}").format(
@@ -195,9 +191,6 @@ def _record_run(doc, verdict):
 
 
 def _record_no_strategy(doc, strategy_type, loan_product):
-	"""Say so on the document. A stage that checked no rule at all must not be
-	indistinguishable from one where every rule passed.
-	"""
 	doc.add_comment(
 		"Comment",
 		_("No enabled {0} strategy applies to {1}, so no rule was checked.").format(
@@ -328,9 +321,6 @@ def evaluate_strategy(strategy_name, context):
 
 
 def downgrade_for_unscored(verdict, uncollected, log):
-	"""An Approve reached without scoring every attribute the scorecard asks for is not an
-	Approve. Shared, so a dry run and a saved Loan Decision cannot drift apart on it.
-	"""
 	if verdict.get("decision") != APPROVE or not uncollected:
 		return
 
@@ -393,11 +383,6 @@ def _apply_match(verdict, rule):
 
 
 def _recommend(verdict, field, value, message, superseded_message, keep):
-	"""Two rules reaching the same outcome can each recommend terms. Keep the stricter of
-	the two rather than whichever matched last, so a looser cap cannot silently void a
-	tighter one. Caps take the lower value; the rate takes the higher, which is the one
-	that prices the risk more conservatively.
-	"""
 	if not value:
 		return
 
@@ -464,10 +449,6 @@ def _member_of(lhs, rhs):
 
 
 def _equal(lhs, rhs):
-	"""Equality is the one comparison a rule may write against either kind of value, so it
-	never demands a number: two numbers are held against each other as numbers, and
-	anything else as text. A number is simply not equal to a word.
-	"""
 	left = _numeric(lhs)
 	right = _numeric(rhs)
 
@@ -543,11 +524,6 @@ def _add_bureau_variables(context, source, bureau_report=None, lead=None):
 def _report_for(source, lead=None):
 	if source.doctype == LOAN_LEAD:
 		return latest_bureau_report_for_pan(source.get("pan"))
-
-	# A report pulled while the applicant was still a lead is filed against their PAN,
-	# because there was no Customer yet to file it against. Underwriting has to be able
-	# to reach it: otherwise every bureau rule is skipped rather than fired, and a
-	# knockout that should stop the applicant never runs.
 	return latest_bureau_report(
 		source.get("applicant_type"), source.get("applicant")
 	) or latest_bureau_report_for_pan(lead.pan if lead else None)
@@ -556,17 +532,12 @@ def _report_for(source, lead=None):
 def _report_by_name(bureau_report):
 	frappe.has_permission("Credit Bureau Report", "read", doc=bureau_report, throw=True)
 
-	# docstatus, not just the name: a draft or cancelled report must never reach a
-	# decision, whichever field on whichever document pointed at it.
 	return frappe.db.get_value(
 		"Credit Bureau Report", {"name": bureau_report, "docstatus": 1}, BUREAU_FIELDS, as_dict=True
 	)
 
 
 def report_belongs_to(bureau_report, applicant_type, applicant):
-	"""The form filters the report picker to this applicant. That filter is client side,
-	so the same constraint has to hold on anything that was posted to us.
-	"""
 	return bool(
 		frappe.db.exists(
 			"Credit Bureau Report",
@@ -704,9 +675,6 @@ def compare_strategies(
 
 	loan_product = frappe.db.get_value("Loan Application", loan_application, "loan_product")
 
-	# One dry run establishes what the engine sees, which every row below shares, and the
-	# candidates are then only their rules against it. Running a whole decision per row
-	# would reload the application and re-score the applicant for identical answers.
 	baseline = _dry_run(loan_application, strategy, scorecard, bureau_report)
 	context = frappe.parse_json(baseline.variable_snapshot or "{}")
 	uncollected = baseline.flags.uncollected or []

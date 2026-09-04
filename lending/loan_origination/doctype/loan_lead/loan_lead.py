@@ -21,9 +21,6 @@ OTP_VERIFY_LIMIT = 60
 BULK_OTP_SEND_LIMIT = 5
 OTP_RATE_LIMIT_WINDOW = 60 * 60
 
-# The one table describing a medium: the lead fields it uses, the Loan Origination
-# Settings switch that turns it on, and the TP OTP Settings switch it is delivered
-# through. Loan Origination Settings validates against the last of these.
 OTP_MEDIUM_FIELD_MAP = {
 	"Email": {
 		"recipient_field": "email",
@@ -87,16 +84,11 @@ class LoanLead(Document):
 		self.set_rejected_on()
 
 	def set_age(self):
-		# Only an individual has one, and a lead that changes type must not keep the age it
-		# was given as the other.
 		if self.applicant_type != "Individual":
 			self.age = 0
 			return
 
 		today, date_of_birth = getdate(), getdate(self.date_of_birth)
-
-		# Subtracting the years alone assumes the birthday has already come round this year,
-		# which reads as 18 for somebody who only turns 18 later in the year.
 		self.age = (
 			today.year
 			- date_of_birth.year
@@ -119,9 +111,6 @@ class LoanLead(Document):
 			self.rejected_on = None
 
 	def set_verification_statuses(self):
-		# read_only is not enforced server-side, so statuses are restored from the stored copy:
-		# a client cannot talk its way to Verified through a save. mark_otp_status is the only
-		# thing that sets one, and it writes with db.set_value, which never runs this.
 		before_save = self.get_doc_before_save()
 
 		for fields in OTP_MEDIUM_FIELD_MAP.values():
@@ -319,11 +308,6 @@ def validate_otp_verification(loan_lead: Document):
 
 
 def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
-	"""Coerce a lead name to a document and check the caller may act on it.
-
-	The rules read other applicants' records without permissions, so this check is what
-	stops a caller using a rule as a lookup on any identity they name.
-	"""
 	if isinstance(loan_lead, str):
 		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
 
@@ -333,12 +317,6 @@ def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
 
 
 def assert_called_from_a_rule():
-	"""The rules below are whitelisted only so a Workflow Task Server Script can reach
-	them with frappe.call. They take their threshold from whoever calls them, and they
-	read the loan book past the caller's own permissions, so a direct API call would let
-	its caller pick the threshold and read an applicant's history back out of whether the
-	rule threw. Server Scripts run inside safe_exec; an HTTP caller does not.
-	"""
 	if frappe.request and not frappe.flags.in_safe_exec:
 		frappe.throw(
 			_("This rule runs as a workflow task and cannot be called directly."),
@@ -350,9 +328,6 @@ def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
 
-# Whitelisted so a site's own Server Script can run the rule with its own number, though
-# Cooling Period (Days) on the lead's Loan Product still beats what the script passes;
-# run_cooling_period_task is the no-script path.
 @frappe.whitelist(methods=["POST"])
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
@@ -420,10 +395,6 @@ def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe.
 	if loan_lead.name:
 		filters["name"] = ("!=", loan_lead.name)
 
-	# or_filters, so either detail matching is enough. Deliberately loose: an applicant who
-	# comes back under a new email is the case worth catching, and the cost is that people
-	# genuinely sharing a number cool off together. The refusal names no lead and no date,
-	# so a shared match cannot be used to read anything about the other applicant.
 	rejections = frappe.db.get_all(
 		"Loan Lead",
 		filters=filters,
