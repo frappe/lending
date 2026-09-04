@@ -309,16 +309,56 @@ def after_install():
 def before_uninstall():
 	delete_custom_fields(LOAN_CUSTOM_FIELDS)
 
-def add_server_scripts():
-	if not frappe.db.exists("Server Script", "Age validation for Loan Lead"):
-		age_check_script = frappe.new_doc("Server Script")
-		age_check_script.name = "Age validation for Loan Lead"
-		age_check_script.script_type = "Workflow Task"
-		age_check_script.script = """
-if doc.age < 18:
+
+# Shared with the patch that guards an older, unguarded copy of this script, so the two
+# conditions cannot drift.
+GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
+
+LOAN_LEAD_RULE_SCRIPTS = {
+	"Age validation for Loan Lead": f"""
+{GUARDED_AGE_CONDITION}
 	frappe.throw("Applicant should be at least 18 years old.")
+""",
+	"Cooling period validation for Loan Lead": """
+# An applicant rejected within this many days is held back. 0 turns the rule off.
+# Cooling Period (Days) on the lead's Loan Product overrides this when set.
+cooling_period_days = 30
+
+frappe.call(
+	"lending.loan_origination.doctype.loan_lead.loan_lead.validate_cooling_period",
+	loan_lead=doc.name,
+	cooling_period_days=cooling_period_days,
+)
+""",
+	"Live loan limit validation for Loan Lead": """
+# An applicant already holding this many live loans is held back. 0 turns the rule off.
+# This is the only place the limit is set; it applies to every Loan Product.
+maximum_live_loans = 0
+
+frappe.call(
+	"lending.loan_origination.doctype.loan_lead.applicant_exposure.validate_live_loan_limit",
+	loan_lead=doc.name,
+	maximum_live_loans=maximum_live_loans,
+)
+""",
+}
+
+
+def add_server_scripts():
+	"""Create any shipped rule script a site does not have yet.
+
+	Idempotent, and never touches a script that already exists: once a site has edited
+	the rule, its copy wins. Safe to call from install and from a patch.
 	"""
-		age_check_script.save(ignore_permissions=True)
+	for name, script in LOAN_LEAD_RULE_SCRIPTS.items():
+		if frappe.db.exists("Server Script", name):
+			continue
+
+		doc = frappe.new_doc("Server Script")
+		doc.name = name
+		doc.script_type = "Workflow Task"
+		doc.script = script
+		doc.save(ignore_permissions=True)
 
 
 def delete_custom_fields(custom_fields):
