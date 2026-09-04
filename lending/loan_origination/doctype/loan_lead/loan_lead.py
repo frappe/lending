@@ -21,9 +21,7 @@ OTP_VERIFY_LIMIT = 60
 BULK_OTP_SEND_LIMIT = 5
 OTP_RATE_LIMIT_WINDOW = 60 * 60
 
-# The one table describing a medium: the lead fields it uses, the Loan Origination
-# Settings switch that turns it on, and the TP OTP Settings switch it is delivered
-# through. Loan Origination Settings validates against the last of these.
+
 OTP_MEDIUM_FIELD_MAP = {
 	"Email": {
 		"recipient_field": "email",
@@ -119,9 +117,6 @@ class LoanLead(Document):
 			self.rejected_on = None
 
 	def set_verification_statuses(self):
-		# read_only is not enforced server-side, so statuses are restored from the stored copy:
-		# a client cannot talk its way to Verified through a save. mark_otp_status is the only
-		# thing that sets one, and it writes with db.set_value, which never runs this.
 		before_save = self.get_doc_before_save()
 
 		for fields in OTP_MEDIUM_FIELD_MAP.values():

@@ -199,11 +199,7 @@ def make_lead(email, mobile_number, pan=None, applicant_country=None):
 
 
 def customer_carries_pan() -> bool:
-	"""PAN on Customer is an India Compliance custom field, so it is not always there.
-
-	Without it the app identifies the applicant by contact details instead, which is a
-	different rule -- the tests that are about PAN skip rather than assert the fallback.
-	"""
+	"""PAN on Customer is an India Compliance custom field, so it is not always there."""
 	return frappe.get_meta("Customer").has_field(CUSTOMER_PAN_FIELD)
 
 
@@ -214,7 +210,6 @@ def make_customer(customer_name, email=None, mobile=None, pan=None):
 	# email_id and mobile_no are fetched from the primary contact, so save() would blank them.
 	values = {"email_id": email, "mobile_no": mobile}
 
-	# Writing a column the site does not have would error, so pan only goes in where it exists.
 	if customer_carries_pan():
 		values[CUSTOMER_PAN_FIELD] = pan
 
@@ -286,8 +281,7 @@ class TestApplicantExposureLiveLoanLimit(LendingTestSuite):
 
 class TestApplicantExposureIsNotReachableOverHTTP(LendingTestSuite):
 	def test_nothing_that_returns_the_loan_book_is_whitelisted(self):
-		# These hand back figures. Whitelisting them would put the loan book behind a lead
-		# the caller can create; only the rule that throws is reachable, and it is gated.
+		# Whitelisting these would put the loan book behind a lead the caller can create.
 		for method in (
 			get_live_loan_count,
 			get_matching_customers,
@@ -316,8 +310,7 @@ class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
 		self.assertRaises(frappe.PermissionError, validate_live_loan_limit, lead.name, 1)
 
 	def test_write_on_the_lead_alone_does_not_open_the_loan_book(self):
-		# The leak the whitelist has to not reopen: a caller who can create a lead must
-		# not be able to name any identity and probe it for live loans.
+		# A caller who can create a lead must not be able to probe any identity for loans.
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
 
 		with only_loan_reads_denied():
@@ -326,8 +319,6 @@ class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
 
 @contextmanager
 def only_loan_reads_denied():
-	"""Deny read on Loan, leaving every other permission alone."""
-
 	def has_permission(doctype, ptype="read", *args, **kwargs):
 		return not (doctype == "Loan" and ptype == "read")
 

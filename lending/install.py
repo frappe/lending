@@ -310,13 +310,8 @@ def before_uninstall():
 	delete_custom_fields(LOAN_CUSTOM_FIELDS)
 
 
-# The Loan Lead basic rules, shipped as Server Scripts so a site can edit the rule
-# itself -- change the number, add a condition, drop it entirely -- without forking the
-# app. The two that call into Python keep the logic there, where it is tested; the script
-# is the thin, editable bit. A number set on Loan Product still overrides what the script
-# passes, so a site that only wants a different limit does not have to touch the script.
-# The one place the age condition is written. The patch that guards an older, unguarded
-# copy of this script replaces its condition with this one, so the two cannot drift.
+# Shared with the patch that guards an older, unguarded copy of this script, so the two
+# conditions cannot drift.
 GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
 
 LOAN_LEAD_RULE_SCRIPTS = {
