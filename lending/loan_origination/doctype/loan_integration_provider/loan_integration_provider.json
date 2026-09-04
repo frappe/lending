@@ -1,0 +1,214 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:provider_name",
+ "creation": "2026-09-04 12:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provider_name",
+  "provider_type",
+  "column_break_identity",
+  "adapter",
+  "is_active",
+  "production_section",
+  "enable_production",
+  "production_url",
+  "column_break_production",
+  "api_client_id",
+  "api_secret",
+  "sandbox_section",
+  "enable_sandbox",
+  "sandbox_url",
+  "column_break_sandbox",
+  "sandbox_api_client_id",
+  "sandbox_api_secret",
+  "connection_section",
+  "member_id",
+  "timeout",
+  "column_break_connection",
+  "extra_config"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Decides which adapters this provider may use.",
+   "fieldname": "provider_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Provider Type",
+   "options": "Credit Bureau\nKYC\nPayment-Mandate\nAccount Aggregator",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The registered adapter that speaks this provider's API. Options are filled in from the adapter registry.",
+   "fieldname": "adapter",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Adapter",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "An inactive provider cannot be called.",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "production_section",
+   "fieldtype": "Section Break",
+   "label": "Production"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_production",
+   "fieldtype": "Check",
+   "label": "Enable Production"
+  },
+  {
+   "fieldname": "production_url",
+   "fieldtype": "Data",
+   "label": "Production URL",
+   "mandatory_depends_on": "eval:doc.enable_production"
+  },
+  {
+   "fieldname": "column_break_production",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_client_id",
+   "fieldtype": "Password",
+   "label": "API Client ID"
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret"
+  },
+  {
+   "fieldname": "sandbox_section",
+   "fieldtype": "Section Break",
+   "label": "Sandbox"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_sandbox",
+   "fieldtype": "Check",
+   "label": "Enable Sandbox"
+  },
+  {
+   "description": "Sandbox is a separate host with its own credentials, not a flag on the production one.",
+   "fieldname": "sandbox_url",
+   "fieldtype": "Data",
+   "label": "Sandbox URL",
+   "mandatory_depends_on": "eval:doc.enable_sandbox"
+  },
+  {
+   "fieldname": "column_break_sandbox",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sandbox_api_client_id",
+   "fieldtype": "Password",
+   "label": "Sandbox API Client ID"
+  },
+  {
+   "fieldname": "sandbox_api_secret",
+   "fieldtype": "Password",
+   "label": "Sandbox API Secret"
+  },
+  {
+   "fieldname": "connection_section",
+   "fieldtype": "Section Break",
+   "label": "Connection"
+  },
+  {
+   "description": "Subscriber or member identifier issued by the provider, where they use one.",
+   "fieldname": "member_id",
+   "fieldtype": "Data",
+   "label": "Member ID"
+  },
+  {
+   "default": "30",
+   "description": "Seconds to wait for a response before giving up.",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout (Seconds)"
+  },
+  {
+   "fieldname": "column_break_connection",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "JSON object of adapter specific settings.",
+   "fieldname": "extra_config",
+   "fieldtype": "Small Text",
+   "label": "Extra Config"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-04 16:04:21.638496",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Loan Integration Provider",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Loan Underwriter"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Loan Officer"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
