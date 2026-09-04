@@ -39,6 +39,16 @@
   "loan_security_details_section",
   "proposed_pledges",
   "maximum_loan_amount",
+  "affordability_section",
+  "monthly_income",
+  "existing_obligations",
+  "column_break_afrd",
+  "proposed_emi",
+  "eligibility_amount",
+  "affordability_column_break",
+  "dti_ratio",
+  "foir_ratio",
+  "ltv_ratio",
   "repayment_info",
   "repayment_method",
   "total_payable_amount",
@@ -212,6 +222,69 @@
    "read_only": 1
   },
   {
+   "fieldname": "affordability_section",
+   "fieldtype": "Section Break",
+   "label": "Affordability"
+  },
+  {
+   "fieldname": "monthly_income",
+   "fieldtype": "Currency",
+   "label": "Monthly Income",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "description": "Total of borrower's existing EMIs / monthly debt obligations, excluding this loan",
+   "fieldname": "existing_obligations",
+   "fieldtype": "Currency",
+   "label": "Existing Monthly Obligations",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "column_break_afrd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "proposed_emi",
+   "fieldtype": "Currency",
+   "label": "Proposed EMI",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "description": "Maximum loan amount the applicant is eligible for, based on income and Maximum FOIR of the Loan Product",
+   "fieldname": "eligibility_amount",
+   "fieldtype": "Currency",
+   "label": "Eligibility Amount",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "affordability_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Existing Monthly Obligations / Monthly Income",
+   "fieldname": "dti_ratio",
+   "fieldtype": "Percent",
+   "label": "DTI Ratio",
+   "read_only": 1
+  },
+  {
+   "description": "(Existing Monthly Obligations + Proposed EMI) / Monthly Income",
+   "fieldname": "foir_ratio",
+   "fieldtype": "Percent",
+   "label": "FOIR Ratio",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.is_secured_loan == 1",
+   "description": "Loan Amount / Post-Haircut Value of Proposed Securities",
+   "fieldname": "ltv_ratio",
+   "fieldtype": "Percent",
+   "label": "LTV Ratio",
+   "read_only": 1
+  },
+  {
    "default": "0",
    "fetch_from": "loan_product.is_term_loan",
    "fieldname": "is_term_loan",
@@ -338,7 +411,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-02 16:03:38.065821",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

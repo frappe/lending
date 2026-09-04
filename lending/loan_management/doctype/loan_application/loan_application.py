@@ -22,6 +22,12 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.loan_origination.loan_origination_utils import (
+	compute_dti_foir,
+	compute_eligibility_amount,
+	compute_emi_preview,
+	compute_ltv,
+)
 
 
 class LoanApplication(Document):
@@ -86,6 +92,7 @@ class LoanApplication(Document):
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
+		self.set_derived_variables()
 
 	def before_save(self):
 		if self.applicant_type == "Customer":
@@ -259,6 +266,31 @@ class LoanApplication(Document):
 			self.total_payable_interest += interest_amount
 
 		self.total_payable_amount = self.loan_amount + self.total_payable_interest
+
+	def set_derived_variables(self):
+		if self.is_term_loan:
+			self.proposed_emi = compute_emi_preview(
+				self.loan_product, self.loan_amount, self.rate_of_interest, self.repayment_periods, self.posting_date
+			)
+		else:
+			self.proposed_emi = 0
+
+		self.dti_ratio, self.foir_ratio = compute_dti_foir(
+			self.monthly_income, self.existing_obligations, self.proposed_emi
+		)
+
+		if self.is_secured_loan:
+			self.ltv_ratio = compute_ltv(self.loan_amount, self.proposed_pledges)
+		else:
+			self.ltv_ratio = 0
+
+		self.eligibility_amount = compute_eligibility_amount(
+			self.monthly_income,
+			self.existing_obligations,
+			self.rate_of_interest,
+			self.repayment_periods,
+			self.loan_product,
+		)
 
 	def set_loan_amount(self):
 		if self.is_secured_loan and not self.proposed_pledges:

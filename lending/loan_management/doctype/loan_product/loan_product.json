@@ -37,6 +37,7 @@
   "min_days_bw_disbursement_first_repayment",
   "excess_amount_acceptance_limit",
   "sanctioned_amount_tolerance_percentage",
+  "max_foir",
   "column_break_wwhp",
   "write_off_amount",
   "grace_period_in_days",
@@ -466,6 +467,14 @@
    "non_negative": 1
   },
   {
+   "default": "50",
+   "description": "Maximum Fixed Obligation to Income Ratio allowed for this loan product. Used to cap loan eligibility.",
+   "fieldname": "max_foir",
+   "fieldtype": "Percent",
+   "label": "Maximum FOIR (%)",
+   "non_negative": 1
+  },
+  {
    "fieldname": "customer_refund_account",
    "fieldtype": "Link",
    "label": "Customer Refund Account",
@@ -553,7 +562,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-10 10:00:00.000000",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",
