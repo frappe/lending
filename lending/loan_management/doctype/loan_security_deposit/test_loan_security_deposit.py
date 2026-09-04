@@ -29,10 +29,14 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 	Use this class for testing interactions between multiple components.
 	"""
 
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 		init_customers()
+
+	def setUp(self):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_deposit_adjustment(self):

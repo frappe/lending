@@ -22,10 +22,14 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanAdjustment(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 		init_customers()
+
+	def setUp(self):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_loan_adjustment_submit(self):

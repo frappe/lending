@@ -69,7 +69,9 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoan(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		set_loan_settings_in_company()
 		create_loan_accounts()
 		setup_loan_demand_offset_order()
@@ -168,13 +170,14 @@ class TestLoan(LendingTestSuite):
 		if not frappe.db.exists("Customer", "_Test Loan Customer 2"):
 			frappe.get_doc(get_customer_dict("_Test Loan Customer 2")).insert(ignore_permissions=True)
 
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
-		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
-		self.applicant1 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 2"}, "name")
-
 		frappe.db.set_value(
 			"Loan Product", "Demand Loan", "customer_refund_account", "Customer Refund Account - _TC"
 		)
+
+	def setUp(self):
+		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
+		self.applicant1 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 2"}, "name")
 
 	def test_loan_with_repayment_periods(self):
 		posting_date = "2025-01-27"
