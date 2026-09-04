@@ -1022,19 +1022,24 @@ class LoanRepayment(LoanController):
 				and not self.is_write_off_waiver
 			):
 				frappe.throw(_("Repayment type can only be Write Off Recovery or Write Off Settlement"))
-		elif self.repayment_type == "Normal Repayment":
-			validate_repayment = frappe.get_cached_value(
-				"Loan Product", self.loan_product, "validate_normal_repayment"
-			)
-			if validate_repayment and self.amount_paid > self.payable_amount:
-				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 		elif loan_status != "Settled":
 			if self.repayment_type in ("Write Off Recovery", "Write Off Settlement"):
 				frappe.throw(_("Incorrect repayment type, please write off the loan first"))
 
 	def validate_amount(self, amounts):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
+
+		if self.repayment_type == "Normal Repayment":
+			validate_repayment = frappe.get_cached_value(
+				"Loan Product", self.loan_product, "validate_normal_repayment"
+			)
+			if validate_repayment and flt(self.amount_paid, precision) > flt(
+				amounts.get("payable_amount"), precision
+			):
+				frappe.throw(_("Amount paid cannot be greater than payable amount"))
 
 		if self.repayment_type == "Loan Closure":
 			auto_write_off_amount = frappe.get_cached_value(
@@ -1045,7 +1050,6 @@ class LoanRepayment(LoanController):
 				frappe.throw(_("Amount paid cannot be less than payable amount for loan closure"))
 
 		if self.repayment_type in ("Interest Waiver", "Penalty Waiver", "Charges Waiver"):
-			precision = cint(frappe.db.get_default("currency_precision")) or 2
 			payable_amount = self.get_waiver_amount(amounts)
 
 			if flt(self.amount_paid, precision) > flt(payable_amount, precision):
@@ -2265,7 +2269,16 @@ class LoanRepayment(LoanController):
 				is_waiver_entry=is_waiver_entry,
 			)
 
-		if flt(self.total_charges_paid, precision) > 0 and self.repayment_type in (
+		charges_paid_with_sales_invoice = sum(
+			flt(r.paid_amount)
+			for r in self.get("repayment_details")
+			if r.demand_type == "Charges" and r.sales_invoice
+		)
+		charges_paid_without_sales_invoice = flt(self.total_charges_paid, precision) - flt(
+			charges_paid_with_sales_invoice, precision
+		)
+
+		if charges_paid_without_sales_invoice > 0 and self.repayment_type in (
 			"Write Off Recovery",
 			"Write Off Settlement",
 		):
@@ -2273,7 +2286,7 @@ class LoanRepayment(LoanController):
 			if not against_account:
 				frappe.throw(_("Write Off Recovery Account is mandatory"))
 
-			self.add_gl_entry(self.payment_account, against_account, self.total_charges_paid, gle_map)
+			self.add_gl_entry(self.payment_account, against_account, charges_paid_without_sales_invoice, gle_map)
 
 		charge_invoices = [
 			r.sales_invoice
@@ -2695,9 +2708,29 @@ def get_unpaid_demands(
 	if emi_wise:
 		query = query.where(loan_demand.demand_type == "EMI")
 		query = query.where(loan_demand.repayment_schedule_detail.isnotnull())
+
+		if for_update:
+			# PostgreSQL rejects FOR UPDATE with SUM/GROUP BY, so sum in Python instead.
+			query = query.select(
+				loan_demand.repayment_schedule_detail, loan_demand.outstanding_amount
+			).for_update()
+			rows = query.run(as_dict=1)
+
+			totals = {}
+			for row in rows:
+				detail = row.repayment_schedule_detail
+				totals[detail] = totals.get(detail, 0) + row.outstanding_amount
+
+			return [
+				frappe._dict(repayment_schedule_detail=detail, pending_amount=pending_amount)
+				for detail, pending_amount in totals.items()
+			]
+
 		query = query.select(Sum(loan_demand.outstanding_amount).as_("pending_amount"))
 		query = query.select(loan_demand.repayment_schedule_detail)
 		query = query.groupby(loan_demand.repayment_schedule_detail)
+
+		return query.run(as_dict=1)
 
 	if for_update:
 		query = query.for_update()
