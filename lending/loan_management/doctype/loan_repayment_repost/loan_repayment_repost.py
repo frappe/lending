@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, cint, flt, getdate
+from frappe.utils import add_days, add_months, cint, flt, get_first_day, get_last_day, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -125,7 +125,30 @@ class LoanRepaymentRepost(Document):
 
 		self.trigger_on_submit_events()
 
+		self.reconsolidate_gl()
+
 		self.db_set("status", "Completed")
+
+	def reconsolidate_gl(self):
+		"""Enqueue reconsolidation for every month touched by this repost (delta, idempotent)."""
+		company = frappe.db.get_value("Loan", self.loan, "company")
+		start_date = frappe.db.get_value("Company", company, "loan_gl_consolidation_start_date")
+		if not company or not start_date:
+			return
+
+		# No dedup here: run_consolidation_for_loan is idempotent per loan+month and locks the
+		# loan row, so two overlapping reposts just serialize instead of double-posting. A job_id
+		# dedup would silently drop a repost that needs to reach further back than the one already
+		# queued, leaving those earlier months unconsolidated.
+		frappe.enqueue(
+			reconsolidate_gl_for_loan,
+			queue="long",
+			enqueue_after_commit=True,
+			loan=self.loan,
+			company=company,
+			repost_date=self.repost_date,
+			start_date=start_date,
+		)
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
@@ -514,3 +537,18 @@ def process_loan_repayment_repost(repost):
 		)
 		frappe.db.commit()
 		raise
+
+
+def reconsolidate_gl_for_loan(loan, company, repost_date, start_date):
+	"""Settle every month from repost_date to today via a delta voucher."""
+	from lending.loan_management.doctype.process_loan_accounting.process_loan_accounting import (
+		run_consolidation_for_loan,
+	)
+
+	month_end = get_last_day(max(getdate(repost_date), get_first_day(getdate(start_date))))
+	last_month_end = get_last_day(getdate())
+	while getdate(month_end) <= getdate(last_month_end):
+		run_consolidation_for_loan(loan, month_end, company=company)
+		# Commit per month so a later failure doesn't roll back earlier months in this long loop.
+		frappe.db.commit()  # nosemgrep
+		month_end = get_last_day(add_days(month_end, 1))

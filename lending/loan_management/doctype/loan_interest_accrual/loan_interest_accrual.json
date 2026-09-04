@@ -44,7 +44,8 @@
   "is_gl_cancelled",
   "column_break_svgc",
   "normal_interest_journal_entry",
-  "additional_interest_suspense_entry"
+  "additional_interest_suspense_entry",
+  "process_loan_accounting_voucher"
  ],
  "fields": [
   {
@@ -300,13 +301,21 @@
    "hidden": 1,
    "label": "Is GL Cancelled",
    "read_only": 1
+  },
+  {
+   "fieldname": "process_loan_accounting_voucher",
+   "fieldtype": "Link",
+   "label": "Process Loan Accounting Voucher",
+   "options": "Process Loan Accounting",
+   "read_only": 1,
+   "no_copy": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-25 10:36:03.518964",
+ "modified": "2026-08-07 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",
