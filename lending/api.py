@@ -81,6 +81,8 @@ def get_due_details(loan: str, as_on_date: str, loan_disbursement: str | None = 
 	API to get due details for a given loan account as on a specific date
 	"""
 
+	frappe.has_permission("Loan", "read", doc=loan, throw=True)
+
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	amounts = calculate_amounts(loan, as_on_date, loan_disbursement=loan_disbursement)
@@ -112,6 +114,8 @@ def apply_charge(loan: str, charge_type: str, based_on: str, percentage: float |
 		get_pending_principal_amount,
 	)
 	from lending.loan_management.utils import create_charge_master, loan_accounting_enabled
+
+	frappe.has_permission("Loan", "write", doc=loan, throw=True)
 
 	create_charge_master(charge_type)
 
