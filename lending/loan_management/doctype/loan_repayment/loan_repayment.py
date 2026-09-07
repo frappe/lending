@@ -2964,8 +2964,9 @@ def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, 
 	if not loans:
 		return []
 
-	for loan in loans:
-		frappe.has_permission("Loan", "read", doc=loan, throw=True)
+	permitted_loans = set(frappe.get_list("Loan", filters={"name": ["in", loans]}, pluck="name"))
+	if set(loans) - permitted_loans:
+		frappe.throw(_("Not permitted to view one or more of the selected loans"), frappe.PermissionError)
 
 	loan_details = frappe.db.get_all(
 		"Loan",
