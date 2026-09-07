@@ -248,7 +248,7 @@
    {
     "allow_edit": "Loan Officer",
     "avoid_status_override": 0,
-    "doc_status": "0",
+    "doc_status": "1",
     "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
@@ -262,7 +262,7 @@
    {
     "allow_edit": "Loan Officer",
     "avoid_status_override": 0,
-    "doc_status": "0",
+    "doc_status": "1",
     "evaluate_as_expression": 0,
     "is_optional_state": 0,
     "message": null,
