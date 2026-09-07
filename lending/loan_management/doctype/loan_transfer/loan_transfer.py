@@ -176,6 +176,8 @@ class LoanTransfer(Document):
 
 @frappe.whitelist()
 def get_loans(branch: str, applicant: str | None = None):
+	frappe.has_permission("Loan", "read", throw=True)
+
 	branch_fieldname = frappe.db.get_value(
 		"Accounting Dimension", {"document_type": "Branch"}, "fieldname"
 	)
