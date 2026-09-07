@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-23 09:51+0000\n"
-"PO-Revision-Date: 2026-08-28 15:34\n"
+"POT-Creation-Date: 2026-08-30 14:29+0000\n"
+"PO-Revision-Date: 2026-09-06 16:10\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Mongolian\n"
 "MIME-Version: 1.0\n"
@@ -200,7 +200,7 @@ msgstr "Сүүлийн Хөрөнгө оруулалтын багцад нэмэ
 msgid "Add to first repayment"
 msgstr "Эхний төлбөрт нэмэх"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Нэмэлт хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -237,7 +237,7 @@ msgstr "Нэмэлт хүүгийн хэмжээ"
 msgid "Additional Interest Income"
 msgstr "Нэмэлт хүүгийн орлого"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2209
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Нэмэлт хүүгийн орлогын данс заавал байх ёстой"
 
@@ -247,7 +247,7 @@ msgstr "Нэмэлт хүүгийн орлогын данс заавал бай�
 msgid "Additional Interest Receivable"
 msgstr "Нэмэлт хүүгийн авлага"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2203
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2225
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Нэмэлт хүүгийн авлагын данс заавал байх ёстой"
 
@@ -269,7 +269,7 @@ msgstr "Нэмэлт хүүгийн түр зогсоолын оруулга"
 msgid "Additional Interest Waiver"
 msgstr "Нэмэлт хүүгийн чөлөөлөлт"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2212
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2234
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Нэмэлт хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -363,7 +363,7 @@ msgstr "Тохируулга"
 msgid "Advance Payment"
 msgstr "Урьдчилсан төлбөр"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2296
 msgid "Against Account is mandatory"
 msgstr "Дансны эсрэг заавал байх ёстой"
 
@@ -484,19 +484,19 @@ msgstr "Тоо хэмжээ тэг байж болохгүй"
 msgid "Amount on which interest is calculated"
 msgstr "Хүү тооцсон дүн"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:922
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
 msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
 msgstr "Төлсөн дүн ({0}) нь боломжтой барьцааны хэмжээнээс ({1} ) их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1023
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Төлсөн дүн нь төлөх ёстой дүнгээс их байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1038
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1045
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Төлсөн дүн нь зээлийн хаалтын төлбөрийн дүнгээс бага байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1037
 msgid "Amount paid cannot be zero"
 msgstr "Төлсөн дүн тэг байж болохгүй"
 
@@ -1013,7 +1013,7 @@ msgstr "Бүрэн төлж дуустал энэ зээлийг хааж бол
 msgid "Cannot create loan until application is approved"
 msgstr "Өргөдлийг батлах хүртэл зээл үүсгэх боломжгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2564
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2586
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Хорио цээрийн хугацаанд урьдчилгаа болон урьдчилгаа төлбөр хийх боломжгүй. (Хорио цээрийн хугацаа дуусах огноо: {}, Нийтлэх огноо: {})"
 
@@ -1449,7 +1449,7 @@ msgstr "Зээл ({0})"
 msgid "Credit Account"
 msgstr "Зээлийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2332
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2354
 msgid "Credit Account is mandatory"
 msgstr "Зээлийн данс заавал байх ёстой"
 
@@ -1537,7 +1537,7 @@ msgstr "Үйлчлүүлэгч"
 msgid "Customer Refund Account"
 msgstr "Харилцагчийн буцаан олголтын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2253
 msgid "Customer Refund Account is mandatory"
 msgstr "Харилцагчийн буцаан олголтын данс заавал байх ёстой"
 
@@ -2152,7 +2152,7 @@ msgstr "Бүрэн тооцоо"
 msgid "Full Settlement Job"
 msgstr "Бүрэн тооцооны ажил"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:983
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Бүрэн төлбөр тооцооны огноог хойшлуулж болохгүй. Үнэлгээний огноо {0} нь сүүлийн төлбөрийн үнэлгээний огноо {1} ({2} )-аас өмнө байж болохгүй."
 
@@ -2245,7 +2245,7 @@ msgstr "Орлого"
 msgid "Income Account"
 msgstr "Орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1026
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1033
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Буруу төлбөрийн төрөл байна, эхлээд зээлийг хасна уу"
 
@@ -2335,7 +2335,7 @@ msgstr "Хүүг урагшлуулах"
 msgid "Interest Income Account"
 msgstr "Хүүгийн орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2149
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2171
 msgid "Interest Income Account is mandatory"
 msgstr "Хүүгийн орлогын данс заавал байх ёстой"
 
@@ -2364,7 +2364,7 @@ msgstr "Хүүгийн хэмжээ (%)"
 msgid "Interest Receivable Account"
 msgstr "Хүүгийн авлагын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2144
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
 msgid "Interest Receivable Account is mandatory"
 msgstr "Хүүгийн авлагын данс заавал байх ёстой"
 
@@ -2392,7 +2392,7 @@ msgstr "Хүүгийн чөлөөлөлт"
 msgid "Interest Waiver Account"
 msgstr "Хүүгийн чөлөөлөлтийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2226
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2248
 msgid "Interest Waiver Account is mandatory"
 msgstr "Хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -2421,7 +2421,7 @@ msgstr "Сонирхол: {0}"
 msgid "Internal Foreclosure"
 msgstr "Дотоод барьцаа хөрөнгө"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:878
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Хүчингүй зээлийн олголтыг төлбөрт холбосон"
 
@@ -2718,9 +2718,9 @@ msgstr "Зээлийн данс"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Зээлийн данс болон төлбөрийн данс нь ижил байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2162
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2192
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2220
 msgid "Loan Account is mandatory"
 msgstr "Зээлийн данс заавал байх ёстой"
 
@@ -3774,7 +3774,7 @@ msgstr "Зээл бол чанаргүй хөрөнгө юм"
 msgid "Loan {0} closed"
 msgstr "Зээл {0} хаагдсан"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Зээл {0}: Бүрэн төлбөр тооцооны дараа {1} нийтлэх боломжгүй. Зөвхөн хүү, торгууль эсвэл төлбөрийн чөлөөлөлтийг бүрэн төлбөр тооцооны дараа нийтлэх боломжтой."
 
@@ -4353,7 +4353,7 @@ msgstr "Хамтрагчийн цуглуулгын хувь"
 msgid "Partner Interest Share"
 msgstr "Хамтрагчийн ашиг сонирхлын хувь"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2336
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2358
 msgid "Partner Interest Share is mandatory"
 msgstr "Түншийн хувь хэмжээ заавал байх ёстой"
 
@@ -4429,7 +4429,7 @@ msgstr "Өнгөрсөн үеийн бэлэн мөнгөний урсгалын
 msgid "Payable Account"
 msgstr "Төлөх данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2334
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2356
 msgid "Payable Account is mandatory"
 msgstr "Төлбөрийн данс заавал байх ёстой"
 
@@ -4460,9 +4460,9 @@ msgstr "Төлөх үндсэн дүн"
 msgid "Payment Account"
 msgstr "Төлбөрийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2311
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2173
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2333
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2475
 msgid "Payment Account is mandatory"
 msgstr "Төлбөрийн данс заавал байх ёстой"
 
@@ -4561,7 +4561,7 @@ msgstr "Торгуулийн хэмжээ"
 msgid "Penalty Income Account"
 msgstr "Торгуулийн орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2180
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2202
 msgid "Penalty Income Account is mandatory"
 msgstr "Торгуулийн орлогын данс заавал байх ёстой"
 
@@ -4587,7 +4587,7 @@ msgstr "Торгуулийн хугацаа хэтэрсэн"
 msgid "Penalty Receivable Account"
 msgstr "Торгуулийн авлагын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2196
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Торгуулийн авлагын данс заавал байх ёстой"
 
@@ -4679,7 +4679,7 @@ msgstr "Огноо дээрх байдлаар сонгоно уу."
 msgid "Please select Company."
 msgstr "Компаниа сонгоно уу."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:869
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:876
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Зээлийн шугамын төлбөрийг төлөхийн тулд Зээлийн олголтыг сонгоно уу"
 
@@ -4717,7 +4717,7 @@ msgstr "Зээлийн бүтээгдэхүүнд Нэмэлт Хүүгийн О
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүний хувьд эвдэрсэн хугацааны хүүгийн нөхөн төлбөрийн дансыг тохируулна уу {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүн хэсэгт Харилцагчийн буцаан олголтын дансыг {0} гэж тохируулна уу"
 
@@ -4737,7 +4737,7 @@ msgstr "Зээлийн бүтээгдэхүүний Зээлийн дансыг 
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүний төлбөрийн дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:851
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:858
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Зээлийн эргэн төлөлт хэсэгт Цалингийн төлбөрийн дансыг тохируулна уу"
 
@@ -4749,7 +4749,7 @@ msgstr "Зээлийн бүтээгдэхүүнд Торгуулийн хури�
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Торгуулийн орлогын дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:629
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:636
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүн дээр Хөрөнгө оруулалтын дансыг {0} гэж тохируулна уу"
 
@@ -4765,7 +4765,7 @@ msgstr "Зээлийн бүтээгдэхүүн дэх {0} Хуримтлагд�
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Зээлийн бүтээгдэхүүнд {0} Авлагын данс гэж тохируулна уу {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2504
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2526
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Компани эсвэл Зээлийн Бүтээгдэхүүний аль нэгэнд {0} гэж тохируулна уу"
 
@@ -5480,7 +5480,7 @@ msgstr "Төлбөр төлөлтийн эхлэх огноо {0} нь Төлб�
 msgid "Repayment Type"
 msgstr "Төлбөрийн төрөл"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:962
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
 msgstr "Хаагдсан зээлийн төлбөрийг төлөх боломжгүй"
 
@@ -5488,7 +5488,7 @@ msgstr "Хаагдсан зээлийн төлбөрийг төлөх болом
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Хугацаатай зээлийн хувьд төлбөрийн хугацаа заавал байх ёстой"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1017
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Төлбөрийн төрөл нь зөвхөн Хасахаас Нөхөн Сэргээх эсвэл Хасахаас Төлбөр Тогтоол байж болно"
 
@@ -5560,7 +5560,7 @@ msgstr "Холбогдох зээлийн бүтцийн өөрчлөлт"
 msgid "Restructured"
 msgstr "Бүтцийн өөрчлөлт"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2313
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2335
 msgid "Round Off Account is mandatory"
 msgstr "Тойрог данс заавал байх ёстой"
 
@@ -5850,19 +5850,19 @@ msgstr "Хугацааны дэлгэрэнгүй мэдээлэл"
 msgid "Terms and Conditions"
 msgstr "Үйлчилгээний нөхцөл"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1062
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1069
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Зээлийн олголт {0} хаагдсан."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:947
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:954
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "Төлсөн дүн ({0}) нь Барьцааны барьцааны тохируулгын төлбөрийн төлөлтийн дүнгээс ({1}) их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3370
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3392
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Дараах төлбөрүүд байхгүй эсвэл ирүүлээгүй байна: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3356
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3378
 msgid "The following loans do not exist: {}"
 msgstr "Дараах зээлүүд байхгүй байна: {}"
 
@@ -6247,7 +6247,7 @@ msgstr "Чөлөөлөгдсөн дүн"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Төлбөрөөс чөлөөлөгдсөн дүн {0} нь төлөгдөөгүй дүнгээс {1} их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1046
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1053
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Төлбөрөөс чөлөөлөгдсөн {0} хэмжээ {1} нь хугацаа хэтэрсэн хэмжээнээс {2} их байж болохгүй."
 
@@ -6256,7 +6256,7 @@ msgstr "Төлбөрөөс чөлөөлөгдсөн {0} хэмжээ {1} нь х
 msgid "Waiver Account"
 msgstr "Чөлөөлөх данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2464
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2486
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Зээлийн бүтээгдэхүүнд {1} {0} төлбөрийн данснаас чөлөөлөх данс тохируулагдаагүй байна"
 
@@ -6324,7 +6324,7 @@ msgstr "Бүртгэлээс хассан нөхөн төлбөр"
 msgid "Write Off Recovery Account"
 msgstr "Сэргээх дансаа хасуулах"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Хасах дансны нөхөн төлбөр заавал байх ёстой"
 

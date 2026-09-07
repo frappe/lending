@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-08-30 14:29+0000\n"
-"PO-Revision-Date: 2026-09-03 16:13\n"
+"PO-Revision-Date: 2026-09-06 16:09\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3067,7 +3067,7 @@ msgstr "Låneinformation"
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Interest Accrual"
-msgstr "Ackumulerade Låneräntor"
+msgstr "Ackumulerad Låneränta"
 
 #. Name of a role
 #: lending/loan_management/doctype/loan_application/loan_application.json

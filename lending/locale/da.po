@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-23 09:51+0000\n"
-"PO-Revision-Date: 2026-08-24 13:12\n"
+"POT-Creation-Date: 2026-08-30 14:29+0000\n"
+"PO-Revision-Date: 2026-09-06 16:09\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
@@ -185,7 +185,7 @@ msgstr "Tilføj til sidste EMI"
 msgid "Add to first repayment"
 msgstr "Læg til første betaling"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2215
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Tillægsrenteafskrivningskonto er obligatorisk"
 
@@ -222,7 +222,7 @@ msgstr "Yderligere rentebeløb"
 msgid "Additional Interest Income"
 msgstr "Yderligere renteindtægter"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2209
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Yderligere renteindtægtskonto er obligatorisk"
 
@@ -232,7 +232,7 @@ msgstr "Yderligere renteindtægtskonto er obligatorisk"
 msgid "Additional Interest Receivable"
 msgstr "Yderligere tilgodehavende renter"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2203
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2225
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Yderligere renteindtægtskonto er obligatorisk"
 
@@ -254,7 +254,7 @@ msgstr "Yderligere renteudsættelsespostering"
 msgid "Additional Interest Waiver"
 msgstr "Yderligere rentefraskrivelse"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2212
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2234
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Yderligere rentefraskrivelseskonto er obligatorisk"
 
@@ -348,7 +348,7 @@ msgstr "Justeringer"
 msgid "Advance Payment"
 msgstr "Forudbetaling"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2296
 msgid "Against Account is mandatory"
 msgstr "Modkonto er obligatorisk"
 
@@ -469,19 +469,19 @@ msgstr "Beløbet må ikke være nul"
 msgid "Amount on which interest is calculated"
 msgstr "Beløb, som renterne beregnes af"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:922
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
 msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1023
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Det betalte beløb kan ikke være større end det skyldige beløb"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1038
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1045
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Det betalte beløb kan ikke være mindre end det skyldige beløb ved lånelukning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1037
 msgid "Amount paid cannot be zero"
 msgstr "Det betalte beløb må ikke være nul"
 
@@ -998,7 +998,7 @@ msgstr "Kan ikke afslutte dette lån før fuld tilbagebetaling"
 msgid "Cannot create loan until application is approved"
 msgstr "Lån kan ikke oprettes, før ansøgningen er godkendt"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2564
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2586
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Kan ikke foretage forudbetalinger eller forskudsbetalinger under moratoriumperioden. (Moratoriumslutdato: {}, Bogføringsdato: {})"
 
@@ -1434,7 +1434,7 @@ msgstr "Kredit ({0})"
 msgid "Credit Account"
 msgstr "Kreditkonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2332
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2354
 msgid "Credit Account is mandatory"
 msgstr "Kreditkonto er obligatorisk"
 
@@ -1522,7 +1522,7 @@ msgstr "Kunde"
 msgid "Customer Refund Account"
 msgstr "Kunderefusionskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2253
 msgid "Customer Refund Account is mandatory"
 msgstr "Kunderefusionskonto er obligatorisk"
 
@@ -2137,7 +2137,7 @@ msgstr "Fuld afregning"
 msgid "Full Settlement Job"
 msgstr "Fuld afviklingsjob"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:983
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Fuld afregning kan ikke tilbagevirke. Valørdatoen {0} kan ikke være tidligere end den sidste afdragsvalørdato {1} ({2})."
 
@@ -2230,7 +2230,7 @@ msgstr "Indkomst"
 msgid "Income Account"
 msgstr "Indkomstkonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1026
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1033
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Forkert tilbagebetalingstype, afskriv venligst lånet først"
 
@@ -2320,7 +2320,7 @@ msgstr "Rentefremførsel"
 msgid "Interest Income Account"
 msgstr "Renteindtægtskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2149
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2171
 msgid "Interest Income Account is mandatory"
 msgstr "Renteindtægtskonto er obligatorisk"
 
@@ -2349,7 +2349,7 @@ msgstr "Rentesats (%)"
 msgid "Interest Receivable Account"
 msgstr "Rentetilgodehavende konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2144
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
 msgid "Interest Receivable Account is mandatory"
 msgstr "Renteindtægtskonto er obligatorisk"
 
@@ -2377,7 +2377,7 @@ msgstr "Rentefraskrivelse"
 msgid "Interest Waiver Account"
 msgstr "Rentefritagelseskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2226
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2248
 msgid "Interest Waiver Account is mandatory"
 msgstr "Rentefritagelseskonto er obligatorisk"
 
@@ -2406,7 +2406,7 @@ msgstr "Interesse: {0}"
 msgid "Internal Foreclosure"
 msgstr "Intern tvangsauktion"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:878
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Ugyldig låneudbetaling tilknyttet til betaling"
 
@@ -2703,9 +2703,9 @@ msgstr "Lånekonto"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Lånekonto og betalingskonto kan ikke være den samme"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2162
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2192
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2220
 msgid "Loan Account is mandatory"
 msgstr "Lånekonto er obligatorisk"
 
@@ -3759,7 +3759,7 @@ msgstr "Lån er et misligholdt aktiv"
 msgid "Loan {0} closed"
 msgstr "Lån {0} lukket"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Lån {0}: Kan ikke bogføres {1} efter fuld afvikling. Kun renter, bøder eller gebyrfraskrivelse kan bogføres efter en fuld afvikling."
 
@@ -4338,7 +4338,7 @@ msgstr "Partnerindsamlingsprocent"
 msgid "Partner Interest Share"
 msgstr "Partnerinteresseandel"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2336
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2358
 msgid "Partner Interest Share is mandatory"
 msgstr "Partnerandel er obligatorisk"
 
@@ -4414,7 +4414,7 @@ msgstr "Tidligere pengestrømsrapport"
 msgid "Payable Account"
 msgstr "Betalingskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2334
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2356
 msgid "Payable Account is mandatory"
 msgstr "Betalingskonto er obligatorisk"
 
@@ -4445,9 +4445,9 @@ msgstr "Betalingsbeløb"
 msgid "Payment Account"
 msgstr "Betalingskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2311
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2173
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2333
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2475
 msgid "Payment Account is mandatory"
 msgstr "Betalingskonto er obligatorisk"
 
@@ -4546,7 +4546,7 @@ msgstr "Sats for bøder"
 msgid "Penalty Income Account"
 msgstr "Konto for strafindkomst"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2180
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2202
 msgid "Penalty Income Account is mandatory"
 msgstr "Konto for strafindkomst er obligatorisk"
 
@@ -4572,7 +4572,7 @@ msgstr "Straf forfalden"
 msgid "Penalty Receivable Account"
 msgstr "Konto for tilgodehavende i bøder"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2196
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Konto til inddrivelse af bøder er obligatorisk"
 
@@ -4664,7 +4664,7 @@ msgstr "Vælg venligst Som på dato."
 msgid "Please select Company."
 msgstr "Vælg venligst Firma."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:869
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:876
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Vælg venligst låneudbetaling til tilbagebetaling af kreditlinje"
 
@@ -4702,7 +4702,7 @@ msgstr "Angiv venligst konto for yderligere renteindtægter i låneprodukt {0}"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Angiv venligst en konto for rentegendannelse for brudt periode for låneproduktet {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Angiv venligst kunderefusionskonto i låneprodukt {0}"
 
@@ -4722,7 +4722,7 @@ msgstr "Angiv venligst lånekonto for låneproduktet {0}"
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Angiv venligst betalingskonto for låneproduktet {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:851
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:858
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Angiv venligst lønkonto i tilbagebetaling af lån"
 
@@ -4734,7 +4734,7 @@ msgstr "Angiv venligst konto for påløbne bøder i låneprodukt {0}"
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Angiv venligst kontoen for strafindkomst i låneproduktet {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:629
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:636
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "Angiv venligst kontoen for inddrivelse af afskrivninger i låneproduktet {0}"
 
@@ -4750,7 +4750,7 @@ msgstr "Angiv venligst {0} periodiseringskonto i låneprodukt {1}"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Angiv venligst {0} Tilgodehavende i låneprodukt {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2504
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2526
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Angiv venligst {0} i enten Virksomhed eller Låneprodukt"
 
@@ -5465,7 +5465,7 @@ msgstr "Tilbagebetalingens startdato {0} kan ikke være før udbetalingsdatoen {
 msgid "Repayment Type"
 msgstr "Tilbagebetalingstype"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:962
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
 msgstr "Tilbagebetaling kan ikke ske for lukkede lån"
 
@@ -5473,7 +5473,7 @@ msgstr "Tilbagebetaling kan ikke ske for lukkede lån"
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Tilbagebetalingsperioder er obligatoriske for terminslån"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1017
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Tilbagebetalingstypen kan kun være Afskrivningsinddrivelse eller Afskrivningsafregning"
 
@@ -5545,7 +5545,7 @@ msgstr "Restrukturering af lån gældende"
 msgid "Restructured"
 msgstr "Omstruktureret"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2313
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2335
 msgid "Round Off Account is mandatory"
 msgstr "Afrundningskonto er obligatorisk"
 
@@ -5835,19 +5835,19 @@ msgstr "Detaljer om termin"
 msgid "Terms and Conditions"
 msgstr "Vilkår og betingelser"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1062
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1069
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Låneudbetalingen {0} er blevet lukket."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:947
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:954
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3370
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3392
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Følgende udbetalinger findes ikke eller er ikke indsendt: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3356
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3378
 msgid "The following loans do not exist: {}"
 msgstr "Følgende lån findes ikke: {}"
 
@@ -6232,7 +6232,7 @@ msgstr "Frafaldet beløb"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Det frafaldne beløb {0} kan ikke være større end det udestående beløb {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1046
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1053
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Frafaldet {0} beløb {1} kan ikke være større end det forfaldne beløb {2}"
 
@@ -6241,7 +6241,7 @@ msgstr "Frafaldet {0} beløb {1} kan ikke være større end det forfaldne beløb
 msgid "Waiver Account"
 msgstr "Afkaldskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2464
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2486
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Afskrivningskonto ikke indstillet til debitering {0} i låneprodukt {1}"
 
@@ -6309,7 +6309,7 @@ msgstr "Afskrivningsinddrivelse"
 msgid "Write Off Recovery Account"
 msgstr "Afskriv inddrivelseskonto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Konto til geninddrivelse af afskrivning er obligatorisk"
 
