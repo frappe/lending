@@ -2964,6 +2964,10 @@ def get_bulk_due_details(loans: list[str], posting_date: str | date | datetime, 
 	if not loans:
 		return []
 
+	permitted_loans = set(frappe.get_list("Loan", filters={"name": ["in", loans]}, pluck="name"))
+	if set(loans) - permitted_loans:
+		frappe.throw(_("Not permitted to view one or more of the selected loans"), frappe.PermissionError)
+
 	loan_details = frappe.db.get_all(
 		"Loan",
 		fields=[
@@ -3085,6 +3089,8 @@ def calculate_amounts(
 	loan_disbursement: str | None = None,
 	for_update: bool = False,
 ):
+	frappe.has_permission("Loan", "read", doc=against_loan, throw=True)
+
 	amounts = init_amounts()
 
 	if with_loan_details:
