@@ -875,7 +875,7 @@ def get_sanctioned_amount_limit(applicant_type, applicant, company):
 def request_loan_closure(loan: str, posting_date: str | date | datetime | None = None, auto_close: int = 0):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
-	frappe.has_permission("Loan", "write", throw=True)
+	frappe.has_permission("Loan", "write", doc=loan, throw=True)
 
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 	if not posting_date:
@@ -926,6 +926,8 @@ def request_loan_closure(loan: str, posting_date: str | date | datetime | None =
 
 @frappe.whitelist()
 def get_loan_application(loan_application: str):
+	frappe.has_permission("Loan Application", "read", doc=loan_application, throw=True)
+
 	loan = frappe.get_doc("Loan Application", loan_application)
 	if loan:
 		return loan.as_dict()
@@ -933,7 +935,7 @@ def get_loan_application(loan_application: str):
 
 @frappe.whitelist()
 def close_unsecured_term_loan(loan: str):
-	frappe.has_permission("Loan", "write", throw=True)
+	frappe.has_permission("Loan", "write", doc=loan, throw=True)
 
 	loan_details = frappe.db.get_value(
 		"Loan", {"name": loan}, ["status", "is_term_loan", "is_secured_loan"], as_dict=1
@@ -963,6 +965,7 @@ def make_loan_disbursement(
 	is_term_loan: int | None = None,
 ):
 	frappe.has_permission("Loan Disbursement", "create", throw=True)
+	frappe.has_permission("Loan", "read", doc=loan, throw=True)
 
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
@@ -1012,6 +1015,8 @@ def make_repayment_entry(
 	loan_disbursement: str | None = None,
 	as_dict: bool = False,
 ):
+	frappe.has_permission("Loan", "read", doc=loan, throw=True)
+
 	repayment_entry = frappe.new_doc("Loan Repayment")
 	repayment_entry.against_loan = loan
 	repayment_entry.applicant_type = applicant_type
@@ -1033,6 +1038,7 @@ def make_loan_write_off(loan: str, company: str | None = None, posting_date: str
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 	frappe.has_permission("Loan Write Off", "write", throw=True)
+	frappe.has_permission("Loan", "write", doc=loan, throw=True)
 
 	if not company:
 		company = frappe.get_value("Loan", loan, "company")
@@ -1083,6 +1089,8 @@ def unpledge_security(
 		security_map = json.loads(security_map)
 
 	if loan:
+		frappe.has_permission("Loan", "write", doc=loan, throw=True)
+
 		pledge_qty_map = security_map or get_pledged_security_qty(loan=loan)
 		loan_doc = frappe.get_doc("Loan", loan)
 		unpledge_request = create_loan_security_release(
@@ -1090,6 +1098,8 @@ def unpledge_security(
 		)
 	# will unpledge qty based on Loan Security Assignment
 	elif loan_security_assignment:
+		frappe.has_permission("Loan Security Assignment", "read", doc=loan_security_assignment, throw=True)
+
 		security_map = {}
 		pledge_doc = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
 		for security in pledge_doc.securities:
@@ -1147,6 +1157,7 @@ def get_shortfall_applicants():
 @frappe.whitelist()
 def make_refund_jv(loan: str, amount: float = 0, reference_number: str | None = None, reference_date: str | None = None, submit: int = 0):
 	frappe.has_permission("Journal Entry", "write", throw=True)
+	frappe.has_permission("Loan", "write", doc=loan, throw=True)
 
 	loan_details = frappe.db.get_value(
 		"Loan",
@@ -1211,7 +1222,7 @@ def update_days_past_due_in_loans(
 ) -> None:
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import get_unpaid_demands
 
-	frappe.has_permission("Loan", "write", throw=True)
+	frappe.has_permission("Loan", "write", doc=loan_name, throw=True)
 
 	"""Update days past due in loans"""
 	posting_date = posting_date or getdate()

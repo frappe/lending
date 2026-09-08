@@ -311,8 +311,8 @@ def before_uninstall():
 	delete_custom_fields(LOAN_CUSTOM_FIELDS)
 
 
-# The one place the age condition is written. The patch that guards an older, unguarded
-# copy of this script replaces its condition with this one, so the two cannot drift.
+# Shared with the patch that guards an older, unguarded copy of this script, so the two
+# conditions cannot drift.
 GUARDED_AGE_CONDITION = 'if doc.applicant_type == "Individual" and (doc.age or 0) < 18:'
 
 LOAN_LEAD_RULE_SCRIPTS = {

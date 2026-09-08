@@ -3,10 +3,9 @@ from frappe.model import delete_fields
 
 from lending.install import GUARDED_AGE_CONDITION, add_server_scripts
 
-# Only this line is rewritten, so a site's own edits to the rule survive. What replaces it
-# is the condition install.py ships, imported rather than repeated.
 UNGUARDED_AGE_CONDITION = "if doc.age < 18:"
 
+# An earlier build of this release moved these rules into the Loan Lead module.
 STALE_METHOD_PATHS = {
 	"lending.loan_origination.applicant_exposure.": (
 		"lending.loan_origination.doctype.loan_lead.applicant_exposure."
@@ -23,6 +22,8 @@ SCRIPT_BACKED_RULES = {
 
 
 def execute():
+	# Unconditional: patches run before sync_fixtures, whose tasks link these scripts by
+	# name. add_server_scripts() is idempotent and never overwrites.
 	add_server_scripts()
 	guard_age_script()
 	repoint_stale_method_paths()
@@ -31,6 +32,7 @@ def execute():
 
 
 def drop_product_live_loan_limit():
+	"""Drop the per-product limit an earlier build added; it used to override the script."""
 	if not frappe.db.has_column(LOAN_PRODUCT_DOCTYPE, PRODUCT_LIMIT_FIELD):
 		return
 
@@ -75,6 +77,9 @@ def repoint_stale_method_paths():
 
 
 def rewire_method_tasks_to_scripts():
+	"""Covers rows on documents outside the shipped fixture. The row is moved, not added
+	to: a method row and a script row for the same rule would run it twice.
+	"""
 	for task, script in SCRIPT_BACKED_RULES.items():
 		if not frappe.db.exists("Server Script", script):
 			continue

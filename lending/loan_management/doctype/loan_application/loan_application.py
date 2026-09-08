@@ -324,11 +324,15 @@ def create_loan_security_assignment(loan_application: str | None = None, loan: s
 	frappe.has_permission("Loan Security Assignment", "create", throw=True)
 
 	if loan_application:
+		frappe.has_permission("Loan Application", "read", doc=loan_application, throw=True)
+
 		loan_application_doc = frappe.get_doc("Loan Application", loan_application)
 		applicant_type, applicant, company = frappe.db.get_value("Loan Application", loan_application,
 			["applicant_type", "applicant", "company"])
 		securities = loan_application_doc.get("proposed_pledges")
 	elif loan:
+		frappe.has_permission("Loan", "read", doc=loan, throw=True)
+
 		applicant_type, applicant, company = frappe.db.get_value("Loan", loan,
 			["applicant_type", "applicant", "company"])
 	elif not applicant:
@@ -397,6 +401,8 @@ def get_proposed_pledge(securities: str | list):
 def check_duplicate_customers(
 	applicant_phone_number: str | None = None, applicant_email_address: str | None = None
 ):
+	frappe.has_permission("Customer", "read", throw=True)
+
 	# check if there are customer entries with the same email and/or phone
 	customer_doc = frappe.qb.DocType("Customer")
 

@@ -197,6 +197,7 @@ def make_lead(email, mobile_number, pan=None, applicant_country=None):
 
 
 def customer_carries_pan() -> bool:
+	"""PAN on Customer is an India Compliance custom field, so it is not always there."""
 	return frappe.get_meta("Customer").has_field(CUSTOMER_PAN_FIELD)
 
 
@@ -277,6 +278,7 @@ class TestApplicantExposureLiveLoanLimit(LendingTestSuite):
 
 class TestApplicantExposureIsNotReachableOverHTTP(LendingTestSuite):
 	def test_nothing_that_returns_the_loan_book_is_whitelisted(self):
+		# Whitelisting these would put the loan book behind a lead the caller can create.
 		for method in (
 			get_live_loan_count,
 			get_matching_customers,
@@ -305,6 +307,7 @@ class TestLiveLoanLimitIsGatedWhereItIsReachable(LendingTestSuite):
 		self.assertRaises(frappe.PermissionError, validate_live_loan_limit, lead.name, 1)
 
 	def test_write_on_the_lead_alone_does_not_open_the_loan_book(self):
+		# A caller who can create a lead must not be able to probe any identity for loans.
 		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
 
 		with only_loan_reads_denied():

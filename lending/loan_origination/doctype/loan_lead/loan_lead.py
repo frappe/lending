@@ -21,6 +21,7 @@ OTP_VERIFY_LIMIT = 60
 BULK_OTP_SEND_LIMIT = 5
 OTP_RATE_LIMIT_WINDOW = 60 * 60
 
+
 OTP_MEDIUM_FIELD_MAP = {
 	"Email": {
 		"recipient_field": "email",

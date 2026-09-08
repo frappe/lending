@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-08-23 09:51+0000\n"
-"PO-Revision-Date: 2026-08-28 15:34\n"
+"POT-Creation-Date: 2026-09-06 13:01+0000\n"
+"PO-Revision-Date: 2026-09-07 16:08\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Mongolian\n"
 "MIME-Version: 1.0\n"
@@ -73,6 +73,12 @@ msgstr "<span class=\"h4\"><b>Тайлангууд &amp; Магиструуд</b
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
 msgstr "<span class=\"h4\"><b>Таны товчлолууд</b></span>"
 
+#. Description of the 'OTP Verification Mandatory' (Check) field in DocType
+#. 'Loan Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "A lead cannot be converted to a Loan Application until every enabled medium is verified."
+msgstr ""
+
 #. Name of a report
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.json
 msgid "ALM Audit Report"
@@ -83,7 +89,7 @@ msgstr "ALM Аудитын Тайлан"
 msgid "Account Info"
 msgstr "Дансны мэдээлэл"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:117
+#: lending/loan_management/doctype/loan_product/loan_product.py:118
 msgid "Account {0} does not belong to company {1}"
 msgstr "{0} бүртгэл нь {1} компанийнх биш"
 
@@ -200,7 +206,7 @@ msgstr "Сүүлийн Хөрөнгө оруулалтын багцад нэмэ
 msgid "Add to first repayment"
 msgstr "Эхний төлбөрт нэмэх"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2193
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2219
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Нэмэлт хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -237,7 +243,7 @@ msgstr "Нэмэлт хүүгийн хэмжээ"
 msgid "Additional Interest Income"
 msgstr "Нэмэлт хүүгийн орлого"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2209
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Нэмэлт хүүгийн орлогын данс заавал байх ёстой"
 
@@ -247,7 +253,7 @@ msgstr "Нэмэлт хүүгийн орлогын данс заавал бай�
 msgid "Additional Interest Receivable"
 msgstr "Нэмэлт хүүгийн авлага"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2203
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2229
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Нэмэлт хүүгийн авлагын данс заавал байх ёстой"
 
@@ -269,7 +275,7 @@ msgstr "Нэмэлт хүүгийн түр зогсоолын оруулга"
 msgid "Additional Interest Waiver"
 msgstr "Нэмэлт хүүгийн чөлөөлөлт"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2212
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2238
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Нэмэлт хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -363,7 +369,7 @@ msgstr "Тохируулга"
 msgid "Advance Payment"
 msgstr "Урьдчилсан төлбөр"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2274
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2309
 msgid "Against Account is mandatory"
 msgstr "Дансны эсрэг заавал байх ёстой"
 
@@ -484,28 +490,32 @@ msgstr "Тоо хэмжээ тэг байж болохгүй"
 msgid "Amount on which interest is calculated"
 msgstr "Хүү тооцсон дүн"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:922
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:929
 msgid "Amount paid ({0}) cannot be greater than available security deposit ({1})"
 msgstr "Төлсөн дүн ({0}) нь боломжтой барьцааны хэмжээнээс ({1} ) их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1023
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1042
 msgid "Amount paid cannot be greater than payable amount"
 msgstr "Төлсөн дүн нь төлөх ёстой дүнгээс их байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1038
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1050
 msgid "Amount paid cannot be less than payable amount for loan closure"
 msgstr "Төлсөн дүн нь зээлийн хаалтын төлбөрийн дүнгээс бага байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1030
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1033
 msgid "Amount paid cannot be zero"
 msgstr "Төлсөн дүн тэг байж болохгүй"
 
 #. Label of the section_break_7 (Section Break) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:26
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:34
 msgid "Amounts"
 msgstr "Дүн"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:261
+msgid "An OTP can only be sent while the lead is a draft."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.py:112
 msgid "Another Loan Restructure is already initiated for this Loan"
@@ -545,7 +555,7 @@ msgstr "Энэ зээлийн хувьд өөр нэг зээлийн бүтци
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:31
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:33
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:31
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:41
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:53
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:33
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.js:14
@@ -609,7 +619,7 @@ msgstr "Өргөдөл гаргагчийн гар утас"
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:28
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:40
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:48
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:16
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -666,7 +676,7 @@ msgstr "Өргөдөл гаргагчийн утасны дугаар"
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:22
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:16
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:40
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:16
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:26
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:42
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:17
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:16
@@ -715,6 +725,7 @@ msgstr "Зөвшөөрөгдсөн"
 
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.js:16
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:16
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:16
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:16
 msgid "As on Date"
 msgstr "Огноо дээрх байдлаар"
@@ -807,11 +818,6 @@ msgstr "BPI эмчилгээ"
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:226
 msgid "BPI difference entry"
 msgstr "BPI зөрүүний оруулга"
-
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:50
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:82
-msgid "Balance"
-msgstr "Тэнцвэр"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:67
 msgid "Balance ({0})"
@@ -1013,9 +1019,13 @@ msgstr "Бүрэн төлж дуустал энэ зээлийг хааж бол
 msgid "Cannot create loan until application is approved"
 msgstr "Өргөдлийг батлах хүртэл зээл үүсгэх боломжгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2564
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2599
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Хорио цээрийн хугацаанд урьдчилгаа болон урьдчилгаа төлбөр хийх боломжгүй. (Хорио цээрийн хугацаа дуусах огноо: {}, Нийтлэх огноо: {})"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:204
+msgid "Cannot send an OTP to more than {0} leads at a time."
+msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:486
 msgid "Cannot un mark as NPA before watch period end date"
@@ -1291,6 +1301,12 @@ msgstr "Хамтран зээлдүүлэгчийн хуваарь"
 msgid "Co-Lending"
 msgstr "Хамтран зээлдүүлэх"
 
+#. Description of the 'OTP Settings' (Section Break) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Code length, validity and attempt limits are set in TP OTP Settings."
+msgstr ""
+
 #. Label of the collection_offset_sequence_section (Section Break) field in
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -1406,6 +1422,15 @@ msgstr "Ажиллах хугацаа дууссан"
 msgid "Components"
 msgstr "Бүрэлдэхүүн хэсгүүд"
 
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
+msgid "Cooling Period"
+msgstr ""
+
+#. Label of the cooling_period_days (Int) field in DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Cooling Period in Days"
+msgstr ""
+
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -1435,6 +1460,10 @@ msgstr "Зардлын төв"
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
 msgstr "0-ээс дээш хүүтэй зээлийн хувьд зардлын төв заавал байх ёстой"
 
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:219
+msgid "Could not send the OTP."
+msgstr ""
+
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
@@ -1449,7 +1478,7 @@ msgstr "Зээл ({0})"
 msgid "Credit Account"
 msgstr "Зээлийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2332
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2367
 msgid "Credit Account is mandatory"
 msgstr "Зээлийн данс заавал байх ёстой"
 
@@ -1537,7 +1566,7 @@ msgstr "Үйлчлүүлэгч"
 msgid "Customer Refund Account"
 msgstr "Харилцагчийн буцаан олголтын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2231
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
 msgid "Customer Refund Account is mandatory"
 msgstr "Харилцагчийн буцаан олголтын данс заавал байх ёстой"
 
@@ -1570,7 +1599,7 @@ msgstr "Төлбөрийг буцаан төлөх огноог тооцсон �
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:130
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:138
 msgid "Days Past Due"
 msgstr "Хугацаа хэтэрсэн өдрүүд"
 
@@ -1674,6 +1703,10 @@ msgstr "Төлбөргүй үндсэн төлбөр"
 msgid "Delinquent Utilized Limit"
 msgstr "Төлбөрийн хугацаа хэтэрсэн ашиглалтын хязгаар"
 
+#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:565
+msgid "Delivery failed."
+msgstr ""
+
 #. Label of the demand_amount (Currency) field in DocType 'Loan Demand'
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 msgid "Demand Amount"
@@ -1750,7 +1783,7 @@ msgstr "Төлсөн"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:70
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:57
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:65
 msgid "Disbursed Amount"
 msgstr "Төлсөн дүн"
 
@@ -1811,7 +1844,7 @@ msgstr "Зарлагын төлбөр"
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:64
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:51
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:59
 msgid "Disbursement Date"
 msgstr "Төлбөрийн огноо"
 
@@ -1871,11 +1904,11 @@ msgstr "EMI (PMT) дээр суурилсан"
 msgid "EMI (Principal + Interest)"
 msgstr "EMI (Үндсэн зээл + Хүү)"
 
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:106
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:114
 msgid "EMIs Paid"
 msgstr "Төлсөн Хөрөнгө оруулалтын Төлбөр"
 
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:112
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:120
 msgid "EMIs Raised"
 msgstr "Хөрөнгө оруулалтын нэмэгдсэн төлбөр"
 
@@ -1893,11 +1926,6 @@ msgstr "Зээлийн барьцааны даалгавар үүсгэхийн 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Email Content"
 msgstr "Имэйл контент"
-
-#. Label of the email_otp (Password) field in DocType 'Loan Lead'
-#: lending/loan_origination/doctype/loan_lead/loan_lead.json
-msgid "Email OTP"
-msgstr "И-мэйл OTP"
 
 #. Label of the email_verification_status (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -2152,7 +2180,7 @@ msgstr "Бүрэн тооцоо"
 msgid "Full Settlement Job"
 msgstr "Бүрэн тооцооны ажил"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:983
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:990
 msgid "Full Settlement cannot be backdated. The value date {0} cannot be earlier than the last repayment value date {1} ({2})."
 msgstr "Бүрэн төлбөр тооцооны огноог хойшлуулж болохгүй. Үнэлгээний огноо {0} нь сүүлийн төлбөрийн үнэлгээний огноо {1} ({2} )-аас өмнө байж болохгүй."
 
@@ -2245,9 +2273,30 @@ msgstr "Орлого"
 msgid "Income Account"
 msgstr "Орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1026
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1027
 msgid "Incorrect repayment type, please write off the loan first"
 msgstr "Буруу төлбөрийн төрөл байна, эхлээд зээлийг хасна уу"
+
+#. Label of the indicative_amount (Currency) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Indicative Amount"
+msgstr ""
+
+#. Label of the indicative_roi (Percent) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Indicative Rate of Interest"
+msgstr ""
+
+#. Label of the indicative_tenure (Int) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Indicative Tenure"
+msgstr ""
+
+#. Description of the 'Pre-Qualification Status' (Select) field in DocType
+#. 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Indicative only. Decided on declared income before anything was verified, so it does not hold the lead back from becoming an application."
+msgstr ""
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -2266,7 +2315,7 @@ msgstr "Хувь хүн"
 msgid "Initiated"
 msgstr "Санаачилсан"
 
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:118
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:126
 msgid "Installments Overdue"
 msgstr "Хэсэгчилсэн төлбөрийн хугацаа хэтэрсэн"
 
@@ -2335,13 +2384,13 @@ msgstr "Хүүг урагшлуулах"
 msgid "Interest Income Account"
 msgstr "Хүүгийн орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2149
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
 msgid "Interest Income Account is mandatory"
 msgstr "Хүүгийн орлогын данс заавал байх ёстой"
 
 #. Label of the interest_overdue (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:100
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:108
 msgid "Interest Overdue"
 msgstr "Хүүгийн төлбөрийн хугацаа хэтэрсэн"
 
@@ -2354,7 +2403,7 @@ msgstr "Төлөх хүү"
 msgid "Interest Rate"
 msgstr "Хүүгийн хэмжээ"
 
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:136
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:144
 msgid "Interest Rate (%)"
 msgstr "Хүүгийн хэмжээ (%)"
 
@@ -2364,7 +2413,7 @@ msgstr "Хүүгийн хэмжээ (%)"
 msgid "Interest Receivable Account"
 msgstr "Хүүгийн авлагын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2144
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
 msgid "Interest Receivable Account is mandatory"
 msgstr "Хүүгийн авлагын данс заавал байх ёстой"
 
@@ -2392,7 +2441,7 @@ msgstr "Хүүгийн чөлөөлөлт"
 msgid "Interest Waiver Account"
 msgstr "Хүүгийн чөлөөлөлтийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2226
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
 msgid "Interest Waiver Account is mandatory"
 msgstr "Хүүгийн чөлөөлөлтийн данс заавал байх ёстой"
 
@@ -2406,8 +2455,8 @@ msgstr "Хүүгийн чөлөөлөлтийн хэмжээ"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Хүүгийн чөлөөлөлтийн хэмжээ нь хугацаа хэтэрсэн хүүгээс их байж болохгүй"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:259
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:296
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:263
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:300
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Зээлийн эсрэг {0} -с {1} хүртэл хуримтлагдсан хүү: {2}"
 
@@ -2421,7 +2470,7 @@ msgstr "Сонирхол: {0}"
 msgid "Internal Foreclosure"
 msgstr "Дотоод барьцаа хөрөнгө"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:878
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
 msgstr "Хүчингүй зээлийн олголтыг төлбөрт холбосон"
 
@@ -2616,6 +2665,10 @@ msgstr "Хязгаарлалтууд"
 msgid "Line of Credit"
 msgstr "Зээлийн шугам"
 
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:58
+msgid "Live Loan Limit"
+msgstr ""
+
 #. Label of the loan (Link) field in DocType 'Bulk Repayment Log'
 #. Label of the loan (Link) field in DocType 'Days Past Due Log'
 #. Name of a DocType
@@ -2670,8 +2723,8 @@ msgstr "Зээлийн шугам"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:81
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:41
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:18
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:81
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:39
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:91
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:47
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:36
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.js:8
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:42
@@ -2683,6 +2736,7 @@ msgstr "Зээлийн шугам"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:86
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "Зээл"
@@ -2714,13 +2768,13 @@ msgstr "Зээлийн дэлгэрэнгүй мэдээлэл"
 msgid "Loan Account"
 msgstr "Зээлийн данс"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:124
+#: lending/loan_management/doctype/loan_product/loan_product.py:125
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Зээлийн данс болон төлбөрийн данс нь ижил байж болохгүй"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2140
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2198
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2196
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2224
 msgid "Loan Account is mandatory"
 msgstr "Зээлийн данс заавал байх ёстой"
 
@@ -2730,11 +2784,11 @@ msgstr "Зээлийн данс заавал байх ёстой"
 msgid "Loan Accounts"
 msgstr "Зээлийн данс"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1162
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1205
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Зээлийн хуримтлалын давтамжийг {0} компанийн хувьд тохируулаагүй байна"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:418
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:422
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Зээлийн хуримтлалын давтамжийг Компанийн баримт бичгийн төрөлд тохируулаагүй болно."
 
@@ -2778,7 +2832,7 @@ msgstr "Зээлийн тохируулга"
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:42
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:50
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Loan Amount"
 msgstr "Зээлийн хэмжээ"
@@ -2923,7 +2977,7 @@ msgstr "Зээлийн хамтран өргөдөл гаргагчид"
 msgid "Loan Credit Limits"
 msgstr "Зээлийн зээлийн хязгаар"
 
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:41
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:49
 msgid "Loan Date"
 msgstr "Зээлийн огноо"
 
@@ -3003,8 +3057,8 @@ msgstr "Зээлийн дэлгэрэнгүй мэдээлэл"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:102
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:58
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:25
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:102
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:44
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:112
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:52
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Disbursement"
@@ -3284,8 +3338,8 @@ msgstr "Зээлийн үйл явц"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:62
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.js:23
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:32
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:62
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:63
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:72
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:71
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:17
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:65
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:57
@@ -3774,7 +3828,7 @@ msgstr "Зээл бол чанаргүй хөрөнгө юм"
 msgid "Loan {0} closed"
 msgstr "Зээл {0} хаагдсан"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1007
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Зээл {0}: Бүрэн төлбөр тооцооны дараа {1} нийтлэх боломжгүй. Зөвхөн хүү, торгууль эсвэл төлбөрийн чөлөөлөлтийг бүрэн төлбөр тооцооны дараа нийтлэх боломжтой."
 
@@ -3855,6 +3909,10 @@ msgstr "Зээлийн өргөдөлгүй баталгаатай зээлд з
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 msgid "Maximum Loan Value"
 msgstr "Зээлийн дээд хэмжээ"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:242
+msgid "Medium must be one of: {0}."
+msgstr ""
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Balance
 #. Adjustment'
@@ -3947,7 +4005,7 @@ msgid "Monthly Repayment Amount"
 msgstr "Сарын төлбөрийн хэмжээ"
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:146
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:967
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "Сарын төлбөрийн хэмжээ нь зээлийн хэмжээнээс хэтрэхгүй байх ёстой"
 
@@ -4089,6 +4147,12 @@ msgstr "Энэ өргөдөл гаргагч эсвэл салбарт зээл 
 msgid "No valid Loan Security Price found for {0}"
 msgstr "{0}-д хүчинтэй зээлийн барьцааны үнэ олдсонгүй"
 
+#. Description of the 'Cooling Period in Days' (Int) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "No. of days a rejected applicant has to wait before a lead for this product can be taken forward. Overrides the workflow task's value; 0 falls back to it."
+msgstr ""
+
 #. Description of the 'Grace Period in Days' (Int) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -4130,6 +4194,16 @@ msgstr "Хэвийн төлбөр"
 msgid "Normal Restructure"
 msgstr "Хэвийн бүтцийн өөрчлөлт"
 
+#. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Not Pre-Qualified"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+msgid "Not permitted to read {0}"
+msgstr ""
+
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
 #: lending/loan_management/doctype/co_lender_schedule/co_lender_schedule.json
@@ -4142,6 +4216,34 @@ msgstr "Өдрийн тоо"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Number of months of history to include in each statement."
 msgstr "Мэдэгдэл бүрт оруулах түүхийн сарын тоо."
+
+#. Label of the otp_settings_section (Section Break) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "OTP Settings"
+msgstr ""
+
+#. Label of the otp_verification_mandatory (Check) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "OTP Verification Mandatory"
+msgstr ""
+
+#. Label of the otp_for_email (Check) field in DocType 'Loan Origination
+#. Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "OTP for Email"
+msgstr ""
+
+#. Label of the otp_for_sms (Check) field in DocType 'Loan Origination
+#. Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "OTP for SMS"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:265
+msgid "OTP for {0} is not enabled in Loan Origination Settings."
+msgstr ""
 
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -4353,7 +4455,7 @@ msgstr "Хамтрагчийн цуглуулгын хувь"
 msgid "Partner Interest Share"
 msgstr "Хамтрагчийн ашиг сонирхлын хувь"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2336
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2371
 msgid "Partner Interest Share is mandatory"
 msgstr "Түншийн хувь хэмжээ заавал байх ёстой"
 
@@ -4429,7 +4531,7 @@ msgstr "Өнгөрсөн үеийн бэлэн мөнгөний урсгалын
 msgid "Payable Account"
 msgstr "Төлөх данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2334
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2369
 msgid "Payable Account is mandatory"
 msgstr "Төлбөрийн данс заавал байх ёстой"
 
@@ -4460,9 +4562,9 @@ msgstr "Төлөх үндсэн дүн"
 msgid "Payment Account"
 msgstr "Төлбөрийн данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2151
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2311
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2453
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2177
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2346
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2488
 msgid "Payment Account is mandatory"
 msgstr "Төлбөрийн данс заавал байх ёстой"
 
@@ -4561,7 +4663,7 @@ msgstr "Торгуулийн хэмжээ"
 msgid "Penalty Income Account"
 msgstr "Торгуулийн орлогын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2180
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2206
 msgid "Penalty Income Account is mandatory"
 msgstr "Торгуулийн орлогын данс заавал байх ёстой"
 
@@ -4587,7 +4689,7 @@ msgstr "Торгуулийн хугацаа хэтэрсэн"
 msgid "Penalty Receivable Account"
 msgstr "Торгуулийн авлагын данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2174
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2200
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Торгуулийн авлагын данс заавал байх ёстой"
 
@@ -4644,12 +4746,16 @@ msgstr "Зээлийн хүлээгдэж буй үндсэн дүн {0} нь {1
 msgid "Please add customer refund account in Loan Product"
 msgstr "Зээлийн бүтээгдэхүүнд хэрэглэгчийн буцаан олголтын данс нэмнэ үү"
 
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:55
+msgid "Please enable {0} in TP OTP Settings to use {1}."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_application/loan_application.py:140
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:957
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:958
 msgid "Please enter Repayment Periods"
 msgstr "Төлбөрийн хугацааг оруулна уу"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:964
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:965
 msgid "Please enter monthly repayment amount"
 msgstr "Сарын төлбөрийн хэмжээг оруулна уу"
 
@@ -4657,13 +4763,25 @@ msgstr "Сарын төлбөрийн хэмжээг оруулна уу"
 msgid "Please enter repayment Amount"
 msgstr "Төлбөрийн хэмжээг оруулна уу"
 
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:48
+msgid "Please install the Telephony app to send OTPs, or turn OTP for Email and SMS off."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:284
+msgid "Please install the Telephony app to send and verify OTPs."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:200
+msgid "Please pass Loan Leads as a list of lead names."
+msgstr ""
+
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:8
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:23
 msgid "Please save before proceeding."
 msgstr "Үргэлжлүүлэхээсээ өмнө хадгална уу."
 
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:37
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:37
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:47
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.js:59
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:34
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:34
@@ -4679,7 +4797,7 @@ msgstr "Огноо дээрх байдлаар сонгоно уу."
 msgid "Please select Company."
 msgstr "Компаниа сонгоно уу."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:869
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:876
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Зээлийн шугамын төлбөрийг төлөхийн тулд Зээлийн олголтыг сонгоно уу"
 
@@ -4696,6 +4814,10 @@ msgstr "Зээлийн бүтээгдэхүүнээ сонгоно уу."
 msgid "Please select a date."
 msgstr "Огноо сонгоно уу."
 
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:15
+msgid "Please select an As on Date."
+msgstr ""
+
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:73
 msgid "Please select at least Loan or Applicant to view the ledger"
 msgstr "Нягтлан бодох бүртгэлийн дэвтрийг харахын тулд дор хаяж Зээлдэгч эсвэл Өргөдөл гаргагчийг сонгоно уу"
@@ -4704,11 +4826,11 @@ msgstr "Нягтлан бодох бүртгэлийн дэвтрийг хара
 msgid "Please select how to collect Applicants."
 msgstr "Өргөдөл гаргагчдыг хэрхэн цуглуулахаа сонгоно уу."
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:242
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:246
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Нэмэлт хүүгийн хуримтлагдсан дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:235
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:239
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Нэмэлт Хүүгийн Орлогын Дансыг {0} гэж тохируулна уу"
 
@@ -4717,15 +4839,15 @@ msgstr "Зээлийн бүтээгдэхүүнд Нэмэлт Хүүгийн О
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүний хувьд эвдэрсэн хугацааны хүүгийн нөхөн төлбөрийн дансыг тохируулна уу {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2261
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүн хэсэгт Харилцагчийн буцаан олголтын дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:211
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Хүүгийн хуримтлагдсан данс гэж тохируулна уу {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:216
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:220
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Хүүгийн орлогын дансыг {0} гэж тохируулна уу"
 
@@ -4737,19 +4859,19 @@ msgstr "Зээлийн бүтээгдэхүүний Зээлийн дансыг 
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүний төлбөрийн дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:851
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:858
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Зээлийн эргэн төлөлт хэсэгт Цалингийн төлбөрийн дансыг тохируулна уу"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:224
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Торгуулийн хуримтлагдсан данс гэж тохируулна уу {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:229
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:233
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүнд Торгуулийн орлогын дансыг {0} гэж тохируулна уу"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:629
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:636
 msgid "Please set Write Off Recovery Account in Loan Product {0}"
 msgstr "Зээлийн бүтээгдэхүүн дээр Хөрөнгө оруулалтын дансыг {0} гэж тохируулна уу"
 
@@ -4765,9 +4887,17 @@ msgstr "Зээлийн бүтээгдэхүүн дэх {0} Хуримтлагд�
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Зээлийн бүтээгдэхүүнд {0} Авлагын данс гэж тохируулна уу {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2504
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2539
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Компани эсвэл Зээлийн Бүтээгдэхүүний аль нэгэнд {0} гэж тохируулна уу"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:270
+msgid "Please set {0} on this lead first."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:313
+msgid "Please verify the applicant's {0} before converting this lead."
+msgstr ""
 
 #. Name of a DocType
 #: lending/loan_management/doctype/pledge/pledge.json
@@ -4898,6 +5028,34 @@ msgstr "DPD-г бүтцийн өөрчлөлтөөс өмнөх"
 msgid "Pre Restructure Details"
 msgstr "Бүтцийн өөрчлөлтийн өмнөх дэлгэрэнгүй мэдээлэл"
 
+#. Label of the prequalification_section (Section Break) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Pre-Qualification"
+msgstr ""
+
+#. Label of the prequalification_reason_codes (Small Text) field in DocType
+#. 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Pre-Qualification Reason Codes"
+msgstr ""
+
+#. Label of the prequalification_status (Select) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Pre-Qualification Status"
+msgstr ""
+
+#. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Pre-Qualified"
+msgstr ""
+
+#. Label of the prequalified_on (Datetime) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Pre-Qualified On"
+msgstr ""
+
 #. Label of the prepayment_charges_section (Section Break) field in DocType
 #. 'Loan Repayment'
 #. Name of a DocType
@@ -4988,14 +5146,14 @@ msgstr "Үндсэн капиталжуулалт"
 #. Label of the principal_outstanding (Currency) field in DocType 'Loan
 #. Restructure Limit Log'
 #: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:88
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:96
 msgid "Principal Outstanding"
 msgstr "Гол онцлох"
 
 #. Label of the principal_overdue (Currency) field in DocType 'Loan
 #. Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:94
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:102
 msgid "Principal Overdue"
 msgstr "Үндсэн хугацаа хэтэрсэн"
 
@@ -5211,6 +5369,12 @@ msgstr "Лавлах дугаар"
 msgid "Reference Number"
 msgstr "Лавлах дугаар"
 
+#. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Referred"
+msgstr ""
+
 #. Option for the 'Accrual Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
 #. Option for the 'Accrual Type' (Select) field in DocType 'Process Loan
@@ -5266,6 +5430,11 @@ msgstr "Буцаан олголтын хэмжээ нь боломжтой хэ�
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Regular"
 msgstr "Ердийн"
+
+#. Label of the rejected_on (Datetime) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Rejected On"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5467,7 +5636,7 @@ msgstr "Төлбөрийн хуваарийн төрөл"
 msgid "Repayment Start Date"
 msgstr "Төлбөр төлөлт эхлэх огноо"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:954
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:955
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "Хугацаатай зээлийн хувьд төлбөрийн эхлэх огноог заавал зааж өгөх ёстой"
 
@@ -5480,7 +5649,7 @@ msgstr "Төлбөр төлөлтийн эхлэх огноо {0} нь Төлб�
 msgid "Repayment Type"
 msgstr "Төлбөрийн төрөл"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:962
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
 msgstr "Хаагдсан зээлийн төлбөрийг төлөх боломжгүй"
 
@@ -5488,7 +5657,7 @@ msgstr "Хаагдсан зээлийн төлбөрийг төлөх болом
 msgid "Repayment periods is mandatory for term loans"
 msgstr "Хугацаатай зээлийн хувьд төлбөрийн хугацаа заавал байх ёстой"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1017
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Төлбөрийн төрөл нь зөвхөн Хасахаас Нөхөн Сэргээх эсвэл Хасахаас Төлбөр Тогтоол байж болно"
 
@@ -5560,7 +5729,7 @@ msgstr "Холбогдох зээлийн бүтцийн өөрчлөлт"
 msgid "Restructured"
 msgstr "Бүтцийн өөрчлөлт"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2313
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2348
 msgid "Round Off Account is mandatory"
 msgstr "Тойрог данс заавал байх ёстой"
 
@@ -5577,11 +5746,6 @@ msgstr "{0}мөр: {2} -ын {1} мөр нь {3} зээлийн барьцаан
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:132
 msgid "Row {0}: {1} should be between 1 and 99"
 msgstr "{0}мөр: {1} нь 1-ээс 99 хооронд байх ёстой"
-
-#. Label of the sms_otp (Password) field in DocType 'Loan Lead'
-#: lending/loan_origination/doctype/loan_lead/loan_lead.json
-msgid "SMS OTP"
-msgstr "SMS OTP"
 
 #. Option for the 'Employment Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -5827,7 +5991,7 @@ msgstr "Татвар ба төлбөр"
 #. Label of the tenure (Int) field in DocType 'Loan Disbursement'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:124
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:132
 msgid "Tenure"
 msgstr "Ажиллах хугацаа"
 
@@ -5850,23 +6014,23 @@ msgstr "Хугацааны дэлгэрэнгүй мэдээлэл"
 msgid "Terms and Conditions"
 msgstr "Үйлчилгээний нөхцөл"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1062
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Зээлийн олголт {0} хаагдсан."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:947
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:954
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "Төлсөн дүн ({0}) нь Барьцааны барьцааны тохируулгын төлбөрийн төлөлтийн дүнгээс ({1}) их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3370
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3425
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Дараах төлбөрүүд байхгүй эсвэл ирүүлээгүй байна: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3356
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3411
 msgid "The following loans do not exist: {}"
 msgstr "Дараах зээлүүд байхгүй байна: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:504
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:513
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Дахин нийтлэх ажил дуусаагүй бөгөөд Ноорог руу дахин тохируулагдсан:"
 
@@ -5883,6 +6047,14 @@ msgstr "Үүнтэй ижил холбоо барих мэдээлэлтэй з�
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Энд давхардсан хуримтлалууд байна {}, одоогийн хуримтлагдсан огноо нь {}-с {} хүртэл хуримтлагдана."
+
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:54
+msgid "This applicant already holds the maximum of {0} live loans, so this lead cannot be taken forward."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:355
+msgid "This applicant was rejected within the last {0} days. A cooling period applies, so this lead cannot be taken forward yet."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:88
 msgid "This repost covers more than 6 months and has been enqueued as a background job. Track its progress on the Status field. If it fails while processing, the system adds a comment with the error."
@@ -5906,7 +6078,7 @@ msgstr "Салбар руу"
 #. Restructure'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:82
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:90
 msgid "Total Amount Paid"
 msgstr "Төлсөн нийт дүн"
 
@@ -5959,7 +6131,7 @@ msgstr "Нийт нэмэгдсэн хэсэгчилсэн төлбөр"
 #. Label of the total_interest_paid (Currency) field in DocType 'Loan
 #. Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:76
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:84
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:50
 msgid "Total Interest Paid"
 msgstr "Нийт төлсөн хүү"
@@ -6022,7 +6194,7 @@ msgstr "Нийт төлсөн торгууль"
 #. Restructure'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
-#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:70
+#: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:78
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:43
 msgid "Total Principal Paid"
 msgstr "Нийт үндсэн төлбөр"
@@ -6232,6 +6404,18 @@ msgstr "Үнэ цэнийн огноо"
 msgid "Value Type"
 msgstr "Утгын төрөл"
 
+#. Description of the 'OTP for Email' (Check) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Verify a lead's email address. Requires Email OTP in TP OTP Settings."
+msgstr ""
+
+#. Description of the 'OTP for SMS' (Check) field in DocType 'Loan Origination
+#. Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Verify a lead's mobile number. Requires SMS in TP OTP Settings."
+msgstr ""
+
 #. Label of the waive_off_restructure_charges (Check) field in DocType 'Loan
 #. Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -6247,7 +6431,7 @@ msgstr "Чөлөөлөгдсөн дүн"
 msgid "Waived amount {0} cannot be greater than outstanding amount {1}"
 msgstr "Төлбөрөөс чөлөөлөгдсөн дүн {0} нь төлөгдөөгүй дүнгээс {1} их байж болохгүй."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1046
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1057
 msgid "Waived {0} amount {1} cannot be greater than overdue amount {2}"
 msgstr "Төлбөрөөс чөлөөлөгдсөн {0} хэмжээ {1} нь хугацаа хэтэрсэн хэмжээнээс {2} их байж болохгүй."
 
@@ -6256,7 +6440,7 @@ msgstr "Төлбөрөөс чөлөөлөгдсөн {0} хэмжээ {1} нь х
 msgid "Waiver Account"
 msgstr "Чөлөөлөх данс"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2464
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2499
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Зээлийн бүтээгдэхүүнд {1} {0} төлбөрийн данснаас чөлөөлөх данс тохируулагдаагүй байна"
 
@@ -6274,6 +6458,17 @@ msgstr "Холбогдох төлбөрөөс чөлөөлөх"
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Watch Period End Date"
 msgstr "Үзэх хугацааны төгсгөлийн огноо"
+
+#. Description of the 'Indicative Amount' (Currency) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "What the pre-qualification rules suggested. Not an offer, and not what the application was created with."
+msgstr ""
+
+#. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "When this lead was rejected. What the applicant's cooling period is counted from."
+msgstr ""
 
 #. Description of the 'Auto create customer' (Check) field in DocType 'Lending
 #. Settings'
@@ -6324,7 +6519,7 @@ msgstr "Бүртгэлээс хассан нөхөн төлбөр"
 msgid "Write Off Recovery Account"
 msgstr "Сэргээх дансаа хасуулах"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2287
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Хасах дансны нөхөн төлбөр заавал байх ёстой"
 
@@ -6355,20 +6550,36 @@ msgstr "Хасагдсан дүн"
 msgid "You are trying to unpledge more."
 msgstr "Чи илүү ихийг амлалтаасаа татгалзахыг хичээж байна."
 
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:255
+msgid "You do not have permission to send an OTP for {0}."
+msgstr ""
+
 #. Label of the zip_code (Int) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "ZIP Code"
 msgstr "Шуудангийн код"
 
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:56
+msgid "telephony_label"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:137
 msgid "with reference no. {}"
 msgstr "лавлах дугаар {}-тай"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:129
+#: lending/loan_management/doctype/loan_product/loan_product.py:130
 msgid "{0} cannot be negative"
 msgstr "{0} сөрөг тоо байж болохгүй"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:144
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:184
+msgid "{0} changed while the OTP was in flight. Please try again."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:142
+msgid "{0} is already verified for this lead."
+msgstr ""
+
+#: lending/loan_management/doctype/loan_product/loan_product.py:145
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "{0} заавал байх ёстой. Үүнийг Зээлийн Бүтээгдэхүүн эсвэл Компани хэсэгт тохируулна уу"
 
@@ -6377,7 +6588,7 @@ msgstr "{0} заавал байх ёстой. Үүнийг Зээлийн Бүт
 msgid "{0} should be between 1 and 99"
 msgstr "{0} нь 1-ээс 99 хооронд байх ёстой"
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:180
+#: lending/loan_management/doctype/loan_product/loan_product.py:181
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
 msgstr "{0} {1} нь {2}-д Зээлийн нягтлан бодох бүртгэлийг идэвхжүүлсэн үед заавал байх ёстой"
 
