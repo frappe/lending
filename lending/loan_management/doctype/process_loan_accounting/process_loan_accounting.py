@@ -7,8 +7,10 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_first_day, get_last_day, getdate, nowdate
 
-from lending.loan_management.controllers.loan_controller import LoanController
-from lending.loan_management.utils import gl_consolidation_enabled, loan_accounting_enabled
+from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.controllers.accounts_controller import AccountsController
+
+from lending.loan_management.utils import gl_consolidation_enabled
 
 CONSOLIDATED_SOURCES = ("Loan Interest Accrual", "Loan Demand")
 
@@ -32,7 +34,7 @@ def consolidation_start_date_for_company(company, fallback):
 	return getdate(start_date) if start_date else getdate(fallback)
 
 
-class ProcessLoanAccounting(LoanController):
+class ProcessLoanAccounting(AccountsController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -88,14 +90,11 @@ class ProcessLoanAccounting(LoanController):
 		return max(self.consolidation_start_date(), get_first_day(self.month_end_date))
 
 	def on_submit(self):
-		if not loan_accounting_enabled(self.company):
-			return
-
 		gl_map, covered = self.build_consolidated_gl()
 		self.save_consolidation_details()
 
 		if gl_map:
-			self.make_gl_entries(gl_map, merge_entries=False)
+			make_gl_entries(gl_map, merge_entries=False)
 
 		self.flag_covered_docs(covered)
 		# Runs after flagging so the "live" NPA set reflects this run's cancellations/recreations.
@@ -348,7 +347,9 @@ class ProcessLoanAccounting(LoanController):
 		lia = frappe.qb.DocType("Loan Interest Accrual")
 		accruals = (
 			frappe.qb.from_(lia)
-			.select(lia.loan_product, lia.interest_type, lia.interest_amount, lia.additional_interest_amount)
+			.select(
+				lia.loan_product, lia.interest_type, lia.interest_amount, lia.additional_interest_amount
+			)
 			.where(
 				(lia.loan == self.loan)
 				& (lia.docstatus == 1)
@@ -378,9 +379,15 @@ class ProcessLoanAccounting(LoanController):
 				continue
 
 			if a.interest_type == "Normal Interest":
-				debit_account, credit_account = accounts.interest_income_account, accounts.suspense_interest_income
+				debit_account, credit_account = (
+					accounts.interest_income_account,
+					accounts.suspense_interest_income,
+				)
 			else:
-				debit_account, credit_account = accounts.penalty_income_account, accounts.penalty_suspense_account
+				debit_account, credit_account = (
+					accounts.penalty_income_account,
+					accounts.penalty_suspense_account,
+				)
 
 			normal_amount = flt(a.interest_amount) - flt(a.additional_interest_amount)
 			if normal_amount and debit_account and credit_account:
@@ -417,7 +424,7 @@ def run_consolidation_for_loan(loan, month_end_date=None, company=None, force=Fa
 	or None if nothing to consolidate.
 	"""
 	company = company or frappe.db.get_value("Loan", loan, "company")
-	if not company or not loan_accounting_enabled(company):
+	if not company:
 		return
 
 	if not force and not gl_consolidation_enabled(company, month_end_date or nowdate()):
@@ -492,9 +499,6 @@ CONSOLIDATION_BATCH_SIZE = 3000
 
 def run_consolidation_for_company(company, month_end_date=None, force=False):
 	"""Enqueue consolidation of every loan of a company for the month, in batches (see process_loan_interest_accrual)."""
-	if not loan_accounting_enabled(company):
-		return
-
 	if not force and not gl_consolidation_enabled(company, month_end_date or nowdate()):
 		return
 

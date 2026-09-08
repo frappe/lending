@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
+from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
@@ -136,7 +137,7 @@ class LoanDemand(AccountsController):
 		gl_entries = self.build_gl_map()
 
 		if gl_entries:
-			super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+			make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
 
 	def build_gl_map(self):
 		gl_entries = []

@@ -20,6 +20,7 @@ from frappe.utils import (
 	nowdate,
 )
 
+from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -187,7 +188,7 @@ class LoanInterestAccrual(AccountsController):
 		gle_map = self.build_gl_map()
 
 		if gle_map:
-			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+			make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
 
 	def build_gl_map(self):
 		gle_map = []
