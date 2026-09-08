@@ -5,19 +5,10 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
-from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
-<<<<<<< HEAD
-from lending.loan_management.utils import async_gl_reversal_enabled
-=======
-from lending.loan_management.utils import (
-	async_gl_reversal_enabled,
-	gl_consolidation_enabled,
-	loan_accounting_enabled,
-)
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
+from lending.loan_management.utils import async_gl_reversal_enabled, gl_consolidation_enabled
 
 
 class LoanDemand(AccountsController):
@@ -137,11 +128,6 @@ class LoanDemand(AccountsController):
 			)
 
 	def make_gl_entries(self, cancel=0):
-<<<<<<< HEAD
-=======
-		if not loan_accounting_enabled(self.company):
-			return
-
 		# Gated on demand_date, not posting_date (always today) -- must match the date field
 		# consolidation queries scope by, or a demand can defer into a period never consolidated.
 		if gl_consolidation_enabled(self.company, self.demand_date):
@@ -153,7 +139,6 @@ class LoanDemand(AccountsController):
 			super().make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
 
 	def build_gl_map(self):
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 		gl_entries = []
 
 		if self.demand_subtype == "Principal":
@@ -214,11 +199,7 @@ class LoanDemand(AccountsController):
 				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
-<<<<<<< HEAD
-		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
-=======
 		return gl_entries
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None

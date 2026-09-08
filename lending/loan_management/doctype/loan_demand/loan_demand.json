@@ -300,10 +300,7 @@
    "default": "0",
    "fieldname": "is_partial_pre_paid_interest",
    "fieldtype": "Check",
-<<<<<<< HEAD
    "label": "Is partial pre-paid interest"
-=======
-   "label": "Is Partial Pre-Paid Interest"
   },
   {
    "fieldname": "process_loan_accounting_voucher",
@@ -311,32 +308,14 @@
    "label": "Process Loan Accounting Voucher",
    "options": "Process Loan Accounting",
    "read_only": 1,
-<<<<<<< HEAD
-   "no_copy": 1,
-   "depends_on": "eval:!doc.gl_posted || doc.consolidated_gl_voucher"
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
-=======
    "no_copy": 1
->>>>>>> 228d6ad (refactor: rename doctype to Process Loan Accounting, drop gl_posted)
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2026-06-29 12:00:00.000000",
-=======
- "modified": "2026-07-12 15:07:28.815504",
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
-=======
- "modified": "2026-08-07 10:00:00.000000",
->>>>>>> 228d6ad (refactor: rename doctype to Process Loan Accounting, drop gl_posted)
-=======
- "modified": "2026-08-07 13:00:00.000000",
->>>>>>> b6c3929 (fix: mid-month start dates, missed scheduler runs, and stale doc references)
+ "modified": "2026-09-08 12:22:44.627615",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Demand",

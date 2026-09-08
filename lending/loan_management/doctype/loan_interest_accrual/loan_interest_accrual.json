@@ -307,19 +307,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2026-06-29 12:00:00.000000",
-=======
- "modified": "2026-07-12 15:07:28.815504",
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
-=======
- "modified": "2026-08-07 10:00:00.000000",
->>>>>>> 228d6ad (refactor: rename doctype to Process Loan Accounting, drop gl_posted)
-=======
- "modified": "2026-08-07 13:00:00.000000",
->>>>>>> b6c3929 (fix: mid-month start dates, missed scheduler runs, and stale doc references)
+ "modified": "2026-09-08 12:22:44.627615",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Interest Accrual",

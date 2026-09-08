@@ -5,12 +5,8 @@ from frappe.utils import getdate, nowdate
 
 
 def validate_loan_tables(doc, method=None):
-<<<<<<< HEAD
-	loan_classification_ranges = []
-=======
 	validate_gl_consolidation_start_date(doc)
-	loan_classification_ranges = set()
->>>>>>> 4d20ab3 (fix: handle GL consolidation start date and repost across boundary)
+	loan_classification_ranges = []
 	for d in doc.loan_classification_ranges:
 		if (d.classification_code, d.is_written_off) not in loan_classification_ranges:
 			loan_classification_ranges.append((d.classification_code, d.is_written_off))
@@ -29,9 +25,6 @@ def validate_loan_tables(doc, method=None):
 					frappe.bold(d.classification_code), frappe.bold(d.security_type)
 				)
 			)
-<<<<<<< HEAD
-=======
-		irac_provisioning_configurations.add(key)
 
 
 def validate_gl_consolidation_start_date(doc):
@@ -89,4 +82,3 @@ def last_posted_loan_gl_date(company):
 		.run(pluck=True)
 	)
 	return result[0] if result else None
->>>>>>> 4d20ab3 (fix: handle GL consolidation start date and repost across boundary)

@@ -336,8 +336,6 @@ def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
 	return getdate(cancellation_date or getdate()) >= getdate(start_date)
 
 
-<<<<<<< HEAD
-=======
 def gl_consolidation_enabled(company: str, posting_date=None) -> bool:
 	"""Whether Loan Interest Accrual / Loan Demand GL should be deferred for monthly consolidation.
 
@@ -382,9 +380,7 @@ def update_repayment_schedule_demand_generated(
 		lrs_query = lrs_query.where(LRS.loan_disbursement == loan_disbursement)
 
 	query = (
-		frappe.qb.update(RS)
-		.set(RS.demand_generated, demand_generated)
-		.where(RS.parent.isin(lrs_query))
+		frappe.qb.update(RS).set(RS.demand_generated, demand_generated).where(RS.parent.isin(lrs_query))
 	)
 
 	if from_date:
@@ -394,6 +390,7 @@ def update_repayment_schedule_demand_generated(
 		query = query.where(RS.payment_date < to_date)
 
 	query.run()
+
 
 def create_charge_master(charge_type):
 	if not frappe.db.exists("Item", charge_type):
@@ -407,7 +404,6 @@ def create_charge_master(charge_type):
 		).insert()
 
 
->>>>>>> 9ebaba0 (feat: consolidate monthly GL for loan interest accrual and demand)
 def process_cancelled_gl_entries():
 	process_cancelled_documents(
 		doctype="Loan Demand",

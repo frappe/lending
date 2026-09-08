@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_months, flt, get_first_day, get_last_day, getdate
 
 from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
@@ -30,12 +31,11 @@ from lending.tests.test_utils import (
 	master_init,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
 
 COMPANY = "_Test Company"
 
 
-class TestProcessLoanAccounting(LendingTestSuite):
+class TestProcessLoanAccounting(FrappeTestCase):
 	def setUp(self):
 		master_init()
 		init_loan_products()
@@ -60,9 +60,7 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		)
 
 	def gl_count(self, voucher_no):
-		return frappe.db.count(
-			"GL Entry", {"voucher_no": voucher_no, "is_cancelled": 0}
-		)
+		return frappe.db.count("GL Entry", {"voucher_no": voucher_no, "is_cancelled": 0})
 
 	def consolidated_income(self, loan):
 		"""Net income (credit - debit on income accounts) booked via consolidated vouchers."""
@@ -93,9 +91,7 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			disbursement_date=posting_date,
 			repayment_start_date=get_last_day(posting_date),
 		)
-		process_loan_interest_accrual_for_loans(
-			posting_date=till_date, loan=loan.name, company=COMPANY
-		)
+		process_loan_interest_accrual_for_loans(posting_date=till_date, loan=loan.name, company=COMPANY)
 		return loan.name
 
 	def test_daily_accruals_are_deferred_and_consolidated(self):
@@ -104,10 +100,14 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		loan = self.make_loan_with_daily_accruals(posting_date, "2024-04-25")
 
 		accruals = frappe.get_all(
-			"Loan Interest Accrual", {"loan": loan, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
+			"Loan Interest Accrual",
+			{"loan": loan, "docstatus": 1},
+			["name", "process_loan_accounting_voucher"],
 		)
 		self.assertTrue(len(accruals) > 1, "expected multiple daily accruals")
-		self.assertTrue(all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred")
+		self.assertTrue(
+			all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred"
+		)
 		for a in accruals:
 			self.assertEqual(self.gl_count(a.name), 0, "deferred accrual posts no GL of its own")
 
@@ -268,7 +268,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 
 		run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
 		self.assertIsNone(
-			frappe.db.get_value("Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"),
+			frappe.db.get_value(
+				"Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"
+			),
 			"an accrual cancelled before ever being consolidated must never get a voucher link",
 		)
 		income_before = self.consolidated_income(loan)
@@ -291,7 +293,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		frappe.get_doc("Process Loan Accounting", delta_voucher).cancel()
 
 		self.assertIsNone(
-			frappe.db.get_value("Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"),
+			frappe.db.get_value(
+				"Loan Interest Accrual", never_consolidated, "process_loan_accounting_voucher"
+			),
 			"cancelling the delta voucher must not re-link an accrual it never covered",
 		)
 
@@ -306,7 +310,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		loan = self.make_loan_with_daily_accruals(posting_date, "2024-04-15")
 
 		accruals = frappe.get_all(
-			"Loan Interest Accrual", {"loan": loan, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
+			"Loan Interest Accrual",
+			{"loan": loan, "docstatus": 1},
+			["name", "process_loan_accounting_voucher"],
 		)
 		self.assertTrue(all(not a.process_loan_accounting_voucher for a in accruals))
 		posted = sum(self.gl_count(a.name) for a in accruals)
@@ -322,9 +328,7 @@ class TestProcessLoanAccounting(LendingTestSuite):
 
 		start = "2024-04-01"
 		self.enable_consolidation(start)
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
-		)
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
 
 		loan = create_loan(
 			self.applicant,
@@ -370,26 +374,37 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		self.assertTrue(tags, "consolidated suspense JEs should exist for NPA months")
 		seen = set()
 		for je in tags:
-			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month")
+			self.assertNotIn(
+				je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month"
+			)
 			seen.add(je.process_loan_accounting_month_end)
 			month_end = je.process_loan_accounting_month_end
-			je_credit = frappe.db.sql(
-				"""select sum(credit) - sum(debit) from `tabGL Entry`
+			je_credit = (
+				frappe.db.sql(
+					"""select sum(credit) - sum(debit) from `tabGL Entry`
 				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
-				je.name,
-			)[0][0] or 0
-			live = frappe.db.sql(
-				"""select sum(interest_amount) from `tabLoan Interest Accrual`
+					je.name,
+				)[0][0]
+				or 0
+			)
+			live = (
+				frappe.db.sql(
+					"""select sum(interest_amount) from `tabLoan Interest Accrual`
 				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
 					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
+					(loan.name, get_first_day(month_end), month_end),
+				)[0][0]
+				or 0
+			)
 			self.assertAlmostEqual(je_credit, live, places=2)
 
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan.name,
-		)[0][0] or 0
+		net = (
+			frappe.db.sql(
+				"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+				loan.name,
+			)[0][0]
+			or 0
+		)
 		self.assertAlmostEqual(net, 0, places=2)
 
 	def test_cancelling_older_voucher_does_not_touch_a_later_delta_voucher_suspense_je(self):
@@ -424,7 +439,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
 			process_daily_loan_demands(posting_date=d, loan=loan.name)
 			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
-		create_process_loan_classification(posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
 		process_loan_interest_accrual_for_loans(posting_date="2024-08-15", loan=loan.name)
 
 		first_voucher = run_consolidation_for_loan(loan.name, "2024-08-31", force=True)
@@ -498,7 +515,8 @@ class TestProcessLoanAccounting(LendingTestSuite):
 
 		if voucher:
 			detail_docs = frappe.get_all(
-				"Process Loan Accounting Detail", {"parent": voucher, "source_type": "Loan Interest Accrual"},
+				"Process Loan Accounting Detail",
+				{"parent": voucher, "source_type": "Loan Interest Accrual"},
 				pluck="source_document",
 			)
 			self.assertFalse(
@@ -556,9 +574,7 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		posting_date = "2024-04-05"
 		self.enable_consolidation(posting_date)
 		frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 1)
-		self.addCleanup(
-			frappe.db.set_single_value, "Accounts Settings", "enable_immutable_ledger", 0
-		)
+		self.addCleanup(frappe.db.set_single_value, "Accounts Settings", "enable_immutable_ledger", 0)
 
 		loan = self.make_loan_with_daily_accruals(posting_date, "2024-04-15")
 		voucher = run_consolidation_for_loan(loan, get_last_day(posting_date), force=True)
@@ -573,7 +589,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		frappe.get_doc("Process Loan Accounting", voucher).cancel()
 
 		for row in original_rows:
-			gl = frappe.db.get_value("GL Entry", row.name, ["is_cancelled", "debit", "credit"], as_dict=True)
+			gl = frappe.db.get_value(
+				"GL Entry", row.name, ["is_cancelled", "debit", "credit"], as_dict=True
+			)
 			self.assertEqual(gl.is_cancelled, 0)
 			self.assertAlmostEqual(flt(gl.debit), flt(row.debit), places=2)
 			self.assertAlmostEqual(flt(gl.credit), flt(row.credit), places=2)
@@ -581,10 +599,13 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		live_rows = frappe.get_all("GL Entry", {"voucher_no": voucher, "is_cancelled": 0})
 		self.assertEqual(len(live_rows), original_row_count * 2)
 
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan,
-		)[0][0] or 0
+		net = (
+			frappe.db.sql(
+				"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+				loan,
+			)[0][0]
+			or 0
+		)
 		self.assertAlmostEqual(net, 0, places=2)
 
 	def test_npa_repost_mid_month_cancel_settles_correctly(self):
@@ -594,9 +615,7 @@ class TestProcessLoanAccounting(LendingTestSuite):
 
 		start = "2024-04-01"
 		self.enable_consolidation(start)
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
-		)
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
 
 		loan = create_loan(
 			self.applicant,
@@ -646,26 +665,37 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		self.assertTrue(tags, "consolidated suspense JEs should exist after repost")
 		seen = set()
 		for je in tags:
-			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month after repost")
+			self.assertNotIn(
+				je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month after repost"
+			)
 			seen.add(je.process_loan_accounting_month_end)
 			month_end = je.process_loan_accounting_month_end
-			je_credit = frappe.db.sql(
-				"""select sum(credit) - sum(debit) from `tabGL Entry`
+			je_credit = (
+				frappe.db.sql(
+					"""select sum(credit) - sum(debit) from `tabGL Entry`
 				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
-				je.name,
-			)[0][0] or 0
-			live = frappe.db.sql(
-				"""select sum(interest_amount) from `tabLoan Interest Accrual`
+					je.name,
+				)[0][0]
+				or 0
+			)
+			live = (
+				frappe.db.sql(
+					"""select sum(interest_amount) from `tabLoan Interest Accrual`
 				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
 					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
+					(loan.name, get_first_day(month_end), month_end),
+				)[0][0]
+				or 0
+			)
 			self.assertAlmostEqual(je_credit, live, places=2)
 
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan.name,
-		)[0][0] or 0
+		net = (
+			frappe.db.sql(
+				"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+				loan.name,
+			)[0][0]
+			or 0
+		)
 		self.assertAlmostEqual(net, 0, places=2)
 
 	def test_loc_loan_with_multiple_disbursements_consolidates_correctly(self):
@@ -697,7 +727,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			loan.name, 24000, disbursement_date="2024-04-06", repayment_start_date="2024-04-11"
 		)
 
-		process_loan_interest_accrual_for_loans(posting_date="2024-04-20", loan=loan.name, company=COMPANY)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-04-20", loan=loan.name, company=COMPANY
+		)
 
 		accruals = frappe.get_all(
 			"Loan Interest Accrual",
@@ -707,10 +739,13 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		self.assertTrue(accruals, "expected daily accruals for the LOC loan")
 		disbursements_seen = {a.loan_disbursement for a in accruals}
 		self.assertEqual(
-			disbursements_seen, {disbursement_1.name, disbursement_2.name},
+			disbursements_seen,
+			{disbursement_1.name, disbursement_2.name},
 			"expected accruals from both disbursements",
 		)
-		self.assertTrue(all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred")
+		self.assertTrue(
+			all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred"
+		)
 
 		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
 		self.assertTrue(voucher)
@@ -732,7 +767,8 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		self.assertTrue(details)
 		detail_disbursements = {d.loan_disbursement for d in details}
 		self.assertEqual(
-			detail_disbursements, {disbursement_1.name, disbursement_2.name},
+			detail_disbursements,
+			{disbursement_1.name, disbursement_2.name},
 			"breakdown should trace both disbursements separately",
 		)
 
@@ -781,7 +817,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
 		)
 		self.assertTrue(demands, "expected loan demand for the LOC loan")
-		self.assertTrue(all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred")
+		self.assertTrue(
+			all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred"
+		)
 
 		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
 		self.assertTrue(voucher)
@@ -895,10 +933,19 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		demands = frappe.get_all(
 			"Loan Demand",
 			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
-			["name", "demand_subtype", "demand_amount", "partner_share", "loan_partner", "process_loan_accounting_voucher"],
+			[
+				"name",
+				"demand_subtype",
+				"demand_amount",
+				"partner_share",
+				"loan_partner",
+				"process_loan_accounting_voucher",
+			],
 		)
 		self.assertTrue(demands, "expected EMI demand at the first repayment date")
-		self.assertTrue(all(d.loan_partner == loan_partner for d in demands), "demand should inherit loan_partner")
+		self.assertTrue(
+			all(d.loan_partner == loan_partner for d in demands), "demand should inherit loan_partner"
+		)
 		interest_demands = [d for d in demands if d.demand_subtype == "Interest"]
 		self.assertTrue(interest_demands, "expected an interest demand to check partner_share against")
 		for d in interest_demands:
@@ -906,7 +953,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			self.assertLess(
 				flt(d.partner_share), flt(d.demand_amount), "partner_share is a split, not the full amount"
 			)
-		self.assertTrue(all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred")
+		self.assertTrue(
+			all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred"
+		)
 
 		voucher = run_consolidation_for_loan(loan.name, get_last_day(repayment_start), force=True)
 		self.assertTrue(voucher)
@@ -925,7 +974,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		self.assertNotAlmostEqual(posted_debit, partner_share_total, places=2)
 
 		demands = frappe.get_all(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1, "demand_type": "EMI"}, ["process_loan_accounting_voucher"]
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
+			["process_loan_accounting_voucher"],
 		)
 		self.assertTrue(all(d.process_loan_accounting_voucher == voucher for d in demands))
 
@@ -1021,40 +1072,52 @@ class TestProcessLoanAccounting(LendingTestSuite):
 					"GL Entry", {"voucher_no": je_name, "is_cancelled": 0}, ["account", "debit", "credit"]
 				)
 				accounts = tuple(sorted(r.account for r in rows))
-				self.assertNotIn(accounts, seen_account_pairs, "no duplicate suspense JE for the same account pair")
-				seen_account_pairs.add(accounts)
-				je_net_total += sum(
-					flt(r.credit) - flt(r.debit) for r in rows if "uspense" in r.account
+				self.assertNotIn(
+					accounts, seen_account_pairs, "no duplicate suspense JE for the same account pair"
 				)
+				seen_account_pairs.add(accounts)
+				je_net_total += sum(flt(r.credit) - flt(r.debit) for r in rows if "uspense" in r.account)
 
-			normal_live = frappe.db.sql(
-				"""select sum(interest_amount) - sum(additional_interest_amount)
+			normal_live = (
+				frappe.db.sql(
+					"""select sum(interest_amount) - sum(additional_interest_amount)
 				from `tabLoan Interest Accrual`
 				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0 and interest_type='Normal Interest'
 					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
-			penalty_live = frappe.db.sql(
-				"""select sum(interest_amount) - sum(additional_interest_amount)
+					(loan.name, get_first_day(month_end), month_end),
+				)[0][0]
+				or 0
+			)
+			penalty_live = (
+				frappe.db.sql(
+					"""select sum(interest_amount) - sum(additional_interest_amount)
 				from `tabLoan Interest Accrual`
 				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0 and interest_type!='Normal Interest'
 					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
-			additional_live = frappe.db.sql(
-				"""select sum(additional_interest_amount) from `tabLoan Interest Accrual`
+					(loan.name, get_first_day(month_end), month_end),
+				)[0][0]
+				or 0
+			)
+			additional_live = (
+				frappe.db.sql(
+					"""select sum(additional_interest_amount) from `tabLoan Interest Accrual`
 				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
 					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
+					(loan.name, get_first_day(month_end), month_end),
+				)[0][0]
+				or 0
+			)
 			live_total = flt(normal_live) + flt(penalty_live) + flt(additional_live)
 			self.assertAlmostEqual(je_net_total, live_total, places=2)
 
 		# ledger balances even with penalty + additional-interest suspense lines mixed in
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan.name,
-		)[0][0] or 0
+		net = (
+			frappe.db.sql(
+				"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+				loan.name,
+			)[0][0]
+			or 0
+		)
 		self.assertAlmostEqual(net, 0, places=2)
 
 	def test_repost_before_start_date_reconsolidates_only_post_cutoff_months(self):
@@ -1101,7 +1164,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			"pre-cutoff accruals must never be folded into a consolidated voucher",
 		)
 		for a in pre_cutoff_accruals:
-			self.assertTrue(self.gl_count(a.name) > 0, "pre-cutoff GL must survive reconsolidation untouched")
+			self.assertTrue(
+				self.gl_count(a.name) > 0, "pre-cutoff GL must survive reconsolidation untouched"
+			)
 
 		post_cutoff_accruals = frappe.get_all(
 			"Loan Interest Accrual",
@@ -1178,7 +1243,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		period_start, period_end = frappe.db.get_value(
 			"Process Loan Accounting", april_voucher, ["period_start_date", "period_end_date"]
 		)
-		self.assertEqual(getdate(period_start), getdate(start_date), "first period starts at the start date")
+		self.assertEqual(
+			getdate(period_start), getdate(start_date), "first period starts at the start date"
+		)
 		self.assertEqual(getdate(period_end), getdate("2024-04-30"))
 
 		# accruals dated before the start date must not be swept into this partial period
@@ -1192,7 +1259,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 
 		may_voucher = run_consolidation_for_loan(loan, "2024-05-31", force=True)
 		self.assertTrue(may_voucher, "expected May to consolidate too")
-		may_period_start = frappe.db.get_value("Process Loan Accounting", may_voucher, "period_start_date")
+		may_period_start = frappe.db.get_value(
+			"Process Loan Accounting", may_voucher, "period_start_date"
+		)
 		self.assertEqual(
 			getdate(may_period_start),
 			getdate("2024-05-01"),
@@ -1209,7 +1278,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			"April through June are complete; July is still in progress and must not be included",
 		)
 
-		self.assertEqual(completed_month_ends("2024-04-15", getdate("2024-04-20")), [], "no month finished yet")
+		self.assertEqual(
+			completed_month_ends("2024-04-15", getdate("2024-04-20")), [], "no month finished yet"
+		)
 
 		# the scheduler runs ON a month's last day, not the day after -- that day must still count
 		self.assertEqual(
@@ -1234,7 +1305,9 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			run_consolidation_for_loan(loan, month_end, force=True)
 
 		accruals = frappe.get_all(
-			"Loan Interest Accrual", {"loan": loan, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
+			"Loan Interest Accrual",
+			{"loan": loan, "docstatus": 1},
+			["name", "process_loan_accounting_voucher"],
 		)
 		self.assertTrue(accruals, "expected April's daily accruals")
 		self.assertTrue(
