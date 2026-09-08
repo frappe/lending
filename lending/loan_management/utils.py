@@ -340,6 +340,28 @@ def async_gl_reversal_enabled(company: str, cancellation_date=None) -> bool:
 	return getdate(cancellation_date or getdate()) >= getdate(start_date)
 
 
+def gl_consolidation_enabled(company: str, posting_date=None) -> bool:
+	"""Whether Loan Interest Accrual / Loan Demand GL should be deferred for monthly consolidation.
+
+	Gated by the company flag and a start date so historical daily GL is left untouched.
+	"""
+	settings = frappe.get_cached_value(
+		"Company",
+		company,
+		["loan_gl_consolidation", "loan_gl_consolidation_start_date"],
+		as_dict=True,
+	)
+
+	if not settings or not settings.loan_gl_consolidation:
+		return False
+
+	start_date = settings.loan_gl_consolidation_start_date
+	if not start_date:
+		return False
+
+	return getdate(posting_date or getdate()) >= getdate(start_date)
+
+
 def update_repayment_schedule_demand_generated(
 	loan,
 	loan_disbursement=None,
