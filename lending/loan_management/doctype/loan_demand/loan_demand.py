@@ -9,7 +9,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.controllers.accounts_controller import AccountsController
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
-from lending.loan_management.utils import async_gl_reversal_enabled
+from lending.loan_management.utils import async_gl_reversal_enabled, gl_consolidation_enabled
 
 
 class LoanDemand(AccountsController):
@@ -129,17 +129,28 @@ class LoanDemand(AccountsController):
 			)
 
 	def make_gl_entries(self, cancel=0):
+		# Gated on demand_date, not posting_date (always today) -- must match the date field
+		# consolidation queries scope by, or a demand can defer into a period never consolidated.
+		if gl_consolidation_enabled(self.company, self.demand_date):
+			return
+
+		gl_entries = self.build_gl_map()
+
+		if gl_entries:
+			make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+
+	def build_gl_map(self):
 		gl_entries = []
 
 		if self.demand_subtype == "Principal":
-			return
+			return gl_entries
 
 		if self.demand_type == "Charges":
-			return
+			return gl_entries
 
 		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 		if loan_status == "Written Off":
-			return
+			return gl_entries
 
 		party_type = ""
 		party = ""
@@ -189,7 +200,7 @@ class LoanDemand(AccountsController):
 				gl_entries, receivable_account, accrual_account, party_type, party
 			)
 
-		make_gl_entries(gl_entries, cancel=cancel, merge_entries=False, adv_adj=0)
+		return gl_entries
 
 	def add_gl_entries(
 		self, gl_entries, receivable_account, accrual_account, party_type=None, party=None
