@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
