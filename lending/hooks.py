@@ -318,6 +318,7 @@ ignore_links_on_delete = [
 # 	"lending.auth.validate"
 # ]
 
+# Tasks are called as method(doc) and need no @frappe.whitelist(), unlike Server Scripts.
 workflow_methods = [
 	{
 		"name": "Convert to Loan Application",

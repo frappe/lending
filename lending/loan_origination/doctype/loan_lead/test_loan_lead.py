@@ -343,6 +343,7 @@ class TestLoanLeadOTP(LendingTestSuite):
 		)
 		frappe.clear_cache(doctype="Loan Origination Settings")
 
+		# Cached Singles would keep serving these to later tests in this process.
 		self.addCleanup(frappe.clear_cache, doctype="Loan Origination Settings")
 		self.addCleanup(frappe.clear_cache, doctype="TP OTP Settings")
 
@@ -582,12 +583,16 @@ class TestLoanLeadOTP(LendingTestSuite):
 
 
 class TestLoanLeadOTPRecipientRace(LendingTestSuite):
+	# Telephony is mocked out whole here, so unlike the rest of the OTP tests these run
+	# wherever lending does -- including CI, which installs no Telephony app. The in-flight
+	# rules are the part of the flow that needs no provider to exercise.
 	def setUp(self):
 		frappe.db.set_single_value(
 			"Loan Origination Settings", {"otp_for_email": 1, "otp_for_sms": 0}
 		)
 		frappe.clear_cache(doctype="Loan Origination Settings")
 
+		# Cached Singles would keep serving these to later tests in this process.
 		self.addCleanup(frappe.clear_cache, doctype="Loan Origination Settings")
 
 	def test_a_send_in_flight_when_the_recipient_changes_does_not_mark_the_new_one_initiated(
@@ -625,6 +630,8 @@ class TestLoanLeadOTPRecipientRace(LendingTestSuite):
 	def test_a_verify_in_flight_does_not_ride_on_a_status_the_new_recipient_earned(self):
 		lead = make_loan_lead()
 
+		# The replacement recipient is verified by another request while this one is in
+		# flight, so the status field on its own reads as this request's own success.
 		def swap_recipient_and_verify_it(*args, **kwargs):
 			frappe.db.set_value(
 				"Loan Lead",
@@ -639,6 +646,9 @@ class TestLoanLeadOTPRecipientRace(LendingTestSuite):
 			with self.assertRaisesRegex(frappe.ValidationError, IN_FLIGHT_ERROR):
 				verify_otp(lead.name, "Email", TEST_OTP)
 
+		# The status the other request earned stands, since it belongs to the recipient the
+		# lead now holds. Asserting the swap landed keeps the test from passing on a throw
+		# raised before the side effect ever ran.
 		self.assertEqual(frappe.db.get_value("Loan Lead", lead.name, "email"), SWAPPED_EMAIL)
 		self.assertEqual(get_status(lead, "email_verification_status"), "Verified")
 
@@ -716,6 +726,11 @@ def set_product_cooling_period(test, loan_product, cooling_period_days):
 
 
 def set_script_live_loan_limit(test, maximum_live_loans):
+	"""Turn the live loan limit on the way a site does it: in the Server Script.
+
+	The shipped script passes 0, so the rule is off until someone edits that number.
+	There is nowhere else to set it -- Loan Product does not carry a limit.
+	"""
 	previous = frappe.db.get_value("Server Script", LIVE_LOAN_LIMIT_SCRIPT, "script")
 
 	test.addCleanup(frappe.clear_cache)
@@ -741,6 +756,11 @@ def reject(lead, rejected_on=None):
 
 @contextmanager
 def no_write_permission_on(doctype):
+	"""Deny write on one doctype, leaving every other permission alone.
+
+	Document.check_permission reaches frappe.permissions.has_permission through the
+	module, so patching it there is what the real call actually goes through.
+	"""
 
 	def has_permission(dt, ptype="read", *args, **kwargs):
 		return not (dt == doctype and ptype == "write")
@@ -810,6 +830,8 @@ def get_status(lead, fieldname):
 
 class TestLoanLeadCoolingPeriodIsGatedOnWritePermission(LendingTestSuite):
 	def test_the_rule_is_callable_so_a_site_script_can_run_it(self):
+		# The shipped Server Script calls this; un-whitelisting it would close the only
+		# place a site can change the rule without forking the app.
 		self.assertIn(validate_cooling_period, frappe.whitelisted)
 
 	def test_only_post_reaches_it(self):
@@ -820,9 +842,12 @@ class TestLoanLeadCoolingPeriodIsGatedOnWritePermission(LendingTestSuite):
 		self.assertNotIn(validate_cooling_period, frappe.guest_methods)
 
 	def test_the_task_wrapper_stays_unreachable_over_http(self):
+		# The wrapper hardcodes the server's window; exposing it buys nothing and the
+		# script path already covers the customisable case.
 		self.assertNotIn(run_cooling_period_task, frappe.whitelisted)
 
 	def test_a_caller_who_cannot_write_the_lead_is_refused(self):
+		# Otherwise the rule is a lookup on any identity the caller names.
 		reject(make_loan_lead(email="cooling-perm@example.com"))
 		lead = make_loan_lead(email="cooling-perm@example.com")
 
@@ -839,6 +864,7 @@ class TestLoanLeadCoolingPeriodIsGatedOnWritePermission(LendingTestSuite):
 			run_cooling_period_task(lead)
 
 	def test_the_refusal_names_no_lead_and_no_date(self):
+		# reject() stamps the column, so the stamp is read back to compare against
 		rejected = reject(make_loan_lead(email="cooling-quiet@example.com"))
 		rejected.reload()
 

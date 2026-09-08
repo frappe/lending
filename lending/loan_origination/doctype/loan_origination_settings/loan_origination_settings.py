@@ -34,6 +34,7 @@ class LoanOriginationSettings(Document):
 		self.validate_otp_mediums()
 
 	def validate_otp_mediums(self):
+		# Only mediums switched on by this save, so the document stays saveable later.
 		enabled = [
 			fields
 			for fields in OTP_MEDIUM_FIELD_MAP.values()
@@ -67,6 +68,7 @@ class LoanOriginationSettings(Document):
 def add_unique_constraints():
 	fields_with_unique_constraints = get_fields_with_unique_constraints()
 
+	# for field in fields_with_unique_constraints
 	for field in set(fields_that_can_have_unique_constraints).difference(
 		set(fields_with_unique_constraints)
 	):
@@ -74,6 +76,7 @@ def add_unique_constraints():
 			frappe.db.add_unique("Customer", field)
 
 		except Exception:
+			# remove any added constraints
 			remove_unique_constraints()
 
 

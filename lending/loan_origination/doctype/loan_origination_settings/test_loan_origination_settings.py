@@ -39,6 +39,7 @@ class TestLoanOriginationSettings(LendingTestSuite):
 		self.addCleanup(frappe.clear_cache, doctype="TP OTP Settings")
 		self.addCleanup(frappe.clear_cache, doctype="Loan Origination Settings")
 
+		# called directly, not through save(): before_save runs DDL that does not roll back
 		settings = frappe.get_doc("Loan Origination Settings")
 		settings.load_doc_before_save()
 

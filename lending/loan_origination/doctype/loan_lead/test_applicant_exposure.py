@@ -1,4 +1,5 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
+# See license.txt
 
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -97,6 +98,7 @@ class TestApplicantExposureIdentity(LendingTestSuite):
 
 class TestApplicantExposureWhichLoansCount(LendingTestSuite):
 	def test_every_committed_status_is_live(self):
+		# Spelled out, not read from LIVE_LOAN_STATUSES, so a missing status is noticed.
 		committed = (
 			"Sanctioned",
 			"Partially Disbursed",
@@ -205,6 +207,7 @@ def make_customer(customer_name, email=None, mobile=None, pan=None):
 	if not frappe.db.exists("Customer", customer_name):
 		frappe.get_doc(get_customer_dict(customer_name)).insert(ignore_permissions=True)
 
+	# email_id and mobile_no are fetched from the primary contact, so save() would blank them.
 	values = {"email_id": email, "mobile_no": mobile}
 
 	if customer_carries_pan():

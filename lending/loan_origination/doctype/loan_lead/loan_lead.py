@@ -85,11 +85,16 @@ class LoanLead(Document):
 		self.set_rejected_on()
 
 	def set_age(self):
+		# Only an individual has one, and a lead that changes type must not keep the age it
+		# was given as the other.
 		if self.applicant_type != "Individual":
 			self.age = 0
 			return
 
 		today, date_of_birth = getdate(), getdate(self.date_of_birth)
+
+		# Subtracting the years alone assumes the birthday has already come round this year,
+		# which reads as 18 for somebody who only turns 18 later in the year.
 		self.age = (
 			today.year
 			- date_of_birth.year
@@ -129,6 +134,7 @@ def send_otp(loan_lead: str, medium: str):
 	return send_otp_for_lead(loan_lead, medium)
 
 
+# @rate_limit buckets on frappe.form_dict.cmd, so bulk_send_otp cannot call send_otp directly.
 def send_otp_for_lead(loan_lead: str, medium: str):
 	doc, fields, recipient = resolve_otp_request(loan_lead, medium)
 
@@ -187,6 +193,7 @@ def bulk_send_otp(loan_leads: list[str] | str, medium: str):
 	if isinstance(loan_leads, str):
 		loan_leads = frappe.parse_json(loan_leads)
 
+	# parse_json returns undecodable input unchanged, so a bare name would stay a string.
 	if not isinstance(loan_leads, (list, tuple)) or not all(
 		isinstance(loan_lead, str) for loan_lead in loan_leads
 	):
@@ -249,6 +256,7 @@ def resolve_otp_request(loan_lead: str, medium: str) -> tuple[Document, dict, st
 			frappe.PermissionError,
 		)
 
+	# db_set bypasses allow_on_submit, so the draft-only rule is enforced here.
 	if not doc.docstatus.is_draft():
 		frappe.throw(_("An OTP can only be sent while the lead is a draft."))
 
@@ -309,6 +317,11 @@ def validate_otp_verification(loan_lead: Document):
 
 
 def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
+	"""Coerce a lead name to a document and check the caller may act on it.
+
+	The rules read other applicants' records without permissions, so this check is what
+	stops a caller using a rule as a lookup on any identity they name.
+	"""
 	if isinstance(loan_lead, str):
 		loan_lead = frappe.get_doc("Loan Lead", loan_lead)
 
@@ -329,6 +342,9 @@ def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
 
+# Whitelisted so a site's own Server Script can run the rule with its own number, though
+# Cooling Period (Days) on the lead's Loan Product still beats what the script passes;
+# run_cooling_period_task is the no-script path.
 @frappe.whitelist(methods=["POST"])
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
@@ -384,18 +400,25 @@ def get_applicant_identity(loan_lead: Document) -> dict:
 
 
 def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe._dict | None:
+	# Read without permissions: a lead the user cannot see still rejected the applicant.
 	identity = get_applicant_identity(loan_lead)
 	if not identity:
 		return None
 
 	filters = {
 		"rejected_on": (">", add_days(now_datetime(), -cooling_period_days)),
+		# Cancelling does not run validate, so rejected_on outlives the cancelled document.
 		"docstatus": ("!=", 2),
 	}
 
+	# `!= NULL` is never true in SQL, so an unsaved lead's empty name would match nothing.
 	if loan_lead.name:
 		filters["name"] = ("!=", loan_lead.name)
 
+	# or_filters, so either detail matching is enough. Deliberately loose: an applicant who
+	# comes back under a new email is the case worth catching, and the cost is that people
+	# genuinely sharing a number cool off together. The refusal names no lead and no date,
+	# so a shared match cannot be used to read anything about the other applicant.
 	rejections = frappe.db.get_all(
 		"Loan Lead",
 		filters=filters,

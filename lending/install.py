@@ -346,6 +346,11 @@ frappe.call(
 
 
 def add_server_scripts():
+	"""Create any shipped rule script a site does not have yet.
+
+	Idempotent, and never touches a script that already exists: once a site has edited
+	the rule, its copy wins. Safe to call from install and from a patch.
+	"""
 	for name, script in LOAN_LEAD_RULE_SCRIPTS.items():
 		if frappe.db.exists("Server Script", name):
 			continue
