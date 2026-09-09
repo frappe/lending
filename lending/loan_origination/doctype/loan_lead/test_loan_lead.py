@@ -18,6 +18,7 @@ from lending.loan_origination.doctype.loan_lead.loan_lead import (
 	REJECTED_WORKFLOW_STATE,
 	TELEPHONY_APP,
 	bulk_send_otp,
+	convert_to_loan_application,
 	get_enabled_otp_mediums,
 	resolve_otp_request,
 	run_cooling_period_task,
@@ -27,6 +28,8 @@ from lending.loan_origination.doctype.loan_lead.loan_lead import (
 	verify_otp,
 )
 from lending.loan_origination.doctype.loan_lead.test_applicant_exposure import (
+	as_a_direct_api_call,
+	as_a_workflow_task,
 	make_customer,
 	make_live_loan,
 )
@@ -975,3 +978,39 @@ class TestLoanLeadOTPDoesNotLeakWhichLeadsExist(LendingTestSuite):
 			str(forbidden.exception).replace(lead.name, "X"),
 			str(missing.exception).replace("LN-LEAD-99999", "X"),
 		)
+
+
+class TestTheCoolingPeriodRuleIsNotAPlainEndpoint(LendingTestSuite):
+	def test_a_direct_api_call_is_refused(self):
+		lead = make_loan_lead(email="cooling-direct@example.com")
+
+		with as_a_direct_api_call(), self.assertRaises(frappe.PermissionError):
+			validate_cooling_period(lead.name, COOLING_PERIOD_DAYS)
+
+	def test_the_workflow_task_still_reaches_it(self):
+		reject(make_loan_lead(email="cooling-task-path@example.com"))
+		lead = make_loan_lead(email="cooling-task-path@example.com")
+
+		with as_a_workflow_task(), self.assertRaises(frappe.ValidationError):
+			validate_cooling_period(lead.name, COOLING_PERIOD_DAYS)
+
+
+class TestConversionIsAWorkflowTaskOnly(LendingTestSuite):
+	def test_it_is_not_whitelisted(self):
+		self.assertNotIn(convert_to_loan_application, frappe.whitelisted)
+
+	def test_a_caller_who_cannot_read_the_lead_is_refused(self):
+		lead = make_loan_lead(email="convert-perm@example.com")
+
+		with no_read_permission_on("Loan Lead"), self.assertRaises(frappe.PermissionError):
+			convert_to_loan_application(lead)
+
+
+@contextmanager
+def no_read_permission_on(doctype):
+
+	def has_permission(dt, ptype="read", *args, **kwargs):
+		return not (dt == doctype and ptype == "read")
+
+	with patch.object(frappe.permissions, "has_permission", side_effect=has_permission):
+		yield

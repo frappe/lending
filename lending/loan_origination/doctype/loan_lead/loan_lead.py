@@ -330,6 +330,14 @@ def resolve_lead(loan_lead: Document | str, ptype: str) -> Document:
 	return loan_lead
 
 
+def assert_called_from_a_rule():
+	if frappe.request and not frappe.flags.in_safe_exec:
+		frappe.throw(
+			_("This rule runs as a workflow task and cannot be called directly."),
+			frappe.PermissionError,
+		)
+
+
 def run_cooling_period_task(loan_lead: Document):
 	validate_cooling_period(loan_lead, DEFAULT_COOLING_PERIOD_DAYS)
 
@@ -341,6 +349,8 @@ def run_cooling_period_task(loan_lead: Document):
 def validate_cooling_period(
 	loan_lead: Document | str, cooling_period_days: int | str | None = None
 ):
+	assert_called_from_a_rule()
+
 	loan_lead = resolve_lead(loan_lead, "write")
 
 	cooling_period_days = cint(get_product_cooling_period(loan_lead) or cooling_period_days)
@@ -424,10 +434,12 @@ def get_last_rejection(loan_lead: Document, cooling_period_days: int) -> frappe.
 # A workflow task, called as method(doc). Not whitelisted: over HTTP loan_lead would
 # arrive as a name rather than the document this reads fields off.
 def convert_to_loan_application(loan_lead: Document):
+	loan_lead.check_permission("read")
 	frappe.has_permission("Loan Application", "create", throw=True)
 	validate_otp_verification(loan_lead)
 
 	loan_application = frappe.new_doc("Loan Application")
+	loan_application.loan_lead = loan_lead.name
 	loan_application.applicant_email_address = loan_lead.email
 	loan_application.applicant_name = loan_lead.applicant_name
 	loan_application.applicant_phone_number = loan_lead.mobile_number

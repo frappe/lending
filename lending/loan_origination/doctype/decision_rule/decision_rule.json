@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-25 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sequence",
+  "variable",
+  "operator",
+  "value",
+  "outcome",
+  "reason_code",
+  "stop_on_match",
+  "terms_section",
+  "term_roi_override",
+  "term_amount_cap",
+  "column_break_terms",
+  "term_tenure_cap"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "description": "Rules are evaluated lowest first. The first match wins.",
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sequence"
+  },
+  {
+   "columns": 2,
+   "description": "A key from the decision variable context, such as bureau_score or foir_ratio.",
+   "fieldname": "variable",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "label": "Variable",
+   "options": "age\napplicant_type\nbureau_score\ndti_ratio\nemployment_type\nexisting_obligations\nfoir_ratio\nloan_amount\nloan_product\nltv_ratio\nmonthly_income\nproposed_emi\nrate_of_interest\ntenure",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "operator",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Operator",
+   "options": "\n>\n>=\n<\n<=\n==\n!=\nin\nnot in\nbetween",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "description": "Two comma separated numbers for between. A comma separated list for in and not in.",
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "outcome",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Outcome",
+   "options": "\nApprove\nDecline\nRefer",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "reason_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reason Code",
+   "mandatory_depends_on": "eval:doc.outcome==\"Decline\"",
+   "options": "Adverse Action Reason"
+  },
+  {
+   "default": "1",
+   "description": "Stop evaluating the strategy once this rule matches.",
+   "fieldname": "stop_on_match",
+   "fieldtype": "Check",
+   "label": "Stop On Match"
+  },
+  {
+   "depends_on": "eval:doc.outcome != \"Decline\"",
+   "fieldname": "terms_section",
+   "fieldtype": "Section Break",
+   "label": "Recommended Terms"
+  },
+  {
+   "fieldname": "term_roi_override",
+   "fieldtype": "Percent",
+   "label": "Recommended Rate Of Interest"
+  },
+  {
+   "fieldname": "term_amount_cap",
+   "fieldtype": "Currency",
+   "label": "Recommended Loan Amount"
+  },
+  {
+   "fieldname": "column_break_terms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "term_tenure_cap",
+   "fieldtype": "Int",
+   "label": "Recommended Tenure in Months"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-01 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Decision Rule",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

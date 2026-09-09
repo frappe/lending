@@ -324,3 +324,43 @@ def only_loan_reads_denied():
 
 	with patch.object(frappe.permissions, "has_permission", side_effect=has_permission):
 		yield
+
+
+@contextmanager
+def as_a_direct_api_call():
+	previous_request = getattr(frappe.local, "request", None)
+	previous_flag = frappe.flags.in_safe_exec
+
+	frappe.local.request = frappe._dict(method="POST")
+	frappe.flags.in_safe_exec = 0
+
+	try:
+		yield
+	finally:
+		frappe.local.request = previous_request
+		frappe.flags.in_safe_exec = previous_flag
+
+
+@contextmanager
+def as_a_workflow_task():
+	"""The same request, with a Workflow Task Server Script running the rule."""
+	with as_a_direct_api_call():
+		frappe.flags.in_safe_exec = 1
+		yield
+
+
+class TestTheLiveLoanRuleIsNotAPlainEndpoint(LendingTestSuite):
+	def test_a_direct_api_call_is_refused(self):
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		with as_a_direct_api_call(), self.assertRaises(frappe.PermissionError):
+			validate_live_loan_limit(lead.name, 1)
+
+	def test_the_workflow_task_still_reaches_it(self):
+		customer = make_customer("_Test Exposure Rule Path", email=EMAIL)
+		make_live_loan(customer, "Disbursed")
+
+		lead = make_lead(email=EMAIL, mobile_number=MOBILE)
+
+		with as_a_workflow_task(), self.assertRaises(frappe.ValidationError):
+			validate_live_loan_limit(lead.name, 1)

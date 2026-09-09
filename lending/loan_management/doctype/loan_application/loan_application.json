@@ -17,6 +17,7 @@
   "column_break_2",
   "company",
   "posting_date",
+  "loan_lead",
   "applicant_address_details_section",
   "address_line_1",
   "address_line_2",
@@ -31,7 +32,10 @@
   "status",
   "loan_product",
   "loan_amount",
+  "recommended_amount",
   "rate_of_interest",
+  "recommended_roi",
+  "decision",
   "column_break_7",
   "loan_purpose",
   "is_term_loan",
@@ -44,6 +48,7 @@
   "total_payable_amount",
   "column_break_11",
   "repayment_periods",
+  "recommended_tenure",
   "repayment_amount",
   "total_payable_interest",
   "amended_from",
@@ -80,6 +85,15 @@
    "fieldtype": "Date",
    "label": "Application Date",
    "reqd": 1
+  },
+  {
+   "fieldname": "loan_lead",
+   "fieldtype": "Link",
+   "label": "Loan Lead",
+   "no_copy": 1,
+   "options": "Loan Lead",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "status",
@@ -139,10 +153,35 @@
   },
   {
    "fetch_from": "loan_product.rate_of_interest",
+   "fetch_if_empty": 1,
    "fieldname": "rate_of_interest",
    "fieldtype": "Percent",
-   "label": "Rate of Interest",
+   "label": "Rate of Interest"
+  },
+  {
+   "depends_on": "eval:doc.recommended_amount",
+   "fieldname": "recommended_amount",
+   "fieldtype": "Currency",
+   "label": "Recommended Loan Amount",
+   "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.recommended_roi",
+   "fieldname": "recommended_roi",
+   "fieldtype": "Percent",
+   "label": "Recommended Rate of Interest",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "decision",
+   "fieldtype": "Link",
+   "label": "Decision",
+   "no_copy": 1,
+   "options": "Loan Decision",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "depends_on": "is_term_loan",
@@ -168,6 +207,14 @@
    "fieldname": "repayment_periods",
    "fieldtype": "Int",
    "label": "Repayment Period in Months"
+  },
+  {
+   "depends_on": "eval:doc.recommended_tenure",
+   "fieldname": "recommended_tenure",
+   "fieldtype": "Int",
+   "label": "Recommended Tenure in Months",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "total_payable_amount",
@@ -338,7 +385,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-02 16:03:38.065821",
+ "modified": "2026-09-02 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
@@ -426,6 +473,13 @@
    "share": 1,
    "submit": 1,
    "write": 1
+  },
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Underwriter"
   }
  ],
  "row_format": "Dynamic",
