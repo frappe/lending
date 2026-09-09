@@ -30,7 +30,9 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanSecurityShortfall(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 		init_customers()
@@ -40,6 +42,8 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+
+	def setUp(self):
 		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_shortfall(self):
