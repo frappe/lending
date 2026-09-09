@@ -31,10 +31,11 @@
   {
    "fetch_from": "loan.applicant",
    "fieldname": "applicant",
-   "fieldtype": "Data",
+   "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Applicant",
+   "options": "applicant_type",
    "reqd": 1,
    "search_index": 1
   },
@@ -128,7 +129,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-12 08:59:16.690887",
+ "modified": "2026-09-09 11:05:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Release",
