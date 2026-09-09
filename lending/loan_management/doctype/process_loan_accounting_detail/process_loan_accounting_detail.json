@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "creation": "2026-07-12 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "source_type",
+  "source_document",
+  "loan_disbursement",
+  "account",
+  "column_break_amt",
+  "debit",
+  "credit",
+  "source_doc_count"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "source_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source",
+   "options": "Loan Interest Accrual\nLoan Demand",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "description": "The source document, shown only when this line comes from a single accrual/demand (# Docs = 1). Blank when multiple documents are merged into the line; use # Docs and View Ledger to trace those.",
+   "fieldname": "source_document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Source Document",
+   "options": "source_type",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "description": "Set for LOC loans where accrual/demand is tracked per disbursement.",
+   "fieldname": "loan_disbursement",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Disbursement",
+   "options": "Loan Disbursement",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Account",
+   "options": "Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_amt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "debit",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Debit",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "credit",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Credit",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "description": "Number of daily accrual/demand documents rolled into this line.",
+   "fieldname": "source_doc_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "# Docs",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Process Loan Accounting Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -205,6 +205,11 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 
 @frappe.whitelist()
 def get_pledged_security_qty(loan: str | None = None, applicant: str | None = None):
+	if loan:
+		frappe.has_permission("Loan", "read", doc=loan, throw=True)
+	else:
+		frappe.has_permission("Loan", "read", throw=True)
+
 	current_pledges = {}
 
 	unpldge_doctype = frappe.qb.DocType("Unpledge")

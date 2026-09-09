@@ -9,6 +9,9 @@ from frappe.utils import add_days, flt, get_datetime, getdate
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
+	LoanRepaymentSchedule,
+)
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_monthly_repayment_amount,
 	get_repayment_periods,
@@ -316,3 +319,9 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 
 	def test_get_repayment_periods_with_zero_interest(self):
 		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
+
+	def test_get_next_payment_date_advances_when_schedule_type_is_blank(self):
+		# Blank repayment_schedule_type should still advance the date for Monthly frequency
+		schedule = frappe._dict(repayment_schedule_type="", repayment_frequency="Monthly")
+		next_date = LoanRepaymentSchedule.get_next_payment_date(schedule, getdate("2025-01-13"))
+		self.assertEqual(next_date, getdate("2025-02-13"))

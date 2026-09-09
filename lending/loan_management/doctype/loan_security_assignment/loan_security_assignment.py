@@ -255,9 +255,10 @@ def update_loan_securities_values(
 
 @frappe.whitelist()
 def release_loan_security_assignment(loan_security_assignment: str):
-	if frappe.has_permission("Loan Security Assignment", "write"):
-		frappe.db.set_value(
-			"Loan Security Assignment",
-			loan_security_assignment,
-			{"status": "Released", "release_time": now_datetime()},
-		)
+	frappe.has_permission("Loan Security Assignment", "write", doc=loan_security_assignment, throw=True)
+
+	frappe.db.set_value(
+		"Loan Security Assignment",
+		loan_security_assignment,
+		{"status": "Released", "release_time": now_datetime()},
+	)

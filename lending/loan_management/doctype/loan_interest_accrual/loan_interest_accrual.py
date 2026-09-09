@@ -22,7 +22,11 @@ from frappe.utils import (
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-from lending.loan_management.utils import async_gl_reversal_enabled, loan_accounting_enabled
+from lending.loan_management.utils import (
+	async_gl_reversal_enabled,
+	gl_consolidation_enabled,
+	loan_accounting_enabled,
+)
 from lending.utils import daterange
 
 
@@ -124,6 +128,10 @@ class LoanInterestAccrual(LoanController):
 
 		self.make_gl_entries()
 		if self.is_npa and not self.unmark_npa:
+			# Deferred to the monthly consolidation job when consolidation is enabled.
+			if gl_consolidation_enabled(self.company, self.posting_date):
+				return
+
 			if self.interest_type == "Normal Interest":
 				is_penal = False
 			else:
@@ -156,11 +164,15 @@ class LoanInterestAccrual(LoanController):
 		if self.normal_interest_journal_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.normal_interest_journal_entry)
 			doc.flags.ignore_links = True
+			if frappe.flags.on_repost:
+				doc.flags.notify_update = False
 			doc.cancel()
 
 		if self.additional_interest_suspense_entry and loan_accounting_enabled(self.company):
 			doc = frappe.get_doc("Journal Entry", self.additional_interest_suspense_entry)
 			doc.flags.ignore_links = True
+			if frappe.flags.on_repost:
+				doc.flags.notify_update = False
 			doc.cancel()
 
 	def queue_cancel_gl(self):
@@ -170,8 +182,21 @@ class LoanInterestAccrual(LoanController):
 		if not loan_accounting_enabled(self.company):
 			return
 
+		# When monthly consolidation is on, defer GL for BOTH submit and cancel. The consolidation job
+		# posts one voucher from build_gl_map() of deferred docs, and posts a reversing delta for docs
+		# cancelled after consolidation. Posting reversal GL here (on cancel) would defeat consolidation
+		# by creating per-doc GL, so we skip it and let the job net it out.
+		if gl_consolidation_enabled(self.company, self.posting_date):
+			return
+
+		gle_map = self.build_gl_map()
+
+		if gle_map:
+			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+
+	def build_gl_map(self):
 		gle_map = []
-		loan_status = frappe.db.get_value("Loan", self.loan, "status")
+		loan_status = frappe.db.get_value("Loan", self.loan, "status", cache=True)
 
 		if loan_status == "Written Off":
 			write_off_date = frappe.db.get_value(
@@ -320,8 +345,7 @@ class LoanInterestAccrual(LoanController):
 				)
 			)
 
-		if gle_map:
-			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj, merge_entries=False)
+		return gle_map
 
 
 # For Eg: If Loan disbursement date is '01-09-2019' and disbursed amount is 1000000 and
@@ -645,19 +669,56 @@ def calculate_penal_interest_for_loans(
 			if row.repayment_schedule_detail not in principal_amount_map:
 				principal_amount_map[row.repayment_schedule_detail] = row.outstanding_amount
 
+	# Batch-fetch the last Penal Interest accrual date per repayment_schedule_detail
+	# instead of one query per demand below. Split into a lock query and a separate
+	# aggregate query since PostgreSQL rejects FOR UPDATE combined with GROUP BY.
+	last_accrual_date_map = {}
+	if repayment_schedule_details:
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+		base_filters = (
+			(LoanInterestAccrual.loan == loan.name)
+			& (LoanInterestAccrual.docstatus == 1)
+			& (LoanInterestAccrual.interest_type == "Penal Interest")
+			& (LoanInterestAccrual.loan_repayment_schedule_detail.isin(repayment_schedule_details))
+		)
+		if loan_disbursement:
+			base_filters = base_filters & (LoanInterestAccrual.loan_disbursement == loan_disbursement)
+
+		(
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(LoanInterestAccrual.name)
+			.where(base_filters)
+			.for_update()
+		).run()
+
+		accrual_query = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(
+				LoanInterestAccrual.loan_repayment_schedule_detail,
+				fn.Max(LoanInterestAccrual.posting_date).as_("last_posting_date"),
+			)
+			.where(base_filters)
+			.groupby(LoanInterestAccrual.loan_repayment_schedule_detail)
+		)
+
+		for row in accrual_query.run(as_dict=True):
+			last_accrual_date_map[row.loan_repayment_schedule_detail] = row.last_posting_date
+
 	for demand in demands:
 		penal_interest_amount = 0
 		additional_interest = 0
 		on_migrate = False
 
 		if getdate(posting_date) >= add_days(getdate(demand.demand_date), grace_period_days):
-			last_accrual_date = get_last_accrual_date(
-				loan.name,
-				posting_date,
-				"Penal Interest",
-				repayment_schedule_detail=demand.repayment_schedule_detail,
-				loan_disbursement=loan_disbursement,
-			)
+			if demand.repayment_schedule_detail:
+				last_accrual_date = last_accrual_date_map.get(demand.repayment_schedule_detail)
+			else:
+				last_accrual_date = get_last_accrual_date(
+					loan.name,
+					posting_date,
+					"Penal Interest",
+					loan_disbursement=loan_disbursement,
+				)
 
 			if not last_accrual_date:
 				last_accrual_date = get_last_accrual_date(
@@ -914,9 +975,10 @@ def get_last_accrual_date(
 ):
 	LoanInterestAccrual = DocType("Loan Interest Accrual")
 
+	# Max taken in Python, not SQL, since PostgreSQL rejects FOR UPDATE with MAX().
 	query = (
 		frappe.qb.from_(LoanInterestAccrual)
-		.select(fn.Max(LoanInterestAccrual.posting_date))
+		.select(LoanInterestAccrual.posting_date)
 		.where(
 			(LoanInterestAccrual.loan == loan)
 			& (LoanInterestAccrual.docstatus == 1)
@@ -939,7 +1001,8 @@ def get_last_accrual_date(
 	if loan_disbursement:
 		query = query.where(LoanInterestAccrual.loan_disbursement == loan_disbursement)
 
-	last_interest_accrual_date = query.run()[0][0]
+	posting_dates = [row[0] for row in query.run()]
+	last_interest_accrual_date = max(posting_dates) if posting_dates else None
 
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
