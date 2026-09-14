@@ -43,8 +43,11 @@ class BaseAdapter:
 	def parse(self, response: dict) -> dict:
 		raise NotImplementedError
 
-	def persist(self, request, parsed: dict) -> dict | None:
+	def persist(self, request, parsed: dict, context: dict) -> dict | None:
 		"""Write the result wherever it belongs, and return anything worth logging.
+
+		Takes the context back because the response says what was found, while the context
+		says who it was found about, and a stored result usually needs both.
 
 		Returning None keeps the dispatcher generic: it never has to ask what kind of
 		provider it is holding.

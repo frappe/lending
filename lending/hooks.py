@@ -339,5 +339,20 @@ workflow_methods = [
 	{
 		"name": "Run Knockout Rules",
 		"method": "lending.loan_origination.decisioning.run_knockout_rules"
+	},
+	{
+		"name": "Pull Credit Bureau Report",
+		"method": "lending.loan_integrations.bureau.run_bureau_pull_task"
 	}
 ]
+
+# Another app adds a provider of its own by naming its adapter class here, without this app
+# knowing the vendor exists.
+# lending_integration_adapters = ["partner_app.adapters.experian.ExperianAdapter"]
+
+# Core purges Integration Request after 90 days. A bureau pull is the evidence that we had
+# consent before we made a permanent enquiry on somebody's credit file, and that has to
+# outlive the loan it was made for. Hooks merge as a list and the last value wins, so this
+# overrides core's 90 without touching it. A site that already has a Log Settings row keeps
+# what that row says: this only sets the default.
+default_log_clearing_doctypes = {"Integration Request": [3650]}

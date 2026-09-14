@@ -12,7 +12,10 @@
   "column_break_otp_settings",
   "otp_for_sms",
   "otp_policy_section",
-  "otp_verification_mandatory"
+  "otp_verification_mandatory",
+  "bureau_section",
+  "bureau_consent_version",
+  "bureau_consent_text"
  ],
  "fields": [
   {
@@ -65,13 +68,31 @@
    "fieldname": "otp_verification_mandatory",
    "fieldtype": "Check",
    "label": "OTP Verification Mandatory"
+  },
+  {
+   "fieldname": "bureau_section",
+   "fieldtype": "Section Break",
+   "label": "Credit Bureau"
+  },
+  {
+   "default": "1.0",
+   "description": "Recorded on each lead that consents, so an old consent still says which wording it was given against.",
+   "fieldname": "bureau_consent_version",
+   "fieldtype": "Data",
+   "label": "Bureau Consent Wording Version"
+  },
+  {
+   "description": "The wording shown to the applicant. Use the text your bureau or aggregator requires.",
+   "fieldname": "bureau_consent_text",
+   "fieldtype": "Small Text",
+   "label": "Bureau Consent Wording"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-08-14 12:00:00.000000",
+ "modified": "2026-09-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Origination Settings",

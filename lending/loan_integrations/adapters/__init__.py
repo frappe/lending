@@ -9,7 +9,7 @@ _LOADED = False
 
 # Adapters shipped with this app. Other apps add their own through the
 # lending_integration_adapters hook, without touching this list.
-_BUILTIN_ADAPTERS = ()
+_BUILTIN_ADAPTERS = ("surepass",)
 
 
 def register(cls):
