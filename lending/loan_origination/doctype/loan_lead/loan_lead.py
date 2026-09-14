@@ -55,12 +55,16 @@ class LoanLead(Document):
 		applicant_country: DF.Link | None
 		applicant_name: DF.Data
 		applicant_type: DF.Literal["Individual", "Business"]
+		bureau_consent: DF.Check
+		bureau_consent_on: DF.Datetime | None
+		bureau_consent_version: DF.Data | None
 		company_name: DF.Data | None
 		contact: DF.Link | None
 		date_of_birth: DF.Date | None
 		email: DF.Data
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		employment_type: DF.Literal["Salaried", "Self-employed"]
+		gender: DF.Link | None
 		income: DF.Currency
 		indicative_amount: DF.Currency
 		indicative_roi: DF.Percent
@@ -83,6 +87,7 @@ class LoanLead(Document):
 		self.set_age()
 		self.set_verification_statuses()
 		self.set_rejected_on()
+		self.set_bureau_consent()
 
 	def set_age(self):
 		# Only an individual has one, and a lead that changes type must not keep the age it
@@ -100,6 +105,21 @@ class LoanLead(Document):
 			- date_of_birth.year
 			- ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
 		)
+
+	def set_bureau_consent(self):
+		"""Stamp when consent was given, and drop the stamp when it is taken back.
+
+		The date is what proves the consent came before the pull, so it is recorded here
+		rather than typed: a date somebody can edit proves nothing.
+		"""
+		if not self.bureau_consent:
+			self.bureau_consent_on = None
+			self.bureau_consent_version = None
+			return
+
+		if not self.bureau_consent_on:
+			self.bureau_consent_on = now_datetime()
+			self.bureau_consent_version = get_bureau_consent_version()
 
 	def set_rejected_on(self):
 		workflow = get_workflow_name(self.doctype)
@@ -273,6 +293,10 @@ def resolve_otp_request(loan_lead: str, medium: str) -> tuple[Document, dict, st
 		)
 
 	return doc, fields, recipient
+
+
+def get_bureau_consent_version() -> str | None:
+	return frappe.get_cached_value("Loan Origination Settings", None, "bureau_consent_version")
 
 
 def get_otp_purpose(loan_lead: str) -> str:

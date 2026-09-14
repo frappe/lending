@@ -65,7 +65,7 @@ LOAN_LEAD = "Loan Lead"
 
 PRODUCT_AGNOSTIC = ("in", ["", None])
 
-BUREAU_FIELDS = ["name", "score", "total_emi"]
+BUREAU_FIELDS = ["name", "score", "total_emi", "obligations_known"]
 
 RECOMMENDED_TERM_FIELDS = ("recommended_roi", "recommended_amount", "recommended_tenure")
 
@@ -518,7 +518,13 @@ def _add_bureau_variables(context, source, bureau_report=None, lead=None):
 		return
 
 	_put(context, "bureau_score", _positive(report.score))
-	context["existing_obligations"] = flt(report.total_emi)
+
+	# Currency reads 0 when nobody filled it in, and zero obligations is the answer that makes
+	# every FOIR rule pass. The flag is what separates "this applicant owes nothing" from "the
+	# bureau never told us", and leaving the variable out of the context is what turns an
+	# approval into a referral rather than approving on a number no one supplied.
+	if report.obligations_known:
+		context["existing_obligations"] = flt(report.total_emi)
 
 
 def _report_for(source, lead=None):

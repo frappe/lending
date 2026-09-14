@@ -20,9 +20,12 @@ class CreditBureauReport(Document):
 		applicant: DF.DynamicLink | None
 		applicant_type: DF.Literal["Customer", "Employee"]
 		bureau: DF.Literal["CIBIL", "Experian", "Equifax", "CRIF", "Manual"]
+		external_id: DF.Data | None
+		obligations_known: DF.Check
 		pan: DF.Data | None
 		raw_payload: DF.LongText | None
 		report_date: DF.Datetime
+		report_pdf: DF.Attach | None
 		score: DF.Int
 		total_emi: DF.Currency
 	# end: auto-generated types
