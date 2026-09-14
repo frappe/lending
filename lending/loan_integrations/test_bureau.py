@@ -13,7 +13,9 @@ from lending.loan_origination.decisioning import build_variable_context
 from lending.loan_origination.test_decisioning import make_application, make_lead
 from lending.tests.utils import LendingTestSuite
 
-TEST_PAN = "EKRPR1234F"
+# Not a PAN anybody would pull for real. Reports are filed by PAN and found by PAN, so a
+# value that a live sandbox call might also use would let real data decide a test.
+TEST_PAN = "AAAPT0000A"
 PROVIDER = "_Test Bureau Provider"
 
 # Bureaux hand back short lived links signed with a key that appears in the URL itself. This
@@ -67,6 +69,12 @@ def make_provider(adapter=FakeBureauAdapter.key, name=PROVIDER):
 	if frappe.db.exists("Loan Integration Provider", name):
 		frappe.delete_doc("Loan Integration Provider", name, force=True)
 
+	# Whatever the site has configured is not this test's business, and only one bureau may be
+	# active at a time. Rolled back with the rest of the test.
+	frappe.db.set_value(
+		"Loan Integration Provider", {"provider_type": "Credit Bureau", "is_active": 1}, "is_active", 0
+	)
+
 	return frappe.get_doc(
 		{
 			"doctype": "Loan Integration Provider",
@@ -104,6 +112,18 @@ class TestProviderRouting(LendingTestSuite):
 	def test_an_unregistered_adapter_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):
 			make_provider(adapter="Nobody At All", name="_Test Missing Adapter")
+
+	def test_two_active_bureaus_is_refused_rather_than_guessed_at(self):
+		# Which bureau ran is on the applicant's credit file and on the invoice, so a second
+		# active provider is a question for a human rather than something to pick between.
+		make_provider()
+		second = make_provider(name="_Test Second Bureau Provider")
+		frappe.db.set_value("Loan Integration Provider", PROVIDER, "is_active", 1)
+
+		with self.assertRaises(frappe.ValidationError):
+			bureau.select_bureau_provider()
+
+		self.assertTrue(second.is_active)
 
 
 class TestBureauConsent(LendingTestSuite):
