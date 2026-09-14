@@ -3,6 +3,7 @@
 
 import base64
 import json
+from functools import cached_property
 
 import frappe
 from frappe import _
@@ -32,8 +33,29 @@ class BaseAdapter:
 	provider_type: str = ""
 	key: str = ""
 
+	# The doctype holding this vendor's own URLs and credentials. It belongs to whichever app
+	# owns the vendor, which is why this app never names one: lending knows that a provider
+	# exists and which adapter answers for it, and nothing about how to authenticate to it.
+	settings_doctype: str = ""
+
 	def __init__(self, provider_doc):
 		self.provider = provider_doc
+
+	@cached_property
+	def settings(self):
+		"""The vendor's own settings document, read the first time something needs it.
+
+		Lazily, so an adapter that never reaches the network — a test double, or one
+		answering from a report we already hold — does not require credentials to exist.
+		"""
+		if not self.settings_doctype:
+			frappe.throw(
+				_("{0} names no settings doctype, so there is nowhere to read its credentials from.").format(
+					self.provider.name
+				)
+			)
+
+		return frappe.get_cached_doc(self.settings_doctype)
 
 	# The interface each adapter implements.
 
@@ -58,31 +80,45 @@ class BaseAdapter:
 
 	def environment(self) -> str:
 		# Production wins when both are enabled, matching how ekyc_india reads Digio Settings.
-		if self.provider.enable_production:
+		if self.settings.enable_production:
 			return "production"
 
-		if self.provider.enable_sandbox:
+		if self.settings.enable_sandbox:
 			return "sandbox"
 
 		frappe.throw(
-			_("Enable either Sandbox or Production on {0} before calling it.").format(self.provider.name)
+			_("Enable either Sandbox or Production in {0} before calling it.").format(self.settings.name)
 		)
 
 	def get_base_url(self) -> str:
 		fieldname = "production_url" if self.environment() == "production" else "sandbox_url"
-		url = self.provider.get(fieldname)
+		url = self.settings.get(fieldname)
 
 		if not url:
 			frappe.throw(
-				_("{0} is not set on {1}.").format(
-					frappe.get_meta(self.provider.doctype).get_label(fieldname), self.provider.name
+				_("{0} is not set in {1}.").format(
+					frappe.get_meta(self.settings.doctype).get_label(fieldname), self.settings.name
 				)
 			)
 
 		return url.rstrip("/")
 
+	def target_url(self) -> str | None:
+		"""Where this call is headed, for the log to record before we place it.
+
+		The address is wanted by the log, not by the call, so a provider nobody has finished
+		configuring must not raise from here: that would escape before a row had been written
+		and leave the one outcome worth keeping — a failure — with no record at all. The same
+		misconfiguration is reported by the call itself a few lines later, where it is caught
+		and logged like any other way of not getting an answer.
+		"""
+		try:
+			return self.get_base_url()
+		except frappe.ValidationError:
+			return None
+
 	def cred(self, fieldname: str) -> str | None:
-		return self.provider.get_password(fieldname, raise_exception=False)
+		return self.settings.get_password(fieldname, raise_exception=False)
 
 	def creds(self) -> tuple[str | None, str | None]:
 		"""The client id and secret for the environment we are pointed at."""
@@ -91,10 +127,10 @@ class BaseAdapter:
 		return self.cred(f"{prefix}api_client_id"), self.cred(f"{prefix}api_secret")
 
 	def config(self, key: str, default=None):
-		if not self.provider.extra_config:
+		if not self.settings.extra_config:
 			return default
 
-		return json.loads(self.provider.extra_config).get(key, default)
+		return json.loads(self.settings.extra_config).get(key, default)
 
 	def auth_headers(self) -> dict:
 		client_id, secret = self.creds()
@@ -123,7 +159,7 @@ class BaseAdapter:
 			method,
 			url,
 			headers={**self.auth_headers(), **(headers or {})},
-			timeout=self.provider.timeout or 30,
+			timeout=self.settings.timeout or 30,
 			**kwargs,
 		)
 

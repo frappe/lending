@@ -3,42 +3,50 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.utils import cint
 
 from lending.loan_integrations import bureau
 from lending.loan_integrations.adapters import _REGISTRY, get_adapter, register
-from lending.loan_integrations.adapters.surepass import SurepassBureauAdapter
 from lending.loan_integrations.base import IntegrationError
+from lending.loan_integrations.bureau import BureauAdapter
 from lending.loan_origination.decisioning import build_variable_context
 from lending.loan_origination.test_decisioning import make_application, make_lead
 from lending.tests.utils import LendingTestSuite
 
 TEST_PAN = "EKRPR1234F"
-PROVIDER = "_Test Surepass"
+PROVIDER = "_Test Bureau Provider"
 
-# The response Surepass's sandbox actually returns, kept whole so a change in their envelope
-# fails here rather than in production.
-SANDBOX_RESPONSE = {
-	"data": {
-		"client_id": "credit_report_cibil_pdf_xfOSfdDRgierjgNdZelb",
-		"name": "VISHAL RATHORE",
-		"mobile": "9988776655",
-		"pan": TEST_PAN,
-		"gender": "male",
-		"user_email": None,
-		"credit_score": "750",
-		"credit_report": None,
-		"credit_report_link": (
-			"https://aadhaar-kyc-docs.s3.amazonaws.com/user123/credit_report_cibil/report.pdf"
-			"?X-Amz-Credential=AKIAY5K3QRM5KVPBYKKE%2F20260806%2Fap-south-1%2Fs3%2Faws4_request"
-			"&X-Amz-Expires=600&X-Amz-Signature=c5168167bdab60bf30e2b27ac148585a4b474633"
-		),
-		"credit_report_base64": None,
-	},
-	"status_code": 200,
-	"success": True,
-	"message": "Success",
-	"message_code": "success",
-}
+# Bureaux hand back short lived links signed with a key that appears in the URL itself. This
+# one is invented, but shaped like the real thing, because keeping it out of a log we hold
+# for ten years is this app's job however the response was spelled.
+SIGNED_URL = (
+	"https://reports.example.com/r.pdf?X-Amz-Credential=AKIATESTKEY000000000&X-Amz-Signature=beef"
+)
+
+# Deliberately not any real provider's envelope. Lending knows what a bureau is and nothing
+# about who sells one, so its tests answer in a shape no vendor uses.
+RESPONSE = {"reference": "bureau-ref-001", "score": "750", "document_url": SIGNED_URL}
+
+
+@register
+class FakeBureauAdapter(BureauAdapter):
+	"""A bureau with no vendor behind it, so the machinery can be tested without one."""
+
+	key = "_Test Bureau"
+	bureau = "Experian"
+
+	def parse(self, response: dict) -> dict:
+		if not cint(response.get("score")):
+			raise IntegrationError("the bureau refused the request")
+
+		return {
+			"external_id": response.get("reference"),
+			"score": cint(response.get("score")),
+			"obligations_known": False,
+			"total_emi": 0,
+			"report_url": response.get("document_url"),
+			"payload": {k: v for k, v in response.items() if k != "document_url"},
+		}
 
 
 def a_pdf() -> bytes:
@@ -55,7 +63,7 @@ def a_pdf() -> bytes:
 	return buffer.getvalue()
 
 
-def make_provider(adapter="Surepass CIBIL", name=PROVIDER):
+def make_provider(adapter=FakeBureauAdapter.key, name=PROVIDER):
 	if frappe.db.exists("Loan Integration Provider", name):
 		frappe.delete_doc("Loan Integration Provider", name, force=True)
 
@@ -66,9 +74,6 @@ def make_provider(adapter="Surepass CIBIL", name=PROVIDER):
 			"provider_type": "Credit Bureau",
 			"adapter": adapter,
 			"is_active": 1,
-			"enable_sandbox": 1,
-			"sandbox_url": "https://sandboxapp.surepass.app/sandbox/api/v1",
-			"sandbox_api_secret": "a-test-token",
 		}
 	).insert(ignore_permissions=True)
 
@@ -80,43 +85,25 @@ def make_consenting_lead(**overrides):
 	return lead
 
 
-class TestSurepassParsing(LendingTestSuite):
-	def setUp(self):
-		self.adapter = get_adapter(make_provider().name)
+class TestProviderRouting(LendingTestSuite):
+	def test_a_provider_carries_no_credentials_of_its_own(self):
+		# Credentials belong to the app that owns the vendor. A second place to put a token is
+		# how somebody fills in the wrong one.
+		fields = frappe.get_meta("Loan Integration Provider").get_valid_columns()
 
-	def test_it_reads_the_score_out_of_the_envelope(self):
-		parsed = self.adapter.parse(SANDBOX_RESPONSE)
+		for fieldname in ("api_secret", "sandbox_api_secret", "sandbox_url", "production_url"):
+			self.assertNotIn(fieldname, fields)
 
-		self.assertEqual(parsed["score"], 750)
-		self.assertEqual(parsed["external_id"], "credit_report_cibil_pdf_xfOSfdDRgierjgNdZelb")
+	def test_a_provider_records_where_its_credentials_are(self):
+		provider = make_provider()
 
-	def test_it_does_not_claim_to_know_the_obligations(self):
-		# The endpoint returns no obligations, and saying so is what keeps the affordability
-		# rules from reading an unfilled field as an applicant who owes nothing.
-		self.assertFalse(self.adapter.parse(SANDBOX_RESPONSE)["obligations_known"])
+		# This adapter needs none, so there is nothing to point at and the field says so.
+		self.assertIsNone(provider.settings_doctype)
+		self.assertIsInstance(get_adapter(provider.name), FakeBureauAdapter)
 
-	def test_it_keeps_the_signed_link_out_of_the_stored_payload(self):
-		parsed = self.adapter.parse(SANDBOX_RESPONSE)
-
-		self.assertNotIn("credit_report_link", parsed["payload"])
-		self.assertNotIn("AKIAY5K3QRM5KVPBYKKE", frappe.as_json(parsed["payload"]))
-		# Dropped from what we store, but still used to fetch the document during the call.
-		self.assertIn("X-Amz-Signature", parsed["report_url"])
-
-	def test_a_score_below_the_floor_is_not_a_score(self):
-		response = {**SANDBOX_RESPONSE, "data": {**SANDBOX_RESPONSE["data"], "credit_score": "-1"}}
-
-		self.assertEqual(self.adapter.parse(response)["score"], 0)
-
-	def test_a_failure_reported_in_the_body_is_a_failure(self):
-		# Surepass answers HTTP 200 and says so in the body, so raise_for_status sees nothing.
-		response = {**SANDBOX_RESPONSE, "success": False, "message": "PAN not found"}
-
-		with self.assertRaises(IntegrationError):
-			self.adapter.parse(response)
-
-	def test_it_authenticates_with_a_bearer_token(self):
-		self.assertEqual(self.adapter.auth_headers()["Authorization"], "Bearer a-test-token")
+	def test_an_unregistered_adapter_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			make_provider(adapter="Nobody At All", name="_Test Missing Adapter")
 
 
 class TestBureauConsent(LendingTestSuite):
@@ -152,7 +139,7 @@ class TestBureauPull(LendingTestSuite):
 		self.lead = make_consenting_lead()
 
 	def pull(self, response=None):
-		with patch.object(SurepassBureauAdapter, "pull", return_value=response or SANDBOX_RESPONSE):
+		with patch.object(FakeBureauAdapter, "pull", return_value=response or RESPONSE):
 			return bureau.pull_credit_bureau_report(self.lead)
 
 	def test_a_pull_files_a_submitted_report_against_the_pan(self):
@@ -162,7 +149,7 @@ class TestBureauPull(LendingTestSuite):
 		report = frappe.get_doc("Credit Bureau Report", result["output"]["credit_bureau_report"])
 
 		self.assertEqual(report.docstatus, 1)
-		self.assertEqual(report.bureau, "CIBIL")
+		self.assertEqual(report.bureau, "Experian")
 		self.assertEqual(report.score, 750)
 		self.assertEqual(report.pan, TEST_PAN)
 		self.assertFalse(report.obligations_known)
@@ -174,14 +161,14 @@ class TestBureauPull(LendingTestSuite):
 
 		self.assertEqual(request.status, "Completed")
 		self.assertEqual(request.reference_docname, self.lead.name)
-		self.assertEqual(request.request_id, SANDBOX_RESPONSE["data"]["client_id"])
+		self.assertEqual(request.request_id, RESPONSE["reference"])
 
 	def test_the_stored_log_carries_no_signed_link(self):
-		# The link Surepass returns is signed with an AWS key that appears in the URL itself.
-		# It is used during the call and must not outlive it in a log we keep for ten years.
+		# The link is signed with a key that appears in the URL itself. It is used during the
+		# call and must not outlive it in a log we keep for ten years.
 		request = frappe.get_doc("Integration Request", self.pull()["request"])
 
-		self.assertNotIn("AKIAY5K3QRM5KVPBYKKE", request.output)
+		self.assertNotIn("AKIATESTKEY000000000", request.output)
 		self.assertNotIn("X-Amz-Signature", request.output)
 
 	def test_a_second_pull_does_not_pull_again(self):
@@ -196,7 +183,7 @@ class TestBureauPull(LendingTestSuite):
 		)
 
 	def test_a_refusal_is_recorded_rather_than_raised(self):
-		result = self.pull({**SANDBOX_RESPONSE, "success": False, "message": "PAN not found"})
+		result = self.pull({**RESPONSE, "score": "0"})
 
 		self.assertEqual(result["status"], "Failed")
 		self.assertEqual(frappe.db.get_value("Integration Request", result["request"], "status"), "Failed")
@@ -216,7 +203,6 @@ class TestBureauPull(LendingTestSuite):
 		# The field has to survive the submit that follows the attachment.
 		self.assertEqual(report.report_pdf, file.file_url)
 
-
 	def test_a_report_that_cannot_be_attached_does_not_lose_the_score(self):
 		# Frappe refuses a PDF it cannot read. The pull was still billed and the enquiry still
 		# landed on the applicant's file, so the score has to survive the attachment failing.
@@ -231,27 +217,26 @@ class TestBureauPull(LendingTestSuite):
 
 
 class TestAddingAnotherBureau(LendingTestSuite):
-	"""Adding the next bureau Surepass carries should be a class, not a project."""
+	"""A second bureau should be a class, not a project — whoever it is bought from."""
 
-	def test_a_new_bureau_is_an_endpoint_and_a_name(self):
+	def test_a_new_bureau_reuses_the_whole_machinery(self):
 		@register
-		class SurepassCrifAdapter(SurepassBureauAdapter):
-			key = "_Test Surepass CRIF"
-			bureau = "CRIF"
-			endpoint = "/credit-report-crif/fetch-report-pdf"
+		class EquifaxAdapter(FakeBureauAdapter):
+			key = "_Test Equifax"
+			bureau = "Equifax"
 
-		self.addCleanup(_REGISTRY.pop, SurepassCrifAdapter.key, None)
+		self.addCleanup(_REGISTRY.pop, EquifaxAdapter.key, None)
 
-		provider = make_provider(adapter=SurepassCrifAdapter.key, name="_Test Surepass CRIF Provider")
+		provider = make_provider(adapter=EquifaxAdapter.key, name="_Test Equifax Provider")
 		lead = make_consenting_lead()
 
-		with patch.object(SurepassBureauAdapter, "pull", return_value=SANDBOX_RESPONSE):
+		with patch.object(EquifaxAdapter, "pull", return_value=RESPONSE):
 			result = bureau.pull_credit_bureau_report(lead, provider=provider.name)
 
 		report = frappe.get_doc("Credit Bureau Report", result["output"]["credit_bureau_report"])
 
-		# Same envelope, same logging, same report — only the bureau changed.
-		self.assertEqual(report.bureau, "CRIF")
+		# Same logging, same report, same rules — only the bureau changed.
+		self.assertEqual(report.bureau, "Equifax")
 		self.assertEqual(report.score, 750)
 
 
