@@ -32,7 +32,7 @@ def run_integration(provider: str, context: dict, reference_doc, operation: str)
 		context=context,
 		reference_doctype=reference_doc.doctype,
 		reference_docname=reference_doc.name,
-		url=adapter.get_base_url(),
+		url=adapter.target_url(),
 	)
 
 	# The savepoint is what lets us record the failure: it rewinds whatever the adapter half

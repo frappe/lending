@@ -7,9 +7,10 @@ from frappe import _
 _REGISTRY: dict[str, type] = {}
 _LOADED = False
 
-# Adapters shipped with this app. Other apps add their own through the
-# lending_integration_adapters hook, without touching this list.
-_BUILTIN_ADAPTERS = ("surepass",)
+# Adapters shipped with this app. Empty on purpose: a vendor is normally particular to one
+# country, and lending is not, so vendors live in the app that owns them and arrive through
+# the lending_integration_adapters hook. Surepass is in ekyc_india, alongside Digio.
+_BUILTIN_ADAPTERS = ()
 
 
 def register(cls):
@@ -37,24 +38,28 @@ def _load():
 	_LOADED = True
 
 
-def get_adapter(provider_name: str):
+def get_adapter_class(adapter: str) -> type:
 	_load()
 
+	cls = _REGISTRY.get(adapter)
+
+	if not cls:
+		frappe.throw(
+			_("No adapter is registered for {0}. Registered adapters: {1}.").format(
+				adapter, ", ".join(sorted(_REGISTRY)) or _("none")
+			)
+		)
+
+	return cls
+
+
+def get_adapter(provider_name: str):
 	provider = frappe.get_cached_doc("Loan Integration Provider", provider_name)
 
 	if not provider.is_active:
 		frappe.throw(_("Integration provider {0} is not active.").format(provider_name))
 
-	cls = _REGISTRY.get(provider.adapter)
-
-	if not cls:
-		frappe.throw(
-			_("No adapter is registered for {0}, so {1} cannot be called.").format(
-				provider.adapter, provider_name
-			)
-		)
-
-	return cls(provider)
+	return get_adapter_class(provider.adapter)(provider)
 
 
 @frappe.whitelist(methods=["GET"])

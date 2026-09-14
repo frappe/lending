@@ -11,23 +11,7 @@
   "column_break_identity",
   "adapter",
   "is_active",
-  "production_section",
-  "enable_production",
-  "production_url",
-  "column_break_production",
-  "api_client_id",
-  "api_secret",
-  "sandbox_section",
-  "enable_sandbox",
-  "sandbox_url",
-  "column_break_sandbox",
-  "sandbox_api_client_id",
-  "sandbox_api_secret",
-  "connection_section",
-  "member_id",
-  "timeout",
-  "column_break_connection",
-  "extra_config"
+  "settings_doctype"
  ],
  "fields": [
   {
@@ -69,95 +53,12 @@
    "label": "Is Active"
   },
   {
-   "fieldname": "production_section",
-   "fieldtype": "Section Break",
-   "label": "Production"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_production",
-   "fieldtype": "Check",
-   "label": "Enable Production"
-  },
-  {
-   "fieldname": "production_url",
-   "fieldtype": "Data",
-   "label": "Production URL",
-   "mandatory_depends_on": "eval:doc.enable_production"
-  },
-  {
-   "fieldname": "column_break_production",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "api_client_id",
-   "fieldtype": "Password",
-   "label": "API Client ID"
-  },
-  {
-   "fieldname": "api_secret",
-   "fieldtype": "Password",
-   "label": "API Secret"
-  },
-  {
-   "fieldname": "sandbox_section",
-   "fieldtype": "Section Break",
-   "label": "Sandbox"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_sandbox",
-   "fieldtype": "Check",
-   "label": "Enable Sandbox"
-  },
-  {
-   "description": "Sandbox is a separate host with its own credentials, not a flag on the production one.",
-   "fieldname": "sandbox_url",
-   "fieldtype": "Data",
-   "label": "Sandbox URL",
-   "mandatory_depends_on": "eval:doc.enable_sandbox"
-  },
-  {
-   "fieldname": "column_break_sandbox",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "sandbox_api_client_id",
-   "fieldtype": "Password",
-   "label": "Sandbox API Client ID"
-  },
-  {
-   "fieldname": "sandbox_api_secret",
-   "fieldtype": "Password",
-   "label": "Sandbox API Secret"
-  },
-  {
-   "fieldname": "connection_section",
-   "fieldtype": "Section Break",
-   "label": "Connection"
-  },
-  {
-   "description": "Subscriber or member identifier issued by the provider, where they use one.",
-   "fieldname": "member_id",
-   "fieldtype": "Data",
-   "label": "Member ID"
-  },
-  {
-   "default": "30",
-   "description": "Seconds to wait for a response before giving up.",
-   "fieldname": "timeout",
-   "fieldtype": "Int",
-   "label": "Timeout (Seconds)"
-  },
-  {
-   "fieldname": "column_break_connection",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "JSON object of adapter specific settings.",
-   "fieldname": "extra_config",
-   "fieldtype": "Small Text",
-   "label": "Extra Config"
+   "fieldname": "settings_doctype",
+   "fieldtype": "Link",
+   "label": "Credentials In",
+   "options": "DocType",
+   "read_only": 1,
+   "description": "The settings this provider's URLs and credentials are read from."
   }
  ],
  "grid_page_length": 50,
