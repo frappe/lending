@@ -347,13 +347,9 @@ workflow_methods = [
 	}
 ]
 
-# Another app adds a provider of its own by naming its adapter class here, without this app
-# knowing the vendor exists.
+# Another app adds its own provider by naming its adapter class here.
 # lending_integration_adapters = ["partner_app.adapters.experian.ExperianAdapter"]
 
-# Core purges Integration Request after 90 days. A bureau pull is the evidence that we had
-# consent before we made a permanent enquiry on somebody's credit file, and that has to
-# outlive the loan it was made for. Hooks merge as a list and the last value wins, so this
-# overrides core's 90 without touching it. A site that already has a Log Settings row keeps
-# what that row says: this only sets the default.
+# Overrides core's 90 days: a pull is the evidence we had consent before marking somebody's
+# credit file, and that has to outlive the loan. Only a default; a Log Settings row wins.
 default_log_clearing_doctypes = {"Integration Request": [3650]}
