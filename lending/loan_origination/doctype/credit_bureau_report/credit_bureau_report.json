@@ -50,7 +50,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Manual is a score keyed in by an underwriter rather than pulled from a bureau.",
+   "description": "Manual is a score keyed in by an underwriter, not pulled from a bureau.",
    "fieldname": "bureau",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -91,7 +91,7 @@
    "label": "Raw Payload"
   },
   {
-   "description": "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes.",
+   "description": "Whatever the bureau returned, verbatim. Kept for disputes.",
    "fieldname": "raw_payload",
    "fieldtype": "Long Text",
    "label": "Raw Payload",
@@ -107,7 +107,7 @@
    "read_only": 1
   },
   {
-   "description": "The provider's own reference for this pull, to quote when raising a dispute with them.",
+   "description": "The provider's own reference for this pull. Quote it when raising a dispute.",
    "fieldname": "external_id",
    "fieldtype": "Data",
    "label": "External ID",
@@ -115,13 +115,12 @@
   },
   {
    "default": "1",
-   "description": "Clear this when the bureau did not report existing obligations. Total EMI is then read as unknown rather than as zero, and the affordability rules refer the application instead of passing it.",
+   "description": "Clear this when the bureau did not report obligations. Total EMI is then read as unknown rather than zero, and affordability rules refer the application.",
    "fieldname": "obligations_known",
    "fieldtype": "Check",
    "label": "Existing Obligations Known"
   },
   {
-   "description": "The bureau's own report, fetched at the time of the pull. Behind permission level 1 with the raw payload, for the same reason.",
    "fieldname": "report_pdf",
    "fieldtype": "Attach",
    "label": "Report PDF",
@@ -133,7 +132,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-14 12:00:00.000000",
+ "modified": "2026-09-15 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Credit Bureau Report",

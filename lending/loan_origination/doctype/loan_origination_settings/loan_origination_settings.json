@@ -76,13 +76,13 @@
   },
   {
    "default": "1.0",
-   "description": "Recorded on each lead that consents, so an old consent still says which wording it was given against.",
+   "description": "Recorded on each lead that consents, so old consents keep the wording they were given against.",
    "fieldname": "bureau_consent_version",
    "fieldtype": "Data",
    "label": "Bureau Consent Wording Version"
   },
   {
-   "description": "The wording shown to the applicant. Use the text your bureau or aggregator requires.",
+   "description": "Use the wording your bureau or aggregator requires.",
    "fieldname": "bureau_consent_text",
    "fieldtype": "Small Text",
    "label": "Bureau Consent Wording"
