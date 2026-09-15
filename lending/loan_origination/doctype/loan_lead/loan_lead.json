@@ -46,7 +46,9 @@
   "bureau_consent",
   "bureau_consent_on",
   "column_break_bureau_consent",
-  "bureau_consent_version"
+  "bureau_consent_version",
+  "bureau_score",
+  "bureau_report"
  ],
  "fields": [
   {
@@ -299,10 +301,10 @@
   {
    "fieldname": "bureau_consent_section",
    "fieldtype": "Section Break",
-   "label": "Credit Bureau Consent"
+   "label": "Credit Bureau"
   },
   {
-   "description": "The applicant agreed that we may pull their credit report. A pull is refused without this.",
+   "description": "A bureau pull is refused without this.",
    "fieldname": "bureau_consent",
    "fieldtype": "Check",
    "label": "Bureau Consent Given",
@@ -320,11 +322,29 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Which wording the applicant agreed to. Kept so we can show what was consented to, not just that something was.",
+   "description": "Which wording the applicant agreed to.",
    "fieldname": "bureau_consent_version",
    "fieldtype": "Data",
    "label": "Consent Wording Version",
    "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.bureau_score",
+   "description": "From the most recent bureau report on file for this PAN.",
+   "fieldname": "bureau_score",
+   "fieldtype": "Int",
+   "label": "Bureau Score",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.bureau_report",
+   "fieldname": "bureau_report",
+   "fieldtype": "Link",
+   "label": "Bureau Report",
+   "no_copy": 1,
+   "options": "Credit Bureau Report",
    "read_only": 1
   }
  ],
@@ -332,7 +352,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-14 12:00:00.000000",
+ "modified": "2026-09-15 18:45:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Lead",
