@@ -7,13 +7,7 @@ from frappe.model.document import Document
 
 
 class LoanIntegrationProvider(Document):
-	"""Which outside service answers for a kind of work, and which adapter speaks to it.
-
-	Deliberately holds no URL and no credential. Those belong to whichever app owns the
-	vendor — Surepass to ekyc_india, the way Digio already is — because a vendor is usually
-	specific to one country while lending is not. Two possible homes for a token is how
-	somebody fills in the wrong one and spends an afternoon on a 401.
-	"""
+	"""Holds no URL and no credential: those belong to the app that owns the vendor."""
 
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -35,17 +29,14 @@ class LoanIntegrationProvider(Document):
 		self.set_settings_doctype()
 
 	def validate_adapter(self):
-		# Imported here rather than at module level: the registry imports the adapters, and the
-		# adapters import this app, so a top level import closes the loop.
-		from lending.loan_integrations.adapters import adapter_choices
+		# Imported here: a module level import closes a loop through the registry.
+		from lending.loan_integrations.adapters import adapter_keys
 
-		choices = adapter_choices(self.provider_type)
+		choices = adapter_keys(self.provider_type)
 
 		if self.adapter in choices:
 			return
 
-		# The adapter dropdown is filled in by the client script, which only the browser obeys.
-		# A REST caller can send anything, so the check has to happen here too.
 		frappe.throw(
 			_("{0} is not a registered adapter for provider type {1}. Registered adapters: {2}.").format(
 				self.adapter, self.provider_type, ", ".join(choices) or _("none")
@@ -53,7 +44,6 @@ class LoanIntegrationProvider(Document):
 		)
 
 	def set_settings_doctype(self):
-		"""Record which form holds this provider's credentials, so nobody has to hunt for it."""
 		from lending.loan_integrations.adapters import get_adapter_class
 
 		self.settings_doctype = get_adapter_class(self.adapter).settings_doctype or None

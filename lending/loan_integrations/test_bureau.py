@@ -3,37 +3,30 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import add_days, cint
 
-from lending.loan_integrations import bureau
-from lending.loan_integrations.adapters import _REGISTRY, get_adapter, register
+from lending.loan_integrations import bureau, log
+from lending.loan_integrations.adapters import adapter_choices, get_adapter, register, registry
 from lending.loan_integrations.base import IntegrationError
 from lending.loan_integrations.bureau import BureauAdapter
 from lending.loan_origination.decisioning import build_variable_context
 from lending.loan_origination.test_decisioning import make_application, make_lead
 from lending.tests.utils import LendingTestSuite
 
-# Not a PAN anybody would pull for real. Reports are filed by PAN and found by PAN, so a
-# value that a live sandbox call might also use would let real data decide a test.
 TEST_PAN = "AAAPT0000A"
 PROVIDER = "_Test Bureau Provider"
 
-# Bureaux hand back short lived links signed with a key that appears in the URL itself. This
-# one is invented, but shaped like the real thing, because keeping it out of a log we hold
-# for ten years is this app's job however the response was spelled.
+
 SIGNED_URL = (
 	"https://reports.example.com/r.pdf?X-Amz-Credential=AKIATESTKEY000000000&X-Amz-Signature=beef"
 )
 
-# Deliberately not any real provider's envelope. Lending knows what a bureau is and nothing
-# about who sells one, so its tests answer in a shape no vendor uses.
+
 RESPONSE = {"reference": "bureau-ref-001", "score": "750", "document_url": SIGNED_URL}
 
 
 @register
 class FakeBureauAdapter(BureauAdapter):
-	"""A bureau with no vendor behind it, so the machinery can be tested without one."""
-
 	key = "_Test Bureau"
 	bureau = "Experian"
 
@@ -69,8 +62,6 @@ def make_provider(adapter=FakeBureauAdapter.key, name=PROVIDER):
 	if frappe.db.exists("Loan Integration Provider", name):
 		frappe.delete_doc("Loan Integration Provider", name, force=True)
 
-	# Whatever the site has configured is not this test's business, and only one bureau may be
-	# active at a time. Rolled back with the rest of the test.
 	frappe.db.set_value(
 		"Loan Integration Provider", {"provider_type": "Credit Bureau", "is_active": 1}, "is_active", 0
 	)
@@ -95,8 +86,6 @@ def make_consenting_lead(**overrides):
 
 class TestProviderRouting(LendingTestSuite):
 	def test_a_provider_carries_no_credentials_of_its_own(self):
-		# Credentials belong to the app that owns the vendor. A second place to put a token is
-		# how somebody fills in the wrong one.
 		fields = frappe.get_meta("Loan Integration Provider").get_valid_columns()
 
 		for fieldname in ("api_secret", "sandbox_api_secret", "sandbox_url", "production_url"):
@@ -105,7 +94,6 @@ class TestProviderRouting(LendingTestSuite):
 	def test_a_provider_records_where_its_credentials_are(self):
 		provider = make_provider()
 
-		# This adapter needs none, so there is nothing to point at and the field says so.
 		self.assertIsNone(provider.settings_doctype)
 		self.assertIsInstance(get_adapter(provider.name), FakeBureauAdapter)
 
@@ -114,8 +102,6 @@ class TestProviderRouting(LendingTestSuite):
 			make_provider(adapter="Nobody At All", name="_Test Missing Adapter")
 
 	def test_two_active_bureaus_is_refused_rather_than_guessed_at(self):
-		# Which bureau ran is on the applicant's credit file and on the invoice, so a second
-		# active provider is a question for a human rather than something to pick between.
 		make_provider()
 		second = make_provider(name="_Test Second Bureau Provider")
 		frappe.db.set_value("Loan Integration Provider", PROVIDER, "is_active", 1)
@@ -152,6 +138,24 @@ class TestBureauConsent(LendingTestSuite):
 
 		self.assertEqual(bureau.originating_lead(application).name, lead.name)
 
+	def test_a_consent_date_sent_by_a_client_is_not_believed(self):
+		lead = make_consenting_lead()
+		stamped = lead.bureau_consent_on
+
+		lead.bureau_consent_on = add_days(stamped, -30)
+		lead.bureau_consent_version = "forged"
+		lead.save(ignore_permissions=True)
+		lead.reload()
+
+		self.assertEqual(lead.bureau_consent_on, stamped)
+		self.assertNotEqual(lead.bureau_consent_version, "forged")
+
+	def test_a_new_lead_cannot_arrive_carrying_its_own_consent_date(self):
+		lead = make_lead(pan=TEST_PAN, bureau_consent=1, bureau_consent_on="2020-01-01 00:00:00")
+		lead.reload()
+
+		self.assertNotEqual(str(lead.bureau_consent_on), "2020-01-01 00:00:00")
+
 
 class TestBureauPull(LendingTestSuite):
 	def setUp(self):
@@ -173,7 +177,6 @@ class TestBureauPull(LendingTestSuite):
 		self.assertEqual(report.score, 750)
 		self.assertEqual(report.pan, TEST_PAN)
 		self.assertFalse(report.obligations_known)
-		# A lead has no Customer yet, so the report is filed by PAN alone.
 		self.assertFalse(report.applicant)
 
 	def test_the_call_is_logged_against_the_lead(self):
@@ -184,16 +187,37 @@ class TestBureauPull(LendingTestSuite):
 		self.assertEqual(request.request_id, RESPONSE["reference"])
 
 	def test_the_stored_log_carries_no_signed_link(self):
-		# The link is signed with a key that appears in the URL itself. It is used during the
-		# call and must not outlive it in a log we keep for ten years.
 		request = frappe.get_doc("Integration Request", self.pull()["request"])
 
 		self.assertNotIn("AKIATESTKEY000000000", request.output)
 		self.assertNotIn("X-Amz-Signature", request.output)
 
+	def test_the_stored_log_carries_no_applicant_identifiers(self):
+		request = frappe.get_doc("Integration Request", self.pull()["request"])
+
+		self.assertEqual(request.reference_docname, self.lead.name)
+		self.assertNotIn(TEST_PAN, request.data)
+
+	def test_a_failed_fetch_keeps_the_signed_link_out_of_the_error_log(self):
+		with patch.object(
+			bureau, "download_document", side_effect=ConnectionError("the link expired")
+		):
+			self.assertIsNone(bureau.fetch_document(SIGNED_URL))
+
+		logged = frappe.get_all(
+			"Error Log",
+			filters={"method": "Could not fetch the bureau report document"},
+			fields=["error"],
+			order_by="creation desc",
+			limit=1,
+		)
+
+		self.assertTrue(logged)
+		self.assertNotIn("AKIATESTKEY000000000", logged[0].error)
+		self.assertNotIn("X-Amz-Signature", logged[0].error)
+		self.assertIn("reports.example.com", logged[0].error)
+
 	def test_a_second_pull_does_not_pull_again(self):
-		# A hard enquiry costs money and lands on the applicant's credit file, so the same
-		# document must never be pulled twice.
 		first = self.pull()
 		second = self.pull()
 
@@ -201,13 +225,23 @@ class TestBureauPull(LendingTestSuite):
 		self.assertEqual(
 			frappe.db.count("Credit Bureau Report", {"external_id": ["is", "set"], "pan": TEST_PAN}), 1
 		)
+		self.assertEqual(second["status"], "Completed")
+		self.assertEqual(
+			second["output"]["credit_bureau_report"], first["output"]["credit_bureau_report"]
+		)
+
+	def test_a_call_left_open_is_settled_by_a_person_rather_than_repeated(self):
+		result = self.pull()
+		frappe.db.set_value("Integration Request", result["request"], "status", "Queued")
+
+		with self.assertRaises(frappe.ValidationError):
+			self.pull()
 
 	def test_a_refusal_is_recorded_rather_than_raised(self):
 		result = self.pull({**RESPONSE, "score": "0"})
 
 		self.assertEqual(result["status"], "Failed")
 		self.assertEqual(frappe.db.get_value("Integration Request", result["request"], "status"), "Failed")
-		# The failed row survived, and nothing half written was left behind.
 		self.assertFalse(frappe.db.exists("Credit Bureau Report", {"pan": TEST_PAN, "docstatus": 1}))
 
 	def test_the_report_document_is_stored_rather_than_linked(self):
@@ -220,12 +254,9 @@ class TestBureauPull(LendingTestSuite):
 		)
 
 		self.assertTrue(file.is_private)
-		# The field has to survive the submit that follows the attachment.
 		self.assertEqual(report.report_pdf, file.file_url)
 
 	def test_a_report_that_cannot_be_attached_does_not_lose_the_score(self):
-		# Frappe refuses a PDF it cannot read. The pull was still billed and the enquiry still
-		# landed on the applicant's file, so the score has to survive the attachment failing.
 		with patch.object(bureau, "fetch_document", return_value=b"not really a pdf"):
 			result = self.pull()
 
@@ -236,16 +267,122 @@ class TestBureauPull(LendingTestSuite):
 		self.assertFalse(report.report_pdf)
 
 
-class TestAddingAnotherBureau(LendingTestSuite):
-	"""A second bureau should be a class, not a project — whoever it is bought from."""
+class TestOnePullPerDocument(LendingTestSuite):
+	def setUp(self):
+		self.provider = make_provider()
+		self.lead = make_consenting_lead()
 
+	def pull(self, source):
+		with patch.object(FakeBureauAdapter, "pull", return_value=RESPONSE):
+			return bureau.pull_credit_bureau_report(source)
+
+	def test_an_application_is_pulled_for_even_though_its_lead_already_was(self):
+		# Underwriting decides on where the applicant stands now, not on what a lead stage
+		# check found however long ago.
+		lead_pull = self.pull(self.lead)
+		application = make_application(loan_lead=self.lead.name)
+
+		self.assertNotEqual(self.pull(application)["request"], lead_pull["request"])
+
+	def test_a_pull_is_filed_against_the_document_it_was_made_for(self):
+		application = make_application(loan_lead=self.lead.name)
+		request = frappe.get_doc("Integration Request", self.pull(application)["request"])
+
+		self.assertEqual(request.reference_doctype, "Loan Application")
+		self.assertEqual(request.reference_docname, application.name)
+
+	def test_one_application_is_not_enquired_about_twice(self):
+		application = make_application(loan_lead=self.lead.name)
+
+		self.assertEqual(self.pull(application)["request"], self.pull(application)["request"])
+
+	def test_a_second_application_earns_its_own_enquiry(self):
+		first = make_application(loan_lead=self.lead.name)
+		second = make_application(loan_lead=self.lead.name)
+
+		self.assertNotEqual(self.pull(first)["request"], self.pull(second)["request"])
+
+
+class TestTheLeadShowsWhatWasPulled(LendingTestSuite):
+	def setUp(self):
+		self.provider = make_provider()
+		self.lead = make_consenting_lead()
+
+	def test_the_score_reaches_the_lead_once_the_pull_has_run(self):
+		with patch.object(FakeBureauAdapter, "pull", return_value=RESPONSE):
+			result = bureau.pull_credit_bureau_report(self.lead)
+
+		# The workflow saves the lead after its tasks, which is what carries the score across.
+		self.lead.save(ignore_permissions=True)
+		self.lead.reload()
+
+		self.assertEqual(self.lead.bureau_score, 750)
+		self.assertEqual(self.lead.bureau_report, result["output"]["credit_bureau_report"])
+
+	def test_a_lead_with_no_report_shows_no_score(self):
+		self.lead.save(ignore_permissions=True)
+		self.lead.reload()
+
+		self.assertFalse(self.lead.bureau_score)
+		self.assertFalse(self.lead.bureau_report)
+
+
+class TestReportLinkIsChecked(LendingTestSuite):
+	def test_a_link_into_our_own_network_is_refused(self):
+		for url in ("https://127.0.0.1/r.pdf", "https://169.254.169.254/latest/meta-data/"):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.validate_document_url(url)
+
+	def test_a_link_that_is_not_https_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau.validate_document_url("http://reports.example.com/r.pdf")
+
+	def test_a_public_https_link_is_allowed(self):
+		with patch.object(
+			bureau.socket, "getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 443))]
+		):
+			bureau.validate_document_url(SIGNED_URL)
+
+
+class TestCredentialsAndAccess(LendingTestSuite):
+	def test_a_call_without_credentials_says_so_rather_than_sending_the_word_none(self):
+		class Unconfigured(FakeBureauAdapter):
+			key = "_Test Unconfigured"
+			settings = frappe._dict(name="_Test Settings")
+
+			def environment(self):
+				return "production"
+
+			def creds(self):
+				return None, None
+
+		with self.assertRaises(frappe.ValidationError):
+			Unconfigured(frappe._dict(name=PROVIDER)).auth_headers()
+
+	def test_the_adapter_list_is_not_for_everyone_who_can_log_in(self):
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		with self.assertRaises(frappe.PermissionError):
+			adapter_choices()
+
+
+class TestLogRedaction(LendingTestSuite):
+	def test_a_link_under_a_name_we_did_not_expect_is_redacted_too(self):
+		redacted = log.redact({"attachment": SIGNED_URL, "score": 750})
+
+		self.assertEqual(redacted["attachment"], log.REDACTED)
+		self.assertEqual(redacted["score"], 750)
+
+
+class TestAddingAnotherBureau(LendingTestSuite):
 	def test_a_new_bureau_reuses_the_whole_machinery(self):
 		@register
 		class EquifaxAdapter(FakeBureauAdapter):
 			key = "_Test Equifax"
 			bureau = "Equifax"
 
-		self.addCleanup(_REGISTRY.pop, EquifaxAdapter.key, None)
+		self.addCleanup(registry().pop, EquifaxAdapter.key, None)
 
 		provider = make_provider(adapter=EquifaxAdapter.key, name="_Test Equifax Provider")
 		lead = make_consenting_lead()
@@ -255,7 +392,6 @@ class TestAddingAnotherBureau(LendingTestSuite):
 
 		report = frappe.get_doc("Credit Bureau Report", result["output"]["credit_bureau_report"])
 
-		# Same logging, same report, same rules — only the bureau changed.
 		self.assertEqual(report.bureau, "Equifax")
 		self.assertEqual(report.score, 750)
 
@@ -285,8 +421,6 @@ class TestObligationsReachTheRules(LendingTestSuite):
 		self.assertIn("dti_ratio", context)
 
 	def test_unknown_obligations_are_left_out_rather_than_read_as_zero(self):
-		# Left out, the rule that needs it is skipped and an approval is downgraded to a
-		# referral. Read as zero, every affordability rule would pass on a number nobody gave.
 		self.make_report(obligations_known=0, total_emi=0)
 		context = build_variable_context(make_lead(pan=TEST_PAN))
 
