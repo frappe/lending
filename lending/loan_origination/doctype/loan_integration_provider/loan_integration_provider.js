@@ -3,13 +3,12 @@
 
 frappe.ui.form.on("Loan Integration Provider", {
 	refresh(frm) {
-		// Only fills the dropdown. A refresh happens after every save, so anything that touched
-		// the document here would leave the form dirty against a document nothing had changed in.
+		// Fills the dropdown only: refresh runs after every save, so touching the document
+		// here would leave the form dirty against a document nothing changed in.
 		load_adapter_choices(frm);
 	},
 
 	provider_type(frm) {
-		// A real change by a person, so an adapter that does not serve the new type may go.
 		load_adapter_choices(frm, { drop_incompatible_adapter: true });
 	},
 });
@@ -31,8 +30,6 @@ function load_adapter_choices(frm, { drop_incompatible_adapter = false } = {}) {
 				if (drop_incompatible_adapter) {
 					frm.set_value("adapter", "");
 				} else {
-					// Keep what is saved in the list. Giving a Select options that do not include
-					// its own value blanks the control, and that reads as an edit nobody made.
 					choices.push(frm.doc.adapter);
 				}
 			}

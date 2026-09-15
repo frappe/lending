@@ -37,7 +37,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "The registered adapter that speaks this provider's API. Options are filled in from the adapter registry.",
+   "description": "The adapter that speaks this provider's API.",
    "fieldname": "adapter",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -46,7 +46,6 @@
   },
   {
    "default": "1",
-   "description": "An inactive provider cannot be called.",
    "fieldname": "is_active",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -58,7 +57,7 @@
    "label": "Credentials In",
    "options": "DocType",
    "read_only": 1,
-   "description": "The settings this provider's URLs and credentials are read from."
+   "description": "Where this provider's URLs and credentials are read from."
   }
  ],
  "grid_page_length": 50,
