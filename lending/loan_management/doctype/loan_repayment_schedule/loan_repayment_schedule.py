@@ -722,7 +722,8 @@ class LoanRepaymentSchedule(Document):
 
 				prev_repayment_date = prev_schedule.posting_date
 				prev_balance_amount = prev_schedule.current_principal_amount
-				self.monthly_repayment_amount = prev_schedule.monthly_repayment_amount
+				if self.restructure_type != "Advance Payment":
+					self.monthly_repayment_amount = prev_schedule.monthly_repayment_amount
 				first_date = prev_schedule.get(schedule_field)[0].payment_date
 				previous_broken_period_interest = prev_schedule.broken_period_interest
 
