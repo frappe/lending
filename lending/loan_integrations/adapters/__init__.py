@@ -4,49 +4,49 @@
 import frappe
 from frappe import _
 
-_REGISTRY: dict[str, type] = {}
-_LOADED = False
+# Keyed by site: one worker serves every site, and the adapters are whatever apps that one
+# site installed. Registered by path, not by import, since Python imports a module once.
+_REGISTRIES: dict[str | None, dict[str, type]] = {}
+_LOADED: set[str | None] = set()
 
-# Adapters shipped with this app. Empty on purpose: a vendor is normally particular to one
-# country, and lending is not, so vendors live in the app that owns them and arrive through
-# the lending_integration_adapters hook. Surepass is in ekyc_india, alongside Digio.
 _BUILTIN_ADAPTERS = ()
 
 
+def _site():
+	return getattr(frappe.local, "site", None)
+
+
+def registry() -> dict[str, type]:
+	return _REGISTRIES.setdefault(_site(), {})
+
+
 def register(cls):
-	"""Class decorator that puts an adapter in the registry under its key."""
-	_REGISTRY[cls.key] = cls
+	registry()[cls.key] = cls
 
 	return cls
 
 
 def _load():
-	global _LOADED
+	site = _site()
 
-	# A plain `if not _REGISTRY` would be wrong: an adapter that raises halfway through import
-	# leaves the registry non-empty but incomplete, and the truthiness check would then lock
-	# that partial registry in for the life of the process.
-	if _LOADED:
+	if site in _LOADED:
 		return
 
-	for name in _BUILTIN_ADAPTERS:
-		frappe.get_module(f"lending.loan_integrations.adapters.{name}")
-
-	for path in frappe.get_hooks("lending_integration_adapters"):
+	for path in (*_BUILTIN_ADAPTERS, *frappe.get_hooks("lending_integration_adapters")):
 		register(frappe.get_attr(path))
 
-	_LOADED = True
+	_LOADED.add(site)
 
 
 def get_adapter_class(adapter: str) -> type:
 	_load()
 
-	cls = _REGISTRY.get(adapter)
+	cls = registry().get(adapter)
 
 	if not cls:
 		frappe.throw(
 			_("No adapter is registered for {0}. Registered adapters: {1}.").format(
-				adapter, ", ".join(sorted(_REGISTRY)) or _("none")
+				adapter, ", ".join(sorted(registry())) or _("none")
 			)
 		)
 
@@ -62,13 +62,19 @@ def get_adapter(provider_name: str):
 	return get_adapter_class(provider.adapter)(provider)
 
 
-@frappe.whitelist(methods=["GET"])
-def adapter_choices(provider_type: str | None = None) -> list[str]:
-	"""Registered adapter keys, narrowed to one provider type. Fills the adapter dropdown."""
+def adapter_keys(provider_type: str | None = None) -> list[str]:
 	_load()
 
 	return sorted(
 		key
-		for key, cls in _REGISTRY.items()
+		for key, cls in registry().items()
 		if not provider_type or cls.provider_type == provider_type
 	)
+
+
+@frappe.whitelist(methods=["GET"])
+def adapter_choices(provider_type: str | None = None) -> list[str]:
+	# Read, not write: the form calls this on refresh to render the saved value too.
+	frappe.has_permission("Loan Integration Provider", "read", throw=True)
+
+	return adapter_keys(provider_type)

@@ -5,9 +5,14 @@ import re
 
 import frappe
 
-# url and link look harmless and are not: a signed link carries the credential that signs it,
-# with the key and signature in the query string. We fetch what it points at during the call.
-SENSITIVE = re.compile(r"secret|password|otp|aadhaar|token|pin|cvv|url|link", re.IGNORECASE)
+# A signed link carries its own credential in its query string, hence url and link.
+SENSITIVE = re.compile(
+	r"secret|password|otp|aadhaar|token|pin|cvv|url|link|pan|mobile|phone|email|dob|\bname\b",
+	re.IGNORECASE,
+)
+
+SENSITIVE_VALUE = re.compile(r"\bhttps?://", re.IGNORECASE)
+
 REDACTED = "***"
 
 
@@ -38,10 +43,15 @@ def find_existing(provider, operation, reference_doctype, reference_docname):
 			"request_description": operation,
 			"reference_doctype": reference_doctype,
 			"reference_docname": reference_docname,
-			"status": ["!=", "Failed"],
 		},
-		"name",
+		["name", "status", "output"],
+		order_by="creation desc",
+		as_dict=True,
 	)
+
+
+def stored_output(existing) -> dict:
+	return frappe.parse_json(existing.output) or {}
 
 
 def succeed(request, parsed, extra=None):
@@ -63,9 +73,10 @@ def fail(request, exc):
 		{"status": "Failed", "error": f"{type(exc).__name__}: {exc}"}, update_modified=False
 	)
 
+	# Never with_context: it renders frame locals, leaking past everything redact() removed.
 	frappe.log_error(
 		title=f"Integration failed: {request.integration_request_service} {request.request_description}",
-		message=frappe.get_traceback(with_context=True),
+		message=frappe.get_traceback(),
 		reference_doctype="Integration Request",
 		reference_name=request.name,
 	)
@@ -77,5 +88,8 @@ def redact(value):
 
 	if isinstance(value, list | tuple):
 		return [redact(v) for v in value]
+
+	if isinstance(value, str) and SENSITIVE_VALUE.search(value):
+		return REDACTED
 
 	return value
