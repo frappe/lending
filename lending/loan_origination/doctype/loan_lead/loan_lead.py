@@ -58,6 +58,8 @@ class LoanLead(Document):
 		bureau_consent: DF.Check
 		bureau_consent_on: DF.Datetime | None
 		bureau_consent_version: DF.Data | None
+		bureau_report: DF.Link | None
+		bureau_score: DF.Int
 		company_name: DF.Data | None
 		contact: DF.Link | None
 		date_of_birth: DF.Date | None
@@ -88,6 +90,7 @@ class LoanLead(Document):
 		self.set_verification_statuses()
 		self.set_rejected_on()
 		self.set_bureau_consent()
+		self.set_bureau_snapshot()
 
 	def set_age(self):
 		# Only an individual has one, and a lead that changes type must not keep the age it
@@ -107,19 +110,40 @@ class LoanLead(Document):
 		)
 
 	def set_bureau_consent(self):
-		"""Stamp when consent was given, and drop the stamp when it is taken back.
-
-		The date is what proves the consent came before the pull, so it is recorded here
-		rather than typed: a date somebody can edit proves nothing.
-		"""
+		# The stamp proves consent came before the pull, so whatever arrives in the field is
+		# discarded: read_only stops the form, not the REST API.
 		if not self.bureau_consent:
 			self.bureau_consent_on = None
 			self.bureau_consent_version = None
 			return
 
-		if not self.bureau_consent_on:
-			self.bureau_consent_on = now_datetime()
-			self.bureau_consent_version = get_bureau_consent_version()
+		stored = self.stored_bureau_consent()
+
+		if stored and stored.bureau_consent_on:
+			self.bureau_consent_on = stored.bureau_consent_on
+			self.bureau_consent_version = stored.bureau_consent_version
+			return
+
+		self.bureau_consent_on = now_datetime()
+		self.bureau_consent_version = get_bureau_consent_version()
+
+	def stored_bureau_consent(self):
+		if self.is_new():
+			return None
+
+		return frappe.db.get_value(
+			self.doctype, self.name, ["bureau_consent_on", "bureau_consent_version"], as_dict=True
+		)
+
+	def set_bureau_snapshot(self):
+		# Read on every save rather than written once when the pull lands, so the lead shows
+		# the report that is current rather than the one it happened to be saved beside.
+		from lending.loan_origination.decisioning import latest_bureau_report_for_pan
+
+		report = latest_bureau_report_for_pan(self.pan)
+
+		self.bureau_score = report.score if report else 0
+		self.bureau_report = report.name if report else None
 
 	def set_rejected_on(self):
 		workflow = get_workflow_name(self.doctype)
