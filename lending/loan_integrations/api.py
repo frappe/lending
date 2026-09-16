@@ -22,9 +22,10 @@ def run_integration(provider: str, context: dict, reference_doc, operation: str)
 			"output": log.stored_output(existing),
 		}
 
-	if existing and existing.status != "Failed":
-		# Open, so whether the provider answered is unknown — not a thing to guess at for a
-		# call that is billed and permanent. A person settles the row, then this runs again.
+	if existing and existing.status != log.FAILED:
+		# Either the provider's answer never arrived or it arrived and we could not store it.
+		# Neither is a thing to guess at for a call that is billed and permanent, so a person
+		# settles the row and only then does this run again.
 		frappe.throw(
 			_("A {0} call for {1} is still open as {2}. Settle that request before asking again.").format(
 				operation, reference_doc.name, existing.name
@@ -43,13 +44,25 @@ def run_integration(provider: str, context: dict, reference_doc, operation: str)
 	frappe.db.savepoint(SAVEPOINT)
 
 	try:
-		parsed = adapter.parse(adapter.pull(context))
-		extra = adapter.persist(request, parsed, context)
+		response = adapter.pull(context)
 	except Exception as e:
+		# Nothing came back, so there is nothing to lose by asking again.
 		frappe.db.rollback(save_point=SAVEPOINT)
 		log.fail(request, e)
 
-		return {"request": request.name, "status": "Failed", "error": str(e)}
+		return {"request": request.name, "status": log.FAILED, "error": str(e)}
+
+	parsed = None
+
+	try:
+		parsed = adapter.parse(response)
+		extra = adapter.persist(request, parsed, context)
+	except Exception as e:
+		# The provider answered, so the enquiry is spent whether or not we made sense of it.
+		frappe.db.rollback(save_point=SAVEPOINT)
+		log.leave_unrecorded(request, e, parsed)
+
+		return {"request": request.name, "status": log.UNRECORDED, "error": str(e)}
 
 	frappe.db.release_savepoint(SAVEPOINT)
 	output = log.succeed(request, parsed, extra)

@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_request_session, now_datetime
 
+from lending.loan_integrations import log
 from lending.loan_integrations.api import run_integration
 from lending.loan_integrations.base import BaseAdapter, IntegrationError
 
@@ -223,13 +224,22 @@ def run_bureau_pull_task(doc):
 
 	result = pull_credit_bureau_report(doc)
 
-	if result.get("status") == "Failed":
+	if result.get("status") == log.FAILED:
 		frappe.msgprint(
 			_("The credit bureau could not be reached. See Integration Request {0}.").format(
 				result.get("request")
 			),
 			title=_("Bureau Pull Failed"),
 			indicator="orange",
+		)
+	elif result.get("status") == log.UNRECORDED:
+		frappe.msgprint(
+			_(
+				"The bureau answered but its report could not be stored, so this enquiry is already"
+				" spent. Settle Integration Request {0} before anyone pulls again."
+			).format(result.get("request")),
+			title=_("Bureau Report Not Stored"),
+			indicator="red",
 		)
 
 	return result

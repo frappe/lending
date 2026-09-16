@@ -240,9 +240,44 @@ class TestBureauPull(LendingTestSuite):
 	def test_a_refusal_is_recorded_rather_than_raised(self):
 		result = self.pull({**RESPONSE, "score": "0"})
 
-		self.assertEqual(result["status"], "Failed")
-		self.assertEqual(frappe.db.get_value("Integration Request", result["request"], "status"), "Failed")
+		self.assertEqual(result["status"], log.UNRECORDED)
+		self.assertEqual(
+			frappe.db.get_value("Integration Request", result["request"], "status"), log.UNRECORDED
+		)
 		self.assertFalse(frappe.db.exists("Credit Bureau Report", {"pan": TEST_PAN, "docstatus": 1}))
+
+	def test_an_answer_we_could_not_store_is_not_paid_for_twice(self):
+		# The bureau answered, so the enquiry is on the applicant's file whatever we made of it.
+		spent = self.pull({**RESPONSE, "score": "0"})
+
+		with self.assertRaises(frappe.ValidationError):
+			self.pull()
+
+		self.assertEqual(frappe.db.count("Integration Request", {"reference_docname": self.lead.name}), 1)
+		self.assertEqual(
+			frappe.db.get_value("Integration Request", spent["request"], "status"), log.UNRECORDED
+		)
+
+	def test_an_answer_we_could_not_store_keeps_the_bureau_reference(self):
+		with patch.object(FakeBureauAdapter, "persist", side_effect=IntegrationError("no room")):
+			result = self.pull()
+
+		self.assertEqual(result["status"], log.UNRECORDED)
+		self.assertEqual(
+			frappe.db.get_value("Integration Request", result["request"], "request_id"),
+			RESPONSE["reference"],
+		)
+
+	def test_a_bureau_that_never_answered_is_asked_again(self):
+		with patch.object(FakeBureauAdapter, "pull", side_effect=ConnectionError("no route")):
+			unreachable = bureau.pull_credit_bureau_report(self.lead)
+
+		self.assertEqual(unreachable["status"], log.FAILED)
+
+		retried = self.pull()
+
+		self.assertEqual(retried["status"], "Completed")
+		self.assertNotEqual(retried["request"], unreachable["request"])
 
 	def test_the_report_document_is_stored_rather_than_linked(self):
 		with patch.object(bureau, "fetch_document", return_value=a_pdf()):
