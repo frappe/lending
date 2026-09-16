@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.utils import add_days, cint
@@ -373,10 +373,31 @@ class TestReportLinkIsChecked(LendingTestSuite):
 			bureau.validate_document_url("http://reports.example.com/r.pdf")
 
 	def test_a_public_https_link_is_allowed(self):
-		with patch.object(
-			bureau.socket, "getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 443))]
+		with self.resolving_to("93.184.216.34"):
+			self.assertEqual(bureau.validate_document_url(SIGNED_URL), "93.184.216.34")
+
+	def test_the_document_is_fetched_from_the_address_that_was_vetted(self):
+		"""Looking the hostname up again would let it answer with an internal address by then."""
+		session = MagicMock()
+		session.get.return_value = MagicMock(is_redirect=False, **{"raw.read.return_value": a_pdf()})
+
+		with self.resolving_to("93.184.216.34"), patch.object(
+			bureau, "get_request_session", return_value=session
 		):
-			bureau.validate_document_url(SIGNED_URL)
+			bureau.download_document(SIGNED_URL)
+
+		asked = session.get.call_args
+		self.assertIn("93.184.216.34", asked.args[0])
+		self.assertNotIn("reports.example.com", asked.args[0])
+		self.assertEqual(asked.kwargs["headers"]["Host"], "reports.example.com")
+
+		# The certificate is still the hostname's, so a pinned address cannot be answered by anyone.
+		self.assertEqual(session.mount.call_args.args[1].hostname, "reports.example.com")
+
+	def resolving_to(self, address: str):
+		return patch.object(
+			bureau.socket, "getaddrinfo", return_value=[(2, 1, 6, "", (address, 443))]
+		)
 
 
 class TestCredentialsAndAccess(LendingTestSuite):

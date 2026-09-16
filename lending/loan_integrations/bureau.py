@@ -5,6 +5,8 @@ import ipaddress
 import socket
 from urllib.parse import urljoin, urlparse
 
+from requests.adapters import HTTPAdapter
+
 import frappe
 from frappe import _
 from frappe.utils import cint, get_request_session, now_datetime
@@ -115,12 +117,8 @@ def unsigned(url: str) -> str:
 
 
 def download_document(url: str) -> bytes:
-	session = get_request_session(max_retries=0)
-
 	for _hop in range(MAX_REDIRECTS + 1):
-		validate_document_url(url)
-
-		response = session.get(url, timeout=30, stream=True, allow_redirects=False)
+		response = get_vetted_document(url)
 
 		if not response.is_redirect:
 			response.raise_for_status()
@@ -134,7 +132,46 @@ def download_document(url: str) -> bytes:
 	)
 
 
-def validate_document_url(url: str):
+def get_vetted_document(url: str):
+	"""Ask the address the hostname was vetted at, rather than the hostname.
+
+	Vetting the name and then leaving the request to look it up again leaves room for the answer
+	to change in between, which is how a link that resolved to a public address the first time
+	reaches something inside our own network the second. The hostname still travels along for the
+	Host header and the certificate, so nothing else about the request changes.
+	"""
+	parsed = urlparse(url)
+	address = validate_document_url(url)
+
+	session = get_request_session(max_retries=0)
+	session.mount("https://", PinnedHostAdapter(parsed.hostname))
+
+	return session.get(
+		parsed._replace(netloc=authority(address, parsed.port)).geturl(),
+		headers={"Host": authority(parsed.hostname, parsed.port)},
+		timeout=30,
+		stream=True,
+		allow_redirects=False,
+	)
+
+
+class PinnedHostAdapter(HTTPAdapter):
+	"""Checks the certificate against the hostname, for a request addressed to a bare address."""
+
+	def __init__(self, hostname: str):
+		self.hostname = hostname
+
+		super().__init__(max_retries=0)
+
+	def init_poolmanager(self, *args, **kwargs):
+		kwargs["server_hostname"] = self.hostname
+		kwargs["assert_hostname"] = self.hostname
+
+		super().init_poolmanager(*args, **kwargs)
+
+
+def validate_document_url(url: str) -> str:
+	"""Refuse a link that points inside our own network, and answer with the address to ask."""
 	parsed = urlparse(url)
 
 	if parsed.scheme != "https":
@@ -142,11 +179,25 @@ def validate_document_url(url: str):
 			_("A bureau report link must be https, not {0}.").format(parsed.scheme or _("nothing"))
 		)
 
-	for address in socket.getaddrinfo(parsed.hostname, None):
-		if not ipaddress.ip_address(address[4][0]).is_global:
+	# In the order the resolver ranked them, which accounts for the families this host can reach.
+	addresses = [
+		info[4][0]
+		for info in socket.getaddrinfo(parsed.hostname, parsed.port or 443, type=socket.SOCK_STREAM)
+	]
+
+	for address in addresses:
+		if not ipaddress.ip_address(address).is_global:
 			frappe.throw(
 				_("The bureau report link at {0} points inside our own network.").format(parsed.hostname)
 			)
+
+	return addresses[0]
+
+
+def authority(host: str, port: int | None) -> str:
+	host = f"[{host}]" if ":" in host else host
+
+	return f"{host}:{port}" if port else host
 
 
 def select_bureau_provider() -> str:
