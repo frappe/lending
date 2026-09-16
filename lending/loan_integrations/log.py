@@ -15,6 +15,12 @@ SENSITIVE_VALUE = re.compile(r"\bhttps?://", re.IGNORECASE)
 
 REDACTED = "***"
 
+# Failed is the one status run_integration will call over again, so it carries a narrow meaning:
+# the provider never answered, and nothing is spent by asking a second time. Once it has answered
+# the enquiry is permanent, so a lost answer is parked under this status for a person to settle.
+FAILED = "Failed"
+UNRECORDED = "Authorized"
+
 
 def start(provider, operation, context, reference_doctype, reference_docname, url):
 	request = frappe.get_doc(
@@ -69,9 +75,27 @@ def succeed(request, parsed, extra=None):
 
 
 def fail(request, exc):
-	request.db_set(
-		{"status": "Failed", "error": f"{type(exc).__name__}: {exc}"}, update_modified=False
-	)
+	"""The provider never answered, so nothing was spent and the call may be made again."""
+	record_error(request, FAILED, exc)
+
+
+def leave_unrecorded(request, exc, parsed=None):
+	"""The provider answered, so the enquiry is spent even though we could not store what it said.
+
+	Deliberately not Failed: asking again bills us a second time and leaves a second permanent
+	enquiry on the applicant's file. Someone reads the row and decides. The provider's own
+	reference is kept where it is known, since that is the only thread back to what we paid for.
+	"""
+	record_error(request, UNRECORDED, exc, (parsed or {}).get("external_id"))
+
+
+def record_error(request, status, exc, external_id=None):
+	values = {"status": status, "error": f"{type(exc).__name__}: {exc}"}
+
+	if external_id:
+		values["request_id"] = external_id
+
+	request.db_set(values, update_modified=False)
 
 	# Never with_context: it renders frame locals, leaking past everything redact() removed.
 	frappe.log_error(
