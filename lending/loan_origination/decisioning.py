@@ -164,6 +164,31 @@ def select_scorecard(loan_product=None):
 	return _for_loan_product("Scorecard", {}, "modified desc", loan_product)
 
 
+def strategy_applies_to(strategy, strategy_type, loan_product):
+	return bool(
+		frappe.db.exists(
+			"Decision Strategy",
+			{
+				"name": strategy,
+				"disabled": 0,
+				"strategy_type": strategy_type,
+				"loan_product": applies_to(loan_product),
+			},
+		)
+	)
+
+
+def scorecard_applies_to(scorecard, loan_product):
+	return bool(
+		frappe.db.exists("Scorecard", {"name": scorecard, "loan_product": applies_to(loan_product)})
+	)
+
+
+def applies_to(loan_product):
+	# A policy is either written for this loan product or written for every product.
+	return ("in", [loan_product, "", None])
+
+
 def _for_loan_product(doctype, filters, order_by, loan_product):
 	products = [loan_product, PRODUCT_AGNOSTIC] if loan_product else [PRODUCT_AGNOSTIC]
 
@@ -701,7 +726,7 @@ def _candidate_strategies(loan_product):
 		filters={
 			"disabled": 0,
 			"strategy_type": UNDERWRITING,
-			"loan_product": ("in", [loan_product, "", None]),
+			"loan_product": applies_to(loan_product),
 		},
 		fields=["name", "loan_product", "priority"],
 		order_by="priority desc, modified desc",
