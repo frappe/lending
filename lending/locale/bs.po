@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-06 13:01+0000\n"
-"PO-Revision-Date: 2026-09-07 16:08\n"
+"POT-Creation-Date: 2026-09-13 13:52+0000\n"
+"PO-Revision-Date: 2026-09-15 17:36\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,12 @@ msgstr ""
 "X-Crowdin-File: /[frappe.lending] develop/lending/locale/main.pot\n"
 "X-Crowdin-File-ID: 130\n"
 "Language: bs_BA\n"
+
+#. Label of the source_doc_count (Int) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "# Docs"
+msgstr "# Dokumenti"
 
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:84
 msgid "% Of Applicant Portfolio"
@@ -531,7 +537,8 @@ msgstr "Za ovaj kredit je već pokrenuto još jedno restrukturiranje kredita"
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Restructure'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Assignment'
-#. Label of the applicant (Data) field in DocType 'Loan Security Release'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
+#. Release'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant (Link) field in DocType 'Loan Transfer'
@@ -1011,7 +1018,7 @@ msgstr "Nije moguće otkazati Raspored Otplate Kredita {0} dok je podnesena Otpl
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr "Nije moguće zatvoriti kredit jer postoji neizmireni iznos od {0}"
 
-#: lending/loan_management/doctype/loan/loan.py:949
+#: lending/loan_management/doctype/loan/loan.py:951
 msgid "Cannot close this loan until full repayment"
 msgstr "Nije moguće zatvoriti ovaj kredit dok se ne otplati u potpunosti"
 
@@ -1131,7 +1138,7 @@ msgstr "Uplaća Naknade"
 msgid "Charge Type"
 msgstr "Tip Naknade"
 
-#: lending/api.py:147
+#: lending/api.py:151
 msgid "Charge applied successfully for amount {0}"
 msgstr "Naknada je uspješno primijenjena za iznos {0}"
 
@@ -1227,11 +1234,11 @@ msgstr "Klasifikacijski Kod"
 msgid "Classification Name"
 msgstr "Naziv Klasifikacije"
 
-#: lending/overrides/company.py:11
+#: lending/overrides/company.py:14
 msgid "Classification {0} added multiple times"
 msgstr "Klasifikacija {0} dodana više puta"
 
-#: lending/overrides/company.py:20
+#: lending/overrides/company.py:23
 msgid "Classification {0} with security type {1} added multiple times"
 msgstr "Klasifikacija {0} sa garancijom tipa {1} dodana više puta"
 
@@ -1365,6 +1372,7 @@ msgstr "Naplaća po procentu partnera"
 #. Label of the company (Link) field in DocType 'Loan Security Release'
 #. Label of the company (Link) field in DocType 'Loan Transfer'
 #. Label of the company (Link) field in DocType 'Loan Write Off'
+#. Label of the company (Link) field in DocType 'Process Loan Accounting'
 #. Label of the company (Link) field in DocType 'Process Loan Interest Accrual'
 #. Label of the company (Link) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -1388,6 +1396,7 @@ msgstr "Naplaća po procentu partnera"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
@@ -1421,6 +1430,26 @@ msgstr "Završeni rok otplate"
 #: lending/loan_management/doctype/loan_demand_offset_order/loan_demand_offset_order.json
 msgid "Components"
 msgstr "Komponente"
+
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:302
+msgid "Consolidated NPA suspense for {0} ({1} to {2})"
+msgstr ""
+
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:242
+msgid "Consolidated loan GL for {0} ({1} to {2})"
+msgstr ""
+
+#. Label of the details_section (Section Break) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Consolidation Breakdown"
+msgstr ""
+
+#. Label of the consolidation_details (Table) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Consolidation Details"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
 msgid "Cooling Period"
@@ -1464,6 +1493,9 @@ msgstr "Troškovni centar je obavezan za kredite sa kamatnom stopom većom od 0"
 msgid "Could not send the OTP."
 msgstr "Nije moguće poslati jednokratnu lozinku."
 
+#. Label of the credit (Currency) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
@@ -1585,6 +1617,12 @@ msgstr "Zapisnik Dana Prispjeća"
 msgid "Date Of Birth"
 msgstr "Datum Rođenja"
 
+#. Description of the 'Posting Date' (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Date the consolidated GL is actually posted on. Equals Month End Date when the month is open, otherwise today (current open period) for backdated adjustments."
+msgstr ""
+
 #. Description of the 'Cyclic Day Of the Month' (Int) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -1619,6 +1657,9 @@ msgstr "Zapisnici dana zakašnjenja"
 msgid "Days Past Due Threshold for NPA"
 msgstr "Prag zakašnjenja u danima za nenaplativost"
 
+#. Label of the debit (Currency) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
@@ -1917,7 +1958,7 @@ msgstr "Povećana Mjesečna rata"
 msgid "Effective Date"
 msgstr "Efektivni Datum"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:333
+#: lending/loan_management/doctype/loan_application/loan_application.py:337
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr "Potrebni su podaci o zahtjevu za kredit, kreditu ili podaci o podnosiocu zahtjeva za izradu prijenosa garancije kredita"
 
@@ -2357,7 +2398,7 @@ msgstr "Prilagođavanje"
 msgid "Interest Amount"
 msgstr "Iznos Kamate"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:76
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:80
 msgid "Interest Amount is mandatory"
 msgstr "Iznos kamate je obavezan"
 
@@ -2455,8 +2496,8 @@ msgstr "Iznos oprosta kamate"
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr "Iznos oprosta kamate ne može biti veći od dospjele kamate"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:263
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:300
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:284
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:321
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Kamata obračunata od {0} do {1} na kredit: {2}"
 
@@ -2469,6 +2510,12 @@ msgstr "Kamata: {0}"
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
 msgid "Internal Foreclosure"
 msgstr "Interna Ovrha"
+
+#. Description of the 'Reversed Source Docs' (Small Text) field in DocType
+#. 'Process Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
@@ -2483,6 +2530,12 @@ msgstr "Datum Fakture"
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Invoices"
 msgstr "Fakture"
+
+#. Label of the is_adjustment (Check) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Is Adjustment"
+msgstr ""
 
 #. Label of the is_backdated (Check) field in DocType 'Loan Repayment'
 #. Label of the is_backdated (Check) field in DocType 'Process Loan
@@ -2608,7 +2661,7 @@ msgstr "Posljednji datum obračuna"
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:64
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:54
 msgid "Latest Price"
-msgstr "Najnovija cjena"
+msgstr "Najnovija cijena"
 
 #. Label of the lead_source (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -2689,6 +2742,7 @@ msgstr "Aktuelno Kreditno Ograničenje"
 #. Label of the loan (Link) field in DocType 'Loan Security Release'
 #. Label of the loan (Link) field in DocType 'Loan Transfer Detail'
 #. Label of the loan (Link) field in DocType 'Loan Write Off'
+#. Label of the loan (Link) field in DocType 'Process Loan Accounting'
 #. Label of the loan (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan (Link) field in DocType 'Process Loan Security Shortfall'
 #. Label of a Card Break in the Lending Workspace
@@ -2716,6 +2770,7 @@ msgstr "Aktuelno Kreditno Ograničenje"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer_detail/loan_transfer_detail.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:47
@@ -2784,11 +2839,11 @@ msgstr "Kreditni račun je obavezan"
 msgid "Loan Accounts"
 msgstr "Računi"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1205
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1225
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr "Učestalost obračuna kredita nije postavljena za {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:422
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:442
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr "Učestalost obračuna kredita nije postavljena u vrsti dokumenta poduzeća."
 
@@ -2984,11 +3039,14 @@ msgstr "Datum"
 #. Name of a DocType
 #. Label of the loan_demand (Link) field in DocType 'Loan Interest Accrual'
 #. Label of the loan_demand (Link) field in DocType 'Loan Repayment Detail'
+#. Option for the 'Source' (Select) field in DocType 'Process Loan Accounting
+#. Detail'
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Demand"
@@ -3032,6 +3090,8 @@ msgstr "Detalji"
 #. Deposit'
 #. Label of the loan_disbursement (Link) field in DocType 'Loan Write Off'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#. Label of the loan_disbursement (Link) field in DocType 'Process Loan
 #. Classification'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan
@@ -3051,6 +3111,7 @@ msgstr "Detalji"
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -3095,6 +3156,14 @@ msgstr "Kreditni Dokument Tip"
 msgid "Loan Freeze Log"
 msgstr "Zapisnik Zatvaranja Kredita"
 
+#: lending/overrides/company.py:62
+msgid "Loan GL Consolidation Start Date {0} must be a future date. Existing GL up to today stays daily; consolidation applies only from the start date onward."
+msgstr ""
+
+#: lending/overrides/company.py:53
+msgid "Loan GL Consolidation Start Date {0} must be after the last posted loan GL ({1}), so existing daily GL is left untouched and only new activity is consolidated."
+msgstr ""
+
 #. Name of a DocType
 #: lending/loan_management/doctype/loan_irac_provisioning_configuration/loan_irac_provisioning_configuration.json
 msgid "Loan IRAC Provisioning Configuration"
@@ -3115,9 +3184,12 @@ msgid "Loan Info"
 msgstr "Informacije"
 
 #. Name of a DocType
+#. Option for the 'Source' (Select) field in DocType 'Process Loan Accounting
+#. Detail'
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Interest Accrual"
@@ -3169,6 +3241,7 @@ msgstr "Upravljanje Kreditima"
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
@@ -3588,7 +3661,7 @@ msgstr "Garancija"
 msgid "Loan Security Assignment"
 msgstr "Dodjela Garancije"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:357
+#: lending/loan_management/doctype/loan_application/loan_application.py:361
 msgid "Loan Security Assignment Created : {0}"
 msgstr "Dodjela garancije kredita izrađena: {0}"
 
@@ -3672,11 +3745,11 @@ msgstr "Naziv Garancije"
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Security Price"
-msgstr "Cjena Garancije"
+msgstr "Cijena Garancije"
 
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.py:79
 msgid "Loan Security Price overlapping with {0}"
-msgstr "Cjena kreditne garancije se preklapa sa {0}"
+msgstr "Cijena kreditne garancije se preklapa sa {0}"
 
 #: lending/api.py:76
 msgid "Loan Security Prices updated successfully"
@@ -3991,6 +4064,12 @@ msgstr "Status Mobilne Verifikacije"
 msgid "Mode Of Payment"
 msgstr "Način Plaćanja"
 
+#. Label of the month_end_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Month End Date"
+msgstr ""
+
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan'
 #. Label of the repayment_amount (Currency) field in DocType 'Loan Application'
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan
@@ -4134,7 +4213,7 @@ msgstr "Nema obračuna kamate do kraja mjeseca"
 msgid "No Records for these settings."
 msgstr "Nema zapisa za ove postavke."
 
-#: lending/loan_management/doctype/loan/loan.py:1175
+#: lending/loan_management/doctype/loan/loan.py:1186
 msgid "No excess amount pending for refund"
 msgstr "Nema viška iznosa koji čeka na povrat"
 
@@ -4145,7 +4224,7 @@ msgstr "Nisu pronađeni krediti za ovog podnosioca zahtjeva ili poslovnicu"
 #: lending/loan_management/doctype/loan_application/loan_application.py:216
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
-msgstr "Nije pronađena važeća cjena kreditne garancije za {0}"
+msgstr "Nije pronađena važeća cijena kreditne garancije za {0}"
 
 #. Description of the 'Cooling Period in Days' (Int) field in DocType 'Loan
 #. Product'
@@ -4204,12 +4283,22 @@ msgstr "Nije Predkvalificirano"
 msgid "Not permitted to read {0}"
 msgstr "Nije dozvoljeno čitanje {0}"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
+msgid "Not permitted to view one or more of the selected loans"
+msgstr ""
+
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
 #: lending/loan_management/doctype/co_lender_schedule/co_lender_schedule.json
 #: lending/loan_management/doctype/repayment_schedule/repayment_schedule.json
 msgid "Number Of Days"
 msgstr "Broj dana"
+
+#. Description of the '# Docs' (Int) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Number of daily accrual/demand documents rolled into this line."
+msgstr ""
 
 #. Description of the 'Filter Duration (Months)' (Int) field in DocType
 #. 'Process Loan Statement of Accounts'
@@ -4291,7 +4380,7 @@ msgstr "Povrh prve mjesečne rate"
 msgid "One Time"
 msgstr "Jednokratno"
 
-#: lending/loan_management/doctype/loan/loan.py:1117
+#: lending/loan_management/doctype/loan/loan.py:1127
 msgid "Only submitted unpledge requests can be approved"
 msgstr "Samo podneseni zahtjevi za razduženje mogu biti odobreni"
 
@@ -4742,6 +4831,18 @@ msgstr "Neizmirena Glavnica: {0}"
 msgid "Pending principal amount for loan {0} is {1}"
 msgstr "Neizmirena glavnica za kredit {0} iznosi {1}"
 
+#. Label of the period_end_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Period End Date"
+msgstr "Datum Završetka Perioda"
+
+#. Label of the period_start_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Period Start Date"
+msgstr "Datum Početka Perioda"
+
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:137
 msgid "Please add customer refund account in Loan Product"
 msgstr "Dodaj Račun Povrata klijentu u Artikal"
@@ -4826,11 +4927,11 @@ msgstr "Odaberi barem Kredit ili Podnosioca zahtjeva da biste vidjeli registar"
 msgid "Please select how to collect Applicants."
 msgstr "Odaberi kako prikupiti podatke o podnosiocima."
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:246
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:267
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr "Postavi Dodatni Račun Obračunate Kamate u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:239
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:260
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr "Postavi Dodatni Račun Prihoda od Kamata u {0}"
 
@@ -4843,11 +4944,11 @@ msgstr "Postavi Račun Naplate Kamate za Nepotpuni Period za {0}"
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Postavi Račun Povrata Novca klijentu u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:236
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr "Postavi Račun Obračunate Kamate u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:220
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr "Postavi Račun Kamatnih Prihoda u {0}"
 
@@ -4863,11 +4964,11 @@ msgstr "Postavi Platni Rračun za Kreditni Artikal {0}"
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr "Podesi račun obaveza za obračun zarada u otplati kredita"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:249
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr "Postavi račun obračunate zatezne naknade u {0}"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:233
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:254
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr "Postavi Račun Prihoda Zatezne Naknade u {0}"
 
@@ -4879,11 +4980,11 @@ msgstr "Postavi račun naplate otpisanih potraživanja u {0}"
 msgid "Please set up Branch as an Accounting Dimension before transferring loans between branches."
 msgstr "Postavi poslovnicu kao Knjigoovodstvenu Dimenziju prije prenosa kredita između poslovnica."
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:166
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:181
 msgid "Please set {0} Accrual Account in Loan Product {1}"
 msgstr "Postavi Račun Obaveza za {0} u {1}"
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:173
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:188
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Postavi Račun Potraživanja za {0} u {1}"
 
@@ -4969,6 +5070,7 @@ msgstr "Naknada Nakon Restrukturiranja (Nema Postojeće Potražnje)"
 #. Label of the posting_date (Datetime) field in DocType 'Loan Repayment
 #. Schedule'
 #. Label of the posting_date (Date) field in DocType 'Loan Write Off'
+#. Label of the posting_date (Date) field in DocType 'Process Loan Accounting'
 #. Label of the posting_date (Date) field in DocType 'Process Loan
 #. Classification'
 #. Label of the posting_date (Date) field in DocType 'Process Loan Demand'
@@ -4987,6 +5089,7 @@ msgstr "Naknada Nakon Restrukturiranja (Nema Postojeće Potražnje)"
 #: lending/loan_management/doctype/loan_repayment_repost_detail/loan_repayment_repost_detail.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -5067,7 +5170,7 @@ msgstr "Naknade za privremenu otplatu"
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:71
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:61
 msgid "Price Valid Upto"
-msgstr "Cjena važi do"
+msgstr "Cijena važi do"
 
 #. Label of the primary_address (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -5178,6 +5281,25 @@ msgstr "Ispisano {0}"
 msgid "Pro-rated calendar months"
 msgstr "Proporcionalno po kalendarskim mjesecima"
 
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Process Loan Accounting"
+msgstr ""
+
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Process Loan Accounting Detail"
+msgstr ""
+
+#. Label of the process_loan_accounting_voucher (Link) field in DocType 'Loan
+#. Demand'
+#. Label of the process_loan_accounting_voucher (Link) field in DocType 'Loan
+#. Interest Accrual'
+#: lending/loan_management/doctype/loan_demand/loan_demand.json
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+msgid "Process Loan Accounting Voucher"
+msgstr ""
+
 #. Label of the process_loan_classification (Link) field in DocType 'Days Past
 #. Due Log'
 #. Name of a DocType
@@ -5272,7 +5394,7 @@ msgstr "Stopa Provizije"
 msgid "Qty is mandatory for loan security!"
 msgstr "Količina je obavezna za kreditnu garanciju!"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:375
+#: lending/loan_management/doctype/loan_application/loan_application.py:379
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "Količina ili iznos je obavezan za kreditnu garanciju"
 
@@ -5729,6 +5851,12 @@ msgstr "Primjenjivo restrukturiranje kredita"
 msgid "Restructured"
 msgstr "Restrukturirano"
 
+#. Label of the reversed_source_docs (Small Text) field in DocType 'Process
+#. Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Reversed Source Docs"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2348
 msgid "Round Off Account is mandatory"
 msgstr "Račun Zaokruživanja je obavezan"
@@ -5887,6 +6015,18 @@ msgstr "Pošalji e-poštu"
 msgid "Servicer Fee"
 msgstr "Naknada Servisera"
 
+#. Description of the 'Loan Disbursement' (Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Set for LOC loans where accrual/demand is tracked per disbursement."
+msgstr ""
+
+#. Description of the 'Is Adjustment' (Check) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Set when this voucher is a delta correction for a month already consolidated (e.g. after a backdated repayment or repost)."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Settled"
@@ -5941,6 +6081,12 @@ msgstr "Postotni Manjak"
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 msgid "Shortfall Time"
 msgstr "Vreme nastanka Manjka"
+
+#. Label of the source_document (Dynamic Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Source Document"
+msgstr "Izvorni Dokument"
 
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Product'
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Repayment
@@ -6022,15 +6168,15 @@ msgstr "Isplaća kredita {0} je zatvorena."
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "Plaćeni iznos ({0}) ne može biti veći od iznosa koji se plaća ({1}) za isplatu prilagođavanja sigurnosnog pologa."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3425
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Sljedeće isplate ne postoje ili nisu podnešene: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3411
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
 msgid "The following loans do not exist: {}"
 msgstr "Sljedeći krediti ne postoje: {}"
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:513
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ponovno knjiženje nije završeno i vraćeno je na Nacrt:"
 
@@ -6040,11 +6186,17 @@ msgstr "Ponovno knjiženje nije završeno i vraćeno je na Nacrt:"
 msgid "The schedule type that will be used for generating the term loan schedules (will affect the payment date and monthly repayment amount)"
 msgstr "Tip rasporeda koja će se koristiti za izradu rasporeda otplate kredita na određeni rok (utjecat će na datum plaćanja i mjesečni iznos otplate)"
 
+#. Description of the 'Source Document' (Dynamic Link) field in DocType
+#. 'Process Loan Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "The source document, shown only when this line comes from a single accrual/demand (# Docs = 1). Blank when multiple documents are merged into the line; use # Docs and View Ledger to trace those."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_application/loan_application.js:141
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr "Već postoji kreditni klijent s istim kontakt podacima. Želite li ovdje pronaći kreditnog klijenta?"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:121
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Ovdje postoje preklapajuća obračunavanja {}, trenutni datum obračunavanja obračunava se od {} do {}"
 
@@ -6465,6 +6617,12 @@ msgstr "Datum završetka nadzornog perioda"
 msgid "What the pre-qualification rules suggested. Not an offer, and not what the application was created with."
 msgstr "Ono što su predkvalifikacijska pravila sugerisala. Nije ponuda i nije ono s čime je prijava izrađena."
 
+#. Description of the 'Consolidation Details' (Table) field in DocType 'Process
+#. Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
+msgstr ""
+
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "When this lead was rejected. What the applicant's cooling period is counted from."
@@ -6528,7 +6686,7 @@ msgstr "Račun naplate otpisanih potraživanja je obavezan"
 msgid "Write Off Settlement"
 msgstr "Otpis poravnanja"
 
-#: lending/loan_management/doctype/loan/loan.py:1047
+#: lending/loan_management/doctype/loan/loan.py:1053
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr "Iznos otpisa ne može biti veći od preostalog iznosa kredita"
 
