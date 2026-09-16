@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-06 13:01+0000\n"
-"PO-Revision-Date: 2026-09-07 16:08\n"
+"POT-Creation-Date: 2026-09-13 13:52+0000\n"
+"PO-Revision-Date: 2026-09-15 17:36\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,12 @@ msgstr ""
 "X-Crowdin-File: /[frappe.lending] develop/lending/locale/main.pot\n"
 "X-Crowdin-File-ID: 130\n"
 "Language: vi_VN\n"
+
+#. Label of the source_doc_count (Int) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "# Docs"
+msgstr "# Tài liệu"
 
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:84
 msgid "% Of Applicant Portfolio"
@@ -516,7 +522,8 @@ msgstr ""
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Restructure'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Assignment'
-#. Label of the applicant (Data) field in DocType 'Loan Security Release'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
+#. Release'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Security
 #. Shortfall'
 #. Label of the applicant (Link) field in DocType 'Loan Transfer'
@@ -996,7 +1003,7 @@ msgstr ""
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:949
+#: lending/loan_management/doctype/loan/loan.py:951
 msgid "Cannot close this loan until full repayment"
 msgstr ""
 
@@ -1116,7 +1123,7 @@ msgstr ""
 msgid "Charge Type"
 msgstr ""
 
-#: lending/api.py:147
+#: lending/api.py:151
 msgid "Charge applied successfully for amount {0}"
 msgstr ""
 
@@ -1212,11 +1219,11 @@ msgstr ""
 msgid "Classification Name"
 msgstr ""
 
-#: lending/overrides/company.py:11
+#: lending/overrides/company.py:14
 msgid "Classification {0} added multiple times"
 msgstr ""
 
-#: lending/overrides/company.py:20
+#: lending/overrides/company.py:23
 msgid "Classification {0} with security type {1} added multiple times"
 msgstr ""
 
@@ -1350,6 +1357,7 @@ msgstr ""
 #. Label of the company (Link) field in DocType 'Loan Security Release'
 #. Label of the company (Link) field in DocType 'Loan Transfer'
 #. Label of the company (Link) field in DocType 'Loan Write Off'
+#. Label of the company (Link) field in DocType 'Process Loan Accounting'
 #. Label of the company (Link) field in DocType 'Process Loan Interest Accrual'
 #. Label of the company (Link) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -1373,6 +1381,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
@@ -1405,6 +1414,26 @@ msgstr ""
 #. Label of the components (Table) field in DocType 'Loan Demand Offset Order'
 #: lending/loan_management/doctype/loan_demand_offset_order/loan_demand_offset_order.json
 msgid "Components"
+msgstr ""
+
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:302
+msgid "Consolidated NPA suspense for {0} ({1} to {2})"
+msgstr ""
+
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:242
+msgid "Consolidated loan GL for {0} ({1} to {2})"
+msgstr ""
+
+#. Label of the details_section (Section Break) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Consolidation Breakdown"
+msgstr ""
+
+#. Label of the consolidation_details (Table) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Consolidation Details"
 msgstr ""
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
@@ -1449,6 +1478,9 @@ msgstr ""
 msgid "Could not send the OTP."
 msgstr ""
 
+#. Label of the credit (Currency) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
@@ -1570,6 +1602,12 @@ msgstr ""
 msgid "Date Of Birth"
 msgstr ""
 
+#. Description of the 'Posting Date' (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Date the consolidated GL is actually posted on. Equals Month End Date when the month is open, otherwise today (current open period) for backdated adjustments."
+msgstr ""
+
 #. Description of the 'Cyclic Day Of the Month' (Int) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -1604,6 +1642,9 @@ msgstr ""
 msgid "Days Past Due Threshold for NPA"
 msgstr ""
 
+#. Label of the debit (Currency) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
@@ -1902,7 +1943,7 @@ msgstr ""
 msgid "Effective Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:333
+#: lending/loan_management/doctype/loan_application/loan_application.py:337
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr ""
 
@@ -2342,7 +2383,7 @@ msgstr ""
 msgid "Interest Amount"
 msgstr "Số tiền lãi"
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:76
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:80
 msgid "Interest Amount is mandatory"
 msgstr ""
 
@@ -2440,8 +2481,8 @@ msgstr ""
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:263
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:300
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:284
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:321
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr ""
 
@@ -2453,6 +2494,12 @@ msgstr ""
 #. Adjustment'
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
 msgid "Internal Foreclosure"
+msgstr ""
+
+#. Description of the 'Reversed Source Docs' (Small Text) field in DocType
+#. 'Process Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period."
 msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
@@ -2468,6 +2515,12 @@ msgstr "Ngày hóa đơn"
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Invoices"
 msgstr "Hóa đơn"
+
+#. Label of the is_adjustment (Check) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Is Adjustment"
+msgstr ""
 
 #. Label of the is_backdated (Check) field in DocType 'Loan Repayment'
 #. Label of the is_backdated (Check) field in DocType 'Process Loan
@@ -2674,6 +2727,7 @@ msgstr ""
 #. Label of the loan (Link) field in DocType 'Loan Security Release'
 #. Label of the loan (Link) field in DocType 'Loan Transfer Detail'
 #. Label of the loan (Link) field in DocType 'Loan Write Off'
+#. Label of the loan (Link) field in DocType 'Process Loan Accounting'
 #. Label of the loan (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan (Link) field in DocType 'Process Loan Security Shortfall'
 #. Label of a Card Break in the Lending Workspace
@@ -2701,6 +2755,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer_detail/loan_transfer_detail.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:47
@@ -2769,11 +2824,11 @@ msgstr ""
 msgid "Loan Accounts"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1205
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:1225
 msgid "Loan Accrual Frequency not set for company {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:422
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:442
 msgid "Loan Accrual Frequency not set in the Company DocType."
 msgstr ""
 
@@ -2969,11 +3024,14 @@ msgstr ""
 #. Name of a DocType
 #. Label of the loan_demand (Link) field in DocType 'Loan Interest Accrual'
 #. Label of the loan_demand (Link) field in DocType 'Loan Repayment Detail'
+#. Option for the 'Source' (Select) field in DocType 'Process Loan Accounting
+#. Detail'
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Demand"
@@ -3017,6 +3075,8 @@ msgstr ""
 #. Deposit'
 #. Label of the loan_disbursement (Link) field in DocType 'Loan Write Off'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#. Label of the loan_disbursement (Link) field in DocType 'Process Loan
 #. Classification'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan_disbursement (Link) field in DocType 'Process Loan
@@ -3036,6 +3096,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -3080,6 +3141,14 @@ msgstr ""
 msgid "Loan Freeze Log"
 msgstr ""
 
+#: lending/overrides/company.py:62
+msgid "Loan GL Consolidation Start Date {0} must be a future date. Existing GL up to today stays daily; consolidation applies only from the start date onward."
+msgstr ""
+
+#: lending/overrides/company.py:53
+msgid "Loan GL Consolidation Start Date {0} must be after the last posted loan GL ({1}), so existing daily GL is left untouched and only new activity is consolidated."
+msgstr ""
+
 #. Name of a DocType
 #: lending/loan_management/doctype/loan_irac_provisioning_configuration/loan_irac_provisioning_configuration.json
 msgid "Loan IRAC Provisioning Configuration"
@@ -3100,9 +3169,12 @@ msgid "Loan Info"
 msgstr ""
 
 #. Name of a DocType
+#. Option for the 'Source' (Select) field in DocType 'Process Loan Accounting
+#. Detail'
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Interest Accrual"
@@ -3154,6 +3226,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
@@ -3573,7 +3646,7 @@ msgstr ""
 msgid "Loan Security Assignment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:357
+#: lending/loan_management/doctype/loan_application/loan_application.py:361
 msgid "Loan Security Assignment Created : {0}"
 msgstr ""
 
@@ -3976,6 +4049,12 @@ msgstr ""
 msgid "Mode Of Payment"
 msgstr "Phương thức thanh toán"
 
+#. Label of the month_end_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Month End Date"
+msgstr ""
+
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan'
 #. Label of the repayment_amount (Currency) field in DocType 'Loan Application'
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan
@@ -4119,7 +4198,7 @@ msgstr ""
 msgid "No Records for these settings."
 msgstr "Không có bản ghi nào cho cài đặt này."
 
-#: lending/loan_management/doctype/loan/loan.py:1175
+#: lending/loan_management/doctype/loan/loan.py:1186
 msgid "No excess amount pending for refund"
 msgstr ""
 
@@ -4189,11 +4268,21 @@ msgstr ""
 msgid "Not permitted to read {0}"
 msgstr ""
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
+msgid "Not permitted to view one or more of the selected loans"
+msgstr ""
+
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
 #: lending/loan_management/doctype/co_lender_schedule/co_lender_schedule.json
 #: lending/loan_management/doctype/repayment_schedule/repayment_schedule.json
 msgid "Number Of Days"
+msgstr ""
+
+#. Description of the '# Docs' (Int) field in DocType 'Process Loan Accounting
+#. Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Number of daily accrual/demand documents rolled into this line."
 msgstr ""
 
 #. Description of the 'Filter Duration (Months)' (Int) field in DocType
@@ -4276,7 +4365,7 @@ msgstr ""
 msgid "One Time"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1117
+#: lending/loan_management/doctype/loan/loan.py:1127
 msgid "Only submitted unpledge requests can be approved"
 msgstr ""
 
@@ -4727,6 +4816,18 @@ msgstr ""
 msgid "Pending principal amount for loan {0} is {1}"
 msgstr ""
 
+#. Label of the period_end_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Period End Date"
+msgstr "Ngày kết thúc kỳ"
+
+#. Label of the period_start_date (Date) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Period Start Date"
+msgstr "Ngày bắt đầu kỳ"
+
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:137
 msgid "Please add customer refund account in Loan Product"
 msgstr ""
@@ -4811,11 +4912,11 @@ msgstr ""
 msgid "Please select how to collect Applicants."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:246
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:267
 msgid "Please set Additional Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:239
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:260
 msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4828,11 +4929,11 @@ msgstr ""
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:215
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:236
 msgid "Please set Interest Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:220
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:241
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4848,11 +4949,11 @@ msgstr ""
 msgid "Please set Payroll Payable Account in Loan Repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:228
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:249
 msgid "Please set Penalty Accrued Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:233
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:254
 msgid "Please set Penalty Income Account in Loan Product {0}"
 msgstr ""
 
@@ -4864,11 +4965,11 @@ msgstr ""
 msgid "Please set up Branch as an Accounting Dimension before transferring loans between branches."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:166
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:181
 msgid "Please set {0} Accrual Account in Loan Product {1}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_demand/loan_demand.py:173
+#: lending/loan_management/doctype/loan_demand/loan_demand.py:188
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr ""
 
@@ -4954,6 +5055,7 @@ msgstr ""
 #. Label of the posting_date (Datetime) field in DocType 'Loan Repayment
 #. Schedule'
 #. Label of the posting_date (Date) field in DocType 'Loan Write Off'
+#. Label of the posting_date (Date) field in DocType 'Process Loan Accounting'
 #. Label of the posting_date (Date) field in DocType 'Process Loan
 #. Classification'
 #. Label of the posting_date (Date) field in DocType 'Process Loan Demand'
@@ -4972,6 +5074,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment_repost_detail/loan_repayment_repost_detail.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -5163,6 +5266,25 @@ msgstr "Đã in vào {0}"
 msgid "Pro-rated calendar months"
 msgstr ""
 
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Process Loan Accounting"
+msgstr ""
+
+#. Name of a DocType
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Process Loan Accounting Detail"
+msgstr ""
+
+#. Label of the process_loan_accounting_voucher (Link) field in DocType 'Loan
+#. Demand'
+#. Label of the process_loan_accounting_voucher (Link) field in DocType 'Loan
+#. Interest Accrual'
+#: lending/loan_management/doctype/loan_demand/loan_demand.json
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
+msgid "Process Loan Accounting Voucher"
+msgstr ""
+
 #. Label of the process_loan_classification (Link) field in DocType 'Days Past
 #. Due Log'
 #. Name of a DocType
@@ -5257,7 +5379,7 @@ msgstr ""
 msgid "Qty is mandatory for loan security!"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:375
+#: lending/loan_management/doctype/loan_application/loan_application.py:379
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr ""
 
@@ -5714,6 +5836,12 @@ msgstr ""
 msgid "Restructured"
 msgstr ""
 
+#. Label of the reversed_source_docs (Small Text) field in DocType 'Process
+#. Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Reversed Source Docs"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2348
 msgid "Round Off Account is mandatory"
 msgstr ""
@@ -5872,6 +6000,18 @@ msgstr "Gửi Email"
 msgid "Servicer Fee"
 msgstr ""
 
+#. Description of the 'Loan Disbursement' (Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Set for LOC loans where accrual/demand is tracked per disbursement."
+msgstr ""
+
+#. Description of the 'Is Adjustment' (Check) field in DocType 'Process Loan
+#. Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "Set when this voucher is a delta correction for a month already consolidated (e.g. after a backdated repayment or repost)."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Settled"
@@ -5926,6 +6066,12 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 msgid "Shortfall Time"
 msgstr ""
+
+#. Label of the source_document (Dynamic Link) field in DocType 'Process Loan
+#. Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "Source Document"
+msgstr "Tài liệu nguồn"
 
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Product'
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Repayment
@@ -6007,15 +6153,15 @@ msgstr ""
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3425
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3411
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
 msgid "The following loans do not exist: {}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:513
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr ""
 
@@ -6025,11 +6171,17 @@ msgstr ""
 msgid "The schedule type that will be used for generating the term loan schedules (will affect the payment date and monthly repayment amount)"
 msgstr ""
 
+#. Description of the 'Source Document' (Dynamic Link) field in DocType
+#. 'Process Loan Accounting Detail'
+#: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
+msgid "The source document, shown only when this line comes from a single accrual/demand (# Docs = 1). Blank when multiple documents are merged into the line; use # Docs and View Ledger to trace those."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_application/loan_application.js:141
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:117
+#: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.py:121
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr ""
 
@@ -6450,6 +6602,12 @@ msgstr ""
 msgid "What the pre-qualification rules suggested. Not an offer, and not what the application was created with."
 msgstr ""
 
+#. Description of the 'Consolidation Details' (Table) field in DocType 'Process
+#. Loan Accounting'
+#: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
+msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
+msgstr ""
+
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "When this lead was rejected. What the applicant's cooling period is counted from."
@@ -6513,7 +6671,7 @@ msgstr ""
 msgid "Write Off Settlement"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1047
+#: lending/loan_management/doctype/loan/loan.py:1053
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr ""
 
