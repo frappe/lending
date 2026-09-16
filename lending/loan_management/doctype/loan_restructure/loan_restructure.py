@@ -952,7 +952,13 @@ def get_restructure_details(
 		"loan_disbursement": loan_disbursement,
 	}
 
-	if repayment_type == "Advance Payment" and get_advance_payment_handling(loan) == "Reduce EMI":
+	amount_paid = flt(principal_adjusted) + flt(allocated_interest)
+
+	if (
+		repayment_type == "Advance Payment"
+		and get_advance_payment_handling(loan) == "Reduce EMI"
+		and flt(amount_paid) >= flt(monthly_repayment_amount)
+	):
 		loan_restructure["new_repayment_method"] = "Repay Over Number of Periods"
 		loan_restructure["new_repayment_period_in_months"] = pending_tenure
 	else:
