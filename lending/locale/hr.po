@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-13 13:52+0000\n"
-"PO-Revision-Date: 2026-09-15 17:36\n"
+"PO-Revision-Date: 2026-09-17 17:45\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1433,23 +1433,23 @@ msgstr "Komponente"
 
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:302
 msgid "Consolidated NPA suspense for {0} ({1} to {2})"
-msgstr ""
+msgstr "Konsolidirano stanje nenaplativih potraživanja za {0} ({1} do {2})"
 
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:242
 msgid "Consolidated loan GL for {0} ({1} to {2})"
-msgstr ""
+msgstr "Konsolidovani knjigovodstveni registar kredita za {0} ({1} do {2})"
 
 #. Label of the details_section (Section Break) field in DocType 'Process Loan
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Consolidation Breakdown"
-msgstr ""
+msgstr "Pregled Konsolidacije"
 
 #. Label of the consolidation_details (Table) field in DocType 'Process Loan
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Consolidation Details"
-msgstr ""
+msgstr "Detalji Konsolidacije"
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
 msgid "Cooling Period"
@@ -1621,7 +1621,7 @@ msgstr "Datum Rođenja"
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Date the consolidated GL is actually posted on. Equals Month End Date when the month is open, otherwise today (current open period) for backdated adjustments."
-msgstr ""
+msgstr "Datum na koji je konsolidovani knjigovodstveni registar zapravo knjižen. Jednako je datumu završetka mjeseca kada je mjesec otvoren, u suprotnom danas (trenutni otvoreni period) za retroaktivna prilagođavanja."
 
 #. Description of the 'Cyclic Day Of the Month' (Int) field in DocType 'Loan
 #. Product'
@@ -2515,7 +2515,7 @@ msgstr "Unutarnja Ovrha"
 #. 'Process Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period."
-msgstr ""
+msgstr "Interno: JSON lista parova [doctype, name] za otkazane izvorne dokumente čije je poništavanje ovaj verifikat zabilježio. Koristi se pri otkazivanju za ponovno otvaranje tačno tih dokumenata, a ne svakog otkazanog dokumenta u periodu."
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
@@ -2535,7 +2535,7 @@ msgstr "Fakture"
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Is Adjustment"
-msgstr ""
+msgstr "Je Prilagodba"
 
 #. Label of the is_backdated (Check) field in DocType 'Loan Repayment'
 #. Label of the is_backdated (Check) field in DocType 'Process Loan
@@ -3158,11 +3158,11 @@ msgstr "Zapisnik Zamrzavanja Kredita"
 
 #: lending/overrides/company.py:62
 msgid "Loan GL Consolidation Start Date {0} must be a future date. Existing GL up to today stays daily; consolidation applies only from the start date onward."
-msgstr ""
+msgstr "Početni datum konsolidacije knjigovodstvenog registra za kredit {0} mora biti budući datum. Postojeći knjigovodstvni registar do danas ostaje dnevni; konsolidacija se primjenjuje samo od početnog datuma nadalje."
 
 #: lending/overrides/company.py:53
 msgid "Loan GL Consolidation Start Date {0} must be after the last posted loan GL ({1}), so existing daily GL is left untouched and only new activity is consolidated."
-msgstr ""
+msgstr "Datum početka konsolidacije knjigovodstvenog registra kredita {0} mora biti nakon posljednjeg objavljenog knjigovodstvenog registra kredita ({1}), tako da postojeći dnevni knjigovodstveni registar ostaje nepromijenjen, a konsolidira se samo nova aktivnost."
 
 #. Name of a DocType
 #: lending/loan_management/doctype/loan_irac_provisioning_configuration/loan_irac_provisioning_configuration.json
@@ -4068,7 +4068,7 @@ msgstr "Način Plaćanja"
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Month End Date"
-msgstr ""
+msgstr "Datum Kraja Mjeseca"
 
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan'
 #. Label of the repayment_amount (Currency) field in DocType 'Loan Application'
@@ -4285,7 +4285,7 @@ msgstr "Nije dopušteno čitati {0}"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
 msgid "Not permitted to view one or more of the selected loans"
-msgstr ""
+msgstr "Nije dozvoljen pregled jednog ili više odabranih kredita"
 
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
@@ -4298,7 +4298,7 @@ msgstr "Broj dana"
 #. Detail'
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "Number of daily accrual/demand documents rolled into this line."
-msgstr ""
+msgstr "Broj dnevnih dokumenata o nastanku potraživanja/potraživanja po zahtjevu obuhvaćenih u ovoj liniji."
 
 #. Description of the 'Filter Duration (Months)' (Int) field in DocType
 #. 'Process Loan Statement of Accounts'
@@ -5284,12 +5284,12 @@ msgstr "Proporcionalno izračunati kalendarski mjeseci"
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Process Loan Accounting"
-msgstr ""
+msgstr "Obrada Kreditnog Knjigovodstva"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "Process Loan Accounting Detail"
-msgstr ""
+msgstr "Detalji Obrade Kreditnog Knjigovodstva"
 
 #. Label of the process_loan_accounting_voucher (Link) field in DocType 'Loan
 #. Demand'
@@ -5298,7 +5298,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Process Loan Accounting Voucher"
-msgstr ""
+msgstr "Verfikat Obrade Kreditnog Knjigovodstva"
 
 #. Label of the process_loan_classification (Link) field in DocType 'Days Past
 #. Due Log'
@@ -5855,7 +5855,7 @@ msgstr "Restrukturirano"
 #. Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Reversed Source Docs"
-msgstr ""
+msgstr "Obrnuti Izvorni Dokumenti"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2348
 msgid "Round Off Account is mandatory"
@@ -6019,13 +6019,13 @@ msgstr "Naknada Servisera"
 #. Accounting Detail'
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "Set for LOC loans where accrual/demand is tracked per disbursement."
-msgstr ""
+msgstr "Postavljeno za kreditnu liniju kredita gdje se obračun/potražnja prati po isplatama."
 
 #. Description of the 'Is Adjustment' (Check) field in DocType 'Process Loan
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Set when this voucher is a delta correction for a month already consolidated (e.g. after a backdated repayment or repost)."
-msgstr ""
+msgstr "Postavlja se kada je ovaj verifikat delta korekcija za mjesec koji je već konsolidovan (npr. nakon retroaktivne otplate ili ponovnog knjiženja)."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -6190,7 +6190,7 @@ msgstr "Tip rasporeda koja će se koristiti za generiranje rasporeda otplate kre
 #. 'Process Loan Accounting Detail'
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "The source document, shown only when this line comes from a single accrual/demand (# Docs = 1). Blank when multiple documents are merged into the line; use # Docs and View Ledger to trace those."
-msgstr ""
+msgstr "Izvorni dokument, prikazan samo kada ovaj red dolazi iz jednog obračuna/potražnje (# Documents = 1). Prazno kada je više dokumenata spojeno u red; koristi # Dokumenti i Prikaži Registar da biste ih pratili."
 
 #: lending/loan_management/doctype/loan_application/loan_application.js:141
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
@@ -6621,7 +6621,7 @@ msgstr "Ono što su predkvalifikacijska pravila sugerisala. Nije ponuda i nije o
 #. Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
-msgstr ""
+msgstr "Ono što ovaj verifikat obuhvata: jedan red po računu i tipuizvora, sa iznosom i brojem dnevnih dokumenata knjiženja/zahtjeva iza njega. Koristi Prikaži Registar da vidite proknjiženi registar."
 
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
