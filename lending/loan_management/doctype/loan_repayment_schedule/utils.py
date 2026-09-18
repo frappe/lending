@@ -15,14 +15,17 @@ def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_period
 	if frequency == "One Time":
 		repayment_periods = 1
 
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 	if rate_of_interest:
 		monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
-		monthly_repayment_amount = math.ceil(
+		monthly_repayment_amount = flt(
 			(loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods)
-			/ ((1 + monthly_interest_rate) ** repayment_periods - 1)
+			/ ((1 + monthly_interest_rate) ** repayment_periods - 1),
+			precision,
 		)
 	else:
-		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
+		monthly_repayment_amount = flt(flt(loan_amount) / repayment_periods, precision)
 	return monthly_repayment_amount
 
 def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amount, frequency):

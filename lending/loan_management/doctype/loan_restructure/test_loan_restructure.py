@@ -378,6 +378,65 @@ class TestLoanRestructure(LendingTestSuite):
 
 		self.assertEqual(date_diff_value, number_of_days_for_first_emi)
 
+	def test_normal_restructure_repayment_schedule_matches_new_tenure(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		frappe.db.set_value(
+			"Loan Product",
+			"Term Loan Product 4",
+			{"bpi_recovery_method": "Upfront Deduction", "bpi_treatment": "On top of first EMI"},
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			130,
+			"Repay Over Number of Periods",
+			3,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2026-09-01",
+			repayment_start_date="2026-10-07",
+			repayment_frequency="Monthly",
+			monthly_repayment_amount=45,
+			loan_disbursement_charges=[
+				{"charge": "Processing Fee", "amount": 118, "treatment_of_charge": "Billed Separately"},
+			],
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-07")
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-09-17",
+			repayment_start_date="2026-10-07",
+			treatment_of_normal_interest="Add To First EMI",
+			unaccrued_interest_treatment="Add To First EMI",
+			treatment_of_penal_interest="Capitalize",
+			new_rate_of_interest=20,
+			new_repayment_method="Repay Over Number of Periods",
+			new_repayment_period_in_months=12,
+			waive_off_restructure_charges=1,
+		)
+
+		new_schedule = frappe.get_doc(
+			"Loan Repayment Schedule",
+			{"loan_restructure": loan_restructure.name, "docstatus": 1},
+		)
+
+		self.assertEqual(
+			len(new_schedule.repayment_schedule), loan_restructure.new_repayment_period_in_months
+		)
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+
 	def test_non_npa_restructure_resets_dpd_without_watch_period(self):
 		"""
 		Verify that restructuring a non-NPA loan resets DPD to zero
@@ -583,6 +642,10 @@ def create_loan_restructure(
 	unaccrued_interest_treatment="Capitalize",
 	treatment_of_penal_interest="Capitalize",
 	loan_restructure_charges=None,
+	new_rate_of_interest=None,
+	new_repayment_method=None,
+	new_repayment_period_in_months=None,
+	waive_off_restructure_charges=0,
 ):
 
 	doc = frappe.new_doc("Loan Restructure")
@@ -596,6 +659,10 @@ def create_loan_restructure(
 	doc.treatment_of_normal_interest = treatment_of_normal_interest
 	doc.unaccrued_interest_treatment = unaccrued_interest_treatment
 	doc.treatment_of_penal_interest = treatment_of_penal_interest
+	doc.new_rate_of_interest = new_rate_of_interest
+	doc.new_repayment_method = new_repayment_method
+	doc.new_repayment_period_in_months = new_repayment_period_in_months
+	doc.waive_off_restructure_charges = waive_off_restructure_charges
 
 	if loan_restructure_charges:
 		for charge in loan_restructure_charges:

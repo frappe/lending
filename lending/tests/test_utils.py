@@ -493,6 +493,7 @@ def make_loan_disbursement_entry(
 	repayment_frequency=None,
 	withhold_security_deposit=False,
 	loan_disbursement_charges=None,
+	monthly_repayment_amount=None,
 ):
 	loan_disbursement_entry = frappe.new_doc("Loan Disbursement")
 	loan_disbursement_entry.against_loan = loan
@@ -506,6 +507,9 @@ def make_loan_disbursement_entry(
 	loan_disbursement_entry.cost_center = "Main - _TC"
 	loan_disbursement_entry.withhold_security_deposit = withhold_security_deposit
 
+	if monthly_repayment_amount:
+		loan_disbursement_entry.monthly_repayment_amount = monthly_repayment_amount
+
 	if loan_disbursement_charges:
 		for charge in loan_disbursement_charges:
 			loan_disbursement_entry.append(
@@ -513,6 +517,7 @@ def make_loan_disbursement_entry(
 				{
 					"charge": charge.get("charge"),
 					"amount": charge.get("amount"),
+					"treatment_of_charge": charge.get("treatment_of_charge"),
 				},
 			)
 
