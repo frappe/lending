@@ -52,11 +52,13 @@ class LoanApplication(Document):
 		city: DF.Data | None
 		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
+		decision: DF.Link | None
 		country: DF.Link | None
 		documents: DF.Table[LoanApplicationDocument]
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
 		loan_amount: DF.Currency
+		loan_lead: DF.Link | None
 		loan_product: DF.Link
 		loan_purpose: DF.Link | None
 		maximum_loan_amount: DF.Currency

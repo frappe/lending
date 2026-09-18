@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "LDEC-.YYYY.-.#####",
+ "creation": "2026-08-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_application",
+  "applicant_type",
+  "applicant",
+  "column_break_source",
+  "strategy",
+  "scorecard",
+  "bureau_report",
+  "bureau_score",
+  "outcome_section",
+  "score",
+  "grade",
+  "decision",
+  "column_break_outcome",
+  "reason_codes",
+  "terms_section",
+  "recommended_roi",
+  "recommended_amount",
+  "column_break_terms",
+  "recommended_tenure",
+  "audit_section",
+  "variable_snapshot",
+  "decision_log",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_application",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Application",
+   "options": "Loan Application",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "loan_application.applicant_type",
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Customer\nEmployee",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_application.applicant",
+   "fieldname": "applicant",
+   "fieldtype": "Dynamic Link",
+   "in_global_search": 1,
+   "label": "Applicant",
+   "options": "applicant_type",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_source",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Left blank, the highest priority Underwriting strategy for the loan product is used.",
+   "fieldname": "strategy",
+   "fieldtype": "Link",
+   "label": "Decision Strategy",
+   "options": "Decision Strategy"
+  },
+  {
+   "description": "Left blank, the scorecard for the loan product is used.",
+   "fieldname": "scorecard",
+   "fieldtype": "Link",
+   "label": "Scorecard",
+   "options": "Scorecard"
+  },
+  {
+   "description": "Left blank, the latest submitted report for this applicant is used.",
+   "fieldname": "bureau_report",
+   "fieldtype": "Link",
+   "label": "Credit Bureau Report",
+   "options": "Credit Bureau Report"
+  },
+  {
+   "description": "Copied from the report so a later pull cannot rewrite this decision.",
+   "fieldname": "bureau_score",
+   "fieldtype": "Int",
+   "label": "Bureau Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome_section",
+   "fieldtype": "Section Break",
+   "label": "Outcome"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grade",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Grade",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decision",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Decision",
+   "options": "\nApprove\nDecline\nRefer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_outcome",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason_codes",
+   "fieldtype": "Small Text",
+   "label": "Reason Codes",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.recommended_roi || doc.recommended_amount || doc.recommended_tenure",
+   "fieldname": "terms_section",
+   "fieldtype": "Section Break",
+   "label": "Recommended Terms"
+  },
+  {
+   "depends_on": "eval:doc.recommended_roi",
+   "fieldname": "recommended_roi",
+   "fieldtype": "Percent",
+   "label": "Recommended Rate Of Interest",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.recommended_amount",
+   "fieldname": "recommended_amount",
+   "fieldtype": "Currency",
+   "label": "Recommended Loan Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_terms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.recommended_tenure",
+   "fieldname": "recommended_tenure",
+   "fieldtype": "Int",
+   "label": "Recommended Tenure in Months",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "audit_section",
+   "fieldtype": "Section Break",
+   "label": "Audit Trail"
+  },
+  {
+   "description": "Everything the engine knew about this applicant at the moment it decided.",
+   "fieldname": "variable_snapshot",
+   "fieldtype": "Code",
+   "label": "Variable Snapshot",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decision_log",
+   "fieldtype": "Long Text",
+   "label": "Decision Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Decision",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-02 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Loan Decision",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Underwriter",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "loan_application"
+}

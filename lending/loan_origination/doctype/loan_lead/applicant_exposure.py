@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 from lending.loan_origination.doctype.loan_lead.loan_lead import (
+	assert_called_from_a_rule,
 	get_applicant_identity,
 	get_contact_identity,
 	resolve_lead,
@@ -41,6 +42,8 @@ def run_live_loan_limit_task(loan_lead: Document):
 def validate_live_loan_limit(
 	loan_lead: Document | str, maximum_live_loans: int | str | None = None
 ):
+	assert_called_from_a_rule()
+
 	loan_lead = resolve_lead(loan_lead, "write")
 	check_loan_book_permission()
 	maximum_live_loans = cint(maximum_live_loans)
