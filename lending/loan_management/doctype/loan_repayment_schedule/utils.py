@@ -134,7 +134,7 @@ def get_amounts(
 		interest_amount = monthly_repayment_amount
 		principal_amount = 0
 
-	balance_amount = flt(balance_amount + interest_amount - monthly_repayment_amount, 2)
+	balance_amount = flt(balance_amount + interest_amount - monthly_repayment_amount, precision)
 
 	if balance_amount < 0:
 		principal_amount += balance_amount
