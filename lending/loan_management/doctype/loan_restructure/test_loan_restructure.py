@@ -427,9 +427,12 @@ class TestLoanRestructure(LendingTestSuite):
 			waive_off_restructure_charges=1,
 		)
 
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
 		new_schedule = frappe.get_doc(
 			"Loan Repayment Schedule",
-			{"loan_restructure": loan_restructure.name, "docstatus": 1},
+			{"loan_restructure": loan_restructure.name, "docstatus": 1, "status": "Active"},
 		)
 
 		self.assertEqual(
