@@ -340,5 +340,16 @@ workflow_methods = [
 	{
 		"name": "Run Knockout Rules",
 		"method": "lending.loan_origination.decisioning.run_knockout_rules"
+	},
+	{
+		"name": "Pull Credit Bureau Report",
+		"method": "lending.loan_integrations.bureau.run_bureau_pull_task"
 	}
 ]
+
+# Another app adds its own provider by naming its adapter class here.
+# lending_integration_adapters = ["partner_app.adapters.experian.ExperianAdapter"]
+
+# Overrides core's 90 days: a pull is the evidence we had consent before marking somebody's
+# credit file, and that has to outlive the loan. Only a default; a Log Settings row wins.
+default_log_clearing_doctypes = {"Integration Request": [3650]}
