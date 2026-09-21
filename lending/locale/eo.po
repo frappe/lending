@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-13 13:52+0000\n"
-"PO-Revision-Date: 2026-09-15 17:36\n"
+"POT-Creation-Date: 2026-09-20 13:38+0000\n"
+"PO-Revision-Date: 2026-09-21 18:29\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -63,6 +63,27 @@ msgstr "crwdns162132:0crwdne162132:0"
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
 msgstr "crwdns162134:0crwdne162134:0"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "=="
+msgstr "crwdns270595:0crwdne270595:0"
+
+#: lending/loan_origination/decisioning.py:425
+msgid "A between rule needs two comma separated values. {0} has {1}."
+msgstr "crwdns270597:0{0}crwdnd270597:0{1}crwdne270597:0"
+
+#. Description of the 'Variable' (Autocomplete) field in DocType 'Decision
+#. Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "A key from the decision variable context, such as bureau_score or foir_ratio."
+msgstr "crwdns270599:0crwdne270599:0"
+
+#. Description of the 'Attribute' (Autocomplete) field in DocType 'Scorecard
+#. Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "A key from the decision variable context. Bands compare numbers, so an attribute that never carries one scores nothing."
+msgstr "crwdns270601:0crwdne270601:0"
 
 #. Description of the 'OTP Verification Mandatory' (Check) field in DocType
 #. 'Loan Origination Settings'
@@ -360,6 +381,11 @@ msgstr "crwdns162228:0crwdne162228:0"
 msgid "Advance Payment"
 msgstr "crwdns162230:0crwdne162230:0"
 
+#. Name of a DocType
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+msgid "Adverse Action Reason"
+msgstr "crwdns270603:0crwdne270603:0"
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2309
 msgid "Against Account is mandatory"
 msgstr "crwdns162232:0crwdne162232:0"
@@ -475,6 +501,10 @@ msgstr "crwdns162260:0crwdne162260:0"
 msgid "Amount cannot be zero"
 msgstr "crwdns162262:0crwdne162262:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:189
+msgid "Amount capped at"
+msgstr "crwdns270605:0crwdne270605:0"
+
 #. Description of the 'Base Amount' (Currency) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -532,6 +562,9 @@ msgstr "crwdns162278:0crwdne162278:0"
 #. Label of the applicant (Dynamic Link) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Link in the Lending Workspace
+#. Label of the applicant (Dynamic Link) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -556,6 +589,8 @@ msgstr "crwdns162278:0crwdne162278:0"
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:28
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:37
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Applicant"
 msgstr "crwdns162280:0crwdne162280:0"
 
@@ -648,6 +683,8 @@ msgstr "crwdns162294:0crwdne162294:0"
 #. Statement of Accounts Applicant'
 #. Label of the applicant_type (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Label of the applicant_type (Select) field in DocType 'Credit Bureau Report'
+#. Label of the applicant_type (Select) field in DocType 'Loan Decision'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -673,6 +710,8 @@ msgstr "crwdns162294:0crwdne162294:0"
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:17
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:16
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:23
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Applicant Type"
 msgstr "crwdns162296:0crwdne162296:0"
@@ -701,10 +740,29 @@ msgstr "crwdns239891:0crwdne239891:0"
 msgid "Applicants not selected."
 msgstr "crwdns239893:0crwdne239893:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:103
+msgid "Application Closed"
+msgstr "crwdns270607:0crwdne270607:0"
+
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Application Date"
 msgstr "crwdns204095:0crwdne204095:0"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Approve"
+msgstr "crwdns270609:0crwdne270609:0"
+
+#: lending/loan_origination/decisioning.py:337
+msgid "Approve downgraded to Refer. {0} could not be checked."
+msgstr "crwdns270611:0{0}crwdne270611:0"
+
+#: lending/loan_origination/decisioning.py:328
+msgid "Approve downgraded to Refer. {0} was not scored."
+msgstr "crwdns270613:0{0}crwdne270613:0"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Application'
 #. Option for the 'Status' (Select) field in DocType 'Loan Restructure'
@@ -725,6 +783,17 @@ msgstr "crwdns162304:0crwdne162304:0"
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr "crwdns204097:0crwdne204097:0"
+
+#. Label of the attribute (Autocomplete) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Attribute"
+msgstr "crwdns270615:0crwdne270615:0"
+
+#. Label of the attributes_section (Section Break) field in DocType 'Scorecard'
+#. Label of the attributes (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Attributes"
+msgstr "crwdns270617:0crwdne270617:0"
 
 #. Label of the authentication_details_section (Section Break) field in DocType
 #. 'Loan Lead'
@@ -874,6 +943,11 @@ msgstr "crwdns162338:0crwdne162338:0"
 msgid "Base Amount"
 msgstr "crwdns162340:0crwdne162340:0"
 
+#. Label of the base_score (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Base Score"
+msgstr "crwdns270619:0crwdne270619:0"
+
 #. Label of the section_break_hmca (Section Break) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Basic Details"
@@ -967,6 +1041,21 @@ msgstr "crwdns162354:0crwdne162354:0"
 msgid "Bulk Repayment Log"
 msgstr "crwdns162356:0crwdne162356:0"
 
+#. Label of the bureau (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Bureau"
+msgstr "crwdns270621:0crwdne270621:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:72
+msgid "Bureau Report"
+msgstr "crwdns270623:0crwdne270623:0"
+
+#. Label of the bureau_score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:73
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Bureau Score"
+msgstr "crwdns270625:0crwdne270625:0"
+
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Business"
@@ -977,6 +1066,16 @@ msgstr "crwdns204121:0crwdne204121:0"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "CC To"
 msgstr "crwdns239897:0crwdne239897:0"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CIBIL"
+msgstr "crwdns270627:0crwdne270627:0"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CRIF"
+msgstr "crwdns270629:0crwdne270629:0"
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1436,7 +1535,7 @@ msgstr "crwdns268207:0crwdne268207:0"
 msgid "Consolidation Details"
 msgstr "crwdns268209:0crwdne268209:0"
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:369
 msgid "Cooling Period"
 msgstr "crwdns267893:0crwdne267893:0"
 
@@ -1444,6 +1543,11 @@ msgstr "crwdns267893:0crwdne267893:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Cooling Period in Days"
 msgstr "crwdns267895:0crwdne267895:0"
+
+#. Description of the 'Bureau Score' (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Copied from the report so a later pull cannot rewrite this decision."
+msgstr "crwdns270631:0crwdne270631:0"
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
@@ -1516,6 +1620,13 @@ msgstr "crwdns162478:0crwdne162478:0"
 msgid "Credit Adjustment Amount"
 msgstr "crwdns162480:0crwdne162480:0"
 
+#. Name of a DocType
+#. Label of the bureau_report (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Credit Bureau Report"
+msgstr "crwdns270633:0crwdne270633:0"
+
 #. Label of the current_disbursed_amount (Currency) field in DocType 'Loan
 #. Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -1558,6 +1669,9 @@ msgstr "crwdns162488:0crwdne162488:0"
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -1574,6 +1688,8 @@ msgstr "crwdns162488:0crwdne162488:0"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
 msgstr "crwdns162492:0crwdne162492:0"
@@ -1676,6 +1792,38 @@ msgstr "crwdns162518:0crwdne162518:0"
 msgid "Decentralized"
 msgstr "crwdns162520:0crwdne162520:0"
 
+#. Label of the decision (Link) field in DocType 'Loan Application'
+#. Label of the decision (Select) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:140
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision"
+msgstr "crwdns270635:0crwdne270635:0"
+
+#. Label of the decision_log (Long Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Log"
+msgstr "crwdns270637:0crwdne270637:0"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Decision Rule"
+msgstr "crwdns270639:0crwdne270639:0"
+
+#. Name of a DocType
+#. Label of the strategy (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Strategy"
+msgstr "crwdns270641:0crwdne270641:0"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decline"
+msgstr "crwdns270643:0crwdne270643:0"
+
 #. Label of the delete_gl_entries (Check) field in DocType 'Loan Repayment
 #. Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -1729,7 +1877,7 @@ msgstr "crwdns162536:0crwdne162536:0"
 msgid "Delinquent Utilized Limit"
 msgstr "crwdns162538:0crwdne162538:0"
 
-#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:565
+#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:568
 msgid "Delivery failed."
 msgstr "crwdns267899:0crwdne267899:0"
 
@@ -1943,7 +2091,7 @@ msgstr "crwdns162612:0crwdne162612:0"
 msgid "Effective Date"
 msgstr "crwdns162614:0crwdne162614:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:337
+#: lending/loan_management/doctype/loan_application/loan_application.py:339
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr "crwdns204161:0crwdne204161:0"
 
@@ -1987,6 +2135,9 @@ msgstr "crwdns239903:0crwdne239903:0"
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -2002,6 +2153,8 @@ msgstr "crwdns239903:0crwdne239903:0"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Employee"
 msgstr "crwdns162616:0crwdne162616:0"
 
@@ -2048,6 +2201,26 @@ msgstr "crwdns162624:0crwdne162624:0"
 msgid "Entries To Repost"
 msgstr "crwdns162626:0crwdne162626:0"
 
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Equifax"
+msgstr "crwdns270645:0crwdne270645:0"
+
+#. Description of the 'Base Score' (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Every applicant starts here. Attribute points are added on top."
+msgstr "crwdns270647:0crwdne270647:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:131
+msgid "Every enabled Underwriting strategy that applies to {0}. Strategies for other loan products are left out because they can never run here."
+msgstr "crwdns270649:0{0}crwdne270649:0"
+
+#. Description of the 'Variable Snapshot' (Code) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Everything the engine knew about this applicant at the moment it decided."
+msgstr "crwdns270651:0crwdne270651:0"
+
 #. Label of the excess_amount (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:55
@@ -2074,6 +2247,11 @@ msgstr "crwdns162636:0crwdne162636:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Excess amount repayment limit during loan closure"
 msgstr "crwdns162638:0crwdne162638:0"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Experian"
+msgstr "crwdns270653:0crwdne270653:0"
 
 #. Label of the fldg_section (Section Break) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -2134,6 +2312,12 @@ msgstr "crwdns239907:0crwdne239907:0"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Filter Duration (Months)"
 msgstr "crwdns239909:0crwdne239909:0"
+
+#. Label of the findings_section (Section Break) field in DocType 'Credit
+#. Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Findings"
+msgstr "crwdns270655:0crwdne270655:0"
 
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -2223,6 +2407,22 @@ msgstr "crwdns162682:0crwdne162682:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Grace Period in Days"
 msgstr "crwdns162684:0crwdne162684:0"
+
+#. Label of the grade (Data) field in DocType 'Loan Decision'
+#. Label of the grade (Data) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:75
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Grade"
+msgstr "crwdns270657:0crwdne270657:0"
+
+#. Label of the grade_bands_section (Section Break) field in DocType
+#. 'Scorecard'
+#. Label of the grade_bands (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+#: lending/loan_origination/doctype/scorecard/scorecard.py:44
+msgid "Grade Bands"
+msgstr "crwdns270659:0crwdne270659:0"
 
 #. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -2627,6 +2827,35 @@ msgstr "crwdns162774:0crwdne162774:0"
 msgid "Is Written Off"
 msgstr "crwdns162776:0crwdne162776:0"
 
+#: lending/loan_origination/decisioning.py:364
+msgid "Kept the higher recommended rate of interest. {0} would have priced the risk lower."
+msgstr "crwdns270661:0{0}crwdne270661:0"
+
+#: lending/loan_origination/decisioning.py:372
+msgid "Kept the tighter amount cap. {0} would have been looser."
+msgstr "crwdns270663:0{0}crwdne270663:0"
+
+#: lending/loan_origination/decisioning.py:380
+msgid "Kept the tighter tenure cap. {0} would have been looser."
+msgstr "crwdns270665:0{0}crwdne270665:0"
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Knockout"
+msgstr "crwdns270667:0crwdne270667:0"
+
+#: lending/loan_origination/decisioning.py:132
+msgid "Knockout Declined"
+msgstr "crwdns270669:0crwdne270669:0"
+
+#: lending/loan_origination/decisioning.py:140
+msgid "Knockout Incomplete"
+msgstr "crwdns270671:0crwdne270671:0"
+
+#: lending/loan_origination/decisioning.py:129
+msgid "Knockout rules declined this applicant. {0}"
+msgstr "crwdns270673:0{0}crwdne270673:0"
+
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:26
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:49
 msgid "LOAN STATEMENT OF ACCOUNT"
@@ -2652,6 +2881,34 @@ msgstr "crwdns162782:0crwdne162782:0"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
 msgstr "crwdns204201:0crwdne204201:0"
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Leave blank to apply this scorecard to every loan product."
+msgstr "crwdns270675:0crwdne270675:0"
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Decision
+#. Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Leave blank to apply this strategy to every loan product."
+msgstr "crwdns270677:0crwdne270677:0"
+
+#. Description of the 'Decision Strategy' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the highest priority Underwriting strategy for the loan product is used."
+msgstr "crwdns270679:0crwdne270679:0"
+
+#. Description of the 'Credit Bureau Report' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the latest submitted report for this applicant is used."
+msgstr "crwdns270681:0crwdne270681:0"
+
+#. Description of the 'Scorecard' (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the scorecard for the loan product is used."
+msgstr "crwdns270683:0crwdne270683:0"
 
 #. Name of a Workspace
 #. Title of a Workspace Sidebar
@@ -2703,7 +2960,7 @@ msgstr "crwdns162796:0crwdne162796:0"
 msgid "Line of Credit"
 msgstr "crwdns162798:0crwdne162798:0"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:58
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:61
 msgid "Live Loan Limit"
 msgstr "crwdns267909:0crwdne267909:0"
 
@@ -2776,7 +3033,7 @@ msgstr "crwdns267909:0crwdne267909:0"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:86
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "crwdns162800:0crwdne162800:0"
@@ -2889,15 +3146,15 @@ msgstr "crwdns162830:0crwdne162830:0"
 msgid "Loan Amount Percentage"
 msgstr "crwdns162832:0crwdne162832:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:172
+#: lending/loan_management/doctype/loan_application/loan_application.py:174
 msgid "Loan Amount cannot exceed Maximum Loan Amount of {0}"
 msgstr "crwdns162834:0{0}crwdne162834:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:177
+#: lending/loan_management/doctype/loan_application/loan_application.py:179
 msgid "Loan Amount exceeds maximum loan amount of {0} as per proposed securities"
 msgstr "crwdns162836:0{0}crwdne162836:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:165
+#: lending/loan_management/doctype/loan_application/loan_application.py:167
 msgid "Loan Amount is mandatory"
 msgstr "crwdns162838:0crwdne162838:0"
 
@@ -2907,11 +3164,13 @@ msgstr "crwdns162838:0crwdne162838:0"
 #. Assignment'
 #. Label of a Link in the Lending Workspace
 #. Label of a shortcut in the Lending Workspace
+#. Label of the loan_application (Link) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/public/js/custom_customer.js:5
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Application"
@@ -3020,6 +3279,11 @@ msgstr "crwdns162872:0crwdne162872:0"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:49
 msgid "Loan Date"
 msgstr "crwdns162874:0crwdne162874:0"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Loan Decision"
+msgstr "crwdns270685:0crwdne270685:0"
 
 #. Name of a DocType
 #. Label of the loan_demand (Link) field in DocType 'Loan Interest Accrual'
@@ -3185,7 +3449,9 @@ msgstr "crwdns162902:0crwdne162902:0"
 msgid "Loan LOS User"
 msgstr "crwdns162908:0crwdne162908:0"
 
+#. Label of the loan_lead (Link) field in DocType 'Loan Application'
 #. Name of a DocType
+#: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Loan Lead"
 msgstr "crwdns204215:0crwdne204215:0"
@@ -3233,6 +3499,11 @@ msgstr "crwdns204217:0crwdne204217:0"
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 msgid "Loan Manager"
 msgstr "crwdns162912:0crwdne162912:0"
 
@@ -3375,7 +3646,9 @@ msgstr "crwdns162946:0crwdne162946:0"
 #. Option for the 'Select Applicants By' (Select) field in DocType 'Process
 #. Loan Statement of Accounts'
 #. Label of a Link in the Lending Workspace
+#. Label of the loan_product (Link) field in DocType 'Decision Strategy'
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
+#. Label of the loan_product (Link) field in DocType 'Scorecard'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -3404,7 +3677,9 @@ msgstr "crwdns162946:0crwdne162946:0"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:68
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:18
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Product"
 msgstr "crwdns162948:0crwdne162948:0"
@@ -3646,7 +3921,7 @@ msgstr "crwdns162994:0crwdne162994:0"
 msgid "Loan Security Assignment"
 msgstr "crwdns162996:0crwdne162996:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:361
+#: lending/loan_management/doctype/loan_application/loan_application.py:363
 msgid "Loan Security Assignment Created : {0}"
 msgstr "crwdns162998:0{0}crwdne162998:0"
 
@@ -3853,6 +4128,16 @@ msgstr "crwdns163042:0crwdne163042:0"
 msgid "Loan Transfers"
 msgstr "crwdns163044:0crwdne163044:0"
 
+#. Name of a role
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Loan Underwriter"
+msgstr "crwdns270687:0crwdne270687:0"
+
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
@@ -3905,6 +4190,11 @@ msgstr "crwdns163060:0crwdne163060:0"
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
 msgstr "crwdns163062:0crwdne163062:0"
 
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Manual"
+msgstr "crwdns270689:0crwdne270689:0"
+
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
@@ -3923,6 +4213,11 @@ msgstr "crwdns163066:0crwdne163066:0"
 msgid "Manual Remarks"
 msgstr "crwdns163068:0crwdne163068:0"
 
+#. Description of the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Manual is a score keyed in by an underwriter rather than pulled from a bureau."
+msgstr "crwdns270691:0crwdne270691:0"
+
 #. Description of the 'Manual NPA' (Check) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Manually marked as NPA"
@@ -3939,6 +4234,16 @@ msgstr "crwdns163072:0crwdne163072:0"
 #: lending/loan_management/doctype/loan_classification_range/loan_classification_range.json
 msgid "Max DPD Range"
 msgstr "crwdns163074:0crwdne163074:0"
+
+#. Label of the max_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Max Range"
+msgstr "crwdns270693:0crwdne270693:0"
+
+#. Label of the max_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Max Score"
+msgstr "crwdns270695:0crwdne270695:0"
 
 #. Label of the maximum_limit_amount (Currency) field in DocType 'Loan'
 #. Option for the 'Value Type' (Select) field in DocType 'Loan Limit Change
@@ -4019,6 +4324,16 @@ msgstr "crwdns204233:0crwdne204233:0"
 msgid "Min DPD Range"
 msgstr "crwdns163084:0crwdne163084:0"
 
+#. Label of the min_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Min Range"
+msgstr "crwdns270697:0crwdne270697:0"
+
+#. Label of the min_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Min Score"
+msgstr "crwdns270699:0crwdne270699:0"
+
 #. Label of the minimum_partner_loan_amount_percentage (Percent) field in
 #. DocType 'Loan Partner Shareable'
 #: lending/loan_management/doctype/loan_partner_shareable/loan_partner_shareable.json
@@ -4068,8 +4383,8 @@ msgstr "crwdns268221:0crwdne268221:0"
 msgid "Monthly Repayment Amount"
 msgstr "crwdns163096:0crwdne163096:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:146
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:967
+#: lending/loan_management/doctype/loan_application/loan_application.py:148
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:968
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "crwdns163098:0crwdne163098:0"
 
@@ -4092,6 +4407,12 @@ msgstr "crwdns163100:0crwdne163100:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Monthly as per repayment start date"
 msgstr "crwdns163102:0crwdne163102:0"
+
+#. Description of the 'Total EMI' (Currency) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Monthly obligations already reported against this applicant."
+msgstr "crwdns270701:0crwdne270701:0"
 
 #. Label of the moratorium_details_section (Section Break) field in DocType
 #. 'Loan'
@@ -4198,6 +4519,14 @@ msgstr "crwdns204243:0crwdne204243:0"
 msgid "No Records for these settings."
 msgstr "crwdns239919:0crwdne239919:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
+msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
+msgstr "crwdns270703:0{0}crwdne270703:0"
+
+#: lending/loan_origination/decisioning.py:196
+msgid "No enabled {0} strategy applies to {1}, so no rule was checked."
+msgstr "crwdns270705:0{0}crwdnd270705:0{1}crwdne270705:0"
+
 #: lending/loan_management/doctype/loan/loan.py:1186
 msgid "No excess amount pending for refund"
 msgstr "crwdns163134:0crwdne163134:0"
@@ -4206,10 +4535,26 @@ msgstr "crwdns163134:0crwdne163134:0"
 msgid "No loans found for this applicant or branch"
 msgstr "crwdns163136:0crwdne163136:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:216
+#: lending/loan_origination/decisioning.py:130
+msgid "No reason code was recorded."
+msgstr "crwdns270707:0crwdne270707:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:232
+msgid "No scorecard applies to this loan product. Nothing was scored."
+msgstr "crwdns270709:0crwdne270709:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:249
+msgid "No underwriting strategy applies to this loan product."
+msgstr "crwdns270711:0crwdne270711:0"
+
+#: lending/loan_management/doctype/loan_application/loan_application.py:218
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
 msgstr "crwdns163138:0{0}crwdne163138:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:171
+msgid "No verdict"
+msgstr "crwdns270713:0crwdne270713:0"
 
 #. Description of the 'Cooling Period in Days' (Int) field in DocType 'Loan
 #. Product'
@@ -4264,13 +4609,21 @@ msgstr "crwdns163152:0crwdne163152:0"
 msgid "Not Pre-Qualified"
 msgstr "crwdns267915:0crwdne267915:0"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
 msgid "Not permitted to read {0}"
 msgstr "crwdns267917:0{0}crwdne267917:0"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
 msgid "Not permitted to view one or more of the selected loans"
 msgstr "crwdns268223:0crwdne268223:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:61
+msgid "Nothing below has been saved. No Loan Decision was created and {0} was not touched."
+msgstr "crwdns270715:0{0}crwdne270715:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:107
+msgid "Nothing was collected for this applicant."
+msgstr "crwdns270717:0crwdne270717:0"
 
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
@@ -4403,6 +4756,11 @@ msgstr "crwdns204255:0crwdne204255:0"
 msgid "Opening entry for imported loan {0}"
 msgstr "crwdns204257:0{0}crwdne204257:0"
 
+#. Label of the operator (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Operator"
+msgstr "crwdns270719:0crwdne270719:0"
+
 #. Label of the organization_type (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Organization Type"
@@ -4419,6 +4777,18 @@ msgstr "crwdns163174:0crwdne163174:0"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Other Details"
 msgstr "crwdns163180:0crwdne163180:0"
+
+#. Label of the outcome (Select) field in DocType 'Decision Rule'
+#. Label of the outcome_section (Section Break) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Outcome"
+msgstr "crwdns270721:0crwdne270721:0"
+
+#: lending/loan_origination/decisioning.py:346
+msgid "Outcome {0} superseded by {1}. Its reason codes and terms are dropped."
+msgstr "crwdns270723:0{0}crwdnd270723:0{1}crwdne270723:0"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Schedule'
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
@@ -4452,7 +4822,9 @@ msgstr "crwdns204259:0crwdne204259:0"
 msgid "Own Ratio"
 msgstr "crwdns163190:0crwdne163190:0"
 
+#. Label of the pan (Data) field in DocType 'Credit Bureau Report'
 #. Label of the pan (Data) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "PAN"
 msgstr "crwdns204261:0crwdne204261:0"
@@ -4836,16 +5208,16 @@ msgstr "crwdns163312:0crwdne163312:0"
 msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr "crwdns267929:0{0}crwdnd267929:0{1}crwdne267929:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:140
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:958
+#: lending/loan_management/doctype/loan_application/loan_application.py:142
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:959
 msgid "Please enter Repayment Periods"
 msgstr "crwdns163318:0crwdne163318:0"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:965
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
 msgid "Please enter monthly repayment amount"
 msgstr "crwdns163320:0crwdne163320:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:144
+#: lending/loan_management/doctype/loan_application/loan_application.py:146
 msgid "Please enter repayment Amount"
 msgstr "crwdns163322:0crwdne163322:0"
 
@@ -4888,7 +5260,7 @@ msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "crwdns163330:0crwdne163330:0"
 
 #: lending/loan_management/doctype/loan/loan.py:166
-#: lending/loan_management/doctype/loan_application/loan_application.py:151
+#: lending/loan_management/doctype/loan_application/loan_application.py:153
 msgid "Please select Loan Product for company {0}"
 msgstr "crwdns163332:0{0}crwdne163332:0"
 
@@ -5023,6 +5395,11 @@ msgstr "crwdns204275:0crwdne204275:0"
 msgid "Pledged Security Summary"
 msgstr "crwdns204277:0crwdne204277:0"
 
+#. Label of the points (Int) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Points"
+msgstr "crwdns270725:0crwdne270725:0"
+
 #. Label of the portal_logo (Attach Image) field in DocType 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
 msgid "Portal Logo"
@@ -5116,8 +5493,10 @@ msgstr "crwdns163384:0crwdne163384:0"
 msgid "Pre Restructure Details"
 msgstr "crwdns163386:0crwdne163386:0"
 
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
 #. Label of the prequalification_section (Section Break) field in DocType 'Loan
 #. Lead'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Pre-Qualification"
 msgstr "crwdns267943:0crwdne267943:0"
@@ -5359,7 +5738,7 @@ msgstr "crwdns163428:0crwdne163428:0"
 msgid "Proposed Pledges"
 msgstr "crwdns163430:0crwdne163430:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:265
+#: lending/loan_management/doctype/loan_application/loan_application.py:267
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr "crwdns163432:0crwdne163432:0"
 
@@ -5374,12 +5753,12 @@ msgstr "crwdns204293:0crwdne204293:0"
 msgid "Provision Rate"
 msgstr "crwdns163434:0crwdne163434:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:207
+#: lending/loan_management/doctype/loan_application/loan_application.py:209
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr "crwdns163436:0crwdne163436:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:379
+#: lending/loan_management/doctype/loan_application/loan_application.py:381
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "crwdns163438:0crwdne163438:0"
 
@@ -5393,6 +5772,10 @@ msgstr "crwdns163438:0crwdne163438:0"
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:35
 msgid "Quantity"
 msgstr "crwdns163440:0crwdne163440:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:184
+msgid "Rate"
+msgstr "crwdns270727:0crwdne270727:0"
 
 #. Label of the rate_of_interest (Float) field in DocType 'Loan Interest
 #. Accrual'
@@ -5426,11 +5809,35 @@ msgstr "crwdns163450:0crwdne163450:0"
 msgid "Ratio"
 msgstr "crwdns163452:0crwdne163452:0"
 
+#. Label of the payload_section (Section Break) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the raw_payload (Long Text) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Raw Payload"
+msgstr "crwdns270729:0crwdne270729:0"
+
+#. Label of the reason_code (Data) field in DocType 'Adverse Action Reason'
+#. Label of the reason_code (Link) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Reason Code"
+msgstr "crwdns270731:0crwdne270731:0"
+
+#. Label of the reason_codes (Small Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:141
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Reason Codes"
+msgstr "crwdns270733:0crwdne270733:0"
+
 #. Label of the reason_for_freezing (Small Text) field in DocType 'Loan Freeze
 #. Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
 msgid "Reason For Freezing"
 msgstr "crwdns163456:0crwdne163456:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:145
+msgid "Reason codes: {0}."
+msgstr "crwdns270735:0{0}crwdne270735:0"
 
 #. Label of the reason_for_restructure (Small Text) field in DocType 'Loan
 #. Restructure'
@@ -5445,6 +5852,61 @@ msgstr "crwdns163458:0crwdne163458:0"
 msgid "Receivable Account"
 msgstr "crwdns163460:0crwdne163460:0"
 
+#. Label of the recommended_amount (Currency) field in DocType 'Loan
+#. Application'
+#. Label of the term_amount_cap (Currency) field in DocType 'Decision Rule'
+#. Label of the recommended_amount (Currency) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Loan Amount"
+msgstr "crwdns270737:0crwdne270737:0"
+
+#. Label of the term_roi_override (Percent) field in DocType 'Decision Rule'
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Rate Of Interest"
+msgstr "crwdns270739:0crwdne270739:0"
+
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Application'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+msgid "Recommended Rate of Interest"
+msgstr "crwdns270741:0crwdne270741:0"
+
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Application'
+#. Label of the term_tenure_cap (Int) field in DocType 'Decision Rule'
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Tenure in Months"
+msgstr "crwdns270743:0crwdne270743:0"
+
+#. Label of the terms_section (Section Break) field in DocType 'Decision Rule'
+#. Label of the terms_section (Section Break) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:142
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Terms"
+msgstr "crwdns270745:0crwdne270745:0"
+
+#: lending/loan_origination/decisioning.py:371
+msgid "Recommended amount capped at {0}."
+msgstr "crwdns270747:0{0}crwdne270747:0"
+
+#: lending/loan_origination/decisioning.py:363
+msgid "Recommended rate of interest {0}."
+msgstr "crwdns270749:0{0}crwdne270749:0"
+
+#: lending/loan_origination/decisioning.py:379
+msgid "Recommended tenure capped at {0}."
+msgstr "crwdns270751:0{0}crwdne270751:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:151
+msgid "Recommended terms: {0}. Apply them on the application itself, so the repayment schedule is rebuilt with them."
+msgstr "crwdns270753:0{0}crwdne270753:0"
+
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -5456,6 +5918,13 @@ msgstr "crwdns241897:0crwdne241897:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Reduce Tenure"
 msgstr "crwdns241899:0crwdne241899:0"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Refer"
+msgstr "crwdns270755:0crwdne270755:0"
 
 #. Label of the reference_no (Data) field in DocType 'Loan Security Assignment'
 #. Label of the reference_no (Data) field in DocType 'Loan Security Release'
@@ -5624,7 +6093,7 @@ msgstr "crwdns163508:0crwdne163508:0"
 msgid "Repayment Account"
 msgstr "crwdns163510:0crwdne163510:0"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:238
+#: lending/loan_management/doctype/loan_application/loan_application.py:240
 msgid "Repayment Amount must be greater than "
 msgstr "crwdns163512:0crwdne163512:0"
 
@@ -5743,7 +6212,7 @@ msgstr "crwdns163534:0crwdne163534:0"
 msgid "Repayment Start Date"
 msgstr "crwdns163538:0crwdne163538:0"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:955
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:956
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "crwdns163542:0crwdne163542:0"
 
@@ -5767,6 +6236,15 @@ msgstr "crwdns163548:0crwdne163548:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "crwdns163550:0crwdne163550:0"
+
+#. Label of the report_date (Datetime) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Report Date"
+msgstr "crwdns270757:0crwdne270757:0"
+
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:35
+msgid "Report Date cannot be in the future."
+msgstr "crwdns270759:0crwdne270759:0"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5850,6 +6328,46 @@ msgstr "crwdns163580:0crwdne163580:0"
 msgid "Row {0}: Loan Security {1} added multiple times"
 msgstr "crwdns163582:0{0}crwdnd163582:0{1}crwdne163582:0"
 
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:130
+msgid "Row {0}: a Decline rule needs a reason code the applicant can be told."
+msgstr "crwdns270761:0{0}crwdne270761:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:93
+msgid "Row {0}: a between rule compares by size, so {1} has to be a number. Write 100000 rather than 100,000."
+msgstr "crwdns270763:0{0}crwdnd270763:0{1}crwdne270763:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:83
+msgid "Row {0}: a between rule needs two comma separated values, such as 600,750."
+msgstr "crwdns270765:0{0}crwdne270765:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:122
+msgid "Row {0}: a {1} strategy only ever sees applicant types {2}. {3} belongs to the other stage, so this rule would never match."
+msgstr "crwdns270767:0{0}crwdnd270767:0{1}crwdnd270767:0{2}crwdnd270767:0{3}crwdne270767:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:52
+msgid "Row {0}: sequence {1} is already in use. The first matching rule wins, so two rules sharing a sequence have no defined order."
+msgstr "crwdns270769:0{0}crwdnd270769:0{1}crwdne270769:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:100
+msgid "Row {0}: the lower bound {1} is above the upper bound {2}."
+msgstr "crwdns270771:0{0}crwdnd270771:0{1}crwdnd270771:0{2}crwdne270771:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:108
+msgid "Row {0}: {1} compares by size, so {2} has to be a number. Write 100000 rather than 100,000."
+msgstr "crwdns270773:0{0}crwdnd270773:0{1}crwdnd270773:0{2}crwdne270773:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:70
+msgid "Row {0}: {1} is not a supported operator."
+msgstr "crwdns270775:0{0}crwdnd270775:0{1}crwdne270775:0"
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:55
+msgid "Row {0}: {1} is not a variable the engine produces, so this band could never score. Use one of: {2}."
+msgstr "crwdns270777:0{0}crwdnd270777:0{1}crwdnd270777:0{2}crwdne270777:0"
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:62
+msgid "Row {0}: {1} is not a variable the engine produces, so this rule could never match. Use one of: {2}."
+msgstr "crwdns270779:0{0}crwdnd270779:0{1}crwdnd270779:0{2}crwdne270779:0"
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:100
 msgid "Row {0}: {1} of {2} is pledged against Loan {3}."
 msgstr "crwdns163584:0{0}crwdnd163584:0{1}crwdnd163584:0{2}crwdnd163584:0{3}crwdne163584:0"
@@ -5859,6 +6377,39 @@ msgstr "crwdns163584:0{0}crwdnd163584:0{1}crwdnd163584:0{2}crwdnd163584:0{3}crwd
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:132
 msgid "Row {0}: {1} should be between 1 and 99"
 msgstr "crwdns163586:0{0}crwdnd163586:0{1}crwdne163586:0"
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:78
+msgid "Row {0}: {1} {2} is above {3} {4}."
+msgstr "crwdns270781:0{0}crwdnd270781:0{1}crwdnd270781:0{2}crwdnd270781:0{3}crwdnd270781:0{4}crwdne270781:0"
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:94
+msgid "Rows {0} and {1} of {2} overlap. A value inside the overlap would score differently depending on row order."
+msgstr "crwdns270783:0{0}crwdnd270783:0{1}crwdnd270783:0{2}crwdne270783:0"
+
+#: lending/loan_origination/decisioning.py:470
+msgid "Rule value {0} is not a number, but {1} is. Write 100000 rather than 100,000."
+msgstr "crwdns270785:0{0}crwdnd270785:0{1}crwdne270785:0"
+
+#: lending/loan_origination/decisioning.py:302
+msgid "Rule {0} did not match. {1} is {2}."
+msgstr "crwdns270787:0{0}crwdnd270787:0{1}crwdnd270787:0{2}crwdne270787:0"
+
+#: lending/loan_origination/decisioning.py:310
+msgid "Rule {0} matched on {1}. Outcome {2}."
+msgstr "crwdns270789:0{0}crwdnd270789:0{1}crwdnd270789:0{2}crwdne270789:0"
+
+#: lending/loan_origination/decisioning.py:294
+msgid "Rule {0} skipped. {1} was not collected for this applicant."
+msgstr "crwdns270791:0{0}crwdnd270791:0{1}crwdne270791:0"
+
+#. Description of the 'Sequence' (Int) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Rules are evaluated lowest first. The first match wins."
+msgstr "crwdns270793:0crwdne270793:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:40
+msgid "Running every strategy…"
+msgstr "crwdns270795:0crwdne270795:0"
 
 #. Option for the 'Employment Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -5898,7 +6449,7 @@ msgid "Sanctioned Amount Tolerance (%)"
 msgstr "crwdns239939:0crwdne239939:0"
 
 #: lending/loan_management/doctype/loan/loan.py:572
-#: lending/loan_management/doctype/loan_application/loan_application.py:198
+#: lending/loan_management/doctype/loan_application/loan_application.py:200
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr "crwdns163596:0{0}crwdnd163596:0{1}crwdne163596:0"
 
@@ -5915,6 +6466,41 @@ msgstr "crwdns163598:0crwdne163598:0"
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.py:32
 msgid "Sanctioned Loan Amount already exists for {0} against company {1}"
 msgstr "crwdns163600:0{0}crwdnd163600:0{1}crwdne163600:0"
+
+#. Label of the score (Int) field in DocType 'Credit Bureau Report'
+#. Label of the score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:74
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Score"
+msgstr "crwdns270797:0crwdne270797:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "Score {0}, grade {1}."
+msgstr "crwdns270799:0{0}crwdnd270799:0{1}crwdne270799:0"
+
+#. Label of the scorecard (Link) field in DocType 'Loan Decision'
+#. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:71
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard"
+msgstr "crwdns270801:0crwdne270801:0"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Scorecard Attribute"
+msgstr "crwdns270803:0crwdne270803:0"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Scorecard Grade Band"
+msgstr "crwdns270805:0crwdne270805:0"
+
+#. Label of the scorecard_name (Data) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard Name"
+msgstr "crwdns270807:0crwdne270807:0"
 
 #. Option for the 'Security Type' (Select) field in DocType 'Loan IRAC
 #. Provisioning Configuration'
@@ -5976,7 +6562,7 @@ msgid "Select {0}s By"
 msgstr "crwdns239943:0{0}crwdne239943:0"
 
 #: lending/loan_management/doctype/loan/loan.py:173
-#: lending/loan_management/doctype/loan_application/loan_application.py:158
+#: lending/loan_management/doctype/loan_application/loan_application.py:160
 msgid "Selected employee belongs to {0}. Please select an employee from company {1}."
 msgstr "crwdns163616:0{0}crwdnd163616:0{1}crwdne163616:0"
 
@@ -6081,6 +6667,35 @@ msgstr "crwdns268243:0crwdne268243:0"
 msgid "Start of the next month"
 msgstr "crwdns163642:0crwdne163642:0"
 
+#. Label of the stop_on_match (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop On Match"
+msgstr "crwdns270809:0crwdne270809:0"
+
+#. Description of the 'Stop On Match' (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop evaluating the strategy once this rule matches."
+msgstr "crwdns270811:0crwdne270811:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:118
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:128
+msgid "Strategies"
+msgstr "crwdns270813:0crwdne270813:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:138
+msgid "Strategy"
+msgstr "crwdns270815:0crwdne270815:0"
+
+#. Label of the strategy_name (Data) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Name"
+msgstr "crwdns270817:0crwdne270817:0"
+
+#. Label of the strategy_type (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Type"
+msgstr "crwdns270819:0crwdne270819:0"
+
 #. Label of the subsidy_adjustment_account (Link) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -6091,6 +6706,10 @@ msgstr "crwdns163650:0crwdne163650:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Subsidy Adjustments"
 msgstr "crwdns163652:0crwdne163652:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:142
+msgid "Supersedes {0}."
+msgstr "crwdns270821:0{0}crwdne270821:0"
 
 #. Label of the suspense_account (Link) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -6131,6 +6750,10 @@ msgstr "crwdns163666:0crwdne163666:0"
 msgid "Tenure Post Restructure"
 msgstr "crwdns163668:0crwdne163668:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:194
+msgid "Tenure capped at"
+msgstr "crwdns270823:0crwdne270823:0"
+
 #. Label of the term_details_section (Section Break) field in DocType 'Loan'
 #. Label of the term_details_section (Section Break) field in DocType 'Loan
 #. Repayment Schedule'
@@ -6144,6 +6767,11 @@ msgstr "crwdns163670:0crwdne163670:0"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Terms and Conditions"
 msgstr "crwdns239947:0crwdne239947:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
+msgid "Test Run"
+msgstr "crwdns270825:0crwdne270825:0"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
@@ -6165,6 +6793,10 @@ msgstr "crwdns163678:0crwdne163678:0"
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "crwdns207181:0crwdne207181:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:81
+msgid "The same for every strategy below. Only the rules differ, so each log covers its rules alone."
+msgstr "crwdns270827:0crwdne270827:0"
+
 #. Description of the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -6185,11 +6817,19 @@ msgstr "crwdns163682:0crwdne163682:0"
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "crwdns163684:0crwdne163684:0"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:54
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:83
+msgid "There is nothing to submit. No rule in {0} matched this applicant, so no decision was reached."
+msgstr "crwdns270829:0{0}crwdne270829:0"
+
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:57
 msgid "This applicant already holds the maximum of {0} live loans, so this lead cannot be taken forward."
 msgstr "crwdns267957:0{0}crwdne267957:0"
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:355
+#: lending/loan_origination/decisioning.py:137
+msgid "This applicant cannot clear the knockout rules yet. {0} was not collected, so the rules that reject on it could not be checked."
+msgstr "crwdns270831:0{0}crwdne270831:0"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:365
 msgid "This applicant was rejected within the last {0} days. A cooling period applies, so this lead cannot be taken forward yet."
 msgstr "crwdns267959:0{0}crwdne267959:0"
 
@@ -6204,6 +6844,10 @@ msgstr "crwdns207185:0{0}crwdne207185:0"
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
 msgid "This repost is {0} in the background. Please wait for it to finish."
 msgstr "crwdns207187:0{0}crwdne207187:0"
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:336
+msgid "This rule runs as a workflow task and cannot be called directly."
+msgstr "crwdns270833:0crwdne270833:0"
 
 #. Label of the to_branch (Link) field in DocType 'Loan Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
@@ -6240,6 +6884,11 @@ msgstr "crwdns204307:0crwdne204307:0"
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
 msgstr "crwdns204309:0crwdne204309:0"
+
+#. Label of the total_emi (Currency) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Total EMI"
+msgstr "crwdns270835:0crwdne270835:0"
 
 #. Label of the total_emi_charges (Currency) field in DocType 'Loan
 #. Disbursement'
@@ -6394,6 +7043,11 @@ msgstr "crwdns163742:0crwdne163742:0"
 msgid "Treatment of charge"
 msgstr "crwdns204325:0crwdne204325:0"
 
+#. Description of the 'Value' (Data) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Two comma separated numbers for between. A comma separated list for in and not in."
+msgstr "crwdns270837:0crwdne270837:0"
+
 #. Label of the type_of_fldg_applicable (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -6433,6 +7087,11 @@ msgstr "crwdns163754:0crwdne163754:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Unbooked Penalty Paid"
 msgstr "crwdns163756:0crwdne163756:0"
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Underwriting"
+msgstr "crwdns270839:0crwdne270839:0"
 
 #. Label of the unfreeze_date (Date) field in DocType 'Loan Freeze Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
@@ -6541,6 +7200,20 @@ msgstr "crwdns163792:0crwdne163792:0"
 msgid "Value Type"
 msgstr "crwdns163794:0crwdne163794:0"
 
+#. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Variable"
+msgstr "crwdns270841:0crwdne270841:0"
+
+#. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Variable Snapshot"
+msgstr "crwdns270843:0crwdne270843:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:87
+msgid "Variables"
+msgstr "crwdns270845:0crwdne270845:0"
+
 #. Description of the 'OTP for Email' (Check) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
@@ -6596,6 +7269,10 @@ msgstr "crwdns163810:0crwdne163810:0"
 msgid "Watch Period End Date"
 msgstr "crwdns163812:0crwdne163812:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:79
+msgid "What the engine sees"
+msgstr "crwdns270847:0crwdne270847:0"
+
 #. Description of the 'Indicative Amount' (Currency) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6607,6 +7284,17 @@ msgstr "crwdns267965:0crwdne267965:0"
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
 msgstr "crwdns268247:0crwdne268247:0"
+
+#. Description of the 'Raw Payload' (Long Text) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes."
+msgstr "crwdns270849:0crwdne270849:0"
+
+#. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "When more than one strategy matches, the highest priority runs."
+msgstr "crwdns270851:0crwdne270851:0"
 
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6689,6 +7377,10 @@ msgstr "crwdns163840:0crwdne163840:0"
 msgid "Written Off Amount"
 msgstr "crwdns163842:0crwdne163842:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:216
+msgid "Wrong Bureau Report"
+msgstr "crwdns270853:0crwdne270853:0"
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
 msgstr "crwdns163844:0crwdne163844:0"
@@ -6702,9 +7394,65 @@ msgstr "crwdns267969:0{0}crwdne267969:0"
 msgid "ZIP Code"
 msgstr "crwdns163846:0crwdne163846:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
+msgid "any strategy"
+msgstr "crwdns270855:0crwdne270855:0"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "between"
+msgstr "crwdns270857:0crwdne270857:0"
+
+#: lending/loan_origination/decisioning.py:197
+msgid "decision"
+msgstr "crwdns270859:0crwdne270859:0"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "in"
+msgstr "crwdns270861:0crwdne270861:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:161
+msgid "loan amount capped at {0}, currently {1}"
+msgstr "crwdns270863:0{0}crwdnd270863:0{1}crwdne270863:0"
+
+#: lending/loan_origination/decisioning.py:187
+msgid "no matching rule"
+msgstr "crwdns270865:0crwdne270865:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:172
+msgid "no rule matched"
+msgstr "crwdns270867:0crwdne270867:0"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "not in"
+msgstr "crwdns270869:0crwdne270869:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:160
+msgid "rate of interest {0}, currently {1}"
+msgstr "crwdns270871:0{0}crwdnd270871:0{1}crwdne270871:0"
+
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:56
 msgid "telephony_label"
 msgstr "crwdns267971:0crwdne267971:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:162
+msgid "tenure capped at {0}, currently {1}"
+msgstr "crwdns270873:0{0}crwdnd270873:0{1}crwdne270873:0"
+
+#: lending/loan_origination/decisioning.py:198
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
+msgid "this applicant"
+msgstr "crwdns270875:0crwdne270875:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:154
+msgid "this is the one that runs"
+msgstr "crwdns270877:0crwdne270877:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "ungraded"
+msgstr "crwdns270879:0crwdne270879:0"
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:137
 msgid "with reference no. {}"
@@ -6718,6 +7466,14 @@ msgstr "crwdns163850:0{0}crwdne163850:0"
 msgid "{0} changed while the OTP was in flight. Please try again."
 msgstr "crwdns267973:0{0}crwdne267973:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:139
+msgid "{0} decided {1}."
+msgstr "crwdns270881:0{0}crwdnd270881:0{1}crwdne270881:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:111
+msgid "{0} has changed since this decision was drafted. Save the decision again so it is made on what you are approving."
+msgstr "crwdns270883:0{0}crwdne270883:0"
+
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:142
 msgid "{0} is already verified for this lead."
 msgstr "crwdns267975:0{0}crwdne267975:0"
@@ -6726,10 +7482,42 @@ msgstr "crwdns267975:0{0}crwdne267975:0"
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "crwdns204331:0{0}crwdne204331:0"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:100
+msgid "{0} is no longer a draft, so a decision can no longer be recorded against it."
+msgstr "crwdns270885:0{0}crwdne270885:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:213
+msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
+msgstr "crwdns270887:0{0}crwdnd270887:0{1}crwdne270887:0"
+
+#: lending/loan_origination/decisioning.py:403
+msgid "{0} is not a supported decision rule operator."
+msgstr "crwdns270889:0{0}crwdne270889:0"
+
+#: lending/loan_origination/decisioning.py:234
+msgid "{0} is {1}, inside {2} to {3}. {4} points."
+msgstr "crwdns270891:0{0}crwdnd270891:0{1}crwdnd270891:0{2}crwdnd270891:0{3}crwdnd270891:0{4}crwdne270891:0"
+
+#: lending/loan_origination/decisioning.py:186
+msgid "{0} returned {1}."
+msgstr "crwdns270893:0{0}crwdnd270893:0{1}crwdne270893:0"
+
+#: lending/loan_origination/decisioning.py:243
+msgid "{0} scored nothing. It was not collected for this applicant."
+msgstr "crwdns270895:0{0}crwdne270895:0"
+
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:76
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:92
 msgid "{0} should be between 1 and 99"
 msgstr "crwdns163852:0{0}crwdne163852:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:195
+msgid "{0} was cancelled and no longer governs this application."
+msgstr "crwdns270897:0{0}crwdne270897:0"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:181
+msgid "{0} was cancelled, but this application is no longer a draft, so the decision it recorded stands."
+msgstr "crwdns270899:0{0}crwdne270899:0"
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:181
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
