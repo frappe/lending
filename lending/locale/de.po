@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-13 13:52+0000\n"
-"PO-Revision-Date: 2026-09-15 17:35\n"
+"PO-Revision-Date: 2026-09-18 17:44\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5342,12 +5342,12 @@ msgstr ""
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Code"
-msgstr ""
+msgstr "Produktcode"
 
 #. Label of the product_name (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Name"
-msgstr ""
+msgstr "Produktname"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
