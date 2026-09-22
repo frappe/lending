@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-13 13:52+0000\n"
-"PO-Revision-Date: 2026-09-15 17:36\n"
+"POT-Creation-Date: 2026-09-20 13:38+0000\n"
+"PO-Revision-Date: 2026-09-21 18:28\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -63,6 +63,27 @@ msgstr "<span class=\\\"h4\\\"><b>รายงาน &amp; มาสเตอร
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
 msgstr "<span class=\"h4\"><b>ทางลัดของคุณ</b></span>"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "=="
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:425
+msgid "A between rule needs two comma separated values. {0} has {1}."
+msgstr ""
+
+#. Description of the 'Variable' (Autocomplete) field in DocType 'Decision
+#. Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "A key from the decision variable context, such as bureau_score or foir_ratio."
+msgstr ""
+
+#. Description of the 'Attribute' (Autocomplete) field in DocType 'Scorecard
+#. Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "A key from the decision variable context. Bands compare numbers, so an attribute that never carries one scores nothing."
+msgstr ""
 
 #. Description of the 'OTP Verification Mandatory' (Check) field in DocType
 #. 'Loan Origination Settings'
@@ -360,6 +381,11 @@ msgstr "การปรับเปลี่ยน"
 msgid "Advance Payment"
 msgstr "การชำระเงินล่วงหน้า"
 
+#. Name of a DocType
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+msgid "Adverse Action Reason"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2309
 msgid "Against Account is mandatory"
 msgstr "บัญชีที่ต้องหักเป็นบัญชีบังคับ"
@@ -475,6 +501,10 @@ msgstr "จำนวนไม่สามารถเป็นค่าลบไ
 msgid "Amount cannot be zero"
 msgstr "จำนวนไม่สามารถเป็นศูนย์ได้"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:189
+msgid "Amount capped at"
+msgstr ""
+
 #. Description of the 'Base Amount' (Currency) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -532,6 +562,9 @@ msgstr "การปรับโครงสร้างหนี้เงิน
 #. Label of the applicant (Dynamic Link) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Link in the Lending Workspace
+#. Label of the applicant (Dynamic Link) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -556,6 +589,8 @@ msgstr "การปรับโครงสร้างหนี้เงิน
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:28
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:37
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Applicant"
 msgstr "ผู้สมัคร"
 
@@ -648,6 +683,8 @@ msgstr "หมายเลขโทรศัพท์ของผู้สมั
 #. Statement of Accounts Applicant'
 #. Label of the applicant_type (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Label of the applicant_type (Select) field in DocType 'Credit Bureau Report'
+#. Label of the applicant_type (Select) field in DocType 'Loan Decision'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -673,6 +710,8 @@ msgstr "หมายเลขโทรศัพท์ของผู้สมั
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:17
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:16
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:23
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Applicant Type"
 msgstr "ประเภทผู้สมัคร"
@@ -701,9 +740,28 @@ msgstr ""
 msgid "Applicants not selected."
 msgstr ""
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:103
+msgid "Application Closed"
+msgstr ""
+
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Application Date"
+msgstr ""
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Approve"
+msgstr "อนุมัติ"
+
+#: lending/loan_origination/decisioning.py:337
+msgid "Approve downgraded to Refer. {0} could not be checked."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:328
+msgid "Approve downgraded to Refer. {0} was not scored."
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Application'
@@ -725,6 +783,17 @@ msgstr "ณ วันที่"
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr ""
+
+#. Label of the attribute (Autocomplete) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Attribute"
+msgstr "คุณลักษณะ"
+
+#. Label of the attributes_section (Section Break) field in DocType 'Scorecard'
+#. Label of the attributes (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Attributes"
+msgstr "คุณลักษณะ"
 
 #. Label of the authentication_details_section (Section Break) field in DocType
 #. 'Loan Lead'
@@ -874,6 +943,11 @@ msgstr "การธนาคาร"
 msgid "Base Amount"
 msgstr "จำนวนเงินฐาน"
 
+#. Label of the base_score (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Base Score"
+msgstr ""
+
 #. Label of the section_break_hmca (Section Break) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Basic Details"
@@ -967,6 +1041,21 @@ msgstr "บัญชีการกู้คืนดอกเบี้ยช่
 msgid "Bulk Repayment Log"
 msgstr "บันทึกการชำระคืนจำนวนมาก"
 
+#. Label of the bureau (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Bureau"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:72
+msgid "Bureau Report"
+msgstr ""
+
+#. Label of the bureau_score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:73
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Bureau Score"
+msgstr ""
+
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Business"
@@ -977,6 +1066,16 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "CC To"
 msgstr "สำเนาถึง"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CIBIL"
+msgstr ""
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CRIF"
+msgstr ""
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1436,13 +1535,18 @@ msgstr ""
 msgid "Consolidation Details"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:369
 msgid "Cooling Period"
 msgstr ""
 
 #. Label of the cooling_period_days (Int) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Cooling Period in Days"
+msgstr ""
+
+#. Description of the 'Bureau Score' (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Copied from the report so a later pull cannot rewrite this decision."
 msgstr ""
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
@@ -1516,6 +1620,13 @@ msgstr "การปรับปรุงเครดิต"
 msgid "Credit Adjustment Amount"
 msgstr "จำนวนการปรับปรุงเครดิต"
 
+#. Name of a DocType
+#. Label of the bureau_report (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Credit Bureau Report"
+msgstr ""
+
 #. Label of the current_disbursed_amount (Currency) field in DocType 'Loan
 #. Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -1558,6 +1669,9 @@ msgstr "จำนวนการปรับโครงสร้างปัจ
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -1574,6 +1688,8 @@ msgstr "จำนวนการปรับโครงสร้างปัจ
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
 msgstr "ลูกค้า"
@@ -1676,6 +1792,38 @@ msgstr "จำนวนการปรับปรุงเดบิต"
 msgid "Decentralized"
 msgstr "กระจายอำนาจ"
 
+#. Label of the decision (Link) field in DocType 'Loan Application'
+#. Label of the decision (Select) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:140
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision"
+msgstr ""
+
+#. Label of the decision_log (Long Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Log"
+msgstr ""
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Decision Rule"
+msgstr ""
+
+#. Name of a DocType
+#. Label of the strategy (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Strategy"
+msgstr ""
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decline"
+msgstr ""
+
 #. Label of the delete_gl_entries (Check) field in DocType 'Loan Repayment
 #. Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -1729,7 +1877,7 @@ msgstr "เงินต้นค้างชำระคงเหลือ"
 msgid "Delinquent Utilized Limit"
 msgstr "วงเงินที่ใช้เกินกำหนด"
 
-#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:565
+#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:568
 msgid "Delivery failed."
 msgstr ""
 
@@ -1943,7 +2091,7 @@ msgstr "EMI เพิ่มขึ้น"
 msgid "Effective Date"
 msgstr "วันที่มีผลบังคับใช้"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:337
+#: lending/loan_management/doctype/loan_application/loan_application.py:339
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr ""
 
@@ -1987,6 +2135,9 @@ msgstr "อีเมลในคิว"
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -2002,6 +2153,8 @@ msgstr "อีเมลในคิว"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Employee"
 msgstr "พนักงาน"
 
@@ -2048,6 +2201,26 @@ msgstr "รายการที่ต้องยกเลิก"
 msgid "Entries To Repost"
 msgstr "รายการที่ต้องโพสต์ซ้ำ"
 
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Equifax"
+msgstr ""
+
+#. Description of the 'Base Score' (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Every applicant starts here. Attribute points are added on top."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:131
+msgid "Every enabled Underwriting strategy that applies to {0}. Strategies for other loan products are left out because they can never run here."
+msgstr ""
+
+#. Description of the 'Variable Snapshot' (Code) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Everything the engine knew about this applicant at the moment it decided."
+msgstr ""
+
 #. Label of the excess_amount (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:55
@@ -2074,6 +2247,11 @@ msgstr "จำนวนเงินที่ต้องคืนไม่สา
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Excess amount repayment limit during loan closure"
 msgstr "วงเงินคืนเงินเกินในระหว่างการปิดบัญชีเงินกู้"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Experian"
+msgstr ""
 
 #. Label of the fldg_section (Section Break) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -2134,6 +2312,12 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Filter Duration (Months)"
 msgstr "ระยะเวลากรอง (เดือน)"
+
+#. Label of the findings_section (Section Break) field in DocType 'Credit
+#. Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Findings"
+msgstr ""
 
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -2223,6 +2407,22 @@ msgstr "รายงานกระแสเงินสดในอนาคต
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Grace Period in Days"
 msgstr "ระยะเวลาผ่อนผันเป็นจำนวนวัน"
+
+#. Label of the grade (Data) field in DocType 'Loan Decision'
+#. Label of the grade (Data) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:75
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Grade"
+msgstr "ระดับ"
+
+#. Label of the grade_bands_section (Section Break) field in DocType
+#. 'Scorecard'
+#. Label of the grade_bands (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+#: lending/loan_origination/doctype/scorecard/scorecard.py:44
+msgid "Grade Bands"
+msgstr ""
 
 #. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -2627,6 +2827,35 @@ msgstr "การยกเว้นการตัดจำหน่าย"
 msgid "Is Written Off"
 msgstr "ถูกตัดจำหน่าย"
 
+#: lending/loan_origination/decisioning.py:364
+msgid "Kept the higher recommended rate of interest. {0} would have priced the risk lower."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:372
+msgid "Kept the tighter amount cap. {0} would have been looser."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:380
+msgid "Kept the tighter tenure cap. {0} would have been looser."
+msgstr ""
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Knockout"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:132
+msgid "Knockout Declined"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:140
+msgid "Knockout Incomplete"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:129
+msgid "Knockout rules declined this applicant. {0}"
+msgstr ""
+
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:26
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:49
 msgid "LOAN STATEMENT OF ACCOUNT"
@@ -2652,6 +2881,34 @@ msgstr "ราคาล่าสุด"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
 msgstr "แหล่งที่มาของลีด"
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Leave blank to apply this scorecard to every loan product."
+msgstr ""
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Decision
+#. Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Leave blank to apply this strategy to every loan product."
+msgstr ""
+
+#. Description of the 'Decision Strategy' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the highest priority Underwriting strategy for the loan product is used."
+msgstr ""
+
+#. Description of the 'Credit Bureau Report' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the latest submitted report for this applicant is used."
+msgstr ""
+
+#. Description of the 'Scorecard' (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the scorecard for the loan product is used."
+msgstr ""
 
 #. Name of a Workspace
 #. Title of a Workspace Sidebar
@@ -2703,7 +2960,7 @@ msgstr "ขีดจำกัด"
 msgid "Line of Credit"
 msgstr "วงเงินสินเชื่อ"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:58
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:61
 msgid "Live Loan Limit"
 msgstr ""
 
@@ -2776,7 +3033,7 @@ msgstr ""
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:86
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "เงินกู้"
@@ -2889,15 +3146,15 @@ msgstr "รายละเอียดจำนวนเงินกู้"
 msgid "Loan Amount Percentage"
 msgstr "จำนวนเงินกู้ร้อยละ"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:172
+#: lending/loan_management/doctype/loan_application/loan_application.py:174
 msgid "Loan Amount cannot exceed Maximum Loan Amount of {0}"
 msgstr "จำนวนเงินกู้ไม่สามารถเกินจำนวนเงินกู้สูงสุดของ {0}"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:177
+#: lending/loan_management/doctype/loan_application/loan_application.py:179
 msgid "Loan Amount exceeds maximum loan amount of {0} as per proposed securities"
 msgstr "จำนวนเงินกู้เกินจำนวนเงินกู้สูงสุดของ {0} ตามที่ระบุไว้ในหลักประกันที่เสนอ"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:165
+#: lending/loan_management/doctype/loan_application/loan_application.py:167
 msgid "Loan Amount is mandatory"
 msgstr "จำนวนเงินกู้เป็นข้อมูลที่จำเป็น"
 
@@ -2907,11 +3164,13 @@ msgstr "จำนวนเงินกู้เป็นข้อมูลที
 #. Assignment'
 #. Label of a Link in the Lending Workspace
 #. Label of a shortcut in the Lending Workspace
+#. Label of the loan_application (Link) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/public/js/custom_customer.js:5
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Application"
@@ -3020,6 +3279,11 @@ msgstr "วงเงินสินเชื่อ"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:49
 msgid "Loan Date"
 msgstr "วันที่ให้กู้"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Loan Decision"
+msgstr ""
 
 #. Name of a DocType
 #. Label of the loan_demand (Link) field in DocType 'Loan Interest Accrual'
@@ -3185,7 +3449,9 @@ msgstr "ดอกเบี้ยเงินกู้ที่สะสม"
 msgid "Loan LOS User"
 msgstr "ผู้ใช้ระบบ LOS สำหรับสินเชื่อ"
 
+#. Label of the loan_lead (Link) field in DocType 'Loan Application'
 #. Name of a DocType
+#: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Loan Lead"
 msgstr ""
@@ -3233,6 +3499,11 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 msgid "Loan Manager"
 msgstr "ผู้จัดการสินเชื่อ"
 
@@ -3375,7 +3646,9 @@ msgstr "กระบวนการกู้เงิน"
 #. Option for the 'Select Applicants By' (Select) field in DocType 'Process
 #. Loan Statement of Accounts'
 #. Label of a Link in the Lending Workspace
+#. Label of the loan_product (Link) field in DocType 'Decision Strategy'
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
+#. Label of the loan_product (Link) field in DocType 'Scorecard'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -3404,7 +3677,9 @@ msgstr "กระบวนการกู้เงิน"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:68
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:18
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Product"
 msgstr "ผลิตภัณฑ์สินเชื่อ"
@@ -3646,7 +3921,7 @@ msgstr "หลักประกันเงินกู้"
 msgid "Loan Security Assignment"
 msgstr "การโอนสิทธิการค้ำประกันเงินกู้"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:361
+#: lending/loan_management/doctype/loan_application/loan_application.py:363
 msgid "Loan Security Assignment Created : {0}"
 msgstr "การโอนสิทธิการค้ำประกันเงินกู้ สร้างขึ้นเมื่อ: {0}"
 
@@ -3853,6 +4128,16 @@ msgstr "รายละเอียดการโอนเงินกู้"
 msgid "Loan Transfers"
 msgstr "การโอนเงินกู้"
 
+#. Name of a role
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Loan Underwriter"
+msgstr ""
+
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
@@ -3905,6 +4190,11 @@ msgstr "เงินกู้"
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
 msgstr "เงินกู้จะถูกทำเครื่องหมายเป็น NPA เมื่อจำนวนวันที่ค้างชำระเกินเกณฑ์นี้"
 
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Manual"
+msgstr "คู่มือ"
+
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
@@ -3923,6 +4213,11 @@ msgstr "NPA แบบแมนนวล"
 msgid "Manual Remarks"
 msgstr "หมายเหตุด้วยตนเอง"
 
+#. Description of the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Manual is a score keyed in by an underwriter rather than pulled from a bureau."
+msgstr ""
+
 #. Description of the 'Manual NPA' (Check) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Manually marked as NPA"
@@ -3939,6 +4234,16 @@ msgstr "วันครบกำหนด"
 #: lending/loan_management/doctype/loan_classification_range/loan_classification_range.json
 msgid "Max DPD Range"
 msgstr "ระยะทางสูงสุดของ DPD"
+
+#. Label of the max_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Max Range"
+msgstr ""
+
+#. Label of the max_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Max Score"
+msgstr "คะแนนสูงสุด"
 
 #. Label of the maximum_limit_amount (Currency) field in DocType 'Loan'
 #. Option for the 'Value Type' (Select) field in DocType 'Loan Limit Change
@@ -4019,6 +4324,16 @@ msgstr ""
 msgid "Min DPD Range"
 msgstr "ช่วงระยะทางขั้นต่ำของ DPD"
 
+#. Label of the min_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Min Range"
+msgstr ""
+
+#. Label of the min_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Min Score"
+msgstr ""
+
 #. Label of the minimum_partner_loan_amount_percentage (Percent) field in
 #. DocType 'Loan Partner Shareable'
 #: lending/loan_management/doctype/loan_partner_shareable/loan_partner_shareable.json
@@ -4068,8 +4383,8 @@ msgstr ""
 msgid "Monthly Repayment Amount"
 msgstr "จำนวนเงินชำระคืนรายเดือน"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:146
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:967
+#: lending/loan_management/doctype/loan_application/loan_application.py:148
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:968
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "จำนวนเงินชำระคืนรายเดือนไม่สามารถมากกว่าจำนวนเงินกู้"
 
@@ -4092,6 +4407,12 @@ msgstr "รายเดือนตามวันที่ในรอบ"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Monthly as per repayment start date"
 msgstr "รายเดือนตามวันที่เริ่มชำระคืน"
+
+#. Description of the 'Total EMI' (Currency) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Monthly obligations already reported against this applicant."
+msgstr ""
 
 #. Label of the moratorium_details_section (Section Break) field in DocType
 #. 'Loan'
@@ -4198,6 +4519,14 @@ msgstr ""
 msgid "No Records for these settings."
 msgstr "ไม่มีระเบียนสำหรับการตั้งค่าเหล่านี้"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
+msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:196
+msgid "No enabled {0} strategy applies to {1}, so no rule was checked."
+msgstr ""
+
 #: lending/loan_management/doctype/loan/loan.py:1186
 msgid "No excess amount pending for refund"
 msgstr "ไม่มีจำนวนเงินเกินค้างอยู่เพื่อคืนเงิน"
@@ -4206,10 +4535,26 @@ msgstr "ไม่มีจำนวนเงินเกินค้างอย
 msgid "No loans found for this applicant or branch"
 msgstr "ไม่พบเงินกู้สำหรับผู้สมัครหรือสาขา"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:216
+#: lending/loan_origination/decisioning.py:130
+msgid "No reason code was recorded."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:232
+msgid "No scorecard applies to this loan product. Nothing was scored."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:249
+msgid "No underwriting strategy applies to this loan product."
+msgstr ""
+
+#: lending/loan_management/doctype/loan_application/loan_application.py:218
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
 msgstr "ไม่พบราคาหลักประกันเงินกู้ที่ถูกต้องสำหรับ {0}"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:171
+msgid "No verdict"
+msgstr ""
 
 #. Description of the 'Cooling Period in Days' (Int) field in DocType 'Loan
 #. Product'
@@ -4264,12 +4609,20 @@ msgstr "การปรับโครงสร้างปกติ"
 msgid "Not Pre-Qualified"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
 msgid "Not permitted to read {0}"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
 msgid "Not permitted to view one or more of the selected loans"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:61
+msgid "Nothing below has been saved. No Loan Decision was created and {0} was not touched."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:107
+msgid "Nothing was collected for this applicant."
 msgstr ""
 
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
@@ -4403,6 +4756,11 @@ msgstr ""
 msgid "Opening entry for imported loan {0}"
 msgstr ""
 
+#. Label of the operator (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Operator"
+msgstr "ผู้ปฏิบัติงาน"
+
 #. Label of the organization_type (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Organization Type"
@@ -4419,6 +4777,18 @@ msgstr "มูลค่าความปลอดภัยเดิม"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Other Details"
 msgstr "รายละเอียดอื่นๆ"
+
+#. Label of the outcome (Select) field in DocType 'Decision Rule'
+#. Label of the outcome_section (Section Break) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Outcome"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:346
+msgid "Outcome {0} superseded by {1}. Its reason codes and terms are dropped."
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Schedule'
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
@@ -4452,7 +4822,9 @@ msgstr ""
 msgid "Own Ratio"
 msgstr "อัตราส่วนของเจ้าของ"
 
+#. Label of the pan (Data) field in DocType 'Credit Bureau Report'
 #. Label of the pan (Data) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "PAN"
 msgstr "PAN"
@@ -4836,16 +5208,16 @@ msgstr "กรุณาเพิ่มบัญชีคืนเงินลู
 msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:140
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:958
+#: lending/loan_management/doctype/loan_application/loan_application.py:142
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:959
 msgid "Please enter Repayment Periods"
 msgstr "กรุณากรอกช่วงเวลาการชำระเงินคืน"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:965
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
 msgid "Please enter monthly repayment amount"
 msgstr "กรุณากรอกจำนวนเงินชำระคืนรายเดือน"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:144
+#: lending/loan_management/doctype/loan_application/loan_application.py:146
 msgid "Please enter repayment Amount"
 msgstr "กรุณากรอกจำนวนเงินที่ต้องชำระคืน"
 
@@ -4888,7 +5260,7 @@ msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "กรุณาเลือก การเบิกจ่ายเงินกู้ สำหรับการชำระคืนวงเงินสินเชื่อ"
 
 #: lending/loan_management/doctype/loan/loan.py:166
-#: lending/loan_management/doctype/loan_application/loan_application.py:151
+#: lending/loan_management/doctype/loan_application/loan_application.py:153
 msgid "Please select Loan Product for company {0}"
 msgstr "กรุณาเลือกผลิตภัณฑ์สินเชื่อสำหรับบริษัท {0}"
 
@@ -5023,6 +5395,11 @@ msgstr ""
 msgid "Pledged Security Summary"
 msgstr ""
 
+#. Label of the points (Int) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Points"
+msgstr "คะแนน"
+
 #. Label of the portal_logo (Attach Image) field in DocType 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
 msgid "Portal Logo"
@@ -5116,8 +5493,10 @@ msgstr "ก่อนการปรับโครงสร้าง DPD"
 msgid "Pre Restructure Details"
 msgstr "รายละเอียดก่อนการปรับโครงสร้าง"
 
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
 #. Label of the prequalification_section (Section Break) field in DocType 'Loan
 #. Lead'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Pre-Qualification"
 msgstr ""
@@ -5359,7 +5738,7 @@ msgstr "คำปฏิญาณที่เสนอ"
 msgid "Proposed Pledges"
 msgstr "ข้อเสนอคำมั่นสัญญา"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:265
+#: lending/loan_management/doctype/loan_application/loan_application.py:267
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr "ข้อเสนอการให้คำมั่นสัญญาเป็นสิ่งที่ต้องทำสำหรับเงินกู้ที่มีหลักประกัน"
 
@@ -5374,12 +5753,12 @@ msgstr ""
 msgid "Provision Rate"
 msgstr "อัตราการจัดสรร"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:207
+#: lending/loan_management/doctype/loan_application/loan_application.py:209
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr "จำนวนสินค้าเป็นข้อบังคับสำหรับการค้ำประกันเงินกู้!"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:379
+#: lending/loan_management/doctype/loan_application/loan_application.py:381
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "จำนวนหรือปริมาณเป็นข้อมูลที่จำเป็นสำหรับการค้ำประกันเงินกู้"
 
@@ -5393,6 +5772,10 @@ msgstr "จำนวนหรือปริมาณเป็นข้อมู
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:35
 msgid "Quantity"
 msgstr "ปริมาณ"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:184
+msgid "Rate"
+msgstr "อัตรา"
 
 #. Label of the rate_of_interest (Float) field in DocType 'Loan Interest
 #. Accrual'
@@ -5426,11 +5809,35 @@ msgstr "อัตราดอกเบี้ย (%) ต่อปี"
 msgid "Ratio"
 msgstr "อัตราส่วน"
 
+#. Label of the payload_section (Section Break) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the raw_payload (Long Text) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Raw Payload"
+msgstr ""
+
+#. Label of the reason_code (Data) field in DocType 'Adverse Action Reason'
+#. Label of the reason_code (Link) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Reason Code"
+msgstr ""
+
+#. Label of the reason_codes (Small Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:141
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Reason Codes"
+msgstr ""
+
 #. Label of the reason_for_freezing (Small Text) field in DocType 'Loan Freeze
 #. Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
 msgid "Reason For Freezing"
 msgstr "เหตุผลในการระงับ"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:145
+msgid "Reason codes: {0}."
+msgstr ""
 
 #. Label of the reason_for_restructure (Small Text) field in DocType 'Loan
 #. Restructure'
@@ -5445,6 +5852,61 @@ msgstr "เหตุผลในการปรับโครงสร้าง
 msgid "Receivable Account"
 msgstr "บัญชีลูกหนี้"
 
+#. Label of the recommended_amount (Currency) field in DocType 'Loan
+#. Application'
+#. Label of the term_amount_cap (Currency) field in DocType 'Decision Rule'
+#. Label of the recommended_amount (Currency) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Loan Amount"
+msgstr ""
+
+#. Label of the term_roi_override (Percent) field in DocType 'Decision Rule'
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Rate Of Interest"
+msgstr ""
+
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Application'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+msgid "Recommended Rate of Interest"
+msgstr ""
+
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Application'
+#. Label of the term_tenure_cap (Int) field in DocType 'Decision Rule'
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Tenure in Months"
+msgstr ""
+
+#. Label of the terms_section (Section Break) field in DocType 'Decision Rule'
+#. Label of the terms_section (Section Break) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:142
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Terms"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:371
+msgid "Recommended amount capped at {0}."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:363
+msgid "Recommended rate of interest {0}."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:379
+msgid "Recommended tenure capped at {0}."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:151
+msgid "Recommended terms: {0}. Apply them on the application itself, so the repayment schedule is rebuilt with them."
+msgstr ""
+
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -5455,6 +5917,13 @@ msgstr ""
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Reduce Tenure"
+msgstr ""
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Refer"
 msgstr ""
 
 #. Label of the reference_no (Data) field in DocType 'Loan Security Assignment'
@@ -5624,7 +6093,7 @@ msgstr "การชำระคืน"
 msgid "Repayment Account"
 msgstr "บัญชีชำระเงินคืน"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:238
+#: lending/loan_management/doctype/loan_application/loan_application.py:240
 msgid "Repayment Amount must be greater than "
 msgstr "จำนวนเงินที่ต้องชำระคืนต้องมากกว่า "
 
@@ -5743,7 +6212,7 @@ msgstr "ประเภทตารางการชำระคืน"
 msgid "Repayment Start Date"
 msgstr "วันเริ่มต้นการชำระคืน"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:955
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:956
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "วันเริ่มต้นการชำระคืนเป็นข้อบังคับสำหรับเงินกู้แบบมีกำหนดระยะเวลา"
 
@@ -5767,6 +6236,15 @@ msgstr "ระยะเวลาการชำระคืนเป็นข้
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "ประเภทการชำระคืนสามารถเลือกได้เพียงการตัดหนี้สูญเพื่อเรียกคืนหรือการตัดหนี้สูญเพื่อชำระหนี้"
+
+#. Label of the report_date (Datetime) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Report Date"
+msgstr "วันที่รายงาน"
+
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:35
+msgid "Report Date cannot be in the future."
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5850,6 +6328,46 @@ msgstr "บัญชีต้องปิดยอดเป็นจำนวน
 msgid "Row {0}: Loan Security {1} added multiple times"
 msgstr "แถว {0}: หลักประกันเงินกู้ {1} ถูกเพิ่มหลายครั้ง"
 
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:130
+msgid "Row {0}: a Decline rule needs a reason code the applicant can be told."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:93
+msgid "Row {0}: a between rule compares by size, so {1} has to be a number. Write 100000 rather than 100,000."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:83
+msgid "Row {0}: a between rule needs two comma separated values, such as 600,750."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:122
+msgid "Row {0}: a {1} strategy only ever sees applicant types {2}. {3} belongs to the other stage, so this rule would never match."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:52
+msgid "Row {0}: sequence {1} is already in use. The first matching rule wins, so two rules sharing a sequence have no defined order."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:100
+msgid "Row {0}: the lower bound {1} is above the upper bound {2}."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:108
+msgid "Row {0}: {1} compares by size, so {2} has to be a number. Write 100000 rather than 100,000."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:70
+msgid "Row {0}: {1} is not a supported operator."
+msgstr ""
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:55
+msgid "Row {0}: {1} is not a variable the engine produces, so this band could never score. Use one of: {2}."
+msgstr ""
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:62
+msgid "Row {0}: {1} is not a variable the engine produces, so this rule could never match. Use one of: {2}."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:100
 msgid "Row {0}: {1} of {2} is pledged against Loan {3}."
 msgstr "แถว {0}: {1} ของ {2} ถูกนำมาค้ำประกันเงินกู้ {3}."
@@ -5859,6 +6377,39 @@ msgstr "แถว {0}: {1} ของ {2} ถูกนำมาค้ำประ
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:132
 msgid "Row {0}: {1} should be between 1 and 99"
 msgstr "แถว {0}: {1} ควรอยู่ระหว่าง 1 ถึง 99"
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:78
+msgid "Row {0}: {1} {2} is above {3} {4}."
+msgstr ""
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:94
+msgid "Rows {0} and {1} of {2} overlap. A value inside the overlap would score differently depending on row order."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:470
+msgid "Rule value {0} is not a number, but {1} is. Write 100000 rather than 100,000."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:302
+msgid "Rule {0} did not match. {1} is {2}."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:310
+msgid "Rule {0} matched on {1}. Outcome {2}."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:294
+msgid "Rule {0} skipped. {1} was not collected for this applicant."
+msgstr ""
+
+#. Description of the 'Sequence' (Int) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Rules are evaluated lowest first. The first match wins."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:40
+msgid "Running every strategy…"
+msgstr ""
 
 #. Option for the 'Employment Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -5898,7 +6449,7 @@ msgid "Sanctioned Amount Tolerance (%)"
 msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:572
-#: lending/loan_management/doctype/loan_application/loan_application.py:198
+#: lending/loan_management/doctype/loan_application/loan_application.py:200
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr "จำนวนเงินที่เกินวงเงินที่ได้รับอนุมัติสำหรับ {0} {1}"
 
@@ -5915,6 +6466,41 @@ msgstr "จำนวนเงินกู้ที่ได้รับอนุ
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.py:32
 msgid "Sanctioned Loan Amount already exists for {0} against company {1}"
 msgstr "จำนวนเงินกู้ที่ได้รับอนุมัติแล้วสำหรับ {0} โดยใช้บริษัท {1}เป็นหลักประกัน"
+
+#. Label of the score (Int) field in DocType 'Credit Bureau Report'
+#. Label of the score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:74
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Score"
+msgstr "คะแนน"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "Score {0}, grade {1}."
+msgstr ""
+
+#. Label of the scorecard (Link) field in DocType 'Loan Decision'
+#. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:71
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard"
+msgstr ""
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Scorecard Attribute"
+msgstr ""
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Scorecard Grade Band"
+msgstr ""
+
+#. Label of the scorecard_name (Data) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard Name"
+msgstr ""
 
 #. Option for the 'Security Type' (Select) field in DocType 'Loan IRAC
 #. Provisioning Configuration'
@@ -5976,7 +6562,7 @@ msgid "Select {0}s By"
 msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:173
-#: lending/loan_management/doctype/loan_application/loan_application.py:158
+#: lending/loan_management/doctype/loan_application/loan_application.py:160
 msgid "Selected employee belongs to {0}. Please select an employee from company {1}."
 msgstr "พนักงานที่เลือกเป็นสมาชิกของสมาคมผู้จัดการและเจ้าหน้าที่ธนาคารแห่งประเทศไทย ( {0}) กรุณาเลือกพนักงานจากบริษัท ธนาคารแห่งประเทศไทย ( {1})"
 
@@ -6081,6 +6667,35 @@ msgstr "เอกสารต้นฉบับ"
 msgid "Start of the next month"
 msgstr "ต้นเดือนหน้า"
 
+#. Label of the stop_on_match (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop On Match"
+msgstr ""
+
+#. Description of the 'Stop On Match' (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop evaluating the strategy once this rule matches."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:118
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:128
+msgid "Strategies"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:138
+msgid "Strategy"
+msgstr ""
+
+#. Label of the strategy_name (Data) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Name"
+msgstr ""
+
+#. Label of the strategy_type (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Type"
+msgstr ""
+
 #. Label of the subsidy_adjustment_account (Link) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -6091,6 +6706,10 @@ msgstr "บัญชีการปรับเงินอุดหนุน"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Subsidy Adjustments"
 msgstr "การปรับเงินอุดหนุน"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:142
+msgid "Supersedes {0}."
+msgstr ""
 
 #. Label of the suspense_account (Link) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -6131,6 +6750,10 @@ msgstr "ตำแหน่งถาวร"
 msgid "Tenure Post Restructure"
 msgstr "การปรับโครงสร้างตำแหน่งงานประจำ"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:194
+msgid "Tenure capped at"
+msgstr ""
+
 #. Label of the term_details_section (Section Break) field in DocType 'Loan'
 #. Label of the term_details_section (Section Break) field in DocType 'Loan
 #. Repayment Schedule'
@@ -6144,6 +6767,11 @@ msgstr "รายละเอียดเงื่อนไข"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Terms and Conditions"
 msgstr "ข้อกำหนดและเงื่อนไข"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
+msgid "Test Run"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
@@ -6163,6 +6791,10 @@ msgstr "เงินกู้ต่อไปนี้ไม่มีอยู่
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
 msgid "The repost did not finish and has been reset to Draft:"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:81
+msgid "The same for every strategy below. Only the rules differ, so each log covers its rules alone."
 msgstr ""
 
 #. Description of the 'Repayment Schedule Type' (Select) field in DocType 'Loan
@@ -6185,11 +6817,19 @@ msgstr "มีผู้กู้ที่มีรายละเอียดก
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "มีการสะสมที่ทับซ้อนกันที่นี่ {}, วันที่สะสมปัจจุบันถูกสะสมจาก {} ถึง {}"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:54
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:83
+msgid "There is nothing to submit. No rule in {0} matched this applicant, so no decision was reached."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:57
 msgid "This applicant already holds the maximum of {0} live loans, so this lead cannot be taken forward."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:355
+#: lending/loan_origination/decisioning.py:137
+msgid "This applicant cannot clear the knockout rules yet. {0} was not collected, so the rules that reject on it could not be checked."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:365
 msgid "This applicant was rejected within the last {0} days. A cooling period applies, so this lead cannot be taken forward yet."
 msgstr ""
 
@@ -6203,6 +6843,10 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
 msgid "This repost is {0} in the background. Please wait for it to finish."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:336
+msgid "This rule runs as a workflow task and cannot be called directly."
 msgstr ""
 
 #. Label of the to_branch (Link) field in DocType 'Loan Transfer'
@@ -6240,6 +6884,11 @@ msgstr "รวมเครดิต"
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
 msgstr "รวมเดบิต"
+
+#. Label of the total_emi (Currency) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Total EMI"
+msgstr ""
 
 #. Label of the total_emi_charges (Currency) field in DocType 'Loan
 #. Disbursement'
@@ -6394,6 +7043,11 @@ msgstr "การรักษาที่สนใจ"
 msgid "Treatment of charge"
 msgstr ""
 
+#. Description of the 'Value' (Data) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Two comma separated numbers for between. A comma separated list for in and not in."
+msgstr ""
+
 #. Label of the type_of_fldg_applicable (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -6433,6 +7087,11 @@ msgstr "ดอกเบี้ยจ่ายที่ยังไม่ได้
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Unbooked Penalty Paid"
 msgstr "ชำระค่าปรับที่ยังไม่ได้จอง"
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Underwriting"
+msgstr ""
 
 #. Label of the unfreeze_date (Date) field in DocType 'Loan Freeze Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
@@ -6541,6 +7200,20 @@ msgstr "วันมูลค่า"
 msgid "Value Type"
 msgstr "ประเภทข้อมูล"
 
+#. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Variable"
+msgstr "ตัวแปร"
+
+#. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Variable Snapshot"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:87
+msgid "Variables"
+msgstr "ตัวแปร"
+
 #. Description of the 'OTP for Email' (Check) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
@@ -6596,6 +7269,10 @@ msgstr "การยกเว้นค่าธรรมเนียมที่
 msgid "Watch Period End Date"
 msgstr "วันสิ้นสุดระยะเวลาการดู"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:79
+msgid "What the engine sees"
+msgstr ""
+
 #. Description of the 'Indicative Amount' (Currency) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6606,6 +7283,17 @@ msgstr ""
 #. Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
+msgstr ""
+
+#. Description of the 'Raw Payload' (Long Text) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes."
+msgstr ""
+
+#. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "When more than one strategy matches, the highest priority runs."
 msgstr ""
 
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
@@ -6689,6 +7377,10 @@ msgstr "ยกเลิกการบันทึก"
 msgid "Written Off Amount"
 msgstr "จำนวนเงินที่ตัดจำหน่าย"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:216
+msgid "Wrong Bureau Report"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
 msgstr "คุณกำลังพยายามยกเลิกการให้คำมั่นสัญญาเพิ่มเติม"
@@ -6702,8 +7394,64 @@ msgstr ""
 msgid "ZIP Code"
 msgstr "รหัสไปรษณีย์"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
+msgid "any strategy"
+msgstr ""
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "between"
+msgstr "ระหว่าง"
+
+#: lending/loan_origination/decisioning.py:197
+msgid "decision"
+msgstr ""
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "in"
+msgstr "ใน"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:161
+msgid "loan amount capped at {0}, currently {1}"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:187
+msgid "no matching rule"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:172
+msgid "no rule matched"
+msgstr ""
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "not in"
+msgstr "ไม่ได้อยู่ใน"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:160
+msgid "rate of interest {0}, currently {1}"
+msgstr ""
+
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:56
 msgid "telephony_label"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:162
+msgid "tenure capped at {0}, currently {1}"
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:198
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
+msgid "this applicant"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:154
+msgid "this is the one that runs"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "ungraded"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:137
@@ -6718,6 +7466,14 @@ msgstr "{0} ไม่สามารถเป็นค่าลบได้"
 msgid "{0} changed while the OTP was in flight. Please try again."
 msgstr ""
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:139
+msgid "{0} decided {1}."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:111
+msgid "{0} has changed since this decision was drafted. Save the decision again so it is made on what you are approving."
+msgstr ""
+
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:142
 msgid "{0} is already verified for this lead."
 msgstr ""
@@ -6726,10 +7482,42 @@ msgstr ""
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr ""
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:100
+msgid "{0} is no longer a draft, so a decision can no longer be recorded against it."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:213
+msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:403
+msgid "{0} is not a supported decision rule operator."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:234
+msgid "{0} is {1}, inside {2} to {3}. {4} points."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:186
+msgid "{0} returned {1}."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:243
+msgid "{0} scored nothing. It was not collected for this applicant."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:76
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:92
 msgid "{0} should be between 1 and 99"
 msgstr "{0} ควรอยู่ระหว่าง 1 ถึง 99"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:195
+msgid "{0} was cancelled and no longer governs this application."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:181
+msgid "{0} was cancelled, but this application is no longer a draft, so the decision it recorded stands."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:181
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
