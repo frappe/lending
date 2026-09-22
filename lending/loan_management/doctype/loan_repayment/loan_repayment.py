@@ -3400,6 +3400,94 @@ def get_net_paid_amount(loan):
 
 
 @frappe.whitelist(methods=["POST"])
+def create_loan_repayment_bts(
+	bank_transaction_name: str,
+	against_loan: str,
+	repayment_type: str = "Normal Repayment",
+	loan_disbursement: str | None = None,
+	reference_number: str | None = None,
+	reference_date: str | date | None = None,
+	posting_date: str | date | datetime | None = None,
+	mode_of_payment: str | None = None,
+	cost_center: str | None = None,
+	allow_edit: bool = False,
+):
+	"""Create a Loan Repayment for the unallocated amount of a Bank Transaction and reconcile it"""
+	from erpnext.accounts.doctype.bank_reconciliation_tool.bank_reconciliation_tool import (
+		reconcile_vouchers,
+	)
+
+	bank_transaction = frappe.get_doc("Bank Transaction", bank_transaction_name)
+	bank_transaction.check_permission("write")
+
+	if flt(bank_transaction.deposit) <= 0:
+		frappe.throw(_("Loan Repayment can only be created against a deposit"))
+
+	if flt(bank_transaction.unallocated_amount) <= 0:
+		frappe.throw(_("Bank Transaction {0} is already fully reconciled").format(bank_transaction.name))
+
+	bank_account = frappe.db.get_value(
+		"Bank Account", bank_transaction.bank_account, ["account", "company"], as_dict=True
+	)
+	loan = frappe.db.get_value(
+		"Loan",
+		against_loan,
+		["name", "company", "applicant_type", "applicant", "loan_product", "docstatus"],
+		as_dict=True,
+	)
+
+	if not loan or loan.docstatus != 1:
+		frappe.throw(_("Loan {0} must be submitted").format(against_loan))
+
+	if loan.company != bank_account.company:
+		frappe.throw(
+			_("Loan {0} does not belong to the company of Bank Account {1}").format(
+				against_loan, bank_transaction.bank_account
+			)
+		)
+
+	repayment = frappe.new_doc("Loan Repayment")
+	repayment.update(
+		{
+			"against_loan": loan.name,
+			"applicant_type": loan.applicant_type,
+			"applicant": loan.applicant,
+			"loan_product": loan.loan_product,
+			"company": loan.company,
+			"repayment_type": repayment_type,
+			"loan_disbursement": loan_disbursement,
+			"posting_date": get_datetime(),
+			"value_date": get_datetime(posting_date or bank_transaction.date),
+			"amount_paid": bank_transaction.unallocated_amount,
+			"reference_number": reference_number or bank_transaction.reference_number,
+			"reference_date": reference_date or bank_transaction.date,
+			"mode_of_payment": mode_of_payment,
+			"bank_account": bank_transaction.bank_account,
+			"payment_account": bank_account.account,
+			"cost_center": cost_center,
+		}
+	)
+
+	if allow_edit:
+		return repayment
+
+	repayment.insert()
+	repayment.submit()
+
+	return reconcile_vouchers(
+		bank_transaction.name,
+		[
+			{
+				"payment_doctype": "Loan Repayment",
+				"payment_name": repayment.name,
+				"amount": repayment.amount_paid,
+			}
+		],
+		is_new_voucher=True,
+	)
+
+
+@frappe.whitelist(methods=["POST"])
 def post_bulk_payments(data: str | list[dict]):
 	# sort data by loan and value date
 	data = sorted(data, key=lambda x: (x["against_loan"], x["value_date"]))
