@@ -325,6 +325,7 @@ def create_loan_product(
 	collection_offset_sequence_for_written_off_asset=None,
 	collection_offset_sequence_for_settlement_collection=None,
 	no_interest_till_month_end=0,
+	emi_rounding_method="Round Up",
 ):
 
 	loan_product = frappe.get_all("Loan Product", filters={"product_name": product_name}, limit=1)
@@ -374,6 +375,7 @@ def create_loan_product(
 	)
 	loan_product_doc.min_auto_closure_tolerance_amount = -100
 	loan_product_doc.max_auto_closure_tolerance_amount = 100
+	loan_product_doc.emi_rounding_method = emi_rounding_method
 	loan_product_doc.collection_offset_sequence_for_standard_asset = (
 		collection_offset_sequence_for_standard_asset
 	)

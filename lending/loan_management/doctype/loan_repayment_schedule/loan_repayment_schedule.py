@@ -104,6 +104,11 @@ class LoanRepaymentSchedule(Document):
 		self.reset_index()
 		self.set_maturity_date()
 
+	def get_emi_rounding_method(self):
+		return (
+			frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method") or "Round Up"
+		)
+
 	def reset_index(self):
 		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
 			row.idx = idx
@@ -407,7 +412,11 @@ class LoanRepaymentSchedule(Document):
 			)
 		elif not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
-				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+				balance_amount,
+				rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
+				self.get_emi_rounding_method(),
 			)
 		else:
 			monthly_repayment_amount = self.monthly_repayment_amount
@@ -451,7 +460,11 @@ class LoanRepaymentSchedule(Document):
 					):
 						balance_amount = self.loan_amount + moratorium_interest
 						monthly_repayment_amount = get_monthly_repayment_amount(
-							balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+							balance_amount,
+							rate_of_interest,
+							self.repayment_periods,
+							self.repayment_frequency,
+							self.get_emi_rounding_method(),
 						)
 						moratorium_interest = 0
 
@@ -770,6 +783,7 @@ class LoanRepaymentSchedule(Document):
 							self.rate_of_interest,
 							self.repayment_periods,
 							self.repayment_frequency,
+							self.get_emi_rounding_method(),
 						)
 						return (
 							previous_interest_amount,
@@ -869,6 +883,7 @@ class LoanRepaymentSchedule(Document):
 						self.rate_of_interest,
 						self.repayment_periods - completed_tenure,
 						self.repayment_frequency,
+						self.get_emi_rounding_method(),
 					)
 
 				if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":

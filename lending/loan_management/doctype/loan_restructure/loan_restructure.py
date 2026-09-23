@@ -576,8 +576,16 @@ class LoanRestructure(AccountsController):
 			)
 
 		if self.new_repayment_method == "Repay Over Number of Periods":
+			emi_rounding_method = (
+				frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method")
+				or "Round Up"
+			)
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
-				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months, "Monthly"
+				self.new_loan_amount,
+				self.new_rate_of_interest,
+				self.new_repayment_period_in_months,
+				"Monthly",
+				emi_rounding_method,
 			)
 
 	def restructure_loan(self):
