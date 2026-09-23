@@ -106,7 +106,8 @@ class LoanRepaymentSchedule(Document):
 
 	def get_emi_rounding_method(self):
 		return (
-			frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method") or "Round Up"
+			frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method")
+			or "Round to Nearest"
 		)
 
 	def reset_index(self):
@@ -408,7 +409,11 @@ class LoanRepaymentSchedule(Document):
 
 		if self.repayment_schedule_type == "Flat Interest Rate":
 			monthly_repayment_amount = get_flat_monthly_repayment_amount(
-				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+				balance_amount,
+				rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
+				self.get_emi_rounding_method(),
 			)
 		elif not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(

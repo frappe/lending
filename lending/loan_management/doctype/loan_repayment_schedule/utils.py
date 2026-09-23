@@ -21,7 +21,7 @@ def round_emi(amount, emi_rounding_method):
 
 
 def get_monthly_repayment_amount(
-	loan_amount, rate_of_interest, repayment_periods, frequency, emi_rounding_method="Round Up"
+	loan_amount, rate_of_interest, repayment_periods, frequency, emi_rounding_method="Round to Nearest"
 ):
 	if frequency == "One Time":
 		repayment_periods = 1
@@ -67,7 +67,9 @@ def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amoun
 
 	return math.ceil(repayment_periods)
 
-def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
+def get_flat_monthly_repayment_amount(
+	loan_amount, rate_of_interest, repayment_periods, frequency, emi_rounding_method="Round to Nearest"
+):
 	if frequency == "Monthly":
 		years = 12
 	else:
@@ -75,7 +77,7 @@ def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_p
 
 	total_interest = loan_amount * rate_of_interest * repayment_periods/ (years * 100)
 	total_amount = loan_amount + total_interest
-	monthly_repayment_amount = math.ceil(flt(total_amount) / repayment_periods)
+	monthly_repayment_amount = round_emi(flt(total_amount) / repayment_periods, emi_rounding_method)
 
 	return monthly_repayment_amount
 

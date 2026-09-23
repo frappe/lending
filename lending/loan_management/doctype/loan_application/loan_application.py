@@ -230,7 +230,7 @@ class LoanApplication(Document):
 			if self.repayment_method == "Repay Over Number of Periods":
 				emi_rounding_method = (
 					frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method")
-					or "Round Up"
+					or "Round to Nearest"
 				)
 				self.repayment_amount = get_monthly_repayment_amount(
 					self.loan_amount,
