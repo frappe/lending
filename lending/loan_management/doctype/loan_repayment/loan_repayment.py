@@ -3399,6 +3399,18 @@ def get_net_paid_amount(loan):
 	return net_paid_amount
 
 
+BANK_RECONCILIATION_REPAYMENT_TYPES = (
+	"Normal Repayment",
+	"Advance Payment",
+	"Pre Payment",
+	"Loan Closure",
+	"Partial Settlement",
+	"Full Settlement",
+	"Write Off Recovery",
+	"Charge Payment",
+)
+
+
 @frappe.whitelist(methods=["POST"])
 def create_loan_repayment_bts(
 	bank_transaction_name: str,
@@ -3436,7 +3448,10 @@ def create_loan_repayment_bts(
 		as_dict=True,
 	)
 
-	if not loan or loan.docstatus != 1:
+	if not loan:
+		frappe.throw(_("Loan {0} does not exist").format(against_loan), frappe.DoesNotExistError)
+
+	if loan.docstatus != 1:
 		frappe.throw(_("Loan {0} must be submitted").format(against_loan))
 
 	if loan.company != bank_account.company:
@@ -3445,6 +3460,48 @@ def create_loan_repayment_bts(
 				against_loan, bank_transaction.bank_account
 			)
 		)
+
+	if bank_transaction.party_type and bank_transaction.party:
+		if (bank_transaction.party_type, bank_transaction.party) != (loan.applicant_type, loan.applicant):
+			frappe.throw(
+				_("Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}").format(
+					bank_transaction.name, bank_transaction.party_type, bank_transaction.party, against_loan
+				)
+			)
+
+	if repayment_type not in BANK_RECONCILIATION_REPAYMENT_TYPES:
+		frappe.throw(_("Repayment Type {0} cannot be created from a Bank Transaction").format(repayment_type))
+
+	if repayment_type == "Charge Payment" and not allow_edit:
+		frappe.throw(
+			_(
+				"Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
+			)
+		)
+
+	if loan_disbursement and not frappe.db.exists(
+		"Loan Disbursement", {"name": loan_disbursement, "against_loan": against_loan, "docstatus": 1}
+	):
+		frappe.throw(
+			_("Loan Disbursement {0} is not a submitted disbursement of Loan {1}").format(
+				loan_disbursement, against_loan
+			)
+		)
+
+	if mode_of_payment and not frappe.db.exists("Mode of Payment", mode_of_payment):
+		frappe.throw(_("Mode of Payment {0} does not exist").format(mode_of_payment), frappe.DoesNotExistError)
+
+	if cost_center and frappe.db.get_value("Cost Center", cost_center, "company") != loan.company:
+		frappe.throw(_("Cost Center {0} does not belong to company {1}").format(cost_center, loan.company))
+
+	if reference_number and len(reference_number) > 140:
+		frappe.throw(_("Reference Number cannot be longer than 140 characters"))
+
+	try:
+		value_date = get_datetime(posting_date) if posting_date else get_datetime(bank_transaction.date)
+		reference_date = getdate(reference_date) if reference_date else bank_transaction.date
+	except (TypeError, ValueError):
+		frappe.throw(_("Posting Date and Reference Date must be valid dates"))
 
 	repayment = frappe.new_doc("Loan Repayment")
 	repayment.update(
@@ -3457,10 +3514,10 @@ def create_loan_repayment_bts(
 			"repayment_type": repayment_type,
 			"loan_disbursement": loan_disbursement,
 			"posting_date": get_datetime(),
-			"value_date": get_datetime(posting_date or bank_transaction.date),
+			"value_date": value_date,
 			"amount_paid": bank_transaction.unallocated_amount,
 			"reference_number": reference_number or bank_transaction.reference_number,
-			"reference_date": reference_date or bank_transaction.date,
+			"reference_date": reference_date,
 			"mode_of_payment": mode_of_payment,
 			"bank_account": bank_transaction.bank_account,
 			"payment_account": bank_account.account,
@@ -3473,6 +3530,11 @@ def create_loan_repayment_bts(
 
 	repayment.insert()
 	repayment.submit()
+
+	if not bank_transaction.party:
+		bank_transaction.party_type = loan.applicant_type
+		bank_transaction.party = loan.applicant
+		bank_transaction.save()
 
 	return reconcile_vouchers(
 		bank_transaction.name,

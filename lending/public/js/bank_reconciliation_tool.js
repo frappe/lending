@@ -45,7 +45,6 @@ erpnext.accounts.bank_reconciliation.voucher_types["Loan Repayment"] = {
 					"Partial Settlement",
 					"Full Settlement",
 					"Write Off Recovery",
-					"Charge Payment",
 				].join("\n"),
 				default: "Normal Repayment",
 				depends_on: show,
