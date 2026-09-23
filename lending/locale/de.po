@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 13:38+0000\n"
-"PO-Revision-Date: 2026-09-21 18:28\n"
+"PO-Revision-Date: 2026-09-23 19:01\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -6743,7 +6743,7 @@ msgstr "Steuern und Gebühren"
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:132
 msgid "Tenure"
-msgstr ""
+msgstr "Betriebszugehörigkeit"
 
 #. Label of the tenure_post_restructure (Int) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
