@@ -2450,6 +2450,7 @@ class TestLoanRepayment(LendingTestSuite):
 
 		self.assertEqual(transaction.status, "Reconciled")
 		self.assertEqual(transaction.unallocated_amount, 0)
+		self.assertEqual((transaction.party_type, transaction.party), ("Customer", self.applicant2))
 		self.assertEqual(transaction.payment_entries[0].payment_document, "Loan Repayment")
 		self.assertEqual(transaction.payment_entries[0].reconciliation_type, "Voucher Created")
 
@@ -2477,6 +2478,54 @@ class TestLoanRepayment(LendingTestSuite):
 		withdrawal = make_bank_transaction(bank_account, withdrawal=200, date="2024-05-06")
 		self.assertRaises(frappe.ValidationError, create_loan_repayment_bts, withdrawal.name, loan.name)
 
+		for invalid_kwargs in (
+			{"repayment_type": "Interest Waiver"},
+			{"loan_disbursement": "LD-DOES-NOT-EXIST"},
+			{"mode_of_payment": "No Such Mode"},
+			{"cost_center": "Main - _TC1"},
+			{"posting_date": "not-a-date"},
+			{"reference_date": "2024-13-45"},
+			{"reference_number": "x" * 141},
+		):
+			with self.subTest(invalid_kwargs=invalid_kwargs):
+				self.assertRaises(
+					frappe.ValidationError,
+					create_loan_repayment_bts,
+					editable_deposit.name,
+					loan.name,
+					**invalid_kwargs,
+				)
+		self.assertRaises(
+			frappe.DoesNotExistError, create_loan_repayment_bts, editable_deposit.name, "LOAN-DOES-NOT-EXIST"
+		)
+
+		other_party_deposit = make_bank_transaction(
+			bank_account, deposit=100, date="2024-05-06", party_type="Customer", party="_Test Customer 1"
+		)
+		self.assertRaises(
+			frappe.ValidationError, create_loan_repayment_bts, other_party_deposit.name, loan.name
+		)
+		self.assertRaises(
+			frappe.ValidationError,
+			create_loan_repayment_bts,
+			other_party_deposit.name,
+			loan.name,
+			allow_edit=True,
+		)
+
+		self.assertRaises(
+			frappe.ValidationError,
+			create_loan_repayment_bts,
+			editable_deposit.name,
+			loan.name,
+			repayment_type="Charge Payment",
+		)
+		charge_draft = create_loan_repayment_bts(
+			editable_deposit.name, loan.name, repayment_type="Charge Payment", allow_edit=True
+		)
+		self.assertTrue(charge_draft.is_new())
+		self.assertEqual(charge_draft.repayment_type, "Charge Payment")
+
 
 def make_bank_account(gl_account):
 	frappe.get_doc({"doctype": "Bank", "bank_name": "_Test Loan Bank"}).insert(ignore_if_duplicate=True)
@@ -2494,7 +2543,7 @@ def make_bank_account(gl_account):
 	return bank_account.name
 
 
-def make_bank_transaction(bank_account, deposit=0, withdrawal=0, date=None):
+def make_bank_transaction(bank_account, deposit=0, withdrawal=0, date=None, party_type=None, party=None):
 	return frappe.get_doc(
 		{
 			"doctype": "Bank Transaction",
@@ -2504,5 +2553,7 @@ def make_bank_transaction(bank_account, deposit=0, withdrawal=0, date=None):
 			"deposit": deposit,
 			"withdrawal": withdrawal,
 			"currency": "INR",
+			"party_type": party_type,
+			"party": party,
 		}
 	).submit()
