@@ -44,6 +44,7 @@ class LoanProduct(Document):
 		days_past_due_threshold_for_npa: DF.Int
 		disabled: DF.Check
 		disbursement_account: DF.Link | None
+		emi_rounding_method: DF.Literal["Round to Nearest", "Round Up", "No Rounding"]
 		excess_amount_acceptance_limit: DF.Float
 		grace_period_in_days: DF.Int
 		interest_accrued_account: DF.Link | None
