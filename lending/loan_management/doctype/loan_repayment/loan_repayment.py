@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 
+import json
 import traceback
 from datetime import date, datetime
 
@@ -3538,13 +3539,15 @@ def create_loan_repayment_bts(
 
 	return reconcile_vouchers(
 		bank_transaction.name,
-		[
-			{
-				"payment_doctype": "Loan Repayment",
-				"payment_name": repayment.name,
-				"amount": repayment.amount_paid,
-			}
-		],
+		json.dumps(
+			[
+				{
+					"payment_doctype": "Loan Repayment",
+					"payment_name": repayment.name,
+					"amount": repayment.amount_paid,
+				}
+			]
+		),
 		is_new_voucher=True,
 	)
 
