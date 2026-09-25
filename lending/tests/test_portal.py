@@ -29,12 +29,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.utils import add_days, add_years, getdate, nowdate
+from frappe.utils.safe_exec import is_safe_exec_enabled
 
 from lending.loan_management.doctype.lending_settings.lending_settings import (
 	APPLY_ROUTE,
 	portal_app,
 	sync_portal_pages,
 )
+from lending.loan_origination.doctype.loan_lead.test_loan_lead import activate_loan_lead_workflow
 from lending.portal.accounts import customer_for_email
 from lending.portal.applications import (
 	default_application,
@@ -536,7 +538,7 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			submit_lead()
 
-	def test_a_verified_number_creates_a_submitted_and_verified_lead(self):
+	def test_a_verified_number_creates_a_draft_and_verified_lead(self):
 		token = self.mint_token()
 		self.submission(token=token, income=60000, pan="ABCDE1234F")
 		result = submit_lead()
@@ -554,7 +556,8 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		self.assertEqual(lead.mobile_verification_status, "Verified")
 		self.assertEqual(lead.lead_source, "Portal")
 		self.assertEqual(lead.pan, "ABCDE1234F")
-		self.assertEqual(lead.docstatus, 1)
+		# A submitted lead skips every rule step in the Loan Lead Workflow.
+		self.assertEqual(lead.docstatus, 0)
 
 	def test_a_token_works_once(self):
 		token = self.mint_token()
@@ -612,6 +615,68 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 		with self.assertRaises(frappe.ValidationError):
 			submit_lead()
+
+	# --- the workflow rules ---------------------------------------------------------
+
+	def use_lead_workflow(self):
+		if not frappe.db.exists("Workflow", "Loan Lead Workflow"):
+			self.skipTest("requires the Loan Lead Workflow fixture")
+
+		if not is_safe_exec_enabled():
+			self.skipTest("Run Basic Rules runs Server Scripts, which need server_script_enabled")
+
+		frappe.set_user("Administrator")
+		activate_loan_lead_workflow(self)
+		frappe.set_user("Guest")
+
+	def test_a_portal_lead_runs_the_rule_steps_as_a_draft(self):
+		self.use_lead_workflow()
+		self.submission(token=self.mint_token(), date_of_birth=add_years(nowdate(), -30))
+
+		lead = frappe.db.get_value(
+			"Loan Lead", submit_lead()["reference"], ["docstatus", "workflow_state"], as_dict=True
+		)
+
+		self.assertEqual(lead.docstatus, 0)
+		self.assertEqual(lead.workflow_state, "Pre-Qualified")
+		self.assertEqual(frappe.session.user, "Guest")
+
+	def test_a_rule_that_says_no_leaves_the_lead_at_incoming_with_a_note(self):
+		self.use_lead_workflow()
+		self.submission(token=self.mint_token(), date_of_birth=add_years(nowdate(), -30))
+
+		def pre_qualify(doc):
+			doc.db_set("prequalification_status", "Pre-Qualified")
+
+		with (
+			patch("lending.loan_origination.decisioning.run_pre_qualification_rules", pre_qualify),
+			patch(
+				"lending.loan_origination.decisioning.run_knockout_rules",
+				side_effect=frappe.ValidationError("Knockout rules declined this applicant."),
+			),
+		):
+			result = submit_lead()
+
+		lead = frappe.db.get_value(
+			"Loan Lead",
+			result["reference"],
+			["workflow_state", "prequalification_status", "mobile_verification_status"],
+			as_dict=True,
+		)
+
+		# The knockout rules took back the pre-qualification, so the page must not show it.
+		self.assertEqual(lead.workflow_state, "Incoming")
+		self.assertFalse(lead.prequalification_status)
+		self.assertEqual(result["headline"], "Thank you, we have your enquiry")
+		self.assertEqual(lead.mobile_verification_status, "Verified")
+
+		note = frappe.db.get_value(
+			"Comment",
+			{"reference_doctype": "Loan Lead", "reference_name": result["reference"]},
+			"content",
+		)
+		self.assertIn("Run Knockout Rules", note)
+		self.assertIn("Knockout rules declined", note)
 
 	# --- tracking -------------------------------------------------------------------
 

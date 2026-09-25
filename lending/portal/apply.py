@@ -30,8 +30,9 @@ guessing other people's reference numbers.
 
 import frappe
 from frappe import _
+from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, flt, getdate, today
+from frappe.utils import cint, flt, getdate, strip_html, today
 
 from lending.portal.accounts import customer_for_applicant, link_portal_user
 from lending.portal.core import (
@@ -93,6 +94,10 @@ ACCOUNT_PREFIX = "portal-apply-account"
 
 MINIMUM_AGE = 18
 PAN_LENGTH = 10
+
+# The Loan Lead Workflow steps a portal lead takes by itself, in order. Converting it
+# to an application stays with staff.
+AUTOMATIC_ACTIONS = ("Run Basic Rules", "Run Pre-Qualification Rules", "Run Knockout Rules")
 
 # A floor of our own. System Settings.minimum_password_score is set on this site and
 # a single character still went through, so a public endpoint that creates logins
@@ -450,10 +455,12 @@ def read_submission() -> dict:
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def submit_lead() -> dict:
-	"""Create and submit a Loan Lead, then hand back whatever the rules decided.
+	"""Create a draft Loan Lead, run its workflow rules, and hand back what they decided.
 
-	Submitting is what runs the decision engine, so the indicative offer is read back
-	off the saved document rather than computed here. The portal owns no credit policy.
+	The lead stays a draft: the workflow's rule steps only apply to one, and a submitted
+	lead jumps straight to Qualified with none of them run. The indicative offer is read
+	back off the saved document rather than computed here. The portal owns no credit
+	policy.
 	"""
 	assert_public_apply_enabled()
 
@@ -466,14 +473,7 @@ def submit_lead() -> dict:
 	lead.insert(ignore_permissions=True)
 	spend_token(token)
 
-	try:
-		lead.submit()
-	except Exception:
-		# The decision engine declining to run must not lose the enquiry. The lead is
-		# saved; staff can pick it up even if no indicative offer was produced.
-		frappe.log_error(f"Portal lead {lead.name} could not be submitted")
-		frappe.clear_last_message()
-
+	run_automatic_rules(lead.name)
 	mark_mobile_verified(lead.name, mobile)
 
 	lead.reload()
@@ -484,12 +484,63 @@ def submit_lead() -> dict:
 	return offer
 
 
+def run_automatic_rules(lead: str):
+	"""Take the lead through AUTOMATIC_ACTIONS, or leave it at Incoming with a note.
+
+	All three steps share one savepoint. A lead the knockout rules stop keeps no
+	pre-qualification verdict, so the offer on this page and the tracker cannot show an
+	offer the next rule took back. Staff read the note and re-run the steps from the desk.
+	"""
+	if not get_workflow_name("Loan Lead"):
+		return
+
+	# Elevated because every step is a Loan Officer action and the visitor is a guest.
+	# The lead is the one this request just made, and the actions are fixed above rather
+	# than read from the request.
+	caller = frappe.session.user
+	frappe.set_user("Administrator")
+	try:
+		apply_actions(lead)
+	finally:
+		frappe.set_user(caller)
+
+
+def apply_actions(lead: str):
+	save_point = f"portal_lead_{frappe.generate_hash(length=10)}"
+	frappe.db.savepoint(save_point)
+
+	for action in AUTOMATIC_ACTIONS:
+		try:
+			apply_workflow(frappe.get_doc("Loan Lead", lead), action)
+		except Exception as e:
+			frappe.db.rollback(save_point=save_point)
+			frappe.clear_last_message()
+			note_stopped_rules(lead, action, e)
+			return
+
+	frappe.db.release_savepoint(save_point)
+
+
+def note_stopped_rules(lead: str, action: str, error: Exception):
+	# A rule saying no raises a ValidationError, which is a decision for staff to read.
+	# Anything else is a fault and goes to the Error Log as well.
+	if not isinstance(error, frappe.ValidationError):
+		frappe.log_error(f"Portal lead {lead} failed at {action}")
+
+	frappe.get_doc("Loan Lead", lead).add_comment(
+		"Comment",
+		_("The portal's automatic checks stopped at {0}: {1}").format(
+			action, strip_html(str(error)) or _("no reason was given.")
+		),
+	)
+
+
 def mark_mobile_verified(lead: str, mobile: str):
 	"""Stamp the status after the document settles, never on the document itself.
 
 	Loan Lead.set_verification_statuses resets both statuses to Pending inside validate
 	whenever the recipient changed, which on a new document is always. Writing Verified
-	before insert or before submit is therefore erased by the next validate. Writing it
+	before insert or before the rules run is therefore erased by the next validate. Writing it
 	afterwards, filtered on the number it belongs to, is what survives -- the same shape
 	Loan Lead.mark_otp_status uses.
 	"""
