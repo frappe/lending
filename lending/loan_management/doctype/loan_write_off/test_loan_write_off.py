@@ -15,7 +15,9 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanWriteOff(LendingTestSuite):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		master_init()
 		init_loan_products()
 
