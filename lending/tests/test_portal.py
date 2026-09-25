@@ -1436,22 +1436,22 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(brand_tokens("#ff9f1c", None)["--portal-primary-ink"], "#171717")
 
 	def test_a_header_button_takes_the_secondary_only_where_it_stands_out(self):
-		"""SBI's cyan clears 3:1 on its navy; HDFC's red, at 2:1, would be a smudge."""
-		self.assertEqual(brand_tokens("#292075", "#00b5ef")["--portal-header-action"], "#00b5ef")
-		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-header-action"], "#ffffff")
+		"""HDFC's red clears 3:1 on its pale navy band; SBI's cyan, at 2.3:1, would be a smudge."""
+		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-header-action"], "#ed232a")
+		self.assertEqual(brand_tokens("#292075", "#00b5ef")["--portal-header-action"], "#171717")
 
 	def test_the_primary_colour_tints_the_sidebar_and_nothing_beside_it(self):
 		style = brand_style("#004b8e", "#ed232a")
 
-		# A trace of blue in the rail's greys, set on the sidebar alone.
-		self.assertIn(".borrower-portal .bg-surface-sidebar { --surface-sidebar: #f5f9fc;", style)
+		# The header's wash, set on the sidebar alone.
+		self.assertIn(".borrower-portal .bg-surface-sidebar { --surface-sidebar: var(--portal-primary-soft);", style)
 		self.assertNotIn(":root { --surface", style)
 
-	def test_the_header_is_a_band_of_the_primary_colour_in_its_own_ink(self):
+	def test_the_header_is_a_wash_of_the_primary_colour_in_frappe_uis_own_greys(self):
 		style = brand_style("#004b8e", "#ed232a")
 
-		self.assertIn(".borrower-portal .portal-header { background-color: var(--portal-primary);", style)
-		self.assertIn("--ink-gray-9: var(--portal-primary-ink);", style)
+		self.assertIn(".borrower-portal .portal-header { background-color: var(--portal-primary-soft);", style)
+		self.assertNotIn("--ink-gray-9", style)
 
 	def test_a_done_step_is_a_wash_of_the_primary_with_a_tick_that_can_be_seen(self):
 		"""HDFC's navy is dark enough as it is; Canara's blue is darkened to reach 3:1."""
@@ -1464,10 +1464,11 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertGreaterEqual(tick, 3.0)
 		self.assertNotEqual(canara["--portal-primary-deep"], "#019eec")
 
-	def test_the_borrowers_initial_wears_the_same_wash_as_a_done_step(self):
+	def test_the_borrowers_initial_is_a_white_disc_on_the_rails_wash(self):
+		"""The wash is the rail's own ground now, so a disc drawn in it would vanish."""
 		style = brand_style("#004b8e", None)
 
-		self.assertIn(".borrower-portal .portal-avatar { --surface-gray-2: var(--portal-primary-soft);", style)
+		self.assertIn(".borrower-portal .portal-avatar { --surface-gray-2: var(--surface-white);", style)
 		self.assertNotIn("portal-avatar", brand_style(None, "#ed232a"))
 
 	def test_grey_buttons_and_table_bands_wear_a_wash_of_the_secondary(self):
@@ -1488,17 +1489,10 @@ class TestPortalBranding(LendingTestSuite):
 			for ground in ("--portal-action-soft", "--portal-action-soft-hover", "--portal-action-soft-active"):
 				self.assertGreaterEqual(contrast(label, channels(tokens[ground])), 4.5, (secondary, ground))
 
-	def test_the_footer_wears_the_sidebars_tint(self):
+	def test_the_footer_wears_the_headers_wash(self):
 		style = brand_style("#004b8e", None)
 
-		self.assertIn(".borrower-portal .portal-footer { background-color: #f5f9fc;", style)
-
-	def test_a_grey_primary_colour_leaves_the_sidebar_and_footer_grey(self):
-		"""A grey has no hue to lend, and the rounding of one is not a hue."""
-		style = brand_style("#777777", None)
-
-		self.assertNotIn("bg-surface-sidebar", style)
-		self.assertNotIn("portal-footer", style)
+		self.assertIn(".borrower-portal .portal-footer { background-color: var(--portal-primary-soft);", style)
 
 	def test_only_a_hex_colour_reaches_the_stylesheet(self):
 		"""The value is written into a <style>, so anything else is dropped, not escaped."""

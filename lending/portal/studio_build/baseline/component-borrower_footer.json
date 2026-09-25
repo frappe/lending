@@ -83,7 +83,9 @@
         "script": "window.location.href = dataItem.footer_href"
        }
       },
-      "baseStyles": {},
+      "baseStyles": {
+       "color": "var(--ink-gray-6)"
+      },
       "mobileStyles": {},
       "tabletStyles": {},
       "children": [],

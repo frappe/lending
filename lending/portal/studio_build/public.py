@@ -98,10 +98,10 @@ def mark(read):
 			fontSize="15px",
 			fontWeight="700",
 			textTransform="uppercase",
-			# Inverted, because the bar behind it is already the primary; on a plain bar,
-			# a black tile.
-			backgroundColor="var(--portal-primary-ink, var(--ink-gray-9))",
-			color="var(--portal-primary, var(--surface-base))",
+			# The primary on the bar's pale wash of it, as the signed-in rail's tile; on a
+			# plain bar, a black tile.
+			backgroundColor="var(--portal-primary, var(--ink-gray-9))",
+			color="var(--portal-primary-ink, var(--surface-base))",
 		),
 		visible=read("show_wordmark"),
 	)
@@ -137,9 +137,8 @@ def top_bar(read, links):
 
 	A link is (label, href) or (label, href, glyph). The last one is the one a returning
 	borrower wants, so it is the one drawn as a button rather than as a bare label. On a
-	plain bar that is an outline. On a branded band it is solid, because an outline's grey
-	rule is lost on the primary, and a solid one wears the action colour the signed-in
-	header's button does.
+	plain bar that is an outline. On a branded band it is solid, and wears the action
+	colour the signed-in header's button does.
 	"""
 	branded = read("brand_style")[2:-2].strip()
 	last = "{{ %s ? 'solid' : 'outline' }}" % branded
@@ -168,8 +167,8 @@ def top_bar(read, links):
 			],
 		],
 		gap="12px",
-		# Painted in the lender's primary colour, as the signed-in header is; the class
-		# also turns the greys the bar's text and buttons use into the band's own ink.
+		# A pale wash of the lender's primary colour, as the signed-in header is; the class
+		# also turns the greys the bar's buttons hover in into washes of it.
 		classes=["portal-header"],
 		styles={
 			# 54px tall with its rule, and the mockup's own margins either side.
@@ -179,8 +178,8 @@ def top_bar(read, links):
 			"width": "100%",
 			"borderWidth": "0px 0px 1px 0px",
 			"borderStyle": "solid",
-			"borderColor": "var(--portal-primary, var(--outline-gray-2))",
-			"backgroundColor": "var(--portal-primary, var(--surface-base))",
+			"borderColor": "var(--portal-primary-soft, var(--outline-gray-2))",
+			"backgroundColor": "var(--portal-primary-soft, var(--surface-base))",
 		},
 		mobile={"padding": "12px 16px", "gap": "4px"},
 	)

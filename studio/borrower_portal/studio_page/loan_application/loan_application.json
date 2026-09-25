@@ -1553,7 +1553,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 02:08:02.539103",
+ "modified": "2026-09-25 12:32:14.188834",
  "modified_by": "Administrator",
  "name": "loan_application",
  "owner": "Administrator",

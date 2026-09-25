@@ -473,8 +473,7 @@ ROW_PADDING = {
 HEADER_BAND = {
 	"height": "36px",
 	"borderRadius": "var(--radius-4)",
-	# A wash of the lender's button colour, and frappe-ui's grey where none is set.
-	"backgroundColor": "var(--portal-action-soft, var(--surface-gray-2))",
+	"backgroundColor": "var(--surface-gray-2)",
 	"--outline-gray-1": "transparent",
 	"marginBottom": "10px",
 }
@@ -530,7 +529,7 @@ def record_list(columns, items, cells, row_key="name", script=None):
 			block(
 				"ListHeaderCell",
 				children=[
-					text(column[1], size="text-sm", styles={"color": "var(--portal-action-deep, var(--ink-gray-5))"})
+					text(column[1], size="text-sm", styles={"color": "var(--ink-gray-5)"})
 				],
 				styles=aligned(None, end),
 			)

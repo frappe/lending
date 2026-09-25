@@ -747,6 +747,8 @@ def footer_tree():
 		script="window.location.href = dataItem.footer_href",
 		variant="ghost",
 		props={"size": "sm"},
+		# The copyright line's grey, so the band reads as one quiet line.
+		styles={"color": "var(--ink-gray-6)"},
 	)
 
 	return row(
@@ -764,7 +766,7 @@ def footer_tree():
 			),
 		],
 		gap="10px",
-		# What lending.portal.brand tints with the sidebar's trace of the primary colour.
+		# What lending.portal.brand washes in the lender's primary colour, as the header.
 		classes=["portal-footer"],
 		styles={
 			# A fixed 49px band, matching the 48.8px header at the other end of the page.

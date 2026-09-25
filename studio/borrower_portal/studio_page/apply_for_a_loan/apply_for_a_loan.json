@@ -26,8 +26,8 @@
       {
        "baseStyles": {
         "alignItems": "center",
-        "backgroundColor": "var(--portal-primary, var(--surface-base))",
-        "borderColor": "var(--portal-primary, var(--outline-gray-2))",
+        "backgroundColor": "var(--portal-primary-soft, var(--surface-base))",
+        "borderColor": "var(--portal-primary-soft, var(--outline-gray-2))",
         "borderStyle": "solid",
         "borderWidth": "0px 0px 1px 0px",
         "display": "flex",
@@ -61,9 +61,9 @@
         {
          "baseStyles": {
           "alignItems": "center",
-          "backgroundColor": "var(--portal-primary-ink, var(--ink-gray-9))",
+          "backgroundColor": "var(--portal-primary, var(--ink-gray-9))",
           "borderRadius": "6px",
-          "color": "var(--portal-primary, var(--surface-base))",
+          "color": "var(--portal-primary-ink, var(--surface-base))",
           "display": "flex",
           "flexShrink": "0",
           "fontSize": "15px",
@@ -2674,7 +2674,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 03:19:45.352224",
+ "modified": "2026-09-25 12:32:14.494761",
  "modified_by": "Administrator",
  "name": "apply_for_a_loan",
  "owner": "Administrator",

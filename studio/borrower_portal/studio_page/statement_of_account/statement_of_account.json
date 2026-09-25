@@ -813,7 +813,7 @@
                 {
                  "baseStyles": {
                   "--outline-gray-1": "transparent",
-                  "backgroundColor": "var(--portal-action-soft, var(--surface-gray-2))",
+                  "backgroundColor": "var(--surface-gray-2)",
                   "borderRadius": "var(--radius-4)",
                   "height": "36px",
                   "marginBottom": "10px"
@@ -823,7 +823,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--portal-action-deep, var(--ink-gray-5))"
+                      "color": "var(--ink-gray-5)"
                      },
                      "children": [],
                      "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell1-textblock1",
@@ -842,7 +842,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--portal-action-deep, var(--ink-gray-5))"
+                      "color": "var(--ink-gray-5)"
                      },
                      "children": [],
                      "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell2-textblock1",
@@ -861,7 +861,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--portal-action-deep, var(--ink-gray-5))"
+                      "color": "var(--ink-gray-5)"
                      },
                      "children": [],
                      "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell3-textblock1",
@@ -880,7 +880,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--portal-action-deep, var(--ink-gray-5))"
+                      "color": "var(--ink-gray-5)"
                      },
                      "children": [],
                      "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell4-textblock1",
@@ -899,7 +899,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--portal-action-deep, var(--ink-gray-5))"
+                      "color": "var(--ink-gray-5)"
                      },
                      "children": [],
                      "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell5-textblock1",
@@ -1272,7 +1272,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 02:08:02.607284",
+ "modified": "2026-09-25 12:32:14.292740",
  "modified_by": "Administrator",
  "name": "statement_of_account",
  "owner": "Administrator",
