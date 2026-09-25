@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 13:38+0000\n"
-"PO-Revision-Date: 2026-09-21 18:28\n"
+"PO-Revision-Date: 2026-09-25 19:18\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -6786,7 +6786,7 @@ msgstr "Odredbe i Uslovi"
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
 msgid "Test Run"
-msgstr ""
+msgstr "Probno Izvršavanje"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
