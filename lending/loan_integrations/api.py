@@ -10,10 +10,10 @@ from lending.loan_integrations.adapters import get_adapter
 SAVEPOINT = "lending_integration_call"
 
 
-def run_integration(provider: str, context: dict, reference_doc, operation: str) -> dict:
-	adapter = get_adapter(provider)
+def run_integration(adapter_key: str, context: dict, reference_doc, operation: str) -> dict:
+	adapter = get_adapter(adapter_key)
 
-	existing = log.find_existing(provider, operation, reference_doc.doctype, reference_doc.name)
+	existing = log.find_existing(adapter_key, operation, reference_doc.doctype, reference_doc.name)
 
 	if existing and existing.status == "Completed":
 		return {
@@ -34,7 +34,7 @@ def run_integration(provider: str, context: dict, reference_doc, operation: str)
 		)
 
 	request = log.start(
-		provider=provider,
+		service=adapter_key,
 		operation=operation,
 		context=context,
 		reference_doctype=reference_doc.doctype,

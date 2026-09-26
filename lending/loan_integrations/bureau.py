@@ -19,6 +19,7 @@ PROVIDER_TYPE = "Credit Bureau"
 OPERATION = "Credit Bureau Pull"
 LOAN_LEAD = "Loan Lead"
 REPORT = "Credit Bureau Report"
+SETTINGS = "Loan Origination Settings"
 
 MAX_REPORT_BYTES = 10 * 1024 * 1024
 MAX_REDIRECTS = 3
@@ -200,33 +201,21 @@ def authority(host: str, port: int | None) -> str:
 	return f"{host}:{port}" if port else host
 
 
-def select_bureau_provider() -> str:
-	providers = frappe.get_all(
-		"Loan Integration Provider",
-		filters={"provider_type": PROVIDER_TYPE, "is_active": 1},
-		pluck="name",
-		limit=2,
-	)
+def select_bureau_adapter() -> str:
+	adapter = frappe.db.get_single_value(SETTINGS, "credit_bureau_adapter")
 
-	if not providers:
-		frappe.throw(_("No active credit bureau provider is configured."))
+	if not adapter:
+		frappe.throw(_("Set a Credit Bureau Adapter in {0} before pulling a report.").format(SETTINGS))
 
-	if len(providers) > 1:
-		frappe.throw(
-			_("More than one credit bureau provider is active: {0}. Leave one active.").format(
-				", ".join(providers)
-			)
-		)
-
-	return providers[0]
+	return adapter
 
 
-def pull_credit_bureau_report(source, provider: str | None = None) -> dict:
+def pull_credit_bureau_report(source, adapter: str | None = None) -> dict:
 	lead = originating_lead(source)
 	validate_bureau_consent(lead)
 
 	return run_integration(
-		provider=provider or select_bureau_provider(),
+		adapter_key=adapter or select_bureau_adapter(),
 		context=build_pull_context(source, lead),
 		# Filed against the document it was asked for: one pull per lead at the lead stage, one
 		# per application at underwriting, and neither answered out of the other's log.

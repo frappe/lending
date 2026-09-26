@@ -22,11 +22,11 @@ FAILED = "Failed"
 UNRECORDED = "Authorized"
 
 
-def start(provider, operation, context, reference_doctype, reference_docname, url):
+def start(service, operation, context, reference_doctype, reference_docname, url):
 	request = frappe.get_doc(
 		{
 			"doctype": "Integration Request",
-			"integration_request_service": provider,
+			"integration_request_service": service,
 			"request_description": operation,
 			"status": "Queued",
 			"is_remote_request": 1,
@@ -41,11 +41,11 @@ def start(provider, operation, context, reference_doctype, reference_docname, ur
 	return request
 
 
-def find_existing(provider, operation, reference_doctype, reference_docname):
+def find_existing(service, operation, reference_doctype, reference_docname):
 	return frappe.db.get_value(
 		"Integration Request",
 		{
-			"integration_request_service": provider,
+			"integration_request_service": service,
 			"request_description": operation,
 			"reference_doctype": reference_doctype,
 			"reference_docname": reference_docname,

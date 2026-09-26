@@ -25,15 +25,12 @@ class BaseAdapter:
 	key: str = ""
 	settings_doctype: str = ""
 
-	def __init__(self, provider_doc):
-		self.provider = provider_doc
-
 	@cached_property
 	def settings(self):
 		if not self.settings_doctype:
 			frappe.throw(
 				_("{0} names no settings doctype, so there is nowhere to read its credentials from.").format(
-					self.provider.name
+					self.key
 				)
 			)
 
@@ -126,7 +123,7 @@ class BaseAdapter:
 
 		if response.status_code == 429:
 			raise RateLimited(
-				_("{0} is rate limiting us.").format(self.provider.name),
+				_("{0} is rate limiting us.").format(self.key),
 				retry_after=response.headers.get("Retry-After"),
 			)
 

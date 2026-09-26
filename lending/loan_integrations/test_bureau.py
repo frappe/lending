@@ -14,7 +14,6 @@ from lending.loan_origination.test_decisioning import make_application, make_lea
 from lending.tests.utils import LendingTestSuite
 
 TEST_PAN = "AAAPT0000A"
-PROVIDER = "_Test Bureau Provider"
 
 
 SIGNED_URL = (
@@ -58,23 +57,10 @@ def a_pdf() -> bytes:
 	return buffer.getvalue()
 
 
-def make_provider(adapter=FakeBureauAdapter.key, name=PROVIDER):
-	if frappe.db.exists("Loan Integration Provider", name):
-		frappe.delete_doc("Loan Integration Provider", name, force=True)
+def use_adapter(adapter=FakeBureauAdapter.key):
+	frappe.db.set_single_value("Loan Origination Settings", "credit_bureau_adapter", adapter)
 
-	frappe.db.set_value(
-		"Loan Integration Provider", {"provider_type": "Credit Bureau", "is_active": 1}, "is_active", 0
-	)
-
-	return frappe.get_doc(
-		{
-			"doctype": "Loan Integration Provider",
-			"provider_name": name,
-			"provider_type": "Credit Bureau",
-			"adapter": adapter,
-			"is_active": 1,
-		}
-	).insert(ignore_permissions=True)
+	return adapter
 
 
 def make_consenting_lead(**overrides):
@@ -84,37 +70,30 @@ def make_consenting_lead(**overrides):
 	return lead
 
 
-class TestProviderRouting(LendingTestSuite):
-	def test_a_provider_carries_no_credentials_of_its_own(self):
-		fields = frappe.get_meta("Loan Integration Provider").get_valid_columns()
+class TestAdapterRouting(LendingTestSuite):
+	def test_the_settings_pick_the_adapter(self):
+		use_adapter()
 
-		for fieldname in ("api_secret", "sandbox_api_secret", "sandbox_url", "production_url"):
-			self.assertNotIn(fieldname, fields)
-
-	def test_a_provider_records_where_its_credentials_are(self):
-		provider = make_provider()
-
-		self.assertIsNone(provider.settings_doctype)
-		self.assertIsInstance(get_adapter(provider.name), FakeBureauAdapter)
+		self.assertEqual(bureau.select_bureau_adapter(), FakeBureauAdapter.key)
+		self.assertIsInstance(get_adapter(FakeBureauAdapter.key), FakeBureauAdapter)
 
 	def test_an_unregistered_adapter_is_refused(self):
-		with self.assertRaises(frappe.ValidationError):
-			make_provider(adapter="Nobody At All", name="_Test Missing Adapter")
-
-	def test_two_active_bureaus_is_refused_rather_than_guessed_at(self):
-		make_provider()
-		second = make_provider(name="_Test Second Bureau Provider")
-		frappe.db.set_value("Loan Integration Provider", PROVIDER, "is_active", 1)
+		settings = frappe.get_doc("Loan Origination Settings")
+		settings.credit_bureau_adapter = "Nobody At All"
 
 		with self.assertRaises(frappe.ValidationError):
-			bureau.select_bureau_provider()
+			settings.save()
 
-		self.assertTrue(second.is_active)
+	def test_a_pull_with_no_adapter_set_is_refused(self):
+		use_adapter("")
+
+		with self.assertRaises(frappe.ValidationError):
+			bureau.select_bureau_adapter()
 
 
 class TestBureauConsent(LendingTestSuite):
 	def test_a_pull_without_consent_is_refused(self):
-		make_provider()
+		use_adapter()
 		lead = make_lead(pan=TEST_PAN)
 
 		with self.assertRaises(frappe.ValidationError):
@@ -159,7 +138,7 @@ class TestBureauConsent(LendingTestSuite):
 
 class TestBureauPull(LendingTestSuite):
 	def setUp(self):
-		self.provider = make_provider()
+		use_adapter()
 		self.lead = make_consenting_lead()
 
 	def pull(self, response=None):
@@ -304,7 +283,7 @@ class TestBureauPull(LendingTestSuite):
 
 class TestOnePullPerDocument(LendingTestSuite):
 	def setUp(self):
-		self.provider = make_provider()
+		use_adapter()
 		self.lead = make_consenting_lead()
 
 	def pull(self, source):
@@ -340,7 +319,7 @@ class TestOnePullPerDocument(LendingTestSuite):
 
 class TestTheLeadShowsWhatWasPulled(LendingTestSuite):
 	def setUp(self):
-		self.provider = make_provider()
+		use_adapter()
 		self.lead = make_consenting_lead()
 
 	def test_the_score_reaches_the_lead_once_the_pull_has_run(self):
@@ -413,7 +392,7 @@ class TestCredentialsAndAccess(LendingTestSuite):
 				return None, None
 
 		with self.assertRaises(frappe.ValidationError):
-			Unconfigured(frappe._dict(name=PROVIDER)).auth_headers()
+			Unconfigured().auth_headers()
 
 	def test_the_adapter_list_is_not_for_everyone_who_can_log_in(self):
 		frappe.set_user("Guest")
@@ -440,11 +419,10 @@ class TestAddingAnotherBureau(LendingTestSuite):
 
 		self.addCleanup(registry().pop, EquifaxAdapter.key, None)
 
-		provider = make_provider(adapter=EquifaxAdapter.key, name="_Test Equifax Provider")
 		lead = make_consenting_lead()
 
 		with patch.object(EquifaxAdapter, "pull", return_value=RESPONSE):
-			result = bureau.pull_credit_bureau_report(lead, provider=provider.name)
+			result = bureau.pull_credit_bureau_report(lead, adapter=EquifaxAdapter.key)
 
 		report = frappe.get_doc("Credit Bureau Report", result["output"]["credit_bureau_report"])
 

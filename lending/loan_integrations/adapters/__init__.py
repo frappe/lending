@@ -53,13 +53,8 @@ def get_adapter_class(adapter: str) -> type:
 	return cls
 
 
-def get_adapter(provider_name: str):
-	provider = frappe.get_cached_doc("Loan Integration Provider", provider_name)
-
-	if not provider.is_active:
-		frappe.throw(_("Integration provider {0} is not active.").format(provider_name))
-
-	return get_adapter_class(provider.adapter)(provider)
+def get_adapter(adapter: str):
+	return get_adapter_class(adapter)()
 
 
 def adapter_keys(provider_type: str | None = None) -> list[str]:
@@ -75,6 +70,6 @@ def adapter_keys(provider_type: str | None = None) -> list[str]:
 @frappe.whitelist(methods=["GET"])
 def adapter_choices(provider_type: str | None = None) -> list[str]:
 	# Read, not write: the form calls this on refresh to render the saved value too.
-	frappe.has_permission("Loan Integration Provider", "read", throw=True)
+	frappe.has_permission("Loan Origination Settings", "read", throw=True)
 
 	return adapter_keys(provider_type)
