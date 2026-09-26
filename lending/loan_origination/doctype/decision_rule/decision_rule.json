@@ -76,7 +76,6 @@
   },
   {
    "default": "1",
-   "description": "Stop evaluating the strategy once this rule matches.",
    "fieldname": "stop_on_match",
    "fieldtype": "Check",
    "label": "Stop On Match"

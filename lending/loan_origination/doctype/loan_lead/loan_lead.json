@@ -18,6 +18,7 @@
   "income",
   "column_break_nnmy",
   "date_of_birth",
+  "gender",
   "loan_product",
   "mobile_number",
   "loan_amount",
@@ -40,7 +41,14 @@
   "authentication_details_section",
   "mobile_verification_status",
   "column_break_gkzu",
-  "email_verification_status"
+  "email_verification_status",
+  "bureau_consent_section",
+  "bureau_consent",
+  "bureau_consent_on",
+  "column_break_bureau_consent",
+  "bureau_consent_version",
+  "bureau_score",
+  "bureau_report"
  ],
  "fields": [
   {
@@ -282,13 +290,69 @@
    "label": "Indicative Tenure",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.applicant_type == \"Individual\"",
+   "fieldname": "gender",
+   "fieldtype": "Link",
+   "label": "Gender",
+   "options": "Gender"
+  },
+  {
+   "fieldname": "bureau_consent_section",
+   "fieldtype": "Section Break",
+   "label": "Credit Bureau"
+  },
+  {
+   "description": "A bureau pull is refused without this.",
+   "fieldname": "bureau_consent",
+   "fieldtype": "Check",
+   "label": "Bureau Consent Given",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "bureau_consent_on",
+   "fieldtype": "Datetime",
+   "label": "Consent Given On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bureau_consent",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Which wording the applicant agreed to.",
+   "fieldname": "bureau_consent_version",
+   "fieldtype": "Data",
+   "label": "Consent Wording Version",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.bureau_score",
+   "description": "From the most recent bureau report on file for this PAN.",
+   "fieldname": "bureau_score",
+   "fieldtype": "Int",
+   "label": "Bureau Score",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.bureau_report",
+   "fieldname": "bureau_report",
+   "fieldtype": "Link",
+   "label": "Bureau Report",
+   "no_copy": 1,
+   "options": "Credit Bureau Report",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-03 15:54:20.271273",
+ "modified": "2026-09-15 18:45:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Lead",

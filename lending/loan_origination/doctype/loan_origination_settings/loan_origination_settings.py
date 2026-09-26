@@ -23,6 +23,9 @@ class LoanOriginationSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		bureau_consent_text: DF.SmallText | None
+		bureau_consent_version: DF.Data | None
+		credit_bureau_adapter: DF.Literal[None]
 		employee_loans: DF.Check
 		otp_for_email: DF.Check
 		otp_for_sms: DF.Check
@@ -32,6 +35,25 @@ class LoanOriginationSettings(Document):
 
 	def validate(self):
 		self.validate_otp_mediums()
+		self.validate_credit_bureau_adapter()
+
+	def validate_credit_bureau_adapter(self):
+		# Only when changed: an uninstalled app's adapter must not block saving the other fields.
+		if not self.credit_bureau_adapter or not self.has_value_changed("credit_bureau_adapter"):
+			return
+
+		# Imported here: a module level import closes a loop through the registry.
+		from lending.loan_integrations.adapters import adapter_keys
+		from lending.loan_integrations.bureau import PROVIDER_TYPE
+
+		choices = adapter_keys(PROVIDER_TYPE)
+
+		if self.credit_bureau_adapter not in choices:
+			frappe.throw(
+				_("{0} is not a registered credit bureau adapter. Registered adapters: {1}.").format(
+					self.credit_bureau_adapter, ", ".join(choices) or _("none")
+				)
+			)
 
 	def validate_otp_mediums(self):
 		# Only mediums switched on by this save, so the document stays saveable later.

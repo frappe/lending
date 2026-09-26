@@ -65,7 +65,7 @@ LOAN_LEAD = "Loan Lead"
 
 PRODUCT_AGNOSTIC = ("in", ["", None])
 
-BUREAU_FIELDS = ["name", "score", "total_emi"]
+BUREAU_FIELDS = ["name", "score", "total_emi", "obligations_known"]
 
 RECOMMENDED_TERM_FIELDS = ("recommended_roi", "recommended_amount", "recommended_tenure")
 
@@ -162,6 +162,31 @@ def select_strategy(strategy_type, loan_product=None):
 
 def select_scorecard(loan_product=None):
 	return _for_loan_product("Scorecard", {}, "modified desc", loan_product)
+
+
+def strategy_applies_to(strategy, strategy_type, loan_product):
+	return bool(
+		frappe.db.exists(
+			"Decision Strategy",
+			{
+				"name": strategy,
+				"disabled": 0,
+				"strategy_type": strategy_type,
+				"loan_product": applies_to(loan_product),
+			},
+		)
+	)
+
+
+def scorecard_applies_to(scorecard, loan_product):
+	return bool(
+		frappe.db.exists("Scorecard", {"name": scorecard, "loan_product": applies_to(loan_product)})
+	)
+
+
+def applies_to(loan_product):
+	# A policy is either written for this loan product or written for every product.
+	return ("in", [loan_product, "", None])
 
 
 def _for_loan_product(doctype, filters, order_by, loan_product):
@@ -518,7 +543,11 @@ def _add_bureau_variables(context, source, bureau_report=None, lead=None):
 		return
 
 	_put(context, "bureau_score", _positive(report.score))
-	context["existing_obligations"] = flt(report.total_emi)
+
+	# Currency reads 0 when unfilled, which passes every FOIR rule. Left out of the context
+	# instead, so an unanswered obligation refers the application rather than approving it.
+	if report.obligations_known:
+		context["existing_obligations"] = flt(report.total_emi)
 
 
 def _report_for(source, lead=None):
@@ -697,7 +726,7 @@ def _candidate_strategies(loan_product):
 		filters={
 			"disabled": 0,
 			"strategy_type": UNDERWRITING,
-			"loan_product": ("in", [loan_product, "", None]),
+			"loan_product": applies_to(loan_product),
 		},
 		fields=["name", "loan_product", "priority"],
 		order_by="priority desc, modified desc",

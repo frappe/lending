@@ -17,8 +17,10 @@ from lending.loan_origination.decisioning import (
 	latest_bureau_report,
 	report_belongs_to,
 	score_application,
+	scorecard_applies_to,
 	select_scorecard,
 	select_strategy,
+	strategy_applies_to,
 )
 
 
@@ -217,12 +219,40 @@ class LoanDecision(Document):
 		)
 
 	def resolve_strategy(self, application):
-		if not self.strategy:
-			self.strategy = select_strategy(UNDERWRITING, application.loan_product)
+		if self.strategy:
+			self.validate_strategy(application)
+			return
+
+		self.strategy = select_strategy(UNDERWRITING, application.loan_product)
+
+	def validate_strategy(self, application):
+		if strategy_applies_to(self.strategy, UNDERWRITING, application.loan_product):
+			return
+
+		frappe.throw(
+			_(
+				"{0} is not an enabled Underwriting strategy for {1}, so it cannot decide this application."
+			).format(self.strategy, application.loan_product),
+			title=_("Wrong Strategy"),
+		)
 
 	def resolve_scorecard(self, application):
-		if not self.scorecard:
-			self.scorecard = select_scorecard(application.loan_product)
+		if self.scorecard:
+			self.validate_scorecard(application)
+			return
+
+		self.scorecard = select_scorecard(application.loan_product)
+
+	def validate_scorecard(self, application):
+		if scorecard_applies_to(self.scorecard, application.loan_product):
+			return
+
+		frappe.throw(
+			_("{0} is not a scorecard for {1}, so it cannot score this application.").format(
+				self.scorecard, application.loan_product
+			),
+			title=_("Wrong Scorecard"),
+		)
 
 	def apply_scorecard(self, context, log):
 		if not self.scorecard:
