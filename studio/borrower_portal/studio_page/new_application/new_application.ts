@@ -37,8 +37,6 @@ export default function setup(context: any) {
 		if (!all.some((row) => row.value === applicant.value)) applicant.value = all[0]?.value || ""
 	}, { immediate: true })
 
-	// A person and their company are offered different products and told us different
-	// things last time, so switching refills the form from the record now chosen.
 	watch(chosen, (row) => {
 		const answers = row.answers || {}
 		identity.value = { ...(row.identity || {}) }
@@ -70,7 +68,6 @@ export default function setup(context: any) {
 			.finally(() => { busy.value = false })
 	}
 
-	// Back to an empty request, keeping who it is for and what they told us about themselves.
 	const another = () => {
 		offer.value = {}
 		loanProduct.value = ""

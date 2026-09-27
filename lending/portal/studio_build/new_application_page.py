@@ -1,22 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""A logged-in borrower's application form, as a Studio page.
-
-It reads `get_new_application_page` and posts to `create_customer_lead`, which makes the
-same draft Loan Lead the public /apply page makes. The difference is only in what is
-asked. /apply is a wizard because it has to find out who a stranger is and prove their
-number first. Here we already know both, so the page is one form: what the borrower
-needs, a few details that sharpen the offer, and the details we hold, shown and not asked.
-
-One login can hold several customer records -- a person and their company -- so the form
-asks which one the loan is for, and only when there is a choice to make. Each record in
-the payload carries its own details and last answers, so switching refills the form
-without asking the server again.
-
-The offer replaces the form in the same card once it is sent.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.apply_page import choice
 from lending.portal.studio_build.blocks import (
@@ -43,25 +27,21 @@ read = reader(SOURCE)
 
 ROUTE = "/new-application"
 
-# Every box the borrower fills: (label, ref, input type, who is asked, required). An
-# empty "who" means both. create_customer_lead reads Loan Lead's own names off the
-# request, and SUBMIT below maps each ref to one.
+# (label, ref, input type, applicant type asked or "" for both, required)
 NEEDS = (
 	("Amount needed", "loanAmount", "number", "", True),
 	("Over how many months", "proposedTenure", "number", "", False),
 )
-# PAN first, so it sits in the row of details we hold and Work starts the next one.
+# PAN first, so it fills the row of locked details and Work starts the next one.
 ABOUT = (
 	("PAN", "pan", "text", "", False),
 	("Monthly income", "income", "number", "", False),
 	("Date of birth", "dateOfBirth", "date", "Individual", False),
 )
 
-# Boxes to a row in both sections, so their columns line up. Four keeps the whole form
-# on one laptop screen: the details we hold and PAN take one row, the rest another.
 COLUMNS = 4
 
-# The ref each answer lives in, and the Loan Lead field it arrives as.
+# ref -> Loan Lead field
 SUBMIT = {
 	"loanProduct": "loan_product",
 	"loanAmount": "loan_amount",
@@ -72,7 +52,7 @@ SUBMIT = {
 	"pan": "pan",
 }
 
-# What `last_answers` sends back, by the ref it fills.
+# ref -> `last_answers` key
 PREFILL = {
 	"income": "income",
 	"employmentType": "employment_type",
@@ -95,8 +75,6 @@ FORM = '''\tconst page = computed(() => context.%(source)s.data || {})
 \t\tif (!all.some((row) => row.value === applicant.value)) applicant.value = all[0]?.value || ""
 \t}, { immediate: true })
 
-\t// A person and their company are offered different products and told us different
-\t// things last time, so switching refills the form from the record now chosen.
 \twatch(chosen, (row) => {
 \t\tconst answers = row.answers || {}
 \t\tidentity.value = { ...(row.identity || {}) }
@@ -118,7 +96,6 @@ FORM = '''\tconst page = computed(() => context.%(source)s.data || {})
 \t\t\t.finally(() => { busy.value = false })
 \t}
 
-\t// Back to an empty request, keeping who it is for and what they told us about themselves.
 \tconst another = () => {
 \t\toffer.value = {}
 \t\tloanProduct.value = ""
@@ -146,8 +123,7 @@ RETURNS = [
 	"another",
 ]
 
-# `offer` is a page-script ref, which the canvas has no context for. `typeof` answers
-# there instead of throwing, so the canvas draws the form and not the result.
+# `typeof`, because page-script refs are undefined on the canvas and a bare read throws.
 SENT = "typeof offer !== 'undefined' && offer.reference"
 
 
@@ -182,7 +158,6 @@ def build():
 
 
 def applicant_section():
-	"""Who the loan is for. Drawn only for a login with more than one customer record."""
 	picker = block(
 		"FormControl",
 		props={
@@ -202,7 +177,6 @@ def applicant_section():
 
 
 def needs_section():
-	"""The product, as tiles with their rates on, and then how much and for how long."""
 	product = choice(
 		[
 			column(
@@ -223,8 +197,6 @@ def needs_section():
 		product,
 		data_key="value",
 		empty="Nothing is open to this kind of applicant yet",
-		# auto-fit, so four products share one row on a laptop instead of leaving a
-		# fifth empty track and wrapping sooner.
 		styles={
 			"display": "grid",
 			"gridTemplateColumns": "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
@@ -237,7 +209,6 @@ def needs_section():
 
 
 def about_section():
-	"""What we hold, in locked boxes, and the few answers that sharpen the offer."""
 	on_record = [
 		locked_box("Name", "applicant_name"),
 		locked_box("Company", "company_name", visible="{{ identity?.company_name }}"),
@@ -279,7 +250,6 @@ def about_section():
 
 
 def locked_box(label, key, visible=None):
-	"""A detail we hold, drawn as a box so it lines up with the ones the borrower fills."""
 	return block(
 		"FormControl",
 		props={
@@ -315,7 +285,6 @@ def box(label, ref_name, kind, who, required):
 
 
 def actions():
-	"""The one way on. It waits for a product and an amount rather than refusing after."""
 	send = button(
 		"Send application",
 		script="submit()",
@@ -327,7 +296,6 @@ def actions():
 
 
 def result():
-	"""What our rules made of it, in the card the form was in."""
 	return card(
 		"",
 		"",
@@ -335,7 +303,7 @@ def result():
 			[
 				text("{{ offer.headline }}", tag="h3", size="text-xl", styles={"fontWeight": "600"}),
 				muted("{{ offer.message }}"),
-				# A holding message has no figures, and an empty list would say "Nothing to show".
+				# Hidden when empty, or it would say "Nothing to show" under a holding message.
 				pair_rows("{{ offer.offer }}", data_key="label", visible="{{ offer.offer?.length }}"),
 				alert("{{ offer.reference_note }}", visible="{{ offer.reference_note }}"),
 				row(

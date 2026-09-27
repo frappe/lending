@@ -1,13 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Choose an account: which of the borrower's loans the portal shows.
-
-A borrower with more than one loan lands here from the overview until they pick one,
-and comes back from the switcher in the rail. Pressing a card posts the choice to
-`lending.portal.switcher.choose_account` and opens the overview on that loan.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
@@ -51,7 +44,6 @@ SCRIPT = page_script(body=CHOOSE, returns=["choosing", "chooseAccount"])
 
 
 def account_card():
-	"""One loan: what it is, how it stands, and what it owes. The whole card chooses it."""
 	about = column(
 		[
 			row(

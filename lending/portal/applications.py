@@ -1,18 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Read-only data for the borrower's application page.
-
-Ownership is checked before anything is read, and a application that belongs to
-someone else raises the same PermissionError as one that does not exist, so the
-portal never confirms a record exists -- PORTAL_PLAN.md section 8.
-
-The tracker is deliberately one function, get_application_steps. Loan Application
-carries three statuses today, so it shows three stages plus the loan once booked.
-Section 6.6: when Module A reshapes the workflow, that function grows and the page
-does not.
-"""
-
 import frappe
 from frappe import _
 from frappe.utils import flt
@@ -33,8 +21,6 @@ from lending.portal.core import (
 	tracker_stage,
 )
 
-# A step is done, happening now, or still ahead. The marker carries that to the page
-# without a conditional style per row.
 DONE = ("done", "✓")
 CURRENT = ("current", "●")
 PENDING = ("pending", "○")
@@ -70,10 +56,7 @@ DETAIL_FIELDS = (
 
 @frappe.whitelist()
 def get_application_detail() -> dict:
-	"""One application: where it stands, what it asks for, who else is on it.
-
-	With no application named, the borrower's newest -- see default_application.
-	"""
+	"""One application's tracker and details; the borrower's newest when none is named."""
 	name = frappe.form_dict.get("name") or default_application()
 	if not name:
 		lead = open_lead()
@@ -114,12 +97,6 @@ def get_application_detail() -> dict:
 
 
 def default_application() -> str | None:
-	"""The application the sidebar opens: the borrower's newest.
-
-	The sidebar goes straight to an application rather than to a list of them, as it
-	does for loans. A borrower with more than one reaches the others from the overview
-	and from search.
-	"""
 	customers = get_portal_customers()
 	applications = get_applications(customers) if customers else []
 
@@ -127,23 +104,13 @@ def default_application() -> str | None:
 
 
 def borrower_loans() -> list[dict]:
-	"""Every loan the borrower holds, for the badge in the page head.
-
-	The badge speaks for the borrower's accounts, not for this application, so it is
-	read from all of them. Passing none made it say "No live accounts" above a
-	tracker announcing the loan this application had just booked.
-	"""
+	# All the borrower's loans, not this application's: the head badge speaks for every account.
 	customers = get_portal_customers()
 
 	return get_loans(customers) if customers else []
 
 
 def no_application_payload() -> dict:
-	"""The page for a borrower with no application yet: the frame, and every card empty.
-
-	`has_application` is what swaps the tracker and the preview for the empty state. The
-	cards' keys stay, empty, so a page built before the flag still renders.
-	"""
 	payload = shell_payload(_("Application"), _("Apply for a loan"), borrower_loans())
 	payload.update(
 		{
@@ -170,11 +137,6 @@ def no_application_payload() -> dict:
 
 
 def lead_payload(lead: dict) -> dict:
-	"""The page for an enquiry that is in but not yet an application: a shorter tracker.
-
-	Read the way the public /track page reads it, so the two cannot disagree about where
-	the same enquiry stands.
-	"""
 	declined = lead.prequalification_status == "Not Pre-Qualified"
 
 	payload = no_application_payload()
@@ -207,7 +169,6 @@ def lead_payload(lead: dict) -> dict:
 
 
 def get_lead_steps(lead: dict) -> list[dict]:
-	"""The tracker for an enquiry: received, checked, made an application, decided."""
 	declined = lead.prequalification_status == "Not Pre-Qualified"
 	qualified = lead.prequalification_status == "Pre-Qualified"
 
@@ -253,22 +214,12 @@ def stage_label(application: dict) -> str:
 
 
 def stage_headline(application: dict, loan: dict) -> tuple[str, str]:
-	"""What the tracker adds up to, said once in words: a sentence and its follow-up.
-
-	The steps above it say where the file is. This says what that means for the person
-	reading, which is the part they came for. `loan` is passed in rather than read
-	again: the caller already has it, and every branch here needs it.
-
-	A refusal is told plainly and without a reason. The reason is a credit decision,
-	and PORTAL_PLAN.md section 8 keeps those off the portal -- a borrower asking why
-	is a conversation with the team, not a line on a page.
-	"""
+	# A refusal gives no reason: credit decisions stay off the portal.
 	if application.docstatus == 0:
 		return _("Your application is not sent yet"), _(
 			"Finish the details and submit it, and we will start the review."
 		)
 
-	# The same test the badge in the head uses, so the two cannot disagree.
 	if loan and not is_live(loan):
 		return _("Your loan is closed"), _("{0} is {1}. Its statement is still under Loans.").format(
 			loan.name, STATUS_LABELS.get(loan.status, loan.status).lower()
@@ -312,26 +263,16 @@ def step(title: str, detail: str, state: tuple, short: str = "") -> dict:
 		"detail": detail,
 		"marker": marker,
 		"state": _(STATE_LABELS[code]),
-		# What the stage is called where the tracker runs across the page rather than
-		# down it: five titles side by side break into two lines each, and the title is
-		# a phrase where the space allows only a word.
 		"short": short or title,
-		# The label above is translated for reading. The code is what a reader compares
-		# against, so finding the step in progress does not depend on the language.
+		# Untranslated, so the page can compare it regardless of language.
 		"code": code,
 	}
 
 
 def get_application_steps(application: dict) -> list[dict]:
-	"""The tracker, as ordered steps.
-
-	Loan Application.status holds Open, Approved and Rejected and nothing else, so the
-	honest tracker is three stages: sent, reviewed, decided. A fourth appears once the
-	loan is booked. Section 6.6 keeps every page reading this one function.
-	"""
 	submitted = application.docstatus >= 1
 	loan = booked_loan(application.name)
-	# A booked loan settles the question whichever way status was left.
+	# A booked loan counts as approved whatever status was left on the application.
 	decided = bool(loan) or application.status in ("Approved", "Rejected")
 	approved = bool(loan) or application.status == "Approved"
 
@@ -378,8 +319,7 @@ def get_application_steps(application: dict) -> list[dict]:
 
 
 def join_steps(steps: list[dict]) -> list[dict]:
-	"""The connector to the next step: green once both ends are done, and none after the
-	last. A repeated block cannot tell which copy of it is the last, so the data says."""
+	# A repeated block cannot tell it is the last copy, so the data marks the connector.
 	for this, after in zip(steps, steps[1:]):
 		this["line"] = "ok" if this["code"] == after["code"] == "done" else "plain"
 	steps[-1]["line"] = ""
@@ -441,13 +381,6 @@ def format_address(application: dict) -> str:
 
 
 def co_applicant_rows(application: str) -> list[dict]:
-	"""Whoever else is on the application.
-
-	Loan Co-Applicants carries a name, an email and a mobile number, and nothing more.
-	PORTAL_PLAN.md section 6.4 wants relationship, role, income, obligations and a
-	consent flag before this is enough for underwriting: those are eight new fields on
-	the child doctype, so the page shows what the record actually holds today.
-	"""
 	rows = frappe.get_all(
 		"Loan Co-Applicants",
 		filters={"parent": application, "parenttype": "Loan Application"},
@@ -474,17 +407,7 @@ def co_applicants_note(application: str) -> str:
 
 
 def document_rows(application: str) -> list[dict]:
-	"""The documents actually attached to the application.
-
-	There is no checklist to show against them. Loan Application Document.file is
-	mandatory, so an outstanding document is not a row with an empty file -- it is no
-	row at all -- and Loan Product names no expected document types, so nothing says
-	what is outstanding. PORTAL_PLAN.md section 6.5 wants uploaded against missing, and
-	that needs one of those two schema changes first.
-
-	The state still travels as its own key rather than being inferred from the file, so
-	the verified and rejected states Module E adds slot in without reshaping the page.
-	"""
+	# Attached only: no schema records which documents are still outstanding.
 	rows = frappe.get_all(
 		"Loan Application Document",
 		filters={"parent": application, "parenttype": "Loan Application"},
@@ -508,24 +431,16 @@ def documents_note(documents: list[dict]) -> str:
 	)
 
 
-# --- sending a document -------------------------------------------------------------
-
-# A borrower sends identity and income papers, so images and PDFs and nothing else.
-# Checked on the extension here and again by the File doctype's own rules.
 ALLOWED_DOCUMENT_TYPES = (".pdf", ".png", ".jpg", ".jpeg")
-
-# Comfortably above a phone photo of a payslip, well below anything worth hosting.
 MAX_DOCUMENT_BYTES = 5 * 1024 * 1024
 
 
 @frappe.whitelist()
 def get_document_choices() -> dict:
-	"""What the upload form offers: which application, and which kind of document."""
 	customers = get_portal_customers()
 	applications = get_applications(customers) if customers else []
 
-	# Only a draft may take a new document. A submitted application is with our team,
-	# and PORTAL_PLAN.md section 6.2 keeps the borrower out of it from that point.
+	# Only drafts take new documents.
 	open_applications = [
 		{"label": f"{row['name']} · {row['product']}", "value": row["name"]}
 		for row in applications
@@ -544,7 +459,6 @@ def get_document_choices() -> dict:
 
 
 def editable_application() -> str:
-	"""The application the upload names, if the borrower owns it and may still edit it."""
 	name = clean(frappe.form_dict.get("application"))
 	if not name:
 		raise frappe.PermissionError(_("Not permitted"))
@@ -561,12 +475,6 @@ def editable_application() -> str:
 
 
 def read_upload():
-	"""The uploaded file, checked before anything is written.
-
-	frappe.request.files is where a multipart upload lands. The checks are on the
-	bytes we hold, not on what the browser said: an accept attribute on the input is
-	a hint to the file picker and nothing more.
-	"""
 	upload = (frappe.request.files or {}).get("file") if frappe.request else None
 	if not upload:
 		frappe.throw(_("Please choose a file."), frappe.ValidationError)
@@ -593,15 +501,8 @@ def read_upload():
 
 @frappe.whitelist(methods=["POST"])
 def upload_document() -> dict:
-	"""Attach one document to one of the borrower's own draft applications.
-
-	Written with ignore_permissions for the reason save_profile gives: a Website User
-	holds no write rights on Loan Application, and granting them would open every
-	other borrower's applications too. The narrowing happens above instead.
-
-	The file is private. A loan document is a payslip or an identity paper, and a
-	public file URL is guessable by anyone who has seen one.
-	"""
+	"""Attach a private file to one of the borrower's own draft applications."""
+	# ignore_permissions below: Website Users hold no write on Loan Application; ownership is checked here.
 	application = editable_application()
 	document_type = clean(frappe.form_dict.get("document_type"))
 

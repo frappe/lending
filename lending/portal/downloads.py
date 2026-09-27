@@ -1,20 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The borrower's two downloads: a statement of account, and an interest certificate.
-
-Both reuse the page endpoints in statement rather than querying again. That
-matters for more than tidiness: those functions scope every figure to the borrower's
-own loans, so reusing them means the PDF cannot show a row the page would not, and
-there is only one ownership check to keep correct.
-
-The layout comes from a Print Format record, per PORTAL_PLAN.md section 6.10 -- see
-print_formats for why a Print Format is used for something that is not a document.
-This module supplies the numbers and turns the rendered HTML into a PDF.
-
-Both endpoints answer with a file rather than JSON, so they are reached by a plain
-link on the page rather than by the client script.
-"""
+# Reuses the statement page endpoints so the PDF inherits their ownership scoping.
 
 import re
 
@@ -32,7 +19,6 @@ UNSAFE_IN_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 def render(print_format: str, context: dict) -> str:
-	"""The Print Format's own HTML, filled in with this borrower's figures."""
 	html = frappe.db.get_value("Print Format", print_format, "html")
 	if not html:
 		frappe.throw(
@@ -43,7 +29,6 @@ def render(print_format: str, context: dict) -> str:
 
 
 def as_download(html: str, filename: str):
-	"""Hand the PDF back as a file. Nothing is returned to the caller after this."""
 	frappe.local.response.filename = UNSAFE_IN_FILENAME.sub("-", filename)
 	frappe.local.response.filecontent = get_pdf(html)
 	frappe.local.response.type = "pdf"

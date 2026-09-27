@@ -1,22 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The Statement of account and the Interest certificate, as Studio pages.
-
-They replace two pages of the Builder portal this one was migrated from, and
-read `get_statement_page` and `get_certificate_page` unchanged.
-
-Neither wears a header button. The download lives inside the page, beside the dates or
-the year it obeys: the Builder pages learnt that a button in the header had no access to
-what was on screen, so it fetched the default period while the link below it followed
-the picker.
-
-The pickers themselves are new. The Builder pages took their period off the URL, because
-a Builder page has no state; here the dates and the year are refs, and the data source
-re-fetches when they change -- an API Resource's params are re-evaluated and reloaded on
-every change to what they read.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
@@ -46,7 +30,7 @@ ALERTS = ("alerts", "lending.portal.notifications.get_notifications")
 
 
 def download(source, read, label=None):
-	"""A button whose destination comes from the data, so it carries the period on screen."""
+	# The URL comes from the payload, so it follows the period picked on screen.
 	return button(
 		label or read("download_label"),
 		script=f"window.open({source}.data.download_url, '_blank')",
@@ -54,19 +38,14 @@ def download(source, read, label=None):
 	)
 
 
-# --- statement of account -------------------------------------------------------------
-
-
 def date_field(label, state):
-	"""One end of the period. Not clearable: an empty date falls back to the endpoint's
-	default, and the picker would then show nothing while the page shows a period."""
 	return block(
 		"FormControl",
 		props={
 			"type": "date",
 			"label": label,
+			# An empty date falls back to the endpoint's default, so the picker would show nothing.
 			"clearable": False,
-			# dayjs tokens: the date as the ledger below prints it, not the ISO the ref holds.
 			"format": "DD MMM YYYY",
 			"modelValue": {"$type": "variable", "name": state},
 		},
@@ -74,19 +53,11 @@ def date_field(label, state):
 	)
 
 
-# The ranges a borrower asks their lender for, one press each. The year is the Indian
-# financial year, April to March, as it is in `lending.portal.statement`.
+# FY is the Indian financial year (April to March), as in `lending.portal.statement`.
 PERIODS = (("This FY", "this_year"), ("Last FY", "last_year"), ("Last 3 months", "last_quarter"))
 
 
 def period_bar(read):
-	"""The filter row of a desk report: the dates, a few ranges, and the download at the end.
-
-	The download sits here rather than in the header because it obeys these dates --
-	its link comes from the payload, which the dates re-fetch.
-	"""
-	# Kept frappe-ui's grey: they sit between the date fields, which are grey too, and a
-	# wash of the lender's colour made three shortcuts outshout the dates they set.
 	ranges = row(
 		[button(label, script=f"setPeriod('{period}')", classes=["portal-plain"]) for label, period in PERIODS],
 		gap="6px",
@@ -106,25 +77,17 @@ def period_bar(read):
 	)
 
 
-# Figures set in tabular digits, so a column of them lines up digit under digit.
 FIGURE = {"fontWeight": "600", "fontVariantNumeric": "tabular-nums", "color": "var(--ink-gray-9)"}
 AMOUNT = {"fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap"}
 
-# The rows' share of the 12px inset the column names take from LIST_INSET. The published
-# bundle drops a ListRow's own styles (see blocks.ROW_PADDING), and frappe-ui sets this
-# variable only on a row that can be clicked -- so a ledger's rows ran 12px wider than
-# their header on each side, and every column but the first and last drifted off its name.
+# frappe-ui sets this only on clickable rows, and the published bundle drops ListRow styles.
 ROW_INSET = {"--_list-row-pad": "12px"}
 
-# A ledger row is one line, so it takes the fixed height the desk's list view gives its
-# rows. The List's own hook, because the padding that spaces the portal's taller rows is
-# one of the ListRow styles the published bundle drops, and these rows sat touching.
+# The published bundle drops ListRow padding, so the height comes from the List's own variable.
 LEDGER_ROW = {"--list-row-height": "44px"}
 
 
 def summary_strip(read):
-	"""Charged, paid and what is left, in one panel split by rules, as the certificate's
-	figures are. Three cards in a row were three more boxes on a page that has two."""
 	return ruled_panel(
 		[
 			figure_cell("Charged", read("summary.charged"), "Loan amount, interest and charges"),
@@ -135,14 +98,6 @@ def summary_strip(read):
 
 
 def ledger(read):
-	"""The entries as a ledger: debit and credit in columns of their own, then the balance.
-
-	The columns are named Charged and Paid, the words the summary above them uses, rather
-	than Debit and Credit, which a borrower reads from their own side of the books.
-
-	It keeps a minimum width and scrolls inside its card on a phone, as the desk's report
-	view does, rather than folding five columns into a stack nobody can read across.
-	"""
 	amount = {"size": "text-base", "styles": dict(AMOUNT, color="var(--ink-gray-7)")}
 	table = record_list(
 		[
@@ -167,7 +122,6 @@ def ledger(read):
 
 
 def ledger_empty(read):
-	"""A period with nothing in it says so, and says what to try."""
 	return column(
 		[
 			icon_tile("file", "gray", styles={"marginBottom": "8px"}),
@@ -188,9 +142,7 @@ def statement_content(read):
 	]
 
 
-# The dates start on the period the endpoint would default to, so the pickers show the
-# period on screen rather than "Select date". Function declarations, because the refs
-# that call them are declared above this in the module.
+# Function declarations, not consts: the refs that call them are declared above this body.
 STATEMENT_SCRIPT = """\
 \tfunction isoDay(day: Date) {
 \t\tconst pad = (n: number) => String(n).padStart(2, "0")
@@ -242,11 +194,7 @@ def build_statement():
 	)
 
 
-# --- interest certificate ---------------------------------------------------------------
-
-
 def year_picker(read):
-	"""Unlabelled: the heading beside it already names the year it holds."""
 	return block(
 		"FormControl",
 		props={
@@ -259,11 +207,6 @@ def year_picker(read):
 
 
 def year_head(read):
-	"""The certificate's own head, the way a desk form carries its title: the year and
-	whether it has closed on the left, the picker and the download on the right.
-
-	The line under the title says what "provisional" or "final" means for the figures.
-	"""
 	kind = block(
 		"Badge",
 		props={"label": read("kind"), "theme": read("kind_theme"), "variant": "subtle", "size": "md"},
@@ -273,7 +216,6 @@ def year_head(read):
 		gap="4px",
 		styles={"minWidth": "0px"},
 	)
-	# The heading already names the year, so the button need not, and fits a phone.
 	controls = row(
 		[year_picker(read), download(CERTIFICATE, read, "Download certificate")],
 		gap="8px",
@@ -283,12 +225,10 @@ def year_head(read):
 	return row([title, spacer(), controls], gap="16px", styles={"flexWrap": "wrap"})
 
 
-# The inset each figure keeps from the rule on its left, as field_grid does.
 FIGURE_INSET = 20
 
 
 def figure_cell(title, value, note, **kwargs):
-	"""One figure of the summary: a grey label, the amount, and what it counts."""
 	return column(
 		[
 			text(title, size="text-sm", styles={"color": "var(--ink-gray-5)"}),
@@ -307,7 +247,6 @@ def figure_cell(title, value, note, **kwargs):
 
 
 def paid_summary(read):
-	"""The year's figures. Interest first: it is the figure the certificate exists to state."""
 	return ruled_panel(
 		[
 			figure_cell("Interest paid", read("summary.interest"), "On your loans this year"),
@@ -324,11 +263,7 @@ def paid_summary(read):
 
 
 def ruled_panel(cells):
-	"""Figure cells in one panel, split by rules rather than boxed apart.
-
-	The grid is pulled left by one inset and one rule, and the panel clips it, so
-	whichever figure starts a line -- at any width the grid wraps to -- has no rule before it.
-	"""
+	# Pulled left by one inset and rule and clipped, so no wrapped line starts with a rule.
 	grid = container(
 		cells,
 		styles={
@@ -343,7 +278,6 @@ def ruled_panel(cells):
 
 
 def disclaimer(read):
-	"""A footnote to the figures, not a banner: part of what they mean, never dismissed."""
 	return icon_line(
 		"info",
 		read("disclaimer"),
@@ -353,7 +287,6 @@ def disclaimer(read):
 
 
 def accounts_table(read):
-	"""Each loan's share of the year, so a borrower with two loans can file them apart."""
 	amount = {"size": "text-base", "styles": AMOUNT}
 	table = record_list(
 		[
@@ -387,7 +320,6 @@ def certificate_content(read):
 	]
 
 
-# The year starts on the current one, so the picker shows it rather than "Select option".
 CERTIFICATE_SCRIPT = """\
 \tfunction currentYear() {
 \t\tconst today = new Date()

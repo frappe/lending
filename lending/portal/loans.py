@@ -1,21 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The borrower's loan page: its data, and the one request it can raise.
-
-Every endpoint checks ownership of the loan named in the request before reading anything
-else. A loan that belongs to someone else and a loan that does not exist raise the
-same PermissionError, so the portal never confirms that a record exists -- see
-PORTAL_PLAN.md section 8.
-
-Internal risk labels stay out. Delinquency reaches the borrower as a plain overdue
-instalment, never as days past due or an NPA classification (section 6.7).
-
-A disbursement request is a draft Loan Disbursement and nothing more. Staff check it,
-add the bank details and submit it from the desk, so no money moves on the borrower's
-word alone.
-"""
-
 import frappe
 from frappe import _
 from frappe.utils import flt, nowdate
@@ -39,7 +24,7 @@ from lending.portal.core import (
 	shell_payload,
 )
 
-# Loan fields the borrower may see. The risk fields are simply never selected.
+# Risk fields (DPD, NPA classification) are deliberately never selected.
 DETAIL_FIELDS = (
 	"name",
 	"applicant",
@@ -59,14 +44,12 @@ DETAIL_FIELDS = (
 	"written_off_amount",
 )
 
-# The statuses the desk offers Create > Loan Disbursement on, and so the ones a borrower
-# may ask for one on.
+# Mirrors the statuses the desk offers Create > Loan Disbursement on.
 DRAWABLE_STATUSES = ("Sanctioned", "Partially Disbursed", "Active")
 
 
 @frappe.whitelist()
 def get_loan_detail() -> dict:
-	"""One loan's page. With no loan named, the borrower's main loan -- see default_loan."""
 	name = frappe.form_dict.get("name") or default_loan()
 	if not name:
 		return no_loan_payload()
@@ -94,18 +77,11 @@ def get_loan_detail() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def request_disbursement() -> dict:
-	"""Raise a draft disbursement on one of the borrower's own loans.
-
-	Inserted with ignore_permissions for the reason save_profile gives: a Website User
-	holds no rights on Loan Disbursement, and granting them would open every other
-	borrower's too. The narrowing is done here instead: a loan the borrower owns, in a
-	status the desk would disburse, with no draft already waiting, for no more than the
-	loan has left to draw. The draft is never submitted from here.
-	"""
+	"""Raise a draft Loan Disbursement for staff to review; never submitted from here."""
 	name = frappe.form_dict.get("name")
 	assert_owns("Loan", name)
 
-	# Locked, so that two requests sent together cannot both find no draft waiting.
+	# Locked so two concurrent requests cannot both find no draft waiting.
 	status = frappe.db.get_value("Loan", name, "status", for_update=True)
 	if status not in DRAWABLE_STATUSES:
 		frappe.throw(_("This loan is not open for a disbursement."), frappe.ValidationError)
@@ -139,18 +115,11 @@ def request_disbursement() -> dict:
 
 
 def next_due_date(loan: str):
-	"""Where a later tranche joins the schedule already running. The loan's own first due
-	date is behind us once repayments start, and a disbursement may not repay before it
-	is paid out. None before the first tranche, so the loan's first due date stands."""
+	# A later tranche joins the running schedule; the loan's own first due date may be past.
 	return next_repayment_for(loan).get("payment_date")
 
 
 def drawdown(loan: dict) -> dict:
-	"""Whether the loan page offers a disbursement request, and what it says about one.
-
-	A draft disbursement already on the loan, whether the borrower raised it or staff
-	did, stands in for the button: the money is on its way either way.
-	"""
 	pending = pending_disbursement(loan.name)
 	if pending:
 		return {
@@ -162,7 +131,6 @@ def drawdown(loan: dict) -> dict:
 
 	available = drawable_amount(loan.name) if loan.status in DRAWABLE_STATUSES else 0
 
-	# `loan` because /loans names none in its route, and the request must say which.
 	return {
 		"loan": loan.name,
 		"open": available > 0,
@@ -172,27 +140,18 @@ def drawdown(loan: dict) -> dict:
 
 
 def pending_disbursement(loan: str) -> float:
-	"""The amount on the loan's draft disbursement, or 0 when it has none."""
 	return flt(
 		frappe.db.get_value("Loan Disbursement", {"against_loan": loan, "docstatus": 0}, "disbursed_amount")
 	)
 
 
 def drawable_amount(loan: str) -> float:
-	# A secured loan with a security shortfall answers with a bare 0 rather than the
-	# usual (amount, pending principal) pair.
+	# Returns a bare 0 instead of a tuple on a security shortfall.
 	result = calculate_disbursal_amount(loan)
 	return max(flt(result[0] if isinstance(result, tuple) else result), 0)
 
 
 def default_loan() -> str | None:
-	"""The loan the sidebar opens: the one the borrower chose, else the newest live one,
-	else the newest of any.
-
-	The sidebar goes straight to a loan rather than to a list of them. A borrower with
-	more than one loan switches between them from the account menu, and still reaches the others
-	from search.
-	"""
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 	if not loans:
@@ -208,7 +167,6 @@ def default_loan() -> str | None:
 
 
 def no_loan_payload() -> dict:
-	"""The page for a borrower with no loan yet: the frame, and every card empty."""
 	payload = shell_payload(_("Loan account"), _("Apply for a loan"), [])
 	payload.update(
 		{
@@ -226,7 +184,6 @@ def no_loan_payload() -> dict:
 
 
 def loan_terms(loan: dict) -> dict:
-	"""The terms by name, because the card places each one rather than repeating over them."""
 	written_off = flt(loan.written_off_amount)
 
 	return {
@@ -244,8 +201,7 @@ def loan_terms(loan: dict) -> dict:
 
 
 def instalment(loan: dict) -> float:
-	"""The EMI the borrower is paying. The Loan keeps the one priced on the full sanction, but
-	a partly drawn loan is scheduled on what was paid out, so the active schedule wins."""
+	# Loan's EMI is priced on the full sanction; a partly drawn loan's active schedule is the real one.
 	schedules = active_schedule_names([loan.name])
 	if schedules:
 		return frappe.db.get_value("Loan Repayment Schedule", schedules[0], "monthly_repayment_amount")
@@ -259,7 +215,6 @@ def next_due(loan: str) -> str:
 
 
 def tenure(loan: dict) -> str:
-	"""Months when the loan is repaid monthly; otherwise the count of instalments."""
 	periods = loan.repayment_periods or 0
 	if (loan.repayment_frequency or "Monthly") == "Monthly":
 		return _("{0} months").format(periods)
@@ -286,23 +241,14 @@ def charge_rows(loan: str) -> list[dict]:
 
 
 def payoff_figures(loan: str) -> dict:
-	"""What it costs to close the loan today, and the line under the figure.
-
-	PORTAL_PLAN.md section 6.11: show the figure, never take the money. The button
-	under this raises a request for staff.
-
-	The figure is always a sum of money, ₹ 0.00 included, because the card prints it
-	at the same size either way; the note is what tells a settled loan from a live one.
-	"""
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
-	# Elevated because calculate_amounts asks for read on Loan, which a Website User never
-	# has; the caller has already passed assert_owns for this loan.
+	# calculate_amounts needs Loan read, which Website Users lack; caller already ran assert_owns.
 	try:
 		with as_administrator():
 			payable = flt(calculate_amounts(loan, nowdate(), payment_type="Loan Closure").get("payable_amount"))
 	except Exception:
-		# A closed or written-off loan has nothing left to price.
+		# Raises on a closed or written-off loan.
 		frappe.clear_last_message()
 		payable = 0
 

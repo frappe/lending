@@ -1,19 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Read-only data for the borrower's statement of account and interest certificate.
-
-The statement reuses the loan_statement_of_account report rather than growing a second
-one, as PORTAL_PLAN.md section 6.9 requires. The report needs a company, and that is
-read from the borrower's own loans, never from the request.
-
-The certificate is built from money that actually moved -- submitted Loan Repayment
-rows -- not from the schedule, per section 6.10. It reports what the borrower paid and
-stops there: no tax figure, no section, no rebate. A wrong number on a document
-someone files with their return is a real liability, and the app holds no tax logic to
-compute one from.
-"""
-
 from urllib.parse import urlencode
 
 import frappe
@@ -30,8 +17,6 @@ from lending.portal.core import (
 	short_date,
 )
 
-# Loan Repayment carries these four separately, which is exactly the split a borrower's
-# accountant needs. Interest and principal answer different sections of the Act.
 PAID_FIELDS = (
 	("total_interest_paid", "Interest paid"),
 	("principal_amount_paid", "Principal repaid"),
@@ -41,12 +26,7 @@ PAID_FIELDS = (
 
 
 def financial_year(date=None) -> tuple[str, str, str]:
-	"""The Indian financial year around a date: April to March.
-
-	Not erpnext's Fiscal Year records, which a company may have configured to any
-	dates. An interest certificate is an income tax document, so the year it covers is
-	fixed by statute, not by configuration.
-	"""
+	# The statutory April-March year, not erpnext's configurable Fiscal Year.
 	day = getdate(date or nowdate())
 	start = day.year if day.month >= 4 else day.year - 1
 
@@ -54,7 +34,6 @@ def financial_year(date=None) -> tuple[str, str, str]:
 
 
 def requested_year(label: str | None) -> tuple[str, str, str]:
-	"""The year the borrower asked for, or the current one."""
 	if not label:
 		return financial_year()
 
@@ -67,12 +46,7 @@ def requested_year(label: str | None) -> tuple[str, str, str]:
 
 
 def requested_date(value: str | None, default: str) -> str:
-	"""The date the borrower asked for, or `default` when there is none to read.
-
-	A Studio page fires its data source once before its script has loaded, and a
-	binding to a ref that does not exist yet arrives as the string "undefined". That is
-	no reason to fail the page, so anything that is not a date is read as no date.
-	"""
+	# Studio fires the data source before its script loads, so a param can arrive as "undefined".
 	if not value:
 		return default
 
@@ -93,12 +67,7 @@ def year_options(count: int = 5) -> list[dict]:
 
 
 def owned_loans(loan: str | None = None) -> tuple[list[str], list]:
-	"""The borrower's loans, narrowed to one when the request names it, and otherwise to
-	the account they chose.
-
-	Narrowing by filtering the borrower's own list is the ownership check: a name that
-	is not in it simply matches nothing, so an unowned loan cannot widen the result.
-	"""
+	# Filtering the borrower's own list is the ownership check.
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 
@@ -111,11 +80,7 @@ def owned_loans(loan: str | None = None) -> tuple[list[str], list]:
 
 
 def loan_groups(loans: list) -> dict:
-	"""Loans grouped by the company and customer they belong to.
-
-	The report filters on one company and one applicant at a time, and one login can
-	hold several customer records, so the statement is assembled per group.
-	"""
+	# The report takes one company and one applicant at a time.
 	groups = {}
 	for row in loans:
 		company = frappe.db.get_value("Loan", row.name, "company")
@@ -125,12 +90,6 @@ def loan_groups(loans: list) -> dict:
 
 
 def download_url(method: str, **params) -> str:
-	"""Where the page's download link points.
-
-	The filters travel in the link rather than being defaulted again by the download
-	endpoint, so a borrower looking at one period downloads that period and not the
-	one the page would have opened on.
-	"""
 	query = urlencode({key: value for key, value in params.items() if value})
 
 	return f"/api/method/lending.portal.downloads.{method}" + (f"?{query}" if query else "")
@@ -138,7 +97,6 @@ def download_url(method: str, **params) -> str:
 
 @frappe.whitelist()
 def get_statement_page() -> dict:
-	"""Ledger entries across the borrower's loans for a date range."""
 	from lending.loan_management.report.loan_statement_of_account.loan_statement_of_account import (
 		execute,
 	)
@@ -158,8 +116,6 @@ def get_statement_page() -> dict:
 				"company": company,
 				"applicant": applicant,
 				"applicant_type": "Customer",
-				# The report reads every loan of the applicant unless told one. A group of
-				# one is either all the applicant has or the account the borrower chose.
 				"loan": names[0] if len(names) == 1 else None,
 				"from_date": from_date,
 				"to_date": to_date,
@@ -168,17 +124,14 @@ def get_statement_page() -> dict:
 		entries.extend(data)
 
 	entries.sort(key=lambda row: getdate(row.get("posting_date")))
-	# A voucher can post more than one entry, so a row's key is its place in the list.
+	# A voucher can post several entries, so the index is the key.
 	rows = [dict(present_entry(row), name=str(index)) for index, row in enumerate(entries)]
 	accounts_note = (
 		_("across 1 account") if len(loans) == 1 else _("across {0} accounts").format(len(loans))
 	)
 	summary = statement_summary(entries, to_date, accounts_note)
 
-	# No header button on this page -- the download lives inside it, next to the dates
-	# it obeys -- so there is no label for one either.
 	payload = shell_payload(_("Statement of account"), "", loans)
-	# The header says which period is on screen; the generic note would not.
 	payload["head_note"] = _("{0} to {1}").format(long_date(from_date), long_date(to_date))
 	payload.update(
 		{
@@ -213,16 +166,11 @@ def present_entry(row: dict) -> dict:
 	debit = flt(row.get("debit"))
 	credit = flt(row.get("credit"))
 
-	# The report's own column name: transaction_type, not the particulars a GL report
-	# would use. The voucher and loan names are left out; they mean nothing to a borrower.
 	return {
 		"date": short_date(row.get("posting_date")),
 		"label": row.get("transaction_type") or _("Entry"),
 		"amount": money(debit) if debit else money(credit),
 		"direction": _("Charged") if debit else _("Paid"),
-		# One column each, the way a ledger reads, so an entry's side is where it
-		# stands rather than a word beside it. The empty side is a dash, so a blank
-		# cell does not read as a figure that failed to load.
 		"debit": money(debit) if debit else "—",
 		"credit": money(credit) if credit else "—",
 		"balance": money(row.get("balance")),
@@ -230,7 +178,6 @@ def present_entry(row: dict) -> dict:
 
 
 def statement_totals(summary: dict) -> list[dict]:
-	"""The summary as labelled rows, which is the shape the PDF prints."""
 	return [
 		{"label": _("Charged"), "value": summary["charged"]},
 		{"label": _("Paid"), "value": summary["paid"]},
@@ -239,7 +186,6 @@ def statement_totals(summary: dict) -> list[dict]:
 
 
 def statement_summary(entries: list[dict], to_date: str, accounts_note: str) -> dict:
-	"""The three totals by name, for a page that sets each in a card of its own."""
 	debit = sum(flt(row.get("debit")) for row in entries)
 	credit = sum(flt(row.get("credit")) for row in entries)
 
@@ -253,12 +199,7 @@ def statement_summary(entries: list[dict], to_date: str, accounts_note: str) -> 
 
 @frappe.whitelist()
 def get_certificate_page() -> dict:
-	"""What the borrower paid in a financial year, split the way their return needs.
-
-	Provisional while the year is still running: paid so far, plus what the schedule
-	says is still to come before 31 March. Final once the year has closed, when only
-	money that moved is reported.
-	"""
+	"""Amounts paid in a financial year; provisional (paid plus still scheduled) while the year runs."""
 	label, start, end = requested_year(frappe.form_dict.get("year"))
 	customers, loans = owned_loans(frappe.form_dict.get("loan"))
 	names = [row.name for row in loans]
@@ -271,8 +212,6 @@ def get_certificate_page() -> dict:
 		{"label": _(title), "value": money(totals[field])} for field, title in PAID_FIELDS if totals[field]
 	]
 
-	# No header button on this page -- the download lives inside it, under the year it
-	# obeys -- so there is no label for one either.
 	payload = shell_payload(_("Interest certificate"), "", loans)
 	payload["head_note"] = _("Financial year {0} · {1}").format(
 		label, _("provisional") if running else _("final")
@@ -299,8 +238,7 @@ def get_certificate_page() -> dict:
 				_("1 account covered") if len(loans) == 1 else _("{0} accounts covered").format(len(loans))
 			),
 			"years": year_options(),
-			# No tax figure and no section of the Act. Section 6.10: the certificate
-			# reports what was paid, and the borrower's accountant works out the relief.
+			# Deliberately no tax figure: the app holds no tax logic to compute one.
 			"disclaimer": _(
 				"This certificate reports amounts paid. It states no tax relief; "
 				"please consult your tax adviser."
@@ -316,11 +254,6 @@ def get_certificate_page() -> dict:
 
 
 def certificate_summary(totals: dict) -> dict:
-	"""The year's figures by name, for a page that sets each in a card of its own.
-
-	Penalty and charges share one card: they are rare, and neither is what a borrower
-	opens an interest certificate for.
-	"""
 	other = flt(totals["total_penalty_paid"]) + flt(totals["total_charges_paid"])
 
 	return {
@@ -332,7 +265,6 @@ def certificate_summary(totals: dict) -> dict:
 
 
 def account_row(loan, amounts: dict) -> dict:
-	"""One loan's share of the year. `label` and `value` are what the PDF prints."""
 	return {
 		"name": loan.name,
 		"label": loan.loan_product,
@@ -345,7 +277,6 @@ def account_row(loan, amounts: dict) -> dict:
 
 
 def amounts_by_loan(loans: list[str], start: str, end: str, running: bool) -> dict:
-	"""Each loan's amounts for the year: paid, plus what is still scheduled if it is running."""
 	by_loan = {loan: dict.fromkeys((field for field, _title in PAID_FIELDS), 0.0) for loan in loans}
 
 	for loan, field, amount in paid_in_period(loans, start, end):
@@ -358,7 +289,6 @@ def amounts_by_loan(loans: list[str], start: str, end: str, running: bool) -> di
 
 
 def paid_in_period(loans: list[str], start: str, end: str):
-	"""Money that actually moved, from submitted repayments only, as (loan, field, amount)."""
 	if not loans:
 		return
 
@@ -378,7 +308,6 @@ def paid_in_period(loans: list[str], start: str, end: str):
 
 
 def scheduled_in_period(loans: list[str], start: str, end: str):
-	"""What the schedule still expects before the year closes, as (loan, field, amount)."""
 	if not loans:
 		return
 

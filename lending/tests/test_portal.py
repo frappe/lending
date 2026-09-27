@@ -1,28 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Who may see what on the borrower portal, and who may write what.
-
-PORTAL_PLAN.md section 8 says to treat every security rule as a test rather than as a
-comment. These are those tests. They are about who may see what, not about arithmetic:
-each one puts a real borrower in the session and asks the portal for a record that
-belongs to somebody else.
-
-Two of them are worth more than the rest.
-
-test_a_missing_loan_and_another_borrowers_loan_are_indistinguishable is the one that
-stops the portal becoming a lookup service. If "not yours" and "no such loan" read
-differently, anyone can walk the loan numbering and learn which ones exist.
-
-test_one_login_can_hold_several_customers guards the opposite mistake. Real data on
-this bench has one email against three Customer records, so a helper that returns a
-single customer would silently hide a borrower's own loans from them.
-
-The later classes cover the writes: the public apply funnel, which creates rows with
-no login at all, and the two borrower writes, which must reach the borrower's own
-records and nothing beside them.
-"""
-
 import inspect
 import json
 from unittest.mock import patch
@@ -114,39 +92,27 @@ from lending.tests.utils import LendingTestSuite
 ALPHA_USER = "portal-alpha@example.com"
 BETA_USER = "portal-beta@example.com"
 
-# Alpha holds two customer records on purpose. One login to many customers is the
-# real shape of the data, not an edge case.
+# One login holding several customers is the real shape of the data.
 ALPHA_CUSTOMER = "_Test Portal Alpha"
 ALPHA_OTHER_CUSTOMER = "_Test Portal Alpha Second"
 BETA_CUSTOMER = "_Test Portal Beta"
 
-# A borrower who only ever holds one loan, for the account switch.
 SINGLE_USER = "portal-single@example.com"
 SINGLE_CUSTOMER = "_Test Portal Single"
 
-# Used only by the shared-record test, which pins a Contact onto its customer. That
-# is a lasting change, and this database is not rolled back between runs, so it gets
-# a customer of its own rather than disturbing the one every other test edits.
+# Its own customer: the shared-record test pins a Contact to it and the DB is not rolled back.
 SHARED_CUSTOMER = "_Test Portal Alpha Shared"
 
 PRODUCT = "Personal Loan"
 
-# National number only. The portal adds the country code a Phone field needs, and a
-# visitor typing their own is exactly what the code under test has to cope with.
+# National number only; the portal must add the country code itself.
 MOBILE = "9812345678"
 
-# Fresh emails for the sign-up tests, which create real Users and delete them again.
 PERSON_EMAIL = "_test-portal-person@example.com"
 COMPANY_EMAIL = "_test-portal-company@example.com"
 
 
 def set_portal_switches(portal: int, public_apply: int):
-	"""Drive the two Lending Settings switches, the way saving the form would.
-
-	sync_portal_pages is what Lending Settings.on_update runs, and it is half of what
-	the switch does: the data layer refuses, and the pages stop being routed. Setting
-	the values without it would test only the half that raises.
-	"""
 	frappe.db.set_single_value(
 		"Lending Settings",
 		{"enable_borrower_portal": portal, "enable_public_apply": public_apply},
@@ -155,11 +121,6 @@ def set_portal_switches(portal: int, public_apply: int):
 
 
 def published_portal_routes() -> set[str]:
-	"""The routes the portal actually serves, which is what the switches govern.
-
-	Read off the pages rather than off the settings: a switch that flipped a field and
-	left the pages published would pass a test of the field and serve the portal anyway.
-	"""
 	return set(
 		frappe.get_all(
 			"Studio Page",
@@ -181,8 +142,6 @@ def offered_products(applicant_type: str) -> list[str]:
 	return [row["value"] for row in get_apply_page()["products"][applicant_type]]
 
 
-# Everything a lender may set about how the portal looks. Cleared between tests, so
-# one test's red portal is not the next test's starting point.
 BRAND_FIELDS = (
 	"portal_brand_name",
 	"portal_logo",
@@ -193,24 +152,13 @@ BRAND_FIELDS = (
 
 
 def set_branding(**values):
-	"""Fill in the Borrower Portal section, the way saving the desk form would.
-
-	Saved rather than written underneath, because Lending Settings.on_update is where
-	the portal's pages are published or unpublished, and setting the fields directly
-	would test the half of the mechanism that never reaches a borrower.
-	"""
+	# Saved, not set_single_value, so Lending Settings.on_update republishes the pages.
 	settings = frappe.get_doc("Lending Settings")
 	settings.update({field: values.get(field) for field in BRAND_FIELDS})
 	settings.save()
 
 
 def set_footer(notice=None, links=(), support=None):
-	"""Fill in the Portal Footer section, links and all.
-
-	Separate from set_branding because the links are a child table: update() would
-	take a list of dicts, but appending row by row is what the desk grid does, and the
-	idx these come out in is half of what the footer tests are about.
-	"""
 	settings = frappe.get_doc("Lending Settings")
 	settings.portal_copyright = notice
 	settings.portal_support_email = support
@@ -221,17 +169,10 @@ def set_footer(notice=None, links=(), support=None):
 
 
 def setUpModule():
-	"""Switch the portal on for the whole file.
-
-	Both switches default to off, which is right for a real site: a portal is a public
-	surface and should not appear because somebody ran an upgrade. Left off here it
-	would turn every test in this file into a 404.
-	"""
 	set_portal_switches(1, 1)
 
 
 def make_website_user(email: str) -> str:
-	"""A borrower is a Website User with the Customer role, per PORTAL_PLAN.md 10."""
 	if not frappe.db.exists("User", email):
 		user = frappe.get_doc(
 			{
@@ -245,19 +186,12 @@ def make_website_user(email: str) -> str:
 		user.flags.ignore_permissions = True
 		user.insert()
 
-	# add_roles skips a role the user already holds, so this is safe to repeat.
 	frappe.get_doc("User", email).add_roles("Customer")
 
 	return email
 
 
 def make_portal_customer(name: str, user: str) -> str:
-	"""A Customer joined to a login through the Portal Users table.
-
-	This join is what get_portal_customers reads. Creating the Customer without it
-	is the bug PORTAL_STATUS.md section 5.1 describes, so the fixture makes the row
-	explicitly rather than relying on anything to add it.
-	"""
 	if not frappe.db.exists("Customer", name):
 		frappe.get_doc(
 			{
@@ -278,7 +212,6 @@ def make_portal_customer(name: str, user: str) -> str:
 
 
 def make_submitted_loan(applicant: str):
-	"""A submitted loan, because the portal's list filters on docstatus 1."""
 	loan = create_loan(applicant, PRODUCT, 100000, "Repay Over Number of Periods", repayment_periods=12)
 	loan.submit()
 
@@ -338,8 +271,6 @@ class TestPortalOwnership(LendingTestSuite):
 	def as_alpha(self):
 		frappe.set_user(ALPHA_USER)
 
-	# --- who am I -------------------------------------------------------------------
-
 	def test_portal_customers_are_scoped_to_the_login(self):
 		self.as_alpha()
 		customers = get_portal_customers()
@@ -360,8 +291,6 @@ class TestPortalOwnership(LendingTestSuite):
 		with self.assertRaises(frappe.PermissionError):
 			get_portal_customers()
 
-	# --- lists ----------------------------------------------------------------------
-
 	def test_the_default_loan_is_the_borrowers_own(self):
 		self.as_alpha()
 
@@ -375,8 +304,6 @@ class TestPortalOwnership(LendingTestSuite):
 		self.assertNotEqual(default_application(), self.beta_application)
 		self.assertTrue(default_application())
 
-	# --- the guard itself -----------------------------------------------------------
-
 	def test_assert_owns_returns_the_applicant_for_your_own_record(self):
 		self.as_alpha()
 
@@ -387,8 +314,6 @@ class TestPortalOwnership(LendingTestSuite):
 
 		with self.assertRaises(frappe.PermissionError):
 			assert_owns("Loan", self.beta_loan)
-
-	# --- detail pages ---------------------------------------------------------------
 
 	def test_another_borrowers_loan_is_refused(self):
 		self.as_alpha()
@@ -435,7 +360,6 @@ class TestPortalOwnership(LendingTestSuite):
 		self.assertEqual(get_loan_detail()["crumb"], PRODUCT)
 
 	def test_a_missing_loan_and_another_borrowers_loan_are_indistinguishable(self):
-		"""The refusal must not tell a stranger which loan numbers exist."""
 		self.as_alpha()
 
 		frappe.form_dict["name"] = self.beta_loan
@@ -450,12 +374,7 @@ class TestPortalOwnership(LendingTestSuite):
 
 
 class TestPortalGuestEndpoints(LendingTestSuite):
-	"""The public front: what a stranger may do, and where they are stopped.
-
-	These endpoints write rows without a login, so the tests are mostly about refusal.
-	The rate limits that guard them in production are inert here -- frappe's decorator
-	returns early when there is no HTTP request -- so nothing below is throttled.
-	"""
+	# Rate limits are inert here: frappe's decorator returns early without an HTTP request.
 
 	def setUp(self):
 		set_loan_settings_in_company()
@@ -488,7 +407,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		)
 
 	def mint_token(self, mobile=MOBILE):
-		"""Walk step 2 with the SMS provider stubbed, and keep the token it returns."""
 		frappe.local.form_dict = frappe._dict({"mobile_number": mobile, "otp": "123456"})
 		with patch("lending.portal.apply.telephony_otp") as telephony:
 			telephony.return_value.verify_otp.return_value = {"verified": True}
@@ -496,14 +414,10 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 		return result["token"]
 
-	# --- browsing -------------------------------------------------------------------
-
 	def test_a_guest_can_read_the_apply_page(self):
 		payload = get_apply_page()
 
 		self.assertIn(PRODUCT, [row["value"] for row in payload["products"]["Individual"]])
-
-	# --- verifying the number -------------------------------------------------------
 
 	def test_a_code_is_sent_to_the_number_given(self):
 		frappe.local.form_dict = frappe._dict({"mobile_number": MOBILE})
@@ -511,8 +425,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 			result = send_mobile_code()
 			telephony.return_value.send_otp.assert_called_once()
 
-		# Only the last two digits come back, so the page can confirm which number
-		# it used without printing it.
 		self.assertNotIn(MOBILE, result["message"])
 		self.assertIn(MOBILE[-2:], result["message"])
 
@@ -530,8 +442,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 		self.assertFalse(result["verified"])
 		self.assertNotIn("token", result)
-
-	# --- creating the lead ----------------------------------------------------------
 
 	def test_a_lead_cannot_be_created_without_verifying_a_number(self):
 		self.submission()
@@ -558,12 +468,11 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		)
 
 		self.assertEqual(lead.mobile_number, f"+91{MOBILE}")
-		# The status survives validate, which resets it on every save. If this fails,
-		# mark_mobile_verified is writing too early again.
+		# validate resets this on every save, so mark_mobile_verified must write after it.
 		self.assertEqual(lead.mobile_verification_status, "Verified")
 		self.assertEqual(lead.lead_source, "Portal")
 		self.assertEqual(lead.pan, "ABCDE1234F")
-		# A submitted lead skips every rule step in the Loan Lead Workflow.
+		# A submitted lead would skip every rule step in the Loan Lead Workflow.
 		self.assertEqual(lead.docstatus, 0)
 
 	def test_a_token_works_once(self):
@@ -595,7 +504,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		self.assertTrue(submit_lead()["reference"])
 
 	def test_a_verification_survives_a_cache_clear(self):
-		# A migrate or a DocType save clears the whole cache, mid-application or not.
 		token = self.mint_token()
 		frappe.clear_cache()
 
@@ -622,8 +530,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 		with self.assertRaises(frappe.ValidationError):
 			submit_lead()
-
-	# --- the workflow rules ---------------------------------------------------------
 
 	def use_lead_workflow(self):
 		if not frappe.db.exists("Workflow", "Loan Lead Workflow"):
@@ -679,7 +585,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 			as_dict=True,
 		)
 
-		# The knockout rules took back the pre-qualification, so the page must not show it.
 		self.assertEqual(lead.workflow_state, "Incoming")
 		self.assertFalse(lead.prequalification_status)
 		self.assertEqual(result["headline"], "Thank you, we have your enquiry")
@@ -692,8 +597,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		)
 		self.assertIn("Run Knockout Rules", note)
 		self.assertIn("Knockout rules declined", note)
-
-	# --- tracking -------------------------------------------------------------------
 
 	def test_tracking_needs_both_the_reference_and_the_mobile(self):
 		frappe.local.form_dict = frappe._dict({"reference": "LN-LEAD-00001"})
@@ -713,7 +616,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		self.assertTrue(payload["steps"])
 
 	def test_a_wrong_reference_and_a_wrong_mobile_give_the_same_refusal(self):
-		"""Otherwise the tracker becomes a way to guess other people's references."""
 		token = self.mint_token()
 		self.submission(token=token)
 		reference = submit_lead()["reference"]
@@ -730,8 +632,6 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 
 class PortalPeople(LendingTestSuite):
-	"""Two borrowers with customer records, and no loans. The writes need neither."""
-
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -796,12 +696,9 @@ class TestPortalProfileWrite(PortalPeople):
 		self.assertEqual(form["form_email"], "alpha.saved@example.com")
 		self.assertEqual(form["form_mobile"], "9812340001")
 		self.assertEqual(form["form_city"], "Mumbai")
-		# The page switches records from this map rather than asking again.
 		self.assertEqual(form["forms"][ALPHA_CUSTOMER]["city"], "Mumbai")
 
 	def test_a_landline_does_not_overwrite_the_mobile(self):
-		"""Both live in phone_nos under different flags, so the write must not
-		fall back to whichever row happens to be first."""
 		self.as_alpha()
 		self.post(email="alpha.saved@example.com", mobile="9812340002", phone="02212345678")
 		save_profile()
@@ -820,12 +717,6 @@ class TestPortalProfileWrite(PortalPeople):
 			save_profile()
 
 	def test_a_record_shared_with_another_borrower_is_left_alone(self):
-		"""A Contact linked to somebody else's customer must not be edited in place.
-
-		Frappe makes one Contact per login and erpnext links it to each customer that
-		login serves, so a shared record is ordinary. Editing one that also serves a
-		stranger would change what that stranger sees.
-		"""
 		shared = frappe.get_doc(
 			{
 				"doctype": "Contact",
@@ -849,9 +740,6 @@ class TestPortalProfileWrite(PortalPeople):
 		)
 
 	def test_an_address_with_no_country_still_saves(self):
-		"""Address.country is mandatory and india_compliance has its own rule about it,
-		so a blank box must resolve to something rather than quoting either at the
-		borrower."""
 		self.as_alpha()
 		self.post(
 			email="alpha.saved@example.com",
@@ -924,7 +812,6 @@ class TestPortalDocumentUpload(PortalPeople):
 			upload_document()
 
 	def test_uploading_to_a_submitted_application_is_refused(self):
-		"""A submitted application is with our team; section 6.2 keeps the borrower out."""
 		application = frappe.get_doc("Loan Application", self.alpha_draft)
 		application.status = "Approved"
 		application.submit()
@@ -936,11 +823,7 @@ class TestPortalDocumentUpload(PortalPeople):
 			upload_document()
 
 	def test_a_draft_of_your_own_gets_as_far_as_the_file(self):
-		"""Everything ahead of the file passes, and the missing file is what stops it.
-
-		There is no multipart request in a test, so this proves the guards let an owned
-		draft through rather than proving a file lands.
-		"""
+		# No multipart request in a test, so only the guards ahead of the file are proven.
 		self.as_alpha()
 		self.post()
 
@@ -960,12 +843,6 @@ class TestPortalDocumentUpload(PortalPeople):
 
 
 class TestPortalCustomerLead(PortalPeople):
-	"""A borrower who already has an account asks for another loan.
-
-	Beta holds one customer and Alpha holds several, which is the difference between
-	a page that can assume who the loan is for and one that has to ask.
-	"""
-
 	def setUp(self):
 		super().setUp()
 		frappe.db.set_value("User", BETA_USER, "mobile_no", MOBILE)
@@ -1018,7 +895,7 @@ class TestPortalCustomerLead(PortalPeople):
 		self.assertIn(reference, [lead.name for lead in leads_for_login()])
 
 	def test_a_login_with_several_customers_must_name_one(self):
-		# User.mobile_no is unique, and Beta already holds MOBILE.
+		# User.mobile_no is unique and Beta already holds MOBILE.
 		frappe.db.set_value("User", ALPHA_USER, "mobile_no", "9812345679")
 
 		with self.assertRaises(frappe.ValidationError):
@@ -1063,8 +940,7 @@ class TestPortalCustomerLead(PortalPeople):
 		reference = self.ask(BETA_USER)["reference"]
 		frappe.set_user("Administrator")
 
-		# Captured rather than saved: what matters is what conversion hands over, not
-		# everything else Loan Application.validate asks of a real application.
+		# Captured, not saved, to skip everything else Loan Application.validate demands.
 		with patch.object(Document, "save", autospec=True) as save:
 			convert_to_loan_application(frappe.get_doc("Loan Lead", reference))
 
@@ -1074,14 +950,6 @@ class TestPortalCustomerLead(PortalPeople):
 
 
 class TestPortalSignUp(LendingTestSuite):
-	"""Opening an account at the end of an application, and what it is joined to.
-
-	This is the chain that used to be broken: a borrower could apply, but nothing
-	created a login, nothing created a Customer they could be joined to, and nothing
-	wrote the Customer.portal_users row every page reads. Each test below holds one
-	link of it in place.
-	"""
-
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -1106,7 +974,6 @@ class TestPortalSignUp(LendingTestSuite):
 		frappe.local.form_dict = frappe._dict()
 
 	def apply_as(self, email, mobile, **overrides):
-		"""Walk steps 2 and 3 with the SMS provider stubbed, and return the offer."""
 		frappe.local.form_dict = frappe._dict({"mobile_number": mobile, "otp": "123456"})
 		with patch("lending.portal.apply.telephony_otp") as telephony:
 			telephony.return_value.verify_otp.return_value = {"verified": True}
@@ -1136,15 +1003,12 @@ class TestPortalSignUp(LendingTestSuite):
 
 		return create_account()
 
-	# --- person or company ----------------------------------------------------------
-
 	def test_a_company_is_recorded_as_one(self):
 		offer = self.apply_as(
 			COMPANY_EMAIL,
 			"9812340101",
 			applicant_type="Business",
 			company_name="Test Traders Pvt Ltd",
-			# Sent, and dropped, because neither belongs to a company.
 			date_of_birth="1990-01-01",
 			employment_type="Salaried",
 		)
@@ -1158,8 +1022,7 @@ class TestPortalSignUp(LendingTestSuite):
 		self.assertEqual(lead.applicant_type, "Business")
 		self.assertEqual(lead.company_name, "Test Traders Pvt Ltd")
 		self.assertIsNone(lead.date_of_birth)
-		# Empty rather than None: frappe fills a None Select with its first option,
-		# which would record every company as Salaried.
+		# Not None: frappe fills a None Select with its first option, "Salaried".
 		self.assertEqual(lead.employment_type, "")
 
 	def test_a_company_must_give_its_name(self):
@@ -1182,8 +1045,6 @@ class TestPortalSignUp(LendingTestSuite):
 		self.assertEqual(customer.customer_name, "Test Traders Pvt Ltd")
 		self.assertEqual(customer.customer_type, "Company")
 
-	# --- the account ----------------------------------------------------------------
-
 	def test_an_account_is_opened_and_joined_to_a_customer(self):
 		offer = self.apply_as(PERSON_EMAIL, "9812340104")
 		self.open_account(offer)
@@ -1194,7 +1055,6 @@ class TestPortalSignUp(LendingTestSuite):
 		customer = customer_for_email(PERSON_EMAIL)
 		self.assertTrue(customer)
 
-		# The row every borrower page reads. Without it the portal is silently empty.
 		joined = [row.user for row in frappe.get_doc("Customer", customer).portal_users]
 		self.assertIn(PERSON_EMAIL, joined)
 
@@ -1214,7 +1074,6 @@ class TestPortalSignUp(LendingTestSuite):
 		frappe.set_user(PERSON_EMAIL)
 		frappe.local.form_dict = frappe._dict()
 
-		# The newest enquiry, not whatever else this address raised in earlier runs.
 		lead = leads_for_login()[0]
 		self.assertEqual(lead.name, offer["reference"])
 
@@ -1256,8 +1115,6 @@ class TestPortalSignUp(LendingTestSuite):
 			self.open_account(second)
 
 	def test_a_one_character_password_is_refused(self):
-		"""The site's own password policy let this through, so the endpoint has a
-		floor of its own rather than trusting a setting."""
 		offer = self.apply_as(PERSON_EMAIL, "9812340110")
 
 		with self.assertRaises(frappe.ValidationError):
@@ -1281,11 +1138,7 @@ class TestPortalSignUp(LendingTestSuite):
 		self.open_account(offer)
 		self.assertTrue(frappe.db.exists("User", PERSON_EMAIL))
 
-	# --- the join survives conversion -----------------------------------------------
-
 	def test_converting_a_lead_reuses_the_borrowers_customer(self):
-		"""Otherwise the borrower ends up with two Customer records, their login
-		joined to the first, and the loan on the second one invisible to them."""
 		self.open_account(self.apply_as(PERSON_EMAIL, "9812340111"))
 		customer = customer_for_email(PERSON_EMAIL)
 
@@ -1312,17 +1165,7 @@ class TestPortalSignUp(LendingTestSuite):
 
 
 class TestPortalSwitches(LendingTestSuite):
-	"""The three switches a lender uses to decide what the portal serves.
-
-	Every refusal here has to be frappe.PageDoesNotExistError and not PermissionError.
-	website/serve.py renders the first as 404 and the second as "not permitted", and a
-	lender who switched the portal off wants it gone rather than hidden behind a refusal
-	that confirms it is there.
-
-	The signed-in checks run as Administrator on purpose. The switch is read before the
-	guest check, so a real borrower is not needed to prove it fires, and using one would
-	tie these tests to the fixtures of another class.
-	"""
+	# PageDoesNotExistError, not PermissionError: only the first renders as a 404.
 
 	def setUp(self):
 		set_loan_settings_in_company()
@@ -1357,7 +1200,6 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertRaises(frappe.PageDoesNotExistError, get_track_page)
 
 	def test_portal_off_closes_the_endpoints_that_write(self):
-		"""The switch has to stop the writes, not only the pages that lead to them."""
 		set_portal_switches(0, 0)
 		frappe.set_user("Guest")
 
@@ -1366,17 +1208,14 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertRaises(frappe.PageDoesNotExistError, create_account)
 
 	def test_public_apply_off_leaves_the_signed_in_portal_serving(self):
-		"""A lender whose sales team keys leads in the desk wants exactly this."""
 		set_portal_switches(1, 0)
 
 		self.assertRaises(frappe.PageDoesNotExistError, get_apply_page)
 		self.assertRaises(frappe.PageDoesNotExistError, submit_lead)
 
-		# The tracker follows the portal switch alone: a lead raised by a sales rep
-		# still deserves a tracker.
+		# The tracker follows the portal switch alone: desk-raised leads still need it.
 		self.assertTrue(get_track_page()["heading"])
 
-		# And a borrower who already has a login is untouched.
 		self.assertIsInstance(get_portal_customers(), list)
 
 	def test_a_product_not_shown_on_the_portal_is_not_offered(self):
@@ -1386,13 +1225,11 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertNotIn(PRODUCT, offered_products("Business"))
 
 	def test_a_product_not_shown_on_the_portal_cannot_be_applied_for(self):
-		"""Filtering the list alone would leave it one guessed name away."""
 		show_product_on_portal(PRODUCT, 0)
 
 		self.assertRaises(frappe.ValidationError, read_product, PRODUCT, 100000)
 
 	def test_a_product_shown_on_the_portal_is_offered_and_accepted(self):
-		# No applicant type set on the product means both are offered it.
 		self.assertIn(PRODUCT, offered_products("Individual"))
 		self.assertIn(PRODUCT, offered_products("Business"))
 		self.assertEqual(read_product(PRODUCT, 100000)["name"], PRODUCT)
@@ -1405,28 +1242,18 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertNotIn(PRODUCT, offered_products("Individual"))
 
 	def test_a_person_cannot_apply_for_a_business_product(self):
-		"""Filtering the list alone would leave it one guessed name away."""
 		offer_product_to(PRODUCT, "Business")
 
 		self.assertRaises(frappe.ValidationError, read_product, PRODUCT, 100000, "Individual")
 		self.assertEqual(read_product(PRODUCT, 100000, "Business")["name"], PRODUCT)
 
 	def test_portal_off_takes_every_page_out_of_the_route_table(self):
-		"""The data layer refusing is not enough on its own.
-
-		A refusal raised while a page renders comes back as the 404 page with a 200
-		status. Only an unresolved route gives a real 404, and a Studio App is served
-		at all only while it has a published page -- so unpublishing them takes the
-		whole portal off the website rather than leaving a shell that says it is shut.
-		"""
+		# A refusal during render is a 404 page with a 200 status; only unpublishing gives a real 404.
 		set_portal_switches(0, 0)
 
 		self.assertEqual(published_portal_routes(), set())
 
 	def test_public_apply_off_takes_only_the_apply_page_out(self):
-		"""The tracker is not the form. Somebody who already applied while it was open
-		still has a reference number to look up, so closing the form does not close the
-		page that answers for it."""
 		set_portal_switches(1, 0)
 		routes = published_portal_routes()
 
@@ -1435,7 +1262,6 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertIn("/overview", routes)
 
 	def test_switching_the_portal_back_on_restores_every_page(self):
-		"""A switch a lender cannot reverse is worse than no switch."""
 		before = published_portal_routes()
 		set_portal_switches(0, 0)
 		set_portal_switches(1, 1)
@@ -1444,16 +1270,6 @@ class TestPortalSwitches(LendingTestSuite):
 
 
 class TestPortalBranding(LendingTestSuite):
-	"""What a lender sets on one desk form, and where it comes out.
-
-	The goal these serve is in PORTAL_CUSTOMIZATION_PLAN.md part B: a borrower of the
-	bank that runs this portal should not be able to tell which app built it. So the
-	tests are about two things. That nothing a lender leaves blank changes anything,
-	because that is what makes these settings safe to add to a site already running.
-	And that everything a lender does fill in reaches the page, the tokens and the
-	PDFs, rather than only the one place it was first wired to.
-	"""
-
 	def tearDown(self):
 		set_branding()
 		frappe.local.form_dict = frappe._dict()
@@ -1477,17 +1293,15 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(payload["show_wordmark"], 1)
 
 	def test_with_a_logo_the_frame_shows_the_logo_instead_of_the_name(self):
-		"""Both are written into the page, so exactly one of them has to be dropped."""
 		set_branding(portal_brand_name="Ganges Finance", portal_logo="/files/ganges.png")
 		payload = brand_payload()
 
 		self.assertEqual(payload["brand_logo"], "/files/ganges.png")
 		self.assertEqual(payload["show_wordmark"], 0)
-		# The name still travels, because it is the logo's alt text and the PDFs' fallback.
+		# Still sent: it is the logo's alt text and the PDFs' fallback.
 		self.assertEqual(payload["brand_name"], "Ganges Finance")
 
 	def test_the_public_pages_carry_the_brand_too(self):
-		"""/apply and /track wear no borrower shell, so they answer for it themselves."""
 		set_branding(portal_brand_name="Ganges Finance", portal_logo="/files/ganges.png")
 
 		for payload in (get_apply_page(), get_track_page()):
@@ -1507,7 +1321,6 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(brand_payload()["support_email"], "")
 
 	def test_no_colours_leave_frappe_ui_to_paint_the_portal(self):
-		"""Every block that wears a colour falls back to frappe-ui's own, so none is sent."""
 		set_branding()
 
 		self.assertEqual(brand_payload()["brand_style"], "")
@@ -1526,7 +1339,6 @@ class TestPortalBranding(LendingTestSuite):
 			self.assertIn("--portal-primary: #004c8f;", payload["brand_style"])
 
 	def test_the_secondary_colour_fills_the_buttons(self):
-		"""HDFC: a navy bank with red buttons."""
 		tokens = brand_tokens("#004c8f", "#ed232a")
 
 		self.assertEqual(tokens["--portal-primary"], "#004c8f")
@@ -1534,7 +1346,6 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(tokens["--portal-action-ink"], "#ffffff")
 
 	def test_without_a_secondary_colour_the_buttons_take_the_primary(self):
-		"""Axis: one maroon, and a portal that still has something to press."""
 		tokens = brand_tokens("#800000", None)
 
 		self.assertEqual(tokens["--portal-action"], "#800000")
@@ -1547,27 +1358,22 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertNotIn("bg-surface-sidebar", style)
 
 	def test_a_light_colour_carries_dark_ink_and_a_saturated_one_white(self):
-		"""Canara: dark on its yellow buttons, white on its blue header."""
 		tokens = brand_tokens("#019eec", "#ffb600")
 
 		self.assertEqual(tokens["--portal-action-ink"], "#171717")
 		self.assertEqual(tokens["--portal-primary-ink"], "#ffffff")
 
 	def test_a_saturated_orange_carries_white_where_wcag_would_hand_it_black(self):
-		"""The WCAG ratio prefers black on #ef6f21, 6.0 to 3.0; the eye, and APCA, prefer white."""
 		self.assertEqual(brand_tokens("#ef6f21", None)["--portal-primary-ink"], "#ffffff")
-		# A truly light colour still gets the dark ink.
 		self.assertEqual(brand_tokens("#ff9f1c", None)["--portal-primary-ink"], "#171717")
 
 	def test_a_header_button_takes_the_secondary_only_where_it_stands_out(self):
-		"""HDFC's red clears 3:1 on its pale navy band; SBI's cyan, at 2.3:1, would be a smudge."""
 		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-header-action"], "#ed232a")
 		self.assertEqual(brand_tokens("#292075", "#00b5ef")["--portal-header-action"], "#171717")
 
 	def test_the_primary_colour_tints_the_sidebar_and_nothing_beside_it(self):
 		style = brand_style("#004b8e", "#ed232a")
 
-		# The header's wash, set on the sidebar alone.
 		self.assertIn(".borrower-portal .bg-surface-sidebar { --surface-sidebar: var(--portal-primary-soft);", style)
 		self.assertNotIn(":root { --surface", style)
 
@@ -1578,7 +1384,6 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertNotIn("--ink-gray-9", style)
 
 	def test_a_done_step_is_a_wash_of_the_primary_with_a_tick_that_can_be_seen(self):
-		"""HDFC's navy is dark enough as it is; Canara's blue is darkened to reach 3:1."""
 		hdfc = brand_tokens("#004b8e", None)
 		self.assertEqual(hdfc["--portal-primary-soft"], "#e0e9f1")
 		self.assertEqual(hdfc["--portal-primary-deep"], "#004b8e")
@@ -1589,7 +1394,6 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertNotEqual(canara["--portal-primary-deep"], "#019eec")
 
 	def test_the_borrowers_initial_is_a_white_disc_on_the_rails_wash(self):
-		"""The wash is the rail's own ground now, so a disc drawn in it would vanish."""
 		style = brand_style("#004b8e", None)
 
 		self.assertIn(".borrower-portal .portal-avatar { --surface-gray-2: var(--surface-white);", style)
@@ -1598,7 +1402,7 @@ class TestPortalBranding(LendingTestSuite):
 	def test_grey_buttons_and_table_bands_wear_a_wash_of_the_secondary(self):
 		style = brand_style("#004c8f", "#ed232a")
 
-		# A button marked plain -- the statement's period shortcuts -- stays grey.
+		# .portal-plain (the statement's period shortcuts) stays grey.
 		self.assertIn(
 			'.borrower-portal button.bg-surface-gray-2:not(.portal-plain):not([role="combobox"]) { background-color: var(--portal-action-soft);',
 			style,
@@ -1606,7 +1410,6 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-action-soft"], "#fde5e5")
 
 	def test_a_label_on_a_wash_reads_as_body_text_even_while_pressed(self):
-		"""4.5:1 on the deepest of the three washes, for a dark red and a light yellow alike."""
 		for secondary in ("#ed232a", "#ffb600", "#00b5ef"):
 			tokens = brand_tokens("#004c8f", secondary)
 			label = channels(tokens["--portal-action-deep"])
@@ -1619,23 +1422,11 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertIn(".borrower-portal .portal-footer { background-color: var(--portal-primary-soft);", style)
 
 	def test_only_a_hex_colour_reaches_the_stylesheet(self):
-		"""The value is written into a <style>, so anything else is dropped, not escaped."""
 		self.assertEqual(brand_style("red; } body { display: none", "</style><script>"), "")
 		self.assertIn("--portal-primary: #aabbcc;", brand_style("ABC", None))
 
 
 class TestPortalFooter(LendingTestSuite):
-	"""The line at the foot of every page, which is the lender's and not ours.
-
-	A borrower reading the bottom of a bank's site expects the copyright notice on one
-	side and the policies on the other, and a regulator expects the grievance address
-	among them. None of it can be written into the blocks: the notice names a company
-	we do not know and the policies are a list whose length we do not know, so both
-	are settings read per request. These hold that open -- that the frame repeats one
-	link rather than holding a fixed few, because that is what lets a lender add a
-	policy without a rebuild of ten pages.
-	"""
-
 	def tearDown(self):
 		set_footer()
 		set_branding()
@@ -1654,7 +1445,6 @@ class TestPortalFooter(LendingTestSuite):
 		self.assertIn(DEFAULT_BRAND_NAME, copyright_note())
 
 	def test_a_company_that_ends_in_a_stop_does_not_get_two(self):
-		"""Most of them do, being an Ltd. The sentence supplies the stop, not the name."""
 		set_branding(portal_brand_name="Ganges Finance Ltd.")
 		set_footer()
 
@@ -1666,15 +1456,11 @@ class TestPortalFooter(LendingTestSuite):
 		self.assertEqual(copyright_note(), "© Ganges Finance. A Ganges Group company.")
 
 	def test_a_written_notice_still_gets_this_year(self):
-		"""A notice with the year typed into it is wrong every January, and nobody edits
-		settings to fix that."""
 		set_footer(notice="© {year} Ganges Finance.")
 
 		self.assertEqual(copyright_note(), f"© {getdate(nowdate()).year} Ganges Finance.")
 
 	def test_a_notice_carrying_a_stray_brace_is_text_and_not_an_error(self):
-		"""The substitution is a replace and not a format, so this renders rather than
-		raising on every page of the portal."""
 		set_footer(notice="© Ganges Finance {a division of Ganges Group}")
 
 		self.assertEqual(copyright_note(), "© Ganges Finance {a division of Ganges Group}")
@@ -1698,13 +1484,6 @@ class TestPortalFooter(LendingTestSuite):
 		)
 
 	def test_contact_us_follows_them_without_being_typed(self):
-		"""A lender is required to publish a grievance address. Leaving it to a row
-		someone remembers to add would mean the sites that need it most are the ones
-		without it.
-
-		The link reads Contact us and carries the address underneath, because the
-		address is what it does and not what it is for.
-		"""
 		set_footer(links=(("Privacy Policy", "/borrower/privacy-policy"),), support="care@ganges.example.com")
 
 		self.assertEqual(
@@ -1713,13 +1492,11 @@ class TestPortalFooter(LendingTestSuite):
 		)
 
 	def test_no_address_means_no_contact_us(self):
-		"""Rather than a Contact us that opens an empty mail window."""
 		set_footer(links=(("Privacy Policy", "/borrower/privacy-policy"),))
 
 		self.assertEqual([link["footer_label"] for link in footer_links()], ["Privacy Policy"])
 
 	def test_no_links_and_no_address_leaves_the_row_empty_rather_than_broken(self):
-		"""What a site that upgrades into this and sets nothing gets: a bare notice."""
 		set_footer()
 
 		self.assertEqual(footer_links(), [])
@@ -1739,13 +1516,6 @@ class TestPortalFooter(LendingTestSuite):
 		self.assertEqual(payload["footer_links"][0]["footer_label"], "Privacy Policy")
 
 class TestPortalMenu(LendingTestSuite):
-	"""The sidebar, which is a list read per request rather than seven blocks per page.
-
-	The rows live in lending.hooks.portal_menu_items and reach the page through
-	Frappe's own portal menu. That is what these hold open: that the frame stays a
-	single repeated row, and that the list it repeats is this portal's own.
-	"""
-
 	def setUp(self):
 		self.request = getattr(frappe.local, "request", None)
 
@@ -1761,13 +1531,11 @@ class TestPortalMenu(LendingTestSuite):
 		]
 
 	def serving(self, route: str) -> dict[str, str]:
-		"""The menu as it comes out while `route` is the page being served."""
 		frappe.local.request = frappe._dict(path=route)
 
 		return {row["nav_title"]: row["nav_current"] for row in nav_items()}
 
 	def test_the_menu_is_the_one_declared_in_hooks(self):
-		"""In the order declared, with nothing dropped on the way to the page."""
 		rows = nav_items()
 
 		self.assertEqual(
@@ -1776,7 +1544,7 @@ class TestPortalMenu(LendingTestSuite):
 		)
 
 	def test_another_portals_rows_are_left_to_it(self):
-		"""get_portal_sidebar_items answers for the whole site, ERPNext's portal included."""
+		# get_portal_sidebar_items answers for the whole site, ERPNext's portal included.
 		routes = {row["nav_route"] for row in nav_items()}
 
 		self.assertNotIn("/orders", routes)
@@ -1790,21 +1558,18 @@ class TestPortalMenu(LendingTestSuite):
 		self.assertEqual([*marks.values()].count("page"), 1)
 
 	def test_a_detail_page_lights_the_list_it_belongs_to(self):
-		"""A loan has no row of its own, and a page with nothing lit reads as lost."""
 		self.assertEqual(self.serving("/borrower-portal/loan/LOAN-0001")["Loan accounts"], "page")
 		self.assertEqual(
 			self.serving("/borrower-portal/application/LN-APP-0001")["Application"], "page"
 		)
 
 	def test_a_list_is_not_swallowed_by_the_section_beside_it(self):
-		"""/borrower-portal/applications starts with /borrower-portal/application, and is not one."""
 		marks = self.serving("/borrower-portal/applications")
 
 		self.assertEqual(marks["Application"], "page")
 		self.assertEqual([*marks.values()].count("page"), 1)
 
 	def test_off_a_request_the_menu_still_comes_out(self):
-		"""An /api call on one of these endpoints is serving no page at all."""
 		frappe.local.request = None
 		marks = {row["nav_title"]: row["nav_current"] for row in nav_items()}
 
@@ -1812,14 +1577,6 @@ class TestPortalMenu(LendingTestSuite):
 		self.assertNotIn("page", marks.values())
 
 class TestPortalRail(LendingTestSuite):
-	"""The two icons in the rail, and the pages behind them.
-
-	Both were links to "#" until these existed, so the first thing held open here is
-	that they go somewhere. The rest is what they answer with: a search that can only
-	return what this login already owns, and a notification list that separates what
-	the borrower has to do from what has merely happened.
-	"""
-
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -1853,25 +1610,14 @@ class TestPortalRail(LendingTestSuite):
 
 		return find()
 
-	# --- the rail -------------------------------------------------------------------
-
 	def test_the_search_page_is_gone(self):
-		"""Search is the Ctrl+K palette on every page, so there is no page of it left
-		to serve -- nor a sidebar row pointing at one."""
 		self.assertNotIn("/search", published_portal_routes())
 
 	def test_the_notifications_page_is_gone(self):
-		"""The panel says everything the page said, and a bell with two answers is one
-		answer too many. Asserted on the served routes rather than on the source,
-		because a page left published outlives whatever built it."""
 		self.assertNotIn("/notifications", published_portal_routes())
 
-	# --- search ---------------------------------------------------------------------
-
 	def test_a_product_finds_loans_and_nothing_that_is_not_one(self):
-		"""Asserted on the answer rather than on the fixture: this database is not rolled
-		back between runs, so the borrower holds hundreds of loans by now and the one
-		this test made need not be among the first page of them."""
+		# Asserts on the answer, not the fixture: the DB is not rolled back, so loans pile up.
 		results = self.search(PRODUCT)["results"]
 
 		self.assertTrue(results)
@@ -1892,19 +1638,15 @@ class TestPortalRail(LendingTestSuite):
 		)
 
 	def test_a_search_cannot_reach_another_borrowers_loan(self):
-		"""The one that matters. Search reads the same scoped lists every page reads."""
 		results = self.search(self.beta_loan)["results"]
 
 		self.assertEqual(results, [])
 
 	def test_every_word_has_to_match(self):
-		"""Two words narrow the answer; they do not widen it."""
 		self.assertTrue(self.search(PRODUCT)["results"])
 		self.assertEqual(self.search(f"{PRODUCT} nothing-matches-this")["results"], [])
 
 	def test_an_empty_box_opens_holding_somewhere_to_go(self):
-		"""The desk's command bar offers the places you can go before you type, and a
-		borrower with no loans yet has nothing else worth offering."""
 		payload = self.search("")
 
 		self.assertEqual(
@@ -1915,7 +1657,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertEqual(payload["note"], "")
 
 	def test_a_page_is_findable_by_name_like_anything_else(self):
-		"""The pages are in the same list the records are, so one query searches both."""
 		results = self.search("interest certificate")["results"]
 
 		self.assertEqual(
@@ -1923,19 +1664,13 @@ class TestPortalRail(LendingTestSuite):
 		)
 
 	def test_a_search_that_matches_everything_is_cut_down(self):
-		"""Held open without the hundreds of records it would take to cause it."""
 		self.assertIn(str(RESULT_LIMIT), results_note("loan", RESULT_LIMIT + 10))
 		self.assertIn(str(RESULT_LIMIT + 10), results_note("loan", RESULT_LIMIT + 10))
 
 	def test_the_palette_never_answers_past_its_limit(self):
-		"""The fixture's product name matches every loan it has made, and this database
-		is not rolled back between runs, so there are more of them than fit."""
 		self.assertLessEqual(len(self.search(PRODUCT)["results"]), RESULT_LIMIT)
 
-	# --- notifications --------------------------------------------------------------
-
 	def test_a_draft_application_is_work_waiting_on_the_borrower(self):
-		"""A draft is the borrower's to submit, so it belongs on the list that asks."""
 		rows = attention_rows(
 			[
 				{"name": "APP-1", "url": "/borrower/application/APP-1", "product": PRODUCT,
@@ -1962,7 +1697,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertEqual(rows[0]["url"], "/borrower/loan/LOAN-0001")
 
 	def test_an_instalment_whose_loan_is_unknown_still_leads_somewhere(self):
-		"""A row that looks like a link has to act like one, even with no loan to name."""
 		rows = attention_rows([], [{"product": PRODUCT, "detail": "", "date": "z", "amount": "1"}])
 
 		self.assertEqual(rows[0]["url"], "/borrower-portal/loans")
@@ -1985,7 +1719,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertNotIn(f"/borrower-portal/application/{self.alpha_application}", urls)
 
 	def test_what_has_happened_comes_out_in_the_same_shape_as_what_is_waiting(self):
-		"""One shape is what lets the two tabs share a single row block."""
 		rows = activity_rows(
 			[{"title": "Payment made", "sub": PRODUCT, "date": "12 Sep 2026", "amount": "1,000"}]
 		)
@@ -1997,8 +1730,6 @@ class TestPortalRail(LendingTestSuite):
 					"title": "Payment made",
 					"note": PRODUCT,
 					"when": "1,000 · 12 Sep 2026",
-					# A record of a repayment is still worth opening: it is a line of
-					# the statement. No row in either list is a dead end.
 					"url": "/borrower-portal/statement",
 				}
 			],
@@ -2008,10 +1739,7 @@ class TestPortalRail(LendingTestSuite):
 			set(attention_rows([], [{"product": "x", "detail": "y", "date": "z", "amount": "1"}])[0]),
 		)
 
-	# --- the double tick -------------------------------------------------------------
-
 	def test_every_row_says_whether_it_has_been_read(self):
-		"""The dot on the row is drawn from this and nothing else."""
 		frappe.set_user(ALPHA_USER)
 		payload = get_notifications()
 
@@ -2032,8 +1760,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertTrue(all(row["read"] for row in after["attention"] + after["activity"]))
 
 	def test_a_row_that_changes_what_it_says_comes_back_unread(self):
-		"""A notification is only the same notification while it says the same thing:
-		an instalment whose amount moves is news again, and has to look like it."""
 		frappe.set_user(ALPHA_USER)
 		mark_all_as_read()
 		seen = read_keys()
@@ -2056,9 +1782,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertEqual(read_keys(), set())
 
 	def test_the_double_tick_writes_only_what_the_server_can_see(self):
-		"""Nothing arrives from the browser, so there is nothing to forge: the keys are
-		recomputed from this borrower's own rows. It is also what prunes the list --
-		a key for a row that has dropped off the panel is simply not rewritten."""
 		frappe.set_user(ALPHA_USER)
 		frappe.defaults.set_user_default(READ_KEY, json.dumps(["stale-key-from-before"]))
 		mark_all_as_read()
@@ -2066,7 +1789,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertNotIn("stale-key-from-before", read_keys())
 
 	def test_a_borrower_whose_marks_are_unreadable_is_not_an_error(self):
-		"""A hand-edited DefaultValue should cost a borrower their dots, not their page."""
 		frappe.set_user(ALPHA_USER)
 		frappe.defaults.set_user_default(READ_KEY, "not json")
 
@@ -2075,17 +1797,7 @@ class TestPortalRail(LendingTestSuite):
 
 
 class TestPortalSummaryStrip(LendingTestSuite):
-	"""The three cards the overview opens with, and which of them leads.
-
-	A borrower opens the portal to learn three things: where their application has got
-	to, what they pay next, and what they still owe. The application leads because it
-	is the only one of the three with an answer on the first day -- the two figures
-	read "Nothing due" and "No live accounts" until a loan is booked, and a borrower
-	who is still applying was meeting a page of blanks.
-	"""
-
 	def blocks(self, node) -> list[dict]:
-		"""Every block of a page's tree, the node itself included."""
 		found = [node]
 		for child in node.get("children") or []:
 			found.extend(self.blocks(child))
@@ -2093,7 +1805,6 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		return found
 
 	def test_a_borrower_with_nothing_in_progress_is_not_shown_an_empty_card(self):
-		"""The card hides a blank headline and shows the note in its place."""
 		empty = application_lead([])
 
 		self.assertEqual(empty["application_stage"], "")
@@ -2101,12 +1812,6 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		self.assertEqual(empty["application_note"], "Nothing in progress")
 
 	def test_the_card_names_the_newest_application_and_says_how_many_more(self):
-		"""One card, several applications: it must not look like the whole story.
-
-		get_applications orders newest first, so the card takes the first row. The
-		count under it is what sends a borrower to the table below, and it stays away
-		when there is only the one they are already reading.
-		"""
 		newest = dict(self.application("Home Loan"), note="")
 		older = self.application("Personal Loan")
 
@@ -2129,13 +1834,6 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		}
 
 	def test_the_card_opens_the_loan_once_the_application_has_become_one(self):
-		"""The card is pressable, and where it goes moves with the application.
-
-		An application under review is a record of the asking, and its own page is the
-		only place that shows where it has got to. Once the loan is booked that page is
-		history: the borrower pressing a card headed "Loan sanctioned" wants the account,
-		not the form they filled in weeks ago.
-		"""
 		under_review = application_lead([self.application("Home Loan")])
 		sanctioned = application_lead([self.application("Home Loan", loan="LOAN-1")])
 
@@ -2143,11 +1841,9 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		self.assertEqual(sanctioned["application_url"], "/borrower-portal/loan/LOAN-1")
 
 	def test_a_card_with_nothing_in_progress_offers_nowhere_to_go(self):
-		"""The chevron is bound to this key, so an empty one is what hides it."""
 		self.assertEqual(application_lead([])["application_url"], "")
 
 	def test_an_open_enquiry_leads_the_card_until_it_is_an_application(self):
-		"""The Application page tracks an enquiry, so the overview must not deny it."""
 		lead = frappe._dict(
 			name="LN-LEAD-1",
 			loan_product="Education Loan",
@@ -2177,23 +1873,12 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		self.assertEqual(card["application_note"], "")
 
 	def test_the_card_names_the_day_the_application_was_raised(self):
-		"""A label and a value, not the one line the table reads.
-
-		The card sets the value darker than the words that lead it, so it needs them
-		apart. A card handed the table's joined reference could only print it whole.
-		"""
 		lead = application_lead([self.application("Home Loan")])
 
 		self.assertEqual(lead["application_date_label"], "Initiated")
 		self.assertEqual(lead["application_date"], "01 Jan 2026")
 
 	def test_the_sanctioned_amount_is_one_line_under_the_outstanding_figure(self):
-		"""It was a card of its own, at the weight of the two figures beside it.
-
-		A borrower checks what was sanctioned once, so it reads as a sentence now. The
-		sentence is joined in the data layer, because which of the four facts is worth
-		saying depends on the account and that is a judgement rather than a layout.
-		"""
 		loans = [frappe._dict(status="Active", loan_amount=500000, disbursed_amount=300000)]
 		line = build_summary(loans, [])["sanctioned_line"]
 
@@ -2201,14 +1886,6 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		self.assertIn(money(200000), line)
 
 class TestPortalRanking(LendingTestSuite):
-	"""What the overview puts first, and what it stops saying twice.
-
-	The page used to lead with a filled black button offering a payment eighteen days
-	away, while the two applications actually waiting on the borrower were grey text
-	in the middle of a table. What is held open here is the order it reads in now:
-	the work first, the button following the work, and every fact said once.
-	"""
-
 	def draft(self, name="APP-1", product="Personal Loan"):
 		return {
 			"name": name,
@@ -2231,10 +1908,7 @@ class TestPortalRanking(LendingTestSuite):
 			"url": "/borrower/loan/LOAN-0001",
 		}
 
-	# --- what counts as waiting ------------------------------------------------------
-
 	def test_an_application_under_review_is_not_waiting_on_the_borrower(self):
-		"""The strip is work they can do. An application with the lender is not that."""
 		reviewing = dict(self.draft(), needs_borrower=False, stage="Under review")
 
 		self.assertEqual(waiting_on_borrower([reviewing]), [])
@@ -2246,21 +1920,12 @@ class TestPortalRanking(LendingTestSuite):
 		self.assertEqual(rows[0]["note"], "Submit to start the review")
 
 	def test_the_strip_leaves_the_payment_to_the_button(self):
-		"""The two halves of the page's one request must not both make it.
-
-		A strip that also carried the instalment would put the payment on the page
-		twice -- once as a row and once as the button right above it -- which is the
-		habit the strip was added to break, reintroduced by the fix for it.
-		"""
 		source = inspect.getsource(waiting_on_borrower)
 
 		self.assertNotIn("schedule", source)
 		self.assertNotIn(REPAYMENTS_ROUTE, source)
 
-	# --- the button ------------------------------------------------------------------
-
 	def test_the_button_is_the_payment_page_either_way(self):
-		"""The destination was never wrong. Only the insistence was."""
 		quiet = next_action(due_soon=False)
 		loud = next_action(due_soon=True)
 
@@ -2269,14 +1934,10 @@ class TestPortalRanking(LendingTestSuite):
 		self.assertEqual(quiet["action_label"], loud["action_label"])
 
 	def test_the_button_only_insists_when_a_payment_is_near(self):
-		"""The whole complaint in one assertion: eighteen days out, this was "1"."""
 		self.assertEqual(next_action(due_soon=False)["action_urgent"], "0")
 		self.assertEqual(next_action(due_soon=True)["action_urgent"], "1")
 
-	# --- what is no longer said twice -------------------------------------------------
-
 	def test_one_live_account_reads_its_standing_in_its_own_row(self):
-		"""The head said "All accounts regular" over a single row saying "Regular"."""
 		one = [frappe._dict(name="L-1", status="Disbursed")]
 		two = [frappe._dict(name="L-1", status="Disbursed"), frappe._dict(name="L-2", status="Active")]
 
@@ -2284,9 +1945,6 @@ class TestPortalRanking(LendingTestSuite):
 		self.assertEqual(account_status(two)["account_status"], "All accounts regular")
 
 	def test_a_fully_drawn_loan_gets_progress_where_it_got_its_own_figure_back(self):
-		"""Sanctioned equals disbursed once a loan is fully drawn, so the line was
-		repeating the figure above it. How far through they are is the fact that is
-		nowhere else on the page."""
 		drawn = standing_line(sanctioned=300000, undrawn=0, drawn=300000, repaid=50000)
 		partly = standing_line(sanctioned=300000, undrawn=100000, drawn=200000, repaid=0)
 
@@ -2298,52 +1956,30 @@ class TestPortalRanking(LendingTestSuite):
 		self.assertEqual(standing_line(sanctioned=0, undrawn=0, drawn=0, repaid=0), "")
 
 	def test_one_loans_instalments_stop_repeating_its_name(self):
-		"""Four rows of one fixed instalment differ only in date. The name goes up to
-		the card's subtitle and the row leads with what actually moves."""
 		rows = name_once([self.instalment(), self.instalment()])
 
 		self.assertEqual([row["sub"] for row in rows], ["", ""])
 		self.assertEqual([row["title"] for row in rows], [row["detail"] for row in rows])
 
 	def test_two_loans_keep_their_names_on_every_row(self):
-		"""With more than one loan the name is what tells the rows apart."""
 		rows = name_once([self.instalment("Personal Loan"), self.instalment("Demand Loan")])
 
 		self.assertEqual([row["title"] for row in rows], ["Personal Loan", "Demand Loan"])
 		self.assertEqual([row["sub"] for row in rows], [row["detail"] for row in rows])
 
 class TestPortalActivityList(LendingTestSuite):
-	"""The overview's activity list: a line of dots, and one sentence per event.
-
-	It reads the way the desk's own timeline reads, because it answers the same
-	question -- has the thing I did landed yet -- and a borrower checking whether their
-	payment went through should not have to subtract a date from today to find out.
-	"""
-
 	def test_an_event_from_today_is_not_told_in_hours(self):
-		"""The reason days_ago exists rather than frappe.utils.pretty_date.
-
-		These events carry a posting date, which pretty_date reads as midnight: a
-		repayment entered this morning came back as "14 hours ago", and one entered
-		late last night as "yesterday", though both happened on the same day.
-		"""
+		# Why days_ago, not pretty_date: pretty_date reads a posting date as midnight.
 		self.assertEqual(days_ago(nowdate()), "Today")
 		self.assertEqual(days_ago(add_days(nowdate(), -1)), "Yesterday")
 
 	def test_how_long_ago_is_told_in_the_unit_that_fits(self):
-		"""Days for a week, then weeks, then months. "56 days ago" is arithmetic."""
 		said = [days_ago(add_days(nowdate(), -days)) for days in (3, 8, 40, 400)]
 
 		self.assertEqual(said, ["3 days ago", "1 week ago", "1 month ago", "1 year ago"])
 
 
 class TestPortalDisbursementRequest(LendingTestSuite):
-	"""A borrower asks for money on a sanctioned loan; staff pay it out.
-
-	The request is a draft Loan Disbursement. What matters is that it is only ever a
-	draft, only on the borrower's own loan, and never for more than the loan has left.
-	"""
-
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -2396,7 +2032,6 @@ class TestPortalDisbursementRequest(LendingTestSuite):
 		(draft,) = self.drafts(self.alpha_loan)
 		self.assertEqual(draft.docstatus, 0)
 		self.assertEqual(draft.disbursed_amount, 40000)
-		# The loan itself is untouched until staff submit the draft.
 		self.assertEqual(frappe.db.get_value("Loan", self.alpha_loan, "status"), "Sanctioned")
 		self.assertTrue(
 			frappe.db.exists(
@@ -2434,15 +2069,7 @@ class TestPortalDisbursementRequest(LendingTestSuite):
 		self.assertEqual(len(self.drafts(self.alpha_loan)), 1)
 
 
-
 class TestPortalAccountSwitch(LendingTestSuite):
-	"""A borrower with several loans picks one, and the portal then reads that one alone.
-
-	The choice is the borrower's own record of which loan to show, so it must only ever
-	name one of their loans: a choice that names somebody else's is refused, and one
-	that stops being theirs is ignored.
-	"""
-
 	def setUp(self):
 		set_loan_settings_in_company()
 		create_loan_accounts()
@@ -2519,8 +2146,7 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		self.assertNotEqual(default_loan(), self.beta_loan)
 
 	def test_a_borrower_with_one_loan_is_never_asked(self):
-		# A borrower of its own: every setUp in this file gives Beta another loan, and
-		# nothing rolls them back.
+		# Its own borrower: every setUp here gives Beta another loan and nothing rolls them back.
 		frappe.set_user("Administrator")
 		make_website_user(SINGLE_USER)
 		make_portal_customer(SINGLE_CUSTOMER, SINGLE_USER)

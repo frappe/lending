@@ -1,17 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The borrower's Account overview, as a Studio page.
-
-It replaces the overview of the Builder portal this one was migrated from, and reads
-the same payload: `lending.portal.core.get_dashboard`, unchanged. What differs is what
-draws it -- a stage is a frappe-ui Badge rather than a styled span, and the record
-tables are the List family rather than a grid of divs.
-
-The scheduled repayments beside it are still a repeater, deliberately: a timeline is a
-record of what happened, and those four rows are a diary of what has not.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.application_pages import applications
 from lending.portal.studio_build.blocks import (
@@ -42,24 +31,18 @@ from lending.portal.studio_build.shell import frame
 TITLE = "Account overview"
 ROUTE = "/overview"
 SOURCE = "overview"
-# Where every figure on this page is answered in full, and so where the two figure
-# cards lead.
 ACCOUNTS_ROUTE = "/loans"
 read = reader(SOURCE)
 
-# The timeline's geometry. The marker's box is the height of the title's line, so a
-# marker of either size sits centred on it; the stem stops STEM_GAP short of the marker
-# at each end.
+# The marker box is the title's line height, so either marker size centres on it.
 MARKER = "18px"
 DOT = "10px"
 STEM_GAP = "4px"
-# The row's own space below its lines, which the stem runs down through to the next.
+# Padding under a row's lines, not a gap between rows, so the stem can run through it.
 ROW_GAP = "24px"
-# Wide enough for "Nov" at the tile's size, and the same for every month.
 DATE_TILE = "48px"
 
-# A borrower with more than one loan chooses one before the overview reads as any of
-# them. The overview is the app's home, so every sign-in passes through here.
+# Every sign-in lands here, so multi-loan borrowers are sent to pick an account first.
 SCRIPT = page_script(
 	body='''\twatch(
 \t\t() => context.overview?.data?.choose_account,
@@ -70,16 +53,7 @@ SCRIPT = page_script(
 
 
 def application_card():
-	"""The newest open application, as the record it is rather than as a figure.
-
-	It sits in a strip of numbers and is not one. The product name is a headline at the
-	weight of a heading, and the stage and the day it was raised share the line under it.
-	What is waiting on the borrower follows, led by a dot in the stage's colour, and only
-	when there is something to say.
-	"""
 	stage = f"{SOURCE}.data.application_stage"
-	# The chevron waits for a destination: a borrower with nothing in progress reads the
-	# same card saying so, and that one opens nothing.
 	label = row(
 		[
 			text(
@@ -101,8 +75,6 @@ def application_card():
 		],
 		gap="8px",
 	)
-	# The stage and the day on one line, so the card stays the height of the two figure
-	# cards beside it.
 	meta = row(
 		[
 			stage_badge(with_us=True),
@@ -113,8 +85,6 @@ def application_card():
 		styles={"flexWrap": "wrap"},
 		visible=read("application_stage"),
 	)
-	# The dot belongs to a card about something. The empty card's note is the whole
-	# card, and stands without one.
 	warn = f"{SOURCE}.data.application_stage_tone === 'warn'"
 	note = row(
 		[
@@ -147,11 +117,7 @@ def application_card():
 
 
 def stage_badge(with_us):
-	"""The stage, led by a team glyph while the application is with the lender.
-
-	Two badges rather than one with a hidden glyph: Badge draws its prefix box whenever
-	the slot exists, so a glyph hidden inside it still leaves the gap it would fill.
-	"""
+	# Two badges, not one with a hidden glyph: Badge keeps the prefix gap whenever the slot exists.
 	stage = f"{SOURCE}.data.application_stage"
 	flag = f"{SOURCE}.data.application_with_us"
 	shown = "{{ %s && %s }}" % (stage, flag if with_us else f"!{flag}")
@@ -167,7 +133,6 @@ def stage_badge(with_us):
 
 
 def labelled(glyph, label_key, value_key):
-	"""A glyph, a quiet label and the value it names, set darker than the label."""
 	return row(
 		[
 			icon(glyph, styles={"color": "var(--ink-gray-5)"}),
@@ -180,7 +145,6 @@ def labelled(glyph, label_key, value_key):
 
 
 def status_dot(theme, **kwargs):
-	"""A solid dot on a pale disc of its own colour, leading a line of status."""
 	disc = {
 		"display": "flex",
 		"alignItems": "center",
@@ -202,17 +166,6 @@ def status_dot(theme, **kwargs):
 
 
 def summary():
-	"""The three questions a borrower opens the portal with, in one strip.
-
-	The application leads because it is the one with an answer from the first day: the
-	two figures beside it read "Nothing due" and "No live accounts" until a loan is
-	booked.
-
-	Both figures are answered on the loan accounts page -- the instalment in its Next
-	repayment column, the balance in its Outstanding one -- so both cards open it. The
-	overview is a summary, and a summary that cannot be opened makes a borrower hunt
-	down the rail for the page the figure came from.
-	"""
 	return stat_strip(
 		[
 			application_card(),
@@ -238,11 +191,6 @@ def summary():
 
 
 def tasks():
-	"""What is waiting on the borrower, directly under the figures.
-
-	The strip hides itself when the payload has no tasks, so a borrower with nothing to
-	do pays nothing for it.
-	"""
 	task = row(
 		[
 			column(
@@ -266,16 +214,7 @@ def tasks():
 
 
 def marker():
-	"""A check for a step of the loan itself, a grey dot for one that led up to it.
-
-	The check is the application tracker's done step -- a wash of the lender's primary
-	colour with a tick in its deep shade -- so "done" looks the same on every page. Green
-	where no primary is set.
-
-	Both are in the tree and the row's `tone` shows one, because a fill is a style and
-	only props are evaluated. The dot sits in a box the check's size, so the two centre
-	on the same line.
-	"""
+	# Both are rendered and `visible` picks one, because only props are evaluated, not styles.
 	box = {"width": MARKER, "height": MARKER, "justifyContent": "center", "flex": "0 0 auto"}
 	done = icon(
 		"check",
@@ -308,11 +247,7 @@ def marker():
 
 
 def stems():
-	"""The line down to the next marker: green between two steps that are both done.
-
-	The payload decides which, and that there is none under the last row -- a repeated
-	block cannot tell which copy of it is the last.
-	"""
+	# The payload sets `stem`: a repeated block cannot tell which copy is the last.
 
 	def stem(tone, colour):
 		return container(
@@ -329,16 +264,7 @@ def stems():
 
 
 def activity():
-	"""The record of the account: a marker per event, and a stem joining it to the next.
-
-	Drawn by hand rather than on @framework/ui's ActivityTimeline, whose gutter no block
-	reaches -- its connector is one grey line, and this one turns green between two
-	steps that are done.
-
-	The stem runs through the space under a row's lines, so that space is the lines'
-	padding rather than a gap between rows: a gap is outside every row, and nothing
-	could be drawn across it.
-	"""
+	# Hand-drawn: ActivityTimeline's connector is one grey line no block can restyle.
 	gutter = column(
 		[*marker(), *stems()],
 		gap=STEM_GAP,
@@ -377,11 +303,6 @@ def activity():
 
 
 def date_tile():
-	"""The day an instalment falls due, as a leaf off a desk calendar.
-
-	The day leads because it is what a borrower checks against payday; the month and
-	year under it are only there to say which one.
-	"""
 	quiet = {"color": "var(--ink-gray-5)", "lineHeight": "1.2"}
 
 	return column(
@@ -412,12 +333,7 @@ def date_tile():
 
 
 def schedule():
-	"""The four instalments coming, as a diary rather than a record.
-
-	Principal and interest take a line each: joined on one, the pair wrapped at the dot
-	between them. The loan's name leads only when the rows are of several loans --
-	`sub` is set only then, see core.name_once.
-	"""
+	# `sub` is set only when the rows span several loans, see core.name_once.
 	quiet = {"color": "var(--ink-gray-7)", "fontVariantNumeric": "tabular-nums"}
 	lines = column(
 		[
@@ -459,8 +375,7 @@ def content():
 		tasks(),
 		two_columns(
 			[
-				# Only for several: one application is already the strip's first card, and
-				# the table would say it a second time right under it.
+				# A single application is already the strip's first card.
 				card(
 					"Application status",
 					read("applications_note"),
@@ -471,8 +386,7 @@ def content():
 					"Activity timeline",
 					read("activity_note"),
 					activity(),
-					# The last row's own ROW_GAP is most of the space under it, so the
-					# card's padding gives up the difference at the bottom.
+					# Less bottom padding: the last row's ROW_GAP already fills it.
 					styles={"padding": "20px 20px 12px"},
 					visible="{{ overview.data.activity && overview.data.activity.length > 0 }}",
 				),
@@ -482,8 +396,6 @@ def content():
 					"Scheduled repayments",
 					read("schedule_note"),
 					schedule(),
-					# The rest of the schedule: the loan's own page when there is one loan,
-					# the list of them when there are several.
 					action=button(
 						"View all",
 						script=f"open({SOURCE}.data.schedule_url || '{ACCOUNTS_ROUTE}')",
@@ -500,7 +412,6 @@ def build():
 	return upsert_page(
 		TITLE,
 		ROUTE,
-		# No header action: the two figure cards and the rail already open the loan page.
 		frame(SOURCE, content()),
 		resources=[
 			api_resource(SOURCE, "lending.portal.core.get_dashboard"),

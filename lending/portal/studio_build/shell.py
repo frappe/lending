@@ -1,29 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The portal's frame: the sidebar, the page header, the notifications, the Ctrl+K
-search palette and the footer.
-
-The Builder shell is one component wrapped *around* each page's content: Builder
-merges a component into a page through extend_block, so a page can mirror the frame's
-tree and drop its own blocks into the well in the middle.
-
-Studio has no such merge. `StudioComponentWrapper` renders the component's own tree and
-discards the instance's children, passing only its props, which the component reads as
-`{{ inputs.<name> }}`. A frame that wraps content is therefore not expressible, so the
-frame is the pieces that sit *beside* the content -- the sidebar down the left, the
-header above, the footer below -- and `frame()` assembles them around whatever a page
-passes in.
-
-Three of those are Studio Components, so one edit reaches every page. The sidebar is
-not: it is frappe-ui's Sidebar placed straight into each page, because a component's
-tree cannot be opened on the canvas and a Sidebar buried in one would be a black box.
-See `sidebar`.
-
-The notifications panel is a Dialog rather than the Builder panel, and it reads the
-page's own `alerts` data source: a component has no data source of its own, and every
-authenticated page carries one under that name for this reason.
-"""
+"""Portal frame pieces placed beside page content: a Studio component cannot wrap children."""
 
 from lending.portal.studio_build.app import upsert_component
 from lending.portal.studio_build.blocks import (
@@ -52,15 +30,7 @@ FOOTER = "borrower_footer"
 ALERTS = "borrower_alerts"
 SEARCH = "borrower_search"
 
-# The Ctrl+K palette is drawn to the desk's awesomebar, measured off a running desk in
-# Chromium rather than read out of its stylesheets: a 575px card 28px from the top, a
-# 1px #ededed border at 12px, 33.5px rows 5px apart, a 40px footer of 18px keys, and
-# the page behind it dimmed with rgb(56, 56, 56) at 0.8. Every number below is one of
-# those.
-#
-# The dialog's `title` is never shown -- the dialog is bare -- but frappe-ui stamps it
-# on the overlay as `data-dialog`, and that is the only handle there is on the overlay
-# or on the panel's own frame: Dialog renders no element of its own to put a class on.
+# The bare Dialog's title is only used as the overlay's `data-dialog`, the one styling hook.
 PALETTE_TITLE = "Borrower search"
 PALETTE_CSS = f"""
 .dialog-overlay[data-dialog="{PALETTE_TITLE}"] {{ background-color: rgba(56, 56, 56, 0.8); }}
@@ -74,7 +44,6 @@ PALETTE_CSS = f"""
 }}
 """
 
-# One line of palette text: the desk's 13px on a 19.5px line, at Inter's 0.02em.
 PALETTE_TEXT = {"fontSize": "13px", "lineHeight": "19.5px", "letterSpacing": "0.02em", "color": "#171717"}
 FOOT_TEXT = {
 	"fontSize": "12px",
@@ -84,8 +53,6 @@ FOOT_TEXT = {
 	"whiteSpace": "nowrap",
 }
 
-# The grey key a shortcut sits on: an 18px square round a 12px glyph, or a padded
-# word for the chords.
 KEYCAP = {"borderRadius": "4px", "backgroundColor": "#ededed", "color": "#525252", "flexShrink": "0"}
 GLYPH_KEY = dict(KEYCAP, width="18px", height="18px", padding="3px", justifyContent="center")
 WORD_KEY = dict(
@@ -93,27 +60,10 @@ WORD_KEY = dict(
 )
 ICON_KEYS = ("arrow-up", "arrow-down", "corner-down-left")
 
-# The crumb trail, as frappe-ui draws one. `Breadcrumbs.vue` gives every crumb
-# `px-0.5 py-1 text-lg-medium`, colours the trail `ink-gray-5` and the last one
-# `ink-gray-9`, and sets `/` between them in `text-base ink-gray-4` with `mx-0.5`.
-#
-# `text-lg-medium` is named rather than unpacked into numbers: the portal's own bundle
-# carries the class, so the header takes 16px/500/1.15/0.015em from the same rule the
-# desk reads it from, and follows it if the scale is ever retuned. Only what a Studio
-# block cannot say as a class -- the padding and the two colours -- is spelled out.
 CRUMB_TYPE = "text-lg-medium"
 CRUMB_BOX = {"display": "flex", "alignItems": "center", "padding": "4px 2px"}
 
-# The rows of the sidebar, and the routes this app serves them at.
-#
-# lending.hooks.portal_menu_items is the Builder portal's source for these, read back
-# per request so a renamed row needs no rebuild. It cannot be that here: its routes are
-# the Builder ones (/borrower/loans), the menu is marked current from the request path,
-# and a Studio page's request is an API call rather than the page itself. So the rows
-# are declared once, here, and a page added is a line here plus a rebuild.
-#
-# The last column is the detail page a row stays lit on, where it has one: a loan read
-# at /loan/<name> is still "Loan account".
+# Not hooks.portal_menu_items, whose routes are Builder's; the last column keeps a row lit on detail pages.
 NAV_ITEMS = (
 	("Account overview", "/overview", "layout-dashboard", None),
 	("Loan account", "/loans", "wallet", "/loan/"),
@@ -123,57 +73,21 @@ NAV_ITEMS = (
 	("Personal details", "/profile", "user", None),
 )
 
-# Whether the rail is open, as every block in it has to ask.
-#
-# frappe-ui's Sidebar provides its collapsed state down the tree and its own parts inject
-# it; blocks cannot inject anything, so the state is bound out to a page-script ref
-# instead -- `collapsed` is a v-model on Sidebar -- and read back through this. Anything
-# that is words rather than a glyph leaves the rail while it is shut, rather than being
-# clipped by the 48px of it that remain.
-#
-# The ref starts as null, which is Sidebar's own "collapse on mobile, otherwise not", so
-# the second half reads as open until somebody presses the toggle.
-#
-# The `typeof` guard is what makes the rail survive the Studio canvas. An expression is
-# evaluated as `with (context) { return <expr> }`, and the canvas has no context to put
-# `sidebarCollapsed` in: a page's bindings come from importing its built setup() module,
-# which the editor cannot do for an exported app. A bare `!sidebarCollapsed` is then a
-# ReferenceError, the evaluator answers undefined, and `visibilityCondition` reads that
-# as false -- so every word in the rail vanished on the canvas while the running portal
-# was fine. `typeof` is the one operator that does not throw on a name that was never
-# declared, so it answers "undefined" there and the real value everywhere else.
+# `typeof` guard: the canvas has no page-script bindings, and a bare name would hide the rail's text.
 EXPANDED = "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
 
-# The same question the other way about, for the blocks that want it that way. Written
-# out rather than negating the one above: `!` in front of that guard would make the
-# canvas, where the name does not exist, read as shut rather than open.
+# Not a negated EXPANDED, which would read as shut on the canvas.
 COLLAPSED = "typeof sidebarCollapsed !== 'undefined' && sidebarCollapsed"
 
-# The square the lender's mark is drawn in, whichever of the two marks it turns out to
-# be. The numbers are SidebarHeader's own -- `size-7` at `rounded-[6px]`.
 MARK = {"width": "28px", "height": "28px", "flexShrink": "0", "borderRadius": "6px"}
 
 
 def brand(data):
-	"""Whose portal this is: the lender's mark, and the lender's name beside it.
-
-	Not frappe-ui's SidebarHeader. That one is the trigger of a Dropdown and draws the
-	chevron that opens it whether or not the menu holds anything, and no prop takes the
-	chevron away. This portal has nothing to put in that menu -- one app, one borrower,
-	no workspace to switch to -- so the header is the two pieces the desk's own header is
-	made of, and none of it is pressable.
-
-	Both marks are written out, and one of them renders: `brand_payload` carries the logo
-	and the name together because the page is built once and Lending Settings is read per
-	request, so the page cannot know which it will have. `show_wordmark` is that payload's
-	own answer to which one this is.
-	"""
+	"""Not SidebarHeader, whose Dropdown chevron cannot be hidden."""
 	logo = block(
 		"ImageView",
 		props={"image": "{{ %s.brand_logo }}" % data, "alt": "", "shape": "square", "size": "lg"},
-		# ImageView's own sizes start at 128px, for a picture on a page rather than a mark
-		# in a rail. The styles win over the classes that set them, so `size` here is only
-		# choosing the 6px corner that goes with it.
+		# ImageView sizes start at 128px; the styles override them and `size` only picks the corner.
 		styles=dict(MARK, overflow="hidden"),
 		visible="{{ %s.brand_logo }}" % data,
 	)
@@ -191,10 +105,6 @@ def brand(data):
 		),
 		visible="{{ %s.show_wordmark }}" % data,
 	)
-
-	# `flex: 1` is what lets one row serve both states. Open, the name fills the row and
-	# the mark is pushed to the left edge regardless of the centring below; shut, the name
-	# is gone and the mark is the only thing left to centre.
 	name = text(
 		fallback("{{ %s.brand_name }}" % data, "''"),
 		size="text-base",
@@ -210,15 +120,7 @@ def brand(data):
 		visible=EXPANDED,
 	)
 
-	# The header's own 48.8px, pulled up over the rail's 8px of top padding, so the mark
-	# sits in the same band as the page header beside it. 6px
-	# in from a rail already padded 8, which is where SidebarHeader's own px-1 + px-1.5
-	# put it. Shut, those 6px leave less room than the mark needs and it overflows them
-	# evenly either side -- which is the rail's centre, 8 + 6 + 10 of 48.
-	#
-	# So the centring is load-bearing only once the name has gone, and it reads as a bug
-	# the moment the name goes for any other reason: the mark drifts to the middle of an
-	# open rail. See EXPANDED for the one that did it.
+	# Centring only takes effect once the name is hidden; if it hides while open, the mark drifts.
 	return row(
 		[logo, letter, name],
 		gap="8px",
@@ -233,19 +135,7 @@ def brand(data):
 
 
 def collapse_toggle():
-	"""The one control that shuts the rail, drawn where the desk draws it.
-
-	The desk hangs a 24px disc off the sidebar's right edge, half of it out over the
-	border, and keeps it invisible until the pointer is somewhere on the sidebar. That is
-	the whole affordance: no row in the list, nothing holding space in the column, and
-	nothing to read. `SidebarCollapseToggle`, which is a labelled row at the foot of the
-	list, is what this replaces.
-
-	Two things a style cannot say are said as classes instead -- appearing on hover of an
-	ancestor, and the hover of the disc itself. Tailwind generates both from the exported
-	page JSON, because studio's content glob reaches into every app's studio folder, so
-	neither has to exist in studio's own source first.
-	"""
+	"""Hover-revealed disc on the rail edge; Tailwind picks its classes up from the page JSON."""
 	return button(
 		"",
 		script="sidebarCollapsed.value = !sidebarCollapsed.value",
@@ -259,13 +149,9 @@ def collapse_toggle():
 			"opacity-0",
 			"group-hover:opacity-100",
 			"transition-opacity",
-			# `!` because the resting background below is an inline style, and an
-			# important declaration in a stylesheet is the only thing that outranks one.
+			# `!` to outrank the inline background below.
 			"hover:!bg-surface-gray-2",
 		],
-		# `xs` is already the desk's 24px; everything here is the disc the desk cuts out
-		# of that square, and where it hangs. -12px is half of it, so it straddles the
-		# border rather than sitting inside the rail.
 		styles={
 			"position": "absolute",
 			"right": "-12px",
@@ -281,22 +167,13 @@ def collapse_toggle():
 
 
 def account_menu(data):
-	"""Who is signed in, and the menu that signs them out, as the desk's own foot has it.
-
-	The avatar and the name are the Dropdown's trigger slot. Studio forwards the trigger's
-	handlers onto the slot's one block, so the row itself is what opens the menu. Shut,
-	the name leaves the rail and the avatar is centred in the 48px that remain.
-
-	The options are an expression rather than a list, because an option's `onClick` is a
-	function and a block's props are JSON. Only the click calls `logout`, so the canvas,
-	where the page script is never loaded, still draws the menu.
-	"""
+	"""Options are an expression because an option's `onClick` must be a function, not JSON."""
 	holder = fallback("{{ %s.holder_name }}" % data, "''")
 	avatar = block(
 		"Avatar",
 		props={"label": holder, "size": "md", "shape": "circle"},
 		styles={"flexShrink": "0"},
-		# What lending.portal.brand washes in the lender's primary colour.
+		# Styled by lending.portal.brand.
 		classes=["portal-avatar"],
 	)
 	name = text(
@@ -342,21 +219,7 @@ def account_menu(data):
 
 
 def sidebar(data):
-	"""The list of pages, and whose portal it is.
-
-	Laid out as the desk's own sidebar is, which mostly meant leaving it alone: the two
-	already agree on the row, down to the number. `text-sm` is 13px at 420 over 1.15 in
-	both scales; SidebarItem's `h-7` is the desk's 28px anchor; the label is `ink-gray-6`
-	in both; `rounded` resolves to `--radius-4`, which is the desk's 8px; both hover at
-	gray-100 and draw the row you are on in white under a small shadow. What the desk has
-	and this did not is the hairline down the right of the rail, a header with nothing to
-	press, and the disc on the edge that shuts it -- see `collapse_toggle`.
-
-	One thing is deliberately not the desk's. There, collapsing takes the sidebar away
-	entirely and the workspace dock becomes the icon rail you reopen it from. This portal
-	has no dock, so a rail that left would leave nothing to press to bring it back; it
-	keeps frappe-ui's 48px of icons instead, and the disc rides along on that.
-	"""
+	"""Collapses to frappe-ui's icon rail, not away as on the desk: there is no dock to reopen from."""
 	nav_items = [
 		block(
 			"SidebarItem",
@@ -371,9 +234,7 @@ def sidebar(data):
 			styles={"display": "flex", "height": "100%", "flexDirection": "column", "padding": "0.5rem"},
 			children=[
 				brand(data),
-				# The list clips, so the current row's shadow would be cut flat at its
-				# edges. The padding is room for the shadow inside the clip, and the
-				# negative margin hands it back so the rows stay where they were.
+				# Room for the active row's shadow inside the clip.
 				block(
 					"div",
 					styles={
@@ -391,16 +252,7 @@ def sidebar(data):
 		collapse_toggle(),
 	]
 
-	# The border is frappe-ui's own `border-r border-outline-gray-1`, which Sidebar draws
-	# only for the config-object API it is keeping around for one more release. Written
-	# out here because this sidebar is composed rather than configured, and because
-	# `--outline-gray-1` is #ededed, which is the desk's `--sidebar-border-color` exactly.
-	#
-	# The other three all serve the disc on the edge. `relative` is what it is positioned
-	# against; `overflow-x` has to be given back, because Sidebar hides it and would cut
-	# the disc off at the border it is meant to straddle -- nothing else in the rail
-	# reaches the edge, since every label clips itself as it collapses; and `group` is the
-	# ancestor whose hover reveals it.
+	# Sidebar hides overflow-x, which would clip the toggle disc straddling the border.
 	return block(
 		"Sidebar",
 		props={"collapsed": {"$type": "variable", "name": "sidebarCollapsed"}},
@@ -416,12 +268,7 @@ def sidebar(data):
 
 
 def is_current(route, detail=None):
-	"""Whether a row is the page being read, which SidebarItem draws raised in white.
-
-	Said outright rather than left to SidebarItem's own guess from `to`, which compares
-	route names and so goes dark on a loan's own page. `typeof` guards the canvas, which
-	has no `route` in scope; see EXPANDED.
-	"""
+	"""Explicit because SidebarItem's own match compares route names and misses detail pages."""
 	condition = "route.path === '%s'" % route
 	if detail:
 		condition += " || route.path.startsWith('%s')" % detail
@@ -429,12 +276,6 @@ def is_current(route, detail=None):
 
 
 def header_tree():
-	"""The crumb, the day it is being read, and the one thing the page offers to press.
-
-	Every value arrives as an input, so one header serves ten pages. The action hides
-	itself where a page passes no label -- the statement and the certificate keep their
-	download inside the page, beside the dates it obeys.
-	"""
 	crumb_node = row(
 		[
 			text(
@@ -472,11 +313,7 @@ def header_tree():
 	breadcrumbs = repeater(
 		"{{ inputs.breadcrumbs }}",
 		crumb_node,
-		# No gap: frappe-ui sets the crumbs flush against each other and lets the `/` hold
-		# them apart on its own -- `mx-0.5` on the separator against `px-0.5` on the crumb
-		# either side of it, so 4px of white each way. Zero has to be said out loud, since
-		# Studio's Repeater carries `gap-5` on its own wrapper and would stand them 20px
-		# apart on its own.
+		# Explicit zero gap: Studio's Repeater wrapper carries `gap-5`.
 		styles={
 			"display": "flex",
 			"flexDirection": "row",
@@ -487,10 +324,7 @@ def header_tree():
 		visible="{{ inputs.breadcrumbs && inputs.breadcrumbs.length > 0 }}"
 	)
 
-	# A page with no trail says its own name, as frappe-ui's PageHeaderTitle does:
-	# `truncate text-lg font-semibold text-ink-gray-9`. `text-lg` rather than
-	# `text-lg-semibold` -- the weight is overridden on top of the regular style, so the
-	# tracking stays the regular 0.02em, and copying the semibold style would tighten it.
+	# `text-lg` plus a weight, not `text-lg-semibold`, to keep frappe-ui's regular tracking.
 	titles = text(
 		"{{ inputs.crumb }}",
 		tag="h1",
@@ -523,9 +357,6 @@ def header_tree():
 		visible="{{ inputs.action_label }}",
 	)
 
-	# The badge sits beside the record it describes, not out at the right margin: it
-	# reads as part of the title. `gap-2` between them, as the desk header has it --
-	# 10px apart on the page, once the last crumb's own 2px of padding is counted.
 	return row(
 		[
 			row(
@@ -538,30 +369,20 @@ def header_tree():
 			action,
 		],
 		gap="10px",
-		# What lending.portal.brand paints in the lender's primary colour.
+		# Styled by lending.portal.brand.
 		classes=["portal-header"],
 		styles={
-			# The content's own 20px inset, so the crumb lines up with the cards and the
-			# action does not touch the window's edge.
 			"padding": "0 20px",
 			"width": "100%",
 			"minHeight": "48.8px",
 			"alignItems": "center",
-			# The rule under the header, as `PageHeader.vue` draws it: plain `border-b`,
-			# whose colour is the preset's own `borderColor.DEFAULT`. Spelled out rather
-			# than left to the class, because that default is set on Tailwind's preflight
-			# rule and a block styled here carries no class to inherit it from.
+			# Spelled out: `border-b`'s default colour comes from preflight, which blocks do not get.
 			"borderBottom": "1px solid var(--outline-gray-1)",
 		},
 	)
 
 
 def alerts_tree():
-	"""What is waiting on the borrower and what has happened, over one list of rows.
-
-	The two lists come back in the same {title, note, when, url} shape, so the tab
-	switches which array the repeater reads rather than which blocks it draws.
-	"""
 	alert_row = row(
 		[
 			column(
@@ -618,20 +439,10 @@ def alerts_tree():
 
 
 def search_tree():
-	"""The Ctrl+K palette: one box, the rows it finds, and the keys that drive it.
-
-	Laid out as the desk's command palette is, to the pixel -- see PALETTE_CSS for the
-	numbers. The one thing added is the grey note at the end of a row: eight rows all
-	reading "Personal Loan Application" need their reference to be told apart. There is
-	no Search page behind it any more, so this is the whole of search. The state is the
-	page script's; see useSearch in utils/portal.ts.
-	"""
-	# A style element, rather than styles on a block, because the overlay and the panel
-	# frame are frappe-ui's and no block reaches them. Hidden, and still applied.
+	"""The Ctrl+K palette; its state is useSearch in utils/portal.ts."""
+	# A style element because no block reaches frappe-ui's overlay and panel frame.
 	frame_css = block("HTML", props={"html": f"<div><style>{PALETTE_CSS}</style></div>"}, styles={"display": "none"})
 
-	# 8px round a 28px row, less 4 under it: the desk's input row and the gap to its rule.
-	# `sm` is frappe-ui's 28px input at 14px with 6px 8px of padding, which is the desk's.
 	box = row(
 		[
 			icon("search", size=16, styles={"color": "#525252", "padding": "0 2px 0 10px"}),
@@ -651,9 +462,6 @@ def search_tree():
 	)
 	rule = container(styles={"height": "1px", "backgroundColor": "#ededed"})
 
-	# The desk's `<b>Loan Lead</b> List`: the name bold, the kind in the same ink after a
-	# space. The space is the kind's own, held open by `pre`, so it is Inter's space and
-	# not a gap guessed at in pixels.
 	result = row(
 		[
 			text("{{ dataItem.title }}", styles=dict(PALETTE_TEXT, fontWeight="700", whiteSpace="nowrap")),
@@ -673,8 +481,7 @@ def search_tree():
 			),
 		],
 		gap="0px",
-		# `minWidth: 0` or the row grows to its note -- a flex item's floor is its content
-		# -- and the note runs off the card instead of truncating.
+		# `minWidth: 0` so the note truncates instead of widening the row.
 		styles={
 			"width": "100%",
 			"minWidth": "0px",
@@ -689,8 +496,6 @@ def search_tree():
 			"mousemove": {"event": "mousemove", "action": "Run Script", "script": "searchIndex.value = dataIndex"},
 		},
 	)
-	# 12px under the rule, 13 either side and below: the desk's list padding plus the
-	# wrapper's, and the last row's 5px margin that the desk leaves in.
 	results = repeater(
 		"{{ searchResults }}",
 		result,
@@ -706,12 +511,10 @@ def search_tree():
 		]
 		return row([*caps, text(label, styles=FOOT_TEXT)], gap="5px", styles={"flexShrink": "0"})
 
-	# The note gives way before the keys do: it truncates, they never wrap.
 	note = text(
 		"{{ searchNote }}",
 		styles=dict(FOOT_TEXT, minWidth="0px", overflow="hidden", textOverflow="ellipsis"),
 	)
-	# 40px: a 1px rule, 10px either side of an 18px line of keys.
 	foot = row(
 		[
 			hint(["arrow-up", "arrow-down"], "to navigate"),
@@ -731,7 +534,7 @@ def search_tree():
 			"title": PALETTE_TITLE,
 			"bare": True,
 			"position": "top",
-			# A padding of its own replaces `top`'s 20vh; PALETTE_CSS sets the 28px.
+			# Replaces `top`'s 20vh; PALETTE_CSS sets the offset.
 			"paddingTop": "0px",
 		},
 		children=[column([frame_css, box, rule, results, foot], gap="0px")],
@@ -739,15 +542,12 @@ def search_tree():
 
 
 def footer_tree():
-	"""Whose portal this is, and the policies. Both are Lending Settings, read per request."""
-	# The rows keep the Builder portal's names -- core.footer_links is shared -- so the
-	# keys are footer_label and footer_href, not label and href.
+	# core.footer_links is shared with the Builder portal, hence the footer_* keys.
 	link = button(
 		"{{ dataItem.footer_label }}",
 		script="window.location.href = dataItem.footer_href",
 		variant="ghost",
 		props={"size": "sm"},
-		# The copyright line's grey, so the band reads as one quiet line.
 		styles={"color": "var(--ink-gray-6)"},
 	)
 
@@ -755,8 +555,7 @@ def footer_tree():
 		[
 			muted("{{ inputs.note }}"),
 			spacer(),
-			# Hidden when Lending Settings lists no links: an empty Repeater prints
-			# "No data" whatever it is told, and a footer has nothing to apologise for.
+			# An empty Repeater prints "No data" whatever it is told.
 			repeater(
 				"{{ inputs.links }}",
 				link,
@@ -766,12 +565,9 @@ def footer_tree():
 			),
 		],
 		gap="10px",
-		# What lending.portal.brand washes in the lender's primary colour, as the header.
+		# Styled by lending.portal.brand.
 		classes=["portal-footer"],
 		styles={
-			# A fixed 49px band, matching the 48.8px header at the other end of the page.
-			# The vertical padding goes with it: the links are `sm` buttons, 28px tall, and
-			# 12px either side of them would ask for 52px in a box that is only allowed 49.
 			"height": "49px",
 			"flexShrink": "0",
 			"padding": "0px 20px",
@@ -784,10 +580,7 @@ def footer_tree():
 
 
 def upsert_frame():
-	"""Create or replace the four shared components. Safe to re-run.
-
-	The sidebar is not one of them; see `sidebar` for why it is built into each page.
-	"""
+	"""Create or replace the shared frame components. Safe to re-run."""
 	upsert_component(
 		HEADER,
 		"Borrower Page Header",
@@ -816,12 +609,7 @@ def upsert_frame():
 
 
 def frame(source, content, action_label="", action_route=""):
-	"""One page: the frame, wrapped around this page's own blocks.
-
-	`source` is the name of the page's data source, because every endpoint answers with
-	the same frame payload -- the crumb, the holder, the footer -- alongside whatever
-	the page itself asked for.
-	"""
+	"""`source` is the page's data source; every endpoint also returns the frame payload."""
 	data = f"{source}.data"
 	header = instance(
 		HEADER,
@@ -861,5 +649,5 @@ def frame(source, content, action_label="", action_route=""):
 			"overflowY": "auto",
 		},
 	)
-	# Last, so adding it moved no block the merge already knows by its position.
+	# Last, so existing blocks keep the positions the merge matches on.
 	return root([sidebar(data), main, brand_style("{{ %s.brand_style }}" % data)])

@@ -1,8 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # See license.txt
 
-"""The one rule the portal build has to keep: a rebuild never takes out a hand edit."""
-
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -75,11 +73,7 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertEqual(merged[0]["children"], [])
 
 	def test_a_page_studio_has_only_normalised_is_not_hand_edited(self):
-		"""Studio saves an untouched block with None for {} and a `classes: []` of its own.
-
-		Read as an edit, that kept every block the generator dropped beside the block that
-		replaced it, and stopped a new `classes` from reaching a block nobody had touched.
-		"""
+		"""Studio saves an untouched block with None for {} and its own `classes: []`."""
 		base = identify([self.with_slot(), self.generated()], "/overview")
 		live = frappe.parse_json(frappe.as_json(base))
 		for node in self.nodes(live):
@@ -145,12 +139,6 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertIn("default", merge_blocks(base, edited, new)[0]["componentSlots"])
 
 	def test_a_page_that_matches_its_baseline_takes_the_rebuild_whole(self):
-		"""What _replace_page buys, and why it overwrites once to buy it.
-
-		A page saved straight from a build has nothing on it the canvas owns, so a
-		rebuild is free to write the new tree as it stands -- including a tree of another
-		shape, which is the case the merge cannot otherwise handle.
-		"""
 		base = identify([self.generated()], "/overview")
 		live = frappe.parse_json(frappe.as_json(base))
 
@@ -160,14 +148,7 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertEqual(merged, reshaped)
 
 	def test_a_baseline_that_is_not_the_page_strands_the_rebuild(self):
-		"""Why the baseline may only ever be what was written to the page.
-
-		Recording what a build *would* have written, against a page it did not write,
-		says two things at once that cannot both be acted on: every block on the page was
-		added by hand, and every block of the new tree has already been deleted there. So
-		the old tree stays and the new one never lands -- here in full, and on a real page
-		in patches, one tree stacked on the other wherever their ids happen to meet.
-		"""
+		"""The baseline must be what was written to the page, or the new tree never lands."""
 		live = identify([self.generated()], "/overview")
 		new = identify([block("container", children=[block("HTML", {"html": "<svg/>"})])], "/overview")
 

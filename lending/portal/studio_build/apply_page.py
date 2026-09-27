@@ -1,23 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The public application form at /apply, as a Studio page.
-
-It replaces the /apply page of the Builder portal this one was migrated from, and posts
-to the same guest endpoints: send_mobile_code, confirm_mobile_code, submit_lead and create_account, none
-of them changed.
-
-The page asks one question per screen: who is borrowing, what for, the mobile number,
-the rest of the details, and then it shows the offer and opens the account. The Builder
-page rendered all seven panels up front and a client script showed one at a time,
-because a Builder page has no state of its own. Here `step` is a ref and each panel says
-which step it is, which is the same thing said in one line rather than two hundred.
-
-The two questions the early screens ask still decide what screen 5 asks for, and the
-answers still arrive at submit_lead as one flat set of fields under Loan Lead's own
-names -- so the endpoint reads exactly what it always read.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
@@ -44,7 +27,7 @@ from lending.portal.studio_build.public import page
 
 APPLY_SOURCE = "apply"
 
-# Panel 1 is the invitation, so it is not one of the steps the progress bar counts.
+# panel 1, the landing screen, is not counted by the progress bar
 STEPS = (
 	"Who is borrowing",
 	"What you need",
@@ -54,19 +37,15 @@ STEPS = (
 	"Your account",
 )
 
-# Loan Lead.applicant_type. A person borrows in their own name, a company in the
-# company's, and the two are not asked the same questions.
 APPLICANT_TYPES = (
 	("Individual", "Person", "I am borrowing in my own name", "user"),
 	("Business", "Company", "The business borrows, not me", "building-2"),
 )
 
-# Loan Lead.employment_type accepts these two and nothing else.
+# must match Loan Lead.employment_type's options
 EMPLOYMENT_TYPES = ("Salaried", "Self-employed")
 
-# Every box on the details screen, who it is asked of, and whether submit_lead refuses
-# without it. An empty "who" means both. The names are Loan Lead's own, because
-# submit_lead reads them off the request.
+# (label, ref, Loan Lead field, type, applicant type or "" for both, required)
 DETAIL_FIELDS = (
 	("Company name", "companyName", "company_name", "text", "Business", True),
 	("Your full name", "applicantName", "applicant_name", "text", "", True),
@@ -82,19 +61,14 @@ DETAIL_FIELDS = (
 
 read_apply = reader(APPLY_SOURCE)
 
-# The opening screen is a landing page and takes the width of one; the questions after it
-# are a form, and keep a form's measure.
 PAGE_WIDTH = "1128px"
 
-# The mockup the opening screen is drawn to: a 719px-tall window under a 54px bar, and a
-# 26px glyph on each 50px tile.
 MOCKUP_HEIGHT = 719
 BAR_HEIGHT = 54
 TILE = 50
 GLYPH = 26
 
-# The mockup's own colours. Its greys lean cool where frappe-ui's are neutral, and the
-# portal has no dark theme for a fixed colour to break.
+# Fixed mockup colours, cooler than frappe-ui's greys; safe since the portal has no dark theme.
 INK = "#0a0a0a"
 INTRO = "#4f5d6e"
 NOTE = "#5a616d"
@@ -112,14 +86,12 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \tconst fail = (error: any) =>
 \t\ttoast.error(String(error?.messages?.[0] || error?.message || error))
 
-\t// A confirmed number is not asked for twice: the mobile screen is stepped over in
-\t// whichever direction the visitor is going.
+\t// Once the number is confirmed, step over the mobile screen in either direction.
 \tconst go = (to: number) => {
 \t\tif (to === 4 && token.value) to = step.value > 4 ? 3 : 5
 \t\tstep.value = to
 \t}
 
-\t// Each type is offered its own products, so a product picked for the other one goes.
 \tconst choose = (type: string) => {
 \t\tif (type !== applicantType.value) loanProduct.value = ""
 \t\tapplicantType.value = type
@@ -147,7 +119,6 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \t\t\t.finally(() => { busy.value = false })
 \t}
 
-\t// The link stays in place through the countdown, and does nothing until it ends.
 \tconst resendCode = () => {
 \t\tif (resendIn.value > 0 || busy.value) return
 \t\tsendCode()
@@ -184,7 +155,6 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \t\t\t})
 \t\t\t.catch((error: any) => {
 \t\t\t\tfail(error)
-\t\t\t\t// The proof of the number is gone: verify again, keeping every answer given.
 \t\t\t\tif (error?.exc_type !== "VerificationExpiredError") return
 \t\t\t\ttoken.value = ""
 \t\t\t\tcodeSent.value = false
@@ -238,13 +208,10 @@ APPLY_RETURNS = [
 
 
 def action(label, script, **kwargs):
-	"""The button that calls the server. It spins while the call is out, so a second
-	click cannot send a second code or raise a second lead."""
 	return button(label, script=script, variant="solid", props={"loading": "{{ busy }}"}, **kwargs)
 
 
 def panel(index, title, note, body, back=None, forward=()):
-	"""One screen of the wizard: its question, what it asks for, and the way on."""
 	head = column([text(title, tag="h2", size="text-2xl", styles={"fontWeight": "600"}), muted(note)], gap="4px")
 	buttons = [*([button("Back", script=f"go({back})")] if back else []), spacer(), *forward]
 	nav = row([sized(part) for part in buttons], gap="8px")
@@ -258,8 +225,6 @@ def panel(index, title, note, body, back=None, forward=()):
 
 
 def sized(part):
-	"""A wizard button at `md`: the way on is the one thing to press on each screen,
-	and `sm` is the desk's size for a toolbar."""
 	if part["componentName"] != "Button":
 		return part
 
@@ -267,7 +232,6 @@ def sized(part):
 
 
 def progress():
-	"""How far through the six questions, and which one is being asked."""
 	where = "{{ 'Step ' + (step - 1) + ' of %d · ' + (%s[step - 2] || '') }}" % (len(STEPS), list(STEPS))
 
 	return column(
@@ -291,7 +255,6 @@ RADIO = {
 
 
 def radio(chosen):
-	"""The mark a choice leaves: an empty ring, or a filled disc with a tick in it."""
 	return [
 		container(
 			[],
@@ -307,13 +270,7 @@ def radio(chosen):
 
 
 def choice(content, script, chosen, **kwargs):
-	"""A tile is this form's radio button, at the size the question deserves.
-
-	A block's styles cannot follow state, so the chosen look is a layer that appears
-	behind the content: a ring and a tint, drawn outside the border so nothing moves.
-	Hover and press are classes, because an inline style has neither -- and the `!`
-	because PANEL's border is inline, which a plain class can never outrank.
-	"""
+	# Block styles can't follow state, so "selected" is an overlay; `!` beats PANEL's inline border.
 	selected = container(
 		[],
 		styles={
@@ -349,7 +306,6 @@ def choice(content, script, chosen, **kwargs):
 
 
 def tile(label, note, glyph_name, script, chosen):
-	"""One answer to who is borrowing."""
 	return choice(
 		[
 			icon_tile(glyph_name, tile=40, glyph=20),
@@ -364,43 +320,27 @@ def tile(label, note, glyph_name, script, chosen):
 
 
 def glyph(names, expression):
-	"""The glyph a payload row names, out of the few it may name.
-
-	An icon is SVG written at build time and the row picks it at render time, so this is
-	one block per name, each shown when the row says it.
-	Returns a list, to be spread into the row that carries it.
-	"""
+	# icons are baked at build time, so emit one per name and show the one the row picks
 	return [glyph_tile(name, visible="{{ %s === '%s' }}" % (expression, name)) for name in names]
 
 
 def glyph_tile(name, **kwargs):
-	"""A glyph on its tile, both drawn in the opening screen's unit.
-
-	The SVG fills the tile's padding box, because an SVG's own width is an attribute,
-	and an attribute cannot hold the calc() the unit is.
-	"""
+	# sized by padding because an SVG's width attribute can't hold calc()
 	styles = dict(tile_styles(), width=u(TILE), height=u(TILE), padding=u((TILE - GLYPH) / 2))
 
 	return icon(name, size="100%", styles=styles, **kwargs)
 
 
-# The opening screen's pixel. It is a pixel in the mockup's window, and shrinks in step
-# with a shorter one -- the bar keeps its 54px -- so the whole screen fits the height
-# it is given, down to three fifths of its size, before anything has to scroll.
+# One mockup pixel, shrinking down to 0.6px so the opening screen fits the viewport height.
 UNIT = f"max(0.6px, min(1px, calc((100vh - {BAR_HEIGHT}px) / {MOCKUP_HEIGHT - BAR_HEIGHT})))"
 
 
 def u(length):
-	"""`length` mockup pixels, in the opening screen's unit."""
 	return f"calc({length:g} * var(--u, 1px))"
 
 
 def copy(value, size, weight="400", color=INK, line=None, tag="p", **kwargs):
-	"""A line of the opening screen, set in the mockup's pixels.
-
-	Studio's size classes carry their own tracking and weight, and the mockup is set in
-	plain Inter, so every property the class would decide is said here instead.
-	"""
+	# every property set explicitly, overriding the tracking and weight Studio's size class carries
 	styles = {
 		"fontSize": u(size),
 		"lineHeight": u(line or round(size * 1.4)),
@@ -417,7 +357,6 @@ OPENING_CARD = dict(PANEL, borderColor=RULE, borderRadius="10px")
 
 
 def hero():
-	"""The promise: what this is, how long it takes, and that it costs nothing to look."""
 	tagline = copy(
 		read_apply("tagline"),
 		14,
@@ -450,7 +389,6 @@ def hero():
 
 
 def card_text(title, note, size=15, line=20, gap="0px", tracking="-0.01em", note_tracking="0em"):
-	"""A card's bold line and the grey one under it."""
 	return column(
 		[
 			copy(title, size, weight="600", line=line, styles={"letterSpacing": tracking}),
@@ -462,14 +400,13 @@ def card_text(title, note, size=15, line=20, gap="0px", tracking="-0.01em", note
 
 
 def trust_points():
-	"""The three reassurances, each on a card of its own under the promise."""
 	point = row(
 		[
 			*glyph(("chart-no-axes", "shield", "receipt-text"), "dataItem.icon"),
 			card_text("{{ dataItem.title }}", "{{ dataItem.note }}"),
 		],
 		gap=u(24),
-		# Wrapped by the card's own width, since a tablet breakpoint fires only below 768px.
+		# wraps by width, since the tablet breakpoint fires only below 768px
 		styles=dict(OPENING_CARD, padding=f"{u(18)} {u(20)}", flex="1 1 240px"),
 	)
 
@@ -482,9 +419,7 @@ def trust_points():
 
 
 def start_card():
-	"""The one thing to press, on a panel of its own so nothing else competes with it."""
-	# The label goes in the default slot as well as the prop: once a block has any slot,
-	# Studio hands Button an empty default one too, and Button renders that over `label`.
+	# label repeated in the default slot: any slot gives Button an empty default that hides `label`
 	apply = button(
 		"Apply now",
 		script="go(2)",
@@ -520,7 +455,6 @@ def start_card():
 
 
 def how_it_works():
-	"""What happens after the button, in the three steps a visitor will see."""
 	step = row(
 		[
 			*glyph(("file-text", "search", "percent"), "dataItem.icon"),
@@ -556,14 +490,11 @@ def how_it_works():
 
 
 def opening():
-	"""Screen 1. It asks for nothing: the promise, the three reassurances, one button."""
 	offer = column([hero(), trust_points(), start_card()], gap=u(16))
 
 	return column(
 		[offer, divider(styles={"borderColor": DIVIDER}), how_it_works()],
 		gap=u(24),
-		# Centred in the height the frame leaves, so a tall window has no empty band below.
-		# A phone stacks every card and scrolls whatever its height, so it keeps full size.
 		styles={"marginTop": "auto", "marginBottom": "auto", "--u": UNIT},
 		mobile={"--u": "1px"},
 		visible="{{ step === 1 }}",
@@ -571,7 +502,6 @@ def opening():
 
 
 def type_panel():
-	"""Screen 2. It decides what screen 5 asks for, which is why it comes first."""
 	tiles = row(
 		[
 			tile(label, note, glyph_name, f"choose('{value}')", "applicantType === '%s'" % value)
@@ -593,14 +523,12 @@ def type_panel():
 
 
 def product_panel():
-	"""Screen 3. Every Loan Product open to the portal and to the applicant type chosen
-	on screen 2, with its rate on it."""
 	product = choice(
 		[
 			column(
 				[
 					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600"}),
-					# One expression: Studio renders only the first of several bindings in a string.
+					# one expression: Studio renders only the first binding in a string
 					muted("{{ dataItem.rate + ' ' + dataItem.rate_note + ' · ' + dataItem.kind }}"),
 					muted("Up to {{ dataItem.ceiling }}"),
 				],
@@ -630,7 +558,6 @@ def product_panel():
 		read_apply("product_note"),
 		[products],
 		back=2,
-		# Nothing is chosen for the visitor, so the way on waits until they choose.
 		forward=[
 			button("Continue", script="go(4)", variant="solid", visible="{{ loanProduct }}"),
 			muted("Pick a product to carry on", visible="{{ !loanProduct }}"),
@@ -639,7 +566,6 @@ def product_panel():
 
 
 def resend_line():
-	"""The hint under the OTP box: a link to send it again, and how long until it may."""
 	link = text(
 		"Resend OTP",
 		styles={"color": "var(--ink-gray-9)", "fontWeight": "500", "cursor": "pointer"},
@@ -660,7 +586,6 @@ def resend_line():
 
 
 def verify_panel():
-	"""Screen 4. Nothing is written here -- the code is checked against the number alone."""
 	number = block(
 		"FormControl",
 		props={
@@ -693,7 +618,6 @@ def verify_panel():
 		read_apply("verify_note"),
 		[number, code],
 		back=3,
-		# One button, in the same place, whichever half of this screen is showing.
 		forward=[
 			action("Send OTP", "sendCode()", visible="{{ !codeSent }}"),
 			action("Confirm my number", "confirmCode()", visible="{{ codeSent }}"),
@@ -702,8 +626,6 @@ def verify_panel():
 
 
 def details_panel():
-	"""Screen 5. Every field here already exists on Loan Lead, so a fuller picture for
-	the decision engine costs no schema change."""
 	boxes = [
 		block(
 			"FormControl",
@@ -756,7 +678,6 @@ def details_panel():
 
 
 def offer_panel():
-	"""Screen 6. What our rules said about the details that were given."""
 	return panel(
 		6,
 		"Your indicative offer",
@@ -764,7 +685,7 @@ def offer_panel():
 		[
 			text("{{ offer.headline }}", tag="h3", size="text-xl", styles={"fontWeight": "600"}),
 			muted("{{ offer.message }}"),
-			# A holding message has no figures, and an empty list would say "Nothing to show".
+			# hidden when empty, or the list would show "Nothing to show"
 			pair_rows("{{ offer.offer }}", data_key="label", visible="{{ offer.offer?.length }}"),
 			alert("{{ offer.reference_note }}", visible="{{ offer.reference_note }}"),
 		],
@@ -773,8 +694,6 @@ def offer_panel():
 
 
 def account_panel():
-	"""Screen 7. The account is opened here rather than at /login, because by now the
-	number is verified and every other detail is already on the lead."""
 	return panel(
 		7,
 		"Keep track of this",
@@ -821,7 +740,6 @@ def build_apply():
 			[("Track an application", "/track"), ("Log in", "/login", "user")],
 			body,
 			width=PAGE_WIDTH,
-			# Top and bottom as the mockup leaves them, so its window holds the page exactly.
 			padding=f"calc(34 * {UNIT}) 20px calc(16 * {UNIT})",
 		),
 		[api_resource(APPLY_SOURCE, "lending.portal.apply.get_apply_page")],

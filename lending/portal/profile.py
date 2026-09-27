@@ -1,19 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The borrower's personal information page, and the one write it accepts.
-
-One login can hold several Customer records -- PORTAL_PLAN.md section 7 -- so this
-page shows a section per record rather than pretending there is one identity, and the
-edit form names which record it is correcting.
-
-Section 6.3 divides the fields in two. Contact details and address are the borrower's
-to correct. Identity is not: the name on the record and the tax id behind it belong to
-the verified file, and a borrower editing those would be editing the result of a KYC
-check. save_profile enforces that split by writing a fixed list of fields and reading
-nothing else from the request.
-"""
-
 import frappe
 from frappe import _
 
@@ -30,9 +17,7 @@ CUSTOMER_FIELDS = (
 	"customer_primary_address",
 )
 
-# What section 6.3 lets a borrower correct. Anything absent from these two lists is
-# shown on the page but never read from the request, so adding a field to the form
-# without adding it here changes nothing.
+# Only these fields are read from the request; name and tax_id are KYC-verified and read-only.
 EDITABLE_CONTACT = ("email", "mobile", "phone")
 EDITABLE_ADDRESS = (
 	"address_line1",
@@ -46,7 +31,6 @@ EDITABLE_ADDRESS = (
 
 @frappe.whitelist()
 def get_profile_page() -> dict:
-	"""Every customer record behind this login, with its contact details and address."""
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 
@@ -78,19 +62,12 @@ def get_profile_page() -> dict:
 
 
 def chosen_customer(customers: list[str]) -> str | None:
-	"""Which record the form is editing. A name from the request must be one of ours."""
 	asked = frappe.form_dict.get("customer")
 
 	return asked if asked in customers else (customers[0] if customers else None)
 
 
 def edit_form(customers: list[str]) -> dict:
-	"""Current values for the edit form, so the boxes open filled in.
-
-	`forms` holds every record's values, keyed by customer, so a page that switches
-	between records can refill its boxes without asking again. The `form_*` keys are
-	the chosen record's, flattened.
-	"""
 	name = chosen_customer(customers)
 	if not name:
 		return {"form_customer": "", "customer_options": [], "form_note": "", "forms": {}}
@@ -113,7 +90,6 @@ def edit_form(customers: list[str]) -> dict:
 
 
 def record_values(name: str) -> dict:
-	"""One record's identity, contact details and address, as the form's boxes read them."""
 	customer = frappe.db.get_value("Customer", name, CUSTOMER_FIELDS, as_dict=True)
 	contact = frappe.db.get_value(
 		"Contact", primary_contact(customer), ["email_id", "mobile_no", "phone"], as_dict=True
@@ -143,18 +119,11 @@ def identity_rows(customer: dict) -> list[dict]:
 	return [
 		row(_("Name"), customer.customer_name, customer.name),
 		row(_("Registered as"), customer.customer_type),
-		# tax_id is where an Indian install keeps the PAN or GSTIN. Read-only: it is the
-		# outcome of a KYC check, not a preference.
 		row(_("Tax id"), customer.tax_id),
 	]
 
 
 def primary_contact(customer: dict) -> str | None:
-	"""The contact on the customer, or whichever contact links back to it.
-
-	Customer.email_id and mobile_no are fetched from the primary contact rather than
-	stored, so the contact is the record to read -- and later, to write.
-	"""
 	if customer.customer_primary_contact:
 		return customer.customer_primary_contact
 
@@ -221,15 +190,7 @@ def address_rows(customer: dict) -> list[dict]:
 	return [row(_("Address"), ", ".join(part for part in parts if part))]
 
 
-# --- the one write this page accepts ------------------------------------------------
-
-
 def owned_customer(customers: list[str]) -> str:
-	"""The customer the request names, checked against the borrower's own list.
-
-	A customer name arrives from the browser, so it is never trusted. This is the same
-	rule as assert_owns, applied to the record a write is aimed at rather than a read.
-	"""
 	name = clean(frappe.form_dict.get("customer"))
 
 	if name not in customers:
@@ -239,16 +200,7 @@ def owned_customer(customers: list[str]) -> str:
 
 
 def set_primary_row(contact, table: str, value_field: str, value: str, flag: str):
-	"""Update the row a Contact child table flags as primary, or add one.
-
-	Contact.email_id and Contact.mobile_no are read-only fields fetched from these
-	tables, so writing them directly does nothing. Appending every time would leave a
-	borrower with a row per correction, which is why an existing row is reused.
-
-	The match is on the flag alone. `phone_nos` holds the mobile and the landline in
-	one table under different flags, so falling back to "the first row" would let a
-	landline overwrite the mobile that was saved a moment earlier.
-	"""
+	# Match on the flag alone: phone_nos holds mobile and landline under different flags.
 	if not value:
 		return
 
@@ -262,15 +214,7 @@ def set_primary_row(contact, table: str, value_field: str, value: str, flag: str
 
 
 def safe_to_edit(doc, customers: list[str]) -> bool:
-	"""True when every customer this record serves is one the borrower owns.
-
-	Frappe creates a Contact per login and erpnext links it to each Customer that
-	login is a portal user of, so one record commonly serves several customers. That
-	is harmless while they all belong to the same person. It stops being harmless if
-	the record also serves a customer somebody else holds: editing it would then
-	change what that other borrower sees. In that case a fresh record is made for
-	this customer instead of writing to the shared one.
-	"""
+	# A Contact/Address shared with another borrower's customer must not be edited in place.
 	served = {row.link_name for row in doc.get("links") or [] if row.link_doctype == "Customer"}
 
 	return served <= set(customers)
@@ -295,13 +239,7 @@ def save_contact(customer: str, customers: list[str], data: dict):
 
 
 def resolve_country(given: str, existing: str | None) -> str | None:
-	"""The country to save, which is never allowed to be blank.
-
-	Address.country is mandatory, and india_compliance refuses an address outside
-	India unless its GST category says so. A borrower who leaves the box empty would
-	otherwise get that rule quoted at them, which explains nothing. So a blank box
-	keeps whatever the address already had, and failing that the site's own country.
-	"""
+	# Never blank: a blank country trips india_compliance's GST-category error.
 	if given:
 		if not frappe.db.exists("Country", given):
 			frappe.throw(
@@ -331,10 +269,6 @@ def save_address(customer: str, customers: list[str], data: dict):
 	if not values["country"]:
 		frappe.throw(_("Please give a country for your address."), frappe.ValidationError)
 
-	# Address's own mandatory fields, checked here so a borrower who filled in half
-	# the form is told what is missing in our words rather than the doctype's.
-	# Anything a regional app adds on top -- india_compliance wants a state on an
-	# Indian address -- stays that app's rule to state, because it varies by install.
 	missing = [field for field in ("address_line1", "city") if not values[field]]
 	if missing:
 		frappe.throw(
@@ -349,13 +283,7 @@ def save_address(customer: str, customers: list[str], data: dict):
 
 @frappe.whitelist(methods=["POST"])
 def save_profile() -> dict:
-	"""Correct the contact details and address on one of the borrower's own records.
-
-	Written with ignore_permissions because a Website User holds no write rights on
-	Contact or Address, and granting them would open every other borrower's records
-	too. The narrowing is done here instead: one customer the borrower owns, and a
-	fixed list of fields. Nothing else in the request is read.
-	"""
+	# ignore_permissions below: Website Users have no Contact/Address rights; scope is enforced here.
 	customers = get_portal_customers()
 	customer = owned_customer(customers)
 

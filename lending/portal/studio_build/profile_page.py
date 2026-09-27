@@ -1,23 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The borrower's Personal details page, as a Studio page.
-
-It reads `get_profile_page` and posts back to `save_profile` -- the same two
-endpoints, and the same fixed list of fields, because section 6.3 of PORTAL_PLAN.md is
-what decides which of them a borrower may correct.
-
-One card: the borrower's name under an avatar, then a section per kind of detail, each
-led by a glyph on a tile. Name, record type and tax id are drawn greyed and disabled:
-they are the outcome of a KYC check rather than a preference. The rest are ordinary
-boxes, read-only until Edit is pressed, so a borrower who came to check what is on
-record cannot change it by a stray keystroke.
-
-One login can hold several customer records, so a picker beside Edit says which one is
-open. The payload carries every record's values, so switching refills the boxes without
-asking the server again.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	block,
@@ -48,9 +31,7 @@ IDENTITY = (
 	("Tax id", "tax_id"),
 )
 
-# The boxes a borrower may correct: (label, field, input type). `save_profile` reads
-# exactly these names off the request and nothing else, so a box added here without a
-# matching field there changes nothing.
+# A box added here does nothing unless `save_profile` also accepts its field.
 CONTACT = (
 	("Email", "email", "email"),
 	("Mobile", "mobile", "tel"),
@@ -67,8 +48,6 @@ ADDRESS = (
 
 FIELDS = [name for _label, name, _kind in CONTACT + ADDRESS]
 
-# The form's own state, filled from the payload once it arrives. `saved` is the form as
-# it last came from the server, so `dirty` is simply "the boxes say something else".
 FORM = '''\tconst forms = computed(() => context.profile.data?.forms || {})
 \tconst customer = ref("")
 \tconst form = ref<Record<string, string>>({})
@@ -142,18 +121,15 @@ def build():
 	)
 
 
-# Sized to fit a laptop screen without scrolling: the whole record is meant to be read
-# at a glance, so every gap here is the smallest that still separates what it separates.
 CARD = {"padding": "16px 20px"}
 
 
 def header():
-	"""The borrower's avatar and name, and what the form offers to press."""
 	avatar = block(
 		"Avatar",
 		props={"label": "{{ identity.customer_name }}", "size": "2xl", "shape": "circle"},
 		styles={"flex": "0 0 auto"},
-		# What lending.portal.brand washes in the lender's primary colour, as the rail's is.
+		# Styled by lending.portal.brand.
 		classes=["portal-profile-avatar"],
 	)
 	name = text(
@@ -173,8 +149,7 @@ def header():
 		styles={"width": "200px"},
 		visible="{{ (%s.data?.customer_options || []).length > 1 }}" % SOURCE,
 	)
-	# The label goes in the default slot as well as the prop: once a block has any slot,
-	# Studio hands Button an empty default one too, and Button renders that over `label`.
+	# Label repeated in the default slot: with any slot, Studio's empty default one hides `label`.
 	edit = button(
 		"Edit",
 		script="edit()",
@@ -208,13 +183,7 @@ def header():
 
 
 def section(glyph, title, subtitle, fields, rule=True, columns=3):
-	"""A glyph on a tile, and beside it the section's heading over its boxes.
-
-	`columns` boxes to a row, fewer when the card is narrow. The count comes from the
-	card's own width, not a breakpoint: tablet styles fire only below a 768px viewport,
-	and the sidebar squeezes the card long before that. A track is never under
-	1/`columns` of the row, so there are never more than `columns`.
-	"""
+	# Wraps by the card's width, not a breakpoint: tablet styles only fire below a 768px viewport.
 	track = f"calc((100% - {16 * columns}px) / {columns})"
 	grid = container(
 		fields,
@@ -249,12 +218,6 @@ def boxes(rows):
 
 
 def box(label, name, kind):
-	"""A box the borrower may correct, drawn as the desk draws a form field.
-
-	frappe-ui's `subtle` variant is that field: a grey fill, no border, dark text.
-	`readonly` rather than `disabled` outside edit mode, so the value keeps its dark text
-	and reads as on record rather than as unavailable.
-	"""
 	return block(
 		"FormControl",
 		props={
@@ -263,6 +226,7 @@ def box(label, name, kind):
 			"size": "md",
 			"variant": "subtle",
 			"placeholder": f"Enter {label.lower()}",
+			# `readonly`, not `disabled`, so the value keeps its dark text.
 			"readonly": "{{ !editing }}",
 			"modelValue": {"$type": "variable", "name": f"form.{name}"},
 		},

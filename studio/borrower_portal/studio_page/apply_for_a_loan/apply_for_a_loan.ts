@@ -40,14 +40,12 @@ export default function setup(context: any) {
 	const fail = (error: any) =>
 		toast.error(String(error?.messages?.[0] || error?.message || error))
 
-	// A confirmed number is not asked for twice: the mobile screen is stepped over in
-	// whichever direction the visitor is going.
+	// Once the number is confirmed, step over the mobile screen in either direction.
 	const go = (to: number) => {
 		if (to === 4 && token.value) to = step.value > 4 ? 3 : 5
 		step.value = to
 	}
 
-	// Each type is offered its own products, so a product picked for the other one goes.
 	const choose = (type: string) => {
 		if (type !== applicantType.value) loanProduct.value = ""
 		applicantType.value = type
@@ -75,7 +73,6 @@ export default function setup(context: any) {
 			.finally(() => { busy.value = false })
 	}
 
-	// The link stays in place through the countdown, and does nothing until it ends.
 	const resendCode = () => {
 		if (resendIn.value > 0 || busy.value) return
 		sendCode()
@@ -120,7 +117,6 @@ export default function setup(context: any) {
 			})
 			.catch((error: any) => {
 				fail(error)
-				// The proof of the number is gone: verify again, keeping every answer given.
 				if (error?.exc_type !== "VerificationExpiredError") return
 				token.value = ""
 				codeSent.value = false

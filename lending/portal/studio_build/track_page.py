@@ -1,15 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The public tracker at /track, as a Studio page.
-
-It replaces the /track page of the Builder portal this one was migrated from, and posts
-to
-`track_application`, unchanged -- which is what insists on both the reference number and
-the mobile number matching, so neither on its own turns this into a reference-number
-oracle.
-"""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
@@ -55,13 +46,11 @@ TRACK_SCRIPT = '''\tconst busy = ref(false)
 
 PAGE_WIDTH = "840px"
 
-# The form and the result are one panel apart on the page, so they share its shape.
 SHEET = dict(PANEL, padding="28px", borderRadius="var(--radius-6)")
 SHEET_MOBILE = {"padding": "20px"}
 
 
 def intro():
-	"""What this page is for, centred over the form the way the mockup sets it."""
 	centred = {"textAlign": "center", "alignSelf": "center"}
 
 	eyebrow = text(
@@ -79,7 +68,7 @@ def intro():
 		read_track("heading"),
 		tag="h1",
 		size="text-5xl",
-		# Studio's type scale stops short of a headline this size, so the size is a style.
+		# Studio's type scale stops short of this size.
 		styles=dict(
 			centred,
 			fontSize="clamp(28px, 4.4vh, 40px)",
@@ -93,7 +82,6 @@ def intro():
 	note = text(
 		read_track("intro"),
 		size="text-lg",
-		# The payload puts each sentence on a line of its own; a phone still wraps them.
 		styles=dict(centred, maxWidth="680px", lineHeight="1.6", color="var(--ink-gray-6)", whiteSpace="pre-line"),
 	)
 
@@ -105,7 +93,6 @@ def intro():
 
 
 def field(label, ref_name, kind, placeholder, glyph):
-	"""One of the two details, led by a glyph saying which it is."""
 	return block(
 		"FormControl",
 		props={
@@ -123,7 +110,6 @@ def field(label, ref_name, kind, placeholder, glyph):
 
 
 def track_form():
-	"""Both details have to match, so neither on its own is a reference-number oracle."""
 	head = row(
 		[
 			icon_tile("file-search-corner", tile=48, glyph=22),
@@ -140,8 +126,7 @@ def track_form():
 		align="end",
 		mobile={"flexDirection": "column", "alignItems": "stretch", "gap": "16px"},
 	)
-	# The label goes in the default slot as well as the prop: once a block has any slot,
-	# Studio hands Button an empty default one too, and Button renders that over `label`.
+	# Label repeated in the default slot: with any slot, Studio's empty default one hides `label`.
 	show = button(
 		"Show me where it is",
 		script="find()",
@@ -160,16 +145,14 @@ def track_form():
 
 DOT = 28
 
-# What the dot of each step state looks like: its fill, its ring, and what sits in it.
+# state: (fill, ring, ink, glyph)
 DOT_STATES = {
-	# A wash of the lender's primary colour, and green where none is set.
 	"done": (
 		"var(--portal-primary-soft, var(--surface-green-2))",
 		"var(--portal-primary-soft, var(--surface-green-2))",
 		"var(--portal-primary-deep, var(--ink-green-7))",
 		"check",
 	),
-	# The step the application is on wears the lender's primary colour, where one is set.
 	"now": (
 		"var(--portal-primary, var(--surface-gray-9))",
 		"var(--portal-primary, var(--surface-gray-9))",
@@ -182,11 +165,9 @@ DOT_STATES = {
 
 
 def step_dot(state, fill, ring, ink, glyph):
-	"""The dot for one state. A dot is a style, and only props are evaluated, so each
-	state is its own block and the step's `state` shows one of them."""
+	# One block per state, picked by `visible`: only props are evaluated, not styles.
 	inside = [icon(glyph, size=14, stroke=3)] if glyph else []
 	if state == "now":
-		# A ring: the dot's own fill with the page showing through the middle of it.
 		inside = [container(styles={"width": "10px", "height": "10px", "borderRadius": "9999px", "backgroundColor": ink})]
 
 	return row(
@@ -201,7 +182,7 @@ def step_dot(state, fill, ring, ink, glyph):
 			"border": f"1.5px solid {ring}",
 			"backgroundColor": fill,
 			"color": ink,
-			# Over the rail, which runs behind every dot.
+			# Stacks the dot over the absolutely placed rail.
 			"position": "relative",
 		},
 		visible="{{ dataItem.state === '%s' }}" % state,
@@ -209,7 +190,6 @@ def step_dot(state, fill, ring, ink, glyph):
 
 
 def timeline():
-	"""The steps top to bottom, a dot for each on a rail that joins them."""
 	step = row(
 		[
 			*[step_dot(state, *look) for state, look in DOT_STATES.items()],
@@ -225,7 +205,6 @@ def timeline():
 		gap="14px",
 		align="start",
 	)
-	# The rail stops at the first and last dots' centres, so it never pokes out past them.
 	rail = container(
 		styles={
 			"position": "absolute",
@@ -248,7 +227,6 @@ def timeline():
 
 
 def figures():
-	"""What was asked for and where it stands, side by side on a quiet band."""
 	figure = column(
 		[
 			muted("{{ dataItem.label }}"),
@@ -274,7 +252,6 @@ def figures():
 
 
 def track_result():
-	"""The tracker, once both details have matched."""
 	head = row(
 		[
 			icon_tile("file-text", tile=48, glyph=22),
@@ -305,8 +282,7 @@ def track_result():
 
 
 def back():
-	"""Back to the form, with both details still in it."""
-	# The label goes in the default slot too, for the same reason as the form's button.
+	# Label repeated in the default slot, as in track_form.
 	return button(
 		"Track another application",
 		script="startOver()",
@@ -320,7 +296,6 @@ def back():
 
 
 def build_track():
-	# The form and the result are two screens: a match swaps one for the other.
 	asking = "{{ !result.reference }}"
 	found = "{{ result.reference }}"
 	body = [
@@ -336,8 +311,7 @@ def build_track():
 		script=page_script(
 			state=[("reference", '""'), ("mobileNumber", '""')],
 			body=TRACK_SCRIPT,
-			# Not `track`: that is the data source's name, and a script value of the same
-			# name shadows it, so every `track.data` binding on the page reads nothing.
+			# Never return `track`: it would shadow the data source of that name.
 			returns=["busy", "result", "find", "startOver"],
 			search=False,
 		),

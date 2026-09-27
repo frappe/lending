@@ -93,9 +93,6 @@ fixtures = [
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
-# Portal menu
-# -----------
-
 # The Studio sidebar does not read these; portal.core.nav_items and portal.search do.
 portal_menu_items = [
 	{"title": "Account overview", "route": "/borrower-portal/overview"},

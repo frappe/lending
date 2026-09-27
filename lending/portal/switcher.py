@@ -1,16 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Choosing which of a borrower's loans the portal shows.
-
-A borrower with more than one loan picks one, as a bank's app has you pick an account,
-and the overview, the loan page, the statement and the certificate then read that loan
-alone. The choice is kept against the borrower's User -- see core.CHOSEN_LOAN_KEY -- so
-it holds across pages and sign-ins, and core.chosen_loan reads it back.
-
-Applications are not scoped to it. They belong to the borrower, not to a loan.
-"""
-
 import frappe
 from frappe import _
 
@@ -26,7 +16,6 @@ from lending.portal.core import (
 
 @frappe.whitelist()
 def get_accounts_page() -> dict:
-	"""Every loan the borrower holds, with the one on screen marked."""
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 	chosen = chosen_loan(loans)
@@ -49,7 +38,6 @@ def get_accounts_page() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def choose_account(name: str) -> dict:
-	"""Show this loan from now on. It must be one of the borrower's own."""
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 	if not name or name not in [loan.name for loan in loans]:

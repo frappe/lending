@@ -1,37 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The public front of the borrower portal: apply, and track what you applied for.
-
-These are the only endpoints a stranger can reach, which PORTAL_PLAN.md section 8
-caps deliberately. Every one is rate limited by IP. Neither page accepts a doctype or
-a fieldname from the browser: every field is read by name from a fixed list, and Loan
-Lead is inserted with ignore_permissions because the doctype grants create rights to
-System Manager only.
-
-Applying runs in three steps, which is the order every lender we compared uses:
-
-1. The visitor gives a mobile number and we send a code to it.
-2. The visitor types the code back.
-3. The visitor fills in the rest, and only then does a Loan Lead exist.
-
-Verifying before the lead is created is deliberate. Loan Lead makes name, email,
-product and amount mandatory, so a lead cannot exist at step 1 without inventing
-values for four fields the visitor has not given yet. Verification therefore runs
-against the bare number through the telephony app, and the lead is stamped Verified
-once it is created. The proof that step 2 happened is a random token held in the cache
-for VERIFICATION_TTL, so step 3 cannot be called on its own.
-
-A borrower who is already logged in skips the first two: create_customer_lead reads
-who they are off their Customer and makes the same draft lead. It is the one endpoint here
-a guest cannot call.
-
-Tracking matches the reference number AND the mobile number before it answers, and
-returns the same refusal whether the reference is wrong, the mobile is wrong, or the
-application does not exist. A tracker that distinguishes those cases is a tool for
-guessing other people's reference numbers.
-"""
-
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name
@@ -55,7 +24,6 @@ from lending.portal.core import (
 
 LEAD_SOURCE = "Portal"
 
-# The only fields a visitor may fill. Anything else on Loan Lead is ours to set.
 LEAD_FIELDS = ("applicant_name", "email", "loan_product", "loan_amount")
 OPTIONAL_LEAD_FIELDS = (
 	"income",
@@ -68,54 +36,38 @@ OPTIONAL_LEAD_FIELDS = (
 
 EMPLOYMENT_TYPES = ("Salaried", "Self-employed")
 
-# Loan Lead.mobile_number is a Phone field, which frappe rejects without a country
-# code. A portal visitor should not have to know that, so a bare number gets the
-# default prefix. PORTAL_PLAN.md section 9 puts portal settings on Lending Settings;
-# this belongs there once those fields exist.
+# Loan Lead.mobile_number is a Phone field and frappe rejects it without a country code.
 DEFAULT_COUNTRY_CODE = "+91"
 NATIONAL_NUMBER_LENGTH = 10
 
-# Loan Lead.applicant_type. A person borrows in their own name; a business borrows in
-# the company's, and Loan Lead zeroes the age for one, so the two are not the same form.
 APPLICANT_TYPES = ("Individual", "Business")
 DEFAULT_APPLICANT_TYPE = "Individual"
 
-# What a company is asked instead of a date of birth and a job.
 BUSINESS_ONLY_FIELDS = ("company_name",)
 PERSON_ONLY_FIELDS = ("date_of_birth", "employment_type")
 
 
-# Scopes the OTP inside the telephony app, so a code minted here cannot be spent
-# against a desk-raised lead, and vice versa.
+# Scopes the OTP so a portal code cannot be spent against a desk-raised lead.
 VERIFY_PURPOSE = "Portal Apply"
 VERIFY_CHANNEL = "SMS"
 
-# Long enough to fill in a form after reading a text message, short enough that a
-# leaked token is worth little.
 VERIFICATION_TTL = 30 * 60
 VERIFICATION_PREFIX = "portal-apply-verified"
 
-# The second token: proof that this browser is the one that just created this lead,
-# and therefore the one entitled to open an account against it. Short, because the
-# account is made on the next click.
 ACCOUNT_TTL = 30 * 60
 ACCOUNT_PREFIX = "portal-apply-account"
 
 MINIMUM_AGE = 18
 PAN_LENGTH = 10
 
-# The Loan Lead Workflow steps a portal lead takes by itself, in order. Converting it
-# to an application stays with staff.
 AUTOMATIC_ACTIONS = ("Run Basic Rules", "Run Pre-Qualification Rules", "Run Knockout Rules")
 
-# A floor of our own. System Settings.minimum_password_score is set on this site and
-# a single character still went through, so a public endpoint that creates logins
-# cannot lean on it. Frappe's strength test still applies on top of this.
+# minimum_password_score alone let a single character through, so enforce a floor here.
 MINIMUM_PASSWORD_LENGTH = 8
 
 
 def offered_to(product_applicant_type: str | None, applicant_type: str) -> bool:
-	"""Loan Product.portal_applicant_type. Blank offers the product to both."""
+	# A blank portal_applicant_type offers the product to both.
 	return not product_applicant_type or product_applicant_type == applicant_type
 
 
@@ -131,8 +83,6 @@ def product_card(row) -> dict:
 
 
 def portal_products() -> dict:
-	"""Keyed by applicant type, so a page lists the products open to whoever is borrowing,
-	and nothing else."""
 	products = frappe.get_all(
 		"Loan Product",
 		filters={"disabled": 0, "show_on_portal": 1},
@@ -155,8 +105,6 @@ def get_apply_page() -> dict:
 	return {
 		**brand_payload(),
 		"tagline": _("Simple · Secure · Transparent"),
-		# The break is where the heading turns, so the page keeps it rather than letting
-		# the column's width decide.
 		"heading": _("A loan that fits,\nwithout the paperwork"),
 		"intro": _(
 			"Tell us what you need and see an indicative offer in about two minutes. "
@@ -168,8 +116,6 @@ def get_apply_page() -> dict:
 			{"icon": "receipt-text", "title": _("No fee"), "note": _("to ask")},
 		],
 		"products": portal_products(),
-		# The opening screen asks for nothing. It says what this is, how long it takes,
-		# and offers one button, because a form is work and an invitation is not.
 		"start_title": _("Let's get started"),
 		"start_note": _("A few questions, one at a time. Most people are through in two minutes."),
 		"how_title": _("How it works"),
@@ -221,7 +167,6 @@ def get_track_page() -> dict:
 		**brand_payload(),
 		"eyebrow": _("Track application"),
 		"heading": _("Where has my application got to?"),
-		# One sentence to a line, as the page sets them.
 		"intro": "\n".join(
 			(
 				_("Enter the reference number we gave you and the mobile number you applied with."),
@@ -233,7 +178,6 @@ def get_track_page() -> dict:
 
 
 def with_country_code(number: str) -> str:
-	"""A Phone field needs a country code; a visitor types the number they know."""
 	digits = "".join(character for character in number if character.isdigit() or character == "+")
 
 	if digits.startswith("+"):
@@ -247,11 +191,7 @@ def with_country_code(number: str) -> str:
 
 
 def mask(number: str) -> str:
-	"""Show the last two digits only, so the page can confirm which number it used."""
 	return f"{'•' * max(len(number) - 2, 0)}{number[-2:]}" if len(number) > 2 else number
-
-
-# --- step 1 and 2: prove the number is yours ----------------------------------------
 
 
 def telephony_otp():
@@ -283,7 +223,7 @@ def send_mobile_code() -> dict:
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def confirm_mobile_code() -> dict:
-	"""Check the code and hand back the token step 3 requires."""
+	"""Check the OTP and return the token submit_lead requires."""
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -292,8 +232,7 @@ def confirm_mobile_code() -> dict:
 	if not code:
 		frappe.throw(_("Please enter the OTP we sent you."), frappe.ValidationError)
 
-	# A failed verification comes back as a value, not an exception, and turning it
-	# into a raise would roll back the attempt the telephony app just recorded.
+	# Don't raise on failure: it would roll back the attempt telephony just recorded.
 	result = telephony_otp().verify_otp(mobile, VERIFY_CHANNEL, code, purpose=VERIFY_PURPOSE)
 
 	if not result.get("verified"):
@@ -313,11 +252,11 @@ def confirm_mobile_code() -> dict:
 
 
 class VerificationExpiredError(frappe.ValidationError):
-	"""The proof of the number is gone, so the page sends the visitor back to verify."""
+	pass
 
 
 def verified_mobile(token: str) -> str:
-	"""The number step 2 proved, or a refusal. Read only: spend_token uses it up."""
+	# Read only; spend_token consumes it after the lead saves.
 	mobile = frappe.cache.get_value(f"{VERIFICATION_PREFIX}:{token}") if token else None
 
 	if not mobile:
@@ -330,20 +269,11 @@ def verified_mobile(token: str) -> str:
 
 
 def claim(key: str) -> bool:
-	"""Delete a token, and say whether this request was the one that deleted it.
-
-	Redis DEL reports what it removed, so of two requests racing with one token only
-	one gets True. The other throws, and whatever it wrote rolls back.
-	"""
+	# Redis DEL reports what it removed, so only one of two racing requests gets True.
 	return bool(frappe.cache.delete(frappe.cache.make_key(key)))
 
 
 def spend_token(token: str):
-	"""One token, one lead. Left alive it would be a reusable licence to insert rows.
-
-	Spent after the lead is saved, so a lead that fails to save leaves the visitor
-	verified.
-	"""
 	if not claim(f"{VERIFICATION_PREFIX}:{token}"):
 		frappe.throw(
 			_("Your confirmation has expired. Please verify your mobile number again."),
@@ -351,15 +281,8 @@ def spend_token(token: str):
 		)
 
 
-# --- step 3: the lead ---------------------------------------------------------------
-
-
 def read_product(name: str, amount: float, applicant_type: str = DEFAULT_APPLICANT_TYPE) -> dict:
-	"""A Link field is a name, so it is checked against the table rather than trusted.
-
-	The same filter as the list above, applicant type included. Filtering only the list
-	would leave the hidden products one guessed name away from being applied for.
-	"""
+	# Same filter as portal_products, so a hidden product can't be applied for by name.
 	product = frappe.db.get_value(
 		"Loan Product",
 		{"name": name, "disabled": 0, "show_on_portal": 1},
@@ -381,7 +304,6 @@ def read_product(name: str, amount: float, applicant_type: str = DEFAULT_APPLICA
 
 
 def read_date_of_birth(value: str):
-	"""Optional, but a date that makes the applicant a child is a typo worth catching."""
 	if not value:
 		return None
 
@@ -408,13 +330,6 @@ def read_applicant_type() -> str:
 
 
 def read_optional(applicant_type: str, company_name: str) -> dict:
-	"""The fields that sharpen the offer. A bad value here is dropped, never fatal --
-	except where it is plainly a mistake, which the readers above throw on.
-
-	Which fields apply depends on who is borrowing. A company has no date of birth and
-	no employment, and Loan Lead.set_age zeroes the age for one anyway, so those are
-	dropped rather than stored as noise against a business.
-	"""
 	person = applicant_type == "Individual"
 	employment = clean(frappe.form_dict.get("employment_type"))
 	country = clean(frappe.form_dict.get("applicant_country"))
@@ -431,9 +346,7 @@ def read_optional(applicant_type: str, company_name: str) -> dict:
 		"company_name": None if person else company_name,
 		"income": flt(frappe.form_dict.get("income")) or None,
 		"proposed_tenure": cint(frappe.form_dict.get("proposed_tenure")) or None,
-		# Empty string, not None. Frappe replaces a None Select with the field's first
-		# option on insert, so a company would be recorded as Salaried and a person who
-		# chose nothing would be recorded as one too. An empty string survives.
+		# "" not None: frappe fills a None Select with its first option (Salaried) on insert.
 		"employment_type": employment if (person and employment in EMPLOYMENT_TYPES) else "",
 		"applicant_country": country if country and frappe.db.exists("Country", country) else None,
 		"pan": pan or None,
@@ -442,7 +355,6 @@ def read_optional(applicant_type: str, company_name: str) -> dict:
 
 
 def read_submission() -> dict:
-	"""Pull the known fields out of the request and refuse anything short of complete."""
 	data = {field: clean(frappe.form_dict.get(field)) for field in LEAD_FIELDS}
 
 	missing = [field for field, value in data.items() if not value]
@@ -459,7 +371,6 @@ def read_submission() -> dict:
 
 
 def read_loan_request(applicant_type: str, company_name: str) -> dict:
-	"""What is being asked for, as opposed to who is asking."""
 	product = clean(frappe.form_dict.get("loan_product"))
 	amount = flt(frappe.form_dict.get("loan_amount"))
 
@@ -479,7 +390,6 @@ def read_loan_request(applicant_type: str, company_name: str) -> dict:
 
 
 def settle_lead(lead: str, mobile: str):
-	"""Run the workflow's rule steps on a fresh draft, then stamp the number verified."""
 	run_automatic_rules(lead)
 	mark_mobile_verified(lead, mobile)
 
@@ -487,13 +397,7 @@ def settle_lead(lead: str, mobile: str):
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def submit_lead() -> dict:
-	"""Create a draft Loan Lead, run its workflow rules, and hand back what they decided.
-
-	The lead stays a draft: the workflow's rule steps only apply to one, and a submitted
-	lead jumps straight to Qualified with none of them run. The indicative offer is read
-	back off the saved document rather than computed here. The portal owns no credit
-	policy.
-	"""
+	"""Create a draft Loan Lead (a submitted one skips the rule steps) and return its offer."""
 	assert_public_apply_enabled()
 
 	token = clean(frappe.form_dict.get("token"))
@@ -515,23 +419,16 @@ def submit_lead() -> dict:
 
 
 def run_automatic_rules(lead: str):
-	"""Take the lead through AUTOMATIC_ACTIONS, or leave it at Incoming with a note.
-
-	All three steps share one savepoint. A lead the knockout rules stop keeps no
-	pre-qualification verdict, so the offer on this page and the tracker cannot show an
-	offer the next rule took back. Staff read the note and re-run the steps from the desk.
-	"""
 	if not get_workflow_name("Loan Lead"):
 		return
 
-	# Elevated because every step is a Loan Officer action and the caller is a guest or a
-	# borrower. The lead is the one this request just made, and the actions are fixed
-	# above rather than read from the request.
+	# Each step is a Loan Officer action; the lead and actions are fixed, not from the request.
 	with as_administrator():
 		apply_actions(lead)
 
 
 def apply_actions(lead: str):
+	# One savepoint for all steps, so a knocked-out lead keeps no pre-qualification offer.
 	save_point = f"portal_lead_{frappe.generate_hash(length=10)}"
 	frappe.db.savepoint(save_point)
 
@@ -548,8 +445,7 @@ def apply_actions(lead: str):
 
 
 def note_stopped_rules(lead: str, action: str, error: Exception):
-	# A rule saying no raises a ValidationError, which is a decision for staff to read.
-	# Anything else is a fault and goes to the Error Log as well.
+	# A ValidationError is a rule's decision; anything else is a fault.
 	if not isinstance(error, frappe.ValidationError):
 		frappe.log_error(f"Portal lead {lead} failed at {action}")
 
@@ -562,14 +458,7 @@ def note_stopped_rules(lead: str, action: str, error: Exception):
 
 
 def mark_mobile_verified(lead: str, mobile: str):
-	"""Stamp the status after the document settles, never on the document itself.
-
-	Loan Lead.set_verification_statuses resets both statuses to Pending inside validate
-	whenever the recipient changed, which on a new document is always. Writing Verified
-	before insert or before the rules run is therefore erased by the next validate. Writing it
-	afterwards, filtered on the number it belongs to, is what survives -- the same shape
-	Loan Lead.mark_otp_status uses.
-	"""
+	# Written after the rules: set_verification_statuses resets it to Pending on every validate of a new lead.
 	frappe.db.set_value(
 		"Loan Lead",
 		{"name": lead, "mobile_number": mobile},
@@ -579,7 +468,6 @@ def mark_mobile_verified(lead: str, mobile: str):
 
 
 def present_offer(lead) -> dict:
-	"""The offer, the decline or the holding message -- whichever the rules produced."""
 	status = lead.prequalification_status or ""
 	offer = []
 
@@ -602,7 +490,6 @@ def present_offer(lead) -> dict:
 		)
 	elif status == "Not Pre-Qualified":
 		headline = _("We cannot offer you a loan just now")
-		# No reason codes: they are internal decision output, not a borrower message.
 		message = _(
 			"Thank you for asking. You are welcome to apply again later, and your "
 			"account will keep this enquiry in the meantime."
@@ -611,8 +498,6 @@ def present_offer(lead) -> dict:
 		headline = _("Thank you, we have your enquiry")
 		message = _("Our team will come back to you shortly.")
 
-	# Nothing to click through to: the next step is on this page. The offer card keeps
-	# the key so its markup does not have to change.
 	action = ""
 
 	return {
@@ -625,15 +510,8 @@ def present_offer(lead) -> dict:
 	}
 
 
-# --- step 4: the account ------------------------------------------------------------
-
-
 def issue_account_token(lead: str) -> str:
-	"""Proof that this browser is the one that just raised this lead.
-
-	Without it, create_account would take any reference number, and anybody who
-	guessed one could open an account against somebody else's application.
-	"""
+	# Without it, anyone who guessed a reference could open an account against it.
 	token = frappe.generate_hash(length=32)
 	frappe.cache.set_value(f"{ACCOUNT_PREFIX}:{token}", lead, expires_in_sec=ACCOUNT_TTL)
 
@@ -641,8 +519,7 @@ def issue_account_token(lead: str) -> str:
 
 
 def lead_for_account(token: str) -> str:
-	"""The lead the token was issued for. Read only: spend_account_token uses it up,
-	once the account exists, so a refused password can be retried."""
+	# Read only, so a refused password can be retried.
 	if not token:
 		frappe.throw(_("Please finish your application first."), frappe.ValidationError)
 
@@ -658,7 +535,6 @@ def lead_for_account(token: str) -> str:
 
 
 def spend_account_token(token: str):
-	"""One token, one account."""
 	if not claim(f"{ACCOUNT_PREFIX}:{token}"):
 		frappe.throw(
 			_("This has taken too long. Please apply again to open an account."),
@@ -669,26 +545,14 @@ def spend_account_token(token: str):
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
-	"""Open the borrower's account at the end of a successful application.
-
-	Frappe's own signup is switched off on this site and is the wrong shape anyway:
-	it asks for an email and a name, which is less than we already hold. By this point
-	the mobile number is verified, the details are on a Loan Lead, and the borrower is
-	choosing their own password in the same request -- so the session is opened here
-	rather than making them go round to /login and type it again.
-
-	Written with ignore_permissions throughout because the caller is a guest. What
-	keeps that narrow is the token: it names one lead, it is spent once the account
-	exists, and every value written comes off that lead rather than out of the request.
-	"""
+	"""Create the login for the lead the account token names, and sign the borrower in."""
 	assert_public_apply_enabled()
 
 	# Read once: the writes below leave form_dict without it by the time it is spent.
 	token = clean(frappe.form_dict.get("token"))
 	lead_name = lead_for_account(token)
 
-	# Not run through clean(): stripping a password would change it silently, and
-	# leading or trailing spaces are the borrower's to choose.
+	# Not clean()ed: stripping would silently change the password.
 	password = frappe.form_dict.get("password") or ""
 	if len(password) < MINIMUM_PASSWORD_LENGTH:
 		frappe.throw(
@@ -712,12 +576,7 @@ def create_account() -> dict:
 			_("You already have an account. Please log in instead."), frappe.ValidationError
 		)
 
-	# Elevated deliberately, and only around these four writes. ignore_permissions is
-	# not enough on its own: erpnext's Customer.on_update reaches a whitelisted API
-	# that re-checks permissions whatever the caller passed, so a guest cannot save a
-	# Customer at all. What keeps the elevation narrow is the token -- it names one
-	# lead, it is spent on use, and every value below comes off that lead rather than
-	# out of the request.
+	# ignore_permissions is not enough: Customer.on_update calls an API that re-checks permissions.
 	caller = frappe.session.user
 	frappe.set_user("Administrator")
 	try:
@@ -729,17 +588,12 @@ def create_account() -> dict:
 				"mobile_no": lead.mobile_number,
 				"user_type": "Website User",
 				"send_welcome_email": 0,
-				# Checked against the site's password policy on insert, so a weak one
-				# is refused here rather than quietly accepted.
 				"new_password": password,
 			}
 		)
 		user.insert(ignore_permissions=True)
 		user.add_roles("Customer")
 
-		# A returning borrower keeps the customer record they already have, so their
-		# earlier loans stay visible from the new login rather than sitting under a
-		# duplicate nobody is joined to.
 		customer = customer_for_applicant(
 			lead.company_name or lead.applicant_name,
 			lead.applicant_type,
@@ -752,11 +606,7 @@ def create_account() -> dict:
 	finally:
 		frappe.set_user(caller)
 
-	# The borrower proved the number by OTP and chose this password a moment ago, so
-	# there is nothing further to prove by sending them to the login page.
-	#
-	# login_manager exists only inside a web request. Called from a test or the
-	# console there is no session to open, and the account has been made either way.
+	# login_manager exists only inside a web request, not in tests or the console.
 	if getattr(frappe.local, "login_manager", None):
 		frappe.local.login_manager.login_as(user.name)
 
@@ -769,24 +619,15 @@ def create_account() -> dict:
 	}
 
 
-# --- a returning borrower -----------------------------------------------------------
-
-
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=5, seconds=60 * 60)
 def create_customer_lead() -> dict:
-	"""A draft Loan Lead for a borrower who is already logged in.
-
-	The same draft and the same rule steps as submit_lead. Only the identity differs:
-	it comes off the borrower's Customer and User rather than out of the request, so
-	there is no number to prove by OTP and no account to open afterwards.
-	"""
+	"""Like submit_lead for a logged-in borrower; identity comes from their Customer, not the request."""
 	customer = read_own_customer()
 	applicant = applicant_for(customer)
 	data = read_loan_request(applicant["applicant_type"], applicant["company_name"])
 
-	# ignore_permissions because Loan Lead grants create rights to System Manager only.
-	# Every identity field is ours; the request picks only the product and the terms.
+	# Loan Lead grants create to System Manager only.
 	lead = frappe.new_doc("Loan Lead")
 	lead.update({**data, **applicant, "customer": customer, "lead_source": LEAD_SOURCE})
 	lead.insert(ignore_permissions=True)
@@ -798,11 +639,6 @@ def create_customer_lead() -> dict:
 
 
 def read_own_customer() -> str:
-	"""The Customer the lead is for, which must be one of this login's own.
-
-	A login can hold several -- a person and their company -- so the page names one.
-	With only one there is nothing to choose.
-	"""
 	customers = get_portal_customers()
 	asked = clean(frappe.form_dict.get("customer"))
 
@@ -816,7 +652,6 @@ def read_own_customer() -> str:
 
 
 def applicant_for(customer: str) -> dict:
-	"""The lead's identity fields, read off records we hold rather than the request."""
 	applicant = on_file(customer)
 
 	if not applicant["mobile_number"]:
@@ -841,10 +676,9 @@ def on_file(customer: str) -> dict:
 
 	return {
 		"applicant_type": "Business" if business else "Individual",
-		# A company's lead names the person asking, and the company separately.
 		"applicant_name": user.full_name if business else record.customer_name,
 		"company_name": record.customer_name if business else None,
-		# The login's own address, so leads_for_login lists this lead with the rest.
+		# The login's email, so leads_for_login finds this lead.
 		"email": user.email,
 		"mobile_number": record.mobile_no or user.mobile_no or "",
 	}
@@ -852,12 +686,6 @@ def on_file(customer: str) -> dict:
 
 @frappe.whitelist()
 def get_new_application_page() -> dict:
-	"""The form a logged-in borrower applies with: who they are, and what is on offer.
-
-	Every customer behind the login comes with what we already hold on it, so the page
-	shows those details instead of asking for them, and switching between a person and
-	their company needs no second request.
-	"""
 	customers = get_portal_customers()
 
 	payload = shell_payload(_("New application"), "", get_loans(customers) if customers else [])
@@ -880,7 +708,6 @@ def get_new_application_page() -> dict:
 
 
 def applicant_option(customer: str) -> dict:
-	"""One customer the borrower may apply as, with what the form shows and prefills."""
 	applicant = on_file(customer)
 
 	return {
@@ -899,12 +726,7 @@ def applicant_option(customer: str) -> dict:
 
 
 def last_answers(customer: str, applicant: dict) -> dict:
-	"""What the borrower told us last time, so a second application starts filled in.
-
-	A lead joined to this customer first. Failing that, a guest enquiry under the login's
-	email -- which is how a borrower's first application arrived -- but only for the same
-	kind of applicant, so a company never inherits the owner's date of birth.
-	"""
+	# Guest enquiries match on applicant type too, so a company never inherits the owner's DOB.
 	fields = ["income", "employment_type", "date_of_birth", "pan", "proposed_tenure"]
 	guest_enquiry = {
 		"email": applicant["email"],
@@ -919,7 +741,7 @@ def last_answers(customer: str, applicant: dict) -> dict:
 		or frappe._dict()
 	)
 
-	# A tax id is a PAN only when it is a PAN's length; a GSTIN is longer.
+	# Only a PAN-length tax_id is a PAN; a GSTIN is longer.
 	tax_id = frappe.db.get_value("Customer", customer, "tax_id") or ""
 
 	return {
@@ -929,9 +751,6 @@ def last_answers(customer: str, applicant: dict) -> dict:
 		"pan": lead.pan or (tax_id if len(tax_id) == PAN_LENGTH else ""),
 		"proposed_tenure": cint(lead.proposed_tenure) or "",
 	}
-
-
-# --- the tracker --------------------------------------------------------------------
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -949,7 +768,6 @@ def track_application() -> dict:
 			frappe.ValidationError,
 		)
 
-	# Stored with a country code, but nobody types their own that way.
 	mobile = with_country_code(mobile)
 
 	lead = frappe.db.get_value(
@@ -967,8 +785,7 @@ def track_application() -> dict:
 		as_dict=True,
 	)
 
-	# One refusal for a wrong reference, a wrong mobile, and a reference that was never
-	# ours. Distinguishing them would turn this into a reference-number oracle.
+	# One refusal for every miss, so this can't be used as a reference-number oracle.
 	if not lead:
 		frappe.throw(
 			_("We could not find an application with those details."), frappe.ValidationError
@@ -988,15 +805,7 @@ def track_application() -> dict:
 
 
 def tracker_steps(lead: dict) -> list[dict]:
-	"""The tracker as a list of steps, so a longer workflow changes this and nothing else.
-
-	PORTAL_PLAN.md section 6.6 asks for exactly one function to own these. When Module A
-	reshapes the application workflow, the extra stages are added here and every page
-	that draws a tracker picks them up.
-
-	A step's `state` is "done", "now", "todo" or "stopped", and the page draws the dot
-	for it -- a tick, a ring, an empty circle, a cross.
-	"""
+	# state is one of "done", "now", "todo", "stopped".
 	declined = lead.prequalification_status == "Not Pre-Qualified"
 	qualified = lead.prequalification_status == "Pre-Qualified"
 
