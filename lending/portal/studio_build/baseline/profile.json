@@ -534,8 +534,7 @@
                  "componentProps": {
                   "label": "{{ identity.customer_name }}",
                   "size": "2xl",
-                  "shape": "circle",
-                  "theme": "blue"
+                  "shape": "circle"
                  },
                  "componentSlots": {},
                  "componentEvents": {},
@@ -545,6 +544,9 @@
                  "mobileStyles": {},
                  "tabletStyles": {},
                  "children": [],
+                 "classes": [
+                  "portal-profile-avatar"
+                 ],
                  "componentId": "profile-0-container1-container1-container1-container1-container1-container1-avatar1"
                 },
                 {
@@ -912,7 +914,7 @@
                      "componentName": "FormControl",
                      "componentProps": {
                       "type": "text",
-                      "label": "Record type",
+                      "label": "Registered as",
                       "size": "md",
                       "disabled": true,
                       "placeholder": "Not on record",

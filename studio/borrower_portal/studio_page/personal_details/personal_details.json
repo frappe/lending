@@ -413,13 +413,15 @@
                   "flex": "0 0 auto"
                  },
                  "children": [],
+                 "classes": [
+                  "portal-profile-avatar"
+                 ],
                  "componentId": "profile-0-container1-container1-container1-container1-container1-container1-avatar1",
                  "componentName": "Avatar",
                  "componentProps": {
                   "label": "{{ identity.customer_name }}",
                   "shape": "circle",
-                  "size": "2xl",
-                  "theme": "blue"
+                  "size": "2xl"
                  }
                 },
                 {
@@ -708,7 +710,7 @@
                      "componentName": "FormControl",
                      "componentProps": {
                       "disabled": true,
-                      "label": "Record type",
+                      "label": "Registered as",
                       "modelValue": {
                        "$type": "variable",
                        "name": "identity.customer_type"
@@ -1211,11 +1213,11 @@
    "originalElement": "body"
   }
  ],
- "creation": "2026-09-25 00:43:20.303178",
+ "creation": "2026-09-26 23:52:26.970588",
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 12:32:14.400899",
+ "modified": "2026-09-27 00:22:56.995445",
  "modified_by": "Administrator",
  "name": "personal_details",
  "owner": "Administrator",

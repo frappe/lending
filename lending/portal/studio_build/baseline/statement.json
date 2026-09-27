@@ -766,7 +766,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Disbursements, interest and charges",
+                "text": "Loan amount, interest and charges",
                 "tag": "p",
                 "fontSize": "text-p-sm"
                },
@@ -840,7 +840,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Repayments received",
+                "text": "Payments you made",
                 "tag": "p",
                 "fontSize": "text-p-sm"
                },
@@ -1038,7 +1038,7 @@
                "componentName": "List",
                "componentProps": {
                 "columns": [
-                 "minmax(96px, 0.8fr)",
+                 "minmax(104px, 0.8fr)",
                  "minmax(0, 2fr)",
                  "minmax(0, 1fr)",
                  "minmax(0, 1fr)",
@@ -1050,6 +1050,7 @@
                "baseStyles": {
                 "--list-row-padding-x": "12px",
                 "--_list-row-pad": "12px",
+                "--list-row-height": "44px",
                 "minWidth": "640px"
                },
                "mobileStyles": {},
@@ -1133,14 +1134,17 @@
                    "componentProps": {},
                    "componentSlots": {},
                    "componentEvents": {},
-                   "baseStyles": {},
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [
                     {
                      "componentName": "TextBlock",
                      "componentProps": {
-                      "text": "Debit",
+                      "text": "Charged",
                       "tag": "p",
                       "fontSize": "text-sm"
                      },
@@ -1162,14 +1166,17 @@
                    "componentProps": {},
                    "componentSlots": {},
                    "componentEvents": {},
-                   "baseStyles": {},
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [
                     {
                      "componentName": "TextBlock",
                      "componentProps": {
-                      "text": "Credit",
+                      "text": "Paid",
                       "tag": "p",
                       "fontSize": "text-sm"
                      },
@@ -1191,7 +1198,10 @@
                    "componentProps": {},
                    "componentSlots": {},
                    "componentEvents": {},
-                   "baseStyles": {},
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [
@@ -1263,7 +1273,7 @@
                          "componentSlots": {},
                          "componentEvents": {},
                          "baseStyles": {
-                          "color": "var(--ink-gray-7)",
+                          "color": "var(--ink-gray-6)",
                           "whiteSpace": "nowrap"
                          },
                          "mobileStyles": {},
@@ -1279,11 +1289,7 @@
                        "componentProps": {},
                        "componentSlots": {},
                        "componentEvents": {},
-                       "baseStyles": {
-                        "flexDirection": "column",
-                        "alignItems": "stretch",
-                        "gap": "2px"
-                       },
+                       "baseStyles": {},
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [
@@ -1297,30 +1303,13 @@
                          "componentSlots": {},
                          "componentEvents": {},
                          "baseStyles": {
-                          "fontWeight": "500"
+                          "fontWeight": "500",
+                          "color": "var(--ink-gray-8)"
                          },
                          "mobileStyles": {},
                          "tabletStyles": {},
                          "children": [],
                          "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2-textblock1"
-                        },
-                        {
-                         "componentName": "TextBlock",
-                         "componentProps": {
-                          "text": "{{ item.detail }}",
-                          "tag": "p",
-                          "fontSize": "text-p-sm"
-                         },
-                         "componentSlots": {},
-                         "componentEvents": {},
-                         "baseStyles": {
-                          "color": "var(--ink-gray-6)"
-                         },
-                         "mobileStyles": {},
-                         "tabletStyles": {},
-                         "children": [],
-                         "visibilityCondition": "{{ item.detail }}",
-                         "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2-textblock2"
                         }
                        ],
                        "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2"
@@ -1330,7 +1319,10 @@
                        "componentProps": {},
                        "componentSlots": {},
                        "componentEvents": {},
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [
@@ -1345,7 +1337,8 @@
                          "componentEvents": {},
                          "baseStyles": {
                           "fontVariantNumeric": "tabular-nums",
-                          "whiteSpace": "nowrap"
+                          "whiteSpace": "nowrap",
+                          "color": "var(--ink-gray-7)"
                          },
                          "mobileStyles": {},
                          "tabletStyles": {},
@@ -1360,7 +1353,10 @@
                        "componentProps": {},
                        "componentSlots": {},
                        "componentEvents": {},
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [
@@ -1375,7 +1371,8 @@
                          "componentEvents": {},
                          "baseStyles": {
                           "fontVariantNumeric": "tabular-nums",
-                          "whiteSpace": "nowrap"
+                          "whiteSpace": "nowrap",
+                          "color": "var(--ink-gray-7)"
                          },
                          "mobileStyles": {},
                          "tabletStyles": {},
@@ -1390,7 +1387,10 @@
                        "componentProps": {},
                        "componentSlots": {},
                        "componentEvents": {},
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [
@@ -1406,7 +1406,8 @@
                          "baseStyles": {
                           "fontVariantNumeric": "tabular-nums",
                           "whiteSpace": "nowrap",
-                          "fontWeight": "500"
+                          "fontWeight": "500",
+                          "color": "var(--ink-gray-9)"
                          },
                          "mobileStyles": {},
                          "tabletStyles": {},

@@ -997,9 +997,7 @@ def new_loan_disbursement(
 	bank_account: str | None = None,
 	is_term_loan: int | None = None,
 ):
-	"""An unsaved disbursement against the loan, with the loan's terms and charges copied
-	in. It checks no permissions: make_loan_disbursement does that for the desk, and the
-	borrower portal proves ownership of the loan instead."""
+	"""Checks no permissions; the caller must."""
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
 	disbursement_entry.against_loan = loan_doc.name

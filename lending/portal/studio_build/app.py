@@ -57,9 +57,9 @@ SHARED_UTILS = '''// Shared by every page's setup() module, as "@app/utils/porta
 import { onScopeDispose, ref, watch } from "vue"
 import { call } from "frappe-ui"
 
-const TONES: Record<string, string> = { ok: "green", warn: "orange", danger: "red" }
+const TONES: Record<string, string> = { info: "blue", ok: "green", warn: "orange", danger: "red" }
 
-/** A payload tone -- "", "ok", "warn", "danger" -- as a frappe-ui Badge theme. */
+/** A payload tone -- "", "info", "ok", "warn", "danger" -- as a frappe-ui Badge theme. */
 export function tone(value?: string): string {
 \treturn TONES[value || ""] || "gray"
 }

@@ -45,7 +45,7 @@
   },
   {
    "default": "0",
-   "description": "Serves the borrower portal.",
+   "description": "Turns on the borrower portal.",
    "fieldname": "enable_borrower_portal",
    "fieldtype": "Check",
    "label": "Enable Borrower Portal"
@@ -53,19 +53,19 @@
   {
    "default": "0",
    "depends_on": "enable_borrower_portal",
-   "description": "Serves the public application form at /apply, where a visitor raises a lead and opens a login. Off, a borrower still signs in, but only staff can raise a lead.",
+   "description": "Lets visitors apply at /apply. Off, only staff can raise a lead.",
    "fieldname": "enable_public_apply",
    "fieldtype": "Check",
    "label": "Enable Public Application Form"
   },
   {
-   "description": "Shown wherever no logo is set. Left blank, the portal calls itself Frappe Lending.",
+   "description": "Shown when no logo is set. Defaults to Frappe Lending.",
    "fieldname": "portal_brand_name",
    "fieldtype": "Data",
    "label": "Portal Brand Name"
   },
   {
-   "description": "The grievance address. Every portal page ends in a Contact us link that opens a mail to it.",
+   "description": "Grievance address for the Contact us link.",
    "fieldname": "portal_support_email",
    "fieldtype": "Data",
    "label": "Portal Support Email",
@@ -76,20 +76,20 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Served to every visitor, so the upload is public. A private attachment answers 403 and the portal shows a broken image.",
+   "description": "Must be a public file.",
    "fieldname": "portal_logo",
    "fieldtype": "Attach Image",
    "label": "Portal Logo",
    "make_attachment_public": 1
   },
   {
-   "description": "The bank's main colour. Fills the page header and the letter tile beside the brand name, tints the sidebar, and marks the open tab and the current step. The text on it turns white or dark, whichever reads better.",
+   "description": "Used for the header, sidebar and active states.",
    "fieldname": "portal_primary_color",
    "fieldtype": "Color",
    "label": "Portal Primary Colour"
   },
   {
-   "description": "The bank's second colour, for buttons. Left blank, buttons use the primary colour. In the header, a button uses it only if it stands out from the primary colour.",
+   "description": "Used for buttons. Defaults to the primary colour.",
    "fieldname": "portal_secondary_color",
    "fieldtype": "Color",
    "label": "Portal Secondary Colour"
@@ -111,14 +111,14 @@
    "fieldname": "portal_footer_links",
    "fieldtype": "Table",
    "label": "Portal Footer Links",
-   "options": "Portal Footer Link"
+   "options": "Top Bar Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-21 10:00:00.000000",
+ "modified": "2026-09-27 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",

@@ -132,6 +132,13 @@ AVATAR_VARIABLES = {
 	"--surface-gray-2": "var(--surface-white)",
 	"--ink-gray-5": "var(--portal-primary-deep)",
 }
+# The profile card's avatar takes the same deep ink. A white disc would vanish on the
+# white card, so its disc is the rail's wash instead.
+PROFILE_AVATAR = ".borrower-portal .portal-profile-avatar"
+PROFILE_AVATAR_VARIABLES = {
+	**AVATAR_VARIABLES,
+	"--surface-gray-2": "var(--portal-primary-soft)",
+}
 
 
 def channels(colour):
@@ -377,6 +384,7 @@ def brand_style(primary_color, secondary_color) -> str:
 			f"{HEADER} {SUBTLE_BUTTON_ONLY}:active {{ background-color: var(--surface-gray-4); }}",
 		]
 		rules.append(f"{AVATAR} {{ {declarations(AVATAR_VARIABLES)} }}")
+		rules.append(f"{PROFILE_AVATAR} {{ {declarations(PROFILE_AVATAR_VARIABLES)} }}")
 		rules += button_rules(HEADER_BUTTON, "--portal-header-action")
 
 	return "<div><style>%s</style></div>" % " ".join(rules)

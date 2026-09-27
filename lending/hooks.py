@@ -4,11 +4,6 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
-# studio serves the borrower portal. Every /borrower-portal route is a Studio Page: the
-# doctype, the route, the renderer and the app bundle all come from that app, so without
-# it the portal is silently absent rather than broken in a way that points at the cause.
-# Declaring it here installs it alongside lending and stops it being uninstalled from
-# under the portal.
 required_apps = ["erpnext", "frappe/studio"]
 app_logo_url = "/assets/lending/images/frappe-lending-logo.svg"
 
@@ -59,10 +54,18 @@ fixtures = [
 	},
 	{
 		"dt": "Workflow Transition Tasks",
-		"filters": [["name", "in", ("Loan Lead Basic Rules",)]],
+		"filters": [
+			[
+				"name",
+				"in",
+				(
+					"Loan Lead Basic Rules",
+					"Loan Lead Pre-Qualification Rules",
+					"Loan Lead Knockout Rules",
+				),
+			]
+		],
 	},
-	# The layouts behind the borrower portal's two downloads. Named rather than
-	# filtered by doctype, so a site's own Print Formats on Loan are left alone.
 	{
 		"dt": "Print Format",
 		"filters": [["name", "in", ("Loan Statement of Account", "Loan Interest Certificate")]],
@@ -93,36 +96,7 @@ fixtures = [
 # Portal menu
 # -----------
 
-# The borrower portal's pages, as rows of frappe's own portal menu -- Portal Settings,
-# the portal_menu_items hook and website.utils.get_portal_sidebar_items.
-#
-# The Studio sidebar does not read these. A Studio Component has no data source of its
-# own and its tree is fixed at build time, so the rows it draws are declared in
-# portal.studio_build.shell instead, and a page added is a line in both places.
-#
-# What still reads them is portal.core.nav_items(), and through it portal.search: a
-# borrower searching for "statement" should find the page as well as the entries on it.
-# The routes are in the /borrower-portal/ form the rest of the data layer speaks --
-# loan_url and application_url too -- because nav_items keeps only the rows under
-# core.PORTAL_ROUTE_PREFIX. The Studio app strips the prefix as it routes; see
-# utils/portal.ts in the exported app.
-#
-# standard_portal_menu_items is the other door, and the wrong one: it syncs into Portal
-# Settings, whose sync drops every row that does not name an existing DocType, and four
-# of these rows are views rather than records.
-#
-# `covers` is this app's own key, carried through the hook untouched. A detail page has
-# no row of its own, so it lights its list's row: /borrower/loan/L-0001 is a loan
-# account. A row added from Portal Settings has no such key and matches its route alone.
-#
-# No `role`. A borrower is authorised by the Portal Users table on their Customer, not
-# by a role, so gating the menu on "Customer" would empty the sidebar for anyone linked
-# by hand. The rows are a menu, not a permission: every page behind them asks
-# portal.core.get_portal_customers() who is knocking.
-#
-# One row per page a borrower can actually open. PORTAL_PLAN.md section 6.7 keeps
-# repayments, disbursements and charges as sections of a loan rather than as pages of
-# their own, so the sidebar does not offer them.
+# The Studio sidebar does not read these; portal.core.nav_items and portal.search do.
 portal_menu_items = [
 	{"title": "Account overview", "route": "/borrower-portal/overview"},
 	{"title": "Loan accounts", "route": "/borrower-portal/loans", "covers": "/borrower-portal/loan"},
@@ -168,10 +142,6 @@ portal_menu_items = [
 # before_install = "lending.install.before_install"
 after_install = "lending.install.after_install"
 
-# Migrating re-imports the portal's Studio Pages from lending/studio/, and every
-# exported record carries what this app ships rather than what the lender chose: a page
-# comes back published: 1 whether or not the lender has the portal switched on. This
-# puts the lender's own answer back.
 after_migrate = [
 	"lending.loan_management.doctype.lending_settings.lending_settings.sync_portal_pages",
 ]
@@ -398,7 +368,5 @@ workflow_methods = [
 	}
 ]
 
-# The /apply tokens are a visitor's proof of a verified number, held in the cache.
-# frappe.clear_cache() deletes every other key on the site -- a migrate, a DocType
-# save, "Reload" -- which would strand everyone half way through the form.
+# Survive frappe.clear_cache(), so a migrate does not strand visitors mid-form.
 persistent_cache_keys = ["portal-apply-*"]

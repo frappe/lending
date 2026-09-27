@@ -12,6 +12,8 @@ Every function resolves the borrower's own Customer records first and filters on
 Nothing here trusts a document name that arrived with the request.
 """
 
+from contextlib import contextmanager
+
 import frappe
 from frappe import _
 from frappe.utils import flt, fmt_money, formatdate, getdate, nowdate
@@ -114,6 +116,26 @@ def get_portal_customers() -> list[str]:
 		filters=[["Portal User", "user", "=", user]],
 		pluck="name",
 	)
+
+
+@contextmanager
+def as_administrator():
+	"""Run a block as Administrator, then hand the request back to its caller intact.
+
+	set_user also replaces the session's sid and data and empties form_dict. Left that
+	way, the request ends by saving the borrower's session empty and they are logged
+	out, so both are put back. In place, because the Session object that saves it holds
+	the same dict.
+	"""
+	caller = frappe.session.user
+	session, form_dict = frappe.local.session.copy(), frappe.local.form_dict
+	frappe.set_user("Administrator")
+	try:
+		yield
+	finally:
+		frappe.set_user(caller)
+		frappe.local.session.update(session)
+		frappe.local.form_dict = form_dict
 
 
 def assert_owns(doctype: str, name: str) -> str:
@@ -325,7 +347,7 @@ def get_dashboard() -> dict:
 	payload.update(build_summary(loans, schedule))
 	payload["tasks"] = waiting_on_borrower(applications)
 	payload["tasks_note"] = tasks_note(payload["tasks"])
-	payload.update(application_lead(applications))
+	payload.update(application_lead(applications) if applications else enquiry_lead(open_lead()))
 	# After build_summary, which is what decides whether an instalment is near enough
 	# to be anyone's business today. next_flag is empty when none is.
 	payload.update(next_action(bool(payload["next_flag"])))
@@ -357,7 +379,8 @@ def empty_dashboard() -> dict:
 		"tasks": [],
 		"tasks_note": "",
 	}
-	payload.update(application_lead([]))
+	# A brand new borrower has no Customer yet, but may well have an enquiry in.
+	payload.update(enquiry_lead(open_lead()))
 	payload.update(shell_payload(_("Account overview"), _("View payment details"), []))
 	payload.update(labels())
 	payload.update(next_action(due_soon=False))
@@ -416,8 +439,9 @@ def application_lead(applications: list[dict]) -> dict:
 	page to check -- they know what they asked for, they want to know where it has got
 	to.
 
-	The name and the date are two keys rather than the one line the table reads, because
-	the card sets them on two lines and a card cannot take a joined string apart.
+	The date is a label and a value rather than the one line the table reads, because
+	the card sets the value darker than the words that lead it, and a card cannot take a
+	joined string apart.
 
 	Flat keys, one per element, so the card reads a value rather than picking the first
 	row out of the applications list in a binding. Which application leads is a decision
@@ -429,8 +453,9 @@ def application_lead(applications: list[dict]) -> dict:
 			"application_headline": "",
 			"application_stage": "",
 			"application_stage_tone": "",
-			"application_name": "",
-			"application_initiated": "",
+			"application_with_us": False,
+			"application_date_label": "",
+			"application_date": "",
 			"application_note": _("Nothing in progress"),
 			"application_more": "",
 			"application_url": "",
@@ -443,8 +468,10 @@ def application_lead(applications: list[dict]) -> dict:
 		"application_headline": first["product"],
 		"application_stage": first["stage"],
 		"application_stage_tone": first["stage_tone"],
-		"application_name": first["name"],
-		"application_initiated": first["initiated"],
+		# Under review is the one stage with no tone: nothing is waiting on the borrower.
+		"application_with_us": not first["stage_tone"],
+		"application_date_label": _("Initiated"),
+		"application_date": first["initiated_date"],
 		# What is waiting on the borrower, when something is. It used to fall back to
 		# the reference, which the card now carries on a line of its own.
 		"application_note": first["note"],
@@ -457,6 +484,33 @@ def application_lead(applications: list[dict]) -> dict:
 		# sanctioned application and opens the form the borrower filled in weeks ago is
 		# answering a question they have stopped asking; the account is the answer.
 		"application_url": first["loan_url"] or first["url"],
+	}
+
+
+def enquiry_lead(lead: dict | None) -> dict:
+	"""The first card for a borrower whose only application is still an enquiry.
+
+	It reads the lead the way the Application page does, so the overview does not say
+	"Nothing in progress" above a tracker that the sidebar opens one click away.
+	"""
+	if not lead:
+		return application_lead([])
+
+	declined = lead.prequalification_status == "Not Pre-Qualified"
+	with_us = lead.prequalification_status not in ("Pre-Qualified", "Not Pre-Qualified")
+
+	return {
+		"application_headline": lead.loan_product,
+		"application_stage": tracker_stage(lead),
+		"application_stage_tone": "warn" if declined else "info" if with_us else "ok",
+		"application_with_us": with_us,
+		"application_date_label": _("Started"),
+		# Short, as the figure cards date their lines: the badge shares this line.
+		"application_date": short_date(lead.creation),
+		"application_note": "" if declined else _("Your loan application process has started"),
+		"application_more": "",
+		# The bare route: with no application named, that page follows the open enquiry.
+		"application_url": "/borrower-portal/applications",
 	}
 
 
@@ -594,16 +648,16 @@ def footer_links() -> list[dict]:
 	the row for the words, not for an @.
 	"""
 	rows = frappe.get_all(
-		"Portal Footer Link",
+		"Top Bar Item",
 		filters={"parent": "Lending Settings", "parentfield": "portal_footer_links"},
-		fields=["link_label", "url"],
+		fields=["label", "url"],
 		order_by="idx asc",
 	)
 
 	links = [
-		{"footer_label": clean(row.link_label), "footer_href": clean(row.url)}
+		{"footer_label": clean(row.label), "footer_href": clean(row.url)}
 		for row in rows
-		if clean(row.link_label) and clean(row.url)
+		if clean(row.label) and clean(row.url)
 	]
 
 	support = (portal_settings("portal_support_email").portal_support_email or "").strip()
@@ -964,8 +1018,8 @@ def application_stage(application: dict, needs_borrower: bool, loan: dict | None
 def leads_for_login() -> list[dict]:
 	"""Enquiries raised under this login's own email address.
 
-	A Loan Lead carries no Customer -- it exists before anyone becomes one -- so email
-	is the only join there is. It is the session's own address, never a value from the
+	A guest's Loan Lead carries no Customer -- it exists before anyone becomes one -- so
+	email is the join. It is the session's own address, never a value from the
 	request, so this can only ever return enquiries raised with the address the
 	borrower signs in with.
 
@@ -990,6 +1044,40 @@ def leads_for_login() -> list[dict]:
 		],
 		order_by="creation desc",
 	)
+
+
+def open_lead() -> dict | None:
+	"""The borrower's newest enquiry that our team has not yet made an application of.
+
+	A portal enquiry is a Loan Lead, and it stays one until staff convert it. Until then
+	there is no Loan Application to open, and without this the borrower who has just
+	applied is told they have not. A converted lead is skipped: its application is what
+	the page shows, once the borrower's customer record reaches it.
+	"""
+	leads = leads_for_login()
+	converted = set(
+		frappe.get_all(
+			"Loan Application",
+			filters={"loan_lead": ["in", [lead.name for lead in leads]]},
+			pluck="loan_lead",
+			ignore_permissions=True,
+		)
+		if leads
+		else []
+	)
+
+	return next((lead for lead in leads if lead.name not in converted), None)
+
+
+def tracker_stage(lead: dict) -> str:
+	"""Three stages, because Loan Lead status carries no more than that today."""
+	if lead.prequalification_status == "Not Pre-Qualified":
+		return _("Not taken forward")
+
+	if lead.prequalification_status == "Pre-Qualified":
+		return _("Pre-qualified, awaiting your application")
+
+	return _("With our team")
 
 
 def get_applications(customers: list[str]) -> list[dict]:
@@ -1020,6 +1108,7 @@ def get_applications(customers: list[str]) -> list[dict]:
 				# The same date as a sentence, for the overview's lead card, which sets
 				# it on its own line under the name rather than joined to it.
 				"initiated": _("Initiated on {0}").format(long_date(row.posting_date)),
+				"initiated_date": short_date(row.posting_date),
 				"stage": stage,
 				"stage_tone": stage_tone,
 				"needs_borrower": needs_borrower,
@@ -1106,7 +1195,7 @@ def money_events(loans: list[dict], limit: int) -> list[dict]:
 			event(
 				"repaid",
 				row.posting_date,
-				_("Repayment received"),
+				_("Payment made"),
 				amount,
 				product_of.get(row.against_loan, ""),
 				loan_url(row.against_loan),
@@ -1126,7 +1215,7 @@ def money_events(loans: list[dict], limit: int) -> list[dict]:
 			event(
 				"disbursed",
 				row.disbursement_date,
-				_("Amount disbursed"),
+				_("Loan amount received"),
 				amount,
 				product_of.get(row.against_loan, ""),
 				loan_url(row.against_loan),
@@ -1204,7 +1293,7 @@ def milestone_events(customers: list[str], loans: list[dict], limit: int) -> lis
 			event(
 				"created",
 				row.creation,
-				_("Application created"),
+				_("Application started"),
 				_("You started a new loan application."),
 				row.loan_product,
 				url,

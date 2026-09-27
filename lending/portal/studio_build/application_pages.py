@@ -274,7 +274,7 @@ def no_application(read):
 			muted("Apply for a loan and you can follow it here.", styles={"textAlign": "center"}),
 			button(
 				"Create application",
-				script="open('/apply')",
+				script="open('/new-application')",
 				props={"iconLeft": "lucide-plus"},
 				styles={"marginTop": "12px"},
 			),
@@ -305,6 +305,8 @@ def build_detail(title, route, params=None):
 		frame(
 			DETAIL_SOURCE,
 			detail_content(read),
+			action_label="New application",
+			action_route="/new-application",
 		),
 		[
 			api_resource(

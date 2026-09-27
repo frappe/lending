@@ -17,7 +17,6 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from lending.portal.apply import tracker_stage
 from lending.portal.core import (
 	APPLICATION_STAGES,
 	STATUS_LABELS,
@@ -27,10 +26,11 @@ from lending.portal.core import (
 	get_loans,
 	get_portal_customers,
 	is_live,
-	leads_for_login,
 	long_date,
 	money,
+	open_lead,
 	shell_payload,
+	tracker_stage,
 )
 
 # A step is done, happening now, or still ahead. The marker carries that to the page
@@ -102,7 +102,7 @@ def get_application_detail() -> dict:
 			"terms": term_rows(application),
 			"terms_note": _("The loan you asked for"),
 			"applicant": applicant_rows(application),
-			"applicant_note": _("From your customer record"),
+			"applicant_note": _("From your profile"),
 			"co_applicants": co_applicant_rows(name),
 			"co_applicants_note": co_applicants_note(name),
 			"documents": documents,
@@ -169,29 +169,6 @@ def no_application_payload() -> dict:
 	return payload
 
 
-def open_lead() -> dict | None:
-	"""The borrower's newest enquiry that our team has not yet made an application of.
-
-	A portal enquiry is a Loan Lead, and it stays one until staff convert it. Until then
-	there is no Loan Application to open, and without this the borrower who has just
-	applied is told they have not. A converted lead is skipped: its application is what
-	the page shows, once the borrower's customer record reaches it.
-	"""
-	leads = leads_for_login()
-	converted = set(
-		frappe.get_all(
-			"Loan Application",
-			filters={"loan_lead": ["in", [lead.name for lead in leads]]},
-			pluck="loan_lead",
-			ignore_permissions=True,
-		)
-		if leads
-		else []
-	)
-
-	return next((lead for lead in leads if lead.name not in converted), None)
-
-
 def lead_payload(lead: dict) -> dict:
 	"""The page for an enquiry that is in but not yet an application: a shorter tracker.
 
@@ -236,7 +213,7 @@ def get_lead_steps(lead: dict) -> list[dict]:
 
 	steps = [
 		step(
-			_("Enquiry received"),
+			_("Enquiry sent"),
 			_("Sent {0}").format(long_date(lead.creation)),
 			DONE,
 			_("Enquiry"),
@@ -367,7 +344,7 @@ def get_application_steps(application: dict) -> list[dict]:
 		),
 		step(
 			_("Your details"),
-			_("Received") if submitted else _("Finish and submit your application"),
+			_("Submitted") if submitted else _("Finish and submit your application"),
 			DONE if submitted else CURRENT,
 			_("Details"),
 		),
@@ -443,7 +420,7 @@ def term_rows(application: dict) -> list[dict]:
 def applicant_rows(application: dict) -> list[dict]:
 	rows = [
 		(_("Name"), application.applicant_name or application.applicant),
-		(_("Customer record"), application.applicant),
+		(_("Customer ID"), application.applicant),
 		(_("Address"), format_address(application) or _("Not on record")),
 	]
 
@@ -647,10 +624,9 @@ def upload_document() -> dict:
 	document = frappe.get_doc("Loan Application", application)
 	document.append("documents", {"document_type": document_type, "file": stored.file_url})
 	document.save(ignore_permissions=True)
-	frappe.db.commit()  # nosemgrep
 
 	return {
-		"headline": _("Received"),
+		"headline": _("Uploaded"),
 		"message": _("{0} has been added to {1}.").format(document_type, application),
 		"offer": [],
 		"reference_note": "",

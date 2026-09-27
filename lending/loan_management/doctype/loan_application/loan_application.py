@@ -53,11 +53,13 @@ class LoanApplication(Document):
 		city: DF.Data | None
 		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
+		decision: DF.Link | None
 		country: DF.Link | None
 		documents: DF.Table[LoanApplicationDocument]
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
 		loan_amount: DF.Currency
+		loan_lead: DF.Link | None
 		loan_product: DF.Link
 		loan_purpose: DF.Link | None
 		maximum_loan_amount: DF.Currency
@@ -99,9 +101,6 @@ class LoanApplication(Document):
 
 				customer = frappe.new_doc("Customer")
 				customer.customer_name = self.applicant_name
-				# customer_type, mobile_no and email_id are the real fieldnames. The
-				# names used before -- type, mobile_number, email_address -- are on no
-				# Customer, so every value written through them was dropped.
 				customer.customer_type = "Company"
 				customer.mobile_no = self.applicant_phone_number
 				# need to save customer first to link back from contact and address
@@ -144,10 +143,6 @@ class LoanApplication(Document):
 
 				self.applicant = customer.name
 
-				# PORTAL_PLAN.md section 12.1.3. Without this row the borrower can log
-				# in and still be told they have no loans, because every portal page
-				# reads Customer.portal_users to decide what is theirs. Silent when
-				# there is no login yet; opening one adds the row then.
 				link_portal_user(customer.name, self.applicant_email_address)
 
 	def validate_repayment_method(self):

@@ -6,6 +6,4 @@ tags
 node_modules
 dist
 lending/public/dist
-# The Studio app's compiled bundle. Built from lending/studio/ by
-# lending.portal.studio_build.bundle, so it is output rather than source.
 lending/public/app_builds

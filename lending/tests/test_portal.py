@@ -28,6 +28,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.model.document import Document
 from frappe.utils import add_days, add_years, getdate, nowdate
 from frappe.utils.safe_exec import is_safe_exec_enabled
 
@@ -36,6 +37,7 @@ from lending.loan_management.doctype.lending_settings.lending_settings import (
 	portal_app,
 	sync_portal_pages,
 )
+from lending.loan_origination.doctype.loan_lead.loan_lead import convert_to_loan_application
 from lending.loan_origination.doctype.loan_lead.test_loan_lead import activate_loan_lead_workflow
 from lending.portal.accounts import customer_for_email
 from lending.portal.applications import (
@@ -48,7 +50,9 @@ from lending.portal.applications import (
 from lending.portal.apply import (
 	confirm_mobile_code,
 	create_account,
+	create_customer_lead,
 	get_apply_page,
+	get_new_application_page,
 	get_track_page,
 	read_product,
 	send_mobile_code,
@@ -69,6 +73,7 @@ from lending.portal.core import (
 	build_summary,
 	copyright_note,
 	days_ago,
+	enquiry_lead,
 	footer_links,
 	get_dashboard,
 	get_portal_customers,
@@ -211,7 +216,7 @@ def set_footer(notice=None, links=(), support=None):
 	settings.portal_support_email = support
 	settings.portal_footer_links = []
 	for label, url in links:
-		settings.append("portal_footer_links", {"link_label": label, "url": url})
+		settings.append("portal_footer_links", {"label": label, "url": url})
 	settings.save()
 
 
@@ -323,9 +328,8 @@ class TestPortalOwnership(LendingTestSuite):
 
 		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
 		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
+		self.alpha_application = make_application(ALPHA_CUSTOMER)
 		self.beta_application = make_application(BETA_CUSTOMER)
-
-		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -418,7 +422,10 @@ class TestPortalOwnership(LendingTestSuite):
 		self.as_alpha()
 		frappe.form_dict.pop("name", None)
 
-		with patch("lending.portal.applications.default_application", return_value=None):
+		with (
+			patch("lending.portal.applications.default_application", return_value=None),
+			patch("lending.portal.applications.open_lead", return_value=None),
+		):
 			self.assertIs(get_application_detail()["has_application"], False)
 
 	def test_a_loan_detail_with_no_name_opens_the_default_loan(self):
@@ -633,9 +640,17 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		self.use_lead_workflow()
 		self.submission(token=self.mint_token(), date_of_birth=add_years(nowdate(), -30))
 
-		lead = frappe.db.get_value(
-			"Loan Lead", submit_lead()["reference"], ["docstatus", "workflow_state"], as_dict=True
-		)
+		def pre_qualify(doc):
+			doc.db_set("prequalification_status", "Pre-Qualified")
+
+		# The site's own Decision Strategies would otherwise decide the outcome.
+		with (
+			patch("lending.loan_origination.decisioning.run_pre_qualification_rules", pre_qualify),
+			patch("lending.loan_origination.decisioning.run_knockout_rules"),
+		):
+			reference = submit_lead()["reference"]
+
+		lead = frappe.db.get_value("Loan Lead", reference, ["docstatus", "workflow_state"], as_dict=True)
 
 		self.assertEqual(lead.docstatus, 0)
 		self.assertEqual(lead.workflow_state, "Pre-Qualified")
@@ -736,7 +751,6 @@ class PortalPeople(LendingTestSuite):
 		make_portal_customer(ALPHA_OTHER_CUSTOMER, ALPHA_USER)
 		make_portal_customer(SHARED_CUSTOMER, ALPHA_USER)
 		make_portal_customer(BETA_CUSTOMER, BETA_USER)
-		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -825,7 +839,6 @@ class TestPortalProfileWrite(PortalPeople):
 		shared.add_email("shared@example.com", is_primary=1)
 		shared.insert(ignore_permissions=True)
 		frappe.db.set_value("Customer", SHARED_CUSTOMER, "customer_primary_contact", shared.name)
-		frappe.db.commit()  # nosemgrep
 
 		self.as_alpha()
 		self.post(customer=SHARED_CUSTOMER, email="alpha.private@example.com", mobile="9812340003")
@@ -883,7 +896,6 @@ class TestPortalDocumentUpload(PortalPeople):
 			frappe.get_doc(
 				{"doctype": "Loan Document Type", "loan_document_type": "_Test Payslip"}
 			).insert(ignore_permissions=True)
-		frappe.db.commit()  # nosemgrep
 
 	def post(self, **fields):
 		frappe.local.form_dict = frappe._dict(
@@ -916,7 +928,6 @@ class TestPortalDocumentUpload(PortalPeople):
 		application = frappe.get_doc("Loan Application", self.alpha_draft)
 		application.status = "Approved"
 		application.submit()
-		frappe.db.commit()  # nosemgrep
 
 		self.as_alpha()
 		self.post()
@@ -948,6 +959,120 @@ class TestPortalDocumentUpload(PortalPeople):
 		self.assertNotIn(self.beta_draft, offered)
 
 
+class TestPortalCustomerLead(PortalPeople):
+	"""A borrower who already has an account asks for another loan.
+
+	Beta holds one customer and Alpha holds several, which is the difference between
+	a page that can assume who the loan is for and one that has to ask.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_value("User", BETA_USER, "mobile_no", MOBILE)
+
+	def ask(self, user, **overrides):
+		frappe.set_user(user)
+		frappe.local.form_dict = frappe._dict(
+			{"loan_product": PRODUCT, "loan_amount": 100000, **overrides}
+		)
+
+		return create_customer_lead()
+
+	def test_a_guest_cannot_raise_one(self):
+		with self.assertRaises(frappe.PermissionError):
+			self.ask("Guest")
+
+	def test_the_lead_is_a_draft_joined_to_the_borrowers_customer(self):
+		result = self.ask(BETA_USER)
+
+		lead = frappe.db.get_value(
+			"Loan Lead",
+			result["reference"],
+			["docstatus", "customer", "email", "mobile_number", "mobile_verification_status"],
+			as_dict=True,
+		)
+
+		self.assertEqual(lead.docstatus, 0)
+		self.assertEqual(lead.customer, BETA_CUSTOMER)
+		self.assertEqual(lead.email, BETA_USER)
+		self.assertEqual(lead.mobile_number, f"+91{MOBILE}")
+		self.assertEqual(lead.mobile_verification_status, "Verified")
+		self.assertNotIn("account_token", result)
+
+	def test_who_is_asking_comes_off_the_record_not_the_request(self):
+		result = self.ask(
+			BETA_USER, applicant_name="Somebody Else", email="else@example.com", mobile_number="9000000009"
+		)
+
+		lead = frappe.db.get_value(
+			"Loan Lead", result["reference"], ["applicant_name", "email", "mobile_number"], as_dict=True
+		)
+
+		self.assertEqual(lead.applicant_name, BETA_CUSTOMER)
+		self.assertEqual(lead.email, BETA_USER)
+		self.assertEqual(lead.mobile_number, f"+91{MOBILE}")
+
+	def test_the_lead_is_listed_with_the_borrowers_other_enquiries(self):
+		reference = self.ask(BETA_USER)["reference"]
+
+		self.assertIn(reference, [lead.name for lead in leads_for_login()])
+
+	def test_a_login_with_several_customers_must_name_one(self):
+		# User.mobile_no is unique, and Beta already holds MOBILE.
+		frappe.db.set_value("User", ALPHA_USER, "mobile_no", "9812345679")
+
+		with self.assertRaises(frappe.ValidationError):
+			self.ask(ALPHA_USER)
+
+		reference = self.ask(ALPHA_USER, customer=ALPHA_OTHER_CUSTOMER)["reference"]
+		self.assertEqual(frappe.db.get_value("Loan Lead", reference, "customer"), ALPHA_OTHER_CUSTOMER)
+
+	def test_another_borrowers_customer_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.ask(BETA_USER, customer=ALPHA_CUSTOMER)
+
+	def test_a_borrower_with_no_mobile_on_file_is_asked_to_add_one(self):
+		frappe.db.set_value("User", BETA_USER, "mobile_no", None)
+
+		with self.assertRaises(frappe.ValidationError):
+			self.ask(BETA_USER)
+
+	def test_a_product_that_is_not_offered_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.ask(BETA_USER, loan_product="No Such Product")
+
+	def test_the_form_offers_only_the_logins_own_customers(self):
+		frappe.set_user(ALPHA_USER)
+		offered = [row["value"] for row in get_new_application_page()["applicants"]]
+
+		self.assertIn(ALPHA_CUSTOMER, offered)
+		self.assertIn(ALPHA_OTHER_CUSTOMER, offered)
+		self.assertNotIn(BETA_CUSTOMER, offered)
+
+	def test_the_form_starts_from_the_last_answers(self):
+		self.ask(BETA_USER, income=60000, proposed_tenure=24)
+		frappe.local.form_dict = frappe._dict()
+
+		(beta,) = get_new_application_page()["applicants"]
+
+		self.assertTrue(beta["has_mobile"])
+		self.assertEqual(beta["answers"]["income"], 60000)
+		self.assertEqual(beta["answers"]["proposed_tenure"], 24)
+
+	def test_converting_it_keeps_the_borrowers_customer(self):
+		reference = self.ask(BETA_USER)["reference"]
+		frappe.set_user("Administrator")
+
+		# Captured rather than saved: what matters is what conversion hands over, not
+		# everything else Loan Application.validate asks of a real application.
+		with patch.object(Document, "save", autospec=True) as save:
+			convert_to_loan_application(frappe.get_doc("Loan Lead", reference))
+
+		application = save.call_args.args[0]
+		self.assertEqual(application.applicant_type, "Customer")
+		self.assertEqual(application.applicant, BETA_CUSTOMER)
+
+
 class TestPortalSignUp(LendingTestSuite):
 	"""Opening an account at the end of an application, and what it is joined to.
 
@@ -972,7 +1097,6 @@ class TestPortalSignUp(LendingTestSuite):
 		for email in (PERSON_EMAIL, COMPANY_EMAIL):
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
-		frappe.db.commit()  # nosemgrep
 
 		frappe.set_user("Guest")
 		frappe.local.form_dict = frappe._dict()
@@ -1104,7 +1228,7 @@ class TestPortalSignUp(LendingTestSuite):
 	def test_a_converted_enquiry_gives_way_to_its_application(self):
 		lead = frappe._dict(name="LN-LEAD-CONVERTED")
 
-		with patch("lending.portal.applications.leads_for_login", return_value=[lead]):
+		with patch("lending.portal.core.leads_for_login", return_value=[lead]):
 			self.assertEqual(open_lead(), lead)
 
 			with patch("frappe.get_all", return_value=[lead.name]):
@@ -1602,16 +1726,7 @@ class TestPortalFooter(LendingTestSuite):
 		self.assertEqual(shell_payload("Loans", "Apply", [])["footer_links"], [])
 
 	def test_a_row_missing_its_destination_is_not_a_link(self):
-		"""Both columns are required on the grid, so this is the row saved before the
-		field was, and a link to nowhere is worse than no link."""
-		set_footer(links=(("Privacy Policy", "/borrower/privacy-policy"),))
-		frappe.db.set_value(
-			"Portal Footer Link",
-			frappe.get_all("Portal Footer Link", pluck="name")[0],
-			"url",
-			"",
-			update_modified=False,
-		)
+		set_footer(links=(("Privacy Policy", ""),))
 
 		self.assertEqual(footer_links(), [])
 
@@ -1726,8 +1841,6 @@ class TestPortalRail(LendingTestSuite):
 		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
 		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
 		self.alpha_application = make_application(ALPHA_CUSTOMER)
-
-		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -1852,7 +1965,7 @@ class TestPortalRail(LendingTestSuite):
 		"""A row that looks like a link has to act like one, even with no loan to name."""
 		rows = attention_rows([], [{"product": PRODUCT, "detail": "", "date": "z", "amount": "1"}])
 
-		self.assertEqual(rows[0]["url"], "/borrower/loans")
+		self.assertEqual(rows[0]["url"], "/borrower-portal/loans")
 
 	def test_the_borrowers_own_list_is_capped_and_says_how_long_it_really_is(self):
 		frappe.set_user(ALPHA_USER)
@@ -1860,7 +1973,7 @@ class TestPortalRail(LendingTestSuite):
 
 		self.assertLessEqual(len(payload["attention"]), ATTENTION_LIMIT)
 		for row in payload["attention"]:
-			self.assertTrue(row["url"].startswith("/borrower/"))
+			self.assertTrue(row["url"].startswith("/borrower-portal/"))
 		self.assertTrue(
 			payload["attention_note"] == "Nothing to do" or "waiting on you" in payload["attention_note"]
 		)
@@ -1869,24 +1982,24 @@ class TestPortalRail(LendingTestSuite):
 		frappe.set_user(BETA_USER)
 		urls = [row["url"] for row in get_notifications()["attention"]]
 
-		self.assertNotIn(f"/borrower/application/{self.alpha_application}", urls)
+		self.assertNotIn(f"/borrower-portal/application/{self.alpha_application}", urls)
 
 	def test_what_has_happened_comes_out_in_the_same_shape_as_what_is_waiting(self):
 		"""One shape is what lets the two tabs share a single row block."""
 		rows = activity_rows(
-			[{"title": "Repayment received", "sub": PRODUCT, "date": "12 Sep 2026", "amount": "1,000"}]
+			[{"title": "Payment made", "sub": PRODUCT, "date": "12 Sep 2026", "amount": "1,000"}]
 		)
 
 		self.assertEqual(
 			rows,
 			[
 				{
-					"title": "Repayment received",
+					"title": "Payment made",
 					"note": PRODUCT,
 					"when": "1,000 · 12 Sep 2026",
 					# A record of a repayment is still worth opening: it is a line of
 					# the statement. No row in either list is a dead end.
-					"url": "/borrower/statement",
+					"url": "/borrower-portal/statement",
 				}
 			],
 		)
@@ -1980,17 +2093,12 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		return found
 
 	def test_a_borrower_with_nothing_in_progress_is_not_shown_an_empty_card(self):
-		"""The card stands either way, so the empty payload has to fill it.
-
-		A blank headline would read as a page that failed to load. The em dash and the
-		line under it say there is nothing, which is a different thing from saying
-		nothing.
-		"""
+		"""The card hides a blank headline and shows the note in its place."""
 		empty = application_lead([])
 
 		self.assertEqual(empty["application_stage"], "")
-		self.assertNotEqual(empty["application_headline"], "")
-		self.assertNotEqual(empty["application_note"], "")
+		self.assertEqual(empty["application_headline"], "")
+		self.assertEqual(empty["application_note"], "Nothing in progress")
 
 	def test_the_card_names_the_newest_application_and_says_how_many_more(self):
 		"""One card, several applications: it must not look like the whole story.
@@ -2016,6 +2124,7 @@ class TestPortalSummaryStrip(LendingTestSuite):
 			"stage_tone": "ok" if loan else "info",
 			"reference": "APP-1 · initiated 1 January 2026",
 			"initiated": "Initiated on 1 January 2026",
+			"initiated_date": "01 Jan 2026",
 			"note": "",
 		}
 
@@ -2037,16 +2146,46 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		"""The chevron is bound to this key, so an empty one is what hides it."""
 		self.assertEqual(application_lead([])["application_url"], "")
 
-	def test_the_card_names_the_application_and_the_day_it_was_raised(self):
-		"""Two lines, not the one the table reads.
+	def test_an_open_enquiry_leads_the_card_until_it_is_an_application(self):
+		"""The Application page tracks an enquiry, so the overview must not deny it."""
+		lead = frappe._dict(
+			name="LN-LEAD-1",
+			loan_product="Education Loan",
+			prequalification_status="",
+			creation="2026-09-26 10:00:00",
+		)
+		card = enquiry_lead(lead)
 
-		The card sets the name above the date, so it needs them apart. A card handed
-		the table's joined reference could only print it whole.
+		self.assertEqual(card["application_headline"], "Education Loan")
+		self.assertEqual(card["application_date"], "26 Sep 2026")
+		self.assertEqual(card["application_stage_tone"], "info")
+		self.assertIs(card["application_with_us"], True)
+		self.assertEqual(card["application_note"], "Your loan application process has started")
+		self.assertEqual(card["application_url"], "/borrower-portal/applications")
+		self.assertEqual(enquiry_lead(None), application_lead([]))
+
+	def test_a_declined_enquiry_does_not_say_the_process_has_started(self):
+		lead = frappe._dict(
+			name="LN-LEAD-2",
+			loan_product="Education Loan",
+			prequalification_status="Not Pre-Qualified",
+			creation="2026-09-26 10:00:00",
+		)
+		card = enquiry_lead(lead)
+
+		self.assertEqual(card["application_stage"], "Not taken forward")
+		self.assertEqual(card["application_note"], "")
+
+	def test_the_card_names_the_day_the_application_was_raised(self):
+		"""A label and a value, not the one line the table reads.
+
+		The card sets the value darker than the words that lead it, so it needs them
+		apart. A card handed the table's joined reference could only print it whole.
 		"""
 		lead = application_lead([self.application("Home Loan")])
 
-		self.assertEqual(lead["application_name"], "APP-1")
-		self.assertEqual(lead["application_initiated"], "Initiated on 1 January 2026")
+		self.assertEqual(lead["application_date_label"], "Initiated")
+		self.assertEqual(lead["application_date"], "01 Jan 2026")
 
 	def test_the_sanctioned_amount_is_one_line_under_the_outstanding_figure(self):
 		"""It was a card of its own, at the weight of the two figures beside it.
@@ -2225,7 +2364,6 @@ class TestPortalDisbursementRequest(LendingTestSuite):
 
 		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
 		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
-		frappe.db.commit()  # nosemgrep
 
 		frappe.set_user(ALPHA_USER)
 
@@ -2327,7 +2465,6 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
 		self.alpha_other_loan = make_submitted_loan(ALPHA_OTHER_CUSTOMER).name
 		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
-		frappe.db.commit()  # nosemgrep
 
 		frappe.set_user(ALPHA_USER)
 

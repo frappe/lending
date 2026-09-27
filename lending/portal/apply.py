@@ -22,6 +22,10 @@ against the bare number through the telephony app, and the lead is stamped Verif
 once it is created. The proof that step 2 happened is a random token held in the cache
 for VERIFICATION_TTL, so step 3 cannot be called on its own.
 
+A borrower who is already logged in skips the first two: create_customer_lead reads
+who they are off their Customer and makes the same draft lead. It is the one endpoint here
+a guest cannot call.
+
 Tracking matches the reference number AND the mobile number before it answers, and
 returns the same refusal whether the reference is wrong, the mobile is wrong, or the
 application does not exist. A tracker that distinguishes those cases is a tool for
@@ -34,14 +38,19 @@ from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, flt, getdate, strip_html, today
 
-from lending.portal.accounts import customer_for_applicant, link_portal_user
+from lending.portal.accounts import CUSTOMER_TYPES, customer_for_applicant, link_portal_user
 from lending.portal.core import (
+	as_administrator,
 	assert_portal_enabled,
 	assert_public_apply_enabled,
 	brand_payload,
 	clean,
+	get_loans,
+	get_portal_customers,
 	long_date,
 	money,
+	shell_payload,
+	tracker_stage,
 )
 
 LEAD_SOURCE = "Portal"
@@ -121,16 +130,27 @@ def product_card(row) -> dict:
 	}
 
 
-@frappe.whitelist(allow_guest=True)
-def get_apply_page() -> dict:
-	assert_public_apply_enabled()
-
+def portal_products() -> dict:
+	"""Keyed by applicant type, so a page lists the products open to whoever is borrowing,
+	and nothing else."""
 	products = frappe.get_all(
 		"Loan Product",
 		filters={"disabled": 0, "show_on_portal": 1},
 		fields=["name", "rate_of_interest", "maximum_loan_amount", "is_term_loan", "portal_applicant_type"],
 		order_by="rate_of_interest asc, name asc",
 	)
+
+	return {
+		applicant_type: [
+			product_card(row) for row in products if offered_to(row.portal_applicant_type, applicant_type)
+		]
+		for applicant_type in APPLICANT_TYPES
+	}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_apply_page() -> dict:
+	assert_public_apply_enabled()
 
 	return {
 		**brand_payload(),
@@ -147,14 +167,7 @@ def get_apply_page() -> dict:
 			{"icon": "shield", "title": _("No obligation"), "note": _("to go ahead")},
 			{"icon": "receipt-text", "title": _("No fee"), "note": _("to ask")},
 		],
-		# Keyed by applicant type, so the page lists the products open to whoever the
-		# visitor said is borrowing, and nothing else.
-		"products": {
-			applicant_type: [
-				product_card(row) for row in products if offered_to(row.portal_applicant_type, applicant_type)
-			]
-			for applicant_type in APPLICANT_TYPES
-		},
+		"products": portal_products(),
 		# The opening screen asks for nothing. It says what this is, how long it takes,
 		# and offers one button, because a form is work and an invitation is not.
 		"start_title": _("Let's get started"),
@@ -394,7 +407,7 @@ def read_applicant_type() -> str:
 	return asked if asked in APPLICANT_TYPES else DEFAULT_APPLICANT_TYPE
 
 
-def read_optional(applicant_type: str) -> dict:
+def read_optional(applicant_type: str, company_name: str) -> dict:
 	"""The fields that sharpen the offer. A bad value here is dropped, never fatal --
 	except where it is plainly a mistake, which the readers above throw on.
 
@@ -406,7 +419,6 @@ def read_optional(applicant_type: str) -> dict:
 	employment = clean(frappe.form_dict.get("employment_type"))
 	country = clean(frappe.form_dict.get("applicant_country"))
 	pan = clean(frappe.form_dict.get("pan")).upper()
-	company_name = clean(frappe.form_dict.get("company_name"))
 
 	if pan and len(pan) != PAN_LENGTH:
 		frappe.throw(_("A PAN is {0} characters.").format(PAN_LENGTH), frappe.ValidationError)
@@ -440,16 +452,36 @@ def read_submission() -> dict:
 	if not frappe.utils.validate_email_address(data["email"]):
 		frappe.throw(_("Please give a valid email address."), frappe.ValidationError)
 
-	amount = flt(data["loan_amount"])
+	applicant_type = read_applicant_type()
+	data.update(read_loan_request(applicant_type, clean(frappe.form_dict.get("company_name"))))
+
+	return data
+
+
+def read_loan_request(applicant_type: str, company_name: str) -> dict:
+	"""What is being asked for, as opposed to who is asking."""
+	product = clean(frappe.form_dict.get("loan_product"))
+	amount = flt(frappe.form_dict.get("loan_amount"))
+
+	if not product:
+		frappe.throw(_("Please fill in every required field."), frappe.ValidationError)
+
 	if amount <= 0:
 		frappe.throw(_("Please give the amount you need."), frappe.ValidationError)
 
-	applicant_type = read_applicant_type()
-	read_product(data["loan_product"], amount, applicant_type)
-	data["loan_amount"] = amount
-	data.update(read_optional(applicant_type))
+	read_product(product, amount, applicant_type)
 
-	return data
+	return {
+		"loan_product": product,
+		"loan_amount": amount,
+		**read_optional(applicant_type, company_name),
+	}
+
+
+def settle_lead(lead: str, mobile: str):
+	"""Run the workflow's rule steps on a fresh draft, then stamp the number verified."""
+	run_automatic_rules(lead)
+	mark_mobile_verified(lead, mobile)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -473,9 +505,7 @@ def submit_lead() -> dict:
 	lead.insert(ignore_permissions=True)
 	spend_token(token)
 
-	run_automatic_rules(lead.name)
-	mark_mobile_verified(lead.name, mobile)
-
+	settle_lead(lead.name, mobile)
 	lead.reload()
 
 	offer = present_offer(lead)
@@ -494,15 +524,11 @@ def run_automatic_rules(lead: str):
 	if not get_workflow_name("Loan Lead"):
 		return
 
-	# Elevated because every step is a Loan Officer action and the visitor is a guest.
-	# The lead is the one this request just made, and the actions are fixed above rather
-	# than read from the request.
-	caller = frappe.session.user
-	frappe.set_user("Administrator")
-	try:
+	# Elevated because every step is a Loan Officer action and the caller is a guest or a
+	# borrower. The lead is the one this request just made, and the actions are fixed
+	# above rather than read from the request.
+	with as_administrator():
 		apply_actions(lead)
-	finally:
-		frappe.set_user(caller)
 
 
 def apply_actions(lead: str):
@@ -721,10 +747,8 @@ def create_account() -> dict:
 			lead.mobile_number,
 		)
 		link_portal_user(customer, user.name)
-		# Last, and before the commit: a password the policy refused above leaves the
-		# token for the retry, and a request that loses the race rolls all of this back.
+		# Last, so a password the policy refused above leaves the token for the retry.
 		spend_account_token(token)
-		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.set_user(caller)
 
@@ -742,6 +766,168 @@ def create_account() -> dict:
 		"offer": [],
 		"reference_note": "",
 		"redirect": "/borrower-portal/overview",
+	}
+
+
+# --- a returning borrower -----------------------------------------------------------
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60 * 60)
+def create_customer_lead() -> dict:
+	"""A draft Loan Lead for a borrower who is already logged in.
+
+	The same draft and the same rule steps as submit_lead. Only the identity differs:
+	it comes off the borrower's Customer and User rather than out of the request, so
+	there is no number to prove by OTP and no account to open afterwards.
+	"""
+	customer = read_own_customer()
+	applicant = applicant_for(customer)
+	data = read_loan_request(applicant["applicant_type"], applicant["company_name"])
+
+	# ignore_permissions because Loan Lead grants create rights to System Manager only.
+	# Every identity field is ours; the request picks only the product and the terms.
+	lead = frappe.new_doc("Loan Lead")
+	lead.update({**data, **applicant, "customer": customer, "lead_source": LEAD_SOURCE})
+	lead.insert(ignore_permissions=True)
+
+	settle_lead(lead.name, applicant["mobile_number"])
+	lead.reload()
+
+	return present_offer(lead)
+
+
+def read_own_customer() -> str:
+	"""The Customer the lead is for, which must be one of this login's own.
+
+	A login can hold several -- a person and their company -- so the page names one.
+	With only one there is nothing to choose.
+	"""
+	customers = get_portal_customers()
+	asked = clean(frappe.form_dict.get("customer"))
+
+	if not asked and len(customers) == 1:
+		return customers[0]
+
+	if asked not in customers:
+		frappe.throw(_("Please choose who the loan is for."), frappe.ValidationError)
+
+	return asked
+
+
+def applicant_for(customer: str) -> dict:
+	"""The lead's identity fields, read off records we hold rather than the request."""
+	applicant = on_file(customer)
+
+	if not applicant["mobile_number"]:
+		frappe.throw(
+			_("We have no mobile number for you. Please add one to your profile first."),
+			frappe.ValidationError,
+		)
+
+	applicant["mobile_number"] = with_country_code(applicant["mobile_number"])
+
+	return applicant
+
+
+def on_file(customer: str) -> dict:
+	record = frappe.db.get_value(
+		"Customer", customer, ["customer_name", "customer_type", "mobile_no"], as_dict=True
+	)
+	user = frappe.db.get_value(
+		"User", frappe.session.user, ["email", "full_name", "mobile_no"], as_dict=True
+	)
+	business = record.customer_type == CUSTOMER_TYPES["Business"]
+
+	return {
+		"applicant_type": "Business" if business else "Individual",
+		# A company's lead names the person asking, and the company separately.
+		"applicant_name": user.full_name if business else record.customer_name,
+		"company_name": record.customer_name if business else None,
+		# The login's own address, so leads_for_login lists this lead with the rest.
+		"email": user.email,
+		"mobile_number": record.mobile_no or user.mobile_no or "",
+	}
+
+
+@frappe.whitelist()
+def get_new_application_page() -> dict:
+	"""The form a logged-in borrower applies with: who they are, and what is on offer.
+
+	Every customer behind the login comes with what we already hold on it, so the page
+	shows those details instead of asking for them, and switching between a person and
+	their company needs no second request.
+	"""
+	customers = get_portal_customers()
+
+	payload = shell_payload(_("New application"), "", get_loans(customers) if customers else [])
+	payload.update(
+		{
+			"breadcrumbs": [
+				{"label": _("Application"), "route": "/borrower/applications"},
+				{"label": _("New application"), "route": ""},
+			],
+			"applicants": [applicant_option(customer) for customer in customers],
+			"products": portal_products(),
+			"employment_types": [{"label": _(kind), "value": kind} for kind in EMPLOYMENT_TYPES],
+			"no_mobile_note": _(
+				"We have no mobile number for you. Add one in Personal details before you apply."
+			),
+		}
+	)
+
+	return payload
+
+
+def applicant_option(customer: str) -> dict:
+	"""One customer the borrower may apply as, with what the form shows and prefills."""
+	applicant = on_file(customer)
+
+	return {
+		"value": customer,
+		"label": applicant["company_name"] or applicant["applicant_name"],
+		"applicant_type": applicant["applicant_type"],
+		"has_mobile": bool(applicant["mobile_number"]),
+		"identity": {
+			"applicant_name": applicant["applicant_name"],
+			"company_name": applicant["company_name"] or "",
+			"email": applicant["email"],
+			"mobile_number": applicant["mobile_number"],
+		},
+		"answers": last_answers(customer, applicant),
+	}
+
+
+def last_answers(customer: str, applicant: dict) -> dict:
+	"""What the borrower told us last time, so a second application starts filled in.
+
+	A lead joined to this customer first. Failing that, a guest enquiry under the login's
+	email -- which is how a borrower's first application arrived -- but only for the same
+	kind of applicant, so a company never inherits the owner's date of birth.
+	"""
+	fields = ["income", "employment_type", "date_of_birth", "pan", "proposed_tenure"]
+	guest_enquiry = {
+		"email": applicant["email"],
+		"applicant_type": applicant["applicant_type"],
+		"customer": ("is", "not set"),
+	}
+	lead = (
+		frappe.db.get_value(
+			"Loan Lead", {"customer": customer}, fields, order_by="creation desc", as_dict=True
+		)
+		or frappe.db.get_value("Loan Lead", guest_enquiry, fields, order_by="creation desc", as_dict=True)
+		or frappe._dict()
+	)
+
+	# A tax id is a PAN only when it is a PAN's length; a GSTIN is longer.
+	tax_id = frappe.db.get_value("Customer", customer, "tax_id") or ""
+
+	return {
+		"income": flt(lead.income) or "",
+		"employment_type": lead.employment_type or "",
+		"date_of_birth": str(lead.date_of_birth or ""),
+		"pan": lead.pan or (tax_id if len(tax_id) == PAN_LENGTH else ""),
+		"proposed_tenure": cint(lead.proposed_tenure) or "",
 	}
 
 
@@ -801,17 +987,6 @@ def track_application() -> dict:
 	}
 
 
-def tracker_stage(lead: dict) -> str:
-	"""Three stages, because Loan Lead status carries no more than that today."""
-	if lead.prequalification_status == "Not Pre-Qualified":
-		return _("Not taken forward")
-
-	if lead.prequalification_status == "Pre-Qualified":
-		return _("Pre-qualified, awaiting your application")
-
-	return _("With our team")
-
-
 def tracker_steps(lead: dict) -> list[dict]:
 	"""The tracker as a list of steps, so a longer workflow changes this and nothing else.
 
@@ -829,7 +1004,7 @@ def tracker_steps(lead: dict) -> list[dict]:
 		return {"title": title, "note": note, "state": state}
 
 	steps = [
-		as_step(_("Enquiry received"), _("We have your details and your number is confirmed."), "done")
+		as_step(_("Enquiry sent"), _("We have your details and your number is confirmed."), "done")
 	]
 
 	if declined:

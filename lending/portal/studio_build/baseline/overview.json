@@ -569,12 +569,15 @@
                  "componentProps": {
                   "text": "{{ overview.data.label_application }}",
                   "tag": "p",
-                  "fontSize": "text-p-sm"
+                  "fontSize": "text-xs"
                  },
                  "componentSlots": {},
                  "componentEvents": {},
                  "baseStyles": {
-                  "color": "var(--ink-gray-6)"
+                  "color": "var(--ink-gray-5)",
+                  "fontWeight": "500",
+                  "letterSpacing": "0.06em",
+                  "textTransform": "uppercase"
                  },
                  "mobileStyles": {},
                  "tabletStyles": {},
@@ -606,7 +609,12 @@
                   "display": "flex",
                   "alignItems": "center",
                   "flex": "0 0 auto",
-                  "color": "var(--ink-gray-4)"
+                  "width": "28px",
+                  "height": "28px",
+                  "justifyContent": "center",
+                  "borderRadius": "var(--radius-5)",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "color": "var(--ink-gray-6)"
                  },
                  "mobileStyles": {},
                  "tabletStyles": {},
@@ -629,50 +637,13 @@
                "componentEvents": {},
                "baseStyles": {
                 "fontWeight": "600",
-                "padding": "2px 0"
+                "padding": "2px 0 4px"
                },
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [],
                "visibilityCondition": "{{ overview.data.application_headline }}",
                "componentId": "overview-0-container1-container1-container1-container1-container1-textblock1"
-              },
-              {
-               "componentName": "Badge",
-               "componentProps": {
-                "label": "{{ overview.data.application_stage }}",
-                "theme": "{{ tone(overview.data.application_stage_tone) }}",
-                "variant": "subtle",
-                "size": "sm"
-               },
-               "componentSlots": {},
-               "componentEvents": {},
-               "baseStyles": {
-                "alignSelf": "flex-start"
-               },
-               "mobileStyles": {},
-               "tabletStyles": {},
-               "children": [],
-               "visibilityCondition": "{{ overview.data.application_stage }}",
-               "componentId": "overview-0-container1-container1-container1-container1-container1-badge1"
-              },
-              {
-               "componentName": "TextBlock",
-               "componentProps": {
-                "text": "{{ overview.data.application_name }}",
-                "tag": "p",
-                "fontSize": "text-p-sm"
-               },
-               "componentSlots": {},
-               "componentEvents": {},
-               "baseStyles": {
-                "color": "var(--ink-gray-6)"
-               },
-               "mobileStyles": {},
-               "tabletStyles": {},
-               "children": [],
-               "visibilityCondition": "{{ overview.data.application_name }}",
-               "componentId": "overview-0-container1-container1-container1-container1-container1-textblock2"
               },
               {
                "componentName": "container",
@@ -683,33 +654,245 @@
                 "display": "flex",
                 "flexDirection": "row",
                 "alignItems": "center",
-                "gap": "6px"
+                "gap": "10px",
+                "flexWrap": "wrap"
                },
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [
                 {
-                 "componentName": "HTML",
+                 "componentName": "Badge",
                  "componentProps": {
-                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
+                  "label": "{{ overview.data.application_stage }}",
+                  "theme": "{{ tone(overview.data.application_stage_tone) }}",
+                  "variant": "subtle",
+                  "size": "md"
                  },
+                 "componentSlots": {
+                  "prefix": {
+                   "slotName": "prefix",
+                   "slotContent": [
+                    {
+                     "componentName": "HTML",
+                     "componentProps": {
+                      "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg>"
+                     },
+                     "componentSlots": {},
+                     "componentEvents": {},
+                     "baseStyles": {
+                      "display": "flex",
+                      "alignItems": "center",
+                      "flex": "0 0 auto"
+                     },
+                     "mobileStyles": {},
+                     "tabletStyles": {},
+                     "children": [],
+                     "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge1-prefix-html1"
+                    }
+                   ]
+                  }
+                 },
+                 "componentEvents": {},
+                 "baseStyles": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ overview.data.application_stage && overview.data.application_with_us }}",
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge1"
+                },
+                {
+                 "componentName": "Badge",
+                 "componentProps": {
+                  "label": "{{ overview.data.application_stage }}",
+                  "theme": "{{ tone(overview.data.application_stage_tone) }}",
+                  "variant": "subtle",
+                  "size": "md"
+                 },
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ overview.data.application_stage && !overview.data.application_with_us }}",
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge2"
+                },
+                {
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "alignItems": "center",
+                  "gap": "6px"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [
+                  {
+                   "componentName": "HTML",
+                   "componentProps": {
+                    "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
+                   },
+                   "componentSlots": {},
+                   "componentEvents": {},
+                   "baseStyles": {
+                    "display": "flex",
+                    "alignItems": "center",
+                    "flex": "0 0 auto",
+                    "color": "var(--ink-gray-5)"
+                   },
+                   "mobileStyles": {},
+                   "tabletStyles": {},
+                   "children": [],
+                   "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-html1"
+                  },
+                  {
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "text": "{{ overview.data.application_date_label }}",
+                    "tag": "p",
+                    "fontSize": "text-p-sm"
+                   },
+                   "componentSlots": {},
+                   "componentEvents": {},
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "mobileStyles": {},
+                   "tabletStyles": {},
+                   "children": [],
+                   "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-textblock1"
+                  },
+                  {
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "text": "{{ overview.data.application_date }}",
+                    "tag": "p",
+                    "fontSize": "text-p-sm"
+                   },
+                   "componentSlots": {},
+                   "componentEvents": {},
+                   "baseStyles": {
+                    "color": "var(--ink-gray-8)",
+                    "fontWeight": "500"
+                   },
+                   "mobileStyles": {},
+                   "tabletStyles": {},
+                   "children": [],
+                   "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-textblock2"
+                  }
+                 ],
+                 "visibilityCondition": "{{ overview.data.application_date }}",
+                 "originalElement": "div",
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1"
+                }
+               ],
+               "visibilityCondition": "{{ overview.data.application_stage }}",
+               "originalElement": "div",
+               "componentId": "overview-0-container1-container1-container1-container1-container1-container2"
+              },
+              {
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "row",
+                "alignItems": "center",
+                "gap": "10px",
+                "paddingTop": "6px"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [
+                {
+                 "componentName": "container",
+                 "componentProps": {},
                  "componentSlots": {},
                  "componentEvents": {},
                  "baseStyles": {
                   "display": "flex",
                   "alignItems": "center",
+                  "justifyContent": "center",
                   "flex": "0 0 auto",
-                  "color": "var(--ink-gray-5)"
+                  "width": "20px",
+                  "height": "20px",
+                  "borderRadius": "9999px",
+                  "backgroundColor": "var(--surface-orange-2)"
                  },
                  "mobileStyles": {},
                  "tabletStyles": {},
-                 "children": [],
-                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-html1"
+                 "children": [
+                  {
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "componentEvents": {},
+                   "baseStyles": {
+                    "width": "8px",
+                    "height": "8px",
+                    "borderRadius": "9999px",
+                    "backgroundColor": "var(--surface-orange-6)"
+                   },
+                   "mobileStyles": {},
+                   "tabletStyles": {},
+                   "children": [],
+                   "originalElement": "div",
+                   "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container1-container1"
+                  }
+                 ],
+                 "visibilityCondition": "{{ overview.data.application_stage && overview.data.application_stage_tone === 'warn' }}",
+                 "originalElement": "div",
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container1"
+                },
+                {
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "display": "flex",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "flex": "0 0 auto",
+                  "width": "20px",
+                  "height": "20px",
+                  "borderRadius": "9999px",
+                  "backgroundColor": "var(--surface-green-2)"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [
+                  {
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "componentEvents": {},
+                   "baseStyles": {
+                    "width": "8px",
+                    "height": "8px",
+                    "borderRadius": "9999px",
+                    "backgroundColor": "var(--surface-green-6)"
+                   },
+                   "mobileStyles": {},
+                   "tabletStyles": {},
+                   "children": [],
+                   "originalElement": "div",
+                   "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container2-container1"
+                  }
+                 ],
+                 "visibilityCondition": "{{ overview.data.application_stage && !(overview.data.application_stage_tone === 'warn') }}",
+                 "originalElement": "div",
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container2"
                 },
                 {
                  "componentName": "TextBlock",
                  "componentProps": {
-                  "text": "{{ overview.data.application_initiated }}",
+                  "text": "{{ overview.data.application_note }}",
                   "tag": "p",
                   "fontSize": "text-p-sm"
                  },
@@ -721,30 +904,12 @@
                  "mobileStyles": {},
                  "tabletStyles": {},
                  "children": [],
-                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-textblock1"
+                 "componentId": "overview-0-container1-container1-container1-container1-container1-container3-textblock1"
                 }
                ],
-               "visibilityCondition": "{{ overview.data.application_initiated }}",
-               "originalElement": "div",
-               "componentId": "overview-0-container1-container1-container1-container1-container1-container2"
-              },
-              {
-               "componentName": "TextBlock",
-               "componentProps": {
-                "text": "{{ overview.data.application_note }}",
-                "tag": "p",
-                "fontSize": "text-p-sm"
-               },
-               "componentSlots": {},
-               "componentEvents": {},
-               "baseStyles": {
-                "color": "var(--ink-gray-6)"
-               },
-               "mobileStyles": {},
-               "tabletStyles": {},
-               "children": [],
                "visibilityCondition": "{{ overview.data.application_note }}",
-               "componentId": "overview-0-container1-container1-container1-container1-container1-textblock3"
+               "originalElement": "div",
+               "componentId": "overview-0-container1-container1-container1-container1-container1-container3"
               },
               {
                "componentName": "TextBlock",
@@ -762,7 +927,7 @@
                "tabletStyles": {},
                "children": [],
                "visibilityCondition": "{{ overview.data.application_more }}",
-               "componentId": "overview-0-container1-container1-container1-container1-container1-textblock4"
+               "componentId": "overview-0-container1-container1-container1-container1-container1-textblock2"
               }
              ],
              "originalElement": "div",

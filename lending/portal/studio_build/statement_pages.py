@@ -116,14 +116,19 @@ AMOUNT = {"fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap"}
 # their header on each side, and every column but the first and last drifted off its name.
 ROW_INSET = {"--_list-row-pad": "12px"}
 
+# A ledger row is one line, so it takes the fixed height the desk's list view gives its
+# rows. The List's own hook, because the padding that spaces the portal's taller rows is
+# one of the ListRow styles the published bundle drops, and these rows sat touching.
+LEDGER_ROW = {"--list-row-height": "44px"}
+
 
 def summary_strip(read):
 	"""Charged, paid and what is left, in one panel split by rules, as the certificate's
 	figures are. Three cards in a row were three more boxes on a page that has two."""
 	return ruled_panel(
 		[
-			figure_cell("Charged", read("summary.charged"), "Disbursements, interest and charges"),
-			figure_cell("Paid", read("summary.paid"), "Repayments received"),
+			figure_cell("Charged", read("summary.charged"), "Loan amount, interest and charges"),
+			figure_cell("Paid", read("summary.paid"), "Payments you made"),
 			figure_cell("Closing balance", read("summary.balance"), read("summary.balance_note")),
 		]
 	)
@@ -132,28 +137,31 @@ def summary_strip(read):
 def ledger(read):
 	"""The entries as a ledger: debit and credit in columns of their own, then the balance.
 
+	The columns are named Charged and Paid, the words the summary above them uses, rather
+	than Debit and Credit, which a borrower reads from their own side of the books.
+
 	It keeps a minimum width and scrolls inside its card on a phone, as the desk's report
 	view does, rather than folding five columns into a stack nobody can read across.
 	"""
-	amount = {"size": "text-base", "styles": AMOUNT}
+	amount = {"size": "text-base", "styles": dict(AMOUNT, color="var(--ink-gray-7)")}
 	table = record_list(
 		[
-			("minmax(96px, 0.8fr)", "Date"),
+			("minmax(104px, 0.8fr)", "Date"),
 			("minmax(0, 2fr)", "Particulars"),
-			("minmax(0, 1fr)", "Debit"),
-			("minmax(0, 1fr)", "Credit"),
-			("minmax(0, 1fr)", "Balance"),
+			("minmax(0, 1fr)", "Charged", "end"),
+			("minmax(0, 1fr)", "Paid", "end"),
+			("minmax(0, 1fr)", "Balance", "end"),
 		],
 		read("rows"),
 		[
-			[text("{{ item.date }}", size="text-base", styles={"color": "var(--ink-gray-7)", "whiteSpace": "nowrap"})],
-			[subject("{{ item.label }}"), muted("{{ item.detail }}", visible="{{ item.detail }}")],
+			[text("{{ item.date }}", size="text-base", styles={"color": "var(--ink-gray-6)", "whiteSpace": "nowrap"})],
+			[subject("{{ item.label }}", styles={"color": "var(--ink-gray-8)"})],
 			[text("{{ item.debit }}", **amount)],
 			[text("{{ item.credit }}", **amount)],
-			[text("{{ item.balance }}", size="text-base", styles=dict(AMOUNT, fontWeight="500"))],
+			[text("{{ item.balance }}", size="text-base", styles=dict(AMOUNT, fontWeight="500", color="var(--ink-gray-9)"))],
 		],
 	)
-	table["baseStyles"].update(ROW_INSET, minWidth="640px")
+	table["baseStyles"].update(ROW_INSET, **LEDGER_ROW, minWidth="640px")
 
 	return container([table], styles={"overflowX": "auto"})
 

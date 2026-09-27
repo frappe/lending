@@ -120,7 +120,7 @@ STATEMENT_HTML = (
 		{% for row in rows %}
 		<tr>
 			<td>{{ row.date }}</td>
-			<td>{{ row.label }}{% if row.detail %}<br><span class="muted">{{ row.detail }}</span>{% endif %}</td>
+			<td>{{ row.label }}</td>
 			<td>{{ row.direction }}</td>
 			<td class="num">{{ row.amount }}</td>
 			<td class="num">{{ row.balance }}</td>

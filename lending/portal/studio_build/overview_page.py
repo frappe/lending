@@ -23,16 +23,17 @@ from lending.portal.studio_build.blocks import (
 	container,
 	fallback,
 	icon,
-	icon_line,
 	muted,
 	reader,
 	record_stat,
 	repeater,
 	row,
+	slot,
 	spacer,
 	stat,
 	stat_strip,
 	text,
+	tile_styles,
 	toned_badge,
 	two_columns,
 )
@@ -72,29 +73,58 @@ def application_card():
 	"""The newest open application, as the record it is rather than as a figure.
 
 	It sits in a strip of numbers and is not one. The product name is a headline at the
-	weight of a heading, the application's own name and the day it was raised are the
-	two quiet lines under it, and the plain tile on the left that the figure cards beside
-	it wear -- the badge alone carries the stage's colour. What is waiting on the borrower, and how many more
-	applications the table below holds, follow only when there is something to say.
+	weight of a heading, and the stage and the day it was raised share the line under it.
+	What is waiting on the borrower follows, led by a dot in the stage's colour, and only
+	when there is something to say.
 	"""
-	stage_tone = f"{SOURCE}.data.application_stage_tone"
-	# The label and the chevron, on the line the two figure cards put theirs on. The
-	# chevron waits for a destination: a borrower with nothing in progress reads the
+	stage = f"{SOURCE}.data.application_stage"
+	# The chevron waits for a destination: a borrower with nothing in progress reads the
 	# same card saying so, and that one opens nothing.
 	label = row(
-		[muted(read("label_application")), spacer(), chevron(visible=read("application_url"))],
+		[
+			text(
+				read("label_application"),
+				size="text-xs",
+				styles={
+					"color": "var(--ink-gray-5)",
+					"fontWeight": "500",
+					"letterSpacing": "0.06em",
+					"textTransform": "uppercase",
+				},
+			),
+			spacer(),
+			icon(
+				"chevron-right",
+				styles=dict(tile_styles(tile=28), color="var(--ink-gray-6)"),
+				visible=read("application_url"),
+			),
+		],
 		gap="8px",
 	)
-	# Under the headline rather than beside the label: there it crowded the label onto
-	# two lines, and the headline fell below the figures in the cards beside it.
-	stage = toned_badge(
-		read("application_stage"),
-		stage_tone,
+	# The stage and the day on one line, so the card stays the height of the two figure
+	# cards beside it.
+	meta = row(
+		[
+			stage_badge(with_us=True),
+			stage_badge(with_us=False),
+			labelled("calendar", "application_date_label", "application_date"),
+		],
+		gap="10px",
+		styles={"flexWrap": "wrap"},
 		visible=read("application_stage"),
-		styles={"alignSelf": "flex-start"},
 	)
-	initiated = icon_line(
-		"calendar", read("application_initiated"), visible=read("application_initiated")
+	# The dot belongs to a card about something. The empty card's note is the whole
+	# card, and stands without one.
+	warn = f"{SOURCE}.data.application_stage_tone === 'warn'"
+	note = row(
+		[
+			status_dot("orange", visible="{{ %s && %s }}" % (stage, warn)),
+			status_dot("green", visible="{{ %s && !(%s) }}" % (stage, warn)),
+			muted(read("application_note")),
+		],
+		gap="10px",
+		styles={"paddingTop": "6px"},
+		visible=read("application_note"),
 	)
 
 	return record_stat(
@@ -105,17 +135,70 @@ def application_card():
 				read("application_headline"),
 				tag="div",
 				size="text-2xl",
-				styles={"fontWeight": "600", "padding": "2px 0"},
+				styles={"fontWeight": "600", "padding": "2px 0 4px"},
 				visible=read("application_headline"),
 			),
-			stage,
-			muted(read("application_name"), visible=read("application_name")),
-			initiated,
-			muted(read("application_note"), visible=read("application_note")),
+			meta,
+			note,
 			muted(read("application_more"), visible=read("application_more")),
 		],
 		script=f"open({SOURCE}.data.application_url)",
 	)
+
+
+def stage_badge(with_us):
+	"""The stage, led by a team glyph while the application is with the lender.
+
+	Two badges rather than one with a hidden glyph: Badge draws its prefix box whenever
+	the slot exists, so a glyph hidden inside it still leaves the gap it would fill.
+	"""
+	stage = f"{SOURCE}.data.application_stage"
+	flag = f"{SOURCE}.data.application_with_us"
+	shown = "{{ %s && %s }}" % (stage, flag if with_us else f"!{flag}")
+	glyph = slot("prefix", [icon("users", size=16)]) if with_us else None
+
+	return toned_badge(
+		read("application_stage"),
+		f"{SOURCE}.data.application_stage_tone",
+		size="md",
+		visible=shown,
+		slots=glyph,
+	)
+
+
+def labelled(glyph, label_key, value_key):
+	"""A glyph, a quiet label and the value it names, set darker than the label."""
+	return row(
+		[
+			icon(glyph, styles={"color": "var(--ink-gray-5)"}),
+			muted(read(label_key)),
+			text(read(value_key), styles={"color": "var(--ink-gray-8)", "fontWeight": "500"}),
+		],
+		gap="6px",
+		visible=read(value_key),
+	)
+
+
+def status_dot(theme, **kwargs):
+	"""A solid dot on a pale disc of its own colour, leading a line of status."""
+	disc = {
+		"display": "flex",
+		"alignItems": "center",
+		"justifyContent": "center",
+		"flex": "0 0 auto",
+		"width": "20px",
+		"height": "20px",
+		"borderRadius": "9999px",
+		"backgroundColor": f"var(--surface-{theme}-2)",
+	}
+	dot = {
+		"width": "8px",
+		"height": "8px",
+		"borderRadius": "9999px",
+		"backgroundColor": f"var(--surface-{theme}-6)",
+	}
+
+	return container([container(styles=dot)], styles=disc, **kwargs)
 
 
 def summary():

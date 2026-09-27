@@ -62,9 +62,9 @@ def get_profile_page() -> dict:
 		{
 			"records": records,
 			"records_note": (
-				_("Across {0} customer records").format(len(customers))
+				_("Across {0} profiles").format(len(customers))
 				if len(customers) > 1
-				else _("Your record")
+				else _("Your profile")
 			),
 			"edit_note": _(
 				"Contact details and address can be corrected. Name and tax id come from "
@@ -142,7 +142,7 @@ def row(label: str, value: str, detail: str = "") -> dict:
 def identity_rows(customer: dict) -> list[dict]:
 	return [
 		row(_("Name"), customer.customer_name, customer.name),
-		row(_("Record type"), customer.customer_type),
+		row(_("Registered as"), customer.customer_type),
 		# tax_id is where an Indian install keeps the PAN or GSTIN. Read-only: it is the
 		# outcome of a KYC check, not a preference.
 		row(_("Tax id"), customer.tax_id),
@@ -373,7 +373,6 @@ def save_profile() -> dict:
 
 	save_contact(customer, customers, data)
 	save_address(customer, customers, data)
-	frappe.db.commit()  # nosemgrep
 
 	return {
 		"headline": _("Saved"),

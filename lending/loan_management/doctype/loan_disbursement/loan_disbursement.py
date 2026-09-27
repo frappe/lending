@@ -167,8 +167,6 @@ class LoanDisbursement(LoanController):
 					self.repayment_start_date, loan_details.moratorium_tenure
 				)
 
-		# The draft schedule is this disbursement's by-product, so whoever may write the
-		# disbursement may write it too.
 		if draft_schedule:
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
 			schedule.update(self.get_schedule_details())
@@ -986,8 +984,7 @@ def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 
 
 def calculate_disbursal_amount(loan: str, on_current_security_price: int = 0):
-	"""The permission-free core of get_disbursal_amount, for callers that have already
-	decided who may see the loan -- a disbursement's own validation, or the borrower portal."""
+	"""Checks no permissions; the caller must."""
 	loan_details = frappe.get_value(
 		"Loan",
 		loan,

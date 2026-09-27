@@ -743,11 +743,11 @@
    "originalElement": "body"
   }
  ],
- "creation": "2026-09-25 01:57:14.247879",
+ "creation": "2026-09-26 23:52:26.818958",
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 12:32:13.997364",
+ "modified": "2026-09-27 00:22:56.604261",
  "modified_by": "Administrator",
  "name": "choose_an_account",
  "owner": "Administrator",

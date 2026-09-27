@@ -438,8 +438,8 @@
         "note": "{{ application.data.head_note }}",
         "status": "{{ application.data.account_status }}",
         "status_tone": "{{ application.data.account_tone }}",
-        "action_label": "",
-        "action_route": ""
+        "action_label": "New application",
+        "action_route": "/new-application"
        },
        "componentSlots": {},
        "componentEvents": {},
@@ -1894,7 +1894,7 @@
             "click": {
              "event": "click",
              "action": "Run Script",
-             "script": "open('/apply')"
+             "script": "open('/new-application')"
             }
            },
            "baseStyles": {

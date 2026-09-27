@@ -213,19 +213,18 @@ def present_entry(row: dict) -> dict:
 	debit = flt(row.get("debit"))
 	credit = flt(row.get("credit"))
 
-	# The report's own column names: transaction_type and transaction_name, not the
-	# particulars/voucher_no pair a GL report would use.
+	# The report's own column name: transaction_type, not the particulars a GL report
+	# would use. The voucher and loan names are left out; they mean nothing to a borrower.
 	return {
 		"date": short_date(row.get("posting_date")),
 		"label": row.get("transaction_type") or _("Entry"),
-		"detail": " · ".join(part for part in (row.get("transaction_name"), row.get("loan")) if part),
 		"amount": money(debit) if debit else money(credit),
 		"direction": _("Charged") if debit else _("Paid"),
 		# One column each, the way a ledger reads, so an entry's side is where it
-		# stands rather than a word beside it. The empty side says N/A, so a blank
+		# stands rather than a word beside it. The empty side is a dash, so a blank
 		# cell does not read as a figure that failed to load.
-		"debit": money(debit) if debit else _("N/A"),
-		"credit": money(credit) if credit else _("N/A"),
+		"debit": money(debit) if debit else "—",
+		"credit": money(credit) if credit else "—",
 		"balance": money(row.get("balance")),
 	}
 

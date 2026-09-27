@@ -783,7 +783,7 @@
                     {
                      "componentName": "TextBlock",
                      "componentProps": {
-                      "text": "Disbursed amount",
+                      "text": "Amount received",
                       "tag": "p",
                       "fontSize": "text-sm"
                      },
@@ -1303,7 +1303,7 @@
                     {
                      "componentName": "TextBlock",
                      "componentProps": {
-                      "text": "First due date",
+                      "text": "Next due date",
                       "tag": "p",
                       "fontSize": "text-sm"
                      },
@@ -1352,7 +1352,7 @@
                       {
                        "componentName": "TextBlock",
                        "componentProps": {
-                        "text": "{{ loan.data.terms.first_due }}",
+                        "text": "{{ loan.data.terms.next_due }}",
                         "tag": "div",
                         "fontSize": "text-xl"
                        },

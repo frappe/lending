@@ -44,7 +44,7 @@ read = reader(SOURCE)
 # Shown, never posted: these live in the page's `identity` ref, not in `form`.
 IDENTITY = (
 	("Full name", "customer_name"),
-	("Record type", "customer_type"),
+	("Registered as", "customer_type"),
 	("Tax id", "tax_id"),
 )
 
@@ -151,8 +151,10 @@ def header():
 	"""The borrower's avatar and name, and what the form offers to press."""
 	avatar = block(
 		"Avatar",
-		props={"label": "{{ identity.customer_name }}", "size": "2xl", "shape": "circle", "theme": "blue"},
+		props={"label": "{{ identity.customer_name }}", "size": "2xl", "shape": "circle"},
 		styles={"flex": "0 0 auto"},
+		# What lending.portal.brand washes in the lender's primary colour, as the rail's is.
+		classes=["portal-profile-avatar"],
 	)
 	name = text(
 		"{{ identity.customer_name }}",
@@ -205,24 +207,27 @@ def header():
 	)
 
 
-def section(glyph, title, subtitle, fields, rule=True):
+def section(glyph, title, subtitle, fields, rule=True, columns=3):
 	"""A glyph on a tile, and beside it the section's heading over its boxes.
 
-	Three boxes to a row, fewer when the card is narrow. The count comes from the card's
-	own width, not a breakpoint: tablet styles fire only below a 768px viewport, and the
-	sidebar squeezes the card long before that. A track is never under a third of the
-	row, so there are never more than three.
+	`columns` boxes to a row, fewer when the card is narrow. The count comes from the
+	card's own width, not a breakpoint: tablet styles fire only below a 768px viewport,
+	and the sidebar squeezes the card long before that. A track is never under
+	1/`columns` of the row, so there are never more than `columns`.
 	"""
+	track = f"calc((100% - {16 * columns}px) / {columns})"
 	grid = container(
 		fields,
 		styles={
 			"display": "grid",
-			"gridTemplateColumns": "repeat(auto-fill, minmax(min(100%, max(200px, calc((100% - 48px) / 3))), 1fr))",
+			"gridTemplateColumns": f"repeat(auto-fill, minmax(min(100%, max(200px, {track})), 1fr))",
 			"columnGap": "16px",
 			"rowGap": "10px",
 		},
 	)
-	titles = column([heading(title, tag="h3", size="text-base"), muted(subtitle)], gap="0px")
+	titles = column(
+		[heading(title, tag="h3", size="text-base"), *([muted(subtitle)] if subtitle else [])], gap="0px"
+	)
 	content = column([titles, grid], gap="10px", styles={"flex": "1 1 0%", "minWidth": "0px"})
 
 	padding = "14px 0" if rule else "14px 0 0"

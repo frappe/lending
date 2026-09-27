@@ -1090,6 +1090,7 @@
                "baseStyles": {
                 "--list-row-padding-x": "12px",
                 "--_list-row-pad": "12px",
+                "--list-row-height": "44px",
                 "minWidth": "520px"
                },
                "mobileStyles": {},

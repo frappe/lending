@@ -608,7 +608,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "Disbursements, interest and charges"
+                "text": "Loan amount, interest and charges"
                }
               }
              ],
@@ -665,7 +665,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "Repayments received"
+                "text": "Payments you made"
                }
               }
              ],
@@ -806,6 +806,7 @@
               {
                "baseStyles": {
                 "--_list-row-pad": "12px",
+                "--list-row-height": "44px",
                 "--list-row-padding-x": "12px",
                 "minWidth": "640px"
                },
@@ -858,6 +859,10 @@
                    "componentName": "ListHeaderCell"
                   },
                   {
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "children": [
                     {
                      "baseStyles": {
@@ -869,7 +874,7 @@
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
-                      "text": "Debit"
+                      "text": "Charged"
                      }
                     }
                    ],
@@ -877,6 +882,10 @@
                    "componentName": "ListHeaderCell"
                   },
                   {
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "children": [
                     {
                      "baseStyles": {
@@ -888,7 +897,7 @@
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
-                      "text": "Credit"
+                      "text": "Paid"
                      }
                     }
                    ],
@@ -896,6 +905,10 @@
                    "componentName": "ListHeaderCell"
                   },
                   {
+                   "baseStyles": {
+                    "justifyContent": "flex-end",
+                    "textAlign": "right"
+                   },
                    "children": [
                     {
                      "baseStyles": {
@@ -942,7 +955,7 @@
                        "children": [
                         {
                          "baseStyles": {
-                          "color": "var(--ink-gray-7)",
+                          "color": "var(--ink-gray-6)",
                           "whiteSpace": "nowrap"
                          },
                          "children": [],
@@ -968,14 +981,11 @@
                        "tabletStyles": {}
                       },
                       {
-                       "baseStyles": {
-                        "alignItems": "stretch",
-                        "flexDirection": "column",
-                        "gap": "2px"
-                       },
+                       "baseStyles": {},
                        "children": [
                         {
                          "baseStyles": {
+                          "color": "var(--ink-gray-8)",
                           "fontWeight": "500"
                          },
                          "children": [],
@@ -990,24 +1000,6 @@
                          "componentSlots": {},
                          "mobileStyles": {},
                          "tabletStyles": {}
-                        },
-                        {
-                         "baseStyles": {
-                          "color": "var(--ink-gray-6)"
-                         },
-                         "children": [],
-                         "componentEvents": {},
-                         "componentId": "statement-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2-textblock2",
-                         "componentName": "TextBlock",
-                         "componentProps": {
-                          "fontSize": "text-p-sm",
-                          "tag": "p",
-                          "text": "{{ item.detail }}"
-                         },
-                         "componentSlots": {},
-                         "mobileStyles": {},
-                         "tabletStyles": {},
-                         "visibilityCondition": "{{ item.detail }}"
                         }
                        ],
                        "componentEvents": {},
@@ -1019,10 +1011,14 @@
                        "tabletStyles": {}
                       },
                       {
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "children": [
                         {
                          "baseStyles": {
+                          "color": "var(--ink-gray-7)",
                           "fontVariantNumeric": "tabular-nums",
                           "whiteSpace": "nowrap"
                          },
@@ -1049,10 +1045,14 @@
                        "tabletStyles": {}
                       },
                       {
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "children": [
                         {
                          "baseStyles": {
+                          "color": "var(--ink-gray-7)",
                           "fontVariantNumeric": "tabular-nums",
                           "whiteSpace": "nowrap"
                          },
@@ -1079,10 +1079,14 @@
                        "tabletStyles": {}
                       },
                       {
-                       "baseStyles": {},
+                       "baseStyles": {
+                        "justifyContent": "flex-end",
+                        "textAlign": "right"
+                       },
                        "children": [
                         {
                          "baseStyles": {
+                          "color": "var(--ink-gray-9)",
                           "fontVariantNumeric": "tabular-nums",
                           "fontWeight": "500",
                           "whiteSpace": "nowrap"
@@ -1130,7 +1134,7 @@
                "componentName": "List",
                "componentProps": {
                 "columns": [
-                 "minmax(96px, 0.8fr)",
+                 "minmax(104px, 0.8fr)",
                  "minmax(0, 2fr)",
                  "minmax(0, 1fr)",
                  "minmax(0, 1fr)",
@@ -1268,11 +1272,11 @@
    "originalElement": "body"
   }
  ],
- "creation": "2026-09-25 00:43:20.343780",
+ "creation": "2026-09-26 23:52:26.995400",
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 12:32:14.292740",
+ "modified": "2026-09-27 00:22:56.844316",
  "modified_by": "Administrator",
  "name": "statement_of_account",
  "owner": "Administrator",

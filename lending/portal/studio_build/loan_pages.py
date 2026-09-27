@@ -100,7 +100,7 @@ def terms_card(read):
 		[
 			term.row(
 				term("Loan amount (sanctioned)", "sanctioned"),
-				term("Disbursed amount", "disbursed"),
+				term("Amount received", "disbursed"),
 				term("Interest rate (p.a.)", "rate"),
 				term("Tenure", "tenure"),
 			),
@@ -109,7 +109,7 @@ def terms_card(read):
 				term("EMI amount", "instalment", note="frequency"),
 				term("Total repayable", "total", hint="Principal plus all interest over the tenure"),
 				term("Paid so far", "paid", note="written_off"),
-				term("First due date", "first_due", glyph="calendar"),
+				term("Next due date", "next_due", glyph="calendar"),
 			),
 		],
 		gap="16px",

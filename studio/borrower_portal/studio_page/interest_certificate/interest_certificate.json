@@ -828,6 +828,7 @@
               {
                "baseStyles": {
                 "--_list-row-pad": "12px",
+                "--list-row-height": "44px",
                 "--list-row-padding-x": "12px",
                 "minWidth": "520px"
                },
@@ -1220,11 +1221,11 @@
    "originalElement": "body"
   }
  ],
- "creation": "2026-09-25 00:43:20.169929",
+ "creation": "2026-09-26 23:52:26.842172",
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-25 12:32:14.342919",
+ "modified": "2026-09-27 00:22:56.925877",
  "modified_by": "Administrator",
  "name": "interest_certificate",
  "owner": "Administrator",

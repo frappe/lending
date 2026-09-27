@@ -260,7 +260,7 @@
  },
  "component_id": "borrower_header",
  "component_name": "Borrower Page Header",
- "creation": "2026-09-25 00:32:04.361591",
+ "creation": "2026-09-26 23:52:27.162861",
  "docstatus": 0,
  "doctype": "Studio Component",
  "idx": 0,
@@ -309,7 +309,7 @@
   }
  ],
  "is_disabled": 0,
- "modified": "2026-09-25 02:55:36.511815",
+ "modified": "2026-09-26 23:56:55.489454",
  "modified_by": "Administrator",
  "name": "borrower_header",
  "owner": "Administrator"

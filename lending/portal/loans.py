@@ -26,6 +26,8 @@ from lending.loan_management.doctype.loan_disbursement.loan_disbursement import 
 )
 from lending.portal.core import (
 	STATUS_LABELS,
+	active_schedule_names,
+	as_administrator,
 	assert_owns,
 	chosen_loan,
 	get_loans,
@@ -33,6 +35,7 @@ from lending.portal.core import (
 	is_live,
 	long_date,
 	money,
+	next_repayment_for,
 	shell_payload,
 )
 
@@ -123,7 +126,7 @@ def request_disbursement() -> dict:
 			_("You can ask for up to {0} on this loan.").format(money(available)), frappe.ValidationError
 		)
 
-	disbursement = new_loan_disbursement(name, amount)
+	disbursement = new_loan_disbursement(name, amount, repayment_start_date=next_due_date(name))
 	disbursement.insert(ignore_permissions=True)
 	disbursement.add_comment("Comment", _("Requested by {0} from the borrower portal.").format(frappe.session.user))
 
@@ -133,6 +136,13 @@ def request_disbursement() -> dict:
 			money(amount)
 		),
 	}
+
+
+def next_due_date(loan: str):
+	"""Where a later tranche joins the schedule already running. The loan's own first due
+	date is behind us once repayments start, and a disbursement may not repay before it
+	is paid out. None before the first tranche, so the loan's first due date stands."""
+	return next_repayment_for(loan).get("payment_date")
 
 
 def drawdown(loan: dict) -> dict:
@@ -224,13 +234,28 @@ def loan_terms(loan: dict) -> dict:
 		"disbursed": money(loan.disbursed_amount),
 		"rate": "{0}%".format(flt(loan.rate_of_interest, 2)),
 		"tenure": tenure(loan),
-		"instalment": money(loan.monthly_repayment_amount),
+		"instalment": money(instalment(loan)),
 		"frequency": _(loan.repayment_frequency or "Monthly"),
 		"total": money(loan.total_payment),
 		"paid": money(loan.total_amount_paid),
-		"first_due": long_date(loan.repayment_start_date),
+		"next_due": next_due(loan.name),
 		"written_off": _("{0} written off").format(money(written_off)) if written_off else "",
 	}
+
+
+def instalment(loan: dict) -> float:
+	"""The EMI the borrower is paying. The Loan keeps the one priced on the full sanction, but
+	a partly drawn loan is scheduled on what was paid out, so the active schedule wins."""
+	schedules = active_schedule_names([loan.name])
+	if schedules:
+		return frappe.db.get_value("Loan Repayment Schedule", schedules[0], "monthly_repayment_amount")
+
+	return loan.monthly_repayment_amount
+
+
+def next_due(loan: str) -> str:
+	upcoming = next_repayment_for(loan)
+	return long_date(upcoming.payment_date) if upcoming else _("Nothing due")
 
 
 def tenure(loan: dict) -> str:
@@ -271,8 +296,11 @@ def payoff_figures(loan: str) -> dict:
 	"""
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
+	# Elevated because calculate_amounts asks for read on Loan, which a Website User never
+	# has; the caller has already passed assert_owns for this loan.
 	try:
-		payable = flt(calculate_amounts(loan, nowdate(), payment_type="Loan Closure").get("payable_amount"))
+		with as_administrator():
+			payable = flt(calculate_amounts(loan, nowdate(), payment_type="Loan Closure").get("payable_amount"))
 	except Exception:
 		# A closed or written-off loan has nothing left to price.
 		frappe.clear_last_message()
