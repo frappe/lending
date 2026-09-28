@@ -1459,10 +1459,9 @@
  ],
  "creation": "2026-09-26 22:42:55.072837",
  "doctype": "Studio Page",
- "draft_blocks": null,
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-28 12:35:22.023163",
+ "modified": "2026-09-28 14:02:52.340310",
  "modified_by": "Administrator",
  "name": "new_application",
  "owner": "Administrator",
@@ -1471,7 +1470,6 @@
  "published": 1,
  "resources": [
   {
-   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "resource_name": "newApplication",
@@ -1479,7 +1477,6 @@
    "url": "lending.portal.apply.get_new_application_page"
   },
   {
-   "__unsaved": 1,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",
