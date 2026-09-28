@@ -44,7 +44,7 @@
    "description": "Verify a lead's email address. Requires Email OTP in TP OTP Settings.",
    "fieldname": "otp_for_email",
    "fieldtype": "Check",
-   "label": "OTP for Email"
+   "label": "OTP via Email"
   },
   {
    "fieldname": "column_break_otp_settings",
@@ -55,7 +55,7 @@
    "description": "Verify a lead's mobile number. Requires SMS in TP OTP Settings.",
    "fieldname": "otp_for_sms",
    "fieldtype": "Check",
-   "label": "OTP for SMS"
+   "label": "OTP via SMS"
   },
   {
    "depends_on": "eval:doc.otp_for_email || doc.otp_for_sms",
@@ -99,7 +99,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-25 12:00:00.000000",
+ "modified": "2026-09-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Origination Settings",

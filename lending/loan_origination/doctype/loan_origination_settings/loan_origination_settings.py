@@ -67,7 +67,7 @@ class LoanOriginationSettings(Document):
 
 		if TELEPHONY_APP not in frappe.get_installed_apps():
 			frappe.throw(
-				_("Please install the Telephony app to send OTPs, or turn OTP for Email and SMS off.")
+				_("Please install the Telephony app to send OTPs, or turn OTP via Email and OTP via SMS off.")
 			)
 
 		otp_settings = frappe.get_cached_doc("TP OTP Settings")
