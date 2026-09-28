@@ -2,6 +2,7 @@
  "blocks": [
   {
    "baseStyles": {
+    "color": "var(--ink-gray-8)",
     "display": "flex",
     "flexDirection": "row",
     "height": "100%",
@@ -64,7 +65,7 @@
             "alignItems": "center",
             "backgroundColor": "var(--portal-primary, var(--surface-gray-4))",
             "borderRadius": "6px",
-            "color": "var(--portal-primary-ink, var(--ink-gray-7))",
+            "color": "var(--portal-primary-ink, var(--ink-gray-8))",
             "display": "flex",
             "flexShrink": "0",
             "height": "28px",
@@ -238,7 +239,7 @@
                 },
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "flex": "1 1 0%",
                   "minWidth": "0px",
                   "overflow": "hidden",
@@ -619,7 +620,7 @@
                   "alignItems": "center",
                   "backgroundColor": "var(--surface-gray-2)",
                   "borderRadius": "var(--radius-5)",
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "display": "flex",
                   "flex": "0 0 auto",
                   "height": "32px",
@@ -651,6 +652,7 @@
                    "children": [
                     {
                      "baseStyles": {
+                      "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
                      "children": [],
@@ -785,7 +787,7 @@
                   "alignItems": "center",
                   "backgroundColor": "var(--surface-gray-2)",
                   "borderRadius": "var(--radius-5)",
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "display": "flex",
                   "flex": "0 0 auto",
                   "height": "32px",
@@ -817,6 +819,7 @@
                    "children": [
                     {
                      "baseStyles": {
+                      "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
                      "children": [],
@@ -954,7 +957,7 @@
                   "alignItems": "center",
                   "backgroundColor": "var(--surface-gray-2)",
                   "borderRadius": "var(--radius-5)",
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "display": "flex",
                   "flex": "0 0 auto",
                   "height": "32px",
@@ -986,6 +989,7 @@
                    "children": [
                     {
                      "baseStyles": {
+                      "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
                      "children": [],
@@ -1217,7 +1221,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-27 00:22:56.995445",
+ "modified": "2026-09-28 12:35:22.126748",
  "modified_by": "Administrator",
  "name": "personal_details",
  "owner": "Administrator",

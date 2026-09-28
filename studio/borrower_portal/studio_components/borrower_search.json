@@ -18,7 +18,7 @@
       "componentId": "borrower_search-0-container1-html1",
       "componentName": "HTML",
       "componentProps": {
-       "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] { background-color: rgba(56, 56, 56, 0.8); }\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid #ededed;\n\tborder-radius: 12px;\n\tbox-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);\n\tbackground-color: #fff;\n}\n</style></div>"
+       "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] { background-color: rgba(56, 56, 56, 0.8); }\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid var(--outline-gray-1);\n\tborder-radius: 12px;\n\tbox-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);\n\tbackground-color: var(--surface-base);\n}\n</style></div>"
       },
       "componentSlots": {},
       "mobileStyles": {},
@@ -37,7 +37,7 @@
        {
         "baseStyles": {
          "alignItems": "center",
-         "color": "#525252",
+         "color": "var(--ink-gray-6)",
          "display": "flex",
          "flex": "0 0 auto",
          "padding": "0 2px 0 10px"
@@ -87,7 +87,7 @@
      },
      {
       "baseStyles": {
-       "backgroundColor": "#ededed",
+       "backgroundColor": "var(--outline-gray-1)",
        "height": "1px"
       },
       "children": [],
@@ -111,7 +111,7 @@
        {
         "baseStyles": {
          "alignItems": "center",
-         "backgroundColor": "{{ dataIndex === searchIndex ? '#f3f3f3' : 'transparent' }}",
+         "backgroundColor": "{{ dataIndex === searchIndex ? 'var(--surface-gray-2)' : 'transparent' }}",
          "borderRadius": "8px",
          "cursor": "pointer",
          "display": "flex",
@@ -125,7 +125,7 @@
         "children": [
          {
           "baseStyles": {
-           "color": "#171717",
+           "color": "var(--ink-gray-8)",
            "fontSize": "13px",
            "fontWeight": "700",
            "letterSpacing": "0.02em",
@@ -147,7 +147,7 @@
          },
          {
           "baseStyles": {
-           "color": "#171717",
+           "color": "var(--ink-gray-8)",
            "fontSize": "13px",
            "fontWeight": "400",
            "letterSpacing": "0.02em",
@@ -183,7 +183,7 @@
          },
          {
           "baseStyles": {
-           "color": "#7c7c7c",
+           "color": "var(--ink-gray-5)",
            "fontSize": "13px",
            "letterSpacing": "0.02em",
            "lineHeight": "19.5px",
@@ -243,7 +243,7 @@
      {
       "baseStyles": {
        "alignItems": "center",
-       "borderTop": "1px solid #ededed",
+       "borderTop": "1px solid var(--outline-gray-1)",
        "display": "flex",
        "flexDirection": "row",
        "gap": "15px",
@@ -262,9 +262,9 @@
         "children": [
          {
           "baseStyles": {
-           "backgroundColor": "#ededed",
+           "backgroundColor": "var(--surface-gray-3)",
            "borderRadius": "4px",
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "flexShrink": "0",
            "height": "18px",
            "justifyContent": "center",
@@ -301,9 +301,9 @@
          },
          {
           "baseStyles": {
-           "backgroundColor": "#ededed",
+           "backgroundColor": "var(--surface-gray-3)",
            "borderRadius": "4px",
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "flexShrink": "0",
            "height": "18px",
            "justifyContent": "center",
@@ -340,7 +340,7 @@
          },
          {
           "baseStyles": {
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "fontSize": "12px",
            "letterSpacing": "0.02em",
            "lineHeight": "18px",
@@ -380,9 +380,9 @@
         "children": [
          {
           "baseStyles": {
-           "backgroundColor": "#ededed",
+           "backgroundColor": "var(--surface-gray-3)",
            "borderRadius": "4px",
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "flexShrink": "0",
            "height": "18px",
            "justifyContent": "center",
@@ -419,7 +419,7 @@
          },
          {
           "baseStyles": {
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "fontSize": "12px",
            "letterSpacing": "0.02em",
            "lineHeight": "18px",
@@ -459,9 +459,9 @@
         "children": [
          {
           "baseStyles": {
-           "backgroundColor": "#ededed",
+           "backgroundColor": "var(--surface-gray-3)",
            "borderRadius": "4px",
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "flexShrink": "0",
            "fontSize": "10px",
            "letterSpacing": "0.02em",
@@ -484,7 +484,7 @@
          },
          {
           "baseStyles": {
-           "color": "#525252",
+           "color": "var(--ink-gray-6)",
            "fontSize": "12px",
            "letterSpacing": "0.02em",
            "lineHeight": "18px",
@@ -529,7 +529,7 @@
        },
        {
         "baseStyles": {
-         "color": "#525252",
+         "color": "var(--ink-gray-6)",
          "fontSize": "12px",
          "letterSpacing": "0.02em",
          "lineHeight": "18px",
@@ -597,7 +597,7 @@
  "idx": 0,
  "inputs": [],
  "is_disabled": 0,
- "modified": "2026-09-26 23:56:55.509179",
+ "modified": "2026-09-28 12:34:15.893294",
  "modified_by": "Administrator",
  "name": "borrower_search",
  "owner": "Administrator"

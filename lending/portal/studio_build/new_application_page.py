@@ -11,6 +11,7 @@ from lending.portal.studio_build.blocks import (
 	column,
 	container,
 	fallback,
+	heading,
 	muted,
 	pair_rows,
 	reader,
@@ -181,7 +182,7 @@ def needs_section():
 		[
 			column(
 				[
-					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600"}),
+					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
 					# One expression: Studio renders only the first of several bindings in a string.
 					muted("{{ dataItem.rate + ' ' + dataItem.rate_note + ' · ' + dataItem.kind }}"),
 					muted("Up to {{ dataItem.ceiling }}"),
@@ -301,7 +302,7 @@ def result():
 		"",
 		column(
 			[
-				text("{{ offer.headline }}", tag="h3", size="text-xl", styles={"fontWeight": "600"}),
+				heading("{{ offer.headline }}", tag="h3", size="text-xl"),
 				muted("{{ offer.message }}"),
 				# Hidden when empty, or it would say "Nothing to show" under a holding message.
 				pair_rows("{{ offer.offer }}", data_key="label", visible="{{ offer.offer?.length }}"),

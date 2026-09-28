@@ -67,7 +67,12 @@ def account_card():
 	figures = column(
 		[
 			muted("Outstanding"),
-			text("{{ dataItem.outstanding }}", tag="div", size="text-xl", styles={"fontWeight": "600"}),
+			text(
+				"{{ dataItem.outstanding }}",
+				tag="div",
+				size="text-xl",
+				styles={"fontWeight": "600", "color": "var(--ink-gray-9)"},
+			),
 			muted("{{ dataItem.against }}"),
 			muted(
 				"{{ 'Next due ' + dataItem.next_date + ' · ' + dataItem.next_amount }}",

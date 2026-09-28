@@ -11,6 +11,7 @@ from lending.portal.studio_build.blocks import (
 	column,
 	container,
 	divider,
+	heading,
 	icon,
 	icon_tile,
 	muted,
@@ -68,13 +69,12 @@ BAR_HEIGHT = 54
 TILE = 50
 GLYPH = 26
 
-# Fixed mockup colours, cooler than frappe-ui's greys; safe since the portal has no dark theme.
-INK = "#0a0a0a"
-INTRO = "#4f5d6e"
-NOTE = "#5a616d"
-TAG = "#51575d"
-RULE = "#e7eaec"
-DIVIDER = "#e2e3e6"
+INK = "var(--ink-gray-9)"
+INTRO = "var(--ink-gray-6)"
+NOTE = "var(--ink-gray-6)"
+TAG = "var(--ink-gray-6)"
+RULE = "var(--outline-gray-1)"
+DIVIDER = "var(--outline-gray-1)"
 FORM = {"width": "100%", "maxWidth": "720px", "margin": "0 auto"}
 
 APPLY_SCRIPT = '''\tconst busy = ref(false)
@@ -212,7 +212,7 @@ def action(label, script, **kwargs):
 
 
 def panel(index, title, note, body, back=None, forward=()):
-	head = column([text(title, tag="h2", size="text-2xl", styles={"fontWeight": "600"}), muted(note)], gap="4px")
+	head = column([heading(title, size="text-2xl"), muted(note)], gap="4px")
 	buttons = [*([button("Back", script=f"go({back})")] if back else []), spacer(), *forward]
 	nav = row([sized(part) for part in buttons], gap="8px")
 
@@ -237,7 +237,7 @@ def progress():
 	return column(
 		[
 			block("Progress", props={"value": "{{ (step - 1) / %d * 100 }}" % len(STEPS), "size": "sm"}),
-			text(where, size="text-sm", styles={"color": "var(--ink-gray-7)"}),
+			text(where, size="text-sm", styles={"color": "var(--ink-gray-6)"}),
 		],
 		gap="6px",
 		styles=FORM,
@@ -310,7 +310,7 @@ def tile(label, note, glyph_name, script, chosen):
 		[
 			icon_tile(glyph_name, tile=40, glyph=20),
 			column(
-				[text(label, size="text-base", styles={"fontWeight": "600"}), muted(note)],
+				[text(label, size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}), muted(note)],
 				gap="2px",
 			),
 		],
@@ -527,7 +527,7 @@ def product_panel():
 		[
 			column(
 				[
-					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600"}),
+					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
 					# one expression: Studio renders only the first binding in a string
 					muted("{{ dataItem.rate + ' ' + dataItem.rate_note + ' · ' + dataItem.kind }}"),
 					muted("Up to {{ dataItem.ceiling }}"),
@@ -683,7 +683,7 @@ def offer_panel():
 		"Your indicative offer",
 		"What our rules say about the details you gave us.",
 		[
-			text("{{ offer.headline }}", tag="h3", size="text-xl", styles={"fontWeight": "600"}),
+			heading("{{ offer.headline }}", tag="h3", size="text-xl"),
 			muted("{{ offer.message }}"),
 			# hidden when empty, or the list would show "Nothing to show"
 			pair_rows("{{ offer.offer }}", data_key="label", visible="{{ offer.offer?.length }}"),

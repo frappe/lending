@@ -103,7 +103,7 @@ def step_node():
 	reached = text(
 		"{{ dataItem.short }}",
 		size="text-base",
-		styles=dict(label, color="var(--ink-gray-7)"),
+		styles=dict(label, color="var(--ink-gray-8)"),
 		mobile={"fontSize": "12px"},
 		visible="{{ dataItem.code !== 'pending' }}",
 	)
@@ -159,7 +159,7 @@ def lead_card(read, **kwargs):
 		[
 			row(
 				[
-					text(read("product"), tag="h2", size="text-2xl", styles={"fontWeight": "600"}),
+					text(read("product"), tag="h2", size="text-2xl", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
 					spacer(),
 					muted(read("as_on")),
 				],
@@ -203,7 +203,7 @@ def no_application(read):
 			text(
 				"No applications yet",
 				size="text-base",
-				styles={"fontWeight": "600", "color": "var(--ink-gray-8)"},
+				styles={"fontWeight": "600", "color": "var(--ink-gray-9)"},
 			),
 			muted("Apply for a loan and you can follow it here.", styles={"textAlign": "center"}),
 			button(

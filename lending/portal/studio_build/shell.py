@@ -37,23 +37,28 @@ PALETTE_CSS = f"""
 .dialog-overlay[data-dialog="{PALETTE_TITLE}"] .dialog-content {{
 	max-width: 575px;
 	margin: 28px 0 0;
-	border: 1px solid #ededed;
+	border: 1px solid var(--outline-gray-1);
 	border-radius: 12px;
 	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-	background-color: #fff;
+	background-color: var(--surface-base);
 }}
 """
 
-PALETTE_TEXT = {"fontSize": "13px", "lineHeight": "19.5px", "letterSpacing": "0.02em", "color": "#171717"}
+PALETTE_TEXT = {"fontSize": "13px", "lineHeight": "19.5px", "letterSpacing": "0.02em", "color": "var(--ink-gray-8)"}
 FOOT_TEXT = {
 	"fontSize": "12px",
 	"lineHeight": "18px",
 	"letterSpacing": "0.02em",
-	"color": "#525252",
+	"color": "var(--ink-gray-6)",
 	"whiteSpace": "nowrap",
 }
 
-KEYCAP = {"borderRadius": "4px", "backgroundColor": "#ededed", "color": "#525252", "flexShrink": "0"}
+KEYCAP = {
+	"borderRadius": "4px",
+	"backgroundColor": "var(--surface-gray-3)",
+	"color": "var(--ink-gray-6)",
+	"flexShrink": "0",
+}
 GLYPH_KEY = dict(KEYCAP, width="18px", height="18px", padding="3px", justifyContent="center")
 WORD_KEY = dict(
 	KEYCAP, padding="2px 4px", fontSize="10px", lineHeight="15px", letterSpacing="0.02em", whiteSpace="nowrap"
@@ -101,7 +106,7 @@ def brand(data):
 			justifyContent="center",
 			textTransform="uppercase",
 			backgroundColor="var(--portal-primary, var(--surface-gray-4))",
-			color="var(--portal-primary-ink, var(--ink-gray-7))",
+			color="var(--portal-primary-ink, var(--ink-gray-8))",
 		),
 		visible="{{ %s.show_wordmark }}" % data,
 	)
@@ -182,7 +187,7 @@ def account_menu(data):
 		styles={
 			"flex": "1 1 0%",
 			"minWidth": "0px",
-			"color": "var(--ink-gray-7)",
+			"color": "var(--ink-gray-8)",
 			"overflow": "hidden",
 			"textOverflow": "ellipsis",
 			"whiteSpace": "nowrap",
@@ -445,7 +450,7 @@ def search_tree():
 
 	box = row(
 		[
-			icon("search", size=16, styles={"color": "#525252", "padding": "0 2px 0 10px"}),
+			icon("search", size=16, styles={"color": "var(--ink-gray-6)", "padding": "0 2px 0 10px"}),
 			block(
 				"TextInput",
 				props={
@@ -460,7 +465,7 @@ def search_tree():
 		gap="0px",
 		styles={"height": "28px", "margin": "8px 8px 4px"},
 	)
-	rule = container(styles={"height": "1px", "backgroundColor": "#ededed"})
+	rule = container(styles={"height": "1px", "backgroundColor": "var(--outline-gray-1)"})
 
 	result = row(
 		[
@@ -471,7 +476,7 @@ def search_tree():
 				"{{ dataItem.note }}",
 				styles=dict(
 					PALETTE_TEXT,
-					color="#7c7c7c",
+					color="var(--ink-gray-5)",
 					minWidth="0px",
 					overflow="hidden",
 					textOverflow="ellipsis",
@@ -489,7 +494,7 @@ def search_tree():
 			"padding": "0px 7px",
 			"borderRadius": "8px",
 			"cursor": "pointer",
-			"backgroundColor": "{{ dataIndex === searchIndex ? '#f3f3f3' : 'transparent' }}",
+			"backgroundColor": "{{ dataIndex === searchIndex ? 'var(--surface-gray-2)' : 'transparent' }}",
 		},
 		events={
 			**click("chooseResult(dataItem)"),
@@ -524,7 +529,7 @@ def search_tree():
 			note,
 		],
 		gap="15px",
-		styles={"height": "40px", "padding": "10px", "borderTop": "1px solid #ededed"},
+		styles={"height": "40px", "padding": "10px", "borderTop": "1px solid var(--outline-gray-1)"},
 	)
 
 	return block(

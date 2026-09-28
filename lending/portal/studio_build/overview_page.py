@@ -105,7 +105,7 @@ def application_card():
 				read("application_headline"),
 				tag="div",
 				size="text-2xl",
-				styles={"fontWeight": "600", "padding": "2px 0 4px"},
+				styles={"fontWeight": "600", "padding": "2px 0 4px", "color": "var(--ink-gray-9)"},
 				visible=read("application_headline"),
 			),
 			meta,
@@ -334,7 +334,7 @@ def date_tile():
 
 def schedule():
 	# `sub` is set only when the rows span several loans, see core.name_once.
-	quiet = {"color": "var(--ink-gray-7)", "fontVariantNumeric": "tabular-nums"}
+	quiet = {"color": "var(--ink-gray-6)", "fontVariantNumeric": "tabular-nums"}
 	lines = column(
 		[
 			text(

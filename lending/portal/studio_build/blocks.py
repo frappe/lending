@@ -72,6 +72,7 @@ def root(children, direction="row"):
 				"flexDirection": direction,
 				"width": "100%",
 				"height": "100%",
+				"color": "var(--ink-gray-8)",
 				"overflowX": "hidden",
 				"scrollbarWidth": "thin",
 				"scrollbarColor": "var(--outline-gray-3) transparent",
@@ -114,7 +115,7 @@ def text(value, tag="p", size="text-p-sm", **kwargs):
 
 
 def heading(value, tag="h2", size="text-lg", **kwargs):
-	styles = {"fontWeight": "600"}
+	styles = {"fontWeight": "600", "color": "var(--ink-gray-9)"}
 	styles.update(kwargs.pop("styles", None) or {})
 
 	return text(value, tag=tag, size=size, styles=styles, **kwargs)
@@ -269,7 +270,7 @@ def tile_styles(theme="gray", tile=40):
 		"justifyContent": "center",
 		"borderRadius": "var(--radius-5)",
 		"backgroundColor": f"var(--surface-{theme}-2)",
-		"color": f"var(--ink-{theme}-7)",
+		"color": f"var(--ink-{theme}-8)",
 	}
 
 
@@ -354,7 +355,7 @@ def record_list(columns, items, cells, row_key="name", script=None):
 			block(
 				"ListHeaderCell",
 				children=[
-					text(column[1], size="text-sm", styles={"color": "var(--ink-gray-5)"})
+					text(column[1], size="text-sm", styles={"color": "var(--ink-gray-6)"})
 				],
 				styles=aligned(None, end),
 			)
@@ -420,8 +421,8 @@ FIELD_RULE = 1
 def field_grid(items, with_detail=False, **kwargs):
 	pull = f"{FIELD_INSET + FIELD_RULE}px"
 	body = [
-		text("{{ dataItem.label }}", size="text-sm", styles={"color": "var(--ink-gray-5)"}),
-		text("{{ dataItem.value }}", size="text-base", styles={"color": "var(--ink-gray-9)"}),
+		text("{{ dataItem.label }}", size="text-sm", styles={"color": "var(--ink-gray-6)"}),
+		text("{{ dataItem.value }}", size="text-base", styles={"color": "var(--ink-gray-8)"}),
 	]
 	if with_detail:
 		body.append(muted("{{ dataItem.detail }}", visible="{{ dataItem.detail }}"))
@@ -464,7 +465,7 @@ def tab_strip(tabs, state):
 
 		return container(
 			[
-				text(label, size="text-base", styles=dict(label_style, color="var(--ink-gray-9)"), visible="{{ %s }}" % is_open),
+				text(label, size="text-base", styles=dict(label_style, color="var(--ink-gray-8)"), visible="{{ %s }}" % is_open),
 				text(label, size="text-base", styles=dict(label_style, color="var(--ink-gray-5)"), visible="{{ !(%s) }}" % is_open),
 				container(
 					styles={
@@ -549,7 +550,10 @@ def stat(
 
 	figure = "text-2xl" if icon_name else "text-4xl"
 	note_line = icon_line(note_icon, note) if note_icon else muted(note)
-	body = [text(value, tag="div", size=figure, styles={"fontWeight": "600"}, visible=value), note_line]
+	body = [
+		text(value, tag="div", size=figure, styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}, visible=value),
+		note_line,
+	]
 	if sub:
 		body.append(muted(sub, visible=sub))
 

@@ -2,6 +2,7 @@
  "blocks": [
   {
    "baseStyles": {
+    "color": "var(--ink-gray-8)",
     "display": "flex",
     "flexDirection": "row",
     "height": "100%",
@@ -64,7 +65,7 @@
             "alignItems": "center",
             "backgroundColor": "var(--portal-primary, var(--surface-gray-4))",
             "borderRadius": "6px",
-            "color": "var(--portal-primary-ink, var(--ink-gray-7))",
+            "color": "var(--portal-primary-ink, var(--ink-gray-8))",
             "display": "flex",
             "flexShrink": "0",
             "height": "28px",
@@ -238,7 +239,7 @@
                 },
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "flex": "1 1 0%",
                   "minWidth": "0px",
                   "overflow": "hidden",
@@ -398,6 +399,7 @@
              "children": [
               {
                "baseStyles": {
+                "color": "var(--ink-gray-9)",
                 "fontWeight": "600"
                },
                "children": [],
@@ -536,7 +538,7 @@
              "children": [
               {
                "baseStyles": {
-                "color": "var(--ink-gray-5)"
+                "color": "var(--ink-gray-6)"
                },
                "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container1-textblock1",
@@ -593,7 +595,7 @@
              "children": [
               {
                "baseStyles": {
-                "color": "var(--ink-gray-5)"
+                "color": "var(--ink-gray-6)"
                },
                "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container2-textblock1",
@@ -650,7 +652,7 @@
              "children": [
               {
                "baseStyles": {
-                "color": "var(--ink-gray-5)"
+                "color": "var(--ink-gray-6)"
                },
                "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container3-textblock1",
@@ -708,7 +710,7 @@
              "children": [
               {
                "baseStyles": {
-                "color": "var(--ink-gray-5)"
+                "color": "var(--ink-gray-6)"
                },
                "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container4-textblock1",
@@ -784,6 +786,7 @@
            "children": [
             {
              "baseStyles": {
+              "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
              "children": [],
@@ -846,7 +849,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell1-textblock1",
@@ -865,7 +868,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell2-textblock1",
@@ -884,7 +887,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell3-textblock1",
@@ -903,7 +906,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell4-textblock1",
@@ -1225,7 +1228,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-27 00:22:56.925877",
+ "modified": "2026-09-28 12:35:22.094469",
  "modified_by": "Administrator",
  "name": "interest_certificate",
  "owner": "Administrator",

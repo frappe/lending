@@ -201,7 +201,7 @@ class TermCell:
 			self.read(f"terms.{key}"),
 			tag="div",
 			size="text-xl",
-			styles={"fontWeight": "600", "fontVariantNumeric": "tabular-nums"},
+			styles={"fontWeight": "600", "fontVariantNumeric": "tabular-nums", "color": "var(--ink-gray-9)"},
 		)
 		if not glyph:
 			return figure
@@ -224,7 +224,7 @@ def payoff_card(read):
 	)
 	figure = column(
 		[
-			text("Outstanding amount", size="text-sm", styles={"color": "var(--ink-gray-8)"}),
+			text("Outstanding amount", size="text-sm", styles={"color": "var(--ink-gray-6)"}),
 			text(read("payoff_total"), tag="div", size="text-3xl", styles=PAYOFF_FIGURE),
 			text(read("payoff_note"), size="text-sm", styles={"marginTop": "4px", "color": "var(--ink-gray-5)"}),
 		],
@@ -279,7 +279,7 @@ def charges_empty(charges):
 			text(
 				"No charges on this loan",
 				size="text-base",
-				styles={"fontWeight": "600", "color": "var(--ink-gray-8)"},
+				styles={"fontWeight": "600", "color": "var(--ink-gray-9)"},
 			),
 			muted("Any processing fees or other charges will appear here.", styles={"textAlign": "center"}),
 		],

@@ -2,6 +2,7 @@
  "blocks": [
   {
    "baseStyles": {
+    "color": "var(--ink-gray-8)",
     "display": "flex",
     "flexDirection": "row",
     "height": "100%",
@@ -64,7 +65,7 @@
             "alignItems": "center",
             "backgroundColor": "var(--portal-primary, var(--surface-gray-4))",
             "borderRadius": "6px",
-            "color": "var(--portal-primary-ink, var(--ink-gray-7))",
+            "color": "var(--portal-primary-ink, var(--ink-gray-8))",
             "display": "flex",
             "flexShrink": "0",
             "height": "28px",
@@ -238,7 +239,7 @@
                 },
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-7)",
+                  "color": "var(--ink-gray-8)",
                   "flex": "1 1 0%",
                   "minWidth": "0px",
                   "overflow": "hidden",
@@ -408,6 +409,7 @@
                "children": [
                 {
                  "baseStyles": {
+                  "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
                  "children": [],
@@ -570,7 +572,7 @@
                   },
                   {
                    "baseStyles": {
-                    "color": "var(--ink-gray-7)",
+                    "color": "var(--ink-gray-8)",
                     "left": "50%",
                     "position": "absolute",
                     "top": "calc(100% + 8px)",
@@ -719,6 +721,7 @@
            "children": [
             {
              "baseStyles": {
+              "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
              "children": [],
@@ -777,7 +780,7 @@
                "children": [
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-9)",
+                  "color": "var(--ink-gray-8)",
                   "whiteSpace": "nowrap"
                  },
                  "children": [],
@@ -843,7 +846,7 @@
                "children": [
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-9)",
+                  "color": "var(--ink-gray-8)",
                   "whiteSpace": "nowrap"
                  },
                  "children": [],
@@ -909,7 +912,7 @@
                "children": [
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-9)",
+                  "color": "var(--ink-gray-8)",
                   "whiteSpace": "nowrap"
                  },
                  "children": [],
@@ -975,7 +978,7 @@
                "children": [
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-9)",
+                  "color": "var(--ink-gray-8)",
                   "whiteSpace": "nowrap"
                  },
                  "children": [],
@@ -1065,7 +1068,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container2-container1-repeater1-container1-textblock1",
@@ -1078,7 +1081,7 @@
                     },
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-9)"
+                      "color": "var(--ink-gray-8)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container2-container1-repeater1-container1-textblock2",
@@ -1149,7 +1152,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container3-container1-repeater1-container1-textblock1",
@@ -1162,7 +1165,7 @@
                     },
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-9)"
+                      "color": "var(--ink-gray-8)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container3-container1-repeater1-container1-textblock2",
@@ -1233,7 +1236,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container4-container1-repeater1-container1-textblock1",
@@ -1246,7 +1249,7 @@
                     },
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-9)"
+                      "color": "var(--ink-gray-8)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container4-container1-repeater1-container1-textblock2",
@@ -1331,7 +1334,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-5)"
+                      "color": "var(--ink-gray-6)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container5-container1-repeater1-container1-textblock1",
@@ -1344,7 +1347,7 @@
                     },
                     {
                      "baseStyles": {
-                      "color": "var(--ink-gray-9)"
+                      "color": "var(--ink-gray-8)"
                      },
                      "children": [],
                      "componentId": "applications-0-container1-container1-container2-container2-container5-container1-repeater1-container1-textblock2",
@@ -1427,7 +1430,7 @@
             "alignItems": "center",
             "backgroundColor": "var(--surface-gray-2)",
             "borderRadius": "var(--radius-5)",
-            "color": "var(--ink-gray-7)",
+            "color": "var(--ink-gray-8)",
             "display": "flex",
             "flex": "0 0 auto",
             "height": "40px",
@@ -1444,7 +1447,7 @@
           },
           {
            "baseStyles": {
-            "color": "var(--ink-gray-8)",
+            "color": "var(--ink-gray-9)",
             "fontWeight": "600"
            },
            "children": [],
@@ -1553,7 +1556,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-27 00:22:56.725943",
+ "modified": "2026-09-28 12:35:21.959682",
  "modified_by": "Administrator",
  "name": "loan_application",
  "owner": "Administrator",

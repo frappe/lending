@@ -6,7 +6,7 @@
  "doctype": "Studio App",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-27 00:22:56.203758",
+ "modified": "2026-09-28 12:35:21.568351",
  "modified_by": "Administrator",
  "name": "borrower-portal",
  "owner": "Administrator",

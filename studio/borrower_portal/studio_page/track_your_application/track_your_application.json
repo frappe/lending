@@ -3,6 +3,7 @@
  "blocks": [
   {
    "baseStyles": {
+    "color": "var(--ink-gray-8)",
     "display": "flex",
     "flexDirection": "column",
     "height": "100%",
@@ -371,7 +372,7 @@
                 "alignItems": "center",
                 "backgroundColor": "var(--surface-gray-2)",
                 "borderRadius": "var(--radius-5)",
-                "color": "var(--ink-gray-7)",
+                "color": "var(--ink-gray-8)",
                 "display": "flex",
                 "flex": "0 0 auto",
                 "height": "48px",
@@ -387,6 +388,7 @@
               },
               {
                "baseStyles": {
+                "color": "var(--ink-gray-9)",
                 "fontWeight": "600"
                },
                "children": [],
@@ -694,7 +696,7 @@
                 "alignItems": "center",
                 "backgroundColor": "var(--surface-gray-2)",
                 "borderRadius": "var(--radius-5)",
-                "color": "var(--ink-gray-7)",
+                "color": "var(--ink-gray-8)",
                 "display": "flex",
                 "flex": "0 0 auto",
                 "height": "48px",
@@ -719,6 +721,7 @@
                "children": [
                 {
                  "baseStyles": {
+                  "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
                  "children": [],
@@ -1150,7 +1153,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-27 00:22:57.074416",
+ "modified": "2026-09-28 12:35:22.199864",
  "modified_by": "Administrator",
  "name": "track_your_application",
  "owner": "Administrator",

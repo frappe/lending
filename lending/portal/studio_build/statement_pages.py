@@ -98,7 +98,7 @@ def summary_strip(read):
 
 
 def ledger(read):
-	amount = {"size": "text-base", "styles": dict(AMOUNT, color="var(--ink-gray-7)")}
+	amount = {"size": "text-base", "styles": dict(AMOUNT, color="var(--ink-gray-8)")}
 	table = record_list(
 		[
 			("minmax(104px, 0.8fr)", "Date"),
@@ -125,7 +125,11 @@ def ledger_empty(read):
 	return column(
 		[
 			icon_tile("file", "gray", styles={"marginBottom": "8px"}),
-			text("No transactions in this period", size="text-base", styles={"fontWeight": "600"}),
+			text(
+				"No transactions in this period",
+				size="text-base",
+				styles={"fontWeight": "600", "color": "var(--ink-gray-9)"},
+			),
 			muted("Pick a wider range above to see earlier entries.", styles={"textAlign": "center"}),
 		],
 		gap="4px",
@@ -231,7 +235,7 @@ FIGURE_INSET = 20
 def figure_cell(title, value, note, **kwargs):
 	return column(
 		[
-			text(title, size="text-sm", styles={"color": "var(--ink-gray-5)"}),
+			text(title, size="text-sm", styles={"color": "var(--ink-gray-6)"}),
 			text(value, tag="div", size="text-2xl", styles=FIGURE),
 			muted(note),
 		],
