@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-20 13:38+0000\n"
-"PO-Revision-Date: 2026-09-21 18:29\n"
+"POT-Creation-Date: 2026-09-27 14:47+0000\n"
+"PO-Revision-Date: 2026-09-28 20:40\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -933,6 +933,14 @@ msgstr "crwdns162334:0crwdne162334:0"
 msgid "Bank Account"
 msgstr "crwdns162336:0crwdne162336:0"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
+msgid "Bank Transaction {0} is already fully reconciled"
+msgstr "crwdns271725:0{0}crwdne271725:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
+msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
+msgstr "crwdns271727:0{0}crwdnd271727:0{1}crwdnd271727:0{2}crwdnd271727:0{3}crwdne271727:0"
+
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
@@ -996,13 +1004,6 @@ msgstr "crwdns204119:0crwdne204119:0"
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Both Fixed Deposit and Corporate Guarantee"
 msgstr "crwdns162344:0crwdne162344:0"
-
-#. Label of the branch (Link) field in DocType 'Loan Restructure Limit Log'
-#. Label of a Link in the Lending Workspace
-#: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/workspace/lending/lending.json
-msgid "Branch"
-msgstr "crwdns162346:0crwdne162346:0"
 
 #. Label of the branch_details_section (Section Break) field in DocType 'Loan
 #. Transfer'
@@ -1212,6 +1213,10 @@ msgstr "crwdns162392:0crwdne162392:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Charge Payment"
 msgstr "crwdns162394:0crwdne162394:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
+msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
+msgstr "crwdns271729:0crwdne271729:0"
 
 #. Label of the charge_type (Link) field in DocType 'Loan Charges'
 #. Label of the charge_type (Link) field in DocType 'Loan Partner Adhoc Charges
@@ -1573,6 +1578,10 @@ msgstr "crwdns162464:0crwdne162464:0"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Cost Center"
 msgstr "crwdns162466:0crwdne162466:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
+msgid "Cost Center {0} does not belong to company {1}"
+msgstr "crwdns271731:0{0}crwdnd271731:0{1}crwdne271731:0"
 
 #: lending/loan_management/doctype/loan/loan.py:202
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
@@ -2949,11 +2958,6 @@ msgstr "crwdns162792:0crwdne162792:0"
 msgid "Limit Renewal"
 msgstr "crwdns162794:0crwdne162794:0"
 
-#. Label of the limits_section (Section Break) field in DocType 'Loan Product'
-#: lending/loan_management/doctype/loan_product/loan_product.json
-msgid "Limits"
-msgstr "crwdns162796:0crwdne162796:0"
-
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -3034,6 +3038,7 @@ msgstr "crwdns267909:0crwdne267909:0"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
+#: lending/public/js/bank_reconciliation_tool.js:15
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "crwdns162800:0crwdne162800:0"
@@ -3370,6 +3375,7 @@ msgstr "crwdns162886:0crwdne162886:0"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:112
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:52
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/public/js/bank_reconciliation_tool.js:56
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Disbursement"
 msgstr "crwdns162888:0crwdne162888:0"
@@ -3391,6 +3397,10 @@ msgstr "crwdns162892:0crwdne162892:0"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:26
 msgid "Loan Disbursement ID"
 msgstr "crwdns204209:0crwdne204209:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
+msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
+msgstr "crwdns271733:0{0}crwdnd271733:0{1}crwdne271733:0"
 
 #. Label of a Link in the Lending Workspace
 #. Name of a DocType
@@ -3802,6 +3812,10 @@ msgstr "crwdns162974:0crwdne162974:0"
 msgid "Loan Repayment and Closure"
 msgstr "crwdns162976:0crwdne162976:0"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
+msgid "Loan Repayment can only be created against a deposit"
+msgstr "crwdns271735:0crwdne271735:0"
+
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
@@ -4171,6 +4185,18 @@ msgstr "crwdns163056:0crwdne163056:0"
 msgid "Loan {0} closed"
 msgstr "crwdns163058:0{0}crwdne163058:0"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
+msgid "Loan {0} does not belong to the company of Bank Account {1}"
+msgstr "crwdns271737:0{0}crwdnd271737:0{1}crwdne271737:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
+msgid "Loan {0} does not exist"
+msgstr "crwdns271739:0{0}crwdne271739:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
+msgid "Loan {0} must be submitted"
+msgstr "crwdns271741:0{0}crwdne271741:0"
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "crwdns204229:0{0}crwdnd204229:0{1}crwdne204229:0"
@@ -4189,11 +4215,6 @@ msgstr "crwdns163060:0crwdne163060:0"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
 msgstr "crwdns163062:0crwdne163062:0"
-
-#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
-#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
-msgid "Manual"
-msgstr "crwdns270689:0crwdne270689:0"
 
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
@@ -4363,6 +4384,10 @@ msgstr "crwdns204235:0crwdne204235:0"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Mode Of Payment"
 msgstr "crwdns163092:0crwdne163092:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
+msgid "Mode of Payment {0} does not exist"
+msgstr "crwdns271743:0{0}crwdne271743:0"
 
 #. Label of the month_end_date (Date) field in DocType 'Process Loan
 #. Accounting'
@@ -5466,6 +5491,10 @@ msgstr "crwdns163376:0crwdne163376:0"
 msgid "Posting Date (End Date)"
 msgstr "crwdns163378:0crwdne163378:0"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
+msgid "Posting Date and Reference Date must be valid dates"
+msgstr "crwdns271745:0crwdne271745:0"
+
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -5945,6 +5974,10 @@ msgstr "crwdns163468:0crwdne163468:0"
 msgid "Reference Number"
 msgstr "crwdns163470:0crwdne163470:0"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
+msgid "Reference Number cannot be longer than 140 characters"
+msgstr "crwdns271747:0crwdne271747:0"
+
 #. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6222,8 +6255,13 @@ msgstr "crwdns204295:0{0}crwdnd204295:0{1}crwdne204295:0"
 
 #. Label of the repayment_type (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
+#: lending/public/js/bank_reconciliation_tool.js:39
 msgid "Repayment Type"
 msgstr "crwdns163544:0crwdne163544:0"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
+msgid "Repayment Type {0} cannot be created from a Bank Transaction"
+msgstr "crwdns271749:0{0}crwdne271749:0"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
@@ -6768,11 +6806,6 @@ msgstr "crwdns163670:0crwdne163670:0"
 msgid "Terms and Conditions"
 msgstr "crwdns239947:0crwdne239947:0"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
-msgid "Test Run"
-msgstr "crwdns270825:0crwdne270825:0"
-
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "crwdns163672:0{0}crwdne163672:0"
@@ -6781,11 +6814,11 @@ msgstr "crwdns163672:0{0}crwdne163672:0"
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "crwdns244535:0{0}crwdnd244535:0{1}crwdne244535:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "crwdns163676:0crwdne163676:0"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
 msgstr "crwdns163678:0crwdne163678:0"
 
