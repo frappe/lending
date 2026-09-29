@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-20 13:38+0000\n"
-"PO-Revision-Date: 2026-09-23 19:01\n"
+"POT-Creation-Date: 2026-09-27 14:47+0000\n"
+"PO-Revision-Date: 2026-09-28 20:39\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -948,6 +948,14 @@ msgstr "Bank"
 msgid "Bank Account"
 msgstr "Bank Konto"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
+msgid "Bank Transaction {0} is already fully reconciled"
+msgstr "Bank Transaktion {0} är redan helt avstämd"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
+msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
+msgstr ""
+
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
@@ -1011,13 +1019,6 @@ msgstr "Låntagare Portal"
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Both Fixed Deposit and Corporate Guarantee"
 msgstr "Både Fast Insättning och Bolag Garanti"
-
-#. Label of the branch (Link) field in DocType 'Loan Restructure Limit Log'
-#. Label of a Link in the Lending Workspace
-#: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/workspace/lending/lending.json
-msgid "Branch"
-msgstr "Bransch"
 
 #. Label of the branch_details_section (Section Break) field in DocType 'Loan
 #. Transfer'
@@ -1227,6 +1228,10 @@ msgstr "Avgift Kod"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Charge Payment"
 msgstr "Avgift Betalning"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
+msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
+msgstr ""
 
 #. Label of the charge_type (Link) field in DocType 'Loan Charges'
 #. Label of the charge_type (Link) field in DocType 'Loan Partner Adhoc Charges
@@ -1588,6 +1593,10 @@ msgstr "Endast Bolag Garanti"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Cost Center"
 msgstr "Resultat Enheter"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
+msgid "Cost Center {0} does not belong to company {1}"
+msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:202
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
@@ -2964,11 +2973,6 @@ msgstr "Procentuell Gräns"
 msgid "Limit Renewal"
 msgstr "Gräns Förnyelse"
 
-#. Label of the limits_section (Section Break) field in DocType 'Loan Product'
-#: lending/loan_management/doctype/loan_product/loan_product.json
-msgid "Limits"
-msgstr "Gränser"
-
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -3049,6 +3053,7 @@ msgstr "Aktuell Lånegräns"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
+#: lending/public/js/bank_reconciliation_tool.js:15
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "Lån"
@@ -3385,6 +3390,7 @@ msgstr "Lån Detaljer"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:112
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:52
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/public/js/bank_reconciliation_tool.js:56
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Disbursement"
 msgstr "Utbetalning"
@@ -3406,6 +3412,10 @@ msgstr "Låneutbetalning Avgifter"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:26
 msgid "Loan Disbursement ID"
 msgstr "Lån Utbetalning ID"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
+msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
+msgstr ""
 
 #. Label of a Link in the Lending Workspace
 #. Name of a DocType
@@ -3817,6 +3827,10 @@ msgstr "Återbetalning Typ"
 msgid "Loan Repayment and Closure"
 msgstr "Återbetalning & Avslut"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
+msgid "Loan Repayment can only be created against a deposit"
+msgstr ""
+
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
@@ -4186,6 +4200,18 @@ msgstr "Ej Presterande Tillgång"
 msgid "Loan {0} closed"
 msgstr "Lån {0} stängd"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
+msgid "Loan {0} does not belong to the company of Bank Account {1}"
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
+msgid "Loan {0} does not exist"
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
+msgid "Loan {0} must be submitted"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "Lån {0}: Kan inte bokföras {1} efter full förlikning. Endast Ränta, Straff eller Avgift Avskrivning kan bokföras efter Full Förlikning."
@@ -4204,11 +4230,6 @@ msgstr "Lån"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
 msgstr "Lån kommer att anges som Ej Presterande Tillgång när antal förfallna dagar överstiger detta tröskelvärde"
-
-#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
-#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
-msgid "Manual"
-msgstr "Manuell"
 
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
@@ -4378,6 +4399,10 @@ msgstr "Mobilnummer Verifiering Status"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Mode Of Payment"
 msgstr "Betalning Sätt"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
+msgid "Mode of Payment {0} does not exist"
+msgstr ""
 
 #. Label of the month_end_date (Date) field in DocType 'Process Loan
 #. Accounting'
@@ -5481,6 +5506,10 @@ msgstr "Registrering Datum"
 msgid "Posting Date (End Date)"
 msgstr "Registrering Datum (Slutdatum)"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
+msgid "Posting Date and Reference Date must be valid dates"
+msgstr ""
+
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -5960,6 +5989,10 @@ msgstr "Referens Nummer. "
 msgid "Reference Number"
 msgstr "Referens Nummer"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
+msgid "Reference Number cannot be longer than 140 characters"
+msgstr ""
+
 #. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6237,8 +6270,13 @@ msgstr "Återbetalning Start Datum {0} får inte infalla före Utbetalning Datum
 
 #. Label of the repayment_type (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
+#: lending/public/js/bank_reconciliation_tool.js:39
 msgid "Repayment Type"
 msgstr "Återbetalning Typ"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
+msgid "Repayment Type {0} cannot be created from a Bank Transaction"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
@@ -6783,11 +6821,6 @@ msgstr "Villkor Detaljer"
 msgid "Terms and Conditions"
 msgstr "Regler och Villkor"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
-msgid "Test Run"
-msgstr "Test Kör"
-
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "Låneutbetalning {0} är avslutad."
@@ -6796,11 +6829,11 @@ msgstr "Låneutbetalning {0} är avslutad."
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "Betald belopp ({0}) kan inte vara högre än belopp som ska betalas ({1}) för återbetalning av Säkerhet Deposition Justering."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
