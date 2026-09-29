@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-20 13:38+0000\n"
-"PO-Revision-Date: 2026-09-21 18:28\n"
+"POT-Creation-Date: 2026-09-27 14:47+0000\n"
+"PO-Revision-Date: 2026-09-28 20:40\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Chinese Traditional\n"
 "MIME-Version: 1.0\n"
@@ -936,6 +936,14 @@ msgstr "銀行"
 msgid "Bank Account"
 msgstr "銀行戶頭"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
+msgid "Bank Transaction {0} is already fully reconciled"
+msgstr "銀行交易{0}已完全對帳"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
+msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
+msgstr ""
+
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
@@ -999,13 +1007,6 @@ msgstr "借款人入口網站"
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Both Fixed Deposit and Corporate Guarantee"
 msgstr "定期存款與公司擔保並用"
-
-#. Label of the branch (Link) field in DocType 'Loan Restructure Limit Log'
-#. Label of a Link in the Lending Workspace
-#: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/workspace/lending/lending.json
-msgid "Branch"
-msgstr "分支機構（分公司）"
 
 #. Label of the branch_details_section (Section Break) field in DocType 'Loan
 #. Transfer'
@@ -1215,6 +1216,10 @@ msgstr "費用代碼"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Charge Payment"
 msgstr "費用付款"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
+msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
+msgstr ""
 
 #. Label of the charge_type (Link) field in DocType 'Loan Charges'
 #. Label of the charge_type (Link) field in DocType 'Loan Partner Adhoc Charges
@@ -1576,6 +1581,10 @@ msgstr "僅公司擔保"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Cost Center"
 msgstr "成本中心"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
+msgid "Cost Center {0} does not belong to company {1}"
+msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:202
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
@@ -2952,11 +2961,6 @@ msgstr "額度百分比"
 msgid "Limit Renewal"
 msgstr "額度續約"
 
-#. Label of the limits_section (Section Break) field in DocType 'Loan Product'
-#: lending/loan_management/doctype/loan_product/loan_product.json
-msgid "Limits"
-msgstr "額度"
-
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -3037,6 +3041,7 @@ msgstr "有效貸款上限"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
+#: lending/public/js/bank_reconciliation_tool.js:15
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "借款"
@@ -3373,6 +3378,7 @@ msgstr "貸款明細"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:112
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:52
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/public/js/bank_reconciliation_tool.js:56
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Disbursement"
 msgstr "貸款撥款"
@@ -3394,6 +3400,10 @@ msgstr "貸款撥款費用"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:26
 msgid "Loan Disbursement ID"
 msgstr "貸款撥款 ID"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
+msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
+msgstr ""
 
 #. Label of a Link in the Lending Workspace
 #. Name of a DocType
@@ -3805,6 +3815,10 @@ msgstr "貸款還款類型"
 msgid "Loan Repayment and Closure"
 msgstr "貸款還款與結清"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
+msgid "Loan Repayment can only be created against a deposit"
+msgstr ""
+
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
@@ -4174,6 +4188,18 @@ msgstr "此貸款為不良資產"
 msgid "Loan {0} closed"
 msgstr "貸款 {0} 已結清"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
+msgid "Loan {0} does not belong to the company of Bank Account {1}"
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
+msgid "Loan {0} does not exist"
+msgstr ""
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
+msgid "Loan {0} must be submitted"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
 msgstr "貸款 {0}：全額清償後無法過帳 {1}。全額清償後僅可過帳利息、罰款或費用豁免。"
@@ -4192,11 +4218,6 @@ msgstr "貸款"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Loans will be marked as NPA when the days past due count exceed this threshold"
 msgstr "當逾期天數超過此門檻時，貸款將被標記為不良資產 (NPA)"
-
-#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
-#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
-msgid "Manual"
-msgstr "手動"
 
 #. Option for the 'Foreclosure Type' (Select) field in DocType 'Loan
 #. Adjustment'
@@ -4366,6 +4387,10 @@ msgstr "手機驗證狀態"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Mode Of Payment"
 msgstr "付款方式"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
+msgid "Mode of Payment {0} does not exist"
+msgstr ""
 
 #. Label of the month_end_date (Date) field in DocType 'Process Loan
 #. Accounting'
@@ -5469,6 +5494,10 @@ msgstr "記帳日期"
 msgid "Posting Date (End Date)"
 msgstr "過帳日期（結束日期）"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
+msgid "Posting Date and Reference Date must be valid dates"
+msgstr ""
+
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -5948,6 +5977,10 @@ msgstr "參考編號"
 msgid "Reference Number"
 msgstr "參考號碼"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
+msgid "Reference Number cannot be longer than 140 characters"
+msgstr ""
+
 #. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6225,8 +6258,13 @@ msgstr "還款起始日期 {0} 不可早於撥款日期 {1}"
 
 #. Label of the repayment_type (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
+#: lending/public/js/bank_reconciliation_tool.js:39
 msgid "Repayment Type"
 msgstr "還款類型"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
+msgid "Repayment Type {0} cannot be created from a Bank Transaction"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
@@ -6771,11 +6809,6 @@ msgstr "條款資訊"
 msgid "Terms and Conditions"
 msgstr "條款和條件"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:25
-#: lending/loan_origination/doctype/loan_decision/loan_decision.js:47
-msgid "Test Run"
-msgstr ""
-
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
 msgstr "貸款撥款 {0} 已結清。"
@@ -6784,11 +6817,11 @@ msgstr "貸款撥款 {0} 已結清。"
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "保證金調整還款的已付金額（{0}）不得大於應付金額（{1}）。"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "下列撥款不存在或尚未提交：{}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
 msgstr "下列貸款不存在：{}"
 
