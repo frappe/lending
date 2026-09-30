@@ -1105,7 +1105,9 @@ class LoanRepaymentSchedule(Document):
 		principal_share_percentage,
 		interest_share_percentage,
 	):
-		interest_amount = flt(balance_amount * flt(rate_of_interest) * additional_days / (365 * 100))
+		interest_amount = flt(
+			balance_amount * flt(rate_of_interest) * cint(additional_days) / (365 * 100)
+		)
 
 		bpi_recovery_method = frappe.db.get_value(
 			"Loan Product", self.loan_product, "bpi_recovery_method"
