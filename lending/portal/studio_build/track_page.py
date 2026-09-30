@@ -267,7 +267,7 @@ def track_result():
 		[
 			icon("info", size=16, styles={"color": "var(--ink-gray-5)"}),
 			muted("{{ result.reference_note }}", styles={"flex": "1 1 auto"}),
-			button("Log in", script="window.location.href = '/login'", variant="outline", props={"size": "md"}),
+			button("Log in", script="open('/login')", variant="outline", props={"size": "md"}),
 		],
 		gap="10px",
 		styles={"paddingTop": "20px", "borderTop": "1px solid var(--outline-gray-1)"},

@@ -9,6 +9,7 @@ from lending.portal.studio_build import (
 	application_pages,
 	apply_page,
 	loan_pages,
+	login_page,
 	merge,
 	new_application_page,
 	overview_page,
@@ -35,6 +36,7 @@ def build(reset=False):
 			profile_page.build(),
 			apply_page.build(),
 			track_page.build(),
+			login_page.build(),
 		]
 
 	print(f"built {len(pages)} Studio pages under /{app.APP_NAME}")

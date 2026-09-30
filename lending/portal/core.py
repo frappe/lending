@@ -104,11 +104,16 @@ def as_administrator():
 
 
 def assert_owns(doctype: str, name: str) -> str:
-	applicant = frappe.db.get_value(doctype, name, "applicant")
-	if not applicant or applicant not in get_portal_customers():
+	# applicant is a Dynamic Link: an Employee ID can equal a Customer name the borrower chose.
+	record = frappe.db.get_value(doctype, name, ["applicant_type", "applicant"], as_dict=True)
+	if (
+		not record
+		or record.applicant_type != "Customer"
+		or record.applicant not in get_portal_customers()
+	):
 		raise frappe.PermissionError(_("Not permitted"))
 
-	return applicant
+	return record.applicant
 
 
 def clean(value) -> str:
@@ -330,7 +335,6 @@ def application_lead(applications: list[dict]) -> dict:
 			"application_headline": "",
 			"application_stage": "",
 			"application_stage_tone": "",
-			"application_with_us": False,
 			"application_date_label": "",
 			"application_date": "",
 			"application_note": _("Nothing in progress"),
@@ -345,8 +349,6 @@ def application_lead(applications: list[dict]) -> dict:
 		"application_headline": first["product"],
 		"application_stage": first["stage"],
 		"application_stage_tone": first["stage_tone"],
-		# Under review is the one stage with no tone.
-		"application_with_us": not first["stage_tone"],
 		"application_date_label": _("Initiated"),
 		"application_date": first["initiated_date"],
 		"application_note": first["note"],
@@ -368,7 +370,6 @@ def enquiry_lead(lead: dict | None) -> dict:
 		"application_headline": lead.loan_product,
 		"application_stage": tracker_stage(lead),
 		"application_stage_tone": "warn" if declined else "info" if with_us else "ok",
-		"application_with_us": with_us,
 		"application_date_label": _("Started"),
 		"application_date": short_date(lead.creation),
 		"application_note": "" if declined else _("Your loan application process has started"),
@@ -487,7 +488,7 @@ def get_loans(customers: list[str]) -> list[dict]:
 	"""Never select WITHHELD_FROM_BORROWER fields here."""
 	return frappe.get_all(
 		"Loan",
-		filters={"applicant": ["in", customers], "docstatus": 1},
+		filters={"applicant_type": "Customer", "applicant": ["in", customers], "docstatus": 1},
 		fields=[
 			"name",
 			"applicant",
@@ -814,7 +815,12 @@ def tracker_stage(lead: dict) -> str:
 def get_applications(customers: list[str]) -> list[dict]:
 	rows = frappe.get_all(
 		"Loan Application",
-		filters={"applicant": ["in", customers], "status": "Open", "docstatus": ["<", 2]},
+		filters={
+			"applicant_type": "Customer",
+			"applicant": ["in", customers],
+			"status": "Open",
+			"docstatus": ["<", 2],
+		},
 		fields=["name", "loan_product", "loan_amount", "status", "posting_date", "docstatus"],
 		order_by="posting_date desc",
 	)
@@ -975,7 +981,7 @@ def submission_times(applications: list[str]) -> dict:
 def milestone_events(customers: list[str], loans: list[dict], limit: int) -> list[dict]:
 	applications = frappe.get_all(
 		"Loan Application",
-		filters={"applicant": ["in", customers], "docstatus": ["<", 2]},
+		filters={"applicant_type": "Customer", "applicant": ["in", customers], "docstatus": ["<", 2]},
 		fields=["name", "loan_product", "creation", "posting_date", "docstatus"],
 		order_by="creation desc",
 		limit=limit,

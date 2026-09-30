@@ -12,6 +12,7 @@ from lending.portal.studio_build.blocks import (
 	container,
 	fallback,
 	heading,
+	input_props,
 	muted,
 	pair_rows,
 	reader,
@@ -273,7 +274,7 @@ def box(label, ref_name, kind, who, required):
 	return block(
 		"FormControl",
 		props={
-			"type": kind,
+			**input_props(kind),
 			"label": label,
 			"size": "md",
 			"variant": "subtle",

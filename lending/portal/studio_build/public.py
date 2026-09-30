@@ -20,9 +20,6 @@ MARK = {"width": "26px", "height": "26px", "flexShrink": "0", "borderRadius": "6
 
 LINK_TEXT = {"fontSize": "15px", "lineHeight": "20px", "letterSpacing": "0em"}
 
-# Served by the site, not the app router; a bare app route like /track is the Builder page.
-SITE_ROUTES = {"/login"}
-
 
 def page(read, links, body, width="720px", padding="clamp(16px, 3.6vh, 40px) 20px"):
 	well = container(
@@ -59,23 +56,23 @@ def page(read, links, body, width="720px", padding="clamp(16px, 3.6vh, 40px) 20p
 	)
 
 
-def mark(read):
+def mark(read, frame=MARK, letter_size="15px"):
 	# Both rendered, one visible: the page is built once but Lending Settings is read per request.
 	logo = block(
 		"ImageView",
 		props={"image": read("brand_logo"), "alt": "", "shape": "square", "size": "lg"},
-		styles=dict(MARK, overflow="hidden"),
+		styles=dict(frame, overflow="hidden"),
 		visible=read("brand_logo"),
 	)
 	letter = text(
 		"{{ (%s || '').charAt(0) }}" % read("brand_name")[2:-2].strip(),
 		size="text-base",
 		styles=dict(
-			MARK,
+			frame,
 			display="flex",
 			alignItems="center",
 			justifyContent="center",
-			fontSize="15px",
+			fontSize=letter_size,
 			fontWeight="700",
 			textTransform="uppercase",
 			backgroundColor="var(--portal-primary, var(--ink-gray-9))",
@@ -93,11 +90,9 @@ def link_button(label, href, glyph=None, variant="ghost"):
 	if glyph:
 		slots.update(slot("prefix", [icon(glyph, size=18)]))
 
-	go = f"window.location.href = '{href}'" if href in SITE_ROUTES else f"open('{href}')"
-
 	return button(
 		label,
-		script=go,
+		script=f"open('{href}')",
 		variant=variant,
 		props={"size": "md"},
 		slots=slots,

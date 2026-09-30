@@ -173,7 +173,7 @@
           "click": {
            "action": "Run Script",
            "event": "click",
-           "script": "window.location.href = '/login'"
+           "script": "open('/login')"
           }
          },
          "componentId": "track-0-container1-container1-button2",
@@ -1086,7 +1086,7 @@
                 "click": {
                  "action": "Run Script",
                  "event": "click",
-                 "script": "window.location.href = '/login'"
+                 "script": "open('/login')"
                 }
                },
                "componentId": "track-0-container1-container2-container2-container1-container3-button1",
@@ -1153,7 +1153,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-28 12:35:22.199864",
+ "modified": "2026-09-29 12:54:32.344582",
  "modified_by": "Administrator",
  "name": "track_your_application",
  "owner": "Administrator",

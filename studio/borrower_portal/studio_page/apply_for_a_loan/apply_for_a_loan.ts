@@ -13,8 +13,9 @@ export default function setup(context: any) {
 	const mobileNumber = ref("")
 	const otp = ref("")
 	const employmentType = ref("Salaried")
-	const password = ref("")
-	const confirmPassword = ref("")
+	const accountOtp = ref("")
+	const accountCodeSent = ref(false)
+	const accountNote = ref("")
 	const companyName = ref("")
 	const applicantName = ref("")
 	const dateOfBirth = ref("")
@@ -126,17 +127,44 @@ export default function setup(context: any) {
 			.finally(() => { busy.value = false })
 	}
 
-	const createAccount = () => {
+	const sendAccountCode = () => {
+		if (busy.value) return
 		busy.value = true
-		call("lending.portal.apply.create_account", {
-			token: accountToken.value,
-			password: password.value,
-			confirm_password: confirmPassword.value,
-		})
-			.then(() => { window.location.href = "/borrower-portal/overview" })
+		call("lending.portal.apply.send_account_code", { token: accountToken.value, email: email.value })
+			.then((result: any) => {
+				accountCodeSent.value = true
+				accountNote.value = result.message
+				accountOtp.value = ""
+				countDown()
+			})
 			.catch(fail)
 			.finally(() => { busy.value = false })
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, step, applicantType, loanProduct, mobileNumber, otp, employmentType, password, confirmPassword, companyName, applicantName, dateOfBirth, pan, applicantCountry, email, loanAmount, proposedTenure, income, busy, codeSent, offer, go, choose, chooseProduct, sendCode, resendIn, resendCode, confirmCode, submit, createAccount }
+	const resendAccountCode = () => {
+		if (resendIn.value > 0) return
+		sendAccountCode()
+	}
+
+	const changeAccountEmail = () => {
+		accountCodeSent.value = false
+		accountOtp.value = ""
+	}
+
+	const createAccount = () => {
+		busy.value = true
+		call("lending.portal.apply.create_account", {
+			token: accountToken.value,
+			email: email.value,
+			otp: accountOtp.value,
+		})
+			.then((result: any) => {
+				if (!result.verified) { toast.error(result.message); return }
+				window.location.href = "/borrower-portal/overview"
+			})
+			.catch(fail)
+			.finally(() => { busy.value = false })
+	}
+
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, step, applicantType, loanProduct, mobileNumber, otp, employmentType, accountOtp, accountCodeSent, accountNote, companyName, applicantName, dateOfBirth, pan, applicantCountry, email, loanAmount, proposedTenure, income, busy, codeSent, offer, go, choose, chooseProduct, sendCode, resendIn, resendCode, confirmCode, submit, sendAccountCode, resendAccountCode, changeAccountEmail, createAccount }
 }

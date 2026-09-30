@@ -17,12 +17,10 @@ from lending.portal.studio_build.blocks import (
 	record_stat,
 	repeater,
 	row,
-	slot,
 	spacer,
 	stat,
 	stat_strip,
 	text,
-	tile_styles,
 	toned_badge,
 	two_columns,
 )
@@ -67,18 +65,13 @@ def application_card():
 				},
 			),
 			spacer(),
-			icon(
-				"chevron-right",
-				styles=dict(tile_styles(tile=28), color="var(--ink-gray-6)"),
-				visible=read("application_url"),
-			),
+			chevron(visible=read("application_url")),
 		],
 		gap="8px",
 	)
 	meta = row(
 		[
-			stage_badge(with_us=True),
-			stage_badge(with_us=False),
+			toned_badge(read("application_stage"), f"{SOURCE}.data.application_stage_tone", size="md"),
 			labelled("calendar", "application_date_label", "application_date"),
 		],
 		gap="10px",
@@ -113,22 +106,6 @@ def application_card():
 			muted(read("application_more"), visible=read("application_more")),
 		],
 		script=f"open({SOURCE}.data.application_url)",
-	)
-
-
-def stage_badge(with_us):
-	# Two badges, not one with a hidden glyph: Badge keeps the prefix gap whenever the slot exists.
-	stage = f"{SOURCE}.data.application_stage"
-	flag = f"{SOURCE}.data.application_with_us"
-	shown = "{{ %s && %s }}" % (stage, flag if with_us else f"!{flag}")
-	glyph = slot("prefix", [icon("users", size=16)]) if with_us else None
-
-	return toned_badge(
-		read("application_stage"),
-		f"{SOURCE}.data.application_stage_tone",
-		size="md",
-		visible=shown,
-		slots=glyph,
 	)
 
 

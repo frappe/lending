@@ -3,6 +3,7 @@
 
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
+	DATE_FORMAT,
 	PANEL,
 	block,
 	button,
@@ -46,7 +47,7 @@ def date_field(label, state):
 			"label": label,
 			# An empty date falls back to the endpoint's default, so the picker would show nothing.
 			"clearable": False,
-			"format": "DD MMM YYYY",
+			"format": DATE_FORMAT,
 			"modelValue": {"$type": "variable", "name": state},
 		},
 		styles={"width": "172px"},

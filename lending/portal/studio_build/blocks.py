@@ -3,6 +3,15 @@
 
 TONE = "tone({0})"
 
+DATE_FORMAT = "DD-MM-YYYY"
+
+
+def input_props(kind):
+	# FormControl renders "date" as a DatePicker, which needs a format to show DD-MM-YYYY
+	if kind != "date":
+		return {"type": kind}
+	return {"type": kind, "format": DATE_FORMAT, "placeholder": DATE_FORMAT.lower()}
+
 
 def reader(source):
 	"""`reader("overview")("crumb")` is `{{ overview.data.crumb }}`; no key reads the whole payload."""

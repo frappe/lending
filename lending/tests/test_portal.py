@@ -33,6 +33,7 @@ from lending.portal.apply import (
 	get_new_application_page,
 	get_track_page,
 	read_product,
+	send_account_code,
 	send_mobile_code,
 	submit_lead,
 	track_application,
@@ -53,7 +54,9 @@ from lending.portal.core import (
 	days_ago,
 	enquiry_lead,
 	footer_links,
+	get_applications,
 	get_dashboard,
+	get_loans,
 	get_portal_customers,
 	leads_for_login,
 	money,
@@ -110,6 +113,7 @@ MOBILE = "9812345678"
 
 PERSON_EMAIL = "_test-portal-person@example.com"
 COMPANY_EMAIL = "_test-portal-company@example.com"
+DESK_EMAIL = "_test-portal-desk@example.com"
 
 
 def set_portal_switches(portal: int, public_apply: int):
@@ -314,6 +318,23 @@ class TestPortalOwnership(LendingTestSuite):
 
 		with self.assertRaises(frappe.PermissionError):
 			assert_owns("Loan", self.beta_loan)
+
+	def test_an_employees_loan_under_a_customers_name_is_not_theirs(self):
+		# A borrower who signs up as "HR-EMP-00001" must not inherit that employee's records.
+		frappe.db.set_value("Loan", self.alpha_loan, "applicant_type", "Employee")
+		frappe.db.set_value("Loan Application", self.alpha_application, "applicant_type", "Employee")
+		self.as_alpha()
+		customers = get_portal_customers()
+
+		with self.assertRaises(frappe.PermissionError):
+			assert_owns("Loan", self.alpha_loan)
+		with self.assertRaises(frappe.PermissionError):
+			assert_owns("Loan Application", self.alpha_application)
+
+		self.assertNotIn(self.alpha_loan, [row.name for row in get_loans(customers)])
+		self.assertNotIn(
+			self.alpha_application, [row["name"] for row in get_applications(customers)]
+		)
 
 	def test_another_borrowers_loan_is_refused(self):
 		self.as_alpha()
@@ -992,16 +1013,17 @@ class TestPortalSignUp(LendingTestSuite):
 
 		return submit_lead()
 
-	def open_account(self, offer, password="Kh8!zQr2wLp5", confirm_password=None):
+	def open_account(self, offer, email=None, verified=True):
 		frappe.local.form_dict = frappe._dict(
 			{
 				"token": offer["account_token"],
-				"password": password,
-				"confirm_password": password if confirm_password is None else confirm_password,
+				"email": email or frappe.db.get_value("Loan Lead", offer["reference"], "email"),
+				"otp": "123456",
 			}
 		)
-
-		return create_account()
+		with patch("lending.portal.login.telephony_otp") as telephony:
+			telephony.return_value.verify_otp.return_value = {"verified": verified}
+			return create_account()
 
 	def test_a_company_is_recorded_as_one(self):
 		offer = self.apply_as(
@@ -1095,7 +1117,7 @@ class TestPortalSignUp(LendingTestSuite):
 
 	def test_an_account_needs_a_token(self):
 		self.apply_as(PERSON_EMAIL, "9812340106")
-		frappe.local.form_dict = frappe._dict({"password": "Kh8!zQr2wLp5"})
+		frappe.local.form_dict = frappe._dict({"email": PERSON_EMAIL, "otp": "123456"})
 
 		with self.assertRaises(frappe.ValidationError):
 			create_account()
@@ -1114,29 +1136,78 @@ class TestPortalSignUp(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			self.open_account(second)
 
-	def test_a_one_character_password_is_refused(self):
-		offer = self.apply_as(PERSON_EMAIL, "9812340110")
+	def test_a_desk_users_address_looks_like_a_new_one(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", DESK_EMAIL):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": DESK_EMAIL,
+					"first_name": "Desk",
+					"send_welcome_email": 0,
+					"user_type": "System User",
+					# Without a desk role, User saves itself as a Website User.
+					"roles": [{"role": "Loan Manager"}],
+				}
+			).insert(ignore_permissions=True)
+		frappe.set_user("Guest")
+		offer = self.apply_as(PERSON_EMAIL, "9812340114")
 
-		with self.assertRaises(frappe.ValidationError):
-			self.open_account(offer, password="a")
+		frappe.local.form_dict = frappe._dict({"token": offer["account_token"], "email": DESK_EMAIL})
+		with patch("lending.portal.login.telephony_otp") as telephony:
+			self.assertTrue(send_account_code()["sent"])
+			telephony.return_value.send_otp.assert_not_called()
 
-		self.assertFalse(frappe.db.exists("User", PERSON_EMAIL))
+		self.assertFalse(self.open_account(offer, email=DESK_EMAIL, verified=False)["verified"])
 
-	def test_a_password_that_does_not_match_its_confirmation_is_refused(self):
+	def test_two_borrowers_can_share_a_mobile_number(self):
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340110"))
+		self.open_account(
+			self.apply_as(
+				COMPANY_EMAIL, "9812340110", applicant_type="Business", company_name="Test Traders Pvt Ltd"
+			)
+		)
+
+		self.assertTrue(frappe.db.exists("User", COMPANY_EMAIL))
+		self.assertFalse(frappe.db.get_value("User", COMPANY_EMAIL, "mobile_no"))
+
+	def test_an_account_is_opened_without_a_password(self):
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340110"))
+
+		auth = frappe.qb.Table("__Auth")
+		stored = (
+			frappe.qb.from_(auth)
+			.select(auth.name)
+			.where((auth.doctype == "User") & (auth.name == PERSON_EMAIL) & (auth.fieldname == "password"))
+			.run()
+		)
+		self.assertFalse(stored)
+
+	def test_a_code_is_sent_to_the_email_given(self):
 		offer = self.apply_as(PERSON_EMAIL, "9812340113")
+		frappe.local.form_dict = frappe._dict({"token": offer["account_token"], "email": COMPANY_EMAIL})
 
-		with self.assertRaises(frappe.ValidationError):
-			self.open_account(offer, confirm_password="Kh8!zQr2wLp6")
+		with patch("lending.portal.login.telephony_otp") as telephony:
+			send_account_code()
+			telephony.return_value.send_otp.assert_called_once()
 
-		self.assertFalse(frappe.db.exists("User", PERSON_EMAIL))
+		self.assertEqual(telephony.return_value.send_otp.call_args.args[0], COMPANY_EMAIL)
 
-	def test_a_refused_password_can_be_tried_again(self):
+	def test_a_wrong_code_opens_no_account_and_can_be_retried(self):
 		offer = self.apply_as(PERSON_EMAIL, "9812340112")
-		with self.assertRaises(frappe.ValidationError):
-			self.open_account(offer, password="a")
+
+		self.assertFalse(self.open_account(offer, verified=False)["verified"])
+		self.assertFalse(frappe.db.exists("User", PERSON_EMAIL))
 
 		self.open_account(offer)
 		self.assertTrue(frappe.db.exists("User", PERSON_EMAIL))
+
+	def test_a_changed_email_moves_the_lead_with_it(self):
+		offer = self.apply_as(PERSON_EMAIL, "9812340114")
+		self.open_account(offer, email=COMPANY_EMAIL)
+
+		self.assertTrue(frappe.db.exists("User", COMPANY_EMAIL))
+		self.assertEqual(frappe.db.get_value("Loan Lead", offer["reference"], "email"), COMPANY_EMAIL)
 
 	def test_converting_a_lead_reuses_the_borrowers_customer(self):
 		self.open_account(self.apply_as(PERSON_EMAIL, "9812340111"))
@@ -1855,7 +1926,6 @@ class TestPortalSummaryStrip(LendingTestSuite):
 		self.assertEqual(card["application_headline"], "Education Loan")
 		self.assertEqual(card["application_date"], "26 Sep 2026")
 		self.assertEqual(card["application_stage_tone"], "info")
-		self.assertIs(card["application_with_us"], True)
 		self.assertEqual(card["application_note"], "Your loan application process has started")
 		self.assertEqual(card["application_url"], "/borrower-portal/applications")
 		self.assertEqual(enquiry_lead(None), application_lead([]))

@@ -1100,11 +1100,13 @@
                      "componentId": "new_application-0-container1-container1-container1-container2-container3-container1-container1-container2-formcontrol8",
                      "componentName": "FormControl",
                      "componentProps": {
+                      "format": "DD-MM-YYYY",
                       "label": "Date of birth",
                       "modelValue": {
                        "$type": "variable",
                        "name": "dateOfBirth"
                       },
+                      "placeholder": "dd-mm-yyyy",
                       "required": false,
                       "size": "md",
                       "type": "date",
@@ -1461,7 +1463,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-28 14:02:52.340310",
+ "modified": "2026-09-29 12:57:13.864658",
  "modified_by": "Administrator",
  "name": "new_application",
  "owner": "Administrator",
@@ -1470,6 +1472,7 @@
  "published": 1,
  "resources": [
   {
+   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "resource_name": "newApplication",
@@ -1477,6 +1480,7 @@
    "url": "lending.portal.apply.get_new_application_page"
   },
   {
+   "__unsaved": 1,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",

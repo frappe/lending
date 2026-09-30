@@ -4,7 +4,6 @@
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
-	alert,
 	block,
 	button,
 	click,
@@ -14,8 +13,8 @@ from lending.portal.studio_build.blocks import (
 	heading,
 	icon,
 	icon_tile,
+	input_props,
 	muted,
-	pair_rows,
 	reader,
 	repeater,
 	row,
@@ -164,14 +163,41 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \t\t\t.finally(() => { busy.value = false })
 \t}
 
+\tconst sendAccountCode = () => {
+\t\tif (busy.value) return
+\t\tbusy.value = true
+\t\tcall("lending.portal.apply.send_account_code", { token: accountToken.value, email: email.value })
+\t\t\t.then((result: any) => {
+\t\t\t\taccountCodeSent.value = true
+\t\t\t\taccountNote.value = result.message
+\t\t\t\taccountOtp.value = ""
+\t\t\t\tcountDown()
+\t\t\t})
+\t\t\t.catch(fail)
+\t\t\t.finally(() => { busy.value = false })
+\t}
+
+\tconst resendAccountCode = () => {
+\t\tif (resendIn.value > 0) return
+\t\tsendAccountCode()
+\t}
+
+\tconst changeAccountEmail = () => {
+\t\taccountCodeSent.value = false
+\t\taccountOtp.value = ""
+\t}
+
 \tconst createAccount = () => {
 \t\tbusy.value = true
 \t\tcall("lending.portal.apply.create_account", {
 \t\t\ttoken: accountToken.value,
-\t\t\tpassword: password.value,
-\t\t\tconfirm_password: confirmPassword.value,
+\t\t\temail: email.value,
+\t\t\totp: accountOtp.value,
 \t\t})
-\t\t\t.then(() => { window.location.href = "/borrower-portal/overview" })
+\t\t\t.then((result: any) => {
+\t\t\t\tif (!result.verified) { toast.error(result.message); return }
+\t\t\t\twindow.location.href = "/borrower-portal/overview"
+\t\t\t})
 \t\t\t.catch(fail)
 \t\t\t.finally(() => { busy.value = false })
 \t}''' % {
@@ -187,9 +213,10 @@ APPLY_STATE = [
 	("mobileNumber", '""'),
 	("otp", '""'),
 	("employmentType", '"Salaried"'),
-	("password", '""'),
-	("confirmPassword", '""'),
-] + [(ref_name, '""') for _label, ref_name, *_rest in DETAIL_FIELDS]
+	("accountOtp", '""'),
+	("accountCodeSent", "false"),
+	("accountNote", '""'),
+] +[(ref_name, '""') for _label, ref_name, *_rest in DETAIL_FIELDS]
 
 APPLY_RETURNS = [
 	"busy",
@@ -203,6 +230,9 @@ APPLY_RETURNS = [
 	"resendCode",
 	"confirmCode",
 	"submit",
+	"sendAccountCode",
+	"resendAccountCode",
+	"changeAccountEmail",
 	"createAccount",
 ]
 
@@ -241,7 +271,8 @@ def progress():
 		],
 		gap="6px",
 		styles=FORM,
-		visible="{{ step > 1 }}",
+		# The offer and account cards carry their own step line.
+		visible="{{ step > 1 && step < %d }}" % OFFER_STEP,
 	)
 
 
@@ -565,16 +596,16 @@ def product_panel():
 	)
 
 
-def resend_line():
+def resend_line(script="resendCode()", prompt="Didn't receive the OTP?", label="Resend OTP"):
 	link = text(
-		"Resend OTP",
+		label,
 		styles={"color": "var(--ink-gray-9)", "fontWeight": "500", "cursor": "pointer"},
-		events=click("resendCode()"),
+		events=click(script),
 	)
 
 	return row(
 		[
-			row([muted("Didn't receive the OTP?"), link], gap="6px"),
+			row([muted(prompt), link], gap="6px"),
 			muted(
 				"{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}",
 				styles={"color": "var(--ink-gray-5)"},
@@ -620,7 +651,7 @@ def verify_panel():
 		back=3,
 		forward=[
 			action("Send OTP", "sendCode()", visible="{{ !codeSent }}"),
-			action("Confirm my number", "confirmCode()", visible="{{ codeSent }}"),
+			action("Verify my number", "confirmCode()", visible="{{ codeSent }}"),
 		],
 	)
 
@@ -630,7 +661,7 @@ def details_panel():
 		block(
 			"FormControl",
 			props={
-				"type": kind,
+				**input_props(kind),
 				"label": label,
 				"required": required,
 				"modelValue": {"$type": "variable", "name": ref_name},
@@ -677,46 +708,156 @@ def details_panel():
 	)
 
 
+OFFER_STEP = 6
+ACCOUNT_STEP = 7
+
+STATUS_DOT = {
+	"width": "22px",
+	"height": "22px",
+	"flexShrink": "0",
+	"borderRadius": "9999px",
+	"justifyContent": "center",
+	"color": "var(--surface-base)",
+}
+
+
+def status_dot():
+	# Block styles can't follow state, so each outcome has its own dot.
+	refused = "{{ offer.tone === 'danger' }}"
+	return [
+		row([icon("check", size=13, stroke=3)], styles=dict(STATUS_DOT, backgroundColor="var(--surface-green-6)"), visible="{{ offer.tone !== 'danger' }}"),
+		row([icon("x", size=13, stroke=3)], styles=dict(STATUS_DOT, backgroundColor="var(--surface-red-6)"), visible=refused),
+	]
+
+
+def offer_figures():
+	figure = column(
+		[muted("{{ dataItem.label }}"), text("{{ dataItem.value }}", size="text-lg", styles={"fontWeight": "600", "color": INK})],
+		gap="2px",
+		styles={"padding": "12px 14px", "borderRadius": "var(--radius-3)", "backgroundColor": "var(--surface-gray-1)"},
+	)
+
+	# hidden when empty, or the list would show "Nothing to show"
+	return repeater(
+		"{{ offer.offer }}",
+		figure,
+		data_key="label",
+		styles={"display": "grid", "gridTemplateColumns": "repeat(3, minmax(0, 1fr))", "gap": "10px", "marginLeft": "34px"},
+		mobile={"gridTemplateColumns": "minmax(0, 1fr)", "marginLeft": "0px"},
+		visible="{{ offer.offer?.length }}",
+	)
+
+
+def reference_callout():
+	return row(
+		[
+			icon("info", size=16, styles={"color": "var(--ink-blue-6)"}),
+			text("{{ offer.reference_note }}", size="text-p-sm", styles={"color": "var(--ink-gray-8)", "fontSize": "14px"}),
+		],
+		gap="10px",
+		styles={"padding": "12px 14px", "borderRadius": "var(--radius-3)", "backgroundColor": "var(--surface-blue-1)"},
+		visible="{{ offer.reference_note }}",
+	)
+
+
+def card_head(index, title, note):
+	return column(
+		[
+			text("Step %d of %d · %s" % (index - 1, len(STEPS), STEPS[index - 2]), size="text-sm", styles={"color": NOTE}),
+			heading(
+				title,
+				tag="h2",
+				size="text-3xl",
+				styles={"fontSize": "28px", "fontWeight": "700", "letterSpacing": "-0.02em", "marginTop": "4px"},
+			),
+			muted(note, styles={"fontSize": "15px"}),
+		],
+		gap="4px",
+		styles={"paddingBottom": "20px", "borderBottom": f"1px solid {DIVIDER}"},
+	)
+
+
+def card_panel(index, title, note, body):
+	# The offer and account steps: a step line inside the card, and one full-width action.
+	return column(
+		[card_head(index, title, note), *body],
+		gap="20px",
+		styles=dict(PANEL, **FORM, padding="28px 32px", borderRadius="var(--radius-6, 12px)", boxShadow="0 1px 3px rgba(0, 0, 0, 0.06)"),
+		mobile={"padding": "20px"},
+		visible="{{ step === %d }}" % index,
+	)
+
+
+def wide_action(label, script, **kwargs):
+	return button(
+		label,
+		script=script,
+		variant="solid",
+		props={"size": "md", "loading": "{{ busy }}"},
+		styles={"width": "100%", "height": "38px", "borderRadius": "8px"},
+		**kwargs,
+	)
+
+
 def offer_panel():
-	return panel(
-		6,
+	outcome = column(
+		[
+			row([*status_dot(), heading("{{ offer.headline }}", tag="h3", size="text-lg")], gap="12px"),
+			muted("{{ offer.message }}", styles={"marginLeft": "34px", "fontSize": "14px"}),
+		],
+		gap="4px",
+	)
+
+	return card_panel(
+		OFFER_STEP,
 		"Your indicative offer",
 		"What our rules say about the details you gave us.",
-		[
-			heading("{{ offer.headline }}", tag="h3", size="text-xl"),
-			muted("{{ offer.message }}"),
-			# hidden when empty, or the list would show "Nothing to show"
-			pair_rows("{{ offer.offer }}", data_key="label", visible="{{ offer.offer?.length }}"),
-			alert("{{ offer.reference_note }}", visible="{{ offer.reference_note }}"),
-		],
-		forward=[button("Open my account", script="go(7)", variant="solid")],
+		[outcome, offer_figures(), reference_callout(), wide_action("Open my account", f"go({ACCOUNT_STEP})")],
 	)
 
 
 def account_panel():
-	return panel(
-		7,
-		"Keep track of this",
+	return card_panel(
+		ACCOUNT_STEP,
+		read_apply("account_title"),
 		read_apply("account_note"),
 		[
+			# The details step's email, so it arrives filled in.
 			block(
 				"FormControl",
 				props={
-					"type": "password",
-					"label": "Choose a password",
-					"modelValue": {"$type": "variable", "name": "password"},
+					"type": "email",
+					"label": "Email",
+					"required": True,
+					"disabled": "{{ accountCodeSent }}",
+					"modelValue": {"$type": "variable", "name": "email"},
 				},
 			),
-			block(
-				"FormControl",
-				props={
-					"type": "password",
-					"label": "Confirm password",
-					"modelValue": {"$type": "variable", "name": "confirmPassword"},
-				},
+			column(
+				[
+					muted("{{ accountNote }}"),
+					block(
+						"FormControl",
+						props={
+							"type": "text",
+							"label": "Verification code",
+							"required": True,
+							"modelValue": {"$type": "variable", "name": "accountOtp"},
+						},
+					),
+					resend_line("resendAccountCode()", "Didn't receive the code?", "Resend code"),
+					text(
+						"Use a different email",
+						styles={"color": "var(--ink-gray-5)", "cursor": "pointer", "textDecoration": "underline"},
+						events=click("changeAccountEmail()"),
+					),
+				],
+				gap="8px",
+				visible="{{ accountCodeSent }}",
 			),
+			wide_action("Send verification code", "sendAccountCode()", visible="{{ !accountCodeSent }}"),
+			wide_action("Create my account", "createAccount()", visible="{{ accountCodeSent }}"),
 		],
-		forward=[action("Create my account", "createAccount()")],
 	)
 
 

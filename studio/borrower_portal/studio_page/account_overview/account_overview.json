@@ -460,14 +460,9 @@
                 {
                  "baseStyles": {
                   "alignItems": "center",
-                  "backgroundColor": "var(--surface-gray-2)",
-                  "borderRadius": "var(--radius-5)",
-                  "color": "var(--ink-gray-6)",
+                  "color": "var(--ink-gray-4)",
                   "display": "flex",
-                  "flex": "0 0 auto",
-                  "height": "28px",
-                  "justifyContent": "center",
-                  "width": "28px"
+                  "flex": "0 0 auto"
                  },
                  "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container1-html1",
@@ -516,44 +511,7 @@
                   "size": "md",
                   "theme": "{{ tone(overview.data.application_stage_tone) }}",
                   "variant": "subtle"
-                 },
-                 "componentSlots": {
-                  "prefix": {
-                   "slotContent": [
-                    {
-                     "baseStyles": {
-                      "alignItems": "center",
-                      "display": "flex",
-                      "flex": "0 0 auto"
-                     },
-                     "children": [],
-                     "componentEvents": {},
-                     "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge1-prefix-html1",
-                     "componentName": "HTML",
-                     "componentProps": {
-                      "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg>"
-                     },
-                     "componentSlots": {},
-                     "mobileStyles": {},
-                     "tabletStyles": {}
-                    }
-                   ],
-                   "slotName": "prefix"
-                  }
-                 },
-                 "visibilityCondition": "{{ overview.data.application_stage && overview.data.application_with_us }}"
-                },
-                {
-                 "children": [],
-                 "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge2",
-                 "componentName": "Badge",
-                 "componentProps": {
-                  "label": "{{ overview.data.application_stage }}",
-                  "size": "md",
-                  "theme": "{{ tone(overview.data.application_stage_tone) }}",
-                  "variant": "subtle"
-                 },
-                 "visibilityCondition": "{{ overview.data.application_stage && !overview.data.application_with_us }}"
+                 }
                 },
                 {
                  "baseStyles": {
@@ -2208,7 +2166,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-28 14:02:52.439177",
+ "modified": "2026-09-29 12:41:46.445122",
  "modified_by": "Administrator",
  "name": "account_overview",
  "owner": "Administrator",
@@ -2217,6 +2175,7 @@
  "published": 1,
  "resources": [
   {
+   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "resource_name": "overview",
@@ -2224,6 +2183,7 @@
    "url": "lending.portal.core.get_dashboard"
   },
   {
+   "__unsaved": 1,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",

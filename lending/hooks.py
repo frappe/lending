@@ -107,6 +107,9 @@ portal_menu_items = [
 	{"title": "Personal details", "route": "/borrower-portal/profile"},
 ]
 
+# Studio sends guests to the site's /login; borrowers get the portal's own page instead.
+page_renderer = "lending.portal.login.PortalLoginRedirect"
+
 # Home Pages
 # ----------
 

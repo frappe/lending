@@ -7,6 +7,7 @@ from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, flt, getdate, strip_html, today
 
+from lending.portal import login
 from lending.portal.accounts import CUSTOMER_TYPES, customer_for_applicant, link_portal_user
 from lending.portal.core import (
 	as_administrator,
@@ -56,14 +57,12 @@ VERIFICATION_PREFIX = "portal-apply-verified"
 
 ACCOUNT_TTL = 30 * 60
 ACCOUNT_PREFIX = "portal-apply-account"
+ACCOUNT_PURPOSE = "Portal Sign Up"
 
 MINIMUM_AGE = 18
 PAN_LENGTH = 10
 
 AUTOMATIC_ACTIONS = ("Run Basic Rules", "Run Pre-Qualification Rules", "Run Knockout Rules")
-
-# minimum_password_score alone let a single character through, so enforce a floor here.
-MINIMUM_PASSWORD_LENGTH = 8
 
 
 def offered_to(product_applicant_type: str | None, applicant_type: str) -> bool:
@@ -142,8 +141,8 @@ def get_apply_page() -> dict:
 		"details_title": _("About you"),
 		"details_note": _("The more you tell us, the closer the indicative offer is to the real one. Only the starred fields are required."),
 		"offer_title": _("Your indicative offer"),
-		"account_title": _("Keep track of this"),
-		"account_note": _("Your number is confirmed, so all that is left is a password. Your account shows this application and, once it is drawn, your loan."),
+		"account_title": _("Create your account"),
+		"account_note": _("Verify your email to finish. You log in with a code we send to it, so there is no password to remember."),
 	}
 
 
@@ -235,7 +234,7 @@ def confirm_mobile_code() -> dict:
 		"verified": True,
 		"token": token,
 		"mobile": mask(mobile),
-		"message": _("Number confirmed. Now tell us what you need."),
+		"message": _("Number verified. Now tell us what you need."),
 	}
 
 
@@ -490,6 +489,7 @@ def present_offer(lead) -> dict:
 
 	return {
 		"reference": lead.name,
+		"tone": "danger" if status == "Not Pre-Qualified" else "ok",
 		"headline": headline,
 		"message": message,
 		"offer": offer,
@@ -507,7 +507,7 @@ def issue_account_token(lead: str) -> str:
 
 
 def lead_for_account(token: str) -> str:
-	# Read only, so a refused password can be retried.
+	# Read only, so a wrong code can be retried.
 	if not token:
 		frappe.throw(_("Please finish your application first."), frappe.ValidationError)
 
@@ -530,8 +530,39 @@ def spend_account_token(token: str):
 		)
 
 
+def account_email() -> str:
+	return login.login_email(frappe.form_dict.get("email"))
+
+
+def refuse_existing_account():
+	frappe.throw(_("You already have an account. Please log in instead."), frappe.ValidationError)
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
+def send_account_code() -> dict:
+	"""Email a code that proves the borrower owns the address their account will log in with."""
+	assert_public_apply_enabled()
+
+	lead_for_account(clean(frappe.form_dict.get("token")))
+	email = account_email()
+
+	# The login form already says whether a borrower exists; a desk user must look like a new address.
+	if login.portal_user(email):
+		refuse_existing_account()
+	if not frappe.db.exists("User", {"email": email}):
+		login.telephony_otp().send_otp(email, login.LOGIN_CHANNEL, purpose=ACCOUNT_PURPOSE)
+
+	return {
+		"sent": True,
+		"message": _("We sent a code to {0}. It expires in {1} minutes.").format(
+			email, login.code_expiry_minutes()
+		),
+	}
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
 	"""Create the login for the lead the account token names, and sign the borrower in."""
 	assert_public_apply_enabled()
@@ -539,44 +570,46 @@ def create_account() -> dict:
 	# Read once: the writes below leave form_dict without it by the time it is spent.
 	token = clean(frappe.form_dict.get("token"))
 	lead_name = lead_for_account(token)
+	email = account_email()
+	code = clean(frappe.form_dict.get("otp"))
 
-	# Not clean()ed: stripping would silently change the password.
-	password = frappe.form_dict.get("password") or ""
-	if len(password) < MINIMUM_PASSWORD_LENGTH:
-		frappe.throw(
-			_("Please choose a password of at least {0} characters.").format(
-				MINIMUM_PASSWORD_LENGTH
-			),
-			frappe.ValidationError,
-		)
-	if password != (frappe.form_dict.get("confirm_password") or ""):
-		frappe.throw(_("The two passwords do not match."), frappe.ValidationError)
+	if not code:
+		frappe.throw(_("Please enter the code we sent you."), frappe.ValidationError)
+
+	# Don't raise on failure: it would roll back the attempt telephony just recorded.
+	result = login.telephony_otp().verify_otp(
+		email, login.LOGIN_CHANNEL, code, purpose=ACCOUNT_PURPOSE
+	)
+	if not result.get("verified"):
+		return {"verified": False, "message": _("That code is wrong or has expired.")}
+
+	# Only after the code: checked earlier, a wrong code would reveal which addresses have a User.
+	if frappe.db.exists("User", {"email": email}):
+		refuse_existing_account()
 
 	lead = frappe.db.get_value(
 		"Loan Lead",
 		lead_name,
-		["applicant_name", "company_name", "applicant_type", "email", "mobile_number"],
+		["applicant_name", "company_name", "applicant_type", "mobile_number"],
 		as_dict=True,
 	)
-
-	if frappe.db.exists("User", lead.email):
-		frappe.throw(
-			_("You already have an account. Please log in instead."), frappe.ValidationError
-		)
 
 	# ignore_permissions is not enough: Customer.on_update calls an API that re-checks permissions.
 	caller = frappe.session.user
 	frappe.set_user("Administrator")  # nosemgrep
 	try:
+		# The confirmed address wins, so leads_for_login finds this lead from the new login.
+		frappe.db.set_value("Loan Lead", lead_name, "email", email)
+
 		user = frappe.new_doc("User")
 		user.update(
 			{
-				"email": lead.email,
+				"email": email,
 				"first_name": lead.company_name or lead.applicant_name,
-				"mobile_no": lead.mobile_number,
+				# Not mobile_no: it is unique on User, and family members share a number.
+				# The Customer's Contact keeps it instead.
 				"user_type": "Website User",
 				"send_welcome_email": 0,
-				"new_password": password,
 			}
 		)
 		user.insert(ignore_permissions=True)
@@ -585,11 +618,10 @@ def create_account() -> dict:
 		customer = customer_for_applicant(
 			lead.company_name or lead.applicant_name,
 			lead.applicant_type,
-			lead.email,
+			email,
 			lead.mobile_number,
 		)
 		link_portal_user(customer, user.name)
-		# Last, so a password the policy refused above leaves the token for the retry.
 		spend_account_token(token)
 	finally:
 		frappe.set_user(caller)  # nosemgrep
@@ -599,6 +631,7 @@ def create_account() -> dict:
 		frappe.local.login_manager.login_as(user.name)
 
 	return {
+		"verified": True,
 		"headline": _("Your account is ready"),
 		"message": _("You are signed in as {0}.").format(user.name),
 		"offer": [],
@@ -801,7 +834,7 @@ def tracker_steps(lead: dict) -> list[dict]:
 		return {"title": title, "note": note, "state": state}
 
 	steps = [
-		as_step(_("Enquiry sent"), _("We have your details and your number is confirmed."), "done")
+		as_step(_("Enquiry sent"), _("We have your details and your number is verified."), "done")
 	]
 
 	if declined:
