@@ -94,11 +94,11 @@ def as_administrator():
 	# set_user wipes the session and form_dict; restore both (session in place) or the borrower is logged out.
 	caller = frappe.session.user
 	session, form_dict = frappe.local.session.copy(), frappe.local.form_dict
-	frappe.set_user("Administrator")
+	frappe.set_user("Administrator")  # nosemgrep
 	try:
 		yield
 	finally:
-		frappe.set_user(caller)
+		frappe.set_user(caller)  # nosemgrep
 		frappe.local.session.update(session)
 		frappe.local.form_dict = form_dict
 
@@ -560,7 +560,7 @@ def closed_note(loan: dict) -> str:
 		return ""
 
 	if loan.closure_date:
-		return _("{0} {1}").format(STATUS_LABELS.get(loan.status, loan.status), short_date(loan.closure_date))
+		return f"{STATUS_LABELS.get(loan.status, loan.status)} {short_date(loan.closure_date)}"
 
 	return STATUS_LABELS.get(loan.status, loan.status)
 

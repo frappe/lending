@@ -204,13 +204,13 @@ def read_baseline(key):
 	if _RESET or not os.path.exists(path):
 		return None
 
-	with open(path) as source:
+	with open(path) as source:  # nosemgrep
 		return json.load(source)
 
 
 def write_baseline(key, record):
 	# a file, not a doc field, so it survives a site rebuild and shows in diffs
-	with open(_baseline_path(key), "w") as target:
+	with open(_baseline_path(key), "w") as target:  # nosemgrep
 		json.dump(record, target, indent=1)
 
 

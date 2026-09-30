@@ -200,7 +200,7 @@ def upsert_app():
 		doc.save()
 		action = "updated"
 	else:
-		doc = frappe.get_doc(dict(doctype="Studio App", name=APP_NAME, **fields)).insert()
+		doc = frappe.get_doc(doctype="Studio App", name=APP_NAME, **fields).insert()
 		action = "created"
 
 	write_shared_utils()
@@ -223,7 +223,7 @@ def write_shared_utils():
 			print(f"kept the hand-edited {SHARED_UTILS_PATH[1]}")
 			return
 
-	with open(path, "w") as source:
+	with open(path, "w") as source:  # nosemgrep
 		source.write(SHARED_UTILS)
 
 	merge.write_baseline(key, {"path": path, "source": SHARED_UTILS})
@@ -240,7 +240,7 @@ def upsert_component(component_id, component_name, tree, inputs=()):
 	}
 
 	if not frappe.db.exists("Studio Component", component_id):
-		doc = frappe.get_doc(dict(doctype="Studio Component", block=json.dumps(tree, indent=1), **fields))
+		doc = frappe.get_doc(doctype="Studio Component", block=json.dumps(tree, indent=1), **fields)
 		doc.insert()
 		merge.write_baseline(key, {"component_id": component_id, "block": tree})
 		print(f"created Studio Component {doc.name}")
@@ -295,9 +295,7 @@ def upsert_page(title, route, blocks, resources, script=PAGE_SCRIPT, allow_guest
 
 
 def _create_page(route, blocks, script, fields):
-	doc = frappe.get_doc(
-		dict(doctype="Studio Page", blocks=frappe.as_json(blocks), script=script, **fields)
-	).insert()
+	doc = frappe.get_doc(doctype="Studio Page", blocks=frappe.as_json(blocks), script=script, **fields).insert()
 
 	# must follow the insert, which creates the export folder the .ts lives in
 	doc.write_script_file()

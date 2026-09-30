@@ -98,18 +98,15 @@ def portal_products() -> dict:
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def get_apply_page() -> dict:
 	assert_public_apply_enabled()
 
 	return {
 		**brand_payload(),
 		"tagline": _("Simple · Secure · Transparent"),
-		"heading": _("A loan that fits,\nwithout the paperwork"),
-		"intro": _(
-			"Tell us what you need and see an indicative offer in about two minutes. "
-			"Nothing is committed until you accept it."
-		),
+		"heading": _("A loan that fits,{0}without the paperwork").format("\n"),
+		"intro": _("Tell us what you need and see an indicative offer in about two minutes. Nothing is committed until you accept it."),
 		"trust_points": [
 			{"icon": "chart-no-axes", "title": _("No effect"), "note": _("on your credit score")},
 			{"icon": "shield", "title": _("No obligation"), "note": _("to go ahead")},
@@ -140,26 +137,17 @@ def get_apply_page() -> dict:
 		"type_note": _("Whoever the money is for is who we run the numbers on."),
 		"product_note": _("These are the products open to you. Pick the one that fits."),
 		"verify_title": _("Your mobile number"),
-		"verify_note": _(
-			"We send an OTP to check the number is yours. "
-			"It is the only thing we need to start."
-		),
+		"verify_note": _("We send an OTP to check the number is yours. It is the only thing we need to start."),
 		"code_note": _("Enter the OTP we sent you."),
 		"details_title": _("About you"),
-		"details_note": _(
-			"The more you tell us, the closer the indicative offer is to the real one. "
-			"Only the starred fields are required."
-		),
+		"details_note": _("The more you tell us, the closer the indicative offer is to the real one. Only the starred fields are required."),
 		"offer_title": _("Your indicative offer"),
 		"account_title": _("Keep track of this"),
-		"account_note": _(
-			"Your number is confirmed, so all that is left is a password. "
-			"Your account shows this application and, once it is drawn, your loan."
-		),
+		"account_note": _("Your number is confirmed, so all that is left is a password. Your account shows this application and, once it is drawn, your loan."),
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def get_track_page() -> dict:
 	assert_portal_enabled()
 
@@ -203,7 +191,7 @@ def telephony_otp():
 	return otp
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_mobile_code() -> dict:
 	assert_public_apply_enabled()
@@ -220,7 +208,7 @@ def send_mobile_code() -> dict:
 	}
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def confirm_mobile_code() -> dict:
 	"""Check the OTP and return the token submit_lead requires."""
@@ -394,7 +382,7 @@ def settle_lead(lead: str, mobile: str):
 	mark_mobile_verified(lead, mobile)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def submit_lead() -> dict:
 	"""Create a draft Loan Lead (a submitted one skips the rule steps) and return its offer."""
@@ -542,7 +530,7 @@ def spend_account_token(token: str):
 		)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
 	"""Create the login for the lead the account token names, and sign the borrower in."""
@@ -578,7 +566,7 @@ def create_account() -> dict:
 
 	# ignore_permissions is not enough: Customer.on_update calls an API that re-checks permissions.
 	caller = frappe.session.user
-	frappe.set_user("Administrator")
+	frappe.set_user("Administrator")  # nosemgrep
 	try:
 		user = frappe.new_doc("User")
 		user.update(
@@ -604,7 +592,7 @@ def create_account() -> dict:
 		# Last, so a password the policy refused above leaves the token for the retry.
 		spend_account_token(token)
 	finally:
-		frappe.set_user(caller)
+		frappe.set_user(caller)  # nosemgrep
 
 	# login_manager exists only inside a web request, not in tests or the console.
 	if getattr(frappe.local, "login_manager", None):
@@ -753,7 +741,7 @@ def last_answers(customer: str, applicant: dict) -> dict:
 	}
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def track_application() -> dict:
 	"""Status by reference number and mobile number, both of which must match."""

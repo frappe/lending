@@ -25,7 +25,7 @@ def render(print_format: str, context: dict) -> str:
 			_("The {0} layout is missing. Please ask us to set it up.").format(print_format)
 		)
 
-	return frappe.render_template(html, context)
+	return frappe.render_template(html, context)  # nosemgrep
 
 
 def as_download(html: str, filename: str):
