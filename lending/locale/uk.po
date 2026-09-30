@@ -5,24 +5,24 @@ msgstr ""
 "POT-Creation-Date: 2026-09-27 14:47+0000\n"
 "PO-Revision-Date: 2026-09-28 20:40\n"
 "Last-Translator: contact@frappe.io\n"
-"Language-Team: Portuguese, Brazilian\n"
+"Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=4; plural=((n%10==1 && n%100!=11) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 11 && n%100 <= 14)) ? 2 : 3));\n"
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
-"X-Crowdin-Language: pt-BR\n"
+"X-Crowdin-Language: uk\n"
 "X-Crowdin-File: /[frappe.lending] develop/lending/locale/main.pot\n"
 "X-Crowdin-File-ID: 130\n"
-"Language: pt_BR\n"
+"Language: uk_UA\n"
 
 #. Label of the source_doc_count (Int) field in DocType 'Process Loan
 #. Accounting Detail'
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "# Docs"
-msgstr "# Documentos"
+msgstr ""
 
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:84
 msgid "% Of Applicant Portfolio"
@@ -107,12 +107,12 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
-msgstr "Conta {0} não pertence à empresa {1}"
+msgstr ""
 
 #. Label of the accounting_tab (Tab Break) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Accounting"
-msgstr "Contabilidade"
+msgstr ""
 
 #. Label of the accounting_details (Section Break) field in DocType 'Loan
 #. Disbursement'
@@ -127,7 +127,7 @@ msgstr ""
 #. 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Accounting Dimension"
-msgstr "Dimensão Contábil"
+msgstr ""
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Loan'
@@ -151,18 +151,18 @@ msgstr "Dimensão Contábil"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Accounting Dimensions"
-msgstr "Dimensões Contábeis"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.js:7
 #: lending/public/js/loan_common.js:14
 msgid "Accounting Ledger"
-msgstr "Registro Contábil"
+msgstr ""
 
 #. Label of the accounts_section (Section Break) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Accounts"
-msgstr "Contas"
+msgstr ""
 
 #. Label of the accrual_date (Date) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -411,7 +411,7 @@ msgstr ""
 #. Label of the age (Int) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Age"
-msgstr "Idade"
+msgstr ""
 
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:27
 msgid "Ageing"
@@ -436,7 +436,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charge_reference/loan_charge_reference.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Allocated Amount"
-msgstr "Quantidade Atribuída"
+msgstr ""
 
 #. Label of the allocated_date (Date) field in DocType 'Loan Security Deposit'
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
@@ -482,7 +482,7 @@ msgstr ""
 #: lending/loan_management/doctype/pledge/pledge.json
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
 msgid "Amount"
-msgstr "Valor Total"
+msgstr ""
 
 #. Label of the amount_paid (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
@@ -532,7 +532,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:34
 msgid "Amounts"
-msgstr "Montantes"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:261
 msgid "An OTP can only be sent while the lead is a draft."
@@ -631,7 +631,7 @@ msgstr ""
 #. Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Applicant Email Address"
-msgstr "E-Mail do Candidato"
+msgstr ""
 
 #. Label of the applicant_mobile (Data) field in DocType 'Loan Co-Applicants'
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
@@ -651,7 +651,7 @@ msgstr ""
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Applicant Name"
-msgstr "Nome do Candidato"
+msgstr ""
 
 #. Label of the applicant_phone_number (Phone) field in DocType 'Loan
 #. Application'
@@ -793,7 +793,7 @@ msgstr ""
 #. Label of the attributes (Table) field in DocType 'Scorecard'
 #: lending/loan_origination/doctype/scorecard/scorecard.json
 msgid "Attributes"
-msgstr "Atributos"
+msgstr ""
 
 #. Label of the authentication_details_section (Section Break) field in DocType
 #. 'Loan Lead'
@@ -882,7 +882,7 @@ msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:67
 msgid "Balance ({0})"
-msgstr "Equilíbrio ({0})"
+msgstr ""
 
 #. Label of the balance_interest_amount (Currency) field in DocType 'Loan
 #. Restructure'
@@ -922,7 +922,7 @@ msgstr ""
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Bank"
-msgstr "Banco"
+msgstr ""
 
 #. Label of the bank_account (Link) field in DocType 'Loan Disbursement'
 #. Label of the bank_account (Link) field in DocType 'Loan Repayment'
@@ -931,7 +931,7 @@ msgstr "Banco"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Bank Account"
-msgstr "Conta Bancária"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
 msgid "Bank Transaction {0} is already fully reconciled"
@@ -944,7 +944,7 @@ msgstr ""
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
-msgstr "Bancos"
+msgstr ""
 
 #. Label of the base_amount (Currency) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -991,7 +991,7 @@ msgstr ""
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Body"
-msgstr "Corpo"
+msgstr ""
 
 #. Label of the borrower_portal_section (Section Break) field in DocType
 #. 'Lending Settings'
@@ -1342,16 +1342,16 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Clearance Date"
-msgstr "Data de Liberação"
+msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.js:109
 msgid "Close Loan"
-msgstr "Fechar Empréstimo"
+msgstr ""
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:87
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:144
 msgid "Closing Balance"
-msgstr "Saldo Final"
+msgstr ""
 
 #. Label of the closure_date (Date) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -1502,7 +1502,7 @@ msgstr ""
 #: lending/loan_management/workspace/lending/lending.json
 #: lending/workspace_sidebar/lending.json
 msgid "Company"
-msgstr "Empresa"
+msgstr ""
 
 #. Label of the company_collection_percentage (Percent) field in DocType 'Loan
 #. Partner Shareable'
@@ -1577,7 +1577,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Cost Center"
-msgstr "Centro de Custos"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
 msgid "Cost Center {0} does not belong to company {1}"
@@ -1597,16 +1597,16 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:49
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:81
 msgid "Credit"
-msgstr "Crédito"
+msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:60
 msgid "Credit ({0})"
-msgstr "Crédito ({0})"
+msgstr ""
 
 #. Label of the credit_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Credit Account"
-msgstr "Conta de Crédito"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2367
 msgid "Credit Account is mandatory"
@@ -1701,7 +1701,7 @@ msgstr ""
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
-msgstr "Cliente"
+msgstr ""
 
 #. Label of the customer_refund_account (Link) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -1773,11 +1773,11 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
-msgstr "Débito"
+msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:53
 msgid "Debit ({0})"
-msgstr "Débito ({0})"
+msgstr ""
 
 #. Option for the 'Adjustment Type' (Select) field in DocType 'Loan Balance
 #. Adjustment'
@@ -1950,7 +1950,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Disbursed"
-msgstr "Desembolsado"
+msgstr ""
 
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan'
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan
@@ -2117,7 +2117,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:14
 msgid "Emails Queued"
-msgstr "E-mails na fila"
+msgstr ""
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Name of a role
@@ -2165,7 +2165,7 @@ msgstr "E-mails na fila"
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Employee"
-msgstr "Colaborador"
+msgstr ""
 
 #. Label of the employee_loans (Check) field in DocType 'Loan Origination
 #. Settings'
@@ -2490,7 +2490,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
 msgid "In Process"
-msgstr "Em Processo"
+msgstr ""
 
 #. Label of the in_process_limit (Currency) field in DocType 'Loan Restructure
 #. Limit Log'
@@ -2501,12 +2501,12 @@ msgstr ""
 #. Label of the income (Currency) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Income"
-msgstr "Receita"
+msgstr ""
 
 #. Label of the income_account (Link) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 msgid "Income Account"
-msgstr "Conta de Receitas"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1027
 msgid "Incorrect repayment type, please write off the loan first"
@@ -2536,7 +2536,7 @@ msgstr ""
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Individual"
-msgstr "Pessoa Física"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Schedule'
 #. Option for the 'Status' (Select) field in DocType 'Loan Restructure'
@@ -2548,7 +2548,7 @@ msgstr "Pessoa Física"
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Initiated"
-msgstr "Iniciada"
+msgstr ""
 
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:126
 msgid "Installments Overdue"
@@ -2723,7 +2723,7 @@ msgstr ""
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Invoices"
-msgstr "Faturas"
+msgstr ""
 
 #. Label of the is_adjustment (Check) field in DocType 'Process Loan
 #. Accounting'
@@ -3050,7 +3050,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 msgid "Loan "
-msgstr "Empréstimo "
+msgstr ""
 
 #. Label of the loan_details_section (Section Break) field in DocType 'Loan
 #. Security Release'
@@ -4383,7 +4383,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Mode Of Payment"
-msgstr "Forma de Pagamento"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
 msgid "Mode of Payment {0} does not exist"
@@ -4542,7 +4542,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:16
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:34
 msgid "No Records for these settings."
-msgstr "Não há registros para essas configurações."
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
 msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
@@ -4784,7 +4784,7 @@ msgstr ""
 #. Label of the operator (Select) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "Operator"
-msgstr "Operador"
+msgstr ""
 
 #. Label of the organization_type (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -4823,7 +4823,7 @@ msgstr ""
 #. Label of the outstanding_amount (Currency) field in DocType 'Loan Demand'
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 msgid "Outstanding Amount"
-msgstr "Valor Devido"
+msgstr ""
 
 #. Option for the 'FLDG Limit Calculation Component' (Select) field in DocType
 #. 'Loan Partner'
@@ -4877,7 +4877,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
 msgid "Paid Amount"
-msgstr "Valor Pago"
+msgstr ""
 
 #. Label of the partial_payment_mechanism (Data) field in DocType 'Loan
 #. Partner'
@@ -5000,7 +5000,7 @@ msgstr ""
 #. Label of the payable_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Payable Account"
-msgstr "Conta Para Pagamento"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2369
 msgid "Payable Account is mandatory"
@@ -5278,7 +5278,7 @@ msgstr ""
 
 #: lending/loan_management/report/future_cashflow_report/future_cashflow_report.py:67
 msgid "Please select Company."
-msgstr "Por favor, selecione a Empresa."
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:876
 msgid "Please select Loan Disbursement for Line of Credit repayment"
@@ -5295,7 +5295,7 @@ msgstr ""
 
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:67
 msgid "Please select a date."
-msgstr "Por favor, selecione a data."
+msgstr ""
 
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:15
 msgid "Please select an As on Date."
@@ -5423,7 +5423,7 @@ msgstr ""
 #. Label of the points (Int) field in DocType 'Scorecard Attribute'
 #: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
 msgid "Points"
-msgstr "Pontos"
+msgstr ""
 
 #. Label of the portal_logo (Attach Image) field in DocType 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
@@ -5483,7 +5483,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:17
 msgid "Posting Date"
-msgstr "Data da Postagem"
+msgstr ""
 
 #. Label of the posting_date (Datetime) field in DocType 'Loan Interest
 #. Accrual'
@@ -5568,7 +5568,7 @@ msgstr ""
 #. Label of the primary_address (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Primary Address"
-msgstr "Endereço Principal"
+msgstr ""
 
 #. Label of the applicant_address_details_section (Section Break) field in
 #. DocType 'Loan Application'
@@ -5800,11 +5800,11 @@ msgstr ""
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:49
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:35
 msgid "Quantity"
-msgstr "Quantidade"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:184
 msgid "Rate"
-msgstr "Preço Unitário"
+msgstr ""
 
 #. Label of the rate_of_interest (Float) field in DocType 'Loan Interest
 #. Accrual'
@@ -5879,7 +5879,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Receivable Account"
-msgstr "Contas a Receber"
+msgstr ""
 
 #. Label of the recommended_amount (Currency) field in DocType 'Loan
 #. Application'
@@ -5960,7 +5960,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 msgid "Reference No"
-msgstr "Referência No"
+msgstr ""
 
 #. Label of the reference_number (Data) field in DocType 'Loan Balance
 #. Adjustment'
@@ -5972,7 +5972,7 @@ msgstr "Referência No"
 #: lending/loan_management/doctype/loan_refund/loan_refund.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Reference Number"
-msgstr "Número de Referência"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
 msgid "Reference Number cannot be longer than 140 characters"
@@ -6065,7 +6065,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:73
 msgid "Remarks"
-msgstr "Observações"
+msgstr ""
 
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Method' (Select) field in DocType 'Loan
@@ -6278,7 +6278,7 @@ msgstr ""
 #. Label of the report_date (Datetime) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Report Date"
-msgstr "Data do Relatório"
+msgstr ""
 
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:35
 msgid "Report Date cannot be in the future."
@@ -6301,7 +6301,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Release'
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 msgid "Requested"
-msgstr "Solicitado"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Schedule'
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
@@ -6461,7 +6461,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
 msgid "Sales Invoice"
-msgstr "Fatura de Venda"
+msgstr ""
 
 #. Label of the same_as_regular_interest_accounts (Check) field in DocType
 #. 'Loan Product'
@@ -6472,7 +6472,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Sanctioned"
-msgstr "Liberada"
+msgstr ""
 
 #. Label of the sanctioned_amount_limit (Currency) field in DocType 'Sanctioned
 #. Loan Amount'
@@ -6639,7 +6639,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Settled"
-msgstr "Liquidado"
+msgstr ""
 
 #. Label of the settlement_date (Date) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -6695,7 +6695,7 @@ msgstr ""
 #. Accounting Detail'
 #: lending/loan_management/doctype/process_loan_accounting_detail/process_loan_accounting_detail.json
 msgid "Source Document"
-msgstr "Documento de Origem"
+msgstr ""
 
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Product'
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Repayment
@@ -6768,7 +6768,7 @@ msgstr ""
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Taxes"
-msgstr "Impostos"
+msgstr ""
 
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
@@ -6798,13 +6798,13 @@ msgstr ""
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Term Details"
-msgstr "Detalhes dos Termos"
+msgstr ""
 
 #. Label of the terms_and_conditions (Link) field in DocType 'Process Loan
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Terms and Conditions"
-msgstr "Termos e Condições"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
@@ -7021,7 +7021,7 @@ msgstr ""
 #: lending/loan_management/report/applicant_wise_loan_security_exposure/applicant_wise_loan_security_exposure.py:62
 #: lending/loan_management/report/loan_security_exposure/loan_security_exposure.py:52
 msgid "Total Qty"
-msgstr "Quantidade Total"
+msgstr ""
 
 #. Label of the total_security_value (Currency) field in DocType 'Loan Security
 #. Assignment'
@@ -7201,7 +7201,7 @@ msgstr ""
 #. Label of the valid_from (Datetime) field in DocType 'Loan Security Price'
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.json
 msgid "Valid From"
-msgstr "Válido a partir de"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_security_price/loan_security_price.py:63
 msgid "Valid From Time must be lesser than Valid Upto Time."
@@ -7231,7 +7231,7 @@ msgstr ""
 #. Label of the value_type (Select) field in DocType 'Loan Limit Change Log'
 #: lending/loan_management/doctype/loan_limit_change_log/loan_limit_change_log.json
 msgid "Value Type"
-msgstr "Tipo de Valor"
+msgstr ""
 
 #. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
@@ -7425,7 +7425,7 @@ msgstr ""
 #. Label of the zip_code (Int) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "ZIP Code"
-msgstr "CEP"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
 msgid "any strategy"
@@ -7434,7 +7434,7 @@ msgstr ""
 #. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "between"
-msgstr "entre"
+msgstr ""
 
 #: lending/loan_origination/decisioning.py:197
 msgid "decision"
@@ -7443,7 +7443,7 @@ msgstr ""
 #. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "in"
-msgstr "em"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:161
 msgid "loan amount capped at {0}, currently {1}"
@@ -7460,7 +7460,7 @@ msgstr ""
 #. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "not in"
-msgstr "não está em"
+msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:160
 msgid "rate of interest {0}, currently {1}"
@@ -7559,7 +7559,7 @@ msgstr ""
 #. Count format of shortcut in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "{} Open"
-msgstr "{} Abra"
+msgstr ""
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:135
 msgid "{} against loan {}"
