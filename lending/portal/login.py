@@ -131,7 +131,11 @@ def no_account(email: str) -> dict:
 
 
 def code_expiry_minutes() -> int:
-	seconds = frappe.db.get_single_value("TP OTP Settings", "otp_expiry_in_seconds") or 600
+	# TP OTP Settings ships with telephony, which lending does not require.
+	seconds = 600
+	if "telephony" in frappe.get_installed_apps():
+		seconds = frappe.db.get_single_value("TP OTP Settings", "otp_expiry_in_seconds") or seconds
+
 	return max(1, seconds // 60)
 
 

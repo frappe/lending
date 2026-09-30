@@ -174,6 +174,8 @@ def set_footer(notice=None, links=(), support=None):
 
 def setUpModule():
 	set_portal_switches(1, 1)
+	# ERPNextTestSuite rolls back after every test and never commits, so a fresh site would lose the switches.
+	frappe.db.commit()  # nosemgrep
 
 
 def make_website_user(email: str) -> str:

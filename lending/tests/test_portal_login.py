@@ -29,6 +29,7 @@ def login_response(url):
 
 def setUpModule():
 	set_portal_switches(1, 1)
+	frappe.db.commit()  # nosemgrep
 
 
 class TestPortalLogin(LendingTestSuite):
