@@ -655,6 +655,12 @@ class LoanRestructure(AccountsController):
 			schedule.update(schedule_details)
 			schedule.insert()
 
+	def get_new_repayment_frequency(self):
+		if self.old_repayment_frequency == "One Time" and self.new_repayment_period_in_months > 1:
+			return "Monthly"
+
+		return self.old_repayment_frequency
+
 	def get_schedule_details(self, adjusted_interest=0):
 		return {
 			"loan": self.loan,
@@ -668,7 +674,7 @@ class LoanRestructure(AccountsController):
 			"loan_amount": self.new_loan_amount,
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
-			"repayment_frequency": self.old_repayment_frequency,
+			"repayment_frequency": self.get_new_repayment_frequency(),
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,
