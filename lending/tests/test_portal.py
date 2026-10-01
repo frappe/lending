@@ -273,6 +273,7 @@ class TestPortalOwnership(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.form_dict.pop("name", None)
+		super().tearDown()
 
 	def as_alpha(self):
 		frappe.set_user(ALPHA_USER)
@@ -417,6 +418,7 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def submission(self, **overrides):
 		frappe.local.form_dict = frappe._dict(
@@ -667,6 +669,8 @@ class PortalPeople(LendingTestSuite):
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
 		show_product_on_portal(PRODUCT, 1)
+		# The setup wizard sets this on a real site; CI's site skips the wizard.
+		frappe.db.set_single_value("System Settings", "country", "India")
 
 		make_website_user(ALPHA_USER)
 		make_website_user(BETA_USER)
@@ -678,6 +682,7 @@ class PortalPeople(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def as_alpha(self):
 		frappe.set_user(ALPHA_USER)
@@ -995,6 +1000,7 @@ class TestPortalSignUp(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def apply_as(self, email, mobile, **overrides):
 		frappe.local.form_dict = frappe._dict({"mobile_number": mobile, "otp": "123456"})
@@ -1260,6 +1266,7 @@ class TestPortalSwitches(LendingTestSuite):
 		offer_product_to(PRODUCT, "")
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def test_portal_off_hides_every_signed_in_page(self):
 		set_portal_switches(0, 0)
@@ -1346,6 +1353,7 @@ class TestPortalBranding(LendingTestSuite):
 	def tearDown(self):
 		set_branding()
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def test_an_unnamed_portal_falls_back_to_ours(self):
 		set_branding()
@@ -1503,6 +1511,7 @@ class TestPortalFooter(LendingTestSuite):
 	def tearDown(self):
 		set_footer()
 		set_branding()
+		super().tearDown()
 
 	def test_an_unwritten_notice_names_the_lender_and_the_year(self):
 		set_branding(portal_brand_name="Ganges Finance")
@@ -2078,6 +2087,7 @@ class TestPortalDisbursementRequest(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def ask(self, loan, amount):
 		frappe.local.form_dict = frappe._dict({"name": loan, "amount": amount})
@@ -2171,6 +2181,7 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		frappe.defaults.clear_user_default(CHOSEN_LOAN_KEY, ALPHA_USER)
 		frappe.set_user("Administrator")
 		frappe.local.form_dict = frappe._dict()
+		super().tearDown()
 
 	def test_a_borrower_with_several_loans_is_asked_to_choose(self):
 		self.assertIs(get_dashboard()["choose_account"], True)

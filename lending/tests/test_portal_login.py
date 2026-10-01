@@ -43,6 +43,7 @@ class TestPortalLogin(LendingTestSuite):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		del frappe.local.login_manager
+		super().tearDown()
 
 	def test_a_code_goes_only_to_a_borrower(self):
 		with patch("lending.portal.login.telephony_otp") as telephony:
