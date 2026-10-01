@@ -13,11 +13,21 @@ def add_single_month(date):
 
 def round_emi(amount, emi_rounding_method):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	smallest_unit = flt(10**-precision, precision)
+
 	if emi_rounding_method == "No Rounding":
-		return flt(amount, precision)
-	if emi_rounding_method == "Round to Nearest":
-		return math.floor(amount) + 1 if flt(amount) - math.floor(amount) >= 0.5 else math.floor(amount)
-	return math.ceil(amount)
+		rounded_amount = flt(amount, precision)
+	elif emi_rounding_method == "Round to Nearest":
+		rounded_amount = (
+			math.floor(amount) + 1 if flt(amount) - math.floor(amount) >= 0.5 else math.floor(amount)
+		)
+	else:
+		rounded_amount = math.ceil(amount)
+
+	if flt(amount) > 0 and rounded_amount <= 0:
+		return smallest_unit
+
+	return rounded_amount
 
 
 def get_monthly_repayment_amount(
