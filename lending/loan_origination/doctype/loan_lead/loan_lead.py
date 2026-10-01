@@ -55,12 +55,18 @@ class LoanLead(Document):
 		applicant_country: DF.Link | None
 		applicant_name: DF.Data
 		applicant_type: DF.Literal["Individual", "Business"]
+		bureau_consent: DF.Check
+		bureau_consent_on: DF.Datetime | None
+		bureau_consent_version: DF.Data | None
+		bureau_report: DF.Link | None
+		bureau_score: DF.Int
 		company_name: DF.Data | None
 		contact: DF.Link | None
 		date_of_birth: DF.Date | None
 		email: DF.Data
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
 		employment_type: DF.Literal["Salaried", "Self-employed"]
+		gender: DF.Link | None
 		income: DF.Currency
 		indicative_amount: DF.Currency
 		indicative_roi: DF.Percent
@@ -83,6 +89,8 @@ class LoanLead(Document):
 		self.set_age()
 		self.set_verification_statuses()
 		self.set_rejected_on()
+		self.set_bureau_consent()
+		self.set_bureau_snapshot()
 
 	def set_age(self):
 		# Only an individual has one, and a lead that changes type must not keep the age it
@@ -100,6 +108,42 @@ class LoanLead(Document):
 			- date_of_birth.year
 			- ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
 		)
+
+	def set_bureau_consent(self):
+		# The stamp proves consent came before the pull, so whatever arrives in the field is
+		# discarded: read_only stops the form, not the REST API.
+		if not self.bureau_consent:
+			self.bureau_consent_on = None
+			self.bureau_consent_version = None
+			return
+
+		stored = self.stored_bureau_consent()
+
+		if stored and stored.bureau_consent_on:
+			self.bureau_consent_on = stored.bureau_consent_on
+			self.bureau_consent_version = stored.bureau_consent_version
+			return
+
+		self.bureau_consent_on = now_datetime()
+		self.bureau_consent_version = get_bureau_consent_version()
+
+	def stored_bureau_consent(self):
+		if self.is_new():
+			return None
+
+		return frappe.db.get_value(
+			self.doctype, self.name, ["bureau_consent_on", "bureau_consent_version"], as_dict=True
+		)
+
+	def set_bureau_snapshot(self):
+		# Read on every save rather than written once when the pull lands, so the lead shows
+		# the report that is current rather than the one it happened to be saved beside.
+		from lending.loan_origination.decisioning import latest_bureau_report_for_pan
+
+		report = latest_bureau_report_for_pan(self.pan)
+
+		self.bureau_score = report.score if report else 0
+		self.bureau_report = report.name if report else None
 
 	def set_rejected_on(self):
 		workflow = get_workflow_name(self.doctype)
@@ -273,6 +317,10 @@ def resolve_otp_request(loan_lead: str, medium: str) -> tuple[Document, dict, st
 		)
 
 	return doc, fields, recipient
+
+
+def get_bureau_consent_version() -> str | None:
+	return frappe.get_cached_value("Loan Origination Settings", None, "bureau_consent_version")
 
 
 def get_otp_purpose(loan_lead: str) -> str:
