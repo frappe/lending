@@ -603,6 +603,14 @@ class TestLoanRestructure(LendingTestSuite):
 			len(new_schedule.repayment_schedule), loan_restructure.new_repayment_period_in_months
 		)
 
+		loan.reload()
+		self.assertEqual(loan.repayment_frequency, "Monthly")
+
+		loan_restructure.cancel()
+
+		loan.reload()
+		self.assertEqual(loan.repayment_frequency, "One Time")
+
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
 		Verify that when DPD increases after NPA restructuring,
