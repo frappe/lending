@@ -1,0 +1,129 @@
+{
+ "block": {
+  "baseStyles": {
+   "alignItems": "center",
+   "borderColor": "var(--outline-gray-2)",
+   "borderStyle": "solid",
+   "borderWidth": "1px 0px 0px 0px",
+   "display": "flex",
+   "flexDirection": "row",
+   "flexShrink": "0",
+   "gap": "10px",
+   "height": "49px",
+   "padding": "0px 20px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "color": "var(--ink-gray-6)"
+    },
+    "children": [],
+    "componentEvents": {},
+    "componentId": "borrower_footer-0-textblock1",
+    "componentName": "TextBlock",
+    "componentProps": {
+     "fontSize": "text-p-sm",
+     "tag": "p",
+     "text": "{{ inputs.note }}"
+    },
+    "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {}
+   },
+   {
+    "baseStyles": {
+     "flex": "1 1 auto"
+    },
+    "children": [],
+    "componentEvents": {},
+    "componentId": "borrower_footer-0-container1",
+    "componentName": "container",
+    "componentProps": {},
+    "componentSlots": {},
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
+   },
+   {
+    "baseStyles": {
+     "display": "flex",
+     "gap": "4px"
+    },
+    "children": [
+     {
+      "baseStyles": {
+       "color": "var(--ink-gray-6)"
+      },
+      "children": [],
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "window.location.href = dataItem.footer_href"
+       }
+      },
+      "componentId": "borrower_footer-0-repeater1-button1",
+      "componentName": "Button",
+      "componentProps": {
+       "label": "{{ dataItem.footer_label }}",
+       "size": "sm",
+       "variant": "ghost"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
+     }
+    ],
+    "componentEvents": {},
+    "componentId": "borrower_footer-0-repeater1",
+    "componentName": "Repeater",
+    "componentProps": {
+     "data": "{{ inputs.links }}",
+     "dataKey": "footer_label",
+     "emptyStateMessage": ""
+    },
+    "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {},
+    "visibilityCondition": "{{ (inputs.links || []).length > 0 }}"
+   }
+  ],
+  "classes": [
+   "portal-footer"
+  ],
+  "componentEvents": {},
+  "componentId": "borrower_footer-0",
+  "componentName": "container",
+  "componentProps": {},
+  "componentSlots": {},
+  "mobileStyles": {},
+  "originalElement": "div",
+  "tabletStyles": {}
+ },
+ "component_id": "borrower_footer",
+ "component_name": "Borrower Footer",
+ "creation": "2026-09-26 23:52:27.144922",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "idx": 0,
+ "inputs": [
+  {
+   "description": "The lender's copyright line",
+   "input_name": "note",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "The policy links, as {footer_label, footer_href} rows",
+   "input_name": "links",
+   "required": 0,
+   "type": "string"
+  }
+ ],
+ "is_disabled": 0,
+ "modified": "2026-09-26 23:56:55.515621",
+ "modified_by": "Administrator",
+ "name": "borrower_footer",
+ "owner": "Administrator"
+}

@@ -4,7 +4,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
-required_apps = ["erpnext"]
+required_apps = ["erpnext", "frappe/studio"]
 app_logo_url = "/assets/lending/images/frappe-lending-logo.svg"
 
 add_to_apps_screen = [
@@ -66,6 +66,10 @@ fixtures = [
 			]
 		],
 	},
+	{
+		"dt": "Print Format",
+		"filters": [["name", "in", ("Loan Statement of Account", "Loan Interest Certificate")]],
+	},
 ]
 
 
@@ -88,6 +92,23 @@ fixtures = [
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+
+# The Studio sidebar does not read these; portal.core.nav_items and portal.search do.
+portal_menu_items = [
+	{"title": "Account overview", "route": "/borrower-portal/overview"},
+	{"title": "Loan accounts", "route": "/borrower-portal/loans", "covers": "/borrower-portal/loan"},
+	{
+		"title": "Application",
+		"route": "/borrower-portal/applications",
+		"covers": "/borrower-portal/application",
+	},
+	{"title": "Statement of account", "route": "/borrower-portal/statement"},
+	{"title": "Interest certificate", "route": "/borrower-portal/certificate"},
+	{"title": "Personal details", "route": "/borrower-portal/profile"},
+]
+
+# Studio sends guests to the site's /login; borrowers get the portal's own page instead.
+page_renderer = "lending.portal.login.PortalLoginRedirect"
 
 # Home Pages
 # ----------
@@ -120,6 +141,10 @@ fixtures = [
 
 # before_install = "lending.install.before_install"
 after_install = "lending.install.after_install"
+
+after_migrate = [
+	"lending.loan_management.doctype.lending_settings.lending_settings.sync_portal_pages",
+]
 
 # Uninstallation
 # ------------
@@ -342,3 +367,6 @@ workflow_methods = [
 		"method": "lending.loan_origination.decisioning.run_knockout_rules"
 	}
 ]
+
+# Survive frappe.clear_cache(), so a migrate does not strand visitors mid-form.
+persistent_cache_keys = ["portal-apply-*"]

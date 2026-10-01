@@ -27,6 +27,8 @@
   "is_term_loan",
   "validate_normal_repayment",
   "disabled",
+  "show_on_portal",
+  "portal_applicant_type",
   "collection_offset_sequence_section",
   "collection_offset_sequence_for_standard_asset",
   "collection_offset_sequence_for_sub_standard_asset",
@@ -109,6 +111,21 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "default": "0",
+   "description": "Offers this product on the public application form. Disabled means nobody may use it. This means nobody is told it exists.",
+   "fieldname": "show_on_portal",
+   "fieldtype": "Check",
+   "label": "Show on Borrower Portal"
+  },
+  {
+   "depends_on": "show_on_portal",
+   "description": "Who the public application form offers this product to. Leave it blank to offer it to both people and companies.",
+   "fieldname": "portal_applicant_type",
+   "fieldtype": "Select",
+   "label": "Offered To",
+   "options": "\nIndividual\nBusiness"
   },
   {
    "collapsible": 1,
@@ -561,7 +578,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-23 12:00:00.000000",
+ "modified": "2026-09-24 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

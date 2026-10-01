@@ -1,0 +1,664 @@
+{
+ "allow_guest": 1,
+ "blocks": [
+  {
+   "baseStyles": {
+    "color": "var(--ink-gray-8)",
+    "display": "flex",
+    "flexDirection": "column",
+    "height": "100%",
+    "overflowX": "hidden",
+    "scrollbarColor": "var(--outline-gray-3) transparent",
+    "scrollbarWidth": "thin",
+    "width": "100%"
+   },
+   "blockName": "body",
+   "children": [
+    {
+     "baseStyles": {
+      "alignItems": "center",
+      "backgroundColor": "var(--surface-gray-1)",
+      "display": "flex",
+      "height": "100%",
+      "justifyContent": "center",
+      "overflowY": "auto",
+      "padding": "40px 16px",
+      "width": "100%"
+     },
+     "children": [
+      {
+       "baseStyles": {
+        "backgroundColor": "var(--surface-base)",
+        "border": "1px solid var(--outline-gray-1)",
+        "borderRadius": "var(--radius-6, 12px)",
+        "boxShadow": "0 1px 2px rgba(0, 0, 0, 0.04)",
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "28px",
+        "maxWidth": "460px",
+        "padding": "48px 48px 40px",
+        "width": "100%"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "gap": "8px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "borderRadius": "12px",
+              "flexShrink": "0",
+              "height": "48px",
+              "overflow": "hidden",
+              "width": "48px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container1-imageview1",
+             "componentName": "ImageView",
+             "componentProps": {
+              "alt": "",
+              "image": "{{ login.data.brand_logo }}",
+              "shape": "square",
+              "size": "lg"
+             },
+             "visibilityCondition": "{{ login.data.brand_logo }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "backgroundColor": "var(--portal-primary, var(--ink-gray-9))",
+              "borderRadius": "12px",
+              "color": "var(--portal-primary-ink, var(--surface-base))",
+              "display": "flex",
+              "flexShrink": "0",
+              "fontSize": "20px",
+              "fontWeight": "700",
+              "height": "48px",
+              "justifyContent": "center",
+              "textTransform": "uppercase",
+              "width": "48px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-base",
+              "tag": "p",
+              "text": "{{ (login.data.brand_name || '').charAt(0) }}"
+             },
+             "visibilityCondition": "{{ login.data.show_wordmark }}"
+            }
+           ],
+           "componentId": "login-0-container1-container1-container1-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "6px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600",
+              "letterSpacing": "-0.01em",
+              "marginTop": "8px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container2-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-xl",
+              "tag": "h1",
+              "text": "{{ login.data.heading }}"
+             },
+             "visibilityCondition": "{{ !codeSent }}"
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600",
+              "letterSpacing": "-0.01em",
+              "marginTop": "8px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container2-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-xl",
+              "tag": "h1",
+              "text": "{{ login.data.code_heading }}"
+             },
+             "visibilityCondition": "{{ codeSent }}"
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)",
+              "fontSize": "15px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container2-textblock3",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "{{ login.data.intro }}"
+             },
+             "visibilityCondition": "{{ !codeSent }}"
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)",
+              "fontSize": "15px"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container1-container2-textblock4",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "{{ sentNote }}"
+             },
+             "visibilityCondition": "{{ codeSent }}"
+            }
+           ],
+           "componentId": "login-0-container1-container1-container1-container2",
+           "componentName": "container",
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "login-0-container1-container1-container1",
+         "componentName": "container",
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "20px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "width": "100%"
+           },
+           "children": [],
+           "componentEvents": {
+            "keydown.enter": {
+             "action": "Run Script",
+             "event": "keydown.enter",
+             "script": "sendCode()"
+            }
+           },
+           "componentId": "login-0-container1-container1-container2-formcontrol1",
+           "componentName": "FormControl",
+           "componentProps": {
+            "label": "Email",
+            "modelValue": {
+             "$type": "variable",
+             "name": "email"
+            },
+            "placeholder": "name@example.com",
+            "required": true,
+            "size": "md",
+            "type": "email",
+            "variant": "outline"
+           }
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "12px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "borderRadius": "8px",
+              "height": "34px",
+              "width": "100%"
+             },
+             "children": [],
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "sendCode()"
+              }
+             },
+             "componentId": "login-0-container1-container1-container2-container1-button1",
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Send verification code",
+              "loading": "{{ busy }}",
+              "size": "md",
+              "variant": "solid"
+             },
+             "componentSlots": {
+              "default": {
+               "slotContent": [
+                {
+                 "baseStyles": {},
+                 "children": [],
+                 "componentEvents": {},
+                 "componentId": "login-0-container1-container1-container2-container1-button1-default-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "span",
+                  "text": "Send verification code"
+                 },
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
+                }
+               ],
+               "slotName": "default"
+              }
+             }
+            },
+            {
+             "baseStyles": {
+              "borderRadius": "8px",
+              "height": "34px",
+              "width": "100%"
+             },
+             "children": [],
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "withGoogle(login.data.google_url)"
+              }
+             },
+             "componentId": "login-0-container1-container1-container2-container1-button2",
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Continue with Google",
+              "loading": "{{ busy }}",
+              "size": "md",
+              "variant": "outline"
+             },
+             "componentSlots": {
+              "default": {
+               "slotContent": [
+                {
+                 "baseStyles": {},
+                 "children": [],
+                 "componentEvents": {},
+                 "componentId": "login-0-container1-container1-container2-container1-button2-default-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "span",
+                  "text": "Continue with Google"
+                 },
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
+                }
+               ],
+               "slotName": "default"
+              },
+              "prefix": {
+               "slotContent": [
+                {
+                 "baseStyles": {
+                  "display": "flex"
+                 },
+                 "children": [],
+                 "componentEvents": {},
+                 "componentId": "login-0-container1-container1-container2-container1-button2-prefix-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 48 48\"><path fill=\"#EA4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"/><path fill=\"#4285F4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"/><path fill=\"#FBBC05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"/><path fill=\"#34A853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"/></svg>"
+                 },
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
+                }
+               ],
+               "slotName": "prefix"
+              }
+             },
+             "visibilityCondition": "{{ login.data.google_url }}"
+            }
+           ],
+           "componentId": "login-0-container1-container1-container2-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "login-0-container1-container1-container2",
+         "componentName": "container",
+         "originalElement": "div",
+         "visibilityCondition": "{{ !codeSent }}"
+        },
+        {
+         "baseStyles": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "20px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "8px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "width": "100%"
+             },
+             "children": [],
+             "componentEvents": {
+              "keydown.enter": {
+               "action": "Run Script",
+               "event": "keydown.enter",
+               "script": "verifyCode()"
+              }
+             },
+             "componentId": "login-0-container1-container1-container3-container1-formcontrol1",
+             "componentName": "FormControl",
+             "componentProps": {
+              "label": "Login code",
+              "modelValue": {
+               "$type": "variable",
+               "name": "otp"
+              },
+              "placeholder": "Enter the code",
+              "required": true,
+              "size": "md",
+              "type": "text",
+              "variant": "outline"
+             }
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-5)"
+             },
+             "children": [],
+             "componentId": "login-0-container1-container1-container3-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "{{ sentHint }}"
+             }
+            }
+           ],
+           "componentId": "login-0-container1-container1-container3-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "borderRadius": "8px",
+            "height": "34px",
+            "width": "100%"
+           },
+           "children": [],
+           "componentEvents": {
+            "click": {
+             "action": "Run Script",
+             "event": "click",
+             "script": "verifyCode()"
+            }
+           },
+           "componentId": "login-0-container1-container1-container3-button1",
+           "componentName": "Button",
+           "componentProps": {
+            "label": "Verify and log in",
+            "loading": "{{ busy }}",
+            "size": "md",
+            "variant": "solid"
+           },
+           "componentSlots": {
+            "default": {
+             "slotContent": [
+              {
+               "baseStyles": {},
+               "children": [],
+               "componentEvents": {},
+               "componentId": "login-0-container1-container1-container3-button1-default-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "span",
+                "text": "Verify and log in"
+               },
+               "componentSlots": {},
+               "mobileStyles": {},
+               "tabletStyles": {}
+              }
+             ],
+             "slotName": "default"
+            }
+           }
+          },
+          {
+           "baseStyles": {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "gap": "8px",
+            "justifyContent": "space-between",
+            "width": "100%"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-5)",
+              "cursor": "pointer",
+              "fontWeight": "500",
+              "textDecoration": "underline",
+              "textUnderlineOffset": "3px"
+             },
+             "children": [],
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "changeEmail()"
+              }
+             },
+             "componentId": "login-0-container1-container1-container3-container2-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "span",
+              "text": "Use a different email"
+             }
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-5)",
+                "cursor": "pointer",
+                "fontWeight": "500",
+                "textDecoration": "underline",
+                "textUnderlineOffset": "3px"
+               },
+               "children": [],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "resendCode()"
+                }
+               },
+               "componentId": "login-0-container1-container1-container3-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "span",
+                "text": "Resend code"
+               },
+               "visibilityCondition": "{{ resendIn <= 0 }}"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-5)"
+               },
+               "children": [],
+               "componentId": "login-0-container1-container1-container3-container2-container1-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}"
+               },
+               "visibilityCondition": "{{ resendIn > 0 }}"
+              }
+             ],
+             "componentId": "login-0-container1-container1-container3-container2-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "login-0-container1-container1-container3-container2",
+           "componentName": "container",
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "login-0-container1-container1-container3",
+         "componentName": "container",
+         "originalElement": "div",
+         "visibilityCondition": "{{ codeSent }}"
+        },
+        {
+         "baseStyles": {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": "6px",
+          "justifyContent": "center",
+          "marginTop": "8px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-6)",
+            "fontSize": "15px"
+           },
+           "children": [],
+           "componentId": "login-0-container1-container1-container4-textblock1",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-p-sm",
+            "tag": "p",
+            "text": "New borrower?"
+           }
+          },
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-9)",
+            "cursor": "pointer",
+            "fontWeight": "500",
+            "textDecoration": "underline",
+            "textUnderlineOffset": "3px"
+           },
+           "children": [],
+           "componentEvents": {
+            "click": {
+             "action": "Run Script",
+             "event": "click",
+             "script": "open('/apply')"
+            }
+           },
+           "componentId": "login-0-container1-container1-container4-textblock2",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-base",
+            "tag": "span",
+            "text": "Apply for a loan."
+           }
+          }
+         ],
+         "componentId": "login-0-container1-container1-container4",
+         "componentName": "container",
+         "originalElement": "div",
+         "visibilityCondition": "{{ login.data.show_signup && !codeSent }}"
+        }
+       ],
+       "componentId": "login-0-container1-container1",
+       "componentName": "container",
+       "mobileStyles": {
+        "padding": "32px 24px"
+       },
+       "originalElement": "div"
+      }
+     ],
+     "componentId": "login-0-container1",
+     "componentName": "container",
+     "originalElement": "div"
+    },
+    {
+     "baseStyles": {
+      "display": "none"
+     },
+     "children": [],
+     "componentId": "login-0-html1",
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ login.data.brand_style || '' }}"
+     }
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "componentId": "login-0",
+   "componentName": "div",
+   "originalElement": "body"
+  }
+ ],
+ "creation": "2026-09-29 12:54:32.253450",
+ "doctype": "Studio Page",
+ "frappe_app": "lending",
+ "is_standard": 1,
+ "modified": "2026-09-30 11:53:06.685672",
+ "modified_by": "Administrator",
+ "name": "log_in",
+ "owner": "Administrator",
+ "page_name": "page-1b702c6c",
+ "page_title": "Log in",
+ "published": 1,
+ "resources": [
+  {
+   "__unsaved": 1,
+   "auto": 1,
+   "method": "GET",
+   "params": "{\"redirect_to\": \"{{ route.query['redirect-to'] || '' }}\"}",
+   "resource_name": "login",
+   "resource_type": "API Resource",
+   "url": "lending.portal.login.get_login_page"
+  }
+ ],
+ "route": "/login",
+ "studio_app": "borrower-portal",
+ "variables": []
+}

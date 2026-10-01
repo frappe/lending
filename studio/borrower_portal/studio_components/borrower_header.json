@@ -1,0 +1,316 @@
+{
+ "block": {
+  "baseStyles": {
+   "alignItems": "center",
+   "borderBottom": "1px solid var(--outline-gray-1)",
+   "display": "flex",
+   "flexDirection": "row",
+   "gap": "10px",
+   "minHeight": "48.8px",
+   "padding": "0 20px",
+   "width": "100%"
+  },
+  "children": [
+   {
+    "baseStyles": {
+     "alignItems": "center",
+     "display": "flex",
+     "flexDirection": "row",
+     "gap": "8px",
+     "minWidth": "0px"
+    },
+    "children": [
+     {
+      "baseStyles": {
+       "alignItems": "center",
+       "display": "flex",
+       "flexDirection": "row",
+       "gap": "0px",
+       "minWidth": "0px"
+      },
+      "children": [
+       {
+        "baseStyles": {
+         "alignItems": "center",
+         "display": "flex",
+         "flexDirection": "row",
+         "gap": "0px",
+         "minWidth": "0px"
+        },
+        "children": [
+         {
+          "baseStyles": {
+           "alignItems": "center",
+           "color": "var(--ink-gray-5)",
+           "cursor": "pointer",
+           "display": "flex",
+           "padding": "4px 2px"
+          },
+          "children": [],
+          "classes": [
+           "hover:text-ink-gray-7"
+          ],
+          "componentEvents": {
+           "click": {
+            "action": "Run Script",
+            "event": "click",
+            "script": "open(dataItem.route)"
+           }
+          },
+          "componentId": "borrower_header-0-container1-repeater1-container1-textblock1",
+          "componentName": "TextBlock",
+          "componentProps": {
+           "fontSize": "text-lg-medium",
+           "tag": "p",
+           "text": "{{ dataItem.label }}"
+          },
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "visibilityCondition": "{{ dataItem.route }}"
+         },
+         {
+          "baseStyles": {
+           "alignItems": "center",
+           "color": "var(--ink-gray-9)",
+           "display": "flex",
+           "minWidth": "0px",
+           "overflow": "hidden",
+           "padding": "4px 2px",
+           "textOverflow": "ellipsis",
+           "whiteSpace": "nowrap"
+          },
+          "children": [],
+          "componentEvents": {},
+          "componentId": "borrower_header-0-container1-repeater1-container1-textblock2",
+          "componentName": "TextBlock",
+          "componentProps": {
+           "fontSize": "text-lg-medium",
+           "tag": "p",
+           "text": "{{ dataItem.label }}"
+          },
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "visibilityCondition": "{{ !dataItem.route }}"
+         },
+         {
+          "baseStyles": {
+           "color": "var(--ink-gray-4)",
+           "margin": "0px 2px"
+          },
+          "children": [],
+          "componentEvents": {},
+          "componentId": "borrower_header-0-container1-repeater1-container1-textblock3",
+          "componentName": "TextBlock",
+          "componentProps": {
+           "fontSize": "text-base",
+           "tag": "p",
+           "text": "/"
+          },
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "visibilityCondition": "{{ dataItem.route }}"
+         }
+        ],
+        "componentEvents": {},
+        "componentId": "borrower_header-0-container1-repeater1-container1",
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
+       }
+      ],
+      "componentEvents": {},
+      "componentId": "borrower_header-0-container1-repeater1",
+      "componentName": "Repeater",
+      "componentProps": {
+       "data": "{{ inputs.breadcrumbs }}",
+       "dataKey": "name",
+       "emptyStateMessage": ""
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "visibilityCondition": "{{ inputs.breadcrumbs && inputs.breadcrumbs.length > 0 }}"
+     },
+     {
+      "baseStyles": {
+       "color": "var(--ink-gray-9)",
+       "fontWeight": "600",
+       "minWidth": "0px",
+       "overflow": "hidden",
+       "textOverflow": "ellipsis",
+       "whiteSpace": "nowrap"
+      },
+      "children": [],
+      "componentEvents": {},
+      "componentId": "borrower_header-0-container1-textblock1",
+      "componentName": "TextBlock",
+      "componentProps": {
+       "fontSize": "text-lg",
+       "tag": "h1",
+       "text": "{{ inputs.crumb }}"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "visibilityCondition": "{{ !inputs.breadcrumbs || inputs.breadcrumbs.length === 0 }}"
+     },
+     {
+      "baseStyles": {},
+      "children": [],
+      "componentEvents": {},
+      "componentId": "borrower_header-0-container1-badge1",
+      "componentName": "Badge",
+      "componentProps": {
+       "label": "{{ inputs.status }}",
+       "size": "sm",
+       "theme": "{{ tone(inputs.status_tone) }}",
+       "variant": "subtle"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "visibilityCondition": "{{ inputs.status }}"
+     }
+    ],
+    "componentEvents": {},
+    "componentId": "borrower_header-0-container1",
+    "componentName": "container",
+    "componentProps": {},
+    "componentSlots": {},
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
+   },
+   {
+    "baseStyles": {
+     "flex": "1 1 auto"
+    },
+    "children": [],
+    "componentEvents": {},
+    "componentId": "borrower_header-0-container2",
+    "componentName": "container",
+    "componentProps": {},
+    "componentSlots": {},
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
+   },
+   {
+    "baseStyles": {},
+    "children": [],
+    "componentEvents": {
+     "click": {
+      "action": "Run Script",
+      "event": "click",
+      "script": "showAlerts.value = true; alerts.reload()"
+     }
+    },
+    "componentId": "borrower_header-0-button1",
+    "componentName": "Button",
+    "componentProps": {
+     "icon": "lucide-bell",
+     "label": "Notifications",
+     "size": "sm",
+     "variant": "ghost"
+    },
+    "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {}
+   },
+   {
+    "baseStyles": {},
+    "children": [],
+    "componentEvents": {
+     "click": {
+      "action": "Run Script",
+      "event": "click",
+      "script": "open(inputs.action_route)"
+     }
+    },
+    "componentId": "borrower_header-0-button2",
+    "componentName": "Button",
+    "componentProps": {
+     "label": "{{ inputs.action_label }}",
+     "size": "sm",
+     "variant": "solid"
+    },
+    "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {},
+    "visibilityCondition": "{{ inputs.action_label }}"
+   }
+  ],
+  "classes": [
+   "portal-header"
+  ],
+  "componentEvents": {},
+  "componentId": "borrower_header-0",
+  "componentName": "container",
+  "componentProps": {},
+  "componentSlots": {},
+  "mobileStyles": {},
+  "originalElement": "div",
+  "tabletStyles": {}
+ },
+ "component_id": "borrower_header",
+ "component_name": "Borrower Page Header",
+ "creation": "2026-09-26 23:52:27.162861",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "idx": 0,
+ "inputs": [
+  {
+   "description": "What this page is",
+   "input_name": "crumb",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "List of breadcrumbs",
+   "input_name": "breadcrumbs",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "Who is reading it, and as on when",
+   "input_name": "note",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "How the borrower's accounts stand, where that is worth saying",
+   "input_name": "status",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "'', 'ok', 'warn' or 'danger'",
+   "input_name": "status_tone",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "The one thing the page offers to press; empty hides it",
+   "input_name": "action_label",
+   "required": 0,
+   "type": "string"
+  },
+  {
+   "description": "Where that button goes, as a data-layer URL",
+   "input_name": "action_route",
+   "required": 0,
+   "type": "string"
+  }
+ ],
+ "is_disabled": 0,
+ "modified": "2026-09-26 23:56:55.489454",
+ "modified_by": "Administrator",
+ "name": "borrower_header",
+ "owner": "Administrator"
+}
