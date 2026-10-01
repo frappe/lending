@@ -11,18 +11,30 @@ def add_single_month(date):
 		return add_months(date, 1)
 
 
-def get_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
+def round_emi(amount, emi_rounding_method):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	if emi_rounding_method == "No Rounding":
+		return flt(amount, precision)
+	if emi_rounding_method == "Round to Nearest":
+		return math.floor(amount) + 1 if flt(amount) - math.floor(amount) >= 0.5 else math.floor(amount)
+	return math.ceil(amount)
+
+
+def get_monthly_repayment_amount(
+	loan_amount, rate_of_interest, repayment_periods, frequency, emi_rounding_method="Round to Nearest"
+):
 	if frequency == "One Time":
 		repayment_periods = 1
 
 	if rate_of_interest:
 		monthly_interest_rate = flt(rate_of_interest) / (get_frequency(frequency) * 100)
-		monthly_repayment_amount = math.ceil(
+		monthly_repayment_amount = round_emi(
 			(loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** repayment_periods)
-			/ ((1 + monthly_interest_rate) ** repayment_periods - 1)
+			/ ((1 + monthly_interest_rate) ** repayment_periods - 1),
+			emi_rounding_method,
 		)
 	else:
-		monthly_repayment_amount = math.ceil(flt(loan_amount) / repayment_periods)
+		monthly_repayment_amount = round_emi(flt(loan_amount) / repayment_periods, emi_rounding_method)
 	return monthly_repayment_amount
 
 def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amount, frequency):
@@ -55,7 +67,9 @@ def get_repayment_periods(loan_amount, rate_of_interest, monthly_repayment_amoun
 
 	return math.ceil(repayment_periods)
 
-def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_periods, frequency):
+def get_flat_monthly_repayment_amount(
+	loan_amount, rate_of_interest, repayment_periods, frequency, emi_rounding_method="Round to Nearest"
+):
 	if frequency == "Monthly":
 		years = 12
 	else:
@@ -63,7 +77,7 @@ def get_flat_monthly_repayment_amount(loan_amount, rate_of_interest, repayment_p
 
 	total_interest = loan_amount * rate_of_interest * repayment_periods/ (years * 100)
 	total_amount = loan_amount + total_interest
-	monthly_repayment_amount = math.ceil(flt(total_amount) / repayment_periods)
+	monthly_repayment_amount = round_emi(flt(total_amount) / repayment_periods, emi_rounding_method)
 
 	return monthly_repayment_amount
 
