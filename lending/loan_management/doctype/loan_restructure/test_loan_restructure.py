@@ -548,6 +548,61 @@ class TestLoanRestructure(LendingTestSuite):
 		)
 		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
 
+	def test_restructure_of_one_time_loan_uses_new_tenure(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2026-10-24",
+			posting_date="2026-09-24",
+			rate_of_interest=20,
+			applicant_type="Customer",
+			repayment_frequency="One Time",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2026-09-24",
+			repayment_start_date="2026-10-24",
+			repayment_frequency="One Time",
+		)
+
+		schedule_before = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		self.assertEqual(schedule_before.repayment_frequency, "One Time")
+		self.assertEqual(len(schedule_before.repayment_schedule), 1)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-09-28",
+			repayment_start_date="2026-09-30",
+			treatment_of_normal_interest="Add To First EMI",
+			unaccrued_interest_treatment="Add To First EMI",
+			treatment_of_penal_interest="Capitalize",
+			new_rate_of_interest=20,
+			new_repayment_method="Repay Over Number of Periods",
+			new_repayment_period_in_months=12,
+			waive_off_restructure_charges=1,
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		new_schedule = frappe.get_doc(
+			"Loan Repayment Schedule",
+			{"loan_restructure": loan_restructure.name, "docstatus": 1, "status": "Active"},
+		)
+
+		self.assertEqual(new_schedule.repayment_frequency, "Monthly")
+		self.assertEqual(
+			len(new_schedule.repayment_schedule), loan_restructure.new_repayment_period_in_months
+		)
+
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
 		Verify that when DPD increases after NPA restructuring,
