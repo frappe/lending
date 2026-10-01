@@ -699,12 +699,14 @@ class LoanRestructure(AccountsController):
 		total_amount_paid = 0
 		loan_amount = self.new_loan_amount
 		monthly_repayment_amount = schedule.monthly_repayment_amount
+		repayment_frequency = schedule.repayment_frequency
 
 		if cancel:
 			total_principal_paid = self.total_principal_paid
 			total_amount_paid = self.total_amount_paid
 			loan_amount = self.disbursed_amount
 			monthly_repayment_amount = self.old_emi
+			repayment_frequency = self.old_repayment_frequency
 
 		frappe.db.set_value(
 			"Loan",
@@ -713,6 +715,7 @@ class LoanRestructure(AccountsController):
 				"loan_amount": loan_amount,
 				"rate_of_interest": self.new_rate_of_interest,
 				"monthly_repayment_amount": monthly_repayment_amount,
+				"repayment_frequency": repayment_frequency,
 				"total_payment": total_payment,
 				"total_interest_payable": total_interest_payable,
 				"total_principal_paid": total_principal_paid,
