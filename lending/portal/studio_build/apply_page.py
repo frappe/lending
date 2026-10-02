@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.blocks import (
 	PANEL,
@@ -81,6 +83,11 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \tconst token = ref("")
 \tconst accountToken = ref("")
 \tconst offer = ref<Record<string, any>>({})
+
+\t// Step 1 is the landing screen, so the count starts at step 2.
+\tconst stepNames = %(steps)s
+\tconst stepLabel = computed(() => `Step ${step.value - 1} of ${stepNames.length} · ${stepNames[step.value - 2] || ""}`)
+\tconst stepProgress = computed(() => ((step.value - 1) / stepNames.length) * 100)
 
 \tconst fail = (error: any) =>
 \t\ttoast.error(String(error?.messages?.[0] || error?.message || error))
@@ -196,14 +203,15 @@ APPLY_SCRIPT = '''\tconst busy = ref(false)
 \t\t})
 \t\t\t.then((result: any) => {
 \t\t\t\tif (!result.verified) { toast.error(result.message); return }
-\t\t\t\twindow.location.href = "/borrower-portal/overview"
+\t\t\t\twindow.location.href = router.resolve("/overview").href
 \t\t\t})
 \t\t\t.catch(fail)
 \t\t\t.finally(() => { busy.value = false })
 \t}''' % {
+	"steps": json.dumps(STEPS),
 	"fields": "\n".join(
 		f"\t\t\t{field}: {ref_name}.value," for _label, ref_name, field, *_rest in DETAIL_FIELDS
-	)
+	),
 }
 
 APPLY_STATE = [
@@ -222,6 +230,8 @@ APPLY_RETURNS = [
 	"busy",
 	"codeSent",
 	"offer",
+	"stepLabel",
+	"stepProgress",
 	"go",
 	"choose",
 	"chooseProduct",
@@ -262,12 +272,10 @@ def sized(part):
 
 
 def progress():
-	where = "{{ 'Step ' + (step - 1) + ' of %d · ' + (%s[step - 2] || '') }}" % (len(STEPS), list(STEPS))
-
 	return column(
 		[
-			block("Progress", props={"value": "{{ (step - 1) / %d * 100 }}" % len(STEPS), "size": "sm"}),
-			text(where, size="text-sm", styles={"color": "var(--ink-gray-6)"}),
+			block("Progress", props={"value": "{{ stepProgress }}", "size": "sm"}),
+			text("{{ stepLabel }}", size="text-sm", styles={"color": "var(--ink-gray-6)"}),
 		],
 		gap="6px",
 		styles=FORM,
@@ -294,7 +302,7 @@ def radio(chosen):
 		),
 		row(
 			[icon("check", size=12, stroke=3)],
-			styles=dict(RADIO, backgroundColor="var(--ink-gray-9)", color="var(--surface-base)"),
+			styles=dict(RADIO, backgroundColor="var(--surface-gray-9)", color="var(--ink-base)"),
 			visible="{{ %s }}" % chosen,
 		),
 	]
@@ -308,7 +316,7 @@ def choice(content, script, chosen, **kwargs):
 			"position": "absolute",
 			"inset": "-1px",
 			"borderRadius": "calc(var(--radius-4) + 1px)",
-			"border": "2px solid var(--ink-gray-9)",
+			"border": "2px solid var(--outline-gray-9)",
 			"backgroundColor": "var(--surface-gray-1)",
 			"pointerEvents": "none",
 		},
@@ -559,9 +567,8 @@ def product_panel():
 			column(
 				[
 					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
-					# one expression: Studio renders only the first binding in a string
-					muted("{{ dataItem.rate + ' ' + dataItem.rate_note + ' · ' + dataItem.kind }}"),
-					muted("Up to {{ dataItem.ceiling }}"),
+					muted("{{ dataItem.summary }}"),
+					muted("{{ dataItem.ceiling }}"),
 				],
 				gap="2px",
 			)
@@ -607,7 +614,7 @@ def resend_line(script="resendCode()", prompt="Didn't receive the OTP?", label="
 		[
 			row([muted(prompt), link], gap="6px"),
 			muted(
-				"{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}",
+				"{{ resendLabel(resendIn) }}",
 				styles={"color": "var(--ink-gray-5)"},
 				visible="{{ resendIn > 0 }}",
 			),
@@ -717,7 +724,7 @@ STATUS_DOT = {
 	"flexShrink": "0",
 	"borderRadius": "9999px",
 	"justifyContent": "center",
-	"color": "var(--surface-base)",
+	"color": "var(--ink-base)",
 }
 
 
@@ -782,7 +789,7 @@ def card_panel(index, title, note, body):
 	return column(
 		[card_head(index, title, note), *body],
 		gap="20px",
-		styles=dict(PANEL, **FORM, padding="28px 32px", borderRadius="var(--radius-6, 12px)", boxShadow="0 1px 3px rgba(0, 0, 0, 0.06)"),
+		styles=dict(PANEL, **FORM, padding="28px 32px", borderRadius="var(--radius-6, 12px)", boxShadow="var(--elevation-sm)"),
 		mobile={"padding": "20px"},
 		visible="{{ step === %d }}" % index,
 	)
@@ -884,7 +891,9 @@ def build_apply():
 			padding=f"calc(34 * {UNIT}) 20px calc(16 * {UNIT})",
 		),
 		[api_resource(APPLY_SOURCE, "lending.portal.apply.get_apply_page")],
-		script=page_script(state=APPLY_STATE, body=APPLY_SCRIPT, returns=APPLY_RETURNS, search=False),
+		script=page_script(
+			state=APPLY_STATE, body=APPLY_SCRIPT, returns=APPLY_RETURNS, framed=False, shared=["resendLabel"]
+		),
 		allow_guest=True,
 	)
 

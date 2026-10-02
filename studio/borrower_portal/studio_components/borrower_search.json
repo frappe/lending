@@ -18,7 +18,7 @@
       "componentId": "borrower_search-0-container1-html1",
       "componentName": "HTML",
       "componentProps": {
-       "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] { background-color: rgba(56, 56, 56, 0.8); }\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid var(--outline-gray-1);\n\tborder-radius: 12px;\n\tbox-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);\n\tbackground-color: var(--surface-base);\n}\n</style></div>"
+       "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid var(--outline-gray-1);\n\tborder-radius: 12px;\n\tbox-shadow: var(--elevation-md);\n\tbackground-color: var(--surface-base);\n}\n</style></div>"
       },
       "componentSlots": {},
       "mobileStyles": {},
@@ -152,7 +152,8 @@
            "fontWeight": "400",
            "letterSpacing": "0.02em",
            "lineHeight": "19.5px",
-           "whiteSpace": "pre"
+           "paddingLeft": "4px",
+           "whiteSpace": "nowrap"
           },
           "children": [],
           "componentEvents": {},
@@ -161,7 +162,7 @@
           "componentProps": {
            "fontSize": "text-p-sm",
            "tag": "p",
-           "text": "{{ ' ' + dataItem.kind }}"
+           "text": "{{ dataItem.kind }}"
           },
           "componentSlots": {},
           "mobileStyles": {},
@@ -597,7 +598,7 @@
  "idx": 0,
  "inputs": [],
  "is_disabled": 0,
- "modified": "2026-09-28 12:34:15.893294",
+ "modified": "2026-10-01 15:44:38.188710",
  "modified_by": "Administrator",
  "name": "borrower_search",
  "owner": "Administrator"

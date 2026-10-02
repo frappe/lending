@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue"
 import { call, toast } from "frappe-ui"
-import { tone, appRoute, logout as endSession, useSearch } from "@app/utils/portal"
+import { tone, appRoute, logout as endSession, useSearch, useMenus } from "@app/utils/portal"
 
 export default function setup(context: any) {
 	const { router } = context
@@ -16,6 +16,7 @@ export default function setup(context: any) {
 	}
 	const logout = () => endSession(router)
 	const search = useSearch(open)
+	const menus = useMenus(context.route, open, logout)
 
 	function isoDay(day: Date) {
 		const pad = (n: number) => String(n).padStart(2, "0")
@@ -43,5 +44,5 @@ export default function setup(context: any) {
 		}
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, fromDate, toDate, setPeriod }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, fromDate, toDate, setPeriod }
 }

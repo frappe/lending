@@ -74,10 +74,7 @@ def account_card():
 				styles={"fontWeight": "600", "color": "var(--ink-gray-9)"},
 			),
 			muted("{{ dataItem.against }}"),
-			muted(
-				"{{ 'Next due ' + dataItem.next_date + ' · ' + dataItem.next_amount }}",
-				visible="{{ dataItem.next_amount }}",
-			),
+			muted("{{ dataItem.next_line }}", visible="{{ dataItem.next_line }}"),
 		],
 		gap="2px",
 		styles={"flex": "0 1 auto", "alignItems": "flex-end", "textAlign": "right"},

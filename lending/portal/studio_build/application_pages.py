@@ -38,7 +38,7 @@ STEP_NODE_MOBILE = "24px"
 STEP_LABEL_GAP = "8px"
 # Keep in step with track_page.DOT_STATES so a stage looks the same before and after login.
 STEP_DONE = ("var(--portal-primary-soft, var(--surface-green-2))", "var(--portal-primary-deep, var(--ink-green-7))")
-STEP_NOW = ("var(--portal-primary, var(--surface-gray-9))", "var(--portal-primary-ink, var(--surface-base))")
+STEP_NOW = ("var(--portal-primary, var(--surface-gray-9))", "var(--portal-primary-ink, var(--ink-base))")
 STEP_LINE_DONE = "var(--portal-primary-line, var(--outline-green-3))"
 
 

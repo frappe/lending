@@ -31,7 +31,7 @@
         "backgroundColor": "var(--surface-base)",
         "border": "1px solid var(--outline-gray-1)",
         "borderRadius": "var(--radius-6, 12px)",
-        "boxShadow": "0 1px 2px rgba(0, 0, 0, 0.04)",
+        "boxShadow": "var(--elevation-sm)",
         "display": "flex",
         "flexDirection": "column",
         "gap": "28px",
@@ -77,16 +77,15 @@
             {
              "baseStyles": {
               "alignItems": "center",
-              "backgroundColor": "var(--portal-primary, var(--ink-gray-9))",
+              "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
               "borderRadius": "12px",
-              "color": "var(--portal-primary-ink, var(--surface-base))",
+              "color": "var(--portal-primary-ink, var(--ink-base))",
               "display": "flex",
               "flexShrink": "0",
               "fontSize": "20px",
               "fontWeight": "700",
               "height": "48px",
               "justifyContent": "center",
-              "textTransform": "uppercase",
               "width": "48px"
              },
              "children": [],
@@ -95,7 +94,7 @@
              "componentProps": {
               "fontSize": "text-base",
               "tag": "p",
-              "text": "{{ (login.data.brand_name || '').charAt(0) }}"
+              "text": "{{ login.data.brand_initial }}"
              },
              "visibilityCondition": "{{ login.data.show_wordmark }}"
             }
@@ -529,7 +528,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}"
+                "text": "{{ resendLabel(resendIn) }}"
                },
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
@@ -640,7 +639,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-30 11:53:06.685672",
+ "modified": "2026-10-03 02:32:10.364367",
  "modified_by": "Administrator",
  "name": "log_in",
  "owner": "Administrator",
@@ -649,7 +648,6 @@
  "published": 1,
  "resources": [
   {
-   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "params": "{\"redirect_to\": \"{{ route.query['redirect-to'] || '' }}\"}",

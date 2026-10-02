@@ -85,6 +85,7 @@ FORM = '''\tconst page = computed(() => context.%(source)s.data || {})
 \t}, { immediate: true })
 
 \tconst chooseProduct = (product: string) => { loanProduct.value = product }
+\tconst needsMobile = computed(() => Boolean(chosen.value.value && !chosen.value.has_mobile))
 \tconst ready = computed(() => Boolean(loanProduct.value && Number(loanAmount.value) > 0 && chosen.value.has_mobile))
 
 \tconst submit = () => {
@@ -120,6 +121,7 @@ RETURNS = [
 	"busy",
 	"offer",
 	"chooseProduct",
+	"needsMobile",
 	"ready",
 	"submit",
 	"another",
@@ -127,6 +129,8 @@ RETURNS = [
 
 # `typeof`, because page-script refs are undefined on the canvas and a bare read throws.
 SENT = "typeof offer !== 'undefined' && offer.reference"
+# Shown on the canvas too, where `isPerson` is undefined.
+PERSON_ONLY = "{{ typeof isPerson === 'undefined' || isPerson }}"
 
 
 def build():
@@ -184,9 +188,8 @@ def needs_section():
 			column(
 				[
 					text("{{ dataItem.label }}", size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
-					# One expression: Studio renders only the first of several bindings in a string.
-					muted("{{ dataItem.rate + ' ' + dataItem.rate_note + ' · ' + dataItem.kind }}"),
-					muted("Up to {{ dataItem.ceiling }}"),
+					muted("{{ dataItem.summary }}"),
+					muted("{{ dataItem.ceiling }}"),
 				],
 				gap="2px",
 			)
@@ -225,7 +228,7 @@ def about_section():
 		read("no_mobile_note"),
 		theme="orange",
 		styles={"gridColumn": "1 / -1"},
-		visible="{{ typeof chosen !== 'undefined' && chosen.value && !chosen.has_mobile }}",
+		visible="{{ needsMobile }}",
 	)
 	work = block(
 		"FormControl",
@@ -238,7 +241,7 @@ def about_section():
 			"options": fallback(read("employment_types"), "[]"),
 			"modelValue": {"$type": "variable", "name": "employmentType"},
 		},
-		visible="{{ typeof isPerson === 'undefined' || isPerson }}",
+		visible=PERSON_ONLY,
 	)
 
 	return section(
@@ -282,7 +285,7 @@ def box(label, ref_name, kind, who, required):
 			"modelValue": {"$type": "variable", "name": ref_name},
 		},
 		# Only a person is asked for a date of birth; Loan Lead zeroes a company's age.
-		visible="{{ typeof chosen === 'undefined' || chosen.applicant_type === '%s' }}" % who if who else None,
+		visible=PERSON_ONLY if who == "Individual" else None,
 	)
 
 

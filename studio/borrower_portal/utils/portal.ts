@@ -19,6 +19,25 @@ export async function logout(router: any) {
 	window.location.href = router.resolve("/apply").href
 }
 
+export function resendLabel(seconds: number): string {
+	return `Resend in 00:${String(seconds).padStart(2, "0")}`
+}
+
+// SidebarItem's own match compares route names, which misses detail pages like /loan/:name.
+export function useMenus(route: any, open: (url?: string) => void, logout: () => void) {
+	const isActive = (to: string, prefix?: string) =>
+		route.path === to || Boolean(prefix && route.path.startsWith(prefix))
+
+	const accountMenu = (canSwitch?: boolean) => [
+		...(canSwitch
+			? [{ label: "Switch account", icon: "lucide-arrow-left-right", onClick: () => open("/accounts") }]
+			: []),
+		{ label: "Log out", icon: "lucide-log-out", onClick: logout },
+	]
+
+	return { isActive, accountMenu }
+}
+
 const FIND_URL = "/api/method/lending.portal.search.find"
 
 // Not a page data source: that refetches on every keystroke; `asked` drops stale answers.

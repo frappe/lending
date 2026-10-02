@@ -62,16 +62,15 @@
         {
          "baseStyles": {
           "alignItems": "center",
-          "backgroundColor": "var(--portal-primary, var(--ink-gray-9))",
+          "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
           "borderRadius": "6px",
-          "color": "var(--portal-primary-ink, var(--surface-base))",
+          "color": "var(--portal-primary-ink, var(--ink-base))",
           "display": "flex",
           "flexShrink": "0",
           "fontSize": "15px",
           "fontWeight": "700",
           "height": "26px",
           "justifyContent": "center",
-          "textTransform": "uppercase",
           "width": "26px"
          },
          "children": [],
@@ -80,7 +79,7 @@
          "componentProps": {
           "fontSize": "text-base",
           "tag": "p",
-          "text": "{{ (apply.data.brand_name || '').charAt(0) }}"
+          "text": "{{ apply.data.brand_initial }}"
          },
          "visibilityCondition": "{{ apply.data.show_wordmark }}"
         },
@@ -272,7 +271,7 @@
            "componentName": "Progress",
            "componentProps": {
             "size": "sm",
-            "value": "{{ (step - 1) / 6 * 100 }}"
+            "value": "{{ stepProgress }}"
            }
           },
           {
@@ -285,7 +284,7 @@
            "componentProps": {
             "fontSize": "text-sm",
             "tag": "p",
-            "text": "{{ 'Step ' + (step - 1) + ' of 6 \u00b7 ' + (['Who is borrowing', 'What you need', 'Your mobile number', 'Your details', 'Your offer', 'Your account'][step - 2] || '') }}"
+            "text": "{{ stepLabel }}"
            }
           }
          ],
@@ -1013,7 +1012,7 @@
               {
                "baseStyles": {
                 "backgroundColor": "var(--surface-gray-1)",
-                "border": "2px solid var(--ink-gray-9)",
+                "border": "2px solid var(--outline-gray-9)",
                 "borderRadius": "calc(var(--radius-4) + 1px)",
                 "inset": "-1px",
                 "pointerEvents": "none",
@@ -1120,9 +1119,9 @@
                 {
                  "baseStyles": {
                   "alignItems": "center",
-                  "backgroundColor": "var(--ink-gray-9)",
+                  "backgroundColor": "var(--surface-gray-9)",
                   "borderRadius": "9999px",
-                  "color": "var(--surface-base)",
+                  "color": "var(--ink-base)",
                   "display": "flex",
                   "flexDirection": "row",
                   "flexShrink": "0",
@@ -1192,7 +1191,7 @@
               {
                "baseStyles": {
                 "backgroundColor": "var(--surface-gray-1)",
-                "border": "2px solid var(--ink-gray-9)",
+                "border": "2px solid var(--outline-gray-9)",
                 "borderRadius": "calc(var(--radius-4) + 1px)",
                 "inset": "-1px",
                 "pointerEvents": "none",
@@ -1299,9 +1298,9 @@
                 {
                  "baseStyles": {
                   "alignItems": "center",
-                  "backgroundColor": "var(--ink-gray-9)",
+                  "backgroundColor": "var(--surface-gray-9)",
                   "borderRadius": "9999px",
-                  "color": "var(--surface-base)",
+                  "color": "var(--ink-base)",
                   "display": "flex",
                   "flexDirection": "row",
                   "flexShrink": "0",
@@ -1504,7 +1503,7 @@
               {
                "baseStyles": {
                 "backgroundColor": "var(--surface-gray-1)",
-                "border": "2px solid var(--ink-gray-9)",
+                "border": "2px solid var(--outline-gray-9)",
                 "borderRadius": "calc(var(--radius-4) + 1px)",
                 "inset": "-1px",
                 "pointerEvents": "none",
@@ -1557,7 +1556,7 @@
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
-                    "text": "{{ dataItem.rate + ' ' + dataItem.rate_note + ' \u00b7 ' + dataItem.kind }}"
+                    "text": "{{ dataItem.summary }}"
                    }
                   },
                   {
@@ -1570,7 +1569,7 @@
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
-                    "text": "Up to {{ dataItem.ceiling }}"
+                    "text": "{{ dataItem.ceiling }}"
                    }
                   }
                  ],
@@ -1605,9 +1604,9 @@
                 {
                  "baseStyles": {
                   "alignItems": "center",
-                  "backgroundColor": "var(--ink-gray-9)",
+                  "backgroundColor": "var(--surface-gray-9)",
                   "borderRadius": "9999px",
-                  "color": "var(--surface-base)",
+                  "color": "var(--ink-base)",
                   "display": "flex",
                   "flexDirection": "row",
                   "flexShrink": "0",
@@ -1919,7 +1918,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}"
+                "text": "{{ resendLabel(resendIn) }}"
                },
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
@@ -2345,7 +2344,7 @@
           "borderRadius": "var(--radius-6, 12px)",
           "borderStyle": "solid",
           "borderWidth": "1px",
-          "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.06)",
+          "boxShadow": "var(--elevation-sm)",
           "display": "flex",
           "flexDirection": "column",
           "gap": "20px",
@@ -2433,7 +2432,7 @@
                 "alignItems": "center",
                 "backgroundColor": "var(--surface-green-6)",
                 "borderRadius": "9999px",
-                "color": "var(--surface-base)",
+                "color": "var(--ink-base)",
                 "display": "flex",
                 "flexDirection": "row",
                 "flexShrink": "0",
@@ -2467,7 +2466,7 @@
                 "alignItems": "center",
                 "backgroundColor": "var(--surface-red-6)",
                 "borderRadius": "9999px",
-                "color": "var(--surface-base)",
+                "color": "var(--ink-base)",
                 "display": "flex",
                 "flexDirection": "row",
                 "flexShrink": "0",
@@ -2683,7 +2682,7 @@
           "borderRadius": "var(--radius-6, 12px)",
           "borderStyle": "solid",
           "borderWidth": "1px",
-          "boxShadow": "0 1px 3px rgba(0, 0, 0, 0.06)",
+          "boxShadow": "var(--elevation-sm)",
           "display": "flex",
           "flexDirection": "column",
           "gap": "20px",
@@ -2868,7 +2867,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}"
+                "text": "{{ resendLabel(resendIn) }}"
                },
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
@@ -2999,7 +2998,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-29 15:32:06.772614",
+ "modified": "2026-10-03 02:32:10.307275",
  "modified_by": "Administrator",
  "name": "apply_for_a_loan",
  "owner": "Administrator",
@@ -3008,7 +3007,6 @@
  "published": 1,
  "resources": [
   {
-   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "resource_name": "apply",
@@ -3018,41 +3016,5 @@
  ],
  "route": "/apply",
  "studio_app": "borrower-portal",
- "variables": [
-  {
-   "initial_value": "1",
-   "variable_name": "step",
-   "variable_type": "Number"
-  },
-  {
-   "initial_value": "\"Individual\"",
-   "variable_name": "applicantType",
-   "variable_type": "String"
-  },
-  {
-   "initial_value": "\"\"",
-   "variable_name": "loanProduct",
-   "variable_type": "String"
-  },
-  {
-   "initial_value": "\"\"",
-   "variable_name": "mobileNumber",
-   "variable_type": "String"
-  },
-  {
-   "initial_value": "\"\"",
-   "variable_name": "otp",
-   "variable_type": "String"
-  },
-  {
-   "initial_value": "false",
-   "variable_name": "busy",
-   "variable_type": "Boolean"
-  },
-  {
-   "initial_value": "false",
-   "variable_name": "codeSent",
-   "variable_type": "Boolean"
-  }
- ]
+ "variables": []
 }

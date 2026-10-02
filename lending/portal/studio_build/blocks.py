@@ -390,7 +390,8 @@ def record_list(columns, items, cells, row_key="name", script=None):
 		props={"columns": [column[0] for column in columns]},
 		children=[header, rows],
 		visible=any_row(items),
-		styles=LIST_INSET,
+		# A copy: callers update a List's styles in place.
+		styles=dict(LIST_INSET),
 	)
 
 

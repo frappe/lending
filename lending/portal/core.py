@@ -434,8 +434,11 @@ def brand_payload() -> dict:
 	logo = (settings.portal_logo or "").strip()
 	support = (settings.portal_support_email or "").strip()
 
+	name = settings.portal_brand_name or DEFAULT_BRAND_NAME
+
 	return {
-		"brand_name": settings.portal_brand_name or DEFAULT_BRAND_NAME,
+		"brand_name": name,
+		"brand_initial": name[:1].upper(),
 		"brand_logo": logo,
 		"show_wordmark": 0 if logo else 1,
 		"support_email": support,
@@ -548,6 +551,13 @@ def present_loan(loan: dict, show_customer: bool) -> dict:
 		"customer": loan.applicant if show_customer else "",
 		"next_date": short_date(next_row.get("payment_date")) if next_row else "—",
 		"next_amount": money(next_row.get("total_payment")) if next_row else "",
+		"next_line": (
+			_("Next due {0} · {1}").format(
+				short_date(next_row.get("payment_date")), money(next_row.get("total_payment"))
+			)
+			if next_row
+			else ""
+		),
 		"outstanding": money(outstanding_of(loan)),
 		"against": (
 			_("{0} undrawn").format(money(undrawn)) if undrawn else _("of {0}").format(money(loan.loan_amount))

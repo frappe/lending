@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue"
 import { call, toast } from "frappe-ui"
-import { tone, appRoute, logout as endSession, useSearch } from "@app/utils/portal"
+import { tone, appRoute, logout as endSession, useSearch, useMenus } from "@app/utils/portal"
 
 export default function setup(context: any) {
 	const { router } = context
@@ -22,6 +22,7 @@ export default function setup(context: any) {
 	}
 	const logout = () => endSession(router)
 	const search = useSearch(open)
+	const menus = useMenus(context.route, open, logout)
 
 	const page = computed(() => context.newApplication.data || {})
 	const applicants = computed<any[]>(() => page.value.applicants || [])
@@ -49,6 +50,7 @@ export default function setup(context: any) {
 	}, { immediate: true })
 
 	const chooseProduct = (product: string) => { loanProduct.value = product }
+	const needsMobile = computed(() => Boolean(chosen.value.value && !chosen.value.has_mobile))
 	const ready = computed(() => Boolean(loanProduct.value && Number(loanAmount.value) > 0 && chosen.value.has_mobile))
 
 	const submit = () => {
@@ -74,5 +76,5 @@ export default function setup(context: any) {
 		loanAmount.value = ""
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, applicant, loanProduct, loanAmount, proposedTenure, income, employmentType, dateOfBirth, pan, applicants, chosen, identity, products, isPerson, busy, offer, chooseProduct, ready, submit, another }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, applicant, loanProduct, loanAmount, proposedTenure, income, employmentType, dateOfBirth, pan, applicants, chosen, identity, products, isPerson, busy, offer, chooseProduct, needsMobile, ready, submit, another }
 }

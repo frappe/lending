@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue"
 import { call, toast } from "frappe-ui"
-import { tone, appRoute, logout as endSession } from "@app/utils/portal"
+import { tone, appRoute, logout as endSession, resendLabel } from "@app/utils/portal"
 
 export default function setup(context: any) {
 	const { router } = context
@@ -37,6 +37,11 @@ export default function setup(context: any) {
 	const token = ref("")
 	const accountToken = ref("")
 	const offer = ref<Record<string, any>>({})
+
+	// Step 1 is the landing screen, so the count starts at step 2.
+	const stepNames = ["Who is borrowing", "What you need", "Your mobile number", "Your details", "Your offer", "Your account"]
+	const stepLabel = computed(() => `Step ${step.value - 1} of ${stepNames.length} · ${stepNames[step.value - 2] || ""}`)
+	const stepProgress = computed(() => ((step.value - 1) / stepNames.length) * 100)
 
 	const fail = (error: any) =>
 		toast.error(String(error?.messages?.[0] || error?.message || error))
@@ -160,11 +165,11 @@ export default function setup(context: any) {
 		})
 			.then((result: any) => {
 				if (!result.verified) { toast.error(result.message); return }
-				window.location.href = "/borrower-portal/overview"
+				window.location.href = router.resolve("/overview").href
 			})
 			.catch(fail)
 			.finally(() => { busy.value = false })
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, step, applicantType, loanProduct, mobileNumber, otp, employmentType, accountOtp, accountCodeSent, accountNote, companyName, applicantName, dateOfBirth, pan, applicantCountry, email, loanAmount, proposedTenure, income, busy, codeSent, offer, go, choose, chooseProduct, sendCode, resendIn, resendCode, confirmCode, submit, sendAccountCode, resendAccountCode, changeAccountEmail, createAccount }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, step, applicantType, loanProduct, mobileNumber, otp, employmentType, accountOtp, accountCodeSent, accountNote, companyName, applicantName, dateOfBirth, pan, applicantCountry, email, loanAmount, proposedTenure, income, resendLabel, busy, codeSent, offer, stepLabel, stepProgress, go, choose, chooseProduct, sendCode, resendIn, resendCode, confirmCode, submit, sendAccountCode, resendAccountCode, changeAccountEmail, createAccount }
 }

@@ -46,12 +46,18 @@ SCRIPT = page_script(
 \t\t() => context.overview?.data?.choose_account,
 \t\t(choose) => { if (choose) router.replace("/accounts") },
 \t\t{ immediate: true },
-\t)'''
+\t)
+
+\tconst applicationDot = computed(() => {
+\t\tconst data = context.overview?.data
+\t\tif (!data?.application_stage) return ""
+\t\treturn data.application_stage_tone === "warn" ? "orange" : "green"
+\t})''',
+	returns=["applicationDot"],
 )
 
 
 def application_card():
-	stage = f"{SOURCE}.data.application_stage"
 	label = row(
 		[
 			text(
@@ -78,11 +84,10 @@ def application_card():
 		styles={"flexWrap": "wrap"},
 		visible=read("application_stage"),
 	)
-	warn = f"{SOURCE}.data.application_stage_tone === 'warn'"
 	note = row(
 		[
-			status_dot("orange", visible="{{ %s && %s }}" % (stage, warn)),
-			status_dot("green", visible="{{ %s && !(%s) }}" % (stage, warn)),
+			status_dot("orange", visible="{{ applicationDot === 'orange' }}"),
+			status_dot("green", visible="{{ applicationDot === 'green' }}"),
 			muted(read("application_note")),
 		],
 		gap="10px",
@@ -201,7 +206,7 @@ def marker():
 			box,
 			borderRadius="9999px",
 			backgroundColor="var(--portal-primary-soft, var(--surface-green-6))",
-			color="var(--portal-primary-deep, #fff)",
+			color="var(--portal-primary-deep, var(--ink-base))",
 		),
 		visible="{{ dataItem.tone === 'ok' }}",
 	)

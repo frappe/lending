@@ -62,16 +62,15 @@
         {
          "baseStyles": {
           "alignItems": "center",
-          "backgroundColor": "var(--portal-primary, var(--ink-gray-9))",
+          "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
           "borderRadius": "6px",
-          "color": "var(--portal-primary-ink, var(--surface-base))",
+          "color": "var(--portal-primary-ink, var(--ink-base))",
           "display": "flex",
           "flexShrink": "0",
           "fontSize": "15px",
           "fontWeight": "700",
           "height": "26px",
           "justifyContent": "center",
-          "textTransform": "uppercase",
           "width": "26px"
          },
          "children": [],
@@ -80,7 +79,7 @@
          "componentProps": {
           "fontSize": "text-base",
           "tag": "p",
-          "text": "{{ (track.data.brand_name || '').charAt(0) }}"
+          "text": "{{ track.data.brand_initial }}"
          },
          "visibilityCondition": "{{ track.data.show_wordmark }}"
         },
@@ -894,7 +893,7 @@
                     "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
                     "border": "1.5px solid var(--portal-primary, var(--surface-gray-9))",
                     "borderRadius": "9999px",
-                    "color": "var(--portal-primary-ink, var(--surface-base))",
+                    "color": "var(--portal-primary-ink, var(--ink-base))",
                     "display": "flex",
                     "flex": "0 0 auto",
                     "flexDirection": "row",
@@ -907,7 +906,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "backgroundColor": "var(--portal-primary-ink, var(--surface-base))",
+                      "backgroundColor": "var(--portal-primary-ink, var(--ink-base))",
                       "borderRadius": "9999px",
                       "height": "10px",
                       "width": "10px"
@@ -1153,7 +1152,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-29 12:54:32.344582",
+ "modified": "2026-10-03 02:32:10.342639",
  "modified_by": "Administrator",
  "name": "track_your_application",
  "owner": "Administrator",
@@ -1162,7 +1161,6 @@
  "published": 1,
  "resources": [
   {
-   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "resource_name": "track",

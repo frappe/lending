@@ -71,13 +71,19 @@ def offered_to(product_applicant_type: str | None, applicant_type: str) -> bool:
 
 
 def product_card(row) -> dict:
+	rate = _("{0}%").format(flt(row.rate_of_interest, 2))
+	kind = _("Term loan") if row.is_term_loan else _("Credit line")
+
 	return {
 		"label": row.name,
 		"value": row.name,
-		"rate": _("{0}%").format(flt(row.rate_of_interest, 2)),
+		"rate": rate,
 		"rate_note": _("per year"),
-		"ceiling": money(row.maximum_loan_amount) if row.maximum_loan_amount else _("No set limit"),
-		"kind": _("Term loan") if row.is_term_loan else _("Credit line"),
+		"summary": _("{0} per year · {1}").format(rate, kind),
+		"ceiling": (
+			_("Up to {0}").format(money(row.maximum_loan_amount)) if row.maximum_loan_amount else _("No limit")
+		),
+		"kind": kind,
 	}
 
 

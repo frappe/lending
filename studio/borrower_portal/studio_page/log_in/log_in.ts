@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue"
 import { call, toast } from "frappe-ui"
-import { tone, appRoute, logout as endSession } from "@app/utils/portal"
+import { tone, appRoute, logout as endSession, resendLabel } from "@app/utils/portal"
 
 export default function setup(context: any) {
 	const { router } = context
@@ -25,8 +25,8 @@ export default function setup(context: any) {
 
 	// Same rule as login.portal_redirect: a link can't send a borrower off the portal.
 	const redirectTo = () => {
-		const to = new URLSearchParams(window.location.search).get("redirect-to") || ""
-		return to.startsWith("/borrower-portal/") ? to : "/borrower-portal/overview"
+		const to = String(context.route.query["redirect-to"] || "")
+		return to.startsWith(router.resolve("/").href) ? to : router.resolve("/overview").href
 	}
 
 	// Studio's editor runs setup() on its canvas, where the editor is never a guest.
@@ -104,5 +104,5 @@ export default function setup(context: any) {
 		if (url) window.location.href = url
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, email, otp, busy, codeSent, sentNote, sentHint, resendIn, sendCode, resendCode, verifyCode, changeEmail, withGoogle }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, email, otp, resendLabel, busy, codeSent, sentNote, sentHint, resendIn, sendCode, resendCode, verifyCode, changeEmail, withGoogle }
 }

@@ -156,7 +156,7 @@ DOT_STATES = {
 	"now": (
 		"var(--portal-primary, var(--surface-gray-9))",
 		"var(--portal-primary, var(--surface-gray-9))",
-		"var(--portal-primary-ink, var(--surface-base))",
+		"var(--portal-primary-ink, var(--ink-base))",
 		None,
 	),
 	"todo": ("var(--surface-base)", "var(--outline-gray-3)", "var(--ink-gray-4)", None),
@@ -313,7 +313,7 @@ def build_track():
 			body=TRACK_SCRIPT,
 			# Never return `track`: it would shadow the data source of that name.
 			returns=["busy", "result", "find", "startOver"],
-			search=False,
+			framed=False,
 		),
 		allow_guest=True,
 	)

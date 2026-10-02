@@ -33,13 +33,12 @@ SEARCH = "borrower_search"
 # The bare Dialog's title is only used as the overlay's `data-dialog`, the one styling hook.
 PALETTE_TITLE = "Borrower search"
 PALETTE_CSS = f"""
-.dialog-overlay[data-dialog="{PALETTE_TITLE}"] {{ background-color: rgba(56, 56, 56, 0.8); }}
 .dialog-overlay[data-dialog="{PALETTE_TITLE}"] .dialog-content {{
 	max-width: 575px;
 	margin: 28px 0 0;
 	border: 1px solid var(--outline-gray-1);
 	border-radius: 12px;
-	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--elevation-md);
 	background-color: var(--surface-base);
 }}
 """
@@ -97,14 +96,13 @@ def brand(data):
 		visible="{{ %s.brand_logo }}" % data,
 	)
 	letter = text(
-		"{{ (%s.brand_name || '').charAt(0) }}" % data,
+		"{{ %s.brand_initial }}" % data,
 		size="text-base",
 		styles=dict(
 			MARK,
 			display="flex",
 			alignItems="center",
 			justifyContent="center",
-			textTransform="uppercase",
 			backgroundColor="var(--portal-primary, var(--surface-gray-4))",
 			color="var(--portal-primary-ink, var(--ink-gray-8))",
 		),
@@ -130,7 +128,7 @@ def brand(data):
 		[logo, letter, name],
 		gap="8px",
 		styles={
-			"height": "48.8px",
+			"height": "48px",
 			"marginTop": "-8px",
 			"flexShrink": "0",
 			"justifyContent": "center",
@@ -166,13 +164,13 @@ def collapse_toggle():
 			"borderStyle": "solid",
 			"borderColor": "var(--outline-gray-1)",
 			"backgroundColor": "var(--surface-sidebar)",
-			"boxShadow": "0 1px 4px rgba(0, 0, 0, 0.1)",
+			"boxShadow": "var(--elevation-sm)",
 		},
 	)
 
 
 def account_menu(data):
-	"""Options are an expression because an option's `onClick` must be a function, not JSON."""
+	"""Options come from the page script because an option's `onClick` must be a function, not JSON."""
 	holder = fallback("{{ %s.holder_name }}" % data, "''")
 	avatar = block(
 		"Avatar",
@@ -210,12 +208,7 @@ def account_menu(data):
 	return block(
 		"Dropdown",
 		props={
-			"options": (
-				"{{ [%s.can_switch && { label: 'Switch account', icon: 'lucide-arrow-left-right', "
-				"onClick: () => open('/accounts') }, "
-				"{ label: 'Log out', icon: 'lucide-log-out', onClick: () => logout() }].filter(Boolean) }}"
-			)
-			% data,
+			"options": fallback("{{ accountMenu(%s.can_switch) }}" % data, "[]"),
 			"side": "top",
 			"align": "start",
 		},
@@ -234,14 +227,12 @@ def sidebar(data):
 	]
 
 	sidebar_children = [
-		block(
-			"div",
-			styles={"display": "flex", "height": "100%", "flexDirection": "column", "padding": "0.5rem"},
-			children=[
+		container(
+			[
 				brand(data),
 				# Room for the active row's shadow inside the clip.
-				block(
-					"div",
+				container(
+					nav_items,
 					styles={
 						"flex": "1 1 0%",
 						"overflowY": "auto",
@@ -249,10 +240,10 @@ def sidebar(data):
 						"margin": "0 -4px",
 						"padding": "2px 4px",
 					},
-					children=nav_items,
 				),
-				block("div", styles={"marginTop": "auto"}, children=[account_menu(data)]),
+				container([account_menu(data)], styles={"marginTop": "auto"}),
 			],
+			styles={"display": "flex", "height": "100%", "flexDirection": "column", "padding": "0.5rem"},
 		),
 		collapse_toggle(),
 	]
@@ -260,7 +251,7 @@ def sidebar(data):
 	# Sidebar hides overflow-x, which would clip the toggle disc straddling the border.
 	return block(
 		"Sidebar",
-		props={"collapsed": {"$type": "variable", "name": "sidebarCollapsed"}},
+		props={"collapsed": {"$type": "variable", "name": "sidebarCollapsed"}, "width": "14rem"},
 		children=sidebar_children,
 		classes=["group"],
 		styles={
@@ -273,11 +264,9 @@ def sidebar(data):
 
 
 def is_current(route, detail=None):
-	"""Explicit because SidebarItem's own match compares route names and misses detail pages."""
-	condition = "route.path === '%s'" % route
-	if detail:
-		condition += " || route.path.startsWith('%s')" % detail
-	return "{{ typeof route !== 'undefined' && (%s) }}" % condition
+	arguments = f"'{route}', '{detail}'" if detail else f"'{route}'"
+
+	return "{{ isActive(%s) }}" % arguments
 
 
 def header_tree():
@@ -379,7 +368,7 @@ def header_tree():
 		styles={
 			"padding": "0 20px",
 			"width": "100%",
-			"minHeight": "48.8px",
+			"minHeight": "48px",
 			"alignItems": "center",
 			# Spelled out: `border-b`'s default colour comes from preflight, which blocks do not get.
 			"borderBottom": "1px solid var(--outline-gray-1)",
@@ -470,7 +459,7 @@ def search_tree():
 	result = row(
 		[
 			text("{{ dataItem.title }}", styles=dict(PALETTE_TEXT, fontWeight="700", whiteSpace="nowrap")),
-			text("{{ ' ' + dataItem.kind }}", styles=dict(PALETTE_TEXT, fontWeight="400", whiteSpace="pre")),
+			text("{{ dataItem.kind }}", styles=dict(PALETTE_TEXT, fontWeight="400", whiteSpace="nowrap", paddingLeft="4px")),
 			spacer(),
 			text(
 				"{{ dataItem.note }}",

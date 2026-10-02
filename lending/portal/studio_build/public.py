@@ -65,7 +65,7 @@ def mark(read, frame=MARK, letter_size="15px"):
 		visible=read("brand_logo"),
 	)
 	letter = text(
-		"{{ (%s || '').charAt(0) }}" % read("brand_name")[2:-2].strip(),
+		read("brand_initial"),
 		size="text-base",
 		styles=dict(
 			frame,
@@ -74,9 +74,8 @@ def mark(read, frame=MARK, letter_size="15px"):
 			justifyContent="center",
 			fontSize=letter_size,
 			fontWeight="700",
-			textTransform="uppercase",
-			backgroundColor="var(--portal-primary, var(--ink-gray-9))",
-			color="var(--portal-primary-ink, var(--surface-base))",
+			backgroundColor="var(--portal-primary, var(--surface-gray-9))",
+			color="var(--portal-primary-ink, var(--ink-base))",
 		),
 		visible=read("show_wordmark"),
 	)

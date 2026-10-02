@@ -35,7 +35,7 @@
           "flexDirection": "row",
           "flexShrink": "0",
           "gap": "8px",
-          "height": "48.8px",
+          "height": "48px",
           "justifyContent": "center",
           "marginTop": "-8px",
           "padding": "0 6px"
@@ -50,7 +50,7 @@
             "width": "28px"
            },
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-container1-imageview1",
+           "componentId": "application_name-0-sidebar1-container1-container1-imageview1",
            "componentName": "ImageView",
            "componentProps": {
             "alt": "",
@@ -70,16 +70,15 @@
             "flexShrink": "0",
             "height": "28px",
             "justifyContent": "center",
-            "textTransform": "uppercase",
             "width": "28px"
            },
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-container1-textblock1",
+           "componentId": "application_name-0-sidebar1-container1-container1-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
             "fontSize": "text-base",
             "tag": "p",
-            "text": "{{ (application.data.brand_name || '').charAt(0) }}"
+            "text": "{{ application.data.brand_initial }}"
            },
            "visibilityCondition": "{{ application.data.show_wordmark }}"
           },
@@ -94,7 +93,7 @@
             "whiteSpace": "nowrap"
            },
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-container1-textblock2",
+           "componentId": "application_name-0-sidebar1-container1-container1-textblock2",
            "componentName": "TextBlock",
            "componentProps": {
             "fontSize": "text-base",
@@ -104,7 +103,7 @@
            "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
           }
          ],
-         "componentId": "application_name-0-sidebar1-div1-container1",
+         "componentId": "application_name-0-sidebar1-container1-container1",
          "componentName": "container",
          "originalElement": "div"
         },
@@ -119,10 +118,10 @@
          "children": [
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem1",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem1",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/overview') }}",
+            "active": "{{ isActive('/overview') }}",
             "icon": "lucide-layout-dashboard",
             "label": "Account overview",
             "to": "/overview"
@@ -130,10 +129,10 @@
           },
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem2",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem2",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/loans' || route.path.startsWith('/loan/')) }}",
+            "active": "{{ isActive('/loans', '/loan/') }}",
             "icon": "lucide-wallet",
             "label": "Loan account",
             "to": "/loans"
@@ -141,10 +140,10 @@
           },
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem3",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem3",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/applications' || route.path.startsWith('/application/')) }}",
+            "active": "{{ isActive('/applications', '/application/') }}",
             "icon": "lucide-file-text",
             "label": "Application",
             "to": "/applications"
@@ -152,10 +151,10 @@
           },
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem4",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem4",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/statement') }}",
+            "active": "{{ isActive('/statement') }}",
             "icon": "lucide-receipt",
             "label": "Statement of account",
             "to": "/statement"
@@ -163,10 +162,10 @@
           },
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem5",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem5",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/certificate') }}",
+            "active": "{{ isActive('/certificate') }}",
             "icon": "lucide-award",
             "label": "Interest certificate",
             "to": "/certificate"
@@ -174,18 +173,19 @@
           },
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div1-sidebaritem6",
+           "componentId": "application_name-0-sidebar1-container1-container2-sidebaritem6",
            "componentName": "SidebarItem",
            "componentProps": {
-            "active": "{{ typeof route !== 'undefined' && (route.path === '/profile') }}",
+            "active": "{{ isActive('/profile') }}",
             "icon": "lucide-user",
             "label": "Personal details",
             "to": "/profile"
            }
           }
          ],
-         "componentId": "application_name-0-sidebar1-div1-div1",
-         "componentName": "div"
+         "componentId": "application_name-0-sidebar1-container1-container2",
+         "componentName": "container",
+         "originalElement": "div"
         },
         {
          "baseStyles": {
@@ -194,11 +194,11 @@
          "children": [
           {
            "children": [],
-           "componentId": "application_name-0-sidebar1-div1-div2-dropdown1",
+           "componentId": "application_name-0-sidebar1-container1-container3-dropdown1",
            "componentName": "Dropdown",
            "componentProps": {
             "align": "start",
-            "options": "{{ [application.data.can_switch && { label: 'Switch account', icon: 'lucide-arrow-left-right', onClick: () => open('/accounts') }, { label: 'Log out', icon: 'lucide-log-out', onClick: () => logout() }].filter(Boolean) }}",
+            "options": "{{ accountMenu(application.data.can_switch) || [] }}",
             "side": "top"
            },
            "componentSlots": {
@@ -226,7 +226,7 @@
                   "portal-avatar"
                  ],
                  "componentEvents": {},
-                 "componentId": "application_name-0-sidebar1-div1-div2-dropdown1-trigger-container1-avatar1",
+                 "componentId": "application_name-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
                  "componentName": "Avatar",
                  "componentProps": {
                   "label": "{{ application.data.holder_name || '' }}",
@@ -248,7 +248,7 @@
                  },
                  "children": [],
                  "componentEvents": {},
-                 "componentId": "application_name-0-sidebar1-div1-div2-dropdown1-trigger-container1-textblock1",
+                 "componentId": "application_name-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-sm",
@@ -265,7 +265,7 @@
                 "hover:bg-surface-gray-2"
                ],
                "componentEvents": {},
-               "componentId": "application_name-0-sidebar1-div1-div2-dropdown1-trigger-container1",
+               "componentId": "application_name-0-sidebar1-container1-container3-dropdown1-trigger-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -279,12 +279,14 @@
            }
           }
          ],
-         "componentId": "application_name-0-sidebar1-div1-div2",
-         "componentName": "div"
+         "componentId": "application_name-0-sidebar1-container1-container3",
+         "componentName": "container",
+         "originalElement": "div"
         }
        ],
-       "componentId": "application_name-0-sidebar1-div1",
-       "componentName": "div"
+       "componentId": "application_name-0-sidebar1-container1",
+       "componentName": "container",
+       "originalElement": "div"
       },
       {
        "baseStyles": {
@@ -294,7 +296,7 @@
         "borderStyle": "solid",
         "borderWidth": "1px",
         "bottom": "80px",
-        "boxShadow": "0 1px 4px rgba(0, 0, 0, 0.1)",
+        "boxShadow": "var(--elevation-sm)",
         "position": "absolute",
         "right": "-12px"
        },
@@ -331,7 +333,8 @@
       "collapsed": {
        "$type": "variable",
        "name": "sidebarCollapsed"
-      }
+      },
+      "width": "14rem"
      },
      "mobileStyles": {
       "display": "none"
@@ -528,7 +531,7 @@
                    "children": [
                     {
                      "baseStyles": {
-                      "backgroundColor": "var(--portal-primary-ink, var(--surface-base))",
+                      "backgroundColor": "var(--portal-primary-ink, var(--ink-base))",
                       "borderRadius": "9999px",
                       "height": "10px",
                       "width": "10px"
@@ -1556,7 +1559,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-09-28 12:35:21.988492",
+ "modified": "2026-10-03 02:32:10.115950",
  "modified_by": "Administrator",
  "name": "application",
  "owner": "Administrator",
@@ -1565,7 +1568,6 @@
  "published": 1,
  "resources": [
   {
-   "__unsaved": 1,
    "auto": 1,
    "method": "GET",
    "params": "{\"name\": \"{{ route.params.name }}\"}",
@@ -1574,7 +1576,6 @@
    "url": "lending.portal.applications.get_application_detail"
   },
   {
-   "__unsaved": 1,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",

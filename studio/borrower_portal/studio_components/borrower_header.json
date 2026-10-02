@@ -6,7 +6,7 @@
    "display": "flex",
    "flexDirection": "row",
    "gap": "10px",
-   "minHeight": "48.8px",
+   "minHeight": "48px",
    "padding": "0 20px",
    "width": "100%"
   },
@@ -309,7 +309,7 @@
   }
  ],
  "is_disabled": 0,
- "modified": "2026-09-26 23:56:55.489454",
+ "modified": "2026-10-01 16:37:30.841227",
  "modified_by": "Administrator",
  "name": "borrower_header",
  "owner": "Administrator"

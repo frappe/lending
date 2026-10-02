@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 
 import frappe
 
@@ -54,6 +55,25 @@ export function appRoute(url?: string): string {
 export async function logout(router: any) {
 \tawait call("logout")
 \twindow.location.href = router.resolve("/apply").href
+}
+
+export function resendLabel(seconds: number): string {
+\treturn `Resend in 00:${String(seconds).padStart(2, "0")}`
+}
+
+// SidebarItem's own match compares route names, which misses detail pages like /loan/:name.
+export function useMenus(route: any, open: (url?: string) => void, logout: () => void) {
+\tconst isActive = (to: string, prefix?: string) =>
+\t\troute.path === to || Boolean(prefix && route.path.startsWith(prefix))
+
+\tconst accountMenu = (canSwitch?: boolean) => [
+\t\t...(canSwitch
+\t\t\t? [{ label: "Switch account", icon: "lucide-arrow-left-right", onClick: () => open("/accounts") }]
+\t\t\t: []),
+\t\t{ label: "Log out", icon: "lucide-log-out", onClick: logout },
+\t]
+
+\treturn { isActive, accountMenu }
 }
 
 const FIND_URL = "/api/method/lending.portal.search.find"
@@ -137,7 +157,7 @@ export function useSearch(open: (url?: string) => void) {
 # sidebarCollapsed starts null, Sidebar's "unset" value that auto-collapses on mobile.
 SCRIPT_TEMPLATE = '''import {{ computed, ref, watch }} from "vue"
 import {{ call, toast }} from "frappe-ui"
-import {{ tone, appRoute, logout as endSession{search_import} }} from "@app/utils/portal"
+import {{ tone, appRoute, logout as endSession{imports} }} from "@app/utils/portal"
 
 export default function setup(context: any) {{
 \tconst {{ router }} = context
@@ -150,24 +170,29 @@ export default function setup(context: any) {{
 \t\tif (to) router.push(to)
 \t}}
 \tconst logout = () => endSession(router)
-{search}{body}
-\treturn {{ tone, open, logout, showAlerts, alertsTab, sidebarCollapsed{search_returns}{returns} }}
+{frame}{body}
+\treturn {{ tone, open, logout, showAlerts, alertsTab, sidebarCollapsed{frame_returns}{returns} }}
 }}
 '''
 
+FRAME_SCRIPT = '''\tconst search = useSearch(open)
+\tconst menus = useMenus(context.route, open, logout)
+'''
 
-def page_script(state=(), body="", returns=(), search=True):
-	"""A page's setup() module; `state` is (name, initial) ref pairs, `returns` names from `body`."""
+
+def page_script(state=(), body="", returns=(), framed=True, shared=()):
+	"""A page's setup() module; `state` is (name, initial) ref pairs, `shared` names from utils/portal.ts."""
 	declarations = "".join(f'\tconst {name} = ref({initial})\n' for name, initial in state)
-	extra = ", ".join(name for name, _initial in state) + (", " if state and returns else "")
+	names = [name for name, _initial in state] + list(shared) + list(returns)
+	imports = (["useSearch", "useMenus"] if framed else []) + list(shared)
 
 	return SCRIPT_TEMPLATE.format(
 		state=declarations,
-		search_import=", useSearch" if search else "",
-		search="\tconst search = useSearch(open)\n" if search else "",
-		search_returns=", ...search" if search else "",
+		imports="".join(f", {name}" for name in imports),
+		frame=FRAME_SCRIPT if framed else "",
+		frame_returns=", ...search, ...menus" if framed else "",
 		body=f"\n{body}\n" if body else "",
-		returns=f", {extra}{', '.join(returns)}" if (state or returns) else "",
+		returns="".join(f", {name}" for name in names),
 	)
 
 
@@ -329,6 +354,7 @@ def _merge_page(doc, route, blocks, script, fields, baseline):
 	doc.update(fields)
 	for row in merge.merge_resources(live_resources, resources):
 		doc.append("resources", row)
+	_settle_rows(doc, script if rewrite_script else live_script)
 	doc.save()
 
 	if rewrite_script:
@@ -352,6 +378,7 @@ def _replace_page(doc, route, blocks, script, fields):
 
 	doc.resources = []
 	doc.update(fields)
+	_settle_rows(doc, script)
 	doc.save()
 	doc.write_script_file()
 
@@ -360,6 +387,18 @@ def _replace_page(doc, route, blocks, script, fields):
 	print(f"replaced /{APP_NAME}{route} -- it had no baseline, and now has one")
 
 	return doc.name
+
+
+def _settle_rows(doc, script):
+	# setup() bindings override a variable of the same name, so such a variable is dead state.
+	doc.variables = [
+		variable
+		for variable in doc.variables
+		if not re.search(rf"\bconst {re.escape(variable.variable_name)}\b", script or "")
+	]
+	# The save exports new rows with a truthy `__unsaved`, which _set_defaults fills only when None.
+	for row in doc.resources:
+		row.set("__unsaved", 0)
 
 
 def _save_baseline(route, blocks, script):

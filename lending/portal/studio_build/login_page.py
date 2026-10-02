@@ -32,8 +32,8 @@ LOGIN_SCRIPT = '''\tconst busy = ref(false)
 
 \t// Same rule as login.portal_redirect: a link can't send a borrower off the portal.
 \tconst redirectTo = () => {
-\t\tconst to = new URLSearchParams(window.location.search).get("redirect-to") || ""
-\t\treturn to.startsWith("/borrower-portal/") ? to : "/borrower-portal/overview"
+\t\tconst to = String(context.route.query["redirect-to"] || "")
+\t\treturn to.startsWith(router.resolve("/").href) ? to : router.resolve("/overview").href
 \t}
 
 \t// Studio's editor runs setup() on its canvas, where the editor is never a guest.
@@ -118,7 +118,7 @@ CARD = {
 	"backgroundColor": "var(--surface-base)",
 	"border": "1px solid var(--outline-gray-1)",
 	"borderRadius": "var(--radius-6, 12px)",
-	"boxShadow": "0 1px 2px rgba(0, 0, 0, 0.04)",
+	"boxShadow": "var(--elevation-sm)",
 }
 
 MARK = {"width": "48px", "height": "48px", "flexShrink": "0", "borderRadius": "12px"}
@@ -240,7 +240,7 @@ def code_step():
 		[
 			text("Resend code", tag="span", size="text-p-sm", styles=QUIET_LINK, events=click("resendCode()"), visible="{{ resendIn <= 0 }}"),
 			muted(
-				"{{ 'Resend in 00:' + String(resendIn).padStart(2, '0') }}",
+				"{{ resendLabel(resendIn) }}",
 				styles={"color": "var(--ink-gray-5)"},
 				visible="{{ resendIn > 0 }}",
 			),
@@ -334,7 +334,8 @@ def build_login():
 				"changeEmail",
 				"withGoogle",
 			],
-			search=False,
+			framed=False,
+			shared=["resendLabel"],
 		),
 		allow_guest=True,
 	)
