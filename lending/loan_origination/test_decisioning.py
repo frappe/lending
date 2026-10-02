@@ -30,6 +30,14 @@ TEST_CUSTOMER = "_Test Loan Customer"
 TEST_PAN = "ABCDE1234F"
 
 
+class DecisioningTestSuite(LendingTestSuite):
+	def setUp(self):
+		super().setUp()
+		# A site strategy for the lead's product would outrank the product-agnostic ones these
+		# tests create; the per-test rollback puts them back.
+		frappe.db.set_value("Decision Strategy", {"disabled": 0}, "disabled", 1)
+
+
 def make_lead(income=60000, employment_type="Salaried", date_of_birth="1992-01-01", **overrides):
 	values = {
 		"doctype": "Loan Lead",
@@ -90,7 +98,7 @@ def make_bureau_report(score=712, total_emi=8000, applicant=TEST_CUSTOMER, pan=N
 	return report
 
 
-class TestVariableContextFromALead(LendingTestSuite):
+class TestVariableContextFromALead(DecisioningTestSuite):
 	def test_a_lead_supplies_the_applicant_variables(self):
 		context = build_variable_context(make_lead())
 
@@ -122,7 +130,7 @@ class TestVariableContextFromALead(LendingTestSuite):
 		self.assertNotIn("monthly_income", context)
 
 
-class TestVariableContextFromAnApplication(LendingTestSuite):
+class TestVariableContextFromAnApplication(DecisioningTestSuite):
 	def test_an_application_supplies_its_own_variables(self):
 		application = make_application()
 
@@ -174,7 +182,7 @@ class TestVariableContextFromAnApplication(LendingTestSuite):
 		self.assertEqual(context["existing_obligations"], 8000)
 
 
-class TestUncollectedVariables(LendingTestSuite):
+class TestUncollectedVariables(DecisioningTestSuite):
 	def test_a_rule_on_an_uncollected_variable_does_not_fire(self):
 		strategy = make_strategy(
 			[rule(10, "monthly_income", "<", "20000", "Decline", reason_code=make_reason())]
@@ -228,7 +236,7 @@ class TestUncollectedVariables(LendingTestSuite):
 		self.assertEqual(verdict.skipped_variables, [])
 
 
-class TestKnockoutBlocksTheTransition(LendingTestSuite):
+class TestKnockoutBlocksTheTransition(DecisioningTestSuite):
 	def test_a_knockout_decline_throws_so_the_transition_rolls_back(self):
 		make_strategy(
 			[rule(10, "loan_amount", ">", "1000", "Decline", reason_code=make_reason())],
@@ -265,7 +273,7 @@ class TestKnockoutBlocksTheTransition(LendingTestSuite):
 		self.assertIsNone(run_strategy(make_lead(), "Underwriting-does-not-exist"))
 
 
-class TestPreQualificationIsRecordedNotEnforced(LendingTestSuite):
+class TestPreQualificationIsRecordedNotEnforced(DecisioningTestSuite):
 	def prequalify(self, rules, **lead):
 		make_strategy(
 			rules, strategy_name="Test Pre-Qualification Strategy", strategy_type=PRE_QUALIFICATION
@@ -351,7 +359,7 @@ class TestPreQualificationIsRecordedNotEnforced(LendingTestSuite):
 		self.assertFalse(lead.prequalification_status)
 
 
-class TestOperatorList(LendingTestSuite):
+class TestOperatorList(DecisioningTestSuite):
 	def test_the_select_options_match_the_engine(self):
 		options = frappe.get_meta("Decision Rule").get_field("operator").options.split("\n")
 
@@ -387,7 +395,7 @@ class TestOperatorList(LendingTestSuite):
 			_cmp(1, "**", 2)
 
 
-class TestEqualityReadsBothKindsOfValue(LendingTestSuite):
+class TestEqualityReadsBothKindsOfValue(DecisioningTestSuite):
 	def test_two_numbers_are_compared_as_numbers(self):
 		self.assertTrue(_cmp(700, "==", "700.0"))
 		self.assertFalse(_cmp(700, "!=", "700.0"))
@@ -411,14 +419,14 @@ class TestEqualityReadsBothKindsOfValue(LendingTestSuite):
 		self.assertEqual(verdict.decision, APPROVE)
 
 
-class TestVariableSnapshotIsSerialisable(LendingTestSuite):
+class TestVariableSnapshotIsSerialisable(DecisioningTestSuite):
 	def test_the_context_survives_a_json_round_trip(self):
 		context = build_variable_context(make_application(loan_lead=make_lead().name))
 
 		self.assertEqual(json.loads(frappe.as_json(context)).keys(), context.keys())
 
 
-class TestPriorityDecidesWhichStrategyRunsForALead(LendingTestSuite):
+class TestPriorityDecidesWhichStrategyRunsForALead(DecisioningTestSuite):
 	def prequalify(self, lead=None):
 		lead = lead or make_lead()
 		verdict = run_strategy(lead, PRE_QUALIFICATION)
@@ -614,7 +622,7 @@ def comments_on(lead):
 	)
 
 
-class TestTheKnockoutGateFailsClosed(LendingTestSuite):
+class TestTheKnockoutGateFailsClosed(DecisioningTestSuite):
 	def test_a_decline_that_could_not_be_checked_stops_the_transition(self):
 		make_strategy(
 			[rule(10, "bureau_score", "<", "600", "Decline", reason_code=make_reason())],
@@ -665,7 +673,7 @@ class TestTheKnockoutGateFailsClosed(LendingTestSuite):
 		self.assertIn("declined", str(raised.exception))
 
 
-class TestAStageThatRanNothingSaysSo(LendingTestSuite):
+class TestAStageThatRanNothingSaysSo(DecisioningTestSuite):
 	def test_no_strategy_is_recorded_on_the_lead(self):
 		lead = make_lead()
 
@@ -680,7 +688,7 @@ class TestAStageThatRanNothingSaysSo(LendingTestSuite):
 		self.assertTrue(any(TEST_LOAN_PRODUCT in comment for comment in comments_on(lead)))
 
 
-class TestRecommendedTermsTightenRatherThanOverwrite(LendingTestSuite):
+class TestRecommendedTermsTightenRatherThanOverwrite(DecisioningTestSuite):
 	def approve_twice(self, first, second):
 		strategy = make_strategy(
 			[
@@ -730,7 +738,7 @@ class TestRecommendedTermsTightenRatherThanOverwrite(LendingTestSuite):
 		self.assertIsNone(verdict.recommended_amount)
 
 
-class TestAnApplicationReachesTheLeadsBureauReport(LendingTestSuite):
+class TestAnApplicationReachesTheLeadsBureauReport(DecisioningTestSuite):
 	def test_a_report_filed_against_the_pan_is_found_at_underwriting(self):
 		make_bureau_report(score=655, applicant=None, pan=TEST_PAN)
 		lead = make_lead(pan=TEST_PAN, applicant_country="India")

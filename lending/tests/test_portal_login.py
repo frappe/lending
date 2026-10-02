@@ -36,11 +36,14 @@ class TestPortalLogin(LendingTestSuite):
 	# Rate limits are inert here: frappe's decorator returns early without an HTTP request.
 
 	def setUp(self):
+		self.request = getattr(frappe.local, "request", None)
 		make_website_user(BORROWER)
 		frappe.set_user("Guest")
 		frappe.local.login_manager = MagicMock()
 
 	def tearDown(self):
+		# login_response fakes an HTTP request; left in place, later modules run as if inside one.
+		frappe.local.request = self.request
 		frappe.set_user("Administrator")
 		del frappe.local.login_manager
 		super().tearDown()

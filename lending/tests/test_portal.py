@@ -1522,6 +1522,7 @@ class TestPortalFooter(LendingTestSuite):
 		)
 
 	def test_an_unnamed_portal_puts_our_name_in_its_own_notice(self):
+		set_branding()
 		set_footer()
 
 		self.assertIn(DEFAULT_BRAND_NAME, copyright_note())
