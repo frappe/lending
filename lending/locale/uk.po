@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-27 14:47+0000\n"
-"PO-Revision-Date: 2026-09-28 20:40\n"
+"PO-Revision-Date: 2026-10-02 21:02\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -103,7 +103,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:118
 msgid "Account {0} does not belong to company {1}"
-msgstr ""
+msgstr "Рахунок {0} не належать компанії {1}"
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
@@ -162,7 +162,7 @@ msgstr ""
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Accounts"
-msgstr ""
+msgstr "Рахунки"
 
 #. Label of the accrual_date (Date) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -4745,7 +4745,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:1127
 msgid "Only submitted unpledge requests can be approved"
-msgstr ""
+msgstr "Схвалити можна лише проведені запити на скасування зобов'язань"
 
 #. Label of the opening_additional_outstanding (Currency) field in DocType
 #. 'Loan Import Details'
