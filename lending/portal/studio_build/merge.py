@@ -30,6 +30,10 @@ def reset(active=True):
 		_RESET = previous
 
 
+def resetting():
+	return _RESET
+
+
 def identify(blocks, route):
 	"""Stamp a deterministic componentId onto every block of a generated tree."""
 	for index, node in enumerate(blocks):

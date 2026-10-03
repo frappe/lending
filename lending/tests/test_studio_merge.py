@@ -157,6 +157,18 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertEqual(self.ids(merged), self.ids(live))
 		self.assertNotIn("overview-0-html1", self.ids(merged))
 
+	def test_a_bench_without_a_baseline_keeps_the_canvas_edits_in_the_export(self):
+		"""upsert_page's case when baselines are missing: the generated tree stands in for one."""
+		new = identify([self.generated()], "/overview")
+		live = frappe.parse_json(frappe.as_json(new))
+		live[0]["children"][0]["componentProps"]["label"] = "Renamed on the canvas"
+		live[0]["children"].append(block("Badge", {"label": "Mine"}, componentId="hand-added"))
+
+		merged = merge_blocks(new, live, new)
+
+		self.assertEqual(merged[0]["children"][0]["componentProps"]["label"], "Renamed on the canvas")
+		self.assertIn("hand-added", self.ids(merged))
+
 	@staticmethod
 	def generated(title="Overview"):
 		return block(

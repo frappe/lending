@@ -275,9 +275,10 @@ def upsert_component(component_id, component_name, tree, inputs=()):
 	live = frappe.parse_json(doc.block or "{}")
 	baseline = merge.read_baseline(key)
 
-	if baseline is None:
+	if baseline is None and merge.resetting():
 		merged = [tree]
 	else:
+		baseline = baseline or adopted(f"component {component_id}", {"block": tree})
 		merged = merge.merge_blocks([baseline["block"]], [live], [tree])
 
 	fields["block"] = json.dumps(merged[0] if merged else live, indent=1)
@@ -288,7 +289,7 @@ def upsert_component(component_id, component_name, tree, inputs=()):
 
 	doc.update(fields)
 	doc.save()
-	print(f"{'replaced' if baseline is None else 'merged into'} Studio Component {doc.name}")
+	print(f"{'replaced' if merge.resetting() else 'merged into'} Studio Component {doc.name}")
 
 	return doc.name
 
@@ -314,9 +315,23 @@ def upsert_page(title, route, blocks, resources, script=PAGE_SCRIPT, allow_guest
 	doc = frappe.get_doc("Studio Page", existing)
 	baseline = merge.read_baseline(merge.baseline_key(route))
 	if baseline is None:
-		return _replace_page(doc, route, blocks, script, fields)
+		if merge.resetting():
+			return _replace_page(doc, route, blocks, script, fields)
+
+		baseline = adopted(f"/{APP_NAME}{route}", {"blocks": blocks, "script": script})
 
 	return _merge_page(doc, route, blocks, script, fields, baseline)
+
+
+def adopted(label, baseline):
+	"""Baselines are per bench, and a missing one must not cost the canvas edits in the export.
+
+	That export came from this generator, so whatever the live page differs by is canvas work;
+	taking the new tree as the baseline makes the merge keep all of it.
+	"""
+	print(f"adopted {label}: no baseline on this bench, so canvas edits are kept; build(reset=True) replaces it")
+
+	return baseline
 
 
 def _create_page(route, blocks, script, fields):
@@ -370,7 +385,7 @@ def _merge_page(doc, route, blocks, script, fields, baseline):
 
 
 def _replace_page(doc, route, blocks, script, fields):
-	# Without a baseline the live ids can't be matched, so a merge would duplicate every block.
+	# Only on build(reset=True): it discards the page's canvas edits.
 	fields["blocks"] = frappe.as_json(blocks)
 	fields["script"] = script
 	# a leftover draft would be loaded over the blocks just written
@@ -384,7 +399,7 @@ def _replace_page(doc, route, blocks, script, fields):
 
 	_save_baseline(route, blocks, script)
 	frappe.clear_document_cache("Studio Page", doc.name)
-	print(f"replaced /{APP_NAME}{route} -- it had no baseline, and now has one")
+	print(f"replaced /{APP_NAME}{route}, discarding its canvas edits")
 
 	return doc.name
 
