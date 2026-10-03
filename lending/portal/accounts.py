@@ -50,9 +50,41 @@ def create_customer(customer_name: str, customer_type: str, email: str, mobile: 
 def customer_for_applicant(
 	customer_name: str, applicant_type: str, email: str, mobile: str
 ) -> str:
-	return customer_for_email(email) or create_customer(
+	"""The Customer a self-signup joins; anything short of clear ownership gets a new one."""
+	return customer_owning_email(email) or create_customer(
 		customer_name, CUSTOMER_TYPES.get(applicant_type, "Individual"), email, mobile
 	)
+
+
+def customer_owning_email(email: str) -> str | None:
+	"""The one unclaimed Customer whose primary address this is.
+
+	Not customer_for_email: joining grants the Customer's loans, and any of its Contacts, such
+	as a clerk or a shared inbox, could verify an address that matches there.
+	"""
+	if not email:
+		return None
+
+	contacts = frappe.get_all(
+		"Contact Email",
+		filters={"email_id": email, "is_primary": 1, "parenttype": "Contact"},
+		pluck="parent",
+	)
+	owners = set(frappe.get_all("Customer", filters={"email_id": email}, pluck="name"))
+	if contacts:
+		owners.update(
+			frappe.get_all("Customer", filters={"customer_primary_contact": ["in", contacts]}, pluck="name")
+		)
+
+	if len(owners) != 1:
+		return None
+
+	customer = owners.pop()
+	# A Customer someone already logs in to is theirs; a second login is staff's to grant.
+	if frappe.db.exists("Portal User", {"parenttype": "Customer", "parent": customer}):
+		return None
+
+	return customer
 
 
 def link_portal_user(customer: str, user: str) -> bool:

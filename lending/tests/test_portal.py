@@ -17,7 +17,7 @@ from lending.loan_management.doctype.lending_settings.lending_settings import (
 )
 from lending.loan_origination.doctype.loan_lead.loan_lead import convert_to_loan_application
 from lending.loan_origination.doctype.loan_lead.test_loan_lead import activate_loan_lead_workflow
-from lending.portal.accounts import customer_for_email
+from lending.portal.accounts import create_customer, customer_for_email, link_portal_user
 from lending.portal.applications import (
 	default_application,
 	get_application_detail,
@@ -1087,6 +1087,57 @@ class TestPortalSignUp(LendingTestSuite):
 
 		joined = [row.user for row in frappe.get_doc("Customer", customer).portal_users]
 		self.assertIn(PERSON_EMAIL, joined)
+
+	def existing_customer(self, name, email):
+		frappe.set_user("Administrator")
+		customer = create_customer(name, "Individual", email, "")
+		frappe.set_user("Guest")
+
+		return customer
+
+	def portal_users(self, customer):
+		return [row.user for row in frappe.get_doc("Customer", customer).portal_users]
+
+	def test_a_signup_joins_the_customer_whose_own_address_it_is(self):
+		customer = self.existing_customer("_Test Portal Existing Borrower", PERSON_EMAIL)
+
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340120"))
+
+		self.assertEqual(self.portal_users(customer), [PERSON_EMAIL])
+
+	def test_a_signup_does_not_join_a_customer_it_is_only_a_contact_of(self):
+		customer = self.existing_customer("_Test Portal Holdings", COMPANY_EMAIL)
+		frappe.set_user("Administrator")
+		clerk = frappe.new_doc("Contact")
+		clerk.first_name = "Clerk"
+		clerk.append("email_ids", {"email_id": PERSON_EMAIL, "is_primary": 1})
+		clerk.append("links", {"link_doctype": "Customer", "link_name": customer})
+		clerk.insert(ignore_permissions=True)
+		frappe.set_user("Guest")
+
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340121"))
+
+		self.assertEqual(self.portal_users(customer), [])
+
+	def test_a_signup_does_not_join_a_customer_someone_already_logs_in_to(self):
+		customer = self.existing_customer("_Test Portal Claimed Borrower", PERSON_EMAIL)
+		frappe.set_user("Administrator")
+		make_website_user(COMPANY_EMAIL)
+		link_portal_user(customer, COMPANY_EMAIL)
+		frappe.set_user("Guest")
+
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340122"))
+
+		self.assertEqual(self.portal_users(customer), [COMPANY_EMAIL])
+
+	def test_a_signup_does_not_join_either_customer_sharing_an_address(self):
+		first = self.existing_customer("_Test Portal Shared One", PERSON_EMAIL)
+		second = self.existing_customer("_Test Portal Shared Two", PERSON_EMAIL)
+
+		self.open_account(self.apply_as(PERSON_EMAIL, "9812340123"))
+
+		self.assertEqual(self.portal_users(first), [])
+		self.assertEqual(self.portal_users(second), [])
 
 	def test_the_new_borrower_sees_their_own_enquiry(self):
 		offer = self.apply_as(PERSON_EMAIL, "9812340105")
