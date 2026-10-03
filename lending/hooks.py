@@ -66,10 +66,6 @@ fixtures = [
 			]
 		],
 	},
-	{
-		"dt": "Print Format",
-		"filters": [["name", "in", ("Loan Statement of Account", "Loan Interest Certificate")]],
-	},
 ]
 
 
@@ -144,6 +140,8 @@ after_install = "lending.install.after_install"
 
 after_migrate = [
 	"lending.loan_management.doctype.lending_settings.lending_settings.sync_portal_pages",
+	# Built from lending/portal/print_formats.py, not a fixture, so a lender's edits survive.
+	"lending.portal.print_formats.ensure",
 ]
 
 # Uninstallation

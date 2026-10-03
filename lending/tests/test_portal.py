@@ -78,6 +78,8 @@ from lending.portal.notifications import (
 	read_keys,
 	row_key,
 )
+from lending.portal.print_formats import FORMATS, STATEMENT_FORMAT
+from lending.portal.print_formats import ensure as ensure_print_formats
 from lending.portal.profile import get_profile_page, save_profile
 from lending.portal.search import RESULT_LIMIT, find, results_note
 from lending.portal.statement import owned_loans
@@ -2294,3 +2296,22 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		self.assertIs(dashboard["choose_account"], False)
 		self.assertIs(dashboard["can_switch"], False)
 		self.assertEqual([row["name"] for row in dashboard["accounts"]], [loan])
+
+
+class TestPortalPrintFormats(LendingTestSuite):
+	def test_install_creates_a_missing_layout(self):
+		for name, _html in FORMATS:
+			frappe.delete_doc("Print Format", name, force=True, ignore_permissions=True, ignore_missing=True)
+
+		ensure_print_formats()
+
+		for name, html in FORMATS:
+			self.assertEqual(frappe.db.get_value("Print Format", name, "html"), html)
+
+	def test_migrate_keeps_a_layout_the_lender_edited(self):
+		ensure_print_formats()
+		frappe.db.set_value("Print Format", STATEMENT_FORMAT, "html", "<p>Our own statement</p>")
+
+		ensure_print_formats()
+
+		self.assertEqual(frappe.db.get_value("Print Format", STATEMENT_FORMAT, "html"), "<p>Our own statement</p>")

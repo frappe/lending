@@ -176,6 +176,13 @@ def upsert(name: str, html: str) -> str:
 	return fmt.name
 
 
+def ensure():
+	"""Create a missing layout on install and migrate; an existing one may carry the lender's edits."""
+	for name, html in FORMATS:
+		if not frappe.db.exists("Print Format", name):
+			upsert(name, html)
+
+
 def build():
 	names = [upsert(name, html) for name, html in FORMATS]
 	frappe.db.commit()  # nosemgrep
