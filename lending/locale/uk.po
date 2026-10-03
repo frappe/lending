@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-09-27 14:47+0000\n"
-"PO-Revision-Date: 2026-09-28 20:40\n"
+"PO-Revision-Date: 2026-10-03 21:17\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -103,11 +103,11 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:118
 msgid "Account {0} does not belong to company {1}"
-msgstr ""
+msgstr "Рахунок {0} не належать компанії {1}"
 
 #: lending/loan_management/doctype/loan/loan.py:192
 msgid "Account {0} does not belongs to company {1}"
-msgstr ""
+msgstr "Рахунок {0} не належить компанії {1}"
 
 #. Label of the accounting_tab (Tab Break) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -162,7 +162,7 @@ msgstr ""
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Accounts"
-msgstr ""
+msgstr "Рахунки"
 
 #. Label of the accrual_date (Date) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -939,7 +939,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
 msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
-msgstr ""
+msgstr "Банківська операція {0} від {1} {2}, а не від заявника позики {3}"
 
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
@@ -1097,7 +1097,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:310
 msgid "Cannot cancel Loan Repayment Schedule {0} while Loan Disbursement {1} is submitted. Cancel the Loan Disbursement first."
-msgstr ""
+msgstr "Не можна скасувати графік погашення позики {0}, поки проведено виплату позики {1}. Спочатку скасуйте виплату."
 
 #: lending/loan_management/doctype/loan/loan.py:901
 msgid "Cannot close loan as there is an outstanding of {0}"
@@ -1113,7 +1113,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2599
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
-msgstr ""
+msgstr "Не можна здійснювати авансові платежі або передоплати протягом періоду мораторію. (Дата закінчення мораторію: {}, Дата проведення: {})"
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:204
 msgid "Cannot send an OTP to more than {0} leads at a time."
@@ -1216,7 +1216,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
 msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
-msgstr ""
+msgstr "Для оплати витрат потрібно вказати, які саме витрати оплачуються. Виберіть їх у режимі «Редагувати на всю сторінку» перед проведенням."
 
 #. Label of the charge_type (Link) field in DocType 'Loan Charges'
 #. Label of the charge_type (Link) field in DocType 'Loan Partner Adhoc Charges
@@ -1581,7 +1581,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
 msgid "Cost Center {0} does not belong to company {1}"
-msgstr ""
+msgstr "Центр витрат {0} не належить компанії {1}"
 
 #: lending/loan_management/doctype/loan/loan.py:202
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
@@ -1710,7 +1710,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
 msgid "Customer Refund Account is mandatory"
-msgstr ""
+msgstr "Рахунок повернення клієнту обов'язковий"
 
 #. Label of the cyclic_day_of_the_month (Int) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -2270,7 +2270,7 @@ msgstr ""
 #. Label of the fldg_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "FLDG Account"
-msgstr ""
+msgstr "Рахунок FLDG"
 
 #. Label of the fldg_corporate_guarantee_percentage (Percent) field in DocType
 #. 'Loan Partner'
@@ -2709,7 +2709,7 @@ msgstr ""
 #. 'Process Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period."
-msgstr ""
+msgstr "Внутрішній: JSON-список пар [doctype, name] для скасованих вихідних документів, сторнування яких було зафіксовано цим документом. Використовується під час скасування для повторного відкриття саме цих документів, а не всіх скасованих документів за період."
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
@@ -2912,7 +2912,7 @@ msgstr ""
 #. Decision'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Left blank, the latest submitted report for this applicant is used."
-msgstr ""
+msgstr "Якщо залишити порожнім, береться останній проведений звіт для цього заявника."
 
 #. Description of the 'Scorecard' (Link) field in DocType 'Loan Decision'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
@@ -3400,7 +3400,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
 msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
-msgstr ""
+msgstr "Виплата {0} не є проведеною виплатою за позикою {1}"
 
 #. Label of a Link in the Lending Workspace
 #. Name of a DocType
@@ -3814,7 +3814,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
 msgid "Loan Repayment can only be created against a deposit"
-msgstr ""
+msgstr "Погашення позики можна створити лише за депозитом"
 
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
@@ -4187,15 +4187,15 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
 msgid "Loan {0} does not belong to the company of Bank Account {1}"
-msgstr ""
+msgstr "Позика {0} не належить компанії банківського рахунку {1}"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
 msgid "Loan {0} does not exist"
-msgstr ""
+msgstr "Позики {0} не існує"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
 msgid "Loan {0} must be submitted"
-msgstr ""
+msgstr "Позику {0} потрібно провести"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
@@ -4387,7 +4387,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
 msgid "Mode of Payment {0} does not exist"
-msgstr ""
+msgstr "Способу оплати {0} не існує"
 
 #. Label of the month_end_date (Date) field in DocType 'Process Loan
 #. Accounting'
@@ -4745,7 +4745,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:1127
 msgid "Only submitted unpledge requests can be approved"
-msgstr ""
+msgstr "Схвалити можна лише проведені запити на скасування зобов'язань"
 
 #. Label of the opening_additional_outstanding (Currency) field in DocType
 #. 'Loan Import Details'
@@ -5227,7 +5227,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:137
 msgid "Please add customer refund account in Loan Product"
-msgstr ""
+msgstr "Додайте рахунок повернення клієнту в кредитному продукті"
 
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:55
 msgid "Please enable {0} in TP OTP Settings to use {1}."
@@ -5483,17 +5483,17 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_restructure_limit/process_loan_restructure_limit.json
 #: lending/loan_management/report/loan_repayment_and_closure/loan_repayment_and_closure.py:17
 msgid "Posting Date"
-msgstr ""
+msgstr "Дата проведення"
 
 #. Label of the posting_date (Datetime) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Posting Date (End Date)"
-msgstr ""
+msgstr "Дата проведення (дата завершення)"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
 msgid "Posting Date and Reference Date must be valid dates"
-msgstr ""
+msgstr "Дата проведення та дата підстави мають бути коректними датами"
 
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
@@ -5691,7 +5691,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Process Loan Accounting Voucher"
-msgstr ""
+msgstr "Документ бухгалтерського обліку позики процесу"
 
 #. Label of the process_loan_classification (Link) field in DocType 'Days Past
 #. Due Log'
@@ -5976,7 +5976,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
 msgid "Reference Number cannot be longer than 140 characters"
-msgstr ""
+msgstr "Номер підстави не може бути довшим за 140 символів"
 
 #. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
 #. Lead'
@@ -6261,7 +6261,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
 msgid "Repayment Type {0} cannot be created from a Bank Transaction"
-msgstr ""
+msgstr "Тип погашення {0} не можна створити з банківської операції"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
@@ -6634,7 +6634,7 @@ msgstr ""
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Set when this voucher is a delta correction for a month already consolidated (e.g. after a backdated repayment or repost)."
-msgstr ""
+msgstr "Встановлюється, коли цей документ є корекцією дельти за місяць, який вже консолідовано (наприклад, після повернення або повторного проведення заборгованості заднім числом)."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -6816,7 +6816,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
-msgstr ""
+msgstr "Таких виплат не існує або вони не проведені: {}"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
@@ -6852,7 +6852,7 @@ msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:83
 msgid "There is nothing to submit. No rule in {0} matched this applicant, so no decision was reached."
-msgstr ""
+msgstr "Немає чого проводити. Жодне правило в {0} не підійшло цьому заявнику, тому рішення не ухвалено."
 
 #: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:57
 msgid "This applicant already holds the maximum of {0} live loans, so this lead cannot be taken forward."
@@ -6872,7 +6872,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:80
 msgid "This repost is already {0}. Wait for it to finish before submitting again."
-msgstr ""
+msgstr "Це перепроведення вже {0}. Зачекайте завершення, перш ніж проводити знову."
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
 msgid "This repost is {0} in the background. Please wait for it to finish."
@@ -7316,7 +7316,7 @@ msgstr ""
 #. Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
-msgstr ""
+msgstr "Що цей документ зводив до: один рядок на кожен рахунок та тип джерела, із сумою та кількістю щоденних документів нарахування/вимоги за ним. Використовуйте «Перегляд книги», щоб побачити проведену головну бухгалтерську книгу."
 
 #. Description of the 'Raw Payload' (Long Text) field in DocType 'Credit Bureau
 #. Report'
@@ -7385,7 +7385,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2287
 msgid "Write Off Recovery Account is mandatory"
-msgstr ""
+msgstr "Рахунок відшкодування списаної заборгованості обов'язковий"
 
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
@@ -7521,7 +7521,7 @@ msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:213
 msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
-msgstr ""
+msgstr "{0} не є проведеним звітом кредитного бюро за {1}, тому його не можна використати для рішення за цією заявою."
 
 #: lending/loan_origination/decisioning.py:403
 msgid "{0} is not a supported decision rule operator."
