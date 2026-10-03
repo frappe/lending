@@ -267,13 +267,13 @@ def upsert_component(component_id, component_name, tree, inputs=()):
 	if not frappe.db.exists("Studio Component", component_id):
 		doc = frappe.get_doc(doctype="Studio Component", block=json.dumps(tree, indent=1), **fields)
 		doc.insert()
-		merge.write_baseline(key, {"component_id": component_id, "block": tree})
+		_save_component_baseline(key, component_id, tree)
 		print(f"created Studio Component {doc.name}")
 		return doc.name
 
 	doc = frappe.get_doc("Studio Component", component_id)
 	live = frappe.parse_json(doc.block or "{}")
-	baseline = merge.read_baseline(key)
+	baseline = merge.read_known(key)
 
 	if baseline is None and merge.resetting():
 		merged = [tree]
@@ -282,7 +282,7 @@ def upsert_component(component_id, component_name, tree, inputs=()):
 		merged = merge.merge_blocks([baseline["block"]], [live], [tree])
 
 	fields["block"] = json.dumps(merged[0] if merged else live, indent=1)
-	merge.write_baseline(key, {"component_id": component_id, "block": tree})
+	_save_component_baseline(key, component_id, tree)
 
 	if doc.block == fields["block"]:
 		return doc.name
@@ -313,7 +313,7 @@ def upsert_page(title, route, blocks, resources, script=PAGE_SCRIPT, allow_guest
 		return _create_page(route, blocks, script, fields)
 
 	doc = frappe.get_doc("Studio Page", existing)
-	baseline = merge.read_baseline(merge.baseline_key(route))
+	baseline = merge.read_known(merge.baseline_key(route))
 	if baseline is None:
 		if merge.resetting():
 			return _replace_page(doc, route, blocks, script, fields)
@@ -324,12 +324,8 @@ def upsert_page(title, route, blocks, resources, script=PAGE_SCRIPT, allow_guest
 
 
 def adopted(label, baseline):
-	"""Baselines are per bench, and a missing one must not cost the canvas edits in the export.
-
-	That export came from this generator, so whatever the live page differs by is canvas work;
-	taking the new tree as the baseline makes the merge keep all of it.
-	"""
-	print(f"adopted {label}: no baseline on this bench, so canvas edits are kept; build(reset=True) replaces it")
+	"""Only before any build has committed a snapshot: the live page's differences are kept as canvas work."""
+	print(f"adopted {label}: no baseline or snapshot, so canvas edits are kept; build(reset=True) replaces it")
 
 	return baseline
 
@@ -377,7 +373,7 @@ def _merge_page(doc, route, blocks, script, fields, baseline):
 	else:
 		print(f"kept the hand-edited script for /{APP_NAME}{route}")
 
-	_save_baseline(route, blocks, script if rewrite_script else live_script)
+	_save_baseline(route, blocks, script if rewrite_script else live_script, generated=script)
 	frappe.clear_document_cache("Studio Page", doc.name)
 	print(f"merged into Studio Page {doc.name} at /{APP_NAME}{route}")
 
@@ -416,8 +412,17 @@ def _settle_rows(doc, script):
 		row.set("__unsaved", 0)
 
 
-def _save_baseline(route, blocks, script):
-	merge.write_baseline(merge.baseline_key(route), {"route": route, "blocks": blocks, "script": script})
+def _save_baseline(route, blocks, script, generated=None):
+	key = merge.baseline_key(route)
+	merge.write_baseline(key, {"route": route, "blocks": blocks, "script": script})
+	# The generator's own script, not a kept hand edit, so a later merge still sees the edit.
+	merge.write_generated(key, {"route": route, "blocks": blocks, "script": generated or script})
+
+
+def _save_component_baseline(key, component_id, tree):
+	record = {"component_id": component_id, "block": tree}
+	merge.write_baseline(key, record)
+	merge.write_generated(key, record)
 
 
 def _page_script(doc):

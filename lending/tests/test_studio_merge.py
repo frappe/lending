@@ -1,9 +1,15 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # See license.txt
 
+import os
+import tempfile
+from contextlib import contextmanager
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from lending.portal.studio_build import merge
 from lending.portal.studio_build.blocks import block
 from lending.portal.studio_build.merge import identify, merge_blocks, merge_resources
 
@@ -168,6 +174,50 @@ class TestStudioMerge(IntegrationTestCase):
 
 		self.assertEqual(merged[0]["children"][0]["componentProps"]["label"], "Renamed on the canvas")
 		self.assertIn("hand-added", self.ids(merged))
+
+	def test_a_bench_without_a_baseline_still_takes_a_generator_update(self):
+		"""The committed snapshot, not the new tree, is the baseline: old blocks are not canvas work."""
+		old = identify([self.generated(title="Old title")], "/overview")
+		live = frappe.parse_json(frappe.as_json(old))
+		live[0]["children"].append(block("Badge", {"label": "Mine"}, componentId="hand-added"))
+		new = identify([self.generated(title="New title")], "/overview")
+
+		with self.folders():
+			merge.write_generated("overview", {"blocks": old})
+			merged = merge_blocks(merge.read_known("overview")["blocks"], live, new)
+
+		self.assertEqual(merged[0]["children"][0]["componentProps"]["label"], "New title")
+		self.assertIn("hand-added", self.ids(merged))
+
+	def test_this_benchs_baseline_wins_over_the_snapshot(self):
+		with self.folders():
+			merge.write_generated("overview", {"blocks": "snapshot"})
+			merge.write_baseline("overview", {"blocks": "bench"})
+
+			self.assertEqual(merge.read_known("overview")["blocks"], "bench")
+
+	def test_a_reset_ignores_the_snapshot_too(self):
+		with self.folders():
+			merge.write_generated("overview", {"blocks": "snapshot"})
+
+			with merge.reset():
+				self.assertIsNone(merge.read_known("overview"))
+
+	def test_no_snapshot_is_written_where_studio_writes_no_export(self):
+		with self.folders() as (_baselines, snapshots), patch.dict(frappe.conf, {"developer_mode": 0}):
+			merge.write_generated("overview", {"blocks": "snapshot"})
+
+			self.assertEqual(os.listdir(snapshots), [])
+
+	@contextmanager
+	def folders(self):
+		with tempfile.TemporaryDirectory() as baselines, tempfile.TemporaryDirectory() as snapshots:
+			with (
+				patch.object(merge, "_baseline_path", lambda key: os.path.join(baselines, f"{key}.json")),
+				patch.object(merge, "_generated_path", lambda key: os.path.join(snapshots, f"{key}.json")),
+				patch.dict(frappe.conf, {"developer_mode": 1}),
+			):
+				yield baselines, snapshots
 
 	@staticmethod
 	def generated(title="Overview"):

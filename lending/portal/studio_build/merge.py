@@ -11,6 +11,8 @@ from contextlib import contextmanager
 import frappe
 
 BASELINE_FOLDER = ("portal", "studio_build", "baseline")
+# Tracked, unlike baselines: the generator's own output for the export committed beside it.
+GENERATED_FOLDER = ("portal", "studio_build", "generated")
 
 # Studio adds these to every slot on load; they are not hand edits.
 SLOT_BOOKKEEPING = ("parentBlockId", "slotId")
@@ -216,6 +218,38 @@ def write_baseline(key, record):
 	# a file, not a doc field, so it survives a site rebuild and shows in diffs
 	with open(_baseline_path(key), "w") as target:  # nosemgrep
 		json.dump(record, target, indent=1)
+
+
+def read_known(key):
+	"""This bench's baseline, else the committed snapshot of what produced the export."""
+	baseline = read_baseline(key)
+	if baseline is not None or _RESET:
+		return baseline
+
+	path = _generated_path(key)
+	if not os.path.exists(path):
+		return None
+
+	with open(path) as source:  # nosemgrep
+		return json.load(source)
+
+
+def write_generated(key, record):
+	"""Committed beside the export, so a bench without baselines merges against the right tree."""
+	# Studio exports only in developer mode; a snapshot written without its export would lie.
+	if not frappe.conf.developer_mode:
+		return
+
+	with open(_generated_path(key), "w") as target:  # nosemgrep
+		json.dump(record, target, indent=1)
+		target.write("\n")
+
+
+def _generated_path(key):
+	folder = frappe.get_app_path("lending", *GENERATED_FOLDER)
+	frappe.create_folder(folder)
+
+	return os.path.join(folder, f"{key}.json")
 
 
 def baseline_key(value):
