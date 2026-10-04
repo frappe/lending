@@ -4,6 +4,7 @@
 import re
 
 import frappe
+from frappe import _
 
 PORTAL_PATH = "/borrower-portal"
 
@@ -11,20 +12,37 @@ LIGHT = "light"
 DARK = "dark"
 SYSTEM = "system"
 
-# Borrower's choice follows the device until a borrower can pick one.
-APPEARANCES = {"Light": LIGHT, "Dark": DARK, "Borrower's choice": SYSTEM}
+CHOICES = (LIGHT, DARK, SYSTEM)
+SETTING_CHOICES = {"Light": LIGHT, "Dark": DARK, "System": SYSTEM}
 
-# Runs in <head>, before the first paint, so a dark page never flashes light.
+# Per-user DefaultValue holding the borrower's own pick; it outranks the site's default.
+CHOICE_KEY = "lending_portal_appearance"
+
+# Runs in <head>, before the first paint, so a dark page never flashes light. It checks the
+# attribute on each change because the borrower can leave "system" without a reload.
 FOLLOW_DEVICE = (
 	"<script>(function () {"
+	"var root = document.documentElement;"
 	'var query = matchMedia("(prefers-color-scheme: dark)");'
-	'function apply() { document.documentElement.dataset.theme = query.matches ? "dark" : "light"; }'
+	"function apply() {"
+	'if (root.dataset.appearance === "system") root.dataset.theme = query.matches ? "dark" : "light";'
+	"}"
 	'apply(); query.addEventListener("change", apply);'
 	"})();</script>"
 )
 
 HTML_TAG = re.compile(r"<html\b")
 HEAD_TAG = re.compile(r"<head\b[^>]*>")
+
+
+@frappe.whitelist(methods=["POST"])
+def set_appearance(appearance: str) -> str:
+	if appearance not in CHOICES:
+		frappe.throw(_("Appearance must be light, dark or system."), frappe.ValidationError)
+
+	frappe.defaults.set_user_default(CHOICE_KEY, appearance)
+
+	return appearance
 
 
 def after_request(response, request):
@@ -37,15 +55,29 @@ def after_request(response, request):
 
 
 def appearance() -> str:
+	return borrower_choice() or site_default()
+
+
+def borrower_choice() -> str | None:
+	if frappe.session.user == "Guest":
+		return None
+
+	choice = frappe.defaults.get_user_default(CHOICE_KEY)
+	return choice if choice in CHOICES else None
+
+
+def site_default() -> str:
 	setting = frappe.db.get_single_value("Lending Settings", "portal_appearance")
-	return APPEARANCES.get(setting, LIGHT)
+	return SETTING_CHOICES.get(setting, SYSTEM)
 
 
-def themed(html: str, mode: str) -> str:
-	if mode == SYSTEM:
-		return HEAD_TAG.sub(lambda tag: tag.group(0) + FOLLOW_DEVICE, html, count=1)
+def themed(html: str, choice: str) -> str:
+	"""`data-appearance` keeps the choice itself, so the account menu can tick "System"."""
+	if choice == SYSTEM:
+		html = HEAD_TAG.sub(lambda tag: tag.group(0) + FOLLOW_DEVICE, html, count=1)
+		return HTML_TAG.sub(f'<html data-appearance="{SYSTEM}"', html, count=1)
 
-	return HTML_TAG.sub(f'<html data-theme="{mode}"', html, count=1)
+	return HTML_TAG.sub(f'<html data-appearance="{choice}" data-theme="{choice}"', html, count=1)
 
 
 def is_portal_page(request, response) -> bool:

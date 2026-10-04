@@ -112,12 +112,12 @@
    "options": "\nOcean\nNavy & Teal\nForest\nTeal & Orange\nRoyal\nPlum\nIndigo\nGraphite\nCustom"
   },
   {
-   "default": "Light",
-   "description": "Borrower's choice follows each borrower's device setting.",
+   "default": "System",
+   "description": "What borrowers see until they pick light or dark from their account menu. System follows each borrower's device. The login and public pages always use this.",
    "fieldname": "portal_appearance",
    "fieldtype": "Select",
-   "label": "Portal Appearance",
-   "options": "Light\nDark\nBorrower's choice"
+   "label": "Default Portal Appearance",
+   "options": "System\nLight\nDark"
   },
   {
    "fieldname": "column_break_theme",
@@ -161,7 +161,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-04 12:00:00.000000",
+ "modified": "2026-10-04 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",

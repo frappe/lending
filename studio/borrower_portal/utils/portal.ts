@@ -23,15 +23,52 @@ export function resendLabel(seconds: number): string {
 	return `Resend in 00:${String(seconds).padStart(2, "0")}`
 }
 
+const APPEARANCE_URL = "lending.portal.theme.set_appearance"
+const APPEARANCES = [
+	{ value: "light", label: "Light", icon: "lucide-sun" },
+	{ value: "dark", label: "Dark", icon: "lucide-moon" },
+	{ value: "system", label: "System", icon: "lucide-monitor" },
+]
+
+// lending.portal.theme marks <html> with the choice; the Studio canvas has neither.
+const darkQuery = typeof window === "undefined" ? null : window.matchMedia("(prefers-color-scheme: dark)")
+
+function applyAppearance(choice: string) {
+	const root = document.documentElement
+	root.dataset.appearance = choice
+	root.dataset.theme = choice === "system" ? (darkQuery?.matches ? "dark" : "light") : choice
+}
+
+darkQuery?.addEventListener("change", () => {
+	if (document.documentElement.dataset.appearance === "system") applyAppearance("system")
+})
+
 // SidebarItem's own match compares route names, which misses detail pages like /loan/:name.
 export function useMenus(route: any, open: (url?: string) => void, logout: () => void) {
 	const isActive = (to: string, prefix?: string) =>
 		route.path === to || Boolean(prefix && route.path.startsWith(prefix))
 
+	const appearance = ref(typeof document === "undefined" ? "" : document.documentElement.dataset.appearance || "")
+	const chooseAppearance = (choice: string) => {
+		appearance.value = choice
+		applyAppearance(choice)
+		call(APPEARANCE_URL, { appearance: choice })
+	}
+
 	const accountMenu = (canSwitch?: boolean) => [
 		...(canSwitch
 			? [{ label: "Switch account", icon: "lucide-arrow-left-right", onClick: () => open("/accounts") }]
 			: []),
+		{
+			label: "Appearance",
+			icon: "lucide-sun-moon",
+			submenu: APPEARANCES.map(({ value, label, icon }) => ({
+				label,
+				icon,
+				selected: appearance.value === value,
+				onClick: () => chooseAppearance(value),
+			})),
+		},
 		{ label: "Log out", icon: "lucide-log-out", onClick: logout },
 	]
 

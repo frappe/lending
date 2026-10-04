@@ -101,7 +101,9 @@ from lending.portal.profile import get_profile_page, save_profile
 from lending.portal.search import RESULT_LIMIT, find, results_note
 from lending.portal.statement import owned_loans
 from lending.portal.switcher import choose_account, get_accounts_page
+from lending.portal.theme import CHOICE_KEY as APPEARANCE_CHOICE_KEY
 from lending.portal.theme import after_request as theme_after_request
+from lending.portal.theme import set_appearance
 from lending.tests.test_utils import (
 	create_loan,
 	create_loan_accounts,
@@ -1659,6 +1661,17 @@ class TestPortalBranding(LendingTestSuite):
 class TestPortalAppearance(LendingTestSuite):
 	PAGE = '<!DOCTYPE html><html lang="en" class="h-full"><head><meta charset="UTF-8" /></head><body></body></html>'
 
+	def setUp(self):
+		super().setUp()
+		self.user = frappe.session.user
+		frappe.defaults.clear_user_default(APPEARANCE_CHOICE_KEY)
+
+	def tearDown(self):
+		frappe.set_user(self.user)
+		super().tearDown()
+		# The rollback undoes the DefaultValue but not the cached copy of it.
+		frappe.defaults.clear_defaults_cache(self.user)
+
 	def serve(self, appearance, path="/borrower-portal/overview", **response):
 		frappe.db.set_single_value("Lending Settings", "portal_appearance", appearance)
 		served = Response(response.pop("body", self.PAGE), mimetype=response.pop("mimetype", "text/html"), **response)
@@ -1667,17 +1680,41 @@ class TestPortalAppearance(LendingTestSuite):
 		return served.get_data(as_text=True)
 
 	def test_a_dark_portal_is_dark_on_the_first_paint(self):
-		self.assertIn('<html data-theme="dark" lang="en"', self.serve("Dark"))
+		self.assertIn('<html data-appearance="dark" data-theme="dark" lang="en"', self.serve("Dark"))
 
 	def test_a_light_portal_says_so_rather_than_leaving_it_to_the_device(self):
-		self.assertIn('<html data-theme="light" lang="en"', self.serve("Light"))
+		self.assertIn('<html data-appearance="light" data-theme="light" lang="en"', self.serve("Light"))
 
-	def test_borrowers_choice_follows_the_device_from_the_head(self):
-		page = self.serve("Borrower's choice")
+	def test_system_follows_the_device_from_the_head(self):
+		page = self.serve("System")
 
+		self.assertIn('<html data-appearance="system" lang="en"', page)
 		self.assertNotIn("data-theme=", page.split("<head>")[0])
 		self.assertIn("<head><script>", page)
 		self.assertIn("prefers-color-scheme: dark", page)
+
+	def test_an_unset_default_follows_the_device(self):
+		self.assertIn('data-appearance="system"', self.serve(None))
+
+	def test_a_borrowers_own_pick_outranks_the_lenders_default(self):
+		set_appearance("light")
+
+		self.assertIn('data-theme="light"', self.serve("Dark"))
+
+	def test_a_borrower_can_go_back_to_following_the_device(self):
+		set_appearance("system")
+
+		self.assertIn('data-appearance="system"', self.serve("Dark"))
+
+	def test_a_visitor_who_is_not_logged_in_sees_the_lenders_default(self):
+		set_appearance("light")
+		frappe.set_user("Guest")
+
+		self.assertIn('data-theme="dark"', self.serve("Dark", path="/borrower-portal/login"))
+
+	def test_only_light_dark_or_system_can_be_saved(self):
+		self.assertRaises(frappe.ValidationError, set_appearance, "sepia")
+		self.assertRaises(frappe.ValidationError, set_appearance, '"><script>')
 
 	def test_the_portals_own_root_is_themed_too(self):
 		self.assertIn('data-theme="dark"', self.serve("Dark", path="/borrower-portal"))

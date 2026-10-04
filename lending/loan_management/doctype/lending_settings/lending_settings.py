@@ -24,7 +24,7 @@ class LendingSettings(Document):
 		auto_create_customer: DF.Check
 		enable_borrower_portal: DF.Check
 		enable_public_apply: DF.Check
-		portal_appearance: DF.Literal["Light", "Dark", "Borrower's choice"]
+		portal_appearance: DF.Literal["System", "Light", "Dark"]
 		portal_brand_name: DF.Data | None
 		portal_copyright: DF.Data | None
 		portal_footer_links: DF.Table[TopBarItem]

@@ -61,15 +61,52 @@ export function resendLabel(seconds: number): string {
 \treturn `Resend in 00:${String(seconds).padStart(2, "0")}`
 }
 
+const APPEARANCE_URL = "lending.portal.theme.set_appearance"
+const APPEARANCES = [
+\t{ value: "light", label: "Light", icon: "lucide-sun" },
+\t{ value: "dark", label: "Dark", icon: "lucide-moon" },
+\t{ value: "system", label: "System", icon: "lucide-monitor" },
+]
+
+// lending.portal.theme marks <html> with the choice; the Studio canvas has neither.
+const darkQuery = typeof window === "undefined" ? null : window.matchMedia("(prefers-color-scheme: dark)")
+
+function applyAppearance(choice: string) {
+\tconst root = document.documentElement
+\troot.dataset.appearance = choice
+\troot.dataset.theme = choice === "system" ? (darkQuery?.matches ? "dark" : "light") : choice
+}
+
+darkQuery?.addEventListener("change", () => {
+\tif (document.documentElement.dataset.appearance === "system") applyAppearance("system")
+})
+
 // SidebarItem's own match compares route names, which misses detail pages like /loan/:name.
 export function useMenus(route: any, open: (url?: string) => void, logout: () => void) {
 \tconst isActive = (to: string, prefix?: string) =>
 \t\troute.path === to || Boolean(prefix && route.path.startsWith(prefix))
 
+\tconst appearance = ref(typeof document === "undefined" ? "" : document.documentElement.dataset.appearance || "")
+\tconst chooseAppearance = (choice: string) => {
+\t\tappearance.value = choice
+\t\tapplyAppearance(choice)
+\t\tcall(APPEARANCE_URL, { appearance: choice })
+\t}
+
 \tconst accountMenu = (canSwitch?: boolean) => [
 \t\t...(canSwitch
 \t\t\t? [{ label: "Switch account", icon: "lucide-arrow-left-right", onClick: () => open("/accounts") }]
 \t\t\t: []),
+\t\t{
+\t\t\tlabel: "Appearance",
+\t\t\ticon: "lucide-sun-moon",
+\t\t\tsubmenu: APPEARANCES.map(({ value, label, icon }) => ({
+\t\t\t\tlabel,
+\t\t\t\ticon,
+\t\t\t\tselected: appearance.value === value,
+\t\t\t\tonClick: () => chooseAppearance(value),
+\t\t\t})),
+\t\t},
 \t\t{ label: "Log out", icon: "lucide-log-out", onClick: logout },
 \t]
 
