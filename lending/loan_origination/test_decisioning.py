@@ -31,6 +31,8 @@ TEST_PAN = "ABCDE1234F"
 
 
 class DecisioningTestSuite(LendingTestSuite):
+	"""For tests that let run_strategy pick a strategy from the site."""
+
 	def setUp(self):
 		super().setUp()
 		# A site strategy for the lead's product would outrank the product-agnostic ones these
@@ -98,7 +100,7 @@ def make_bureau_report(score=712, total_emi=8000, applicant=TEST_CUSTOMER, pan=N
 	return report
 
 
-class TestVariableContextFromALead(DecisioningTestSuite):
+class TestVariableContextFromALead(LendingTestSuite):
 	def test_a_lead_supplies_the_applicant_variables(self):
 		context = build_variable_context(make_lead())
 
@@ -130,7 +132,7 @@ class TestVariableContextFromALead(DecisioningTestSuite):
 		self.assertNotIn("monthly_income", context)
 
 
-class TestVariableContextFromAnApplication(DecisioningTestSuite):
+class TestVariableContextFromAnApplication(LendingTestSuite):
 	def test_an_application_supplies_its_own_variables(self):
 		application = make_application()
 
@@ -182,7 +184,7 @@ class TestVariableContextFromAnApplication(DecisioningTestSuite):
 		self.assertEqual(context["existing_obligations"], 8000)
 
 
-class TestUncollectedVariables(DecisioningTestSuite):
+class TestUncollectedVariables(LendingTestSuite):
 	def test_a_rule_on_an_uncollected_variable_does_not_fire(self):
 		strategy = make_strategy(
 			[rule(10, "monthly_income", "<", "20000", "Decline", reason_code=make_reason())]
@@ -359,7 +361,7 @@ class TestPreQualificationIsRecordedNotEnforced(DecisioningTestSuite):
 		self.assertFalse(lead.prequalification_status)
 
 
-class TestOperatorList(DecisioningTestSuite):
+class TestOperatorList(LendingTestSuite):
 	def test_the_select_options_match_the_engine(self):
 		options = frappe.get_meta("Decision Rule").get_field("operator").options.split("\n")
 
@@ -395,7 +397,7 @@ class TestOperatorList(DecisioningTestSuite):
 			_cmp(1, "**", 2)
 
 
-class TestEqualityReadsBothKindsOfValue(DecisioningTestSuite):
+class TestEqualityReadsBothKindsOfValue(LendingTestSuite):
 	def test_two_numbers_are_compared_as_numbers(self):
 		self.assertTrue(_cmp(700, "==", "700.0"))
 		self.assertFalse(_cmp(700, "!=", "700.0"))
@@ -419,7 +421,7 @@ class TestEqualityReadsBothKindsOfValue(DecisioningTestSuite):
 		self.assertEqual(verdict.decision, APPROVE)
 
 
-class TestVariableSnapshotIsSerialisable(DecisioningTestSuite):
+class TestVariableSnapshotIsSerialisable(LendingTestSuite):
 	def test_the_context_survives_a_json_round_trip(self):
 		context = build_variable_context(make_application(loan_lead=make_lead().name))
 
@@ -688,7 +690,7 @@ class TestAStageThatRanNothingSaysSo(DecisioningTestSuite):
 		self.assertTrue(any(TEST_LOAN_PRODUCT in comment for comment in comments_on(lead)))
 
 
-class TestRecommendedTermsTightenRatherThanOverwrite(DecisioningTestSuite):
+class TestRecommendedTermsTightenRatherThanOverwrite(LendingTestSuite):
 	def approve_twice(self, first, second):
 		strategy = make_strategy(
 			[
@@ -738,7 +740,7 @@ class TestRecommendedTermsTightenRatherThanOverwrite(DecisioningTestSuite):
 		self.assertIsNone(verdict.recommended_amount)
 
 
-class TestAnApplicationReachesTheLeadsBureauReport(DecisioningTestSuite):
+class TestAnApplicationReachesTheLeadsBureauReport(LendingTestSuite):
 	def test_a_report_filed_against_the_pan_is_found_at_underwriting(self):
 		make_bureau_report(score=655, applicant=None, pan=TEST_PAN)
 		lead = make_lead(pan=TEST_PAN, applicant_country="India")
