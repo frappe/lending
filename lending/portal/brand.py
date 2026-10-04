@@ -14,6 +14,7 @@ from lending.portal.colour import (
 	mix,
 	shade,
 	to_hex,
+	under,
 )
 
 # frappe-ui's dark --surface-base.
@@ -214,7 +215,9 @@ def header_action(primary, action, mode):
 
 
 def button_tokens(prefix, rgb, mode, ink=None) -> dict:
+	# APCA picks white on mid-tones like #ef6f21 at 3:1; the fill gives way so the label reaches 4.5:1.
 	ink = ink or ink_for(rgb)
+	rgb = channels(under(ink, rgb, TEXT_CONTRAST))
 
 	return {
 		prefix: to_hex(rgb),

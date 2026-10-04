@@ -1490,7 +1490,8 @@ class TestPortalBranding(LendingTestSuite):
 		style = brand_payload()["brand_style"]
 
 		self.assertIn("--portal-primary: #004c8f;", style)
-		self.assertIn("--portal-action: #ed232a;", style)
+		# HDFC red is 4.3:1 under white; the button gives way just enough to reach 4.5:1.
+		self.assertIn("--portal-action: #e72229;", style)
 
 	def test_the_public_pages_carry_the_colours_too(self):
 		set_branding(portal_primary_color="#004c8f")
@@ -1502,7 +1503,7 @@ class TestPortalBranding(LendingTestSuite):
 		tokens = brand_tokens("#004c8f", "#ed232a")
 
 		self.assertEqual(tokens["--portal-primary"], "#004c8f")
-		self.assertEqual(tokens["--portal-action"], "#ed232a")
+		self.assertEqual(tokens["--portal-action"], "#e72229")
 		self.assertEqual(tokens["--portal-action-ink"], "#ffffff")
 
 	def test_without_a_secondary_colour_the_buttons_take_the_primary(self):
@@ -1513,7 +1514,7 @@ class TestPortalBranding(LendingTestSuite):
 	def test_a_secondary_colour_alone_paints_only_the_buttons(self):
 		style = brand_style(None, "#ed232a")
 
-		self.assertIn("--portal-action: #ed232a;", style)
+		self.assertIn("--portal-action: #e72229;", style)
 		self.assertNotIn("portal-header", style)
 		self.assertNotIn("bg-surface-sidebar", style)
 
@@ -1528,8 +1529,30 @@ class TestPortalBranding(LendingTestSuite):
 		self.assertEqual(brand_tokens("#ff9f1c", None)["--portal-primary-ink"], "#171717")
 
 	def test_a_header_button_takes_the_secondary_only_where_it_stands_out(self):
-		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-header-action"], "#ed232a")
+		self.assertEqual(brand_tokens("#004c8f", "#ed232a")["--portal-header-action"], "#e72229")
 		self.assertEqual(brand_tokens("#292075", "#00b5ef")["--portal-header-action"], "#171717")
+
+	def test_every_button_label_reads_whatever_colour_the_lender_picks(self):
+		# HDFC red, a saturated orange, teal, green, SBI cyan, Canara amber, maroon.
+		for secondary in ("#ed232a", "#ef6f21", "#12a594", "#2e9e44", "#00b5ef", "#ffb600", "#800000"):
+			for tokens in (
+				brand_tokens("#004b8e", secondary),
+				dark_tokens("#004b8e", secondary, None, None, None),
+			):
+				for prefix in ("--portal-action", "--portal-header-action"):
+					ink = channels(tokens[f"{prefix}-ink"])
+					for state in (prefix, f"{prefix}-hover", f"{prefix}-active"):
+						self.assertGreaterEqual(contrast(channels(tokens[state]), ink), 4.5, (secondary, state))
+
+	def test_a_saturated_orange_keeps_its_white_label_and_darkens_under_it(self):
+		tokens = brand_tokens(None, "#ef6f21")
+
+		self.assertEqual(tokens["--portal-action-ink"], "#ffffff")
+		self.assertEqual(tokens["--portal-action"], "#bd5618")
+
+	def test_a_button_that_already_reads_keeps_the_lenders_exact_colour(self):
+		self.assertEqual(brand_tokens(None, "#800000")["--portal-action"], "#800000")
+		self.assertEqual(brand_tokens(None, "#ffb600")["--portal-action"], "#ffb600")
 
 	def test_the_primary_colour_tints_the_sidebar_and_nothing_beside_it(self):
 		style = brand_style("#004b8e", "#ed232a")

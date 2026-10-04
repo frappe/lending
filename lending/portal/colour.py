@@ -55,6 +55,14 @@ def lift(rgb, ground, bar) -> str:
 	return to_hex(lighter)
 
 
+def under(ink: str, rgb, bar) -> str:
+	"""The fill, moved only as far as needed for `ink` to reach `bar` on it."""
+	label = channels(ink)
+	move = lift if luminance(label) < 0.5 else deep
+
+	return move(rgb, label, bar)
+
+
 def mix(rgb, ground, weight: float) -> str:
 	"""`weight` of the colour over the rest of `ground`."""
 	return to_hex(part * weight + base * (1 - weight) for part, base in zip(rgb, ground, strict=True))
