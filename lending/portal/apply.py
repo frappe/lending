@@ -62,7 +62,8 @@ ACCOUNT_PURPOSE = "Portal Sign Up"
 MINIMUM_AGE = 18
 PAN_LENGTH = 10
 
-AUTOMATIC_ACTIONS = ("Run Basic Rules", "Run Pre-Qualification Rules", "Run Knockout Rules")
+# Free checks only: Pre-Qualification pulls a paid bureau report, so staff take a lead on from Desk.
+AUTOMATIC_ACTIONS = ("Run Basic Rules",)
 
 
 def offered_to(product_applicant_type: str | None, applicant_type: str) -> bool:

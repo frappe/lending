@@ -569,39 +569,32 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 		activate_loan_lead_workflow(self)
 		frappe.set_user("Guest")
 
-	def test_a_portal_lead_runs_the_rule_steps_as_a_draft(self):
+	def test_a_portal_lead_runs_only_the_free_basic_rules_as_a_draft(self):
 		self.use_lead_workflow()
 		self.submission(token=self.mint_token(), date_of_birth=add_years(nowdate(), -30))
 
-		def pre_qualify(doc):
-			doc.db_set("prequalification_status", "Pre-Qualified")
-
-		# The site's own Decision Strategies would otherwise decide the outcome.
 		with (
-			patch("lending.loan_origination.decisioning.run_pre_qualification_rules", pre_qualify),
-			patch("lending.loan_origination.decisioning.run_knockout_rules"),
+			patch("lending.loan_origination.decisioning.run_pre_qualification_rules") as pre_qualify,
+			patch("lending.loan_integrations.bureau.run_bureau_pull_task") as bureau_pull,
 		):
 			reference = submit_lead()["reference"]
 
 		lead = frappe.db.get_value("Loan Lead", reference, ["docstatus", "workflow_state"], as_dict=True)
 
 		self.assertEqual(lead.docstatus, 0)
-		self.assertEqual(lead.workflow_state, "Pre-Qualified")
+		self.assertEqual(lead.workflow_state, "Scrubbing")
 		self.assertEqual(frappe.session.user, "Guest")
+		# Pre-Qualification pulls a paid bureau report; staff decide that from Desk.
+		pre_qualify.assert_not_called()
+		bureau_pull.assert_not_called()
 
 	def test_a_rule_that_says_no_leaves_the_lead_at_incoming_with_a_note(self):
 		self.use_lead_workflow()
 		self.submission(token=self.mint_token(), date_of_birth=add_years(nowdate(), -30))
 
-		def pre_qualify(doc):
-			doc.db_set("prequalification_status", "Pre-Qualified")
-
-		with (
-			patch("lending.loan_origination.decisioning.run_pre_qualification_rules", pre_qualify),
-			patch(
-				"lending.loan_origination.decisioning.run_knockout_rules",
-				side_effect=frappe.ValidationError("Knockout rules declined this applicant."),
-			),
+		with patch(
+			"lending.portal.apply.apply_workflow",
+			side_effect=frappe.ValidationError("Basic rules declined this applicant."),
 		):
 			result = submit_lead()
 
@@ -622,8 +615,8 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 			{"reference_doctype": "Loan Lead", "reference_name": result["reference"]},
 			"content",
 		)
-		self.assertIn("Run Knockout Rules", note)
-		self.assertIn("Knockout rules declined", note)
+		self.assertIn("Run Basic Rules", note)
+		self.assertIn("Basic rules declined", note)
 
 	def test_tracking_needs_both_the_reference_and_the_mobile(self):
 		frappe.local.form_dict = frappe._dict({"reference": "LN-LEAD-00001"})
