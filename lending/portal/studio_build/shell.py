@@ -163,7 +163,8 @@ def collapse_toggle():
 			"borderWidth": "1px",
 			"borderStyle": "solid",
 			"borderColor": "var(--outline-gray-1)",
-			"backgroundColor": "var(--surface-sidebar)",
+			# Not --surface-sidebar: frappe-ui's dark sidebar is transparent, which left the button unfilled.
+			"backgroundColor": "var(--surface-elevation-2)",
 			"boxShadow": "var(--elevation-sm)",
 		},
 	)

@@ -304,7 +304,7 @@ ignore_links_on_delete = [
 # Request Events
 # ----------------
 # before_request = ["lending.utils.before_request"]
-# after_request = ["lending.utils.after_request"]
+after_request = ["lending.portal.theme.after_request"]
 
 # Job Events
 # ----------

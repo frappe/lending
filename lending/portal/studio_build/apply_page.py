@@ -789,7 +789,15 @@ def card_panel(index, title, note, body):
 	return column(
 		[card_head(index, title, note), *body],
 		gap="20px",
-		styles=dict(PANEL, **FORM, padding="28px 32px", borderRadius="var(--radius-6, 12px)", boxShadow="var(--elevation-sm)"),
+		styles=dict(
+			PANEL,
+			**FORM,
+			padding="28px 32px",
+			borderRadius="var(--radius-6, 12px)",
+			boxShadow="var(--elevation-sm)",
+			# A shadow does not show on a dark page; the elevation surface lifts the card there instead.
+			backgroundColor="var(--surface-elevation-1)",
+		),
 		mobile={"padding": "20px"},
 		visible="{{ step === %d }}" % index,
 	)

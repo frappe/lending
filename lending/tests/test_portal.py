@@ -6,7 +6,10 @@ import inspect
 import json
 import math
 import re
+from types import SimpleNamespace
 from unittest.mock import patch
+
+from werkzeug.wrappers import Response
 
 import frappe
 from frappe.model.document import Document
@@ -98,6 +101,7 @@ from lending.portal.profile import get_profile_page, save_profile
 from lending.portal.search import RESULT_LIMIT, find, results_note
 from lending.portal.statement import owned_loans
 from lending.portal.switcher import choose_account, get_accounts_page
+from lending.portal.theme import after_request as theme_after_request
 from lending.tests.test_utils import (
 	create_loan,
 	create_loan_accounts,
@@ -1650,6 +1654,41 @@ class TestPortalBranding(LendingTestSuite):
 
 		used = set(re.findall(r"var\((--[\w-]+)\)", brand_style("#004b8e", "#ed232a")))
 		self.assertEqual({token for token in used if not token.startswith("--portal-")} - defined, set())
+
+
+class TestPortalAppearance(LendingTestSuite):
+	PAGE = '<!DOCTYPE html><html lang="en" class="h-full"><head><meta charset="UTF-8" /></head><body></body></html>'
+
+	def serve(self, appearance, path="/borrower-portal/overview", **response):
+		frappe.db.set_single_value("Lending Settings", "portal_appearance", appearance)
+		served = Response(response.pop("body", self.PAGE), mimetype=response.pop("mimetype", "text/html"), **response)
+		theme_after_request(served, SimpleNamespace(path=path))
+
+		return served.get_data(as_text=True)
+
+	def test_a_dark_portal_is_dark_on_the_first_paint(self):
+		self.assertIn('<html data-theme="dark" lang="en"', self.serve("Dark"))
+
+	def test_a_light_portal_says_so_rather_than_leaving_it_to_the_device(self):
+		self.assertIn('<html data-theme="light" lang="en"', self.serve("Light"))
+
+	def test_borrowers_choice_follows_the_device_from_the_head(self):
+		page = self.serve("Borrower's choice")
+
+		self.assertNotIn("data-theme=", page.split("<head>")[0])
+		self.assertIn("<head><script>", page)
+		self.assertIn("prefers-color-scheme: dark", page)
+
+	def test_the_portals_own_root_is_themed_too(self):
+		self.assertIn('data-theme="dark"', self.serve("Dark", path="/borrower-portal"))
+
+	def test_desk_and_other_sites_pages_are_left_alone(self):
+		for path in ("/app/lending-settings", "/borrower-portalx", "/borrower/overview"):
+			self.assertEqual(self.serve("Dark", path=path), self.PAGE, path)
+
+	def test_json_and_error_responses_are_left_alone(self):
+		self.assertEqual(self.serve("Dark", body="{}", mimetype="application/json"), "{}")
+		self.assertEqual(self.serve("Dark", status=404), self.PAGE)
 
 
 class TestPortalPresets(LendingTestSuite):

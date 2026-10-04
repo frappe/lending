@@ -2,6 +2,7 @@
  "blocks": [
   {
    "baseStyles": {
+    "backgroundColor": "var(--surface-base)",
     "color": "var(--ink-gray-8)",
     "display": "flex",
     "flexDirection": "row",
@@ -290,7 +291,7 @@
       },
       {
        "baseStyles": {
-        "backgroundColor": "var(--surface-sidebar)",
+        "backgroundColor": "var(--surface-elevation-2)",
         "borderColor": "var(--outline-gray-1)",
         "borderRadius": "9999px",
         "borderStyle": "solid",
@@ -1466,7 +1467,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-03 02:32:10.152298",
+ "modified": "2026-10-04 13:57:18.904128",
  "modified_by": "Administrator",
  "name": "new_application",
  "owner": "Administrator",

@@ -11,6 +11,7 @@
     "flexDirection": "row",
     "width": "100%",
     "height": "100%",
+    "backgroundColor": "var(--surface-base)",
     "color": "var(--ink-gray-8)",
     "overflowX": "hidden",
     "scrollbarWidth": "thin",
@@ -398,7 +399,7 @@
         "borderWidth": "1px",
         "borderStyle": "solid",
         "borderColor": "var(--outline-gray-1)",
-        "backgroundColor": "var(--surface-sidebar)",
+        "backgroundColor": "var(--surface-elevation-2)",
         "boxShadow": "var(--elevation-sm)"
        },
        "mobileStyles": {},

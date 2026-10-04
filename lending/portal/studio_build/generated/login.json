@@ -11,6 +11,7 @@
     "flexDirection": "column",
     "width": "100%",
     "height": "100%",
+    "backgroundColor": "var(--surface-base)",
     "color": "var(--ink-gray-8)",
     "overflowX": "hidden",
     "scrollbarWidth": "thin",
@@ -49,7 +50,7 @@
         "width": "100%",
         "maxWidth": "460px",
         "padding": "48px 48px 40px",
-        "backgroundColor": "var(--surface-base)",
+        "backgroundColor": "var(--surface-elevation-1)",
         "border": "1px solid var(--outline-gray-1)",
         "borderRadius": "var(--radius-6, 12px)",
         "boxShadow": "var(--elevation-sm)"

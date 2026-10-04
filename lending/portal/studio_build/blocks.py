@@ -81,6 +81,8 @@ def root(children, direction="row"):
 				"flexDirection": direction,
 				"width": "100%",
 				"height": "100%",
+				# Nothing above the root paints, so without this a dark page shows the browser's white.
+				"backgroundColor": "var(--surface-base)",
 				"color": "var(--ink-gray-8)",
 				"overflowX": "hidden",
 				"scrollbarWidth": "thin",

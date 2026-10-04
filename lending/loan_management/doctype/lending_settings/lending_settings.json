@@ -19,6 +19,7 @@
   "portal_theme_swatches",
   "portal_theme_picker_section",
   "portal_theme",
+  "portal_appearance",
   "column_break_theme",
   "portal_primary_color",
   "portal_secondary_color",
@@ -111,6 +112,14 @@
    "options": "\nOcean\nNavy & Teal\nForest\nTeal & Orange\nRoyal\nPlum\nIndigo\nGraphite\nCustom"
   },
   {
+   "default": "Light",
+   "description": "Borrower's choice follows each borrower's device setting.",
+   "fieldname": "portal_appearance",
+   "fieldtype": "Select",
+   "label": "Portal Appearance",
+   "options": "Light\nDark\nBorrower's choice"
+  },
+  {
    "fieldname": "column_break_theme",
    "fieldtype": "Column Break"
   },
@@ -152,7 +161,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-04 10:00:00.000000",
+ "modified": "2026-10-04 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",

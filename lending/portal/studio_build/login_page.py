@@ -115,7 +115,8 @@ CARD = {
 	"width": "100%",
 	"maxWidth": "460px",
 	"padding": "48px 48px 40px",
-	"backgroundColor": "var(--surface-base)",
+	# A shadow does not show on a dark page; the elevation surface lifts the card there instead.
+	"backgroundColor": "var(--surface-elevation-1)",
 	"border": "1px solid var(--outline-gray-1)",
 	"borderRadius": "var(--radius-6, 12px)",
 	"boxShadow": "var(--elevation-sm)",
