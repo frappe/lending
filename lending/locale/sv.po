@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-13 13:52+0000\n"
-"PO-Revision-Date: 2026-09-15 17:36\n"
+"POT-Creation-Date: 2026-09-27 14:47+0000\n"
+"PO-Revision-Date: 2026-09-29 20:38\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -78,6 +78,27 @@ msgstr "<span class=\"h4\"><b>Rapporter &amp; Inställningar</b></span>"
 #: lending/loan_management/workspace/lending/lending.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
 msgstr "<span class=\"h4\"><b>Genvägar</b></span>"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "=="
+msgstr "=="
+
+#: lending/loan_origination/decisioning.py:425
+msgid "A between rule needs two comma separated values. {0} has {1}."
+msgstr "A mellan regel behöver två kommaseparerade värden. {0} har {1}."
+
+#. Description of the 'Variable' (Autocomplete) field in DocType 'Decision
+#. Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "A key from the decision variable context, such as bureau_score or foir_ratio."
+msgstr "En nyckel från beslutsvariabel kontext, såsom bureau_score eller foir_ratio."
+
+#. Description of the 'Attribute' (Autocomplete) field in DocType 'Scorecard
+#. Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "A key from the decision variable context. Bands compare numbers, so an attribute that never carries one scores nothing."
+msgstr "En nyckel från beslutsvariabel kontext. Intervall jämför tal, så egenskap som aldrig bär värde ger ingenting."
 
 #. Description of the 'OTP Verification Mandatory' (Check) field in DocType
 #. 'Loan Origination Settings'
@@ -375,6 +396,11 @@ msgstr "Justeringar"
 msgid "Advance Payment"
 msgstr "Förskott Betalning"
 
+#. Name of a DocType
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+msgid "Adverse Action Reason"
+msgstr "Negativ Åtgärd Orsak"
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2309
 msgid "Against Account is mandatory"
 msgstr "Mot konto erfordras"
@@ -490,6 +516,10 @@ msgstr "Belopp kan inte vara negativ"
 msgid "Amount cannot be zero"
 msgstr "Belopp kan inte vara noll"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:189
+msgid "Amount capped at"
+msgstr "Belopp begränsat till"
+
 #. Description of the 'Base Amount' (Currency) field in DocType 'Loan Interest
 #. Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -547,6 +577,9 @@ msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 #. Label of the applicant (Dynamic Link) field in DocType 'Sanctioned Loan
 #. Amount'
 #. Label of a Link in the Lending Workspace
+#. Label of the applicant (Dynamic Link) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the applicant (Dynamic Link) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -571,6 +604,8 @@ msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:28
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:37
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Applicant"
 msgstr "Sökande"
 
@@ -663,6 +698,8 @@ msgstr "Sökandes Telefonnummer"
 #. Statement of Accounts Applicant'
 #. Label of the applicant_type (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Label of the applicant_type (Select) field in DocType 'Credit Bureau Report'
+#. Label of the applicant_type (Select) field in DocType 'Loan Decision'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -688,6 +725,8 @@ msgstr "Sökandes Telefonnummer"
 #: lending/loan_management/report/loan_security_status/loan_security_status.js:17
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.js:16
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:23
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Applicant Type"
 msgstr "Sökande Typ"
@@ -716,10 +755,29 @@ msgstr "Sökande"
 msgid "Applicants not selected."
 msgstr "Sökande ej vald."
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:103
+msgid "Application Closed"
+msgstr "Ansökan Stängd"
+
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "Application Date"
 msgstr "Ansökning Datum"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Approve"
+msgstr "Godkänn"
+
+#: lending/loan_origination/decisioning.py:337
+msgid "Approve downgraded to Refer. {0} could not be checked."
+msgstr "Godkänn nedgraderad till Referera. {0} kunde inte kontrolleras."
+
+#: lending/loan_origination/decisioning.py:328
+msgid "Approve downgraded to Refer. {0} was not scored."
+msgstr "Godkänn nedgraderad till Referera. {0} blev inte värderad."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Application'
 #. Option for the 'Status' (Select) field in DocType 'Loan Restructure'
@@ -740,6 +798,17 @@ msgstr "Datum"
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr "Minst ett garanti måste tilldelas"
+
+#. Label of the attribute (Autocomplete) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Attribute"
+msgstr "Egenskap"
+
+#. Label of the attributes_section (Section Break) field in DocType 'Scorecard'
+#. Label of the attributes (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Attributes"
+msgstr "Egenskaper"
 
 #. Label of the authentication_details_section (Section Break) field in DocType
 #. 'Loan Lead'
@@ -879,6 +948,14 @@ msgstr "Bank"
 msgid "Bank Account"
 msgstr "Bank Konto"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
+msgid "Bank Transaction {0} is already fully reconciled"
+msgstr "Bank Transaktion {0} är redan helt avstämd"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
+msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
+msgstr "Bank Transaktion {0} är från {1} {2}, inte från lånesökande {3}"
+
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
@@ -888,6 +965,11 @@ msgstr "Bank"
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Base Amount"
 msgstr "Bas Belopp"
+
+#. Label of the base_score (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Base Score"
+msgstr "Bas Värde"
 
 #. Label of the section_break_hmca (Section Break) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -938,13 +1020,6 @@ msgstr "Låntagare Portal"
 msgid "Both Fixed Deposit and Corporate Guarantee"
 msgstr "Både Fast Insättning och Bolag Garanti"
 
-#. Label of the branch (Link) field in DocType 'Loan Restructure Limit Log'
-#. Label of a Link in the Lending Workspace
-#: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
-#: lending/loan_management/workspace/lending/lending.json
-msgid "Branch"
-msgstr "Bransch"
-
 #. Label of the branch_details_section (Section Break) field in DocType 'Loan
 #. Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
@@ -982,6 +1057,21 @@ msgstr "Bruten Period Ränta Återställning Konto"
 msgid "Bulk Repayment Log"
 msgstr "Massåterbetalning Logg"
 
+#. Label of the bureau (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Bureau"
+msgstr "Byrå"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:72
+msgid "Bureau Report"
+msgstr "Byrårapport"
+
+#. Label of the bureau_score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:73
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Bureau Score"
+msgstr "Byråresultat"
+
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Business"
@@ -992,6 +1082,16 @@ msgstr "Bolag"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "CC To"
 msgstr "Kopia till"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CIBIL"
+msgstr "CIBIL"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "CRIF"
+msgstr "CRIF"
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1129,6 +1229,10 @@ msgstr "Avgift Kod"
 msgid "Charge Payment"
 msgstr "Avgift Betalning"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
+msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
+msgstr "Avgift Betalning behöver avgifter som ska betalas mot anges. Använd Redigera i Helsida för att välja dem innan godkännande."
+
 #. Label of the charge_type (Link) field in DocType 'Loan Charges'
 #. Label of the charge_type (Link) field in DocType 'Loan Partner Adhoc Charges
 #. Shared'
@@ -1253,7 +1357,7 @@ msgstr "Ta bort efterfråga tilldelning före ombokning"
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Clearance Date"
-msgstr "Klarering Datum"
+msgstr "Avräkning Datum"
 
 #: lending/loan_management/doctype/loan/loan.js:109
 msgid "Close Loan"
@@ -1451,7 +1555,7 @@ msgstr "Konsolidering Fördelning"
 msgid "Consolidation Details"
 msgstr "Konsolidering Detaljer"
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:359
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:369
 msgid "Cooling Period"
 msgstr "Karensperiod"
 
@@ -1459,6 +1563,11 @@ msgstr "Karensperiod"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Cooling Period in Days"
 msgstr "Karensperiod i Dagar"
+
+#. Description of the 'Bureau Score' (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Copied from the report so a later pull cannot rewrite this decision."
+msgstr "Kopierad från rapport så att detta beslut inte kan ändras vid senare hämtning."
 
 #. Option for the 'Type of FLDG Applicable' (Select) field in DocType 'Loan
 #. Partner'
@@ -1484,6 +1593,10 @@ msgstr "Endast Bolag Garanti"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Cost Center"
 msgstr "Resultat Enheter"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
+msgid "Cost Center {0} does not belong to company {1}"
+msgstr "Resultat Enhet {0} tillhör inte {1}"
 
 #: lending/loan_management/doctype/loan/loan.py:202
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
@@ -1531,6 +1644,13 @@ msgstr "Kredit Justering"
 msgid "Credit Adjustment Amount"
 msgstr "Kredit Justering Belopp"
 
+#. Name of a DocType
+#. Label of the bureau_report (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Credit Bureau Report"
+msgstr "Kreditupplysning Byrå Rapport"
+
 #. Label of the current_disbursed_amount (Currency) field in DocType 'Loan
 #. Disbursement'
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -1573,6 +1693,9 @@ msgstr "Aktuell Omstrukturering Antal"
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -1589,6 +1712,8 @@ msgstr "Aktuell Omstrukturering Antal"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/workspace_sidebar/lending.json
 msgid "Customer"
 msgstr "Kund"
@@ -1691,6 +1816,38 @@ msgstr "Debet Justering Belopp"
 msgid "Decentralized"
 msgstr "Desentraliserad"
 
+#. Label of the decision (Link) field in DocType 'Loan Application'
+#. Label of the decision (Select) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:140
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision"
+msgstr "Beslut"
+
+#. Label of the decision_log (Long Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Log"
+msgstr "Beslutslogg"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Decision Rule"
+msgstr "Beslutsregel"
+
+#. Name of a DocType
+#. Label of the strategy (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decision Strategy"
+msgstr "Beslutsstrategi"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Decline"
+msgstr "Avböj"
+
 #. Label of the delete_gl_entries (Check) field in DocType 'Loan Repayment
 #. Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -1744,7 +1901,7 @@ msgstr "Förfallen Utestående Belopp"
 msgid "Delinquent Utilized Limit"
 msgstr "Förfallen Utnyttjad Gräns"
 
-#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:565
+#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:568
 msgid "Delivery failed."
 msgstr "Leverans misslyckades."
 
@@ -1958,7 +2115,7 @@ msgstr "Initierade Likställda Månadsvisa Avbetalningar"
 msgid "Effective Date"
 msgstr "Effektiv Datum"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:337
+#: lending/loan_management/doctype/loan_application/loan_application.py:339
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr "Antingen Låneansökan, Lån eller Sökande detaljer erfordras för att skapa garanti tilldelning"
 
@@ -2002,6 +2159,9 @@ msgstr "E-post i Kö"
 #. Statement of Accounts Applicant'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Sanctioned Loan
 #. Amount'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
+#. Report'
+#. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -2017,6 +2177,8 @@ msgstr "E-post i Kö"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Employee"
 msgstr "Personal"
 
@@ -2063,6 +2225,26 @@ msgstr "Poster att avbryta"
 msgid "Entries To Repost"
 msgstr "Poster att återpublicera"
 
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Equifax"
+msgstr "Equifax"
+
+#. Description of the 'Base Score' (Int) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Every applicant starts here. Attribute points are added on top."
+msgstr "Alla sökande börjar här. Attributpoäng läggs till ovanpå."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:131
+msgid "Every enabled Underwriting strategy that applies to {0}. Strategies for other loan products are left out because they can never run here."
+msgstr "Varje aktiverad Kreditprövning strategi som gäller för {0}. Strategier för andra låneartiklar utelämnas eftersom de aldrig kan köras här."
+
+#. Description of the 'Variable Snapshot' (Code) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Everything the engine knew about this applicant at the moment it decided."
+msgstr "Allt system visste om denna sökande i det ögonblick då den bestämde sig."
+
 #. Label of the excess_amount (Currency) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:55
@@ -2089,6 +2271,11 @@ msgstr "Återbetalning av överskjutande belopp kan inte vara högre än översk
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Excess amount repayment limit during loan closure"
 msgstr "Överskott belopp återbetalning gräns under låneavslutning"
+
+#. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Experian"
+msgstr "Erfarenhet"
 
 #. Label of the fldg_section (Section Break) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -2149,6 +2336,12 @@ msgstr "Hämta Sökande"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Filter Duration (Months)"
 msgstr "Filtrera Varaktighet (Månader)"
+
+#. Label of the findings_section (Section Break) field in DocType 'Credit
+#. Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Findings"
+msgstr "Resultat"
 
 #. Option for the 'Charge Based On' (Select) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -2238,6 +2431,22 @@ msgstr "Framtida Kassaflöde Rapport"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Grace Period in Days"
 msgstr "Anståndstid i Dagar"
+
+#. Label of the grade (Data) field in DocType 'Loan Decision'
+#. Label of the grade (Data) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:75
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Grade"
+msgstr "Grad"
+
+#. Label of the grade_bands_section (Section Break) field in DocType
+#. 'Scorecard'
+#. Label of the grade_bands (Table) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+#: lending/loan_origination/doctype/scorecard/scorecard.py:44
+msgid "Grade Bands"
+msgstr "Betyg Intervall"
 
 #. Option for the 'View' (Select) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -2642,6 +2851,35 @@ msgstr "Är Avstånd Befrielse"
 msgid "Is Written Off"
 msgstr "Är Avskriven"
 
+#: lending/loan_origination/decisioning.py:364
+msgid "Kept the higher recommended rate of interest. {0} would have priced the risk lower."
+msgstr "Behöll högre rekommenderade räntesats. {0} skulle ha värderat risken lägre."
+
+#: lending/loan_origination/decisioning.py:372
+msgid "Kept the tighter amount cap. {0} would have been looser."
+msgstr "Behöll strängare belopp tak. {0} skulle ha varit mer generöst."
+
+#: lending/loan_origination/decisioning.py:380
+msgid "Kept the tighter tenure cap. {0} would have been looser."
+msgstr "Behöll striktare taket för tid. {0} skulle ha varit lösare."
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Knockout"
+msgstr "Utslagning"
+
+#: lending/loan_origination/decisioning.py:132
+msgid "Knockout Declined"
+msgstr "Utslagning Nekad"
+
+#: lending/loan_origination/decisioning.py:140
+msgid "Knockout Incomplete"
+msgstr "Utslagning ofullständig"
+
+#: lending/loan_origination/decisioning.py:129
+msgid "Knockout rules declined this applicant. {0}"
+msgstr "Utslagning regler avvisade denna sökande. {0}"
+
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:26
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:49
 msgid "LOAN STATEMENT OF ACCOUNT"
@@ -2667,6 +2905,34 @@ msgstr "Senaste Pris"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
 msgstr "Potentiell Kund Källa"
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Leave blank to apply this scorecard to every loan product."
+msgstr "Lämna tomt för att tillämpa denna resultatkort på varje låneartikel."
+
+#. Description of the 'Loan Product' (Link) field in DocType 'Decision
+#. Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Leave blank to apply this strategy to every loan product."
+msgstr "Lämna tomt för att tillämpa denna strategi på alla låneartiklar."
+
+#. Description of the 'Decision Strategy' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the highest priority Underwriting strategy for the loan product is used."
+msgstr "Lämnas tomt, används högst prioriterad Kreditprövning strategi för låneartikel."
+
+#. Description of the 'Credit Bureau Report' (Link) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the latest submitted report for this applicant is used."
+msgstr "Lämnas tomt, senast godkända rapport används för denna sökande."
+
+#. Description of the 'Scorecard' (Link) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Left blank, the scorecard for the loan product is used."
+msgstr "Lämnas tomt, resultatkort för låneartikel används."
 
 #. Name of a Workspace
 #. Title of a Workspace Sidebar
@@ -2707,18 +2973,13 @@ msgstr "Procentuell Gräns"
 msgid "Limit Renewal"
 msgstr "Gräns Förnyelse"
 
-#. Label of the limits_section (Section Break) field in DocType 'Loan Product'
-#: lending/loan_management/doctype/loan_product/loan_product.json
-msgid "Limits"
-msgstr "Gränser"
-
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Line of Credit"
 msgstr "Kredit Gräns"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:58
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:61
 msgid "Live Loan Limit"
 msgstr "Aktuell Lånegräns"
 
@@ -2791,7 +3052,8 @@ msgstr "Aktuell Lånegräns"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:86
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:15
 #: lending/loan_management/workspace/lending/lending.json
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
+#: lending/public/js/bank_reconciliation_tool.js:15
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
 msgstr "Lån"
@@ -2904,15 +3166,15 @@ msgstr "Belopp Detaljer"
 msgid "Loan Amount Percentage"
 msgstr "Lånebelopp Procent"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:172
+#: lending/loan_management/doctype/loan_application/loan_application.py:174
 msgid "Loan Amount cannot exceed Maximum Loan Amount of {0}"
 msgstr "Lånebelopp får inte överstiga högsta lånebelopp på {0}"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:177
+#: lending/loan_management/doctype/loan_application/loan_application.py:179
 msgid "Loan Amount exceeds maximum loan amount of {0} as per proposed securities"
 msgstr "Lånebelopp överstiger högsta lånebelopp på {0} enligt föreslagna garantier"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:165
+#: lending/loan_management/doctype/loan_application/loan_application.py:167
 msgid "Loan Amount is mandatory"
 msgstr "Lånebelopp erfordras"
 
@@ -2922,11 +3184,13 @@ msgstr "Lånebelopp erfordras"
 #. Assignment'
 #. Label of a Link in the Lending Workspace
 #. Label of a shortcut in the Lending Workspace
+#. Label of the loan_application (Link) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/public/js/custom_customer.js:5
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Application"
@@ -3037,6 +3301,11 @@ msgid "Loan Date"
 msgstr "Lånedatum"
 
 #. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Loan Decision"
+msgstr "Lånebeslut"
+
+#. Name of a DocType
 #. Label of the loan_demand (Link) field in DocType 'Loan Interest Accrual'
 #. Label of the loan_demand (Link) field in DocType 'Loan Repayment Detail'
 #. Option for the 'Source' (Select) field in DocType 'Process Loan Accounting
@@ -3121,6 +3390,7 @@ msgstr "Lån Detaljer"
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:112
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:52
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/public/js/bank_reconciliation_tool.js:56
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Disbursement"
 msgstr "Utbetalning"
@@ -3142,6 +3412,10 @@ msgstr "Låneutbetalning Avgifter"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:26
 msgid "Loan Disbursement ID"
 msgstr "Lån Utbetalning ID"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
+msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
+msgstr "Låneutbetalning {0} är inte godkänd utbetalning av lån {1}"
 
 #. Label of a Link in the Lending Workspace
 #. Name of a DocType
@@ -3200,7 +3474,9 @@ msgstr "Ackumulerad Låneränta"
 msgid "Loan LOS User"
 msgstr "Användare"
 
+#. Label of the loan_lead (Link) field in DocType 'Loan Application'
 #. Name of a DocType
+#: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Loan Lead"
 msgstr "Potentiell Kund"
@@ -3248,6 +3524,11 @@ msgstr "Lån Hantering"
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 msgid "Loan Manager"
 msgstr "Ansvarig"
 
@@ -3390,7 +3671,9 @@ msgstr "Processer"
 #. Option for the 'Select Applicants By' (Select) field in DocType 'Process
 #. Loan Statement of Accounts'
 #. Label of a Link in the Lending Workspace
+#. Label of the loan_product (Link) field in DocType 'Decision Strategy'
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
+#. Label of the loan_product (Link) field in DocType 'Scorecard'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
@@ -3419,7 +3702,9 @@ msgstr "Processer"
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.js:68
 #: lending/loan_management/report/past_cashflow_report/past_cashflow_report.py:18
 #: lending/loan_management/workspace/lending/lending.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
 #: lending/workspace_sidebar/lending.json
 msgid "Loan Product"
 msgstr "Artikel"
@@ -3542,6 +3827,10 @@ msgstr "Återbetalning Typ"
 msgid "Loan Repayment and Closure"
 msgstr "Återbetalning & Avslut"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
+msgid "Loan Repayment can only be created against a deposit"
+msgstr "Låneåterbetalning kan endast skapas mot inbetalning"
+
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
@@ -3661,7 +3950,7 @@ msgstr "Garanti"
 msgid "Loan Security Assignment"
 msgstr "Garanti Tilldelning"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:361
+#: lending/loan_management/doctype/loan_application/loan_application.py:363
 msgid "Loan Security Assignment Created : {0}"
 msgstr "Garanti Tilldelning Skapad : {0}"
 
@@ -3868,6 +4157,16 @@ msgstr "Överföring Detaljer"
 msgid "Loan Transfers"
 msgstr "Överföringar"
 
+#. Name of a role
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Loan Underwriter"
+msgstr "Lån Förskrivare"
+
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
@@ -3900,6 +4199,18 @@ msgstr "Ej Presterande Tillgång"
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.py:290
 msgid "Loan {0} closed"
 msgstr "Lån {0} stängd"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
+msgid "Loan {0} does not belong to the company of Bank Account {1}"
+msgstr "Lån {0} tillhör inte bolag för Bank Konto {1}"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
+msgid "Loan {0} does not exist"
+msgstr "Lån {0} finns inte"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
+msgid "Loan {0} must be submitted"
+msgstr "Lån {0} måste godkännas"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1014
 msgid "Loan {0}: Cannot post {1} after Full Settlement. Only Interest, Penalty, or Charges Waiver can be posted after a Full Settlement."
@@ -3938,6 +4249,11 @@ msgstr "Manuell Ej Presterande Tillgång"
 msgid "Manual Remarks"
 msgstr "Manuella Anmärkningar"
 
+#. Description of the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Manual is a score keyed in by an underwriter rather than pulled from a bureau."
+msgstr "Manuellt är värde som knappas in av försäkringsgivare snarare än att hämtas från byrå."
+
 #. Description of the 'Manual NPA' (Check) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Manually marked as NPA"
@@ -3954,6 +4270,16 @@ msgstr "Förfallo Datum"
 #: lending/loan_management/doctype/loan_classification_range/loan_classification_range.json
 msgid "Max DPD Range"
 msgstr "Max Dagar Efter Förfallodatum Intervall"
+
+#. Label of the max_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Max Range"
+msgstr "Maximal Räckvidd"
+
+#. Label of the max_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Max Score"
+msgstr "Maximum Resultat"
 
 #. Label of the maximum_limit_amount (Currency) field in DocType 'Loan'
 #. Option for the 'Value Type' (Select) field in DocType 'Loan Limit Change
@@ -4034,6 +4360,16 @@ msgstr "Migrering Datum erfordras för importerade lån"
 msgid "Min DPD Range"
 msgstr "Min Dagar Efter Förfallodatum Intervall"
 
+#. Label of the min_range (Float) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Min Range"
+msgstr "Minsta Räckvidd"
+
+#. Label of the min_score (Int) field in DocType 'Scorecard Grade Band'
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Min Score"
+msgstr "Minsta Värde"
+
 #. Label of the minimum_partner_loan_amount_percentage (Percent) field in
 #. DocType 'Loan Partner Shareable'
 #: lending/loan_management/doctype/loan_partner_shareable/loan_partner_shareable.json
@@ -4064,6 +4400,10 @@ msgstr "Mobilnummer Verifiering Status"
 msgid "Mode Of Payment"
 msgstr "Betalning Sätt"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
+msgid "Mode of Payment {0} does not exist"
+msgstr "Betalning Sätt {0} finns inte"
+
 #. Label of the month_end_date (Date) field in DocType 'Process Loan
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
@@ -4083,8 +4423,8 @@ msgstr "Månad Slutdatum"
 msgid "Monthly Repayment Amount"
 msgstr "Månadsvis Återbetalning Belopp"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:146
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:967
+#: lending/loan_management/doctype/loan_application/loan_application.py:148
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:968
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "Månadsvis Återbetalning Belopp kan inte vara högre än lånebelopp"
 
@@ -4107,6 +4447,12 @@ msgstr "Månadsvis enligt cykeldatum"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Monthly as per repayment start date"
 msgstr "Månadsvis enligt återbetalning start datum"
+
+#. Description of the 'Total EMI' (Currency) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Monthly obligations already reported against this applicant."
+msgstr "Månatliga förpliktelser har redan rapporterats mot denna sökande."
 
 #. Label of the moratorium_details_section (Section Break) field in DocType
 #. 'Loan'
@@ -4213,6 +4559,14 @@ msgstr "Ingen ränteberäkning Till Månad Slutet"
 msgid "No Records for these settings."
 msgstr "Inga Poster för dessa inställningar."
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
+msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
+msgstr "Ingen aktiverad kreditprövning strategi gäller för {0}, så denna tillämpning kan inte avgöras alls."
+
+#: lending/loan_origination/decisioning.py:196
+msgid "No enabled {0} strategy applies to {1}, so no rule was checked."
+msgstr "Ingen aktiverad {0} strategi gäller för {1}, så ingen regel kontrollerades."
+
 #: lending/loan_management/doctype/loan/loan.py:1186
 msgid "No excess amount pending for refund"
 msgstr "Inget överskottsbelopp väntar på återbetalning"
@@ -4221,10 +4575,26 @@ msgstr "Inget överskottsbelopp väntar på återbetalning"
 msgid "No loans found for this applicant or branch"
 msgstr "Inga lån hittades för denna sökande eller filial"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:216
+#: lending/loan_origination/decisioning.py:130
+msgid "No reason code was recorded."
+msgstr "Ingen orsak kod registrerades."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:232
+msgid "No scorecard applies to this loan product. Nothing was scored."
+msgstr "Ingen resultatkort gäller för denna låneartikel. Ingen värdering gjordes."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:249
+msgid "No underwriting strategy applies to this loan product."
+msgstr "Ingen kreditprövning strategi tillämpas för denna låneartikel."
+
+#: lending/loan_management/doctype/loan_application/loan_application.py:218
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 msgid "No valid Loan Security Price found for {0}"
 msgstr "Inget giltigt Garanti Kostnad hittades för {0}"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:171
+msgid "No verdict"
+msgstr "Inget utslag"
 
 #. Description of the 'Cooling Period in Days' (Int) field in DocType 'Loan
 #. Product'
@@ -4279,13 +4649,21 @@ msgstr "Normal Omstrukturering"
 msgid "Not Pre-Qualified"
 msgstr "Ej Förhandskvalificerad"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:64
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:67
 msgid "Not permitted to read {0}"
 msgstr "Ej tillåtet att läsa {0}"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
 msgid "Not permitted to view one or more of the selected loans"
 msgstr "Ej tillåtet att visa en eller flera av valda lån"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:61
+msgid "Nothing below has been saved. No Loan Decision was created and {0} was not touched."
+msgstr "Ingenting nedan har sparats. Inget lånebeslut skapades och {0} berördes inte."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:107
+msgid "Nothing was collected for this applicant."
+msgstr "Ingenting samlades in för denna sökande."
 
 #. Label of the number_of_days (Int) field in DocType 'Co-Lender Schedule'
 #. Label of the number_of_days (Int) field in DocType 'Repayment Schedule'
@@ -4418,6 +4796,11 @@ msgstr "Öppning Utestående Belopp"
 msgid "Opening entry for imported loan {0}"
 msgstr "Öppning post för importerat lån {0}"
 
+#. Label of the operator (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Operator"
+msgstr "Personal"
+
 #. Label of the organization_type (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Organization Type"
@@ -4434,6 +4817,18 @@ msgstr "Ursprunglig Garanti Värde"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 msgid "Other Details"
 msgstr "Övriga Detaljer"
+
+#. Label of the outcome (Select) field in DocType 'Decision Rule'
+#. Label of the outcome_section (Section Break) field in DocType 'Loan
+#. Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Outcome"
+msgstr "Utfall"
+
+#: lending/loan_origination/decisioning.py:346
+msgid "Outcome {0} superseded by {1}. Its reason codes and terms are dropped."
+msgstr "Resultat {0} har ersatts av {1}. Dess orsaks koder och termer har tagits bort."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Schedule'
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
@@ -4467,7 +4862,9 @@ msgstr "Förfallet Belopp"
 msgid "Own Ratio"
 msgstr "Egen Förhållande"
 
+#. Label of the pan (Data) field in DocType 'Credit Bureau Report'
 #. Label of the pan (Data) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "PAN"
 msgstr "PAN"
@@ -4851,16 +5248,16 @@ msgstr "Lägg till Kund Äterbetalning Konto i Låneartikel"
 msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr "Aktivera {0} i TP OTP Inställningar för att använda {1}."
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:140
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:958
+#: lending/loan_management/doctype/loan_application/loan_application.py:142
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:959
 msgid "Please enter Repayment Periods"
 msgstr "Ange Återbetalning Perioder"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:965
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
 msgid "Please enter monthly repayment amount"
 msgstr "Ange månatlig återbetalning belopp"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:144
+#: lending/loan_management/doctype/loan_application/loan_application.py:146
 msgid "Please enter repayment Amount"
 msgstr "Ange återbetalning belopp"
 
@@ -4903,7 +5300,7 @@ msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr "Välj Utbetalning för Kredit Återbetalning"
 
 #: lending/loan_management/doctype/loan/loan.py:166
-#: lending/loan_management/doctype/loan_application/loan_application.py:151
+#: lending/loan_management/doctype/loan_application/loan_application.py:153
 msgid "Please select Loan Product for company {0}"
 msgstr "Välj Låneartikel för {0}"
 
@@ -5038,6 +5435,11 @@ msgstr "Pantsatt Kvantitet"
 msgid "Pledged Security Summary"
 msgstr "Pantsatt Garanti Översikt"
 
+#. Label of the points (Int) field in DocType 'Scorecard Attribute'
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Points"
+msgstr "Resultat"
+
 #. Label of the portal_logo (Attach Image) field in DocType 'Lending Settings'
 #: lending/loan_management/doctype/lending_settings/lending_settings.json
 msgid "Portal Logo"
@@ -5104,6 +5506,10 @@ msgstr "Registrering Datum"
 msgid "Posting Date (End Date)"
 msgstr "Registrering Datum (Slutdatum)"
 
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
+msgid "Posting Date and Reference Date must be valid dates"
+msgstr "Registrering Datum och Referens Datum måste vara giltiga datum"
+
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #. Option for the 'Restructure Type' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -5131,8 +5537,10 @@ msgstr "För Omstrukturera Dagar Efter Förfallodatum"
 msgid "Pre Restructure Details"
 msgstr "Detaljer Före Omstrukturering"
 
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
 #. Label of the prequalification_section (Section Break) field in DocType 'Loan
 #. Lead'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Pre-Qualification"
 msgstr "Förhandskvalificering"
@@ -5374,7 +5782,7 @@ msgstr "Föreslagen Pant"
 msgid "Proposed Pledges"
 msgstr "Föreslagna Pant"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:265
+#: lending/loan_management/doctype/loan_application/loan_application.py:267
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr "Föreslagna Pant erfordras för garanterad lån"
 
@@ -5389,12 +5797,12 @@ msgstr "Föreslagen Period"
 msgid "Provision Rate"
 msgstr "Provision Sats"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:207
+#: lending/loan_management/doctype/loan_application/loan_application.py:209
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr "Kvantitet erfordras för garanti!"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:379
+#: lending/loan_management/doctype/loan_application/loan_application.py:381
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr "Kvantitet eller Belopp erfordras för garanti"
 
@@ -5408,6 +5816,10 @@ msgstr "Kvantitet eller Belopp erfordras för garanti"
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:35
 msgid "Quantity"
 msgstr "Kvantitet"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:184
+msgid "Rate"
+msgstr "Pris"
 
 #. Label of the rate_of_interest (Float) field in DocType 'Loan Interest
 #. Accrual'
@@ -5441,11 +5853,35 @@ msgstr "Årlig Räntesats (%)"
 msgid "Ratio"
 msgstr "Förhållande"
 
+#. Label of the payload_section (Section Break) field in DocType 'Credit Bureau
+#. Report'
+#. Label of the raw_payload (Long Text) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Raw Payload"
+msgstr "Rå Datamängd"
+
+#. Label of the reason_code (Data) field in DocType 'Adverse Action Reason'
+#. Label of the reason_code (Link) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Reason Code"
+msgstr "Anledning Kod"
+
+#. Label of the reason_codes (Small Text) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:141
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Reason Codes"
+msgstr "Anledning Koder"
+
 #. Label of the reason_for_freezing (Small Text) field in DocType 'Loan Freeze
 #. Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
 msgid "Reason For Freezing"
 msgstr "Låsning Orsak"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:145
+msgid "Reason codes: {0}."
+msgstr "Anledning koder: {0}."
 
 #. Label of the reason_for_restructure (Small Text) field in DocType 'Loan
 #. Restructure'
@@ -5460,6 +5896,61 @@ msgstr "Omstrukturering Anledning"
 msgid "Receivable Account"
 msgstr "Fordring Konto"
 
+#. Label of the recommended_amount (Currency) field in DocType 'Loan
+#. Application'
+#. Label of the term_amount_cap (Currency) field in DocType 'Decision Rule'
+#. Label of the recommended_amount (Currency) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Loan Amount"
+msgstr "Rekommenderad Lånebelopp"
+
+#. Label of the term_roi_override (Percent) field in DocType 'Decision Rule'
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Rate Of Interest"
+msgstr "Rekommenderad Räntesats"
+
+#. Label of the recommended_roi (Percent) field in DocType 'Loan Application'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+msgid "Recommended Rate of Interest"
+msgstr "Rekommenderad Räntesats"
+
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Application'
+#. Label of the term_tenure_cap (Int) field in DocType 'Decision Rule'
+#. Label of the recommended_tenure (Int) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/loan_application/loan_application.json
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Tenure in Months"
+msgstr "Rekommenderad Tid i Månader"
+
+#. Label of the terms_section (Section Break) field in DocType 'Decision Rule'
+#. Label of the terms_section (Section Break) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:142
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Recommended Terms"
+msgstr "Rekommenderade Villkor"
+
+#: lending/loan_origination/decisioning.py:371
+msgid "Recommended amount capped at {0}."
+msgstr "Rekommenderat belopp begränsat till {0}."
+
+#: lending/loan_origination/decisioning.py:363
+msgid "Recommended rate of interest {0}."
+msgstr "Rekommenderad räntesats {0}."
+
+#: lending/loan_origination/decisioning.py:379
+msgid "Recommended tenure capped at {0}."
+msgstr "Rekommenderad tid begränsad till {0}."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:151
+msgid "Recommended terms: {0}. Apply them on the application itself, so the repayment schedule is rebuilt with them."
+msgstr "Rekommenderade villkor: {0}. Använd dem i själva ansökan, så att återbetalning plan uppdateras med dem."
+
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -5471,6 +5962,13 @@ msgstr "Minska Månatlig Avbetalning"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Reduce Tenure"
 msgstr "Förkorta Löptid"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Decision Rule'
+#. Option for the 'Decision' (Select) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Refer"
+msgstr "Hänvisa"
 
 #. Label of the reference_no (Data) field in DocType 'Loan Security Assignment'
 #. Label of the reference_no (Data) field in DocType 'Loan Security Release'
@@ -5490,6 +5988,10 @@ msgstr "Referens Nummer. "
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Reference Number"
 msgstr "Referens Nummer"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
+msgid "Reference Number cannot be longer than 140 characters"
+msgstr "Referensnummer kan inte vara längre än 140 tecken"
 
 #. Option for the 'Pre-Qualification Status' (Select) field in DocType 'Loan
 #. Lead'
@@ -5639,7 +6141,7 @@ msgstr "Återbetalning"
 msgid "Repayment Account"
 msgstr "Återbetalning Konto"
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:238
+#: lending/loan_management/doctype/loan_application/loan_application.py:240
 msgid "Repayment Amount must be greater than "
 msgstr "Återbetalningsbelopp måste vara högre än "
 
@@ -5758,7 +6260,7 @@ msgstr "Återbetalning Schema Typ"
 msgid "Repayment Start Date"
 msgstr "Återbetalning Startdatum"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:955
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:956
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "Återbetalning Start Datum erfordras för termin lån"
 
@@ -5768,8 +6270,13 @@ msgstr "Återbetalning Start Datum {0} får inte infalla före Utbetalning Datum
 
 #. Label of the repayment_type (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
+#: lending/public/js/bank_reconciliation_tool.js:39
 msgid "Repayment Type"
 msgstr "Återbetalning Typ"
+
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
+msgid "Repayment Type {0} cannot be created from a Bank Transaction"
+msgstr "Återbetalning Typ {0} kan inte skapas från Bank Transaktion"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:969
 msgid "Repayment cannot be made for closed loan"
@@ -5782,6 +6289,15 @@ msgstr "Återbetalning perioder erfordras för termin lån"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1024
 msgid "Repayment type can only be Write Off Recovery or Write Off Settlement"
 msgstr "Återbetalning Typ kan endast vara Avskrivning Återställning eller Avskrivning Förlikning"
+
+#. Label of the report_date (Datetime) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Report Date"
+msgstr "Rapport Datum"
+
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:35
+msgid "Report Date cannot be in the future."
+msgstr "Rapport Datum får inte vara i framtiden."
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -5865,6 +6381,46 @@ msgstr "Avrundning Konto erfordras"
 msgid "Row {0}: Loan Security {1} added multiple times"
 msgstr "Rad {0}: Garanti {1} tillagd flera gånger"
 
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:130
+msgid "Row {0}: a Decline rule needs a reason code the applicant can be told."
+msgstr "Rad {0}: Avslag regel behöver orsak kod som sökande kan få information om."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:93
+msgid "Row {0}: a between rule compares by size, so {1} has to be a number. Write 100000 rather than 100,000."
+msgstr "Rad {0}: mellan regel jämför efter storlek, så {1} måste vara tal. Skriv 100000 istället för 100 000."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:83
+msgid "Row {0}: a between rule needs two comma separated values, such as 600,750."
+msgstr "Rad {0}: mellan regel behöver två kommaseparerade värden, till exempel 600,750."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:122
+msgid "Row {0}: a {1} strategy only ever sees applicant types {2}. {3} belongs to the other stage, so this rule would never match."
+msgstr "Rad {0}: {1} strategi ser bara sökande typer {2}. {3} tillhör andra steg, så denna regel skulle aldrig stämma."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:52
+msgid "Row {0}: sequence {1} is already in use. The first matching rule wins, so two rules sharing a sequence have no defined order."
+msgstr "Rad {0}: sekvens {1} används redan. Första regel som stämmer vinner, så två regler som delar sekvens har ingen definierad ordning."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:100
+msgid "Row {0}: the lower bound {1} is above the upper bound {2}."
+msgstr "Rad {0}: nedre gräns {1} ligger ovanför övre gräns {2}."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:108
+msgid "Row {0}: {1} compares by size, so {2} has to be a number. Write 100000 rather than 100,000."
+msgstr "Rad {0}: {1} jämförs efter storlek, så {2} måste vara tal. Skriv 100000 istället för 100 000."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:70
+msgid "Row {0}: {1} is not a supported operator."
+msgstr "Rad {0}: {1} är inte stödd operatör."
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:55
+msgid "Row {0}: {1} is not a variable the engine produces, so this band could never score. Use one of: {2}."
+msgstr "Rad {0}: {1} är inte en variabel som system producerar, så detta intervall skulle aldrig kunna ge resultat. Använd en av: {2}."
+
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.py:62
+msgid "Row {0}: {1} is not a variable the engine produces, so this rule could never match. Use one of: {2}."
+msgstr "Rad {0}: {1} är inte en variabel som system producerar, så denna regel skulle aldrig kunna stämma. Använd en av: {2}."
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:100
 msgid "Row {0}: {1} of {2} is pledged against Loan {3}."
 msgstr "Rad {0}: {1} av {2} är pantsatt mot lån {3}."
@@ -5874,6 +6430,39 @@ msgstr "Rad {0}: {1} av {2} är pantsatt mot lån {3}."
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:132
 msgid "Row {0}: {1} should be between 1 and 99"
 msgstr "Rad {0}: {1} ska vara mellan 1 och 99"
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:78
+msgid "Row {0}: {1} {2} is above {3} {4}."
+msgstr "Rad {0}: {1} {2} är ovanför {3} {4}."
+
+#: lending/loan_origination/doctype/scorecard/scorecard.py:94
+msgid "Rows {0} and {1} of {2} overlap. A value inside the overlap would score differently depending on row order."
+msgstr "Rader {0} och {1} av {2} överlappar. Ett värde inom överlappning skulle ge olika resultat beroende på radordning."
+
+#: lending/loan_origination/decisioning.py:470
+msgid "Rule value {0} is not a number, but {1} is. Write 100000 rather than 100,000."
+msgstr "Regelvärde {0} är inte tal, men {1} är det. Skriv 100000 istället för 100 000."
+
+#: lending/loan_origination/decisioning.py:302
+msgid "Rule {0} did not match. {1} is {2}."
+msgstr "Regel {0} stämde inte. {1} är {2}."
+
+#: lending/loan_origination/decisioning.py:310
+msgid "Rule {0} matched on {1}. Outcome {2}."
+msgstr "Regel {0} matchade på {1}. Utfall {2}."
+
+#: lending/loan_origination/decisioning.py:294
+msgid "Rule {0} skipped. {1} was not collected for this applicant."
+msgstr "Regel {0} hoppades över. {1} hämtades inte för denna sökande."
+
+#. Description of the 'Sequence' (Int) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Rules are evaluated lowest first. The first match wins."
+msgstr "Reglerna bedöms i stigande ordning. Den första som uppfyller villkoren vinner."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:40
+msgid "Running every strategy…"
+msgstr "Kör alla strategier…"
 
 #. Option for the 'Employment Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -5913,7 +6502,7 @@ msgid "Sanctioned Amount Tolerance (%)"
 msgstr "Sanktionerat Belopp Tolerans (%)"
 
 #: lending/loan_management/doctype/loan/loan.py:572
-#: lending/loan_management/doctype/loan_application/loan_application.py:198
+#: lending/loan_management/doctype/loan_application/loan_application.py:200
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr "Sanktionerad Belopp Gräns överskriden för {0} {1}"
 
@@ -5930,6 +6519,41 @@ msgstr "Sanktionerad Lånebelopp"
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.py:32
 msgid "Sanctioned Loan Amount already exists for {0} against company {1}"
 msgstr "Sanktionerad Lånebelopp finns redan för {0} mot {1}"
+
+#. Label of the score (Int) field in DocType 'Credit Bureau Report'
+#. Label of the score (Int) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:74
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Score"
+msgstr "Resultat"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "Score {0}, grade {1}."
+msgstr "Poäng {0}, betyg {1}."
+
+#. Label of the scorecard (Link) field in DocType 'Loan Decision'
+#. Name of a DocType
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:71
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard"
+msgstr "Resultatkort"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
+msgid "Scorecard Attribute"
+msgstr "Resultatkort Attribut"
+
+#. Name of a DocType
+#: lending/loan_origination/doctype/scorecard_grade_band/scorecard_grade_band.json
+msgid "Scorecard Grade Band"
+msgstr "Resultatkort Betyg Intervall"
+
+#. Label of the scorecard_name (Data) field in DocType 'Scorecard'
+#: lending/loan_origination/doctype/scorecard/scorecard.json
+msgid "Scorecard Name"
+msgstr "Resultatkort Namn"
 
 #. Option for the 'Security Type' (Select) field in DocType 'Loan IRAC
 #. Provisioning Configuration'
@@ -5991,7 +6615,7 @@ msgid "Select {0}s By"
 msgstr "Välj {0} efter"
 
 #: lending/loan_management/doctype/loan/loan.py:173
-#: lending/loan_management/doctype/loan_application/loan_application.py:158
+#: lending/loan_management/doctype/loan_application/loan_application.py:160
 msgid "Selected employee belongs to {0}. Please select an employee from company {1}."
 msgstr "Vald personal tillhör {0}. Välj personal från {1}."
 
@@ -6096,6 +6720,35 @@ msgstr "Källdokument"
 msgid "Start of the next month"
 msgstr "Början av nästa månad"
 
+#. Label of the stop_on_match (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop On Match"
+msgstr "Stoppa vid matchning"
+
+#. Description of the 'Stop On Match' (Check) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Stop evaluating the strategy once this rule matches."
+msgstr "Sluta utvärdera strategi när denna regel stämmer."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:118
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:128
+msgid "Strategies"
+msgstr "Strategier"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:138
+msgid "Strategy"
+msgstr "Strategi"
+
+#. Label of the strategy_name (Data) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Name"
+msgstr "Strategi Namn"
+
+#. Label of the strategy_type (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Strategy Type"
+msgstr "Strategi Typ"
+
 #. Label of the subsidy_adjustment_account (Link) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -6106,6 +6759,10 @@ msgstr "Subvention Justering Konto"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Subsidy Adjustments"
 msgstr "Subvention Justeringar"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:142
+msgid "Supersedes {0}."
+msgstr "Ersätter {0}."
 
 #. Label of the suspense_account (Link) field in DocType 'Loan Charges'
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
@@ -6146,6 +6803,10 @@ msgstr "Period"
 msgid "Tenure Post Restructure"
 msgstr "Period Efter Omstrukturering"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:194
+msgid "Tenure capped at"
+msgstr "Tid begränsad till"
+
 #. Label of the term_details_section (Section Break) field in DocType 'Loan'
 #. Label of the term_details_section (Section Break) field in DocType 'Loan
 #. Repayment Schedule'
@@ -6168,17 +6829,21 @@ msgstr "Låneutbetalning {0} är avslutad."
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr "Betald belopp ({0}) kan inte vara högre än belopp som ska betalas ({1}) för återbetalning av Säkerhet Deposition Justering."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3431
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3417
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ombokning slutfördes inte och har återställts till Utkast:"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:81
+msgid "The same for every strategy below. Only the rules differ, so each log covers its rules alone."
+msgstr "Samma för varje strategi nedan. Endast reglerna skiljer sig åt, så varje logg täcker endast sina egna regler."
 
 #. Description of the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Product'
@@ -6200,11 +6865,19 @@ msgstr "Det finns redan en låntagare med samma kontaktuppgifter. Vill du hämta
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr "Det finns överlappande beräkningar här {}, det aktuella datumet blev bertäknad från {} till {}"
 
-#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:54
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:83
+msgid "There is nothing to submit. No rule in {0} matched this applicant, so no decision was reached."
+msgstr "Det finns inget att godkänna. Ingen regel i {0} stämde överens med denna sökande, varför inget beslut fattades."
+
+#: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:57
 msgid "This applicant already holds the maximum of {0} live loans, so this lead cannot be taken forward."
 msgstr "Denna sökande har redan högsta antal {0} aktiva lån, så denna potentiella kund kan inte vidarebehandlas."
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:355
+#: lending/loan_origination/decisioning.py:137
+msgid "This applicant cannot clear the knockout rules yet. {0} was not collected, so the rules that reject on it could not be checked."
+msgstr "Denna sökande kan inte klara utslagning regler ännu. {0} samlades inte in, så reglerna som avvisar den kunde inte kontrolleras."
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:365
 msgid "This applicant was rejected within the last {0} days. A cooling period applies, so this lead cannot be taken forward yet."
 msgstr "Denna sökande fick avslag inom de senaste {0} dagarna. En a spärr period gäller, så detta prospekt kan inte behandlas just nu."
 
@@ -6219,6 +6892,10 @@ msgstr "Denna ombokning är redan {0}. Vänta tills den är klar innan den godk�
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
 msgid "This repost is {0} in the background. Please wait for it to finish."
 msgstr "Denna ombokning är {0} och sker i bakgrunden. Vänta tills den är klar."
+
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:336
+msgid "This rule runs as a workflow task and cannot be called directly."
+msgstr "Denna regel körs som arbetsflöde uppgift och kan inte anropas direkt."
 
 #. Label of the to_branch (Link) field in DocType 'Loan Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
@@ -6255,6 +6932,11 @@ msgstr "Totalt Kredit"
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
 msgid "Total Debit"
 msgstr "Totalt Debet"
+
+#. Label of the total_emi (Currency) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Total EMI"
+msgstr "Totalt Likställd Månadsvis Avbetalning"
 
 #. Label of the total_emi_charges (Currency) field in DocType 'Loan
 #. Disbursement'
@@ -6409,6 +7091,11 @@ msgstr "Behandling av Ränta"
 msgid "Treatment of charge"
 msgstr "Avgift Behandling"
 
+#. Description of the 'Value' (Data) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Two comma separated numbers for between. A comma separated list for in and not in."
+msgstr "Två kommaseparerade tal för mellan. En kommaseparerad lista för in och inte in."
+
 #. Label of the type_of_fldg_applicable (Select) field in DocType 'Loan
 #. Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -6448,6 +7135,11 @@ msgstr "Ej Bokförd Betald Ränta"
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Unbooked Penalty Paid"
 msgstr "Ej Bokförda Betalda Straffavgifter"
+
+#. Option for the 'Strategy Type' (Select) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "Underwriting"
+msgstr "Kreditprövning"
 
 #. Label of the unfreeze_date (Date) field in DocType 'Loan Freeze Log'
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json
@@ -6556,6 +7248,20 @@ msgstr "Värdering Datum"
 msgid "Value Type"
 msgstr "Värde Typ"
 
+#. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "Variable"
+msgstr "Variabel"
+
+#. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
+#: lending/loan_origination/doctype/loan_decision/loan_decision.json
+msgid "Variable Snapshot"
+msgstr "Variabel Ögonblicksbild"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:87
+msgid "Variables"
+msgstr "Variabler"
+
 #. Description of the 'OTP for Email' (Check) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
@@ -6611,6 +7317,10 @@ msgstr "Avstående från Tillämpliga Avgifter"
 msgid "Watch Period End Date"
 msgstr "Övervaka Period Slut Datum"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:79
+msgid "What the engine sees"
+msgstr "Vad system ser"
+
 #. Description of the 'Indicative Amount' (Currency) field in DocType 'Loan
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6622,6 +7332,17 @@ msgstr "Vad förhandsklasificering regler angav. Inte erbjudande, och inte vad a
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "What this voucher rolled up: one line per account and source type, with the amount and the number of daily accrual/demand documents behind it. Use View Ledger to see the posted GL."
 msgstr "Vad denna verifikation ackumulerade: en rad per konto och källtyp, med belopp och antal dagliga periodisering/efterfråga dokument bakom. Använd Visa Register för att vusa Bokföring Register."
+
+#. Description of the 'Raw Payload' (Long Text) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes."
+msgstr "Vad än byrån returnerade, ordagrant. Bakom tillståndsnivå 1: poängen och total Likställd Månadsvis Avbetalning är vad reglerna behöver, resten finns här bara för tvister."
+
+#. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
+#: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
+msgid "When more than one strategy matches, the highest priority runs."
+msgstr "När mer än en strategi stämmer, körs den med högsta prioritet."
 
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6704,6 +7425,10 @@ msgstr "Avskriven"
 msgid "Written Off Amount"
 msgstr "Avskriven Belopp"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:216
+msgid "Wrong Bureau Report"
+msgstr "Felaktig Byrårapport"
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
 msgstr "Du försöker ånga mer pant."
@@ -6717,9 +7442,65 @@ msgstr "Du har inte behörighet att skicka engånglösenord till {0}."
 msgid "ZIP Code"
 msgstr "Postnummer"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
+msgid "any strategy"
+msgstr "valfri strategi"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "between"
+msgstr "mellan"
+
+#: lending/loan_origination/decisioning.py:197
+msgid "decision"
+msgstr "beslut"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "in"
+msgstr "i"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:161
+msgid "loan amount capped at {0}, currently {1}"
+msgstr "lånebelopp är begränsat till {0}, för närvarande {1}"
+
+#: lending/loan_origination/decisioning.py:187
+msgid "no matching rule"
+msgstr "ingen stämmande regel"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:172
+msgid "no rule matched"
+msgstr "ingen regel matchade"
+
+#. Option for the 'Operator' (Select) field in DocType 'Decision Rule'
+#: lending/loan_origination/doctype/decision_rule/decision_rule.json
+msgid "not in"
+msgstr "inte i"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:160
+msgid "rate of interest {0}, currently {1}"
+msgstr "räntesats {0}, för närvarande {1}"
+
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:56
 msgid "telephony_label"
 msgstr "telefoni_etikett"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:162
+msgid "tenure capped at {0}, currently {1}"
+msgstr "tid begränsad till {0}, för närvarande {1}"
+
+#: lending/loan_origination/decisioning.py:198
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
+msgid "this applicant"
+msgstr "denna sökande"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.js:154
+msgid "this is the one that runs"
+msgstr "detta är den som körs"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+msgid "ungraded"
+msgstr "oreglerad"
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.py:137
 msgid "with reference no. {}"
@@ -6733,6 +7514,14 @@ msgstr "{0} kan inte vara negativ"
 msgid "{0} changed while the OTP was in flight. Please try again."
 msgstr "{0} ändrades medan engångslösenord levererades. Försök igen."
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:139
+msgid "{0} decided {1}."
+msgstr "{0} beslutade {1}."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:111
+msgid "{0} has changed since this decision was drafted. Save the decision again so it is made on what you are approving."
+msgstr "{0} har ändrats sedan detta beslut utarbetades. Spara beslut igen så att det fattas utifrån det du godkänner."
+
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:142
 msgid "{0} is already verified for this lead."
 msgstr "{0} är redan verifierad för denna potentiella kund."
@@ -6741,10 +7530,42 @@ msgstr "{0} är redan verifierad för denna potentiella kund."
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr "{0} erfordras. Ange det i Lån Artikel eller Bolag"
 
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:100
+msgid "{0} is no longer a draft, so a decision can no longer be recorded against it."
+msgstr "{0} är inte längre utkast, så beslut kan inte längre registreras mot det."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:213
+msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
+msgstr "{0} är inte godkänd Kreditupplysning Byrå Rapport för {1}, så den kan inte användas för att fatta beslut om denna ansökan."
+
+#: lending/loan_origination/decisioning.py:403
+msgid "{0} is not a supported decision rule operator."
+msgstr "{0} är inte operatör som stöds i beslutsreglerna."
+
+#: lending/loan_origination/decisioning.py:234
+msgid "{0} is {1}, inside {2} to {3}. {4} points."
+msgstr "{0} är {1}, inuti {2} till {3}. {4} poäng."
+
+#: lending/loan_origination/decisioning.py:186
+msgid "{0} returned {1}."
+msgstr "{0} returnerade {1}."
+
+#: lending/loan_origination/decisioning.py:243
+msgid "{0} scored nothing. It was not collected for this applicant."
+msgstr "{0} fick ingenting. Det samlades inte in för denna sökande."
+
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:76
 #: lending/loan_management/doctype/loan_partner/loan_partner.py:92
 msgid "{0} should be between 1 and 99"
 msgstr "{0} ska vara mellan 1 och 99"
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:195
+msgid "{0} was cancelled and no longer governs this application."
+msgstr "{0} har avbrutits och styr inte längre denna ansökan."
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:181
+msgid "{0} was cancelled, but this application is no longer a draft, so the decision it recorded stands."
+msgstr "{0} avbröts, men denna ansökan är inte längre utkast, så beslut som finns nedtecknat gäller fortfarande."
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:181
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"

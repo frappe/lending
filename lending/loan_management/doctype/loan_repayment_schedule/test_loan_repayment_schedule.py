@@ -320,6 +320,16 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 	def test_get_repayment_periods_with_zero_interest(self):
 		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
 
+	def test_monthly_repayment_amount_does_not_round_down_to_zero(self):
+		emi = get_monthly_repayment_amount(1, 0, 3, "Monthly", "Round to Nearest")
+		self.assertGreater(emi, 0)
+
+		emi = get_monthly_repayment_amount(1, 0, 3, "Monthly", "No Rounding")
+		self.assertGreater(emi, 0)
+
+		emi = get_monthly_repayment_amount(10000, 10, 12, "Monthly", "Round to Nearest")
+		self.assertGreater(emi, 1)
+
 	def test_get_next_payment_date_advances_when_schedule_type_is_blank(self):
 		# Blank repayment_schedule_type should still advance the date for Monthly frequency
 		schedule = frappe._dict(repayment_schedule_type="", repayment_frequency="Monthly")

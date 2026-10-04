@@ -500,6 +500,105 @@ class TestTheBureauReportIsScopedOnTheServer(LendingTestSuite):
 		self.assertEqual(decision.bureau_score, 712)
 
 
+class TestTheSuppliedPoliciesAreScopedOnTheServer(LendingTestSuite):
+	def test_a_disabled_strategy_is_refused(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		disabled = make_strategy(
+			[rule(10, "bureau_score", ">", "600", "Approve")],
+			strategy_name="Test Disabled Strategy",
+			strategy_type=UNDERWRITING,
+			disabled=1,
+		)
+
+		with self.assertRaises(frappe.ValidationError) as raised:
+			make_decision(application, strategy=disabled.name)
+
+		self.assertIn(disabled.name, str(raised.exception))
+
+	def test_a_strategy_of_another_stage_is_refused(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		knockout = make_strategy(
+			[rule(10, "bureau_score", ">", "600", "Approve")],
+			strategy_name="Test Knockout Strategy",
+			strategy_type=KNOCKOUT,
+		)
+
+		with self.assertRaises(frappe.ValidationError) as raised:
+			make_decision(application, strategy=knockout.name)
+
+		self.assertIn(knockout.name, str(raised.exception))
+
+	def test_a_strategy_for_another_loan_product_is_refused(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		other_product = make_strategy(
+			[rule(10, "bureau_score", ">", "600", "Approve")],
+			strategy_name="Test Other Product Strategy",
+			strategy_type=UNDERWRITING,
+			loan_product=OTHER_LOAN_PRODUCT,
+		)
+
+		with self.assertRaises(frappe.ValidationError) as raised:
+			make_decision(application, strategy=other_product.name)
+
+		self.assertIn(other_product.name, str(raised.exception))
+
+	def test_a_scorecard_for_another_loan_product_is_refused(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		approving_strategy()
+		other_product = make_scorecard(
+			[band("bureau_score", 700, 900, 40)],
+			scorecard_name="Test Other Product Scorecard",
+			loan_product=OTHER_LOAN_PRODUCT,
+		)
+
+		with self.assertRaises(frappe.ValidationError) as raised:
+			make_decision(application, scorecard=other_product.name)
+
+		self.assertIn(other_product.name, str(raised.exception))
+
+	def test_comparing_against_a_policy_that_could_never_run_is_refused(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		disabled = make_strategy(
+			[rule(10, "bureau_score", ">", "600", "Approve")],
+			strategy_name="Test Disabled Strategy",
+			strategy_type=UNDERWRITING,
+			disabled=1,
+		)
+
+		self.assertRaises(
+			frappe.ValidationError,
+			decisioning.compare_strategies,
+			application.name,
+			strategy=disabled.name,
+		)
+
+	def test_a_policy_written_for_this_loan_product_is_still_accepted(self):
+		make_bureau_report(score=712)
+		application = make_application(loan_lead=make_lead().name)
+		strategy = make_strategy(
+			[rule(10, "bureau_score", ">", "600", "Approve")],
+			strategy_name="Test Personal Loan Strategy",
+			strategy_type=UNDERWRITING,
+			loan_product=TEST_LOAN_PRODUCT,
+		)
+		scorecard = make_scorecard(
+			[band("bureau_score", 700, 900, 40)],
+			scorecard_name="Test Personal Loan Scorecard",
+			base_score=300,
+			loan_product=TEST_LOAN_PRODUCT,
+		)
+
+		decision = make_decision(application, strategy=strategy.name, scorecard=scorecard.name)
+
+		self.assertEqual(decision.decision, "Approve")
+		self.assertEqual(decision.score, 340)
+
+
 class TestADecisionOnlyGovernsAnOpenApplication(LendingTestSuite):
 	def test_a_submitted_application_can_no_longer_be_decided(self):
 		make_bureau_report(score=712)
