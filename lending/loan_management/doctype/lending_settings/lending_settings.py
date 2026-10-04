@@ -5,6 +5,9 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from lending.portal.brand import swatch
+from lending.portal.presets import CUSTOM, PRESETS
+
 APPLY_ROUTE = "/apply"
 
 
@@ -28,10 +31,33 @@ class LendingSettings(Document):
 		portal_primary_color: DF.Color | None
 		portal_secondary_color: DF.Color | None
 		portal_support_email: DF.Data | None
+		portal_theme: DF.Literal[
+			"",
+			"Ocean",
+			"Navy & Teal",
+			"Forest",
+			"Teal & Orange",
+			"Royal",
+			"Plum",
+			"Indigo",
+			"Graphite",
+			"Custom",
+		]
 	# end: auto-generated types
 
 	def on_update(self):
 		sync_portal_pages()
+
+
+@frappe.whitelist()
+def get_theme_swatches(primary_color: str | None = None, secondary_color: str | None = None) -> dict:
+	"""Every preset, then Custom from the colours on the form, painted as the portal will paint them."""
+	frappe.has_permission("Lending Settings", "write", throw=True)
+
+	swatches = {name: swatch(*preset) for name, preset in PRESETS.items()}
+	swatches[CUSTOM] = swatch(primary_color, secondary_color)
+
+	return swatches
 
 
 def sync_portal_pages():

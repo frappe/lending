@@ -3,6 +3,8 @@
 
 from typing import NamedTuple
 
+CUSTOM = "Custom"
+
 
 class Preset(NamedTuple):
 	primary: str | None

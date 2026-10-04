@@ -15,6 +15,7 @@ from frappe.utils.safe_exec import is_safe_exec_enabled
 
 from lending.loan_management.doctype.lending_settings.lending_settings import (
 	APPLY_ROUTE,
+	get_theme_swatches,
 	portal_app,
 	sync_portal_pages,
 )
@@ -165,6 +166,7 @@ BRAND_FIELDS = (
 	"portal_brand_name",
 	"portal_logo",
 	"portal_support_email",
+	"portal_theme",
 	"portal_primary_color",
 	"portal_secondary_color",
 )
@@ -1607,6 +1609,34 @@ class TestPortalBranding(LendingTestSuite):
 	def test_only_a_hex_colour_reaches_the_stylesheet(self):
 		self.assertEqual(brand_style("red; } body { display: none", "</style><script>"), "")
 		self.assertIn("--portal-primary: #aabbcc;", brand_style("ABC", None))
+
+	def test_a_preset_picked_in_desk_reaches_the_page_over_the_colour_fields(self):
+		set_branding(portal_theme="Forest", portal_primary_color="#004c8f")
+		style = brand_payload()["brand_style"]
+
+		self.assertIn("--portal-primary: #085e35;", style)
+		self.assertIn('[data-theme="dark"] { --portal-primary: #369768;', style)
+		self.assertNotIn("#004c8f", style)
+
+	def test_custom_paints_the_colour_fields(self):
+		set_branding(portal_theme="Custom", portal_primary_color="#004c8f")
+
+		self.assertIn("--portal-primary: #004c8f;", brand_payload()["brand_style"])
+
+	def test_the_theme_options_in_desk_are_the_presets_then_custom(self):
+		options = frappe.get_meta("Lending Settings").get_field("portal_theme").options.split("\n")
+
+		self.assertEqual(options, ["", *PRESETS, "Custom"])
+
+	def test_the_custom_swatch_shows_the_button_the_portal_will_paint(self):
+		swatches = get_theme_swatches("#004b8e", "#ef6f21")
+
+		self.assertEqual(list(swatches), [*PRESETS, "Custom"])
+		self.assertEqual(swatches["Custom"]["light"]["button"], "#bd5618")
+		self.assertEqual(swatches["Forest"]["dark"]["band"], dark_tokens(*PRESETS["Forest"])["--portal-primary-soft"])
+
+	def test_no_custom_colours_leave_the_custom_swatch_empty(self):
+		self.assertIsNone(get_theme_swatches()["Custom"])
 
 	def test_the_style_reads_only_tokens_the_portal_stylesheet_defines(self):
 		sheets = glob.glob(frappe.get_app_path("studio", "public", "frontend", "assets", "*.css"))

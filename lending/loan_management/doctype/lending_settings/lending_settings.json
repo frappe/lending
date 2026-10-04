@@ -15,6 +15,11 @@
   "portal_support_email",
   "column_break_portal",
   "portal_logo",
+  "portal_theme_section",
+  "portal_theme_swatches",
+  "portal_theme_picker_section",
+  "portal_theme",
+  "column_break_theme",
   "portal_primary_color",
   "portal_secondary_color",
   "portal_footer_section",
@@ -83,13 +88,42 @@
    "make_attachment_public": 1
   },
   {
+   "depends_on": "enable_borrower_portal",
+   "fieldname": "portal_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Portal Theme"
+  },
+  {
+   "fieldname": "portal_theme_swatches",
+   "fieldtype": "HTML",
+   "label": "Portal Theme Swatches"
+  },
+  {
+   "depends_on": "enable_borrower_portal",
+   "fieldname": "portal_theme_picker_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Pick a swatch above, or choose Custom to enter your own colours. Left blank, the portal uses the two colours on the right.",
+   "fieldname": "portal_theme",
+   "fieldtype": "Select",
+   "label": "Portal Theme",
+   "options": "\nOcean\nNavy & Teal\nForest\nTeal & Orange\nRoyal\nPlum\nIndigo\nGraphite\nCustom"
+  },
+  {
+   "fieldname": "column_break_theme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.portal_theme || doc.portal_theme == \"Custom\"",
    "description": "Used for the header, sidebar and active states.",
    "fieldname": "portal_primary_color",
    "fieldtype": "Color",
    "label": "Portal Primary Colour"
   },
   {
-   "description": "Used for buttons. Defaults to the primary colour.",
+   "depends_on": "eval:!doc.portal_theme || doc.portal_theme == \"Custom\"",
+   "description": "Used for buttons. Defaults to the primary colour. A button darkens or lightens where its label would not read.",
    "fieldname": "portal_secondary_color",
    "fieldtype": "Color",
    "label": "Portal Secondary Colour"
@@ -118,7 +152,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-27 10:00:00.000000",
+ "modified": "2026-10-04 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",

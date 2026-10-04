@@ -175,6 +175,29 @@ def dark_tokens(primary_color, secondary_color, dark_primary, dark_secondary, da
 	return brand_tokens(primary, secondary, DARK, dark_ink)
 
 
+def swatch(primary_color, secondary_color, dark_primary=None, dark_secondary=None, dark_ink=None):
+	"""The band and button as the portal paints them, so Desk previews the final button, not the input."""
+	light = brand_tokens(primary_color, secondary_color)
+	if not light:
+		return None
+
+	dark = dark_tokens(primary_color, secondary_color, dark_primary, dark_secondary, dark_ink)
+
+	return {"light": swatch_mode(light, WHITE), "dark": swatch_mode(dark, DARK_GROUND)}
+
+
+def swatch_mode(tokens, ground) -> dict:
+	page = to_hex(ground)
+
+	return {
+		"page": page,
+		"band": tokens.get("--portal-primary-soft", page),
+		"primary": tokens.get("--portal-primary", page),
+		"button": tokens["--portal-action"],
+		"ink": tokens["--portal-action-ink"],
+	}
+
+
 def lifted(colour):
 	rgb = channels(colour)
 	return lift(rgb, DARK_GROUND, UI_CONTRAST) if rgb else None

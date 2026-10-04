@@ -9,6 +9,7 @@ from frappe.utils import flt, fmt_money, formatdate, getdate, nowdate
 from frappe.website.utils import get_portal_sidebar_items
 
 from lending.portal.brand import brand_style
+from lending.portal.presets import resolve
 
 # Never shown to borrowers: exposing delinquency labels invites disputes.
 WITHHELD_FROM_BORROWER = (
@@ -428,10 +429,12 @@ def brand_payload() -> dict:
 		"portal_brand_name",
 		"portal_logo",
 		"portal_support_email",
+		"portal_theme",
 		"portal_primary_color",
 		"portal_secondary_color",
 	)
 	logo = (settings.portal_logo or "").strip()
+	theme = resolve(settings.portal_theme, settings.portal_primary_color, settings.portal_secondary_color)
 	support = (settings.portal_support_email or "").strip()
 
 	name = settings.portal_brand_name or DEFAULT_BRAND_NAME
@@ -443,7 +446,7 @@ def brand_payload() -> dict:
 		"show_wordmark": 0 if logo else 1,
 		"support_email": support,
 		"support_href": f"mailto:{support}" if support else "#",
-		"brand_style": brand_style(settings.portal_primary_color, settings.portal_secondary_color),
+		"brand_style": brand_style(*theme),
 	}
 
 
