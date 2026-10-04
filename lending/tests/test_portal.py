@@ -47,8 +47,10 @@ from lending.portal.brand import (
 	brand_tokens,
 	channels,
 	contrast,
+	dark_tokens,
 	ink_for,
 )
+from lending.portal.colour import lift
 from lending.portal.core import (
 	CHOSEN_LOAN_KEY,
 	DEFAULT_BRAND_NAME,
@@ -1630,6 +1632,56 @@ class TestPortalPresets(LendingTestSuite):
 
 			self.assertEqual((preset.primary, preset.secondary), ("#004c8f", "#ed232a"), theme)
 			self.assertIsNone(preset.dark_primary, theme)
+
+	def test_a_preset_paints_its_own_dark_pair_after_the_light_one(self):
+		style = brand_style(*PRESETS["Forest"])
+
+		self.assertIn('[data-theme="dark"] { --portal-primary: #369768;', style)
+		self.assertLess(style.index(":root {"), style.index('[data-theme="dark"] {'))
+
+	def test_custom_colours_get_a_dark_pair_lifted_off_the_dark_ground(self):
+		dark = dark_tokens("#004b8e", "#ed232a", None, None, None)
+
+		for token in ("--portal-primary", "--portal-action"):
+			self.assertGreaterEqual(contrast(channels(dark[token]), DARK_GROUND), 3.0, token)
+
+	def test_a_banks_dark_colour_is_lifted_only_as_far_as_it_needs(self):
+		# HDFC navy and SBI indigo.
+		for colour in ("#004b8e", "#292075"):
+			lighter = channels(lift(channels(colour), DARK_GROUND, 3.0))
+
+			self.assertGreaterEqual(contrast(lighter, DARK_GROUND), 3.0, colour)
+			self.assertLess(contrast(lighter, DARK_GROUND), 3.5, colour)
+
+	def test_a_colour_that_already_stands_out_is_not_lifted(self):
+		# Canara blue.
+		self.assertEqual(lift(channels("#019eec"), DARK_GROUND, 3.0), "#019eec")
+
+	def test_dark_header_buttons_keep_the_brand_and_their_labels_read(self):
+		for name, preset in PRESETS.items():
+			dark = dark_tokens(*preset)
+			button = channels(dark["--portal-header-action"])
+
+			self.assertNotEqual(dark["--portal-header-action"], "#ffffff", name)
+			self.assertGreaterEqual(contrast(button, channels(dark["--portal-primary-soft"])), 3.0, name)
+			self.assertGreaterEqual(contrast(button, channels(dark["--portal-header-action-ink"])), 4.5, name)
+
+	def test_a_pressed_dark_button_reads_at_least_as_well_as_a_resting_one(self):
+		for name, preset in PRESETS.items():
+			dark = dark_tokens(*preset)
+			ink = channels(dark["--portal-action-ink"])
+			resting = contrast(channels(dark["--portal-action"]), ink)
+
+			for state in ("--portal-action-hover", "--portal-action-active"):
+				self.assertGreaterEqual(contrast(channels(dark[state]), ink), resting, (name, state))
+
+	def test_dark_labels_on_a_wash_read_as_body_text(self):
+		for name, preset in PRESETS.items():
+			dark = dark_tokens(*preset)
+			label = channels(dark["--portal-action-deep"])
+
+			for ground in ("--portal-action-soft", "--portal-action-soft-hover", "--portal-action-soft-active"):
+				self.assertGreaterEqual(contrast(label, channels(dark[ground])), 4.5, (name, ground))
 
 	def test_only_a_hex_colour_reaches_the_stylesheet_through_a_preset_path(self):
 		preset = resolve("Custom", "red; } body { display: none", "</style><script>")
