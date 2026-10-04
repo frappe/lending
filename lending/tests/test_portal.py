@@ -1,8 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import glob
 import inspect
 import json
+import math
+import re
 from unittest.mock import patch
 
 import frappe
@@ -38,7 +41,14 @@ from lending.portal.apply import (
 	submit_lead,
 	track_application,
 )
-from lending.portal.brand import brand_style, brand_tokens, channels, contrast
+from lending.portal.brand import (
+	DARK_GROUND,
+	brand_style,
+	brand_tokens,
+	channels,
+	contrast,
+	ink_for,
+)
 from lending.portal.core import (
 	CHOSEN_LOAN_KEY,
 	DEFAULT_BRAND_NAME,
@@ -78,6 +88,7 @@ from lending.portal.notifications import (
 	read_keys,
 	row_key,
 )
+from lending.portal.presets import PRESETS, resolve
 from lending.portal.print_formats import FORMATS, STATEMENT_FORMAT
 from lending.portal.print_formats import ensure as ensure_print_formats
 from lending.portal.profile import get_profile_page, save_profile
@@ -162,6 +173,26 @@ def set_branding(**values):
 	settings = frappe.get_doc("Lending Settings")
 	settings.update({field: values.get(field) for field in BRAND_FIELDS})
 	settings.save()
+
+
+def oklch_hue(colour):
+	"""Hue in degrees, or None for a grey, which has none."""
+
+	def linear(part):
+		part /= 255
+		return part / 12.92 if part <= 0.04045 else ((part + 0.055) / 1.055) ** 2.4
+
+	red, green, blue = (linear(part) for part in channels(colour))
+	long = (0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue) ** (1 / 3)
+	medium = (0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue) ** (1 / 3)
+	short = (0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue) ** (1 / 3)
+	a = 1.9779984951 * long - 2.4285922050 * medium + 0.4505937099 * short
+	b = 0.0259040371 * long + 0.7827717662 * medium - 0.8086757660 * short
+
+	if math.hypot(a, b) < 0.02:
+		return None
+
+	return math.degrees(math.atan2(b, a)) % 360
 
 
 def set_footer(notice=None, links=(), support=None):
@@ -1523,7 +1554,7 @@ class TestPortalBranding(LendingTestSuite):
 	def test_the_borrowers_initial_is_a_white_disc_on_the_rails_wash(self):
 		style = brand_style("#004b8e", None)
 
-		self.assertIn(".borrower-portal .portal-avatar { --surface-gray-2: var(--surface-white);", style)
+		self.assertIn(".borrower-portal .portal-avatar { --surface-gray-2: var(--surface-elevation-1);", style)
 		self.assertNotIn("portal-avatar", brand_style(None, "#ed232a"))
 
 	def test_grey_buttons_and_table_bands_wear_a_wash_of_the_secondary(self):
@@ -1551,6 +1582,59 @@ class TestPortalBranding(LendingTestSuite):
 	def test_only_a_hex_colour_reaches_the_stylesheet(self):
 		self.assertEqual(brand_style("red; } body { display: none", "</style><script>"), "")
 		self.assertIn("--portal-primary: #aabbcc;", brand_style("ABC", None))
+
+	def test_the_style_reads_only_tokens_the_portal_stylesheet_defines(self):
+		sheets = glob.glob(frappe.get_app_path("studio", "public", "frontend", "assets", "*.css"))
+		if not sheets:
+			self.skipTest("Studio's frontend is not built")
+
+		defined = set()
+		for sheet in sheets:
+			with open(sheet) as css:
+				defined.update(re.findall(r"(--[\w-]+):", css.read()))
+
+		used = set(re.findall(r"var\((--[\w-]+)\)", brand_style("#004b8e", "#ed232a")))
+		self.assertEqual({token for token in used if not token.startswith("--portal-")} - defined, set())
+
+
+class TestPortalPresets(LendingTestSuite):
+	def test_every_preset_button_label_reads_in_both_modes(self):
+		for name, preset in PRESETS.items():
+			light = channels(preset.secondary)
+			self.assertGreaterEqual(contrast(light, channels(ink_for(light))), 4.5, name)
+
+			dark = channels(preset.dark_secondary)
+			ink = channels(preset.dark_ink or ink_for(dark))
+			self.assertGreaterEqual(contrast(dark, ink), 4.5, name)
+
+	def test_every_preset_stands_out_on_the_dark_ground(self):
+		for name, preset in PRESETS.items():
+			for colour in (preset.dark_primary, preset.dark_secondary):
+				self.assertGreaterEqual(contrast(channels(colour), DARK_GROUND), 3.0, (name, colour))
+
+	def test_no_preset_is_red(self):
+		# Red marks danger: errors, failed payments, overdue EMIs. frappe-ui red sits at 18° to 27°.
+		for name, preset in PRESETS.items():
+			for colour in preset[:4]:
+				hue = oklch_hue(colour)
+				self.assertFalse(hue is not None and 10 <= hue <= 32, (name, colour))
+
+	def test_a_preset_overrides_the_colour_fields(self):
+		preset = resolve("Forest", "#004c8f", "#ed232a")
+
+		self.assertEqual((preset.primary, preset.secondary), ("#085e35", "#14804d"))
+
+	def test_custom_an_unknown_or_no_theme_keeps_the_colour_fields(self):
+		for theme in ("Custom", "Sunset", None, ""):
+			preset = resolve(theme, "#004c8f", "#ed232a")
+
+			self.assertEqual((preset.primary, preset.secondary), ("#004c8f", "#ed232a"), theme)
+			self.assertIsNone(preset.dark_primary, theme)
+
+	def test_only_a_hex_colour_reaches_the_stylesheet_through_a_preset_path(self):
+		preset = resolve("Custom", "red; } body { display: none", "</style><script>")
+
+		self.assertEqual(brand_style(preset.primary, preset.secondary), "")
 
 
 class TestPortalFooter(LendingTestSuite):

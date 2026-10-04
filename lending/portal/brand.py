@@ -9,6 +9,9 @@ HEX = re.compile(r"^#?([0-9a-f]{3}|[0-9a-f]{6})$", re.IGNORECASE)
 LIGHT_INK = (255, 255, 255)
 DARK_INK = (23, 23, 23)
 
+# frappe-ui's dark --surface-base.
+DARK_GROUND = (23, 23, 23)
+
 HOVER_SHADE = 0.1
 ACTIVE_SHADE = 0.2
 
@@ -74,7 +77,8 @@ FOOTER_VARIABLES = {
 
 AVATAR = ".borrower-portal .portal-avatar"
 AVATAR_VARIABLES = {
-	"--surface-gray-2": "var(--surface-white)",
+	# Not --surface-white: the Studio renderer CSS does not define it.
+	"--surface-gray-2": "var(--surface-elevation-1)",
 	"--ink-gray-5": "var(--portal-primary-deep)",
 }
 PROFILE_AVATAR = ".borrower-portal .portal-profile-avatar"
