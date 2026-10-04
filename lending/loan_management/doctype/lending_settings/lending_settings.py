@@ -5,8 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from lending.portal.brand import swatch
-from lending.portal.presets import CUSTOM, PRESETS
+from lending.portal.brand import brand_style, swatch
+from lending.portal.presets import CUSTOM, PRESETS, resolve
 
 APPLY_ROUTE = "/apply"
 
@@ -59,6 +59,16 @@ def get_theme_swatches(primary_color: str | None = None, secondary_color: str | 
 	swatches[CUSTOM] = swatch(primary_color, secondary_color)
 
 	return swatches
+
+
+@frappe.whitelist()
+def get_theme_preview(
+	theme: str | None = None, primary_color: str | None = None, secondary_color: str | None = None
+) -> str:
+	"""The portal stylesheet for the form's unsaved theme, for Desk's live preview."""
+	frappe.has_permission("Lending Settings", "write", throw=True)
+
+	return brand_style(*resolve(theme, primary_color, secondary_color))
 
 
 def sync_portal_pages():

@@ -18,6 +18,7 @@ from frappe.utils.safe_exec import is_safe_exec_enabled
 
 from lending.loan_management.doctype.lending_settings.lending_settings import (
 	APPLY_ROUTE,
+	get_theme_preview,
 	get_theme_swatches,
 	portal_app,
 	sync_portal_pages,
@@ -1643,6 +1644,24 @@ class TestPortalBranding(LendingTestSuite):
 
 	def test_no_custom_colours_leave_the_custom_swatch_empty(self):
 		self.assertIsNone(get_theme_swatches()["Custom"])
+
+	def test_the_preview_paints_the_unsaved_theme_not_the_saved_one(self):
+		set_branding(portal_primary_color="#004c8f", portal_secondary_color="#ed232a")
+		style = get_theme_preview("Forest", "#004c8f", "#ed232a")
+
+		self.assertIn("--portal-primary: #085e35;", style)
+		self.assertIn('[data-theme="dark"] { --portal-primary: #369768;', style)
+
+	def test_the_preview_of_custom_colours_uses_the_form_values(self):
+		self.assertIn("--portal-primary: #004c8f;", get_theme_preview("Custom", "#004c8f", None))
+		self.assertEqual(get_theme_preview("Custom", "</style><script>", None), "")
+
+	def test_only_someone_who_can_edit_the_settings_can_preview(self):
+		frappe.set_user("Guest")
+		try:
+			self.assertRaises(frappe.PermissionError, get_theme_preview, "Forest")
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_the_style_reads_only_tokens_the_portal_stylesheet_defines(self):
 		sheets = glob.glob(frappe.get_app_path("studio", "public", "frontend", "assets", "*.css"))
