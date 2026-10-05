@@ -34,7 +34,8 @@ def download(source, read, label=None):
 	# The URL comes from the payload, so it follows the period picked on screen.
 	return button(
 		label or read("download_label"),
-		script=f"window.open({source}.data.download_url, '_blank')",
+		# The theme preview sends no URL: its PDF would be built from real loan records.
+		script=f"{source}.data.download_url && window.open({source}.data.download_url, '_blank')",
 		variant="solid",
 	)
 
@@ -91,6 +92,7 @@ LEDGER_ROW = {"--list-row-height": "44px"}
 def summary_strip(read):
 	return ruled_panel(
 		[
+			figure_cell("Opening balance", read("summary.opening"), "Owed when the period began"),
 			figure_cell("Charged", read("summary.charged"), "Loan amount, interest and charges"),
 			figure_cell("Paid", read("summary.paid"), "Payments you made"),
 			figure_cell("Closing balance", read("summary.balance"), read("summary.balance_note")),

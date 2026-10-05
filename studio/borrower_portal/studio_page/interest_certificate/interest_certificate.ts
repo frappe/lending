@@ -1,6 +1,6 @@
 import { computed, ref, watch } from "vue"
 import { call, toast } from "frappe-ui"
-import { tone, appRoute, logout as endSession, useSearch, useMenus } from "@app/utils/portal"
+import { tone, appRoute, logout as endSession, useSearch, useMenus, guardPreview } from "@app/utils/portal"
 
 export default function setup(context: any) {
 	const { router } = context
@@ -14,6 +14,7 @@ export default function setup(context: any) {
 		if (to) router.push(to)
 	}
 	const logout = () => endSession(router)
+	guardPreview(router)
 	const search = useSearch(open)
 	const menus = useMenus(context.route, open, logout)
 

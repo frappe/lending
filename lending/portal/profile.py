@@ -31,6 +31,12 @@ EDITABLE_ADDRESS = (
 
 @frappe.whitelist()
 def get_profile_page() -> dict:
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
+	if preview.is_preview():
+		return preview.profile_page()
+
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 
@@ -283,6 +289,12 @@ def save_address(customer: str, customers: list[str], data: dict):
 
 @frappe.whitelist(methods=["POST"])
 def save_profile() -> dict:
+	from lending.portal import preview
+
+	# The made-up borrower has no records to write to.
+	if preview.is_preview():
+		return {"message": _("This is a preview, so nothing was saved.")}
+
 	# ignore_permissions below: Website Users have no Contact/Address rights; scope is enforced here.
 	customers = get_portal_customers()
 	customer = owned_customer(customers)

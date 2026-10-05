@@ -1416,6 +1416,11 @@
                "originalElement": "div"
               },
               {
+               "baseStyles": {
+                "flexDirection": "column",
+                "flexWrap": "nowrap",
+                "gap": "0px"
+               },
                "children": [
                 {
                  "baseStyles": {
@@ -1423,7 +1428,7 @@
                   "display": "flex",
                   "flexDirection": "row",
                   "gap": "12px",
-                  "padding": "10px 0"
+                  "padding": "8px 0"
                  },
                  "children": [
                   {
@@ -1500,7 +1505,7 @@
                "componentName": "Repeater",
                "componentProps": {
                 "data": "{{ loan.data.charges }}",
-                "dataKey": "name",
+                "dataKey": "label",
                 "emptyStateMessage": ""
                },
                "visibilityCondition": "{{ (loan.data.charges || []).length > 0 }}"
@@ -1767,7 +1772,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-05 11:11:37.242491",
+ "modified": "2026-10-05 12:43:16.027111",
  "modified_by": "Administrator",
  "name": "loan_account",
  "owner": "Administrator",

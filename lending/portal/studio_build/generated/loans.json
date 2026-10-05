@@ -1841,12 +1841,16 @@
                "componentName": "Repeater",
                "componentProps": {
                 "data": "{{ loan.data.charges }}",
-                "dataKey": "name",
+                "dataKey": "label",
                 "emptyStateMessage": ""
                },
                "componentSlots": {},
                "componentEvents": {},
-               "baseStyles": {},
+               "baseStyles": {
+                "flexDirection": "column",
+                "flexWrap": "nowrap",
+                "gap": "0px"
+               },
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [
@@ -1860,7 +1864,7 @@
                   "flexDirection": "row",
                   "alignItems": "center",
                   "gap": "12px",
-                  "padding": "10px 0"
+                  "padding": "8px 0"
                  },
                  "mobileStyles": {},
                  "tabletStyles": {},
@@ -2291,5 +2295,5 @@
    "componentId": "loans-0"
   }
  ],
- "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst requestOpen = ref(false)\n\tconst requestAmount = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tconst requesting = ref(false)\n\n\tconst openRequest = () => {\n\t\trequestAmount.value = \"\"\n\t\trequestOpen.value = true\n\t}\n\n\tconst sendRequest = () => {\n\t\trequesting.value = true\n\t\tcall(\"lending.portal.loans.request_disbursement\", {\n\t\t\tname: context.loan.data?.drawdown?.loan,\n\t\t\tamount: requestAmount.value,\n\t\t})\n\t\t\t.then((result: any) => {\n\t\t\t\ttoast.success(result?.message || \"We have your request.\")\n\t\t\t\trequestOpen.value = false\n\t\t\t\tcontext.loan.reload()\n\t\t\t})\n\t\t\t.catch((error: any) =>\n\t\t\t\ttoast.error(String(error?.messages?.[0] || error?.message || error)),\n\t\t\t)\n\t\t\t.finally(() => { requesting.value = false })\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, requestOpen, requestAmount, requesting, openRequest, sendRequest }\n}\n"
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus, guardPreview } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst requestOpen = ref(false)\n\tconst requestAmount = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tguardPreview(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tconst requesting = ref(false)\n\n\tconst openRequest = () => {\n\t\trequestAmount.value = \"\"\n\t\trequestOpen.value = true\n\t}\n\n\tconst sendRequest = () => {\n\t\trequesting.value = true\n\t\tcall(\"lending.portal.loans.request_disbursement\", {\n\t\t\tname: context.loan.data?.drawdown?.loan,\n\t\t\tamount: requestAmount.value,\n\t\t})\n\t\t\t.then((result: any) => {\n\t\t\t\ttoast.success(result?.message || \"We have your request.\")\n\t\t\t\trequestOpen.value = false\n\t\t\t\tcontext.loan.reload()\n\t\t\t})\n\t\t\t.catch((error: any) =>\n\t\t\t\ttoast.error(String(error?.messages?.[0] || error?.message || error)),\n\t\t\t)\n\t\t\t.finally(() => { requesting.value = false })\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, requestOpen, requestAmount, requesting, openRequest, sendRequest }\n}\n"
 }

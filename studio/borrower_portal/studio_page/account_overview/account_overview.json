@@ -1153,6 +1153,11 @@
            "originalElement": "div"
           },
           {
+           "baseStyles": {
+            "flexDirection": "column",
+            "flexWrap": "nowrap",
+            "gap": "0px"
+           },
            "children": [
             {
              "baseStyles": {
@@ -1160,15 +1165,16 @@
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
-              "gap": "10px",
-              "padding": "10px 0"
+              "gap": "12px",
+              "padding": "8px 0"
              },
              "children": [
               {
                "baseStyles": {
                 "display": "flex",
                 "flexDirection": "column",
-                "gap": "2px"
+                "gap": "2px",
+                "minWidth": "0px"
                },
                "children": [
                 {
@@ -1209,6 +1215,9 @@
                "originalElement": "div"
               },
               {
+               "baseStyles": {
+                "flexShrink": "0"
+               },
                "children": [],
                "componentId": "overview-0-container1-container1-container2-repeater1-container1-badge1",
                "componentName": "Badge",
@@ -2197,7 +2206,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-05 11:11:37.063414",
+ "modified": "2026-10-05 12:43:15.927779",
  "modified_by": "Administrator",
  "name": "account_overview",
  "owner": "Administrator",

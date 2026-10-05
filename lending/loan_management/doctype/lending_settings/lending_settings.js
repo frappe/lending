@@ -8,8 +8,8 @@ const PREVIEW_PARAM = "lending_preview";
 const SCREEN_STYLE_ID = "lending-preview-screen";
 
 // The portal renders at a desktop size, then shrinks to the form's width, so it never falls to its narrow layout.
-// It cannot be clicked: it runs in the Desk session, where Log out or Appearance would act on the admin,
-// and a link would leave the made-up borrower's pages.
+// It runs in the Desk session, so the portal drops Log out and Appearance from its menu and keeps
+// navigation to the made-up borrower's pages; see guardPreview in lending/portal/studio_build/app.py.
 const SCREEN = { width: 1440, height: 900 };
 
 const THEME_DESCRIPTIONS = {
@@ -27,6 +27,10 @@ const THEME_DESCRIPTIONS = {
 const PREVIEW_PAGES = [
 	{ label: __("Account overview"), route: "/borrower-portal/overview" },
 	{ label: __("Loan account"), route: "/borrower-portal/loans" },
+	{ label: __("Application"), route: "/borrower-portal/applications" },
+	{ label: __("Statement of account"), route: "/borrower-portal/statement" },
+	{ label: __("Interest certificate"), route: "/borrower-portal/certificate" },
+	{ label: __("Personal details"), route: "/borrower-portal/profile" },
 	{ label: __("Apply"), route: "/borrower-portal/apply", public_apply: true },
 	{ label: __("Track an application"), route: "/borrower-portal/track" },
 ];
@@ -124,9 +128,8 @@ function build_layout(frm, $wrapper) {
 			<div data-region="screen" style="position: relative; overflow: hidden;
 				aspect-ratio: ${SCREEN.width} / ${SCREEN.height}; border: 1px solid var(--border-color);
 				border-radius: var(--radius); background: var(--card-bg);">
-				<iframe scrolling="no" tabindex="-1" style="position: absolute; top: 0; left: 0; border: 0;
-					width: ${SCREEN.width}px; height: ${SCREEN.height}px; transform-origin: 0 0;
-					pointer-events: none;"></iframe>
+				<iframe scrolling="no" style="position: absolute; top: 0; left: 0; border: 0;
+					width: ${SCREEN.width}px; height: ${SCREEN.height}px; transform-origin: 0 0;"></iframe>
 				<div data-region="unpublished" style="display: none; height: 100%; align-items: center;
 					justify-content: center; color: var(--text-muted); font-size: var(--text-sm);">
 					${__("Save to publish the portal, then the preview appears here.")}

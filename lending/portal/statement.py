@@ -101,12 +101,20 @@ def get_statement_page() -> dict:
 		execute,
 	)
 
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
 	loan = frappe.form_dict.get("loan")
 	_label, year_start, _year_end = financial_year()
 	from_date = requested_date(frappe.form_dict.get("from_date"), year_start)
 	to_date = requested_date(frappe.form_dict.get("to_date"), nowdate())
 
+	if preview.is_preview():
+		return preview.statement_page(loan, from_date, to_date)
+
 	customers, loans = owned_loans(loan)
+	# From the first loan's start, not from_date: what was owed before the period is its opening balance.
+	since = min([getdate(row.posting_date) for row in loans] + [getdate(from_date)])
 	entries = []
 	for (company, applicant), names in loan_groups(loans).items():
 		if not company:
@@ -117,36 +125,17 @@ def get_statement_page() -> dict:
 				"applicant": applicant,
 				"applicant_type": "Customer",
 				"loan": names[0] if len(names) == 1 else None,
-				"from_date": from_date,
+				"from_date": since,
 				"to_date": to_date,
 			}
 		)
 		entries.extend(data)
 
-	entries.sort(key=lambda row: getdate(row.get("posting_date")))
-	# A voucher can post several entries, so the index is the key.
-	rows = [dict(present_entry(row), name=str(index)) for index, row in enumerate(entries)]
-	accounts_note = (
-		_("across 1 account") if len(loans) == 1 else _("across {0} accounts").format(len(loans))
-	)
-	summary = statement_summary(entries, to_date, accounts_note)
-
 	payload = shell_payload(_("Statement of account"), "", loans)
 	payload["head_note"] = _("{0} to {1}").format(long_date(from_date), long_date(to_date))
+	payload.update(statement_body(entries, from_date, to_date, len(loans)))
 	payload.update(
 		{
-			"rows": rows,
-			"rows_note": (
-				(_("1 entry from {1} to {2}") if len(rows) == 1 else _("{0} entries from {1} to {2}")).format(
-					len(rows), short_date(from_date), short_date(to_date)
-				)
-				if rows
-				else _("No entries between {0} and {1}").format(
-					short_date(from_date), short_date(to_date)
-				)
-			),
-			"totals": statement_totals(summary),
-			"summary": summary,
 			"totals_note": (
 				_("Across 1 account") if len(loans) == 1 else _("Across {0} accounts").format(len(loans))
 			),
@@ -160,6 +149,61 @@ def get_statement_page() -> dict:
 	)
 
 	return payload
+
+
+def statement_body(entries: list[dict], from_date: str, to_date: str, accounts: int) -> dict:
+	"""Laid out as a bank statement: the opening balance, each entry with the balance after it, the closing."""
+	opening, shown = ledger(entries, from_date, to_date)
+	accounts_note = _("across 1 account") if accounts == 1 else _("across {0} accounts").format(accounts)
+	summary = statement_summary(shown, opening, to_date, accounts_note)
+
+	rows = ([opening_row(opening, from_date)] + [present_entry(row) for row in shown]) if shown or opening else []
+
+	return {
+		# A voucher can post several entries, so the index is the key.
+		"rows": [dict(row, name=str(index)) for index, row in enumerate(rows)],
+		"rows_note": (
+			(_("1 entry from {1} to {2}") if len(shown) == 1 else _("{0} entries from {1} to {2}")).format(
+				len(shown), short_date(from_date), short_date(to_date)
+			)
+			if shown
+			else _("No entries between {0} and {1}").format(short_date(from_date), short_date(to_date))
+		),
+		"totals": statement_totals(summary),
+		"summary": summary,
+	}
+
+
+def ledger(entries: list[dict], from_date: str, to_date: str) -> tuple[float, list[dict]]:
+	"""What was owed before `from_date`, and the entries within the dates with the balance after each."""
+	# The report's own running balance starts at zero on its first entry, and per report call.
+	entries = sorted(entries, key=lambda row: getdate(row.get("posting_date")))
+	start, end = getdate(from_date), getdate(to_date)
+
+	opening = sum(movement(row) for row in entries if getdate(row.get("posting_date")) < start)
+	balance, shown = opening, []
+	for row in entries:
+		if start <= getdate(row.get("posting_date")) <= end:
+			balance += movement(row)
+			shown.append(dict(row, balance=balance))
+
+	return opening, shown
+
+
+def movement(row: dict) -> float:
+	return flt(row.get("debit")) - flt(row.get("credit"))
+
+
+def opening_row(opening: float, from_date: str) -> dict:
+	return {
+		"date": short_date(from_date),
+		"label": _("Opening balance"),
+		"amount": money(opening),
+		"direction": _("Owed"),
+		"debit": "—",
+		"credit": "—",
+		"balance": money(opening),
+	}
 
 
 def present_entry(row: dict) -> dict:
@@ -179,20 +223,22 @@ def present_entry(row: dict) -> dict:
 
 def statement_totals(summary: dict) -> list[dict]:
 	return [
+		{"label": _("Opening balance"), "value": summary["opening"]},
 		{"label": _("Charged"), "value": summary["charged"]},
 		{"label": _("Paid"), "value": summary["paid"]},
 		{"label": _("Closing balance"), "value": summary["balance"]},
 	]
 
 
-def statement_summary(entries: list[dict], to_date: str, accounts_note: str) -> dict:
+def statement_summary(entries: list[dict], opening: float, to_date: str, accounts_note: str) -> dict:
 	debit = sum(flt(row.get("debit")) for row in entries)
 	credit = sum(flt(row.get("credit")) for row in entries)
 
 	return {
+		"opening": money(opening),
 		"charged": money(debit),
 		"paid": money(credit),
-		"balance": money(debit - credit),
+		"balance": money(opening + debit - credit),
 		"balance_note": _("As on {0}, {1}").format(short_date(to_date), accounts_note),
 	}
 
@@ -200,6 +246,11 @@ def statement_summary(entries: list[dict], to_date: str, accounts_note: str) -> 
 @frappe.whitelist()
 def get_certificate_page() -> dict:
 	"""Amounts paid in a financial year; provisional (paid plus still scheduled) while the year runs."""
+	from lending.portal import preview
+
+	if preview.is_preview():
+		return preview.certificate_page(frappe.form_dict.get("year"), frappe.form_dict.get("loan"))
+
 	label, start, end = requested_year(frappe.form_dict.get("year"))
 	customers, loans = owned_loans(frappe.form_dict.get("loan"))
 	names = [row.name for row in loans]

@@ -104,7 +104,12 @@ from lending.portal.print_formats import FORMATS, STATEMENT_FORMAT
 from lending.portal.print_formats import ensure as ensure_print_formats
 from lending.portal.profile import get_profile_page, save_profile
 from lending.portal.search import RESULT_LIMIT, find, results_note
-from lending.portal.statement import owned_loans
+from lending.portal.statement import (
+	get_certificate_page,
+	get_statement_page,
+	owned_loans,
+	statement_body,
+)
 from lending.portal.switcher import choose_account, get_accounts_page
 from lending.portal.theme import CHOICE_KEY as APPEARANCE_CHOICE_KEY
 from lending.portal.theme import after_request as theme_after_request
@@ -2468,6 +2473,41 @@ class TestPortalActivityList(LendingTestSuite):
 		self.assertEqual(said, ["3 days ago", "1 week ago", "1 month ago", "1 year ago"])
 
 
+class TestPortalStatementBalance(LendingTestSuite):
+	# Paid out in January; each month ₹1,000 interest is charged and ₹5,000 paid.
+	ENTRIES = [{"posting_date": "2026-01-15", "transaction_type": "Disbursement", "debit": 100000}] + [
+		entry
+		for month in ("02", "03", "04", "05", "06")
+		for entry in (
+			{"posting_date": f"2026-{month}-15", "transaction_type": "Interest", "debit": 1000},
+			{"posting_date": f"2026-{month}-15", "transaction_type": "Repayment", "credit": 5000},
+		)
+	]
+
+	def test_a_period_after_the_payout_opens_on_what_was_owed_and_closes_on_what_is_owed(self):
+		# Like a bank statement: ₹92,000 owed on 1 April, ₹80,000 on 30 June. Without the opening
+		# balance the page said -₹12,000, as if the lender owed the borrower.
+		body = statement_body(self.ENTRIES, "2026-04-01", "2026-06-30", 1)
+
+		self.assertEqual(body["rows"][0]["label"], "Opening balance")
+		self.assertEqual(body["summary"]["opening"], money(92000))
+		self.assertEqual(body["rows"][-1]["balance"], money(80000))
+		self.assertEqual(body["summary"]["balance"], money(80000))
+		self.assertEqual((body["summary"]["charged"], body["summary"]["paid"]), (money(3000), money(15000)))
+
+	def test_a_period_from_before_the_payout_opens_at_nothing(self):
+		body = statement_body(self.ENTRIES, "2026-01-01", "2026-06-30", 1)
+
+		self.assertEqual(body["summary"]["opening"], money(0))
+		self.assertEqual(body["summary"]["balance"], money(80000))
+
+	def test_the_opening_row_is_not_counted_as_an_entry(self):
+		self.assertIn("6 entries", statement_body(self.ENTRIES, "2026-04-01", "2026-06-30", 1)["rows_note"])
+
+	def test_a_borrower_with_nothing_on_record_gets_the_empty_state(self):
+		self.assertEqual(statement_body([], "2026-04-01", "2026-06-30", 1)["rows"], [])
+
+
 class TestPortalPreview(PortalPeople):
 	def setUp(self):
 		super().setUp()
@@ -2512,6 +2552,31 @@ class TestPortalPreview(PortalPeople):
 
 		with self.from_page(self.FRAME):
 			self.assertLessEqual(real, set(get_dashboard()))
+
+	def test_every_other_page_the_preview_opens_carries_the_real_pages_keys(self):
+		pages = (get_application_detail, get_statement_page, get_certificate_page, get_profile_page)
+		real = {page: set(page()) for page in pages}
+
+		with self.from_page(self.FRAME):
+			for page in pages:
+				self.assertEqual(set(page()), real[page], page.__name__)
+				self.assertEqual(page()["holder_name"], PREVIEW_HOLDER, page.__name__)
+
+	def test_the_preview_statement_closes_on_the_overviews_outstanding(self):
+		with self.from_page(self.FRAME):
+			statement = get_statement_page()
+			overview = get_dashboard()
+
+		self.assertEqual(statement["rows"][-1]["balance"], overview["outstanding"])
+		self.assertEqual(statement["summary"]["balance"], overview["outstanding"])
+
+	def test_saving_details_in_the_preview_writes_nothing(self):
+		frappe.local.form_dict = frappe._dict({"customer": "CUST-PREVIEW-0001", "email": "x@example.com"})
+
+		with self.from_page(self.FRAME), patch("frappe.get_doc") as get_doc:
+			self.assertIn("preview", save_profile()["message"])
+
+		get_doc.assert_not_called()
 
 
 class TestPortalDisbursementRequest(LendingTestSuite):

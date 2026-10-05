@@ -57,6 +57,12 @@ DETAIL_FIELDS = (
 @frappe.whitelist()
 def get_application_detail() -> dict:
 	"""One application's tracker and details; the borrower's newest when none is named."""
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
+	if preview.is_preview():
+		return preview.application_detail()
+
 	name = frappe.form_dict.get("name") or default_application()
 	if not name:
 		lead = open_lead()

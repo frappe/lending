@@ -1483,7 +1483,11 @@
            },
            "componentSlots": {},
            "componentEvents": {},
-           "baseStyles": {},
+           "baseStyles": {
+            "flexDirection": "column",
+            "flexWrap": "nowrap",
+            "gap": "0px"
+           },
            "mobileStyles": {},
            "tabletStyles": {},
            "children": [
@@ -1502,8 +1506,8 @@
               "display": "flex",
               "flexDirection": "row",
               "alignItems": "center",
-              "gap": "10px",
-              "padding": "10px 0",
+              "gap": "12px",
+              "padding": "8px 0",
               "cursor": "pointer"
              },
              "mobileStyles": {},
@@ -1517,7 +1521,8 @@
                "baseStyles": {
                 "display": "flex",
                 "flexDirection": "column",
-                "gap": "2px"
+                "gap": "2px",
+                "minWidth": "0px"
                },
                "mobileStyles": {},
                "tabletStyles": {},
@@ -1582,7 +1587,9 @@
                },
                "componentSlots": {},
                "componentEvents": {},
-               "baseStyles": {},
+               "baseStyles": {
+                "flexShrink": "0"
+               },
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [],
@@ -2795,5 +2802,5 @@
    "componentId": "overview-0"
   }
  ],
- "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\twatch(\n\t\t() => context.overview?.data?.choose_account,\n\t\t(choose) => { if (choose) router.replace(\"/accounts\") },\n\t\t{ immediate: true },\n\t)\n\n\tconst applicationDot = computed(() => {\n\t\tconst data = context.overview?.data\n\t\tif (!data?.application_stage) return \"\"\n\t\treturn data.application_stage_tone === \"warn\" ? \"orange\" : \"green\"\n\t})\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, applicationDot }\n}\n"
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus, guardPreview } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tguardPreview(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\twatch(\n\t\t() => context.overview?.data?.choose_account,\n\t\t(choose) => { if (choose) router.replace(\"/accounts\") },\n\t\t{ immediate: true },\n\t)\n\n\tconst applicationDot = computed(() => {\n\t\tconst data = context.overview?.data\n\t\tif (!data?.application_stage) return \"\"\n\t\treturn data.application_stage_tone === \"warn\" ? \"orange\" : \"green\"\n\t})\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, applicationDot }\n}\n"
 }

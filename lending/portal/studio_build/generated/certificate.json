@@ -665,7 +665,7 @@
               "click": {
                "event": "click",
                "action": "Run Script",
-               "script": "window.open(certificate.data.download_url, '_blank')"
+               "script": "certificate.data.download_url && window.open(certificate.data.download_url, '_blank')"
               }
              },
              "baseStyles": {},
@@ -1590,5 +1590,5 @@
    "componentId": "certificate-0"
   }
  ],
- "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst year = ref(currentYear())\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tfunction currentYear() {\n\t\tconst today = new Date()\n\t\tconst start = today.getFullYear() - (today.getMonth() < 3 ? 1 : 0)\n\t\treturn `${start}-${start + 1}`\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, year }\n}\n"
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus, guardPreview } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst year = ref(currentYear())\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tguardPreview(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tfunction currentYear() {\n\t\tconst today = new Date()\n\t\tconst start = today.getFullYear() - (today.getMonth() < 3 ? 1 : 0)\n\t\treturn `${start}-${start + 1}`\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, year }\n}\n"
 }

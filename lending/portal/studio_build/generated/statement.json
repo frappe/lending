@@ -702,7 +702,7 @@
             "click": {
              "event": "click",
              "action": "Run Script",
-             "script": "window.open(statement.data.download_url, '_blank')"
+             "script": "statement.data.download_url && window.open(statement.data.download_url, '_blank')"
             }
            },
            "baseStyles": {},
@@ -766,7 +766,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Charged",
+                "text": "Opening balance",
                 "tag": "p",
                 "fontSize": "text-sm"
                },
@@ -783,7 +783,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "{{ statement.data.summary.charged }}",
+                "text": "{{ statement.data.summary.opening }}",
                 "tag": "div",
                 "fontSize": "text-2xl"
                },
@@ -802,7 +802,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Loan amount, interest and charges",
+                "text": "Owed when the period began",
                 "tag": "p",
                 "fontSize": "text-p-sm"
                },
@@ -840,7 +840,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Paid",
+                "text": "Charged",
                 "tag": "p",
                 "fontSize": "text-sm"
                },
@@ -857,7 +857,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "{{ statement.data.summary.paid }}",
+                "text": "{{ statement.data.summary.charged }}",
                 "tag": "div",
                 "fontSize": "text-2xl"
                },
@@ -876,7 +876,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Payments you made",
+                "text": "Loan amount, interest and charges",
                 "tag": "p",
                 "fontSize": "text-p-sm"
                },
@@ -914,7 +914,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Closing balance",
+                "text": "Paid",
                 "tag": "p",
                 "fontSize": "text-sm"
                },
@@ -931,7 +931,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "{{ statement.data.summary.balance }}",
+                "text": "{{ statement.data.summary.paid }}",
                 "tag": "div",
                 "fontSize": "text-2xl"
                },
@@ -950,7 +950,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "{{ statement.data.summary.balance_note }}",
+                "text": "Payments you made",
                 "tag": "p",
                 "fontSize": "text-p-sm"
                },
@@ -967,6 +967,80 @@
              ],
              "originalElement": "div",
              "componentId": "statement-0-container1-container1-container2-container1-container3"
+            },
+            {
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "4px",
+              "minWidth": "0px",
+              "paddingInlineStart": "20px",
+              "paddingInlineEnd": "20px",
+              "borderInlineStart": "1px solid var(--outline-gray-1)"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "Closing balance",
+                "tag": "p",
+                "fontSize": "text-sm"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock1"
+              },
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "{{ statement.data.summary.balance }}",
+                "tag": "div",
+                "fontSize": "text-2xl"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "fontWeight": "600",
+                "fontVariantNumeric": "tabular-nums",
+                "color": "var(--ink-gray-9)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock2"
+              },
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "{{ statement.data.summary.balance_note }}",
+                "tag": "p",
+                "fontSize": "text-p-sm"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock3"
+              }
+             ],
+             "originalElement": "div",
+             "componentId": "statement-0-container1-container1-container2-container1-container4"
             }
            ],
            "originalElement": "div",
@@ -1634,5 +1708,5 @@
    "componentId": "statement-0"
   }
  ],
- "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst fromDate = ref(isoDay(yearStart()))\n\tconst toDate = ref(isoDay(new Date()))\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tfunction isoDay(day: Date) {\n\t\tconst pad = (n: number) => String(n).padStart(2, \"0\")\n\t\treturn `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`\n\t}\n\n\tfunction yearStart(yearsBack = 0) {\n\t\tconst today = new Date()\n\t\tconst start = today.getFullYear() - (today.getMonth() < 3 ? 1 : 0) - yearsBack\n\t\treturn new Date(start, 3, 1)\n\t}\n\n\tconst setPeriod = (period: string) => {\n\t\tconst today = new Date()\n\t\tif (period === \"last_year\") {\n\t\t\tconst start = yearStart(1)\n\t\t\tfromDate.value = isoDay(start)\n\t\t\ttoDate.value = isoDay(new Date(start.getFullYear() + 1, 2, 31))\n\t\t} else if (period === \"last_quarter\") {\n\t\t\tfromDate.value = isoDay(new Date(today.getFullYear(), today.getMonth() - 3, today.getDate()))\n\t\t\ttoDate.value = isoDay(today)\n\t\t} else {\n\t\t\tfromDate.value = isoDay(yearStart())\n\t\t\ttoDate.value = isoDay(today)\n\t\t}\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, fromDate, toDate, setPeriod }\n}\n"
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus, guardPreview } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst fromDate = ref(isoDay(yearStart()))\n\tconst toDate = ref(isoDay(new Date()))\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tguardPreview(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tfunction isoDay(day: Date) {\n\t\tconst pad = (n: number) => String(n).padStart(2, \"0\")\n\t\treturn `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`\n\t}\n\n\tfunction yearStart(yearsBack = 0) {\n\t\tconst today = new Date()\n\t\tconst start = today.getFullYear() - (today.getMonth() < 3 ? 1 : 0) - yearsBack\n\t\treturn new Date(start, 3, 1)\n\t}\n\n\tconst setPeriod = (period: string) => {\n\t\tconst today = new Date()\n\t\tif (period === \"last_year\") {\n\t\t\tconst start = yearStart(1)\n\t\t\tfromDate.value = isoDay(start)\n\t\t\ttoDate.value = isoDay(new Date(start.getFullYear() + 1, 2, 31))\n\t\t} else if (period === \"last_quarter\") {\n\t\t\tfromDate.value = isoDay(new Date(today.getFullYear(), today.getMonth() - 3, today.getDate()))\n\t\t\ttoDate.value = isoDay(today)\n\t\t} else {\n\t\t\tfromDate.value = isoDay(yearStart())\n\t\t\ttoDate.value = isoDay(today)\n\t\t}\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, fromDate, toDate, setPeriod }\n}\n"
 }

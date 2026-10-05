@@ -13,6 +13,32 @@ export function appRoute(url?: string): string {
 	return url.replace(/^\/borrower(-portal)?/, "") || "/overview"
 }
 
+// Lending Settings' theme preview opens a page with this flag; see lending/portal/preview.py.
+const PREVIEW_PARAM = "lending_preview"
+const inPreview =
+	typeof window !== "undefined" && new URLSearchParams(window.location.search).get(PREVIEW_PARAM) === "1"
+const guardedRouters = new WeakSet()
+
+// The pages preview.py fills with the made-up borrower; any other would show the admin's own.
+const PREVIEW_PAGES = ["/overview", "/loans", "/applications", "/statement", "/certificate", "/profile"]
+
+function previewable(path: string): boolean {
+	return PREVIEW_PAGES.includes(path) || path.startsWith("/loan/") || path.startsWith("/application/")
+}
+
+// Keeps the flag on every in-app move, since the server reads it from the page's URL.
+export function guardPreview(router: any) {
+	if (!inPreview || guardedRouters.has(router)) return
+	guardedRouters.add(router)
+
+	router.beforeEach((to: any) => {
+		if (!previewable(to.path)) return false
+		if (to.query[PREVIEW_PARAM] !== "1") {
+			return { path: to.path, hash: to.hash, query: { ...to.query, [PREVIEW_PARAM]: "1" } }
+		}
+	})
+}
+
 // A full load, not router.push: open pages would keep what they read before logout.
 export async function logout(router: any) {
 	await call("logout")
@@ -59,17 +85,22 @@ export function useMenus(route: any, open: (url?: string) => void, logout: () =>
 		...(canSwitch
 			? [{ label: "Switch account", icon: "lucide-arrow-left-right", onClick: () => open("/accounts") }]
 			: []),
-		{
-			label: "Appearance",
-			icon: "lucide-sun-moon",
-			submenu: APPEARANCES.map(({ value, label, icon }) => ({
-				label,
-				icon,
-				selected: appearance.value === value,
-				onClick: () => chooseAppearance(value),
-			})),
-		},
-		{ label: "Log out", icon: "lucide-log-out", onClick: logout },
+		// The preview runs in the admin's Desk session: these would act on the admin.
+		...(inPreview
+			? []
+			: [
+					{
+						label: "Appearance",
+						icon: "lucide-sun-moon",
+						submenu: APPEARANCES.map(({ value, label, icon }) => ({
+							label,
+							icon,
+							selected: appearance.value === value,
+							onClick: () => chooseAppearance(value),
+						})),
+					},
+					{ label: "Log out", icon: "lucide-log-out", onClick: logout },
+				]),
 	]
 
 	return { isActive, accountMenu }

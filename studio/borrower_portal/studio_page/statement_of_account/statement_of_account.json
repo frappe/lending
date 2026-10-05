@@ -556,7 +556,7 @@
             "click": {
              "action": "Run Script",
              "event": "click",
-             "script": "window.open(statement.data.download_url, '_blank')"
+             "script": "statement.data.download_url && window.open(statement.data.download_url, '_blank')"
             }
            },
            "componentId": "statement-0-container1-container1-container1-button1",
@@ -612,7 +612,7 @@
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
-                "text": "Charged"
+                "text": "Opening balance"
                }
               },
               {
@@ -627,7 +627,7 @@
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
-                "text": "{{ statement.data.summary.charged }}"
+                "text": "{{ statement.data.summary.opening }}"
                }
               },
               {
@@ -640,7 +640,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "Loan amount, interest and charges"
+                "text": "Owed when the period began"
                }
               }
              ],
@@ -669,7 +669,7 @@
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
-                "text": "Paid"
+                "text": "Charged"
                }
               },
               {
@@ -684,7 +684,7 @@
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
-                "text": "{{ statement.data.summary.paid }}"
+                "text": "{{ statement.data.summary.charged }}"
                }
               },
               {
@@ -697,7 +697,7 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "Payments you made"
+                "text": "Loan amount, interest and charges"
                }
               }
              ],
@@ -726,7 +726,7 @@
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
-                "text": "Closing balance"
+                "text": "Paid"
                }
               },
               {
@@ -741,7 +741,7 @@
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
-                "text": "{{ statement.data.summary.balance }}"
+                "text": "{{ statement.data.summary.paid }}"
                }
               },
               {
@@ -754,11 +754,68 @@
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
-                "text": "{{ statement.data.summary.balance_note }}"
+                "text": "Payments you made"
                }
               }
              ],
              "componentId": "statement-0-container1-container1-container2-container1-container3",
+             "componentName": "container",
+             "originalElement": "div"
+            },
+            {
+             "baseStyles": {
+              "borderInlineStart": "1px solid var(--outline-gray-1)",
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "4px",
+              "minWidth": "0px",
+              "paddingInlineEnd": "20px",
+              "paddingInlineStart": "20px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-sm",
+                "tag": "p",
+                "text": "Closing balance"
+               }
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-9)",
+                "fontVariantNumeric": "tabular-nums",
+                "fontWeight": "600"
+               },
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-2xl",
+                "tag": "div",
+                "text": "{{ statement.data.summary.balance }}"
+               }
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "children": [],
+               "componentId": "statement-0-container1-container1-container2-container1-container4-textblock3",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "{{ statement.data.summary.balance_note }}"
+               }
+              }
+             ],
+             "componentId": "statement-0-container1-container1-container2-container1-container4",
              "componentName": "container",
              "originalElement": "div"
             }
@@ -1310,7 +1367,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-05 11:11:37.486598",
+ "modified": "2026-10-05 12:43:16.204494",
  "modified_by": "Administrator",
  "name": "statement_of_account",
  "owner": "Administrator",

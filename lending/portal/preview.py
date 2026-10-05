@@ -13,6 +13,7 @@ from lending.portal.core import (
 	STATUS_LABELS,
 	STATUS_TONES,
 	build_summary,
+	days_until,
 	decorate_activity,
 	decorate_timeline,
 	event,
@@ -59,81 +60,100 @@ def is_preview() -> bool:
 	return frappe.has_permission("Lending Settings", "write")
 
 
+# Every figure, from the overview to the certificate, comes from one schedule per loan, so they agree.
+INSTALMENT_DAYS = 30
+DISBURSAL_DAYS = 3
+
+
 def loans() -> list[frappe._dict]:
 	today = getdate(nowdate())
-
-	return [
+	terms = [
 		frappe._dict(
 			name=PERSONAL,
 			loan_product="Personal Loan",
 			status="Active",
-			posting_date=add_days(today, -270),
+			# Started so the next instalment falls five days out.
+			posting_date=add_days(today, -265),
 			loan_amount=500000,
 			disbursed_amount=500000,
-			total_principal_paid=118400,
-			total_amount_paid=148392,
-			total_payment=593568,
 			rate_of_interest=11.5,
 			repayment_periods=36,
 			repayment_frequency="Monthly",
 			monthly_repayment_amount=16488,
-			first_due=add_days(today, 5),
 		),
 		frappe._dict(
 			name=HOME,
 			loan_product="Home Loan",
 			status="Partially Disbursed",
-			posting_date=add_days(today, -120),
+			posting_date=add_days(today, -108),
 			loan_amount=2500000,
 			disbursed_amount=1500000,
-			total_principal_paid=21600,
-			total_amount_paid=88372,
-			total_payment=5302320,
 			rate_of_interest=8.75,
 			repayment_periods=240,
 			repayment_frequency="Monthly",
 			monthly_repayment_amount=22093,
-			first_due=add_days(today, 12),
 		),
 	]
 
+	for loan in terms:
+		rows = instalments(loan)
+		paid = [row for row in rows if row.day <= today]
+		loan.update(
+			total_principal_paid=sum(row.principal for row in paid),
+			total_amount_paid=sum(row.total for row in paid),
+			total_payment=sum(row.total for row in rows),
+			first_due=next(row.day for row in rows if row.day > today),
+		)
 
-def instalment(loan: dict) -> float:
-	# The home loan pays on its drawn share until the rest is disbursed.
-	return round(flt(loan.monthly_repayment_amount) * flt(loan.disbursed_amount) / flt(loan.loan_amount))
+	return terms
 
 
-def due_dates(loan: dict, count: int) -> list:
-	return [add_days(loan.first_due, 30 * month) for month in range(count)]
+def instalments(loan: dict) -> list[frappe._dict]:
+	"""Monthly, interest on the balance; the home loan pays on its drawn share until the rest is out."""
+	amount = round(flt(loan.monthly_repayment_amount) * flt(loan.disbursed_amount) / flt(loan.loan_amount))
+	balance = flt(loan.disbursed_amount)
+	day = getdate(loan.posting_date)
+	rows = []
+
+	for _period in range(loan.repayment_periods):
+		day = getdate(add_days(day, INSTALMENT_DAYS))
+		interest = round(balance * loan.rate_of_interest / 1200)
+		principal = min(amount - interest, balance)
+		balance -= principal
+		rows.append(frappe._dict(day=day, interest=interest, principal=principal, total=interest + principal))
+
+	return rows
+
+
+def upcoming(loan: dict, count: int = 2) -> list[frappe._dict]:
+	return [row for row in instalments(loan) if row.day > getdate(nowdate())][:count]
+
+
+def repaid(loan: dict, count: int = 2) -> list[frappe._dict]:
+	return [row for row in instalments(loan) if row.day <= getdate(nowdate())][-count:]
 
 
 def schedule(only: dict | None = None) -> list[dict]:
-	rows = []
-	for loan in [only] if only else loans():
-		amount = instalment(loan)
-		interest = round(outstanding_of(loan) * loan.rate_of_interest / 1200)
-		for day in due_dates(loan, 2):
-			rows.append((day, loan, amount, interest))
-
-	rows.sort(key=lambda row: row[0])
+	rows = sorted(
+		((row, loan) for loan in ([only] if only else loans()) for row in upcoming(loan)),
+		key=lambda pair: pair[0].day,
+	)
 
 	return name_once(
 		[
 			{
-				"date": short_date(day),
-				"day": formatdate(day, "dd"),
-				"month": formatdate(day, "MMM"),
-				"year": formatdate(day, "yyyy"),
+				"date": short_date(row.day),
+				"day": formatdate(row.day, "dd"),
+				"month": formatdate(row.day, "MMM"),
+				"year": formatdate(row.day, "yyyy"),
 				"product": loan.loan_product,
-				"detail": _("Principal {0} · Interest {1}").format(
-					money(amount - interest), money(interest)
-				),
-				"principal": _("Principal {0}").format(money(amount - interest)),
-				"interest": _("Interest {0}").format(money(interest)),
-				"amount": money(amount),
+				"detail": _("Principal {0} · Interest {1}").format(money(row.principal), money(row.interest)),
+				"principal": _("Principal {0}").format(money(row.principal)),
+				"interest": _("Interest {0}").format(money(row.interest)),
+				"amount": money(row.total),
 				"url": loan_url(loan.name),
 			}
-			for day, loan, amount, interest in rows[:4]
+			for row, loan in rows[:4]
 		]
 	)
 
@@ -146,7 +166,7 @@ def money_events() -> list[dict]:
 		events.append(
 			event(
 				"disbursed",
-				add_days(loan.posting_date, 3),
+				add_days(loan.posting_date, DISBURSAL_DAYS),
 				_("Loan amount received"),
 				disbursed,
 				loan.loan_product,
@@ -154,11 +174,10 @@ def money_events() -> list[dict]:
 				amount=disbursed,
 			)
 		)
-		paid = money(instalment(loan))
-		for day in due_dates(loan, 2):
-			day = add_days(day, -60)
+		for row in repaid(loan):
+			paid = money(row.total)
 			events.append(
-				event("repaid", day, _("Payment made"), paid, loan.loan_product, url, amount=paid)
+				event("repaid", row.day, _("Payment made"), paid, loan.loan_product, url, amount=paid)
 			)
 
 	return events
@@ -253,7 +272,9 @@ def dashboard() -> dict:
 	payload.update(shell_payload(_("Account overview"), _("View payment details"), all_loans))
 	payload.update(labels())
 	payload.update(build_summary(all_loans, rows))
-	payload["next_flag"] = _("Due in {0} days").format(5)
+	# build_summary reads the flag from the database, which has none of these loans.
+	soonest = min(loan.first_due for loan in all_loans)
+	payload["next_flag"] = _("Due in {0} days").format(days_until(soonest)) if days_until(soonest) <= 7 else ""
 	payload["tasks"] = [
 		{
 			"product": first["product"],
@@ -315,6 +336,224 @@ def loan_detail(name: str | None) -> dict:
 			"drawdown": {"loan": loan.name, "open": False, "available": 0, "note": ""},
 			"payoff_total": money(round(outstanding_of(loan) * 1.01)),
 			"payoff_note": _("As on {0}").format(long_date(nowdate())),
+		}
+	)
+
+	return payload
+
+
+APPLICATION = "APP-PREVIEW-0001"
+CUSTOMER = "CUST-PREVIEW-0001"
+
+
+def application_detail() -> dict:
+	# Imported here: these modules call into preview.
+	from lending.portal.applications import (
+		applicant_rows,
+		get_application_steps,
+		stage_headline,
+		stage_label,
+		stage_note,
+		term_rows,
+	)
+
+	application = frappe._dict(
+		name=APPLICATION,
+		applicant=CUSTOMER,
+		applicant_name=HOLDER,
+		applicant_type="Customer",
+		status="Open",
+		docstatus=0,
+		posting_date=add_days(nowdate(), -4),
+		loan_product="Vehicle Loan",
+		loan_amount=850000,
+		repayment_method="Repay Over Number of Periods",
+		repayment_periods=60,
+		rate_of_interest=9.5,
+		is_secured_loan=1,
+		loan_purpose="A family car",
+		**ADDRESS,
+	)
+	documents = [
+		{"label": _("PAN Card"), "value": _("Uploaded"), "marker": "✓"},
+		{"label": _("Salary Slip"), "value": _("Uploaded"), "marker": "✓"},
+	]
+	headline, headline_note = stage_headline(application, {})
+
+	payload = as_holder(shell_payload(_("Application"), _("Contact us"), loans()))
+	payload["head_note"] = "{0} · {1}".format(application.name, stage_label(application))
+	payload.update(
+		{
+			"has_application": True,
+			"product": application.loan_product,
+			"reference": _("Application {0}").format(application.name),
+			"headline": headline,
+			"headline_note": headline_note,
+			"steps": get_application_steps(application),
+			"steps_note": stage_note(application),
+			"preview_note": _("As you sent it on {0}").format(long_date(application.posting_date)),
+			"terms": term_rows(application),
+			"terms_note": _("The loan you asked for"),
+			"applicant": applicant_rows(application),
+			"applicant_note": _("From your profile"),
+			"co_applicants": [],
+			"co_applicants_note": _("Just you"),
+			"documents": documents,
+			"documents_note": _("{0} attached").format(len(documents)),
+		}
+	)
+
+	return payload
+
+
+def chosen_loans(name: str | None) -> list[frappe._dict]:
+	return [loan for loan in loans() if loan.name == name] or loans()
+
+
+def statement_entries(loan: dict) -> list[dict]:
+	"""The disbursal, then each instalment's interest charged and its payment, with a running balance."""
+	disbursed = add_days(loan.posting_date, DISBURSAL_DAYS)
+	entries = [{"posting_date": disbursed, "transaction_type": _("Disbursement"), "debit": loan.disbursed_amount}]
+
+	for row in instalments(loan):
+		if row.day > getdate(nowdate()):
+			break
+		entries.append({"posting_date": row.day, "transaction_type": _("Interest"), "debit": row.interest})
+		entries.append({"posting_date": row.day, "transaction_type": _("Repayment"), "credit": row.total})
+
+	return entries
+
+
+def statement_page(loan: str | None, from_date: str, to_date: str) -> dict:
+	from lending.portal.statement import statement_body
+
+	chosen = chosen_loans(loan)
+	entries = [entry for row in chosen for entry in statement_entries(row)]
+
+	payload = as_holder(shell_payload(_("Statement of account"), "", chosen))
+	payload["head_note"] = _("{0} to {1}").format(long_date(from_date), long_date(to_date))
+	payload.update(statement_body(entries, from_date, to_date, len(chosen)))
+	payload.update(
+		{
+			"totals_note": _("Across 1 account") if len(chosen) == 1 else _("Across {0} accounts").format(len(chosen)),
+			"from_date": from_date,
+			"to_date": to_date,
+			# No PDF: the download builds it from real loan records.
+			"download_url": "",
+			"download_label": _("Download PDF"),
+		}
+	)
+
+	return payload
+
+
+def certificate_page(year: str | None, loan: str | None) -> dict:
+	from lending.portal.statement import (
+		PAID_FIELDS,
+		account_row,
+		certificate_summary,
+		requested_year,
+		year_options,
+	)
+
+	label, start, end = requested_year(year)
+	running = getdate(end) > getdate(nowdate())
+	chosen = chosen_loans(loan)
+
+	by_loan = {}
+	for row in chosen:
+		# Paid so far, plus what is still scheduled while the year runs: the real page's provisional rule.
+		within = [i for i in instalments(row) if getdate(start) <= i.day <= getdate(end)]
+		counted = within if running else [i for i in within if i.day <= getdate(nowdate())]
+		amounts = dict.fromkeys((field for field, _title in PAID_FIELDS), 0.0)
+		amounts["total_interest_paid"] = sum(i.interest for i in counted)
+		amounts["principal_amount_paid"] = sum(i.principal for i in counted)
+		by_loan[row.name] = amounts
+
+	totals = {field: sum(amounts[field] for amounts in by_loan.values()) for field, _title in PAID_FIELDS}
+
+	payload = as_holder(shell_payload(_("Interest certificate"), "", chosen))
+	payload["head_note"] = _("Financial year {0} · {1}").format(label, _("provisional") if running else _("final"))
+	payload.update(
+		{
+			"rows": [
+				{"label": _(title), "value": money(totals[field])} for field, title in PAID_FIELDS if totals[field]
+			],
+			"rows_note": _("Provisional · paid to date plus instalments due before {0}").format(long_date(end))
+			if running
+			else _("Final · amounts paid between {0} and {1}").format(long_date(start), long_date(end)),
+			"year": label,
+			"year_label": _("Financial year {0}").format(label),
+			"kind": _("Provisional") if running else _("Final"),
+			"kind_theme": "orange" if running else "green",
+			"summary": certificate_summary(totals),
+			"accounts": [account_row(row, by_loan[row.name]) for row in chosen],
+			"accounts_note": _("1 account covered")
+			if len(chosen) == 1
+			else _("{0} accounts covered").format(len(chosen)),
+			"years": year_options(),
+			"disclaimer": _(
+				"This certificate reports amounts paid. It states no tax relief; please consult your tax adviser."
+			),
+			"download_url": "",
+			"download_label": _("Download {0} certificate").format(label),
+		}
+	)
+
+	return payload
+
+
+ADDRESS = {
+	"address_line_1": "14, Lakeview Apartments",
+	"address_line_2": "MG Road",
+	"city": "Bengaluru",
+	"state": "Karnataka",
+	"zip_code": "560001",
+	"country": "India",
+}
+
+CONTACT = {"email": "priya.sharma@example.com", "mobile": "+91 98450 12345", "phone": ""}
+
+
+def profile_page() -> dict:
+	from lending.portal.profile import row
+
+	address = ", ".join(value for value in ADDRESS.values() if value)
+	values = {
+		"customer_name": HOLDER,
+		"customer_type": "Individual",
+		"tax_id": "ABCPS1234K",
+		**CONTACT,
+		"address_line1": ADDRESS["address_line_1"],
+		"address_line2": ADDRESS["address_line_2"],
+		"city": ADDRESS["city"],
+		"state": ADDRESS["state"],
+		"pincode": ADDRESS["zip_code"],
+		"country": ADDRESS["country"],
+	}
+
+	payload = as_holder(shell_payload(_("Personal details"), _("Contact us"), loans()))
+	payload.update(
+		{
+			"records": [
+				row(_("Name"), HOLDER, CUSTOMER),
+				row(_("Registered as"), values["customer_type"]),
+				row(_("Tax id"), values["tax_id"]),
+				row(_("Email"), CONTACT["email"]),
+				row(_("Mobile"), CONTACT["mobile"]),
+				row(_("Phone"), CONTACT["phone"]),
+				row(_("Address"), address),
+			],
+			"records_note": _("Your profile"),
+			"edit_note": _(
+				"Contact details and address can be corrected. Name and tax id come from your verified records — write to us to change those."
+			),
+			"form_customer": CUSTOMER,
+			"forms": {CUSTOMER: values},
+			"customer_options": [{"label": HOLDER, "value": CUSTOMER}],
+			"form_note": _("Editing {0}").format(HOLDER),
+			"save_label": _("Save my details"),
+			**{f"form_{field}": value for field, value in values.items() if field not in ("customer_name", "customer_type", "tax_id")},
 		}
 	)
 
