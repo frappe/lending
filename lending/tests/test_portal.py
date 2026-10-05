@@ -1252,6 +1252,9 @@ class TestPortalSignUp(LendingTestSuite):
 
 		self.assertFalse(self.open_account(offer, verified=False)["verified"])
 		self.assertFalse(frappe.db.exists("User", PERSON_EMAIL))
+		self.assertEqual(
+			frappe.db.get_value("Loan Lead", offer["reference"], "email_verification_status"), "Pending"
+		)
 
 		self.open_account(offer)
 		self.assertTrue(frappe.db.exists("User", PERSON_EMAIL))
@@ -1261,7 +1264,11 @@ class TestPortalSignUp(LendingTestSuite):
 		self.open_account(offer, email=COMPANY_EMAIL)
 
 		self.assertTrue(frappe.db.exists("User", COMPANY_EMAIL))
-		self.assertEqual(frappe.db.get_value("Loan Lead", offer["reference"], "email"), COMPANY_EMAIL)
+		lead = frappe.db.get_value(
+			"Loan Lead", offer["reference"], ["email", "email_verification_status"], as_dict=True
+		)
+		self.assertEqual(lead.email, COMPANY_EMAIL)
+		self.assertEqual(lead.email_verification_status, "Verified")
 
 	def test_converting_a_lead_reuses_the_borrowers_customer(self):
 		self.open_account(self.apply_as(PERSON_EMAIL, "9812340111"))

@@ -606,7 +606,9 @@ def create_account() -> dict:
 	frappe.set_user("Administrator")  # nosemgrep
 	try:
 		# The confirmed address wins, so leads_for_login finds this lead from the new login.
-		frappe.db.set_value("Loan Lead", lead_name, "email", email)
+		frappe.db.set_value(
+			"Loan Lead", lead_name, {"email": email, "email_verification_status": "Verified"}
+		)
 
 		user = frappe.new_doc("User")
 		user.update(
