@@ -22,11 +22,11 @@ from lending.portal.core import (
 RESULT_LIMIT = 5
 
 
-def results_for(query: str, customers: list[str], limit: int = RESULT_LIMIT) -> tuple[list[dict], str]:
+def results_for(query: str, rows: list[dict], limit: int = RESULT_LIMIT) -> tuple[list[dict], str]:
 	if not query:
 		return page_rows()[:limit], results_note(query, 0, limit)
 
-	found = matches(query, searchable(customers))
+	found = matches(query, rows)
 
 	return found[:limit], results_note(query, len(found), limit)
 
@@ -41,7 +41,12 @@ def page_rows() -> list[dict]:
 @frappe.whitelist(methods=["GET"])
 def find() -> dict:
 	"""Ctrl+K palette results; no shell payload since it is called on every keystroke pause."""
-	results, note = results_for(clean(frappe.form_dict.get("q")), get_portal_customers())
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
+	# The preview runs as the settings editor, who may be a borrower too: their own records would show.
+	rows = preview.search_rows() if preview.is_preview() else searchable(get_portal_customers())
+	results, note = results_for(clean(frappe.form_dict.get("q")), rows)
 
 	return {"results": results, "note": note}
 

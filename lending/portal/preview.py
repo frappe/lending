@@ -344,6 +344,7 @@ def loan_detail(name: str | None) -> dict:
 
 APPLICATION = "APP-PREVIEW-0001"
 CUSTOMER = "CUST-PREVIEW-0001"
+DOCUMENTS = ("PAN Card", "Salary Slip")
 
 
 def application_detail() -> dict:
@@ -374,10 +375,7 @@ def application_detail() -> dict:
 		loan_purpose="A family car",
 		**ADDRESS,
 	)
-	documents = [
-		{"label": _("PAN Card"), "value": _("Uploaded"), "marker": "✓"},
-		{"label": _("Salary Slip"), "value": _("Uploaded"), "marker": "✓"},
-	]
+	documents = [{"label": _(name), "value": _("Uploaded"), "marker": "✓"} for name in DOCUMENTS]
 	headline, headline_note = stage_headline(application, {})
 
 	payload = as_holder(shell_payload(_("Application"), _("Contact us"), loans()))
@@ -558,6 +556,29 @@ def profile_page() -> dict:
 	)
 
 	return payload
+
+
+def search_rows() -> list[dict]:
+	"""What the Ctrl+K palette searches: the pages, then the made-up borrower's loans, application and files."""
+	from lending.portal.search import application_row, loan_row, page_rows
+
+	pending = applications()
+	documents = [
+		{
+			"title": _(name),
+			"note": _("Attached to {0}").format(APPLICATION),
+			"kind": _("Document"),
+			"url": pending[0]["url"],
+		}
+		for name in DOCUMENTS
+	]
+
+	return (
+		page_rows()
+		+ [loan_row(loan) for loan in loans()]
+		+ [application_row(application) for application in pending]
+		+ documents
+	)
 
 
 def notification_sources() -> tuple[list[dict], list[dict], list[dict]]:

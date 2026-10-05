@@ -2570,6 +2570,20 @@ class TestPortalPreview(PortalPeople):
 		self.assertEqual(statement["rows"][-1]["balance"], overview["outstanding"])
 		self.assertEqual(statement["summary"]["balance"], overview["outstanding"])
 
+	def test_search_in_the_preview_finds_the_made_up_borrower_not_the_editors_own(self):
+		# The editor may be a borrower too; their own loans must not surface in the preview.
+		own = [{"title": "Editor's own loan", "note": "Real loan", "kind": "Loan account", "url": "/x"}]
+		frappe.local.form_dict = frappe._dict({"q": "loan"})
+
+		with patch("lending.portal.search.searchable", return_value=own):
+			self.assertEqual(find()["results"], own)
+
+			with self.from_page(self.FRAME):
+				titles = [row["title"] for row in find()["results"]]
+
+		self.assertNotIn("Editor's own loan", titles)
+		self.assertIn("Personal Loan", titles)
+
 	def test_saving_details_in_the_preview_writes_nothing(self):
 		frappe.local.form_dict = frappe._dict({"customer": "CUST-PREVIEW-0001", "email": "x@example.com"})
 
