@@ -175,9 +175,7 @@ def brand_tokens(primary_color, secondary_color, mode=LIGHT, ink=None) -> dict:
 		tokens.update(wash_tokens(action, mode))
 
 	if primary and action:
-		header, header_ink = header_action(primary, action, mode)
-		if header == action:
-			header_ink = ink
+		header, header_ink = header_action(primary, action, mode, ink)
 		tokens.update(button_tokens("--portal-header-action", header, mode, header_ink))
 
 	return tokens
@@ -241,13 +239,14 @@ def wash_tokens(action, mode) -> dict:
 	}
 
 
-def header_action(primary, action, mode) -> tuple:
+def header_action(primary, action, mode, ink=None) -> tuple:
 	"""The header button's fill, and its label when the default pick cannot fit."""
 	# A secondary that can't clear 3:1 on the band (HDFC red on navy) takes the band's ink.
 	band = channels(mode.band(primary))
 	bar = DARK_HEADER_CONTRAST if mode.dark else UI_CONTRAST
-	if contrast(action, band) >= bar:
-		return action, None
+	# Judged as painted: under() can darken the fill for its label, back toward a dark band.
+	if contrast(settled(action, ink), band) >= bar:
+		return action, ink
 
 	if not mode.dark:
 		return channels(ink_for(band)), None
@@ -261,10 +260,14 @@ def header_action(primary, action, mode) -> tuple:
 	return lighter, to_hex(DARK_INK)
 
 
+def settled(rgb, ink=None):
+	"""The fill once it has given way for its label: APCA picks white on mid-tones like #ef6f21 at 3:1."""
+	return channels(under(ink or ink_for(rgb), rgb, TEXT_CONTRAST))
+
+
 def button_tokens(prefix, rgb, mode, ink=None) -> dict:
-	# APCA picks white on mid-tones like #ef6f21 at 3:1; the fill gives way so the label reaches 4.5:1.
 	ink = ink or ink_for(rgb)
-	rgb = channels(under(ink, rgb, TEXT_CONTRAST))
+	rgb = settled(rgb, ink)
 
 	return {
 		prefix: to_hex(rgb),

@@ -5,6 +5,7 @@ import glob
 import inspect
 import json
 import math
+import random
 import re
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -1863,6 +1864,19 @@ class TestPortalPresets(LendingTestSuite):
 			# 3.5, not 3: buttons that only just cleared 3:1 on the band read as faint.
 			self.assertGreaterEqual(contrast(button, channels(dark["--portal-primary-soft"])), 3.5, name)
 			self.assertGreaterEqual(contrast(button, channels(dark["--portal-header-action-ink"])), 4.5, name)
+
+	def test_any_custom_header_button_stands_off_the_band_as_painted(self):
+		# Teal on salmon once ended at 2.63:1: the label's darkening was not judged against the band.
+		rng = random.Random(7)
+		pairs = [("#%06x" % rng.randrange(1 << 24), "#%06x" % rng.randrange(1 << 24)) for _ in range(500)]
+		pairs.append(("#1db9b8", "#c7918a"))
+
+		for primary, secondary in pairs:
+			for tokens, bar in ((brand_tokens(primary, secondary), 3.0), (dark_tokens(primary, secondary, None, None, None), 3.5)):
+				button = channels(tokens["--portal-header-action"])
+
+				self.assertGreaterEqual(contrast(button, channels(tokens["--portal-primary-soft"])), bar, (primary, secondary))
+				self.assertGreaterEqual(contrast(button, channels(tokens["--portal-header-action-ink"])), 4.5, (primary, secondary))
 
 	def test_the_initials_on_the_band_read_as_text_in_both_modes(self):
 		for name, preset in PRESETS.items():
