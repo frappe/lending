@@ -202,14 +202,14 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		statement_dict = get_statement_dict(doc)
 		self.assertNotIn("_Test Loan Customer 2", statement_dict)
 
-	def test_statement_dict_skips_applicant_without_period_activity(self):
+	def test_statement_dict_keeps_balance_only_applicant(self):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")
 		doc.from_date = add_months(today(), 1)
 		doc.to_date = add_months(today(), 12)
 
 		statement_dict = get_statement_dict(doc)
-		self.assertNotIn("_Test Loan Customer", statement_dict)
+		self.assertIn("_Test Loan Customer", statement_dict)
 
 	def test_statement_footer_totals_exclude_summary_rows(self):
 		from frappe.utils import fmt_money
