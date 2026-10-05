@@ -28,7 +28,7 @@ def get_columns(filters):
 			"label": _("Transaction Type"),
 			"fieldtype": "Data",
 			"fieldname": "transaction_type",
-			"width": 150,
+			"width": 220,
 		},
 	]
 
@@ -93,26 +93,67 @@ def get_columns(filters):
 
 def get_data(filters):
 	default_currency = frappe.get_cached_value("Company", filters.get("company"), "default_currency")
+	period = ["between", [filters["from_date"], filters["to_date"]]]
 	entries = []
 
-	entries.extend(get_disbursement_entries(filters))
-	entries.extend(get_repayment_entries(filters))
-	entries.extend(get_demand_entries(filters))
+	entries.extend(get_disbursement_entries(filters, period))
+	entries.extend(get_repayment_entries(filters, period))
+	entries.extend(get_demand_entries(filters, period))
 
 	entries.sort(key=lambda x: (getdate(x["posting_date"]), x.get("_sort_order", 0)))
 
 	if filters.get("group_by") == "Grouped":
 		entries = group_entries(entries)
 
-	# compute running balance
-	balance = 0
+	opening = get_opening_totals(filters)
+	total = {"debit": 0, "credit": 0}
+
+	balance = opening["debit"] - opening["credit"]
 	for entry in entries:
 		balance += flt(entry.get("debit")) - flt(entry.get("credit"))
 		entry["balance"] = balance
 		entry["currency"] = default_currency
 		entry.pop("_sort_order", None)
+		total["debit"] += flt(entry.get("debit"))
+		total["credit"] += flt(entry.get("credit"))
 
-	return entries
+	closing = {
+		"debit": opening["debit"] + total["debit"],
+		"credit": opening["credit"] + total["credit"],
+	}
+
+	return [
+		get_summary_row(_("Opening"), opening, default_currency),
+		*entries,
+		get_summary_row(_("Total"), total, default_currency, show_balance=False),
+		get_summary_row(_("Closing (Opening + Total)"), closing, default_currency),
+	]
+
+
+def get_summary_row(label, totals, currency, show_balance=True):
+	return {
+		"transaction_type": label,
+		"debit": totals["debit"],
+		"credit": totals["credit"],
+		"balance": totals["debit"] - totals["credit"] if show_balance else None,
+		"currency": currency,
+	}
+
+
+def get_opening_totals(filters):
+	before_from_date = ["<", filters["from_date"]]
+
+	debit = get_sum(
+		"Loan Disbursement", get_disbursement_conditions(filters, before_from_date), "disbursed_amount"
+	) + get_sum("Loan Demand", get_demand_conditions(filters, before_from_date), "demand_amount")
+	credit = get_sum("Loan Repayment", get_repayment_conditions(filters, before_from_date), "amount_paid")
+
+	return {"debit": debit, "credit": credit}
+
+
+def get_sum(doctype, conditions, fieldname):
+	result = frappe.get_all(doctype, filters=conditions, fields=[{"SUM": fieldname, "as": "total"}])
+	return flt(result[0].total) if result else 0
 
 
 def group_entries(entries):
@@ -152,16 +193,20 @@ def get_filter_conditions(filters):
 	return conditions
 
 
-def get_disbursement_entries(filters):
+def get_disbursement_conditions(filters, date_condition):
 	conditions = get_filter_conditions(filters)
-	conditions["disbursement_date"] = ["between", [filters["from_date"], filters["to_date"]]]
+	conditions["disbursement_date"] = date_condition
 
 	if filters.get("loan"):
 		conditions["against_loan"] = filters["loan"]
 
+	return conditions
+
+
+def get_disbursement_entries(filters, date_condition):
 	disbursements = frappe.get_all(
 		"Loan Disbursement",
-		filters=conditions,
+		filters=get_disbursement_conditions(filters, date_condition),
 		fields=[
 			"disbursement_date as posting_date",
 			"name",
@@ -189,16 +234,20 @@ def get_disbursement_entries(filters):
 	return entries
 
 
-def get_repayment_entries(filters):
+def get_repayment_conditions(filters, date_condition):
 	conditions = get_filter_conditions(filters)
-	conditions["posting_date"] = ["between", [filters["from_date"], filters["to_date"]]]
+	conditions["posting_date"] = date_condition
 
 	if filters.get("loan"):
 		conditions["against_loan"] = filters["loan"]
 
+	return conditions
+
+
+def get_repayment_entries(filters, date_condition):
 	repayments = frappe.get_all(
 		"Loan Repayment",
-		filters=conditions,
+		filters=get_repayment_conditions(filters, date_condition),
 		fields=[
 			"posting_date",
 			"name",
@@ -245,9 +294,9 @@ def get_repayment_entries(filters):
 	return entries
 
 
-def get_demand_entries(filters):
+def get_demand_conditions(filters, date_condition):
 	conditions = {"docstatus": 1, "company": filters.get("company")}
-	conditions["demand_date"] = ["between", [filters["from_date"], filters["to_date"]]]
+	conditions["demand_date"] = date_condition
 
 	if filters.get("applicant"):
 		conditions["applicant"] = filters.get("applicant")
@@ -264,9 +313,13 @@ def get_demand_entries(filters):
 	# exclude principal EMI demands since disbursements already capture the debit
 	conditions["demand_subtype"] = ["!=", "Principal"]
 
+	return conditions
+
+
+def get_demand_entries(filters, date_condition):
 	demands = frappe.get_all(
 		"Loan Demand",
-		filters=conditions,
+		filters=get_demand_conditions(filters, date_condition),
 		fields=[
 			"demand_date as posting_date",
 			"name",
