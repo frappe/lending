@@ -92,3 +92,49 @@ class TestLoanStatementOfAccount(LendingTestSuite):
 		}
 		for key, value in expected_data.items():
 			self.assertEqual(repayment_row.get(key), value)
+
+		self.assertEqual(data[0]["transaction_type"], "Opening")
+		self.assertEqual(data[0]["balance"], 0)
+
+	def test_loan_statement_of_account_carries_opening_balance(self):
+		loan = create_loan(
+			"_Test Loan Customer",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			repayment_start_date="2024-02-05",
+			posting_date="2024-01-05",
+			rate_of_interest=10,
+		)
+		loan.submit()
+
+		disb = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-01-05",
+			repayment_start_date="2024-02-05",
+		)
+		repayment = create_repayment_entry(loan.name, "2024-02-05", 10000, loan_disbursement=disb.name)
+		repayment.submit()
+
+		_, data = execute(
+			{
+				"from_date": "2024-02-01",
+				"to_date": "2099-12-31",
+				"company": "_Test Company",
+				"loan": loan.name,
+			}
+		)
+		opening, *entries, total, closing = data
+
+		self.assertEqual(opening["transaction_type"], "Opening")
+		self.assertEqual(opening["debit"], 120000)
+		self.assertEqual(opening["balance"], 120000)
+		self.assertFalse(any(row.get("transaction_doctype") == "Loan Disbursement" for row in entries))
+
+		self.assertEqual(total["debit"], sum(row["debit"] for row in entries))
+		self.assertEqual(total["credit"], sum(row["credit"] for row in entries))
+		self.assertEqual(closing["balance"], opening["balance"] + total["debit"] - total["credit"])
+		self.assertEqual(entries[-1]["balance"], closing["balance"])
