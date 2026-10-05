@@ -52,8 +52,10 @@
 	</thead>
 	<tbody>
 		{% for row in data %}
-			{% set ns.total_debit = ns.total_debit + (row.debit or 0) %}
-			{% set ns.total_credit = ns.total_credit + (row.credit or 0) %}
+			{% if row.posting_date %}
+				{% set ns.total_debit = ns.total_debit + (row.debit or 0) %}
+				{% set ns.total_credit = ns.total_credit + (row.credit or 0) %}
+			{% endif %}
 			<tr>
 				<td>{{ frappe.format(row.posting_date, 'Date') }}</td>
 				<td>{{ row.transaction_type }}</td>

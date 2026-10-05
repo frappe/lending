@@ -109,7 +109,7 @@ def get_statement_dict(doc):
 			continue
 		filters = get_report_filters(doc, entry)
 		columns, data = get_loan_soa(filters)
-		if not data:
+		if not any(row.get("posting_date") for row in data):
 			continue
 		statement_dict[entry.applicant] = get_html(doc, filters, columns, data)
 
