@@ -564,29 +564,6 @@ def profile_page() -> dict:
 	return payload
 
 
-def search_rows() -> list[dict]:
-	"""What the Ctrl+K palette searches: the pages, then the made-up borrower's loans, application and files."""
-	from lending.portal.search import application_row, loan_row, page_rows
-
-	pending = applications()
-	documents = [
-		{
-			"title": _(name),
-			"note": _("Attached to {0}").format(APPLICATION),
-			"kind": _("Document"),
-			"url": pending[0]["url"],
-		}
-		for name in DOCUMENTS
-	]
-
-	return (
-		page_rows()
-		+ [loan_row(loan) for loan in loans()]
-		+ [application_row(application) for application in pending]
-		+ documents
-	)
-
-
 def notification_sources() -> tuple[list[dict], list[dict], list[dict]]:
 	"""Applications, upcoming instalments and money events, as notifications.current_rows reads them."""
 	return applications(), schedule(), decorate_activity(latest(money_events(), 15))

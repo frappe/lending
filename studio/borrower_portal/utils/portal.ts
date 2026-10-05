@@ -171,7 +171,8 @@ export function useSearch(open: (url?: string) => void) {
 	}
 
 	// Studio's editor has a Ctrl+K of its own, and runs a page's setup() on its canvas.
-	if (!window.location.pathname.startsWith("/studio")) {
+	// The theme preview has nothing worth searching: its borrower is made up.
+	if (!inPreview && !window.location.pathname.startsWith("/studio")) {
 		window.addEventListener("keydown", onKeydown)
 	}
 	onScopeDispose(() => {

@@ -2570,8 +2570,8 @@ class TestPortalPreview(PortalPeople):
 		self.assertEqual(statement["rows"][-1]["balance"], overview["outstanding"])
 		self.assertEqual(statement["summary"]["balance"], overview["outstanding"])
 
-	def test_search_in_the_preview_finds_the_made_up_borrower_not_the_editors_own(self):
-		# The editor may be a borrower too; their own loans must not surface in the preview.
+	def test_search_in_the_preview_never_answers_with_the_editors_own_records(self):
+		# The preview has no Ctrl+K; the editor may be a borrower too, so a stray call finds nothing.
 		own = [{"title": "Editor's own loan", "note": "Real loan", "kind": "Loan account", "url": "/x"}]
 		frappe.local.form_dict = frappe._dict({"q": "loan"})
 
@@ -2579,10 +2579,7 @@ class TestPortalPreview(PortalPeople):
 			self.assertEqual(find()["results"], own)
 
 			with self.from_page(self.FRAME):
-				titles = [row["title"] for row in find()["results"]]
-
-		self.assertNotIn("Editor's own loan", titles)
-		self.assertIn("Personal Loan", titles)
+				self.assertEqual(find(), {"results": [], "note": ""})
 
 	def test_nothing_in_the_preview_sends_or_saves(self):
 		# The frame is clickable and runs as the editor: an OTP from Apply would text a stranger.

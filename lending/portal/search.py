@@ -6,6 +6,7 @@
 import frappe
 from frappe import _
 
+from lending.portal import preview
 from lending.portal.core import (
 	application_url,
 	clean,
@@ -22,11 +23,11 @@ from lending.portal.core import (
 RESULT_LIMIT = 5
 
 
-def results_for(query: str, rows: list[dict], limit: int = RESULT_LIMIT) -> tuple[list[dict], str]:
+def results_for(query: str, customers: list[str], limit: int = RESULT_LIMIT) -> tuple[list[dict], str]:
 	if not query:
 		return page_rows()[:limit], results_note(query, 0, limit)
 
-	found = matches(query, rows)
+	found = matches(query, searchable(customers))
 
 	return found[:limit], results_note(query, len(found), limit)
 
@@ -41,12 +42,11 @@ def page_rows() -> list[dict]:
 @frappe.whitelist(methods=["GET"])
 def find() -> dict:
 	"""Ctrl+K palette results; no shell payload since it is called on every keystroke pause."""
-	# Imported here: preview builds on this module.
-	from lending.portal import preview
+	# The preview has no Ctrl+K; asked anyway, it must not answer with the editor's own records.
+	if preview.is_preview():
+		return {"results": [], "note": ""}
 
-	# The preview runs as the settings editor, who may be a borrower too: their own records would show.
-	rows = preview.search_rows() if preview.is_preview() else searchable(get_portal_customers())
-	results, note = results_for(clean(frappe.form_dict.get("q")), rows)
+	results, note = results_for(clean(frappe.form_dict.get("q")), get_portal_customers())
 
 	return {"results": results, "note": note}
 

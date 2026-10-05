@@ -209,7 +209,8 @@ export function useSearch(open: (url?: string) => void) {
 \t}
 
 \t// Studio's editor has a Ctrl+K of its own, and runs a page's setup() on its canvas.
-\tif (!window.location.pathname.startsWith("/studio")) {
+\t// The theme preview has nothing worth searching: its borrower is made up.
+\tif (!inPreview && !window.location.pathname.startsWith("/studio")) {
 \t\twindow.addEventListener("keydown", onKeydown)
 \t}
 \tonScopeDispose(() => {
