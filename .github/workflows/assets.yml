@@ -8,7 +8,5 @@ jobs:
   assets:
     name: Pre-build assets
     uses: frappe/pilot/.github/workflows/app-assets.yml@develop
-    with:
-      # develop has no releases, so keep fewer untagged commits there.
     permissions:
       contents: write
