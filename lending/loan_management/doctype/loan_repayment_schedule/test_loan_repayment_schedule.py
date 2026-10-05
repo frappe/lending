@@ -337,14 +337,17 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 		self.assertEqual(next_date, getdate("2025-02-13"))
 
 	def test_quarterly_repayment_schedule_uses_calendar_days(self):
+		# posting_date and repayment_start_date fall on the 31st so that
+		# add_months() clamping (31 -> 30 -> 28/29) is exercised, not just
+		# the common case.
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 1",
 			1000000,
 			"Repay Over Number of Periods",
 			3,
-			repayment_start_date="2026-04-01",
-			posting_date="2026-01-01",
+			repayment_start_date="2026-01-31",
+			posting_date="2025-10-31",
 			rate_of_interest=12,
 			applicant_type="Customer",
 			repayment_frequency="Quarterly",
@@ -354,8 +357,8 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 		make_loan_disbursement_entry(
 			loan.name,
 			1000000,
-			disbursement_date="2026-01-01",
-			repayment_start_date="2026-04-01",
+			disbursement_date="2025-10-31",
+			repayment_start_date="2026-01-31",
 			repayment_frequency="Quarterly",
 		)
 
