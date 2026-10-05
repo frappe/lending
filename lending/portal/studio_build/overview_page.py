@@ -12,6 +12,7 @@ from lending.portal.studio_build.blocks import (
 	container,
 	fallback,
 	icon,
+	listing,
 	muted,
 	reader,
 	record_stat,
@@ -178,19 +179,20 @@ def tasks():
 			column(
 				[text("{{ dataItem.product }}", size="text-base"), muted("{{ dataItem.note }}")],
 				gap="2px",
+				styles={"minWidth": "0px"},
 			),
 			spacer(),
-			toned_badge("{{ dataItem.stage }}", "dataItem.stage_tone"),
+			toned_badge("{{ dataItem.stage }}", "dataItem.stage_tone", styles={"flexShrink": "0"}),
 		],
-		gap="10px",
-		styles={"padding": "10px 0", "cursor": "pointer"},
+		gap="12px",
+		styles={"padding": "8px 0", "cursor": "pointer"},
 		events=click("open(dataItem.url)"),
 	)
 
 	return card(
 		"Waiting on you",
 		read("tasks_note"),
-		repeater(read("tasks"), task),
+		listing(read("tasks"), task),
 		visible="{{ overview.data.tasks && overview.data.tasks.length > 0 }}",
 	)
 

@@ -322,6 +322,18 @@ def repeater(data, template, data_key="name", empty="", **kwargs):
 	return block("Repeater", props=props, children=[template], **kwargs)
 
 
+# Repeater's own box is a wrapping row with a 20px gap, so a row shrinks to its text: a spacer
+# gets no room and a trailing badge or amount floats beside the label instead of at the edge.
+LISTING = {"flexDirection": "column", "flexWrap": "nowrap", "gap": "0px"}
+
+
+def listing(data, template, **kwargs):
+	"""A repeater of full-width rows, one under another."""
+	styles = dict(LISTING, **(kwargs.pop("styles", None) or {}))
+
+	return repeater(data, template, styles=styles, **kwargs)
+
+
 # Inline 12px matches LIST_INSET: the family insets only rows with a hover surface.
 ROW_PADDING = {
 	"paddingTop": "10px",

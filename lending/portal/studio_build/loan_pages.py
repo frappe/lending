@@ -13,10 +13,10 @@ from lending.portal.studio_build.blocks import (
 	heading,
 	icon,
 	icon_tile,
+	listing,
 	muted,
 	no_rows,
 	reader,
-	repeater,
 	row,
 	spacer,
 	subject,
@@ -265,9 +265,9 @@ def charges_card(read):
 			),
 		],
 		gap="12px",
-		styles={"padding": "10px 0"},
+		styles={"padding": "8px 0"},
 	)
-	listed = repeater(charges, entry, visible=any_row(charges))
+	listed = listing(charges, entry, data_key="label", visible=any_row(charges))
 
 	return column([head, listed, charges_empty(charges)], gap="20px", styles=HALF_PANEL)
 
