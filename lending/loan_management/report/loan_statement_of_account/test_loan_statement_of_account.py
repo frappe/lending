@@ -97,7 +97,7 @@ class TestLoanStatementOfAccount(LendingTestSuite):
 		self.assertEqual(data[0]["transaction_type"], "Opening")
 		self.assertEqual(data[0]["balance"], 0)
 
-	def test_loan_statement_of_account_carries_opening_balance(self):
+	def make_loan_with_activity(self):
 		loan = create_loan(
 			"_Test Loan Customer",
 			"Term Loan Product 4",
@@ -119,6 +119,10 @@ class TestLoanStatementOfAccount(LendingTestSuite):
 		)
 		repayment = create_repayment_entry(loan.name, "2024-02-05", 10000, loan_disbursement=disb.name)
 		repayment.submit()
+		return loan
+
+	def test_loan_statement_of_account_carries_opening_balance(self):
+		loan = self.make_loan_with_activity()
 
 		_, data = execute(
 			{
@@ -154,3 +158,27 @@ class TestLoanStatementOfAccount(LendingTestSuite):
 		self.assertEqual(opening["credit"], 0)
 		self.assertEqual(opening["debit"], opening["balance"])
 		self.assertLess(opening["balance"], 120000)
+
+	def test_loan_statement_of_account_grouped_view_keeps_running_balance(self):
+		loan = self.make_loan_with_activity()
+		filters = {
+			"from_date": "2024-02-01",
+			"to_date": "2099-12-31",
+			"company": "_Test Company",
+			"loan": loan.name,
+		}
+
+		_, detailed = execute({**filters, "group_by": "Detailed"})
+		_, grouped = execute({**filters, "group_by": "Grouped"})
+		opening, *entries, total, closing = grouped
+
+		self.assertTrue(entries)
+		self.assertTrue(all(row.get("posting_date") for row in entries))
+		self.assertEqual(opening["balance"], 120000)
+		self.assertEqual(entries[0]["balance"], opening["balance"] + entries[0]["debit"] - entries[0]["credit"])
+		self.assertEqual(entries[-1]["balance"], closing["balance"])
+		self.assertEqual(closing["balance"], opening["balance"] + total["balance"])
+
+		for summary_row in (0, -2, -1):
+			for field in ("debit", "credit", "balance"):
+				self.assertEqual(grouped[summary_row][field], detailed[summary_row][field])
