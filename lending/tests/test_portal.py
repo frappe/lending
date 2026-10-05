@@ -175,6 +175,7 @@ def offered_products(applicant_type: str) -> list[str]:
 BRAND_FIELDS = (
 	"portal_brand_name",
 	"portal_logo",
+	"portal_logo_dark",
 	"portal_support_email",
 	"portal_theme",
 	"portal_primary_color",
@@ -1473,6 +1474,21 @@ class TestPortalBranding(LendingTestSuite):
 		# Still sent: it is the logo's alt text and the PDFs' fallback.
 		self.assertEqual(payload["brand_name"], "Ganges Finance")
 
+	def test_without_a_dark_logo_dark_mode_puts_the_logo_on_a_white_tile(self):
+		set_branding(portal_logo="/files/ganges.png")
+		payload = brand_payload()
+
+		self.assertEqual(payload["brand_logo_dark"], "/files/ganges.png")
+		self.assertEqual(payload["logo_plate"], 1)
+
+	def test_a_dark_logo_is_shown_in_dark_mode_as_it_is(self):
+		set_branding(portal_logo="/files/ganges.png", portal_logo_dark="/files/ganges-white.png")
+		payload = brand_payload()
+
+		self.assertEqual(payload["brand_logo"], "/files/ganges.png")
+		self.assertEqual(payload["brand_logo_dark"], "/files/ganges-white.png")
+		self.assertEqual(payload["logo_plate"], 0)
+
 	def test_the_public_pages_carry_the_brand_too(self):
 		set_branding(portal_brand_name="Ganges Finance", portal_logo="/files/ganges.png")
 
@@ -1712,8 +1728,29 @@ class TestPortalAppearance(LendingTestSuite):
 
 		self.assertIn('<html data-appearance="system" lang="en"', page)
 		self.assertNotIn("data-theme=", page.split("<head>")[0])
-		self.assertIn("<head><script>", page)
-		self.assertIn("prefers-color-scheme: dark", page)
+		self.assertIn("prefers-color-scheme: dark", self.head(page))
+
+	def head(self, page):
+		return page.split("<head>")[1].split("</head>")[0]
+
+	def test_every_portal_page_carries_the_surface_tokens_in_either_mode(self):
+		for appearance in ("Light", "Dark", "System"):
+			head = self.head(self.serve(appearance))
+
+			self.assertIn(':root[data-theme="dark"]', head, appearance)
+			self.assertIn(".portal-pressable:hover", head, appearance)
+			self.assertIn(':root[data-theme="dark"] .portal-logo-light', head, appearance)
+
+	def test_quiet_text_reads_on_the_page_the_cards_and_every_rail(self):
+		for name, preset in PRESETS.items():
+			light_rail = brand_tokens(preset.primary, preset.secondary)["--portal-primary-soft"]
+			dark_rail = dark_tokens(*preset)["--portal-primary-soft"]
+
+			for ground in ("#ffffff", "#f8f8f8", "#f3f3f3", light_rail):
+				self.assertGreaterEqual(contrast(channels("#666666"), channels(ground)), 4.5, (name, ground))
+			for ground in ("#171717", "#1f1f1f", "#292929", dark_rail):
+				self.assertGreaterEqual(contrast(channels("#9c9c9c"), channels(ground)), 4.5, (name, ground))
+				self.assertGreaterEqual(contrast(channels("#7d7d7d"), channels(ground)), 3.0, (name, ground))
 
 	def test_an_unset_default_follows_the_device(self):
 		self.assertIn('data-appearance="system"', self.serve(None))
@@ -1796,6 +1833,15 @@ class TestPortalPresets(LendingTestSuite):
 		for token in ("--portal-primary", "--portal-action"):
 			self.assertGreaterEqual(contrast(channels(dark[token]), DARK_GROUND), 3.0, token)
 
+	def test_a_custom_primary_is_lifted_as_far_as_the_presets_dark_primaries(self):
+		# At 3:1 HDFC navy came out a flat mid-blue beside the presets' vivid dark blues.
+		lightest = min(contrast(channels(preset.dark_primary), DARK_GROUND) for preset in PRESETS.values())
+
+		for colour in ("#004b8e", "#292075"):
+			primary = channels(dark_tokens(colour, None, None, None, None)["--portal-primary"])
+
+			self.assertGreaterEqual(contrast(primary, DARK_GROUND), min(lightest, 5.0), colour)
+
 	def test_a_banks_dark_colour_is_lifted_only_as_far_as_it_needs(self):
 		# HDFC navy and SBI indigo.
 		for colour in ("#004b8e", "#292075"):
@@ -1814,8 +1860,22 @@ class TestPortalPresets(LendingTestSuite):
 			button = channels(dark["--portal-header-action"])
 
 			self.assertNotEqual(dark["--portal-header-action"], "#ffffff", name)
-			self.assertGreaterEqual(contrast(button, channels(dark["--portal-primary-soft"])), 3.0, name)
+			# 3.5, not 3: buttons that only just cleared 3:1 on the band read as faint.
+			self.assertGreaterEqual(contrast(button, channels(dark["--portal-primary-soft"])), 3.5, name)
 			self.assertGreaterEqual(contrast(button, channels(dark["--portal-header-action-ink"])), 4.5, name)
+
+	def test_the_initials_on_the_band_read_as_text_in_both_modes(self):
+		for name, preset in PRESETS.items():
+			for tokens in (brand_tokens(preset.primary, preset.secondary), dark_tokens(*preset)):
+				initials = channels(tokens["--portal-primary-deep"])
+
+				self.assertGreaterEqual(contrast(initials, channels(tokens["--portal-primary-soft"])), 4.5, name)
+
+	def test_the_dark_band_carries_more_of_the_brand_than_the_light_one(self):
+		# 12% on near-black reads as grey, so the dark band takes a heavier wash.
+		ocean = dark_tokens(*PRESETS["Ocean"])
+
+		self.assertEqual(ocean["--portal-primary-soft"], "#1d3447")
 
 	def test_a_pressed_dark_button_reads_at_least_as_well_as_a_resting_one(self):
 		for name, preset in PRESETS.items():

@@ -31,6 +31,26 @@ FOLLOW_DEVICE = (
 	"})();</script>"
 )
 
+# :root plus an attribute outranks the renderer's own :root and [data-theme="dark"], whatever the order.
+SURFACES = (
+	"<style>"
+	# frappe-ui's quiet text is 4.17:1 on white and the same grey as its placeholder in dark;
+	# these clear 4.5:1 (icons 3:1) on the page, the cards and every preset's rail.
+	':root:not([data-theme="dark"]) { --ink-gray-5: #666666; }'
+	':root[data-theme="dark"] {'
+	" --ink-gray-4: #7d7d7d; --ink-gray-5: #9c9c9c; --ink-gray-6: #a6a6a6;"
+	# Cards sit a step above the page; tiles a step above the cards.
+	" --portal-panel: var(--surface-elevation-1);"
+	" --portal-tile: var(--surface-gray-2); --portal-tile-line: var(--outline-gray-2);"
+	" --portal-hover-line: var(--outline-gray-5);"
+	" }"
+	':root:not([data-theme="dark"]) .portal-logo-dark, :root[data-theme="dark"] .portal-logo-light'
+	" { display: none !important; }"
+	".borrower-portal .portal-pressable:hover {"
+	" --portal-panel-line: var(--portal-hover-line, var(--outline-gray-3)); }"
+	"</style>"
+)
+
 HTML_TAG = re.compile(r"<html\b")
 HEAD_TAG = re.compile(r"<head\b[^>]*>")
 
@@ -73,8 +93,10 @@ def site_default() -> str:
 
 def themed(html: str, choice: str) -> str:
 	"""`data-appearance` keeps the choice itself, so the account menu can tick "System"."""
+	head = SURFACES + (FOLLOW_DEVICE if choice == SYSTEM else "")
+	html = HEAD_TAG.sub(lambda tag: tag.group(0) + head, html, count=1)
+
 	if choice == SYSTEM:
-		html = HEAD_TAG.sub(lambda tag: tag.group(0) + FOLLOW_DEVICE, html, count=1)
 		return HTML_TAG.sub(f'<html data-appearance="{SYSTEM}"', html, count=1)
 
 	return HTML_TAG.sub(f'<html data-appearance="{choice}" data-theme="{choice}"', html, count=1)

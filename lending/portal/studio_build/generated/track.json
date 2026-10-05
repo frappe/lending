@@ -82,7 +82,38 @@
          "tabletStyles": {},
          "children": [],
          "visibilityCondition": "{{ track.data.brand_logo }}",
+         "classes": [
+          "portal-logo-light"
+         ],
          "componentId": "track-0-container1-container1-imageview1"
+        },
+        {
+         "componentName": "ImageView",
+         "componentProps": {
+          "image": "{{ track.data.brand_logo_dark }}",
+          "alt": "",
+          "shape": "square",
+          "size": "lg"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "overflow": "hidden",
+          "backgroundColor": "{{ track.data.logo_plate ? '#ffffff' : 'transparent' }}",
+          "padding": "{{ track.data.logo_plate ? '3px' : '0px' }}"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ track.data.brand_logo }}",
+         "classes": [
+          "portal-logo-dark"
+         ],
+         "componentId": "track-0-container1-container1-imageview2"
         },
         {
          "componentName": "TextBlock",
@@ -428,9 +459,9 @@
             "padding": "28px",
             "borderWidth": "1px",
             "borderStyle": "solid",
-            "borderColor": "var(--outline-gray-2)",
+            "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
             "borderRadius": "var(--radius-6)",
-            "backgroundColor": "var(--surface-base)"
+            "backgroundColor": "var(--portal-panel, var(--surface-base))"
            },
            "mobileStyles": {
             "padding": "20px"
@@ -787,9 +818,9 @@
             "padding": "28px",
             "borderWidth": "1px",
             "borderStyle": "solid",
-            "borderColor": "var(--outline-gray-2)",
+            "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
             "borderRadius": "var(--radius-6)",
-            "backgroundColor": "var(--surface-base)"
+            "backgroundColor": "var(--portal-panel, var(--surface-base))"
            },
            "mobileStyles": {
             "padding": "20px"

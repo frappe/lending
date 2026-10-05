@@ -26,7 +26,16 @@ ACTIVE_SHADE = 0.2
 # WCAG 1.4.11 non-text contrast.
 UI_CONTRAST = 3.0
 
+# Where the presets' hand-picked dark primaries sit (4.94 to 6.29); lifting a custom primary only
+# to 3:1 left it dull beside them, navy turning a flat mid-blue.
+DARK_PRIMARY_CONTRAST = 5.0
+
+# Header buttons that only just cleared 3:1 on the dark band read as faint.
+DARK_HEADER_CONTRAST = 3.5
+
 SOFT_WEIGHT = 0.12
+# 12% on near-black reads as grey; theme.SURFACES lifts the quiet inks to read on this.
+DARK_BAND_WEIGHT = 0.22
 LINE_WEIGHT = 0.35
 
 SOFT_HOVER_WEIGHT = 0.18
@@ -92,9 +101,14 @@ PROFILE_AVATAR_VARIABLES = {
 class Mode(NamedTuple):
 	ground: tuple
 	dark: bool = False
+	band_weight: float = SOFT_WEIGHT
 
 	def wash(self, rgb, weight: float) -> str:
 		return mix(rgb, self.ground, weight)
+
+	def band(self, primary) -> str:
+		"""The header, rail and footer wash."""
+		return self.wash(primary, self.band_weight)
 
 	def apart(self, rgb, against, bar=UI_CONTRAST) -> str:
 		return (lift if self.dark else deep)(rgb, against, bar)
@@ -108,7 +122,7 @@ class Mode(NamedTuple):
 
 
 LIGHT = Mode(WHITE)
-DARK = Mode(DARK_GROUND, dark=True)
+DARK = Mode(DARK_GROUND, dark=True, band_weight=DARK_BAND_WEIGHT)
 
 
 def brand_style(primary_color, secondary_color, dark_primary=None, dark_secondary=None, dark_ink=None) -> str:
@@ -161,16 +175,18 @@ def brand_tokens(primary_color, secondary_color, mode=LIGHT, ink=None) -> dict:
 		tokens.update(wash_tokens(action, mode))
 
 	if primary and action:
-		header = header_action(primary, action, mode)
-		tokens.update(button_tokens("--portal-header-action", header, mode, ink if header == action else None))
+		header, header_ink = header_action(primary, action, mode)
+		if header == action:
+			header_ink = ink
+		tokens.update(button_tokens("--portal-header-action", header, mode, header_ink))
 
 	return tokens
 
 
 def dark_tokens(primary_color, secondary_color, dark_primary, dark_secondary, dark_ink) -> dict:
 	"""A preset brings its own dark pair; custom colours are lifted until they stand out on the dark ground."""
-	primary = dark_primary or lifted(primary_color)
-	secondary = dark_secondary or lifted(secondary_color)
+	primary = dark_primary or lifted(primary_color, DARK_PRIMARY_CONTRAST)
+	secondary = dark_secondary or lifted(secondary_color, UI_CONTRAST)
 
 	return brand_tokens(primary, secondary, DARK, dark_ink)
 
@@ -198,18 +214,19 @@ def swatch_mode(tokens, ground) -> dict:
 	}
 
 
-def lifted(colour):
+def lifted(colour, bar):
 	rgb = channels(colour)
-	return lift(rgb, DARK_GROUND, UI_CONTRAST) if rgb else None
+	return lift(rgb, DARK_GROUND, bar) if rgb else None
 
 
 def progress_tokens(primary, mode) -> dict:
-	soft = mode.wash(primary, SOFT_WEIGHT)
+	soft = mode.band(primary)
 
 	return {
 		"--portal-primary-soft": soft,
 		"--portal-primary-line": mode.wash(primary, LINE_WEIGHT),
-		"--portal-primary-deep": mode.apart(primary, channels(soft)),
+		# Text: the avatar's initials and the tracker's step labels.
+		"--portal-primary-deep": mode.apart(primary, channels(soft), TEXT_CONTRAST),
 	}
 
 
@@ -224,17 +241,24 @@ def wash_tokens(action, mode) -> dict:
 	}
 
 
-def header_action(primary, action, mode):
+def header_action(primary, action, mode) -> tuple:
+	"""The header button's fill, and its label when the default pick cannot fit."""
 	# A secondary that can't clear 3:1 on the band (HDFC red on navy) takes the band's ink.
-	band = channels(mode.wash(primary, SOFT_WEIGHT))
-	if contrast(action, band) >= UI_CONTRAST:
-		return action
+	band = channels(mode.band(primary))
+	bar = DARK_HEADER_CONTRAST if mode.dark else UI_CONTRAST
+	if contrast(action, band) >= bar:
+		return action, None
+
+	if not mode.dark:
+		return channels(ink_for(band)), None
 
 	# On a dark band the ink is white, and a white button glares; lightening keeps the brand.
-	if mode.dark:
-		return channels(lift(action, band, UI_CONTRAST))
+	lighter = channels(lift(action, band, bar))
+	if contrast(lighter, WHITE) >= TEXT_CONTRAST:
+		return lighter, to_hex(WHITE)
 
-	return channels(ink_for(band))
+	# Too light for a white label: darkening it back would sink it into the band, so the label goes dark.
+	return lighter, to_hex(DARK_INK)
 
 
 def button_tokens(prefix, rgb, mode, ink=None) -> dict:

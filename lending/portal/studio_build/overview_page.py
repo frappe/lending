@@ -306,10 +306,10 @@ def date_tile():
 			"flex": "0 0 auto",
 			"padding": "6px 0",
 			"borderRadius": "var(--radius-4)",
-			"backgroundColor": "var(--surface-gray-1)",
+			"backgroundColor": "var(--portal-tile, var(--surface-gray-1))",
 			"borderWidth": "1px",
 			"borderStyle": "solid",
-			"borderColor": "var(--outline-gray-1)",
+			"borderColor": "var(--portal-tile-line, var(--outline-gray-1))",
 		},
 	)
 

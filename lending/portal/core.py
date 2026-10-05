@@ -434,12 +434,14 @@ def brand_payload() -> dict:
 	settings = portal_settings(
 		"portal_brand_name",
 		"portal_logo",
+		"portal_logo_dark",
 		"portal_support_email",
 		"portal_theme",
 		"portal_primary_color",
 		"portal_secondary_color",
 	)
 	logo = (settings.portal_logo or "").strip()
+	dark_logo = (settings.portal_logo_dark or "").strip()
 	theme = resolve(settings.portal_theme, settings.portal_primary_color, settings.portal_secondary_color)
 	support = (settings.portal_support_email or "").strip()
 
@@ -449,6 +451,9 @@ def brand_payload() -> dict:
 		"brand_name": name,
 		"brand_initial": name[:1].upper(),
 		"brand_logo": logo,
+		"brand_logo_dark": dark_logo or logo,
+		# Most bank logos are dark ink; without a dark version, a white tile keeps one from vanishing.
+		"logo_plate": 0 if dark_logo else 1,
 		"show_wordmark": 0 if logo else 1,
 		"support_email": support,
 		"support_href": f"mailto:{support}" if support else "#",

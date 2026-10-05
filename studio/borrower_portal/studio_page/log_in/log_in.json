@@ -65,11 +65,38 @@
               "width": "48px"
              },
              "children": [],
+             "classes": [
+              "portal-logo-light"
+             ],
              "componentId": "login-0-container1-container1-container1-container1-imageview1",
              "componentName": "ImageView",
              "componentProps": {
               "alt": "",
               "image": "{{ login.data.brand_logo }}",
+              "shape": "square",
+              "size": "lg"
+             },
+             "visibilityCondition": "{{ login.data.brand_logo }}"
+            },
+            {
+             "baseStyles": {
+              "backgroundColor": "{{ login.data.logo_plate ? '#ffffff' : 'transparent' }}",
+              "borderRadius": "12px",
+              "flexShrink": "0",
+              "height": "48px",
+              "overflow": "hidden",
+              "padding": "{{ login.data.logo_plate ? '3px' : '0px' }}",
+              "width": "48px"
+             },
+             "children": [],
+             "classes": [
+              "portal-logo-dark"
+             ],
+             "componentId": "login-0-container1-container1-container1-container1-imageview2",
+             "componentName": "ImageView",
+             "componentProps": {
+              "alt": "",
+              "image": "{{ login.data.brand_logo_dark }}",
               "shape": "square",
               "size": "lg"
              },
@@ -640,7 +667,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-04 13:57:19.173543",
+ "modified": "2026-10-05 11:11:37.695308",
  "modified_by": "Administrator",
  "name": "log_in",
  "owner": "Administrator",

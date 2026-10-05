@@ -4,11 +4,11 @@
 """Guest frame for /apply and /track; the borrower sidebar's rows all need a login."""
 
 from lending.portal.studio_build.blocks import (
-	block,
 	brand_style,
 	button,
 	container,
 	icon,
+	logos,
 	root,
 	row,
 	slot,
@@ -57,13 +57,7 @@ def page(read, links, body, width="720px", padding="clamp(16px, 3.6vh, 40px) 20p
 
 
 def mark(read, frame=MARK, letter_size="15px"):
-	# Both rendered, one visible: the page is built once but Lending Settings is read per request.
-	logo = block(
-		"ImageView",
-		props={"image": read("brand_logo"), "alt": "", "shape": "square", "size": "lg"},
-		styles=dict(frame, overflow="hidden"),
-		visible=read("brand_logo"),
-	)
+	# Logo and letter both rendered, one visible: the page is built once but Lending Settings is read per request.
 	letter = text(
 		read("brand_initial"),
 		size="text-base",
@@ -80,7 +74,7 @@ def mark(read, frame=MARK, letter_size="15px"):
 		visible=read("show_wordmark"),
 	)
 
-	return [logo, letter]
+	return [*logos(read, frame), letter]
 
 
 def link_button(label, href, glyph=None, variant="ghost"):

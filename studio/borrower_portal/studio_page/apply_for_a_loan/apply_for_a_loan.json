@@ -50,11 +50,38 @@
           "width": "26px"
          },
          "children": [],
+         "classes": [
+          "portal-logo-light"
+         ],
          "componentId": "apply-0-container1-container1-imageview1",
          "componentName": "ImageView",
          "componentProps": {
           "alt": "",
           "image": "{{ apply.data.brand_logo }}",
+          "shape": "square",
+          "size": "lg"
+         },
+         "visibilityCondition": "{{ apply.data.brand_logo }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "{{ apply.data.logo_plate ? '#ffffff' : 'transparent' }}",
+          "borderRadius": "6px",
+          "flexShrink": "0",
+          "height": "26px",
+          "overflow": "hidden",
+          "padding": "{{ apply.data.logo_plate ? '3px' : '0px' }}",
+          "width": "26px"
+         },
+         "children": [],
+         "classes": [
+          "portal-logo-dark"
+         ],
+         "componentId": "apply-0-container1-container1-imageview2",
+         "componentName": "ImageView",
+         "componentProps": {
+          "alt": "",
+          "image": "{{ apply.data.brand_logo_dark }}",
           "shape": "square",
           "size": "lg"
          },
@@ -397,7 +424,7 @@
               {
                "baseStyles": {
                 "alignItems": "center",
-                "backgroundColor": "var(--surface-base)",
+                "backgroundColor": "var(--portal-panel, var(--surface-base))",
                 "borderColor": "var(--outline-gray-1)",
                 "borderRadius": "10px",
                 "borderStyle": "solid",
@@ -537,7 +564,7 @@
             {
              "baseStyles": {
               "alignItems": "center",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "borderColor": "var(--outline-gray-1)",
               "borderRadius": "10px",
               "borderStyle": "solid",
@@ -777,7 +804,7 @@
               {
                "baseStyles": {
                 "alignItems": "start",
-                "backgroundColor": "var(--surface-base)",
+                "backgroundColor": "var(--portal-panel, var(--surface-base))",
                 "borderColor": "var(--outline-gray-1)",
                 "borderRadius": "10px",
                 "borderStyle": "solid",
@@ -935,8 +962,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -998,8 +1025,8 @@
            "children": [
             {
              "baseStyles": {
-              "backgroundColor": "var(--surface-base)",
-              "borderColor": "var(--outline-gray-2)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
               "borderStyle": "solid",
               "borderWidth": "1px",
@@ -1177,8 +1204,8 @@
             },
             {
              "baseStyles": {
-              "backgroundColor": "var(--surface-base)",
-              "borderColor": "var(--outline-gray-2)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
               "borderStyle": "solid",
               "borderWidth": "1px",
@@ -1426,8 +1453,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -1489,8 +1516,8 @@
            "children": [
             {
              "baseStyles": {
-              "backgroundColor": "var(--surface-base)",
-              "borderColor": "var(--outline-gray-2)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
               "borderStyle": "solid",
               "borderWidth": "1px",
@@ -1751,8 +1778,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -2019,8 +2046,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -2341,7 +2368,7 @@
         {
          "baseStyles": {
           "backgroundColor": "var(--surface-elevation-1)",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-6, 12px)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -2679,7 +2706,7 @@
         {
          "baseStyles": {
           "backgroundColor": "var(--surface-elevation-1)",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-6, 12px)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -2999,7 +3026,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-04 13:57:19.090106",
+ "modified": "2026-10-05 11:11:37.610793",
  "modified_by": "Administrator",
  "name": "apply_for_a_loan",
  "owner": "Administrator",

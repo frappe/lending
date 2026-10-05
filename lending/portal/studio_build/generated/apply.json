@@ -82,7 +82,38 @@
          "tabletStyles": {},
          "children": [],
          "visibilityCondition": "{{ apply.data.brand_logo }}",
+         "classes": [
+          "portal-logo-light"
+         ],
          "componentId": "apply-0-container1-container1-imageview1"
+        },
+        {
+         "componentName": "ImageView",
+         "componentProps": {
+          "image": "{{ apply.data.brand_logo_dark }}",
+          "alt": "",
+          "shape": "square",
+          "size": "lg"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "overflow": "hidden",
+          "backgroundColor": "{{ apply.data.logo_plate ? '#ffffff' : 'transparent' }}",
+          "padding": "{{ apply.data.logo_plate ? '3px' : '0px' }}"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ apply.data.brand_logo }}",
+         "classes": [
+          "portal-logo-dark"
+         ],
+         "componentId": "apply-0-container1-container1-imageview2"
         },
         {
          "componentName": "TextBlock",
@@ -506,7 +537,7 @@
                 "borderStyle": "solid",
                 "borderColor": "var(--outline-gray-1)",
                 "borderRadius": "10px",
-                "backgroundColor": "var(--surface-base)",
+                "backgroundColor": "var(--portal-panel, var(--surface-base))",
                 "flex": "1 1 240px"
                },
                "mobileStyles": {},
@@ -670,7 +701,7 @@
               "borderStyle": "solid",
               "borderColor": "var(--outline-gray-1)",
               "borderRadius": "10px",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "flexWrap": "wrap"
              },
              "mobileStyles": {
@@ -968,7 +999,7 @@
                 "borderStyle": "solid",
                 "borderColor": "var(--outline-gray-1)",
                 "borderRadius": "10px",
-                "backgroundColor": "var(--surface-base)",
+                "backgroundColor": "var(--portal-panel, var(--surface-base))",
                 "flex": "1 1 0px",
                 "minWidth": "0px"
                },
@@ -1139,9 +1170,9 @@
           "padding": "16px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
           "width": "100%",
           "maxWidth": "720px",
           "margin": "0 auto"
@@ -1232,9 +1263,9 @@
               "padding": "16px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "position": "relative",
               "cursor": "pointer",
               "userSelect": "none",
@@ -1461,9 +1492,9 @@
               "padding": "16px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "position": "relative",
               "cursor": "pointer",
               "userSelect": "none",
@@ -1770,9 +1801,9 @@
           "padding": "16px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
           "width": "100%",
           "maxWidth": "720px",
           "margin": "0 auto"
@@ -1867,9 +1898,9 @@
               "padding": "16px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "position": "relative",
               "cursor": "pointer",
               "userSelect": "none",
@@ -2188,9 +2219,9 @@
           "padding": "16px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
           "width": "100%",
           "maxWidth": "720px",
           "margin": "0 auto"
@@ -2536,9 +2567,9 @@
           "padding": "16px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
           "width": "100%",
           "maxWidth": "720px",
           "margin": "0 auto"
@@ -2962,7 +2993,7 @@
           "padding": "28px 32px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-6, 12px)",
           "backgroundColor": "var(--surface-elevation-1)",
           "width": "100%",
@@ -3389,7 +3420,7 @@
           "padding": "28px 32px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-6, 12px)",
           "backgroundColor": "var(--surface-elevation-1)",
           "width": "100%",

@@ -95,7 +95,38 @@
            "tabletStyles": {},
            "children": [],
            "visibilityCondition": "{{ newApplication.data.brand_logo }}",
+           "classes": [
+            "portal-logo-light"
+           ],
            "componentId": "new_application-0-sidebar1-container1-container1-imageview1"
+          },
+          {
+           "componentName": "ImageView",
+           "componentProps": {
+            "image": "{{ newApplication.data.brand_logo_dark }}",
+            "alt": "",
+            "shape": "square",
+            "size": "lg"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "width": "28px",
+            "height": "28px",
+            "flexShrink": "0",
+            "borderRadius": "6px",
+            "overflow": "hidden",
+            "backgroundColor": "{{ newApplication.data.logo_plate ? '#ffffff' : 'transparent' }}",
+            "padding": "{{ newApplication.data.logo_plate ? '3px' : '0px' }}"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "visibilityCondition": "{{ newApplication.data.brand_logo }}",
+           "classes": [
+            "portal-logo-dark"
+           ],
+           "componentId": "new_application-0-sidebar1-container1-container1-imageview2"
           },
           {
            "componentName": "TextBlock",
@@ -483,9 +514,9 @@
           "padding": "16px 20px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)"
+          "backgroundColor": "var(--portal-panel, var(--surface-base))"
          },
          "mobileStyles": {},
          "tabletStyles": {},
@@ -884,9 +915,9 @@
                         "padding": "16px",
                         "borderWidth": "1px",
                         "borderStyle": "solid",
-                        "borderColor": "var(--outline-gray-2)",
+                        "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
                         "borderRadius": "var(--radius-4)",
-                        "backgroundColor": "var(--surface-base)",
+                        "backgroundColor": "var(--portal-panel, var(--surface-base))",
                         "position": "relative",
                         "cursor": "pointer",
                         "userSelect": "none",
@@ -1623,9 +1654,9 @@
           "padding": "16px 20px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)"
+          "backgroundColor": "var(--portal-panel, var(--surface-base))"
          },
          "mobileStyles": {},
          "tabletStyles": {},

@@ -510,13 +510,14 @@ def tab_strip(tabs, state):
 	)
 
 
+# The --portal-* variables come from lending.portal.theme.SURFACES; the fallbacks keep the Studio canvas painted.
 PANEL = {
 	"padding": "16px",
 	"borderWidth": "1px",
 	"borderStyle": "solid",
-	"borderColor": "var(--outline-gray-2)",
+	"borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
 	"borderRadius": "var(--radius-4)",
-	"backgroundColor": "var(--surface-base)",
+	"backgroundColor": "var(--portal-panel, var(--surface-base))",
 }
 
 
@@ -527,8 +528,34 @@ def pressable(script):
 
 	return {"cursor": "pointer"}, {
 		"events": click(script),
-		"classes": ["transition-colors", "hover:border-outline-gray-3"],
+		# Not a hover:border class: PANEL's inline border beats it. This one moves the variable PANEL reads.
+		"classes": ["transition-colors", "portal-pressable"],
 	}
+
+
+def logos(read, frame):
+	"""The logo once per mode; lending.portal.theme.SURFACES hides the one that does not apply."""
+	plate = read("logo_plate")[2:-2].strip()
+
+	def logo(key, mode, **styles):
+		return block(
+			"ImageView",
+			props={"image": read(key), "alt": "", "shape": "square", "size": "lg"},
+			# ImageView sizes start at 128px; the styles override them and `size` only picks the corner.
+			styles=dict(frame, overflow="hidden", **styles),
+			visible=read("brand_logo"),
+			classes=[f"portal-logo-{mode}"],
+		)
+
+	return [
+		logo("brand_logo", "light"),
+		logo(
+			"brand_logo_dark",
+			"dark",
+			backgroundColor="{{ %s ? '#ffffff' : 'transparent' }}" % plate,
+			padding="{{ %s ? '3px' : '0px' }}" % plate,
+		),
+	]
 
 
 def card(title, subtitle, body, action=None, **kwargs):

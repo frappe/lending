@@ -51,11 +51,38 @@
             "width": "28px"
            },
            "children": [],
+           "classes": [
+            "portal-logo-light"
+           ],
            "componentId": "statement-0-sidebar1-container1-container1-imageview1",
            "componentName": "ImageView",
            "componentProps": {
             "alt": "",
             "image": "{{ statement.data.brand_logo }}",
+            "shape": "square",
+            "size": "lg"
+           },
+           "visibilityCondition": "{{ statement.data.brand_logo }}"
+          },
+          {
+           "baseStyles": {
+            "backgroundColor": "{{ statement.data.logo_plate ? '#ffffff' : 'transparent' }}",
+            "borderRadius": "6px",
+            "flexShrink": "0",
+            "height": "28px",
+            "overflow": "hidden",
+            "padding": "{{ statement.data.logo_plate ? '3px' : '0px' }}",
+            "width": "28px"
+           },
+           "children": [],
+           "classes": [
+            "portal-logo-dark"
+           ],
+           "componentId": "statement-0-sidebar1-container1-container1-imageview2",
+           "componentName": "ImageView",
+           "componentProps": {
+            "alt": "",
+            "image": "{{ statement.data.brand_logo_dark }}",
             "shape": "square",
             "size": "lg"
            },
@@ -379,8 +406,8 @@
         {
          "baseStyles": {
           "alignItems": "end",
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -547,8 +574,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -747,8 +774,8 @@
         },
         {
          "baseStyles": {
-          "backgroundColor": "var(--surface-base)",
-          "borderColor": "var(--outline-gray-2)",
+          "backgroundColor": "var(--portal-panel, var(--surface-base))",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
           "borderStyle": "solid",
           "borderWidth": "1px",
@@ -1283,7 +1310,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-04 13:57:18.957644",
+ "modified": "2026-10-05 11:11:37.486598",
  "modified_by": "Administrator",
  "name": "statement_of_account",
  "owner": "Administrator",

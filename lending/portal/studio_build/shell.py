@@ -16,6 +16,7 @@ from lending.portal.studio_build.blocks import (
 	fallback,
 	icon,
 	instance,
+	logos,
 	muted,
 	repeater,
 	root,
@@ -88,13 +89,6 @@ MARK = {"width": "28px", "height": "28px", "flexShrink": "0", "borderRadius": "6
 
 def brand(data):
 	"""Not SidebarHeader, whose Dropdown chevron cannot be hidden."""
-	logo = block(
-		"ImageView",
-		props={"image": "{{ %s.brand_logo }}" % data, "alt": "", "shape": "square", "size": "lg"},
-		# ImageView sizes start at 128px; the styles override them and `size` only picks the corner.
-		styles=dict(MARK, overflow="hidden"),
-		visible="{{ %s.brand_logo }}" % data,
-	)
 	letter = text(
 		"{{ %s.brand_initial }}" % data,
 		size="text-base",
@@ -125,7 +119,7 @@ def brand(data):
 
 	# Centring only takes effect once the name is hidden; if it hides while open, the mark drifts.
 	return row(
-		[logo, letter, name],
+		[*logos(lambda key: "{{ %s.%s }}" % (data, key), MARK), letter, name],
 		gap="8px",
 		styles={
 			"height": "48px",

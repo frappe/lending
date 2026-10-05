@@ -95,7 +95,38 @@
            "tabletStyles": {},
            "children": [],
            "visibilityCondition": "{{ overview.data.brand_logo }}",
+           "classes": [
+            "portal-logo-light"
+           ],
            "componentId": "overview-0-sidebar1-container1-container1-imageview1"
+          },
+          {
+           "componentName": "ImageView",
+           "componentProps": {
+            "image": "{{ overview.data.brand_logo_dark }}",
+            "alt": "",
+            "shape": "square",
+            "size": "lg"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "width": "28px",
+            "height": "28px",
+            "flexShrink": "0",
+            "borderRadius": "6px",
+            "overflow": "hidden",
+            "backgroundColor": "{{ overview.data.logo_plate ? '#ffffff' : 'transparent' }}",
+            "padding": "{{ overview.data.logo_plate ? '3px' : '0px' }}"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "visibilityCondition": "{{ overview.data.brand_logo }}",
+           "classes": [
+            "portal-logo-dark"
+           ],
+           "componentId": "overview-0-sidebar1-container1-container1-imageview2"
           },
           {
            "componentName": "TextBlock",
@@ -508,9 +539,9 @@
             "padding": "16px",
             "borderWidth": "1px",
             "borderStyle": "solid",
-            "borderColor": "var(--outline-gray-2)",
+            "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
             "borderRadius": "var(--radius-4)",
-            "backgroundColor": "var(--surface-base)",
+            "backgroundColor": "var(--portal-panel, var(--surface-base))",
             "flex": "1",
             "cursor": "pointer"
            },
@@ -897,7 +928,7 @@
            "originalElement": "div",
            "classes": [
             "transition-colors",
-            "hover:border-outline-gray-3"
+            "portal-pressable"
            ],
            "componentId": "overview-0-container1-container1-container1-container1"
           },
@@ -920,9 +951,9 @@
             "padding": "16px",
             "borderWidth": "1px",
             "borderStyle": "solid",
-            "borderColor": "var(--outline-gray-2)",
+            "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
             "borderRadius": "var(--radius-4)",
-            "backgroundColor": "var(--surface-base)",
+            "backgroundColor": "var(--portal-panel, var(--surface-base))",
             "flex": "1",
             "cursor": "pointer"
            },
@@ -1148,7 +1179,7 @@
            "originalElement": "div",
            "classes": [
             "transition-colors",
-            "hover:border-outline-gray-3"
+            "portal-pressable"
            ],
            "componentId": "overview-0-container1-container1-container1-container2"
           },
@@ -1171,9 +1202,9 @@
             "padding": "16px",
             "borderWidth": "1px",
             "borderStyle": "solid",
-            "borderColor": "var(--outline-gray-2)",
+            "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
             "borderRadius": "var(--radius-4)",
-            "backgroundColor": "var(--surface-base)",
+            "backgroundColor": "var(--portal-panel, var(--surface-base))",
             "flex": "1",
             "cursor": "pointer"
            },
@@ -1364,7 +1395,7 @@
            "originalElement": "div",
            "classes": [
             "transition-colors",
-            "hover:border-outline-gray-3"
+            "portal-pressable"
            ],
            "componentId": "overview-0-container1-container1-container1-container3"
           }
@@ -1384,9 +1415,9 @@
           "padding": "16px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)"
+          "backgroundColor": "var(--portal-panel, var(--surface-base))"
          },
          "mobileStyles": {},
          "tabletStyles": {},
@@ -1610,9 +1641,9 @@
               "padding": "16px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)"
+              "backgroundColor": "var(--portal-panel, var(--surface-base))"
              },
              "mobileStyles": {},
              "tabletStyles": {},
@@ -1997,9 +2028,9 @@
               "padding": "20px 20px 12px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)"
+              "backgroundColor": "var(--portal-panel, var(--surface-base))"
              },
              "mobileStyles": {},
              "tabletStyles": {},
@@ -2329,9 +2360,9 @@
               "padding": "16px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)"
+              "backgroundColor": "var(--portal-panel, var(--surface-base))"
              },
              "mobileStyles": {},
              "tabletStyles": {},
@@ -2495,10 +2526,10 @@
                     "flex": "0 0 auto",
                     "padding": "6px 0",
                     "borderRadius": "var(--radius-4)",
-                    "backgroundColor": "var(--surface-gray-1)",
+                    "backgroundColor": "var(--portal-tile, var(--surface-gray-1))",
                     "borderWidth": "1px",
                     "borderStyle": "solid",
-                    "borderColor": "var(--outline-gray-1)"
+                    "borderColor": "var(--portal-tile-line, var(--outline-gray-1))"
                    },
                    "mobileStyles": {},
                    "tabletStyles": {},

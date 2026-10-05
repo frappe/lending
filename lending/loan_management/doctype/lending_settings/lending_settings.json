@@ -15,6 +15,7 @@
   "portal_support_email",
   "column_break_portal",
   "portal_logo",
+  "portal_logo_dark",
   "portal_theme_section",
   "portal_theme_swatches",
   "portal_theme_picker_section",
@@ -86,6 +87,13 @@
    "fieldname": "portal_logo",
    "fieldtype": "Attach Image",
    "label": "Portal Logo",
+   "make_attachment_public": 1
+  },
+  {
+   "description": "Optional. A version of your logo that reads on a dark background, such as one in white. Without it, dark mode shows the Portal Logo on a white tile.",
+   "fieldname": "portal_logo_dark",
+   "fieldtype": "Attach Image",
+   "label": "Portal Logo for Dark Mode",
    "make_attachment_public": 1
   },
   {

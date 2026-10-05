@@ -108,7 +108,38 @@
              "tabletStyles": {},
              "children": [],
              "visibilityCondition": "{{ login.data.brand_logo }}",
+             "classes": [
+              "portal-logo-light"
+             ],
              "componentId": "login-0-container1-container1-container1-container1-imageview1"
+            },
+            {
+             "componentName": "ImageView",
+             "componentProps": {
+              "image": "{{ login.data.brand_logo_dark }}",
+              "alt": "",
+              "shape": "square",
+              "size": "lg"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "width": "48px",
+              "height": "48px",
+              "flexShrink": "0",
+              "borderRadius": "12px",
+              "overflow": "hidden",
+              "backgroundColor": "{{ login.data.logo_plate ? '#ffffff' : 'transparent' }}",
+              "padding": "{{ login.data.logo_plate ? '3px' : '0px' }}"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "visibilityCondition": "{{ login.data.brand_logo }}",
+             "classes": [
+              "portal-logo-dark"
+             ],
+             "componentId": "login-0-container1-container1-container1-container1-imageview2"
             },
             {
              "componentName": "TextBlock",

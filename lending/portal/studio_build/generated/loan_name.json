@@ -95,7 +95,38 @@
            "tabletStyles": {},
            "children": [],
            "visibilityCondition": "{{ loan.data.brand_logo }}",
+           "classes": [
+            "portal-logo-light"
+           ],
            "componentId": "loan_name-0-sidebar1-container1-container1-imageview1"
+          },
+          {
+           "componentName": "ImageView",
+           "componentProps": {
+            "image": "{{ loan.data.brand_logo_dark }}",
+            "alt": "",
+            "shape": "square",
+            "size": "lg"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "width": "28px",
+            "height": "28px",
+            "flexShrink": "0",
+            "borderRadius": "6px",
+            "overflow": "hidden",
+            "backgroundColor": "{{ loan.data.logo_plate ? '#ffffff' : 'transparent' }}",
+            "padding": "{{ loan.data.logo_plate ? '3px' : '0px' }}"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "visibilityCondition": "{{ loan.data.brand_logo }}",
+           "classes": [
+            "portal-logo-dark"
+           ],
+           "componentId": "loan_name-0-sidebar1-container1-container1-imageview2"
           },
           {
            "componentName": "TextBlock",
@@ -483,9 +514,9 @@
           "padding": "20px",
           "borderWidth": "1px",
           "borderStyle": "solid",
-          "borderColor": "var(--outline-gray-2)",
+          "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
           "borderRadius": "var(--radius-4)",
-          "backgroundColor": "var(--surface-base)"
+          "backgroundColor": "var(--portal-panel, var(--surface-base))"
          },
          "mobileStyles": {},
          "tabletStyles": {},
@@ -1450,9 +1481,9 @@
               "padding": "20px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "flex": "1 1 auto"
              },
              "mobileStyles": {},
@@ -1703,9 +1734,9 @@
               "padding": "20px",
               "borderWidth": "1px",
               "borderStyle": "solid",
-              "borderColor": "var(--outline-gray-2)",
+              "borderColor": "var(--portal-panel-line, var(--outline-gray-2))",
               "borderRadius": "var(--radius-4)",
-              "backgroundColor": "var(--surface-base)",
+              "backgroundColor": "var(--portal-panel, var(--surface-base))",
               "flex": "1 1 auto"
              },
              "mobileStyles": {},

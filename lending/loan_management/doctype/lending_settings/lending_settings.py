@@ -29,6 +29,7 @@ class LendingSettings(Document):
 		portal_copyright: DF.Data | None
 		portal_footer_links: DF.Table[TopBarItem]
 		portal_logo: DF.AttachImage | None
+		portal_logo_dark: DF.AttachImage | None
 		portal_primary_color: DF.Color | None
 		portal_secondary_color: DF.Color | None
 		portal_support_email: DF.Data | None
