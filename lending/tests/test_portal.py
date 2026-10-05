@@ -2593,19 +2593,25 @@ class TestPortalPreview(PortalPeople):
 			create_customer_lead,
 			request_disbursement,
 			upload_document,
+			track_application,
 			lambda: choose_account("LN-PREVIEW-0001"),
 			lambda: set_appearance("dark"),
 		)
 		frappe.local.form_dict = frappe._dict({"mobile_number": MOBILE, "name": "LN-PREVIEW-0001"})
 
-		with self.from_page(self.FRAME):
-			for number, write in enumerate(writes):
-				# rate_limit counts by IP before the body runs; called directly, every write shares one count.
-				with (
-					patch.object(frappe.local, "request_ip", f"10.0.0.{number}", create=True),
-					self.assertRaisesRegex(frappe.ValidationError, "preview", msg=getattr(write, "__name__", "")),
-				):
+		with self.from_page(self.FRAME), patch.object(frappe.local, "request_ip", "10.0.0.1", create=True):
+			for write in writes:
+				with self.assertRaisesRegex(frappe.ValidationError, "preview", msg=getattr(write, "__name__", "")):
 					write()
+
+	def test_preview_clicks_do_not_spend_a_real_applicants_quota(self):
+		# send_mobile_code allows 5 an hour per IP, and the editor's office IP may be a branch's.
+		frappe.local.form_dict = frappe._dict({"mobile_number": MOBILE})
+
+		with self.from_page(self.FRAME), patch.object(frappe.local, "request_ip", "10.0.0.2", create=True):
+			for _attempt in range(6):
+				# Counted first, the sixth would say "rate limit" instead.
+				self.assertRaisesRegex(frappe.ValidationError, "preview", send_mobile_code)
 
 	def test_marking_all_read_in_the_preview_leaves_the_editors_own_marks(self):
 		frappe.defaults.set_user_default(READ_KEY, json.dumps(["editors-own-key"]))

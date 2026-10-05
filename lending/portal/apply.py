@@ -198,9 +198,9 @@ def telephony_otp():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_mobile_code() -> dict:
-	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -216,10 +216,10 @@ def send_mobile_code() -> dict:
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def confirm_mobile_code() -> dict:
 	"""Check the OTP and return the token submit_lead requires."""
-	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -391,10 +391,10 @@ def settle_lead(lead: str, mobile: str):
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def submit_lead() -> dict:
 	"""Create a draft Loan Lead (a submitted one skips the rule steps) and return its offer."""
-	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	token = clean(frappe.form_dict.get("token"))
@@ -549,10 +549,10 @@ def refuse_existing_account():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_account_code() -> dict:
 	"""Email a code that proves the borrower owns the address their account will log in with."""
-	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	lead_for_account(clean(frappe.form_dict.get("token")))
@@ -573,10 +573,10 @@ def send_account_code() -> dict:
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
 	"""Create the login for the lead the account token names, and sign the borrower in."""
-	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	# Read once: the writes below leave form_dict without it by the time it is spent.
@@ -653,10 +653,10 @@ def create_account() -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@preview.refused
 @rate_limit(limit=5, seconds=60 * 60)
 def create_customer_lead() -> dict:
 	"""Like submit_lead for a logged-in borrower; identity comes from their Customer, not the request."""
-	preview.refuse_writes()
 	customer = read_own_customer()
 	applicant = applicant_for(customer)
 	data = read_loan_request(applicant["applicant_type"], applicant["company_name"])
@@ -788,6 +788,7 @@ def last_answers(customer: str, applicant: dict) -> dict:
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
+@preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def track_application() -> dict:
 	"""Status by reference number and mobile number, both of which must match."""

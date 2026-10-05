@@ -3,6 +3,7 @@
 
 """A made-up borrower for the theme preview in Lending Settings, so no real account is shown."""
 
+from functools import wraps
 from urllib.parse import parse_qs, urlparse
 
 import frappe
@@ -63,7 +64,22 @@ def is_preview() -> bool:
 def refuse_writes():
 	"""For an endpoint that sends or saves: in the preview it would act for the editor, or text a stranger."""
 	if is_preview():
-		frappe.throw(_("This is a preview, so nothing was sent or saved."), frappe.ValidationError)
+		frappe.throw(_("This is a preview, so this does nothing here."), frappe.ValidationError)
+
+
+def refused(fn):
+	"""refuse_writes() as a decorator, to sit above @rate_limit; also for a rate-limited lookup.
+
+	In the body it ran after the limiter had counted the call: preview clicks spent the hourly
+	quota of the editor's IP, which real applicants on the same network share.
+	"""
+
+	@wraps(fn)
+	def wrapper(*args, **kwargs):
+		refuse_writes()
+		return fn(*args, **kwargs)
+
+	return wrapper
 
 
 # Every figure, from the overview to the certificate, comes from one schedule per loan, so they agree.
