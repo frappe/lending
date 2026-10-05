@@ -98,8 +98,8 @@ from lending.portal.notifications import (
 	row_key,
 )
 from lending.portal.presets import PRESETS, resolve
-from lending.portal.preview import COOKIE as PREVIEW_COOKIE
 from lending.portal.preview import HOLDER as PREVIEW_HOLDER
+from lending.portal.preview import PARAM as PREVIEW_PARAM
 from lending.portal.print_formats import FORMATS, STATEMENT_FORMAT
 from lending.portal.print_formats import ensure as ensure_print_formats
 from lending.portal.profile import get_profile_page, save_profile
@@ -2473,29 +2473,44 @@ class TestPortalPreview(PortalPeople):
 		super().setUp()
 		set_portal_switches(1, 0)
 
-	def with_cookie(self, value="1"):
-		return patch.object(frappe.local, "request", SimpleNamespace(cookies={PREVIEW_COOKIE: value}), create=True)
+	FRAME = f"http://lending.example.com/borrower-portal/overview?{PREVIEW_PARAM}=1"
 
-	def test_settings_editors_see_the_made_up_borrower(self):
-		with self.with_cookie():
+	def from_page(self, referer, host="lending.example.com"):
+		"""An API call made from `referer`, as the browser sends it."""
+		request = SimpleNamespace(headers={"Referer": referer} if referer else {}, host=host)
+		return patch.object(frappe.local, "request", request, create=True)
+
+	def shows_preview(self, referer, **kwargs):
+		with self.from_page(referer, **kwargs):
+			return get_dashboard()["holder_name"] == PREVIEW_HOLDER
+
+	def test_settings_editors_see_the_made_up_borrower_in_the_frame(self):
+		with self.from_page(self.FRAME):
 			self.assertEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
 			self.assertEqual(get_loan_detail()["holder_name"], PREVIEW_HOLDER)
 			self.assertTrue(get_notifications()["attention"])
 
-	def test_a_borrower_setting_the_cookie_still_sees_their_own_account(self):
+	def test_a_borrower_forging_the_frame_still_sees_their_own_account(self):
 		self.as_alpha()
 
-		with self.with_cookie():
-			self.assertNotEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
+		self.assertFalse(self.shows_preview(self.FRAME))
 
-	def test_without_the_cookie_editors_see_their_own_account(self):
-		with self.with_cookie(value=""):
-			self.assertNotEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
+	def test_the_same_editor_in_an_ordinary_portal_tab_sees_their_own_account(self):
+		# The cookie this replaced reached every tab and outlived the form for an hour.
+		self.assertFalse(self.shows_preview("http://lending.example.com/borrower-portal/overview"))
+		self.assertFalse(self.shows_preview(None))
+
+	def test_only_the_portal_pages_own_flag_on_this_site_counts(self):
+		nested = f"http://lending.example.com/borrower-portal/login?redirect-to=/borrower-portal/overview?{PREVIEW_PARAM}=1"
+
+		self.assertFalse(self.shows_preview(nested))
+		self.assertFalse(self.shows_preview(f"http://lending.example.com/app/lending-settings?{PREVIEW_PARAM}=1"))
+		self.assertFalse(self.shows_preview(self.FRAME, host="elsewhere.example.com"))
 
 	def test_the_preview_overview_carries_every_key_the_real_one_does(self):
 		real = set(empty_dashboard())
 
-		with self.with_cookie():
+		with self.from_page(self.FRAME):
 			self.assertLessEqual(real, set(get_dashboard()))
 
 

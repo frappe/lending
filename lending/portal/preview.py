@@ -3,7 +3,7 @@
 
 """A made-up borrower for the theme preview in Lending Settings, so no real account is shown."""
 
-from urllib.parse import unquote
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 from frappe import _
@@ -30,9 +30,11 @@ from lending.portal.core import (
 	short_date,
 	undrawn_of,
 )
+from lending.portal.theme import PORTAL_PATH
 
-# Set by the Lending Settings form while its preview frame is open.
-COOKIE = "lending_portal_preview"
+# On the URL of the Lending Settings form's preview frame, so the frame's API calls carry it as
+# their Referer. Not a cookie: that reached every tab, and outlived the form it came from.
+PARAM = "lending_preview"
 
 HOLDER = "Priya Sharma"
 
@@ -41,11 +43,19 @@ HOME = "LN-PREVIEW-0002"
 
 
 def is_preview() -> bool:
-	# The write check keeps a borrower who sets the cookie by hand on their own data.
 	request = getattr(frappe.local, "request", None)
-	if not request or unquote(request.cookies.get(COOKIE, "")) != "1":
+	if not request:
 		return False
 
+	page = urlparse(request.headers.get("Referer") or "")
+	if page.netloc != request.host or not page.path.startswith(PORTAL_PATH + "/"):
+		return False
+
+	# The page's own query, not the whole string: a login redirect nests the flag in redirect-to.
+	if parse_qs(page.query).get(PARAM) != ["1"]:
+		return False
+
+	# The write check keeps a borrower who forges the Referer on their own data.
 	return frappe.has_permission("Lending Settings", "write")
 
 

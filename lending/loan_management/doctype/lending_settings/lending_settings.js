@@ -4,7 +4,7 @@
 const SETTINGS = "lending.loan_management.doctype.lending_settings.lending_settings";
 const CUSTOM = "Custom";
 const PREVIEW_STYLE_ID = "lending-theme-preview";
-const PREVIEW_COOKIE = "lending_portal_preview";
+const PREVIEW_PARAM = "lending_preview";
 const SCREEN_STYLE_ID = "lending-preview-screen";
 
 // The portal renders at a desktop size, then shrinks to the form's width, so it never falls to its narrow layout.
@@ -27,13 +27,20 @@ const THEME_DESCRIPTIONS = {
 const PREVIEW_PAGES = [
 	{ label: __("Account overview"), route: "/borrower-portal/overview" },
 	{ label: __("Loan account"), route: "/borrower-portal/loans" },
-	{ label: __("Apply"), route: "/borrower-portal/apply" },
+	{ label: __("Apply"), route: "/borrower-portal/apply", public_apply: true },
 	{ label: __("Track an application"), route: "/borrower-portal/track" },
 ];
 
 frappe.ui.form.on("Lending Settings", {
+	// Runs on load and after every save, when the form matches what the portal has published.
 	refresh(frm) {
+		frm.portal_published = {
+			portal: frm.doc.enable_borrower_portal,
+			apply: frm.doc.enable_borrower_portal && frm.doc.enable_public_apply,
+		};
 		load_swatches(frm);
+		// The layout is built once, so a save that publishes or unpublishes pages must reload the frame.
+		load_page(frm);
 	},
 
 	enable_borrower_portal(frm) {
@@ -93,10 +100,6 @@ function render_swatches(frm) {
 function build_layout(frm, $wrapper) {
 	if ($wrapper.find('[data-region="swatches"]').length) return;
 
-	const pages = PREVIEW_PAGES.map(
-		(page) => `<option value="${page.route}">${frappe.utils.escape_html(page.label)}</option>`
-	).join("");
-
 	$wrapper.html(`
 		<div data-region="swatches" style="display: grid; gap: 16px;
 			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
@@ -111,9 +114,7 @@ function build_layout(frm, $wrapper) {
 					</div>
 				</div>
 				<div style="display: flex; gap: 8px; align-items: center;">
-					<select class="form-control input-xs" data-control="page" style="width: auto;">
-						${pages}
-					</select>
+					<select class="form-control input-xs" data-control="page" style="width: auto;"></select>
 					<div class="btn-group" role="group">
 						<button type="button" class="btn btn-xs btn-default" data-mode="light">${__("Light")}</button>
 						<button type="button" class="btn btn-xs btn-default" data-mode="dark">${__("Dark")}</button>
@@ -126,6 +127,10 @@ function build_layout(frm, $wrapper) {
 				<iframe scrolling="no" tabindex="-1" style="position: absolute; top: 0; left: 0; border: 0;
 					width: ${SCREEN.width}px; height: ${SCREEN.height}px; transform-origin: 0 0;
 					pointer-events: none;"></iframe>
+				<div data-region="unpublished" style="display: none; height: 100%; align-items: center;
+					justify-content: center; color: var(--text-muted); font-size: var(--text-sm);">
+					${__("Save to publish the portal, then the preview appears here.")}
+				</div>
 			</div>
 		</div>
 	`);
@@ -186,14 +191,38 @@ function load_page(frm) {
 	const $wrapper = frm.theme_preview?.$wrapper;
 	if (!$wrapper) return;
 
-	set_preview_cookie(true);
+	const $picker = $wrapper.find('[data-control="page"]');
+	const chosen = $picker.val();
+	const pages = published_pages(frm);
+	$picker.html(
+		pages
+			.map((page) => `<option value="${page.route}">${frappe.utils.escape_html(page.label)}</option>`)
+			.join("")
+	);
+	$picker.val(pages.some((page) => page.route === chosen) ? chosen : pages[0]?.route);
+
 	const frame = $wrapper.find("iframe")[0];
+	const live = Boolean(frm.portal_published?.portal);
+	$wrapper.find('[data-region="unpublished"]').css("display", live ? "none" : "flex");
+	$(frame).toggle(live);
+	if (!live) {
+		frame.src = "about:blank";
+		return;
+	}
+
 	frame.onload = () => {
 		hide_scrollbars(frame.contentDocument);
 		watch_portal_styles(frame.contentDocument);
 		apply_preview(frm);
 	};
-	frame.src = $wrapper.find('[data-control="page"]').val();
+	// The flag rides on the page's own URL, so its API calls carry it as their Referer; see preview.py.
+	frame.src = `${$picker.val()}?${PREVIEW_PARAM}=1`;
+}
+
+// The portal's pages are published only when the settings are saved, so an unsaved switch would 404.
+function published_pages(frm) {
+	const published = frm.portal_published || {};
+	return PREVIEW_PAGES.filter((page) => !page.public_apply || published.apply);
 }
 
 // Fetch the unsaved theme's stylesheet and lay it over the portal page in the frame.
@@ -256,17 +285,6 @@ function hide_scrollbars(doc) {
 	`;
 	doc.head.appendChild(style);
 }
-
-// While set, the portal answers this user with a made-up borrower; see lending/portal/preview.py.
-function set_preview_cookie(on) {
-	document.cookie = on
-		? `${PREVIEW_COOKIE}=1; path=/; max-age=3600; SameSite=Strict`
-		: `${PREVIEW_COOKIE}=; path=/; max-age=0`;
-}
-
-frappe.router.on("change", () => {
-	if (frappe.get_route()[1] !== "Lending Settings") set_preview_cookie(false);
-});
 
 // The page renders its own saved theme as it navigates; switch each copy off so only the preview paints.
 function watch_portal_styles(doc) {
