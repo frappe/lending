@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import add_days, nowdate
 
 from lending.loan_management.report.loan_statement_of_account.loan_statement_of_account import (
 	execute,
@@ -136,5 +137,20 @@ class TestLoanStatementOfAccount(LendingTestSuite):
 
 		self.assertEqual(total["debit"], sum(row["debit"] for row in entries))
 		self.assertEqual(total["credit"], sum(row["credit"] for row in entries))
-		self.assertEqual(closing["balance"], opening["balance"] + total["debit"] - total["credit"])
+		self.assertEqual(total["balance"], total["debit"] - total["credit"])
+		self.assertEqual(closing["balance"], opening["balance"] + total["balance"])
 		self.assertEqual(entries[-1]["balance"], closing["balance"])
+
+		_, data = execute(
+			{
+				"from_date": add_days(nowdate(), 1),
+				"to_date": "2099-12-31",
+				"company": "_Test Company",
+				"loan": loan.name,
+			}
+		)
+		opening = data[0]
+
+		self.assertEqual(opening["credit"], 0)
+		self.assertEqual(opening["debit"], opening["balance"])
+		self.assertLess(opening["balance"], 120000)
