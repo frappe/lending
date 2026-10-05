@@ -402,6 +402,7 @@ class LoanRepaymentSchedule(Document):
 		partner_schedule_type=None,
 	):
 		payment_date = self.repayment_start_date
+		previous_payment_date = self.posting_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		is_first_emi = True
@@ -483,6 +484,7 @@ class LoanRepaymentSchedule(Document):
 				schedule_field,
 				principal_share_percentage,
 				interest_share_percentage,
+				previous_payment_date,
 			)
 
 			(
@@ -580,6 +582,7 @@ class LoanRepaymentSchedule(Document):
 				)
 				balance_amount = 0
 
+			previous_payment_date = payment_date
 			payment_date = self.get_next_payment_date(payment_date)
 			carry_forward_interest = 0
 			additional_days = 0
@@ -996,6 +999,7 @@ class LoanRepaymentSchedule(Document):
 		schedule_field,
 		principal_share_percentage,
 		interest_share_percentage,
+		previous_payment_date=None,
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
@@ -1010,7 +1014,7 @@ class LoanRepaymentSchedule(Document):
 				months,
 			)
 		else:
-			days = self.get_non_monthly_days(payment_date)
+			days = self.get_non_monthly_days(payment_date, previous_payment_date)
 
 		return days, months
 
@@ -1101,7 +1105,7 @@ class LoanRepaymentSchedule(Document):
 		)
 
 
-	def get_non_monthly_days(self, payment_date):
+	def get_non_monthly_days(self, payment_date, previous_payment_date=None):
 		if payment_date == self.repayment_start_date:
 			return date_diff(payment_date, self.posting_date)
 		elif self.repayment_frequency == "Bi-Weekly":
@@ -1111,7 +1115,7 @@ class LoanRepaymentSchedule(Document):
 		elif self.repayment_frequency == "Daily":
 			return 1
 		elif self.repayment_frequency == "Quarterly":
-			return date_diff(payment_date, add_months(payment_date, -3))
+			return date_diff(payment_date, previous_payment_date)
 		elif self.repayment_frequency == "One Time":
 			return date_diff(self.repayment_start_date, self.posting_date)
 
