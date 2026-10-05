@@ -237,6 +237,12 @@ def account_switch() -> dict:
 @frappe.whitelist()
 def get_dashboard() -> dict:
 	"""Overview page payload, pre-formatted since blocks bind values straight into props."""
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
+	if preview.is_preview():
+		return preview.dashboard()
+
 	customers = get_portal_customers()
 	if not customers:
 		return empty_dashboard()
@@ -956,8 +962,10 @@ def money_events(loans: list[dict], limit: int) -> list[dict]:
 
 
 def get_activity(loans: list[dict], limit: int = 5) -> list[dict]:
-	events = latest(money_events(loans, limit), limit)
+	return decorate_activity(latest(money_events(loans, limit), limit))
 
+
+def decorate_activity(events: list[dict]) -> list[dict]:
 	one_loan = len({event["product"] for event in events}) == 1
 	for event in events:
 		event["sub"] = "" if one_loan else event["product"]
@@ -1045,8 +1053,12 @@ def milestone_events(customers: list[str], loans: list[dict], limit: int) -> lis
 
 def get_timeline(customers: list[str], loans: list[dict], limit: int = 5) -> list[dict]:
 	"""Money plus milestones; the bell uses get_activity since its read state hashes row text."""
-	events = latest(money_events(loans, limit) + milestone_events(customers, loans, limit), limit)
+	return decorate_timeline(
+		latest(money_events(loans, limit) + milestone_events(customers, loans, limit), limit)
+	)
 
+
+def decorate_timeline(events: list[dict]) -> list[dict]:
 	one_loan = len({event["product"] for event in events}) == 1
 	for index, event in enumerate(events):
 		event["sub"] = "" if one_loan else event["product"]

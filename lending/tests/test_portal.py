@@ -69,6 +69,7 @@ from lending.portal.core import (
 	build_summary,
 	copyright_note,
 	days_ago,
+	empty_dashboard,
 	enquiry_lead,
 	footer_links,
 	get_applications,
@@ -96,6 +97,8 @@ from lending.portal.notifications import (
 	row_key,
 )
 from lending.portal.presets import PRESETS, resolve
+from lending.portal.preview import COOKIE as PREVIEW_COOKIE
+from lending.portal.preview import HOLDER as PREVIEW_HOLDER
 from lending.portal.print_formats import FORMATS, STATEMENT_FORMAT
 from lending.portal.print_formats import ensure as ensure_print_formats
 from lending.portal.profile import get_profile_page, save_profile
@@ -2389,6 +2392,37 @@ class TestPortalActivityList(LendingTestSuite):
 		said = [days_ago(add_days(nowdate(), -days)) for days in (3, 8, 40, 400)]
 
 		self.assertEqual(said, ["3 days ago", "1 week ago", "1 month ago", "1 year ago"])
+
+
+class TestPortalPreview(PortalPeople):
+	def setUp(self):
+		super().setUp()
+		set_portal_switches(1, 0)
+
+	def with_cookie(self, value="1"):
+		return patch.object(frappe.local, "request", SimpleNamespace(cookies={PREVIEW_COOKIE: value}), create=True)
+
+	def test_settings_editors_see_the_made_up_borrower(self):
+		with self.with_cookie():
+			self.assertEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
+			self.assertEqual(get_loan_detail()["holder_name"], PREVIEW_HOLDER)
+			self.assertTrue(get_notifications()["attention"])
+
+	def test_a_borrower_setting_the_cookie_still_sees_their_own_account(self):
+		self.as_alpha()
+
+		with self.with_cookie():
+			self.assertNotEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
+
+	def test_without_the_cookie_editors_see_their_own_account(self):
+		with self.with_cookie(value=""):
+			self.assertNotEqual(get_dashboard()["holder_name"], PREVIEW_HOLDER)
+
+	def test_the_preview_overview_carries_every_key_the_real_one_does(self):
+		real = set(empty_dashboard())
+
+		with self.with_cookie():
+			self.assertLessEqual(real, set(get_dashboard()))
 
 
 class TestPortalDisbursementRequest(LendingTestSuite):

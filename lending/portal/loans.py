@@ -9,6 +9,7 @@ from lending.loan_management.doctype.loan.loan import new_loan_disbursement
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	calculate_disbursal_amount,
 )
+from lending.portal import preview
 from lending.portal.core import (
 	STATUS_LABELS,
 	active_schedule_names,
@@ -50,6 +51,9 @@ DRAWABLE_STATUSES = ("Sanctioned", "Partially Disbursed", "Active")
 
 @frappe.whitelist()
 def get_loan_detail() -> dict:
+	if preview.is_preview():
+		return preview.loan_detail(frappe.form_dict.get("name"))
+
 	name = frappe.form_dict.get("name") or default_loan()
 	if not name:
 		return no_loan_payload()

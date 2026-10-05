@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 
+from lending.portal import preview
 from lending.portal.core import (
 	get_activity,
 	get_applications,
@@ -38,14 +39,16 @@ def read_keys() -> set[str]:
 
 
 def current_rows() -> tuple[list[dict], list[dict]]:
-	customers = get_portal_customers()
-	loans = get_loans(customers) if customers else []
-	applications = get_applications(customers) if customers else []
+	if preview.is_preview():
+		applications, schedule, events = preview.notification_sources()
+	else:
+		customers = get_portal_customers()
+		loans = get_loans(customers) if customers else []
+		applications = get_applications(customers) if customers else []
+		schedule = get_upcoming_repayments(loans, limit=SCHEDULE_LIMIT)
+		events = get_activity(loans, limit=ACTIVITY_LIMIT)
 
-	waiting = attention_rows(applications, get_upcoming_repayments(loans, limit=SCHEDULE_LIMIT))
-	activity = activity_rows(get_activity(loans, limit=ACTIVITY_LIMIT))
-
-	return waiting, activity
+	return attention_rows(applications, schedule), activity_rows(events)
 
 
 @frappe.whitelist()

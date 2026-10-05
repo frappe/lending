@@ -4,6 +4,25 @@
 const SETTINGS = "lending.loan_management.doctype.lending_settings.lending_settings";
 const CUSTOM = "Custom";
 const PREVIEW_STYLE_ID = "lending-theme-preview";
+const PREVIEW_COOKIE = "lending_portal_preview";
+const SCREEN_STYLE_ID = "lending-preview-screen";
+
+// The portal renders at a desktop size, then shrinks to the form's width, so it never falls to its narrow layout.
+// It cannot be clicked: it runs in the Desk session, where Log out or Appearance would act on the admin,
+// and a link would leave the made-up borrower's pages.
+const SCREEN = { width: 1440, height: 900 };
+
+const THEME_DESCRIPTIONS = {
+	Ocean: __("Two shades of blue"),
+	"Navy & Teal": __("Navy header with teal buttons"),
+	Forest: __("Deep and bright greens"),
+	"Teal & Orange": __("Teal header with orange buttons"),
+	Royal: __("Violet header with magenta buttons"),
+	Plum: __("Deep and soft purples"),
+	Indigo: __("Deep and bright violets"),
+	Graphite: __("Charcoal header with blue buttons"),
+	[CUSTOM]: __("Define your own palette"),
+};
 
 const PREVIEW_PAGES = [
 	{ label: __("Account overview"), route: "/borrower-portal/overview" },
@@ -15,7 +34,10 @@ const PREVIEW_PAGES = [
 frappe.ui.form.on("Lending Settings", {
 	refresh(frm) {
 		load_swatches(frm);
-		frm.add_custom_button(__("Preview Portal"), () => open_preview(frm));
+	},
+
+	enable_borrower_portal(frm) {
+		load_swatches(frm);
 	},
 
 	portal_theme(frm) {
@@ -35,6 +57,8 @@ frappe.ui.form.on("Lending Settings", {
 });
 
 function load_swatches(frm) {
+	if (!frm.doc.enable_borrower_portal) return;
+
 	frappe
 		.call(`${SETTINGS}.get_theme_swatches`, {
 			primary_color: frm.doc.portal_primary_color,
@@ -50,149 +74,141 @@ function render_swatches(frm) {
 	const field = frm.fields_dict.portal_theme_swatches;
 	if (!field || !frm.theme_swatches) return;
 
+	build_layout(frm, field.$wrapper);
+
 	const chosen = frm.doc.portal_theme || CUSTOM;
-	const tiles = Object.entries(frm.theme_swatches).map(([name, swatch]) =>
-		swatch_tile(name, swatch, name === chosen)
+	const grid = field.$wrapper.find('[data-region="swatches"]');
+	grid.html(
+		Object.entries(frm.theme_swatches)
+			.map(([name, swatch]) => swatch_card(name, swatch, name === chosen))
+			.join("")
 	);
 
-	field.$wrapper.html(`
-		<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;
-			margin-bottom: var(--margin-md);">
-			<span style="color: var(--text-muted); font-size: var(--text-sm);">
-				${__("Each square shows the portal in light mode above and dark mode below.")}
-			</span>
-			<button type="button" class="btn btn-default btn-xs" data-action="preview">
-				${frappe.utils.icon("view", "xs")} ${__("Preview Portal")}
-			</button>
-		</div>
-		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 16px;">
-			${tiles.join("")}
+	grid.find("[data-theme-name]").on("click", function () {
+		frm.set_value("portal_theme", $(this).attr("data-theme-name"));
+	});
+}
+
+// The grid repaints on every colour change; the preview frame is built once so it keeps its page.
+function build_layout(frm, $wrapper) {
+	if ($wrapper.find('[data-region="swatches"]').length) return;
+
+	const pages = PREVIEW_PAGES.map(
+		(page) => `<option value="${page.route}">${frappe.utils.escape_html(page.label)}</option>`
+	).join("");
+
+	$wrapper.html(`
+		<div data-region="swatches" style="display: grid; gap: 16px;
+			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
+
+		<div style="margin-top: var(--margin-xl);">
+			<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+				gap: 12px; margin-bottom: var(--margin-sm);">
+				<div>
+					<div style="font-weight: 600; color: var(--text-color);">${__("Preview")}</div>
+					<div style="font-size: var(--text-sm); color: var(--text-muted);">
+						${__("The portal with the colours on this form, saved or not, filled with a made-up borrower.")}
+					</div>
+				</div>
+				<div style="display: flex; gap: 8px; align-items: center;">
+					<select class="form-control input-xs" data-control="page" style="width: auto;">
+						${pages}
+					</select>
+					<div class="btn-group" role="group">
+						<button type="button" class="btn btn-xs btn-default" data-mode="light">${__("Light")}</button>
+						<button type="button" class="btn btn-xs btn-default" data-mode="dark">${__("Dark")}</button>
+					</div>
+				</div>
+			</div>
+			<div data-region="screen" style="position: relative; overflow: hidden;
+				aspect-ratio: ${SCREEN.width} / ${SCREEN.height}; border: 1px solid var(--border-color);
+				border-radius: var(--radius); background: var(--card-bg);">
+				<iframe scrolling="no" tabindex="-1" style="position: absolute; top: 0; left: 0; border: 0;
+					width: ${SCREEN.width}px; height: ${SCREEN.height}px; transform-origin: 0 0;
+					pointer-events: none;"></iframe>
+			</div>
 		</div>
 	`);
 
-	field.$wrapper.find("[data-theme-name]").on("click", function () {
-		frm.set_value("portal_theme", $(this).attr("data-theme-name"));
+	frm.theme_preview = { $wrapper, mode: "light" };
+	fit_screen($wrapper);
+
+	$wrapper.find('[data-control="page"]').on("change", () => load_page(frm));
+	$wrapper.find("[data-mode]").on("click", function () {
+		frm.theme_preview.mode = $(this).attr("data-mode");
+		apply_preview(frm);
 	});
-	field.$wrapper.find('[data-action="preview"]').on("click", () => open_preview(frm));
+
+	load_page(frm);
 }
 
-function swatch_tile(name, swatch, selected) {
-	const ring = selected
-		? "box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--text-color);"
-		: "box-shadow: 0 0 0 1px var(--border-color);";
-	const face = swatch
-		? `${mini_portal(swatch.light)}${mini_portal(swatch.dark)}`
-		: `<div style="height: 100%; display: flex; align-items: center; justify-content: center;
-			padding: 8px; text-align: center; color: var(--text-muted); font-size: var(--text-xs);
-			background: var(--subtle-fg);">${__("Enter your colours")}</div>`;
+function swatch_card(name, swatch, selected) {
+	const border = selected
+		? "border: 1px solid var(--text-color); box-shadow: 0 0 0 1px var(--text-color);"
+		: "border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);";
 	const label = name === CUSTOM ? __("Custom") : __(name);
+	const description = THEME_DESCRIPTIONS[name] || "";
 
 	return `
 		<button type="button" data-theme-name="${frappe.utils.escape_html(name)}" aria-pressed="${selected}"
-			title="${frappe.utils.escape_html(label)}"
-			style="padding: 0; border: none; background: none; cursor: pointer; text-align: left;">
-			<div style="aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; display: flex;
-				flex-direction: column; ${ring}">
-				${face}
+			style="display: block; width: 100%; padding: 16px; text-align: left; cursor: pointer;
+				background: var(--card-bg); border-radius: var(--radius); ${border}">
+			<div style="display: flex; gap: 10px;">
+				${palette_strip(swatch?.light)}
+				${palette_strip(swatch?.dark)}
 			</div>
-			<div style="margin-top: 8px; font-size: var(--text-sm); color: var(--text-color);
-				font-weight: ${selected ? 600 : 400};">
+			<div style="margin-top: 12px; font-size: var(--text-base); color: var(--text-color);
+				font-weight: ${selected ? 600 : 500};">
 				${frappe.utils.escape_html(label)}
+			</div>
+			<div style="margin-top: 2px; font-size: var(--text-sm); color: var(--text-muted);">
+				${frappe.utils.escape_html(description)}
 			</div>
 		</button>
 	`;
 }
 
-// One half of a tile: a sidebar, a header band and a button, as the portal paints them.
-function mini_portal({ page, band, primary, button, ink }) {
+// Primary, button and page colour for one mode; greys stand in until Custom has colours.
+function palette_strip(mode) {
+	const colours = mode
+		? [mode.primary, mode.button, mode.page]
+		: ["var(--gray-200)", "var(--gray-300)", "var(--gray-400)"];
+
 	return `
-		<div style="flex: 1; display: flex; background: ${page};">
-			<div style="width: 22%; background: ${band}; padding: 6px 0 0 5px;">
-				<div style="width: 7px; height: 7px; border-radius: 2px; background: ${primary};"></div>
-			</div>
-			<div style="flex: 1; display: flex; flex-direction: column;">
-				<div style="height: 22%; background: ${band};"></div>
-				<div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-					<div style="width: 58%; height: 11px; border-radius: 3px; background: ${button};
-						display: flex; align-items: center; justify-content: center;">
-						<div style="width: 55%; height: 2px; border-radius: 1px; background: ${ink};"></div>
-					</div>
-				</div>
-			</div>
+		<div style="flex: 1; display: flex; height: 40px; border-radius: var(--radius);
+			overflow: hidden; border: 1px solid var(--border-color);">
+			${colours.map((colour) => `<div style="flex: 1; background: ${colour};"></div>`).join("")}
 		</div>
 	`;
 }
 
-function open_preview(frm) {
-	if (!frm.doc.enable_borrower_portal) {
-		frappe.msgprint(__("Enable the borrower portal to preview it."));
-		return;
-	}
-
-	const dialog = new frappe.ui.Dialog({
-		title: __("Portal Preview"),
-		size: "extra-large",
-		fields: [
-			{
-				fieldname: "page",
-				fieldtype: "Select",
-				label: __("Page"),
-				options: PREVIEW_PAGES.map((page) => ({ label: page.label, value: page.route })),
-				default: PREVIEW_PAGES[0].route,
-				change: () => load_page(frm),
-			},
-			{ fieldtype: "Column Break" },
-			{
-				fieldname: "mode",
-				fieldtype: "Select",
-				label: __("Mode"),
-				options: [
-					{ label: __("Light"), value: "light" },
-					{ label: __("Dark"), value: "dark" },
-				],
-				default: "light",
-				change: () => apply_preview(frm),
-			},
-			{ fieldtype: "Section Break" },
-			{ fieldname: "frame", fieldtype: "HTML" },
-		],
-	});
-
-	dialog.fields_dict.frame.$wrapper.html(`
-		<div style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 8px;">
-			${__("The live portal with the colours on this form, saved or not. You see it as your own user.")}
-		</div>
-		<iframe style="width: 100%; height: 68vh; border: 1px solid var(--border-color);
-			border-radius: var(--border-radius-md); background: var(--card-bg);"></iframe>
-	`);
-
-	frm.theme_preview = dialog;
-	dialog.$wrapper.on("hidden.bs.modal", () => {
-		if (frm.theme_preview === dialog) frm.theme_preview = null;
-	});
-	dialog.show();
-	load_page(frm);
-}
-
 function load_page(frm) {
-	const dialog = frm.theme_preview;
-	if (!dialog) return;
+	const $wrapper = frm.theme_preview?.$wrapper;
+	if (!$wrapper) return;
 
-	const frame = dialog.fields_dict.frame.$wrapper.find("iframe")[0];
+	set_preview_cookie(true);
+	const frame = $wrapper.find("iframe")[0];
 	frame.onload = () => {
+		hide_scrollbars(frame.contentDocument);
 		watch_portal_styles(frame.contentDocument);
 		apply_preview(frm);
 	};
-	frame.src = dialog.get_value("page");
+	frame.src = $wrapper.find('[data-control="page"]').val();
 }
 
 // Fetch the unsaved theme's stylesheet and lay it over the portal page in the frame.
 function apply_preview(frm) {
-	const dialog = frm.theme_preview;
-	const doc = dialog?.fields_dict.frame.$wrapper.find("iframe")[0]?.contentDocument;
+	const preview = frm.theme_preview;
+	if (!preview) return;
+
+	const { $wrapper, mode } = preview;
+	$wrapper.find("[data-mode]").each(function () {
+		$(this).toggleClass("active", $(this).attr("data-mode") === mode);
+	});
+
+	const doc = $wrapper.find("iframe")[0]?.contentDocument;
 	if (!doc?.documentElement) return;
 
-	const mode = dialog.get_value("mode");
 	doc.documentElement.dataset.appearance = mode;
 	doc.documentElement.dataset.theme = mode;
 
@@ -215,6 +231,42 @@ function apply_preview(frm) {
 }
 
 const refresh_preview = frappe.utils.debounce((frm) => apply_preview(frm), 300);
+
+function fit_screen($wrapper) {
+	const screen = $wrapper.find('[data-region="screen"]')[0];
+	const frame = screen.querySelector("iframe");
+	const fit = () => {
+		frame.style.transform = `scale(${screen.clientWidth / SCREEN.width})`;
+	};
+
+	fit();
+	new ResizeObserver(fit).observe(screen);
+}
+
+// A still screen: the inner panes would otherwise show their own scrollbars.
+function hide_scrollbars(doc) {
+	if (!doc?.head || doc.getElementById(SCREEN_STYLE_ID)) return;
+
+	const style = doc.createElement("style");
+	style.id = SCREEN_STYLE_ID;
+	style.textContent = `
+		html, body { overflow: hidden !important; }
+		* { scrollbar-width: none !important; }
+		*::-webkit-scrollbar { display: none !important; }
+	`;
+	doc.head.appendChild(style);
+}
+
+// While set, the portal answers this user with a made-up borrower; see lending/portal/preview.py.
+function set_preview_cookie(on) {
+	document.cookie = on
+		? `${PREVIEW_COOKIE}=1; path=/; max-age=3600; SameSite=Strict`
+		: `${PREVIEW_COOKIE}=; path=/; max-age=0`;
+}
+
+frappe.router.on("change", () => {
+	if (frappe.get_route()[1] !== "Lending Settings") set_preview_cookie(false);
+});
 
 // The page renders its own saved theme as it navigates; switch each copy off so only the preview paints.
 function watch_portal_styles(doc) {
