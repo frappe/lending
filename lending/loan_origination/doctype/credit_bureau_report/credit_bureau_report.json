@@ -9,6 +9,7 @@
   "applicant_type",
   "applicant",
   "pan",
+  "loan_lead",
   "column_break_applicant",
   "bureau",
   "report_date",
@@ -44,6 +45,15 @@
    "fieldname": "pan",
    "fieldtype": "Data",
    "label": "PAN"
+  },
+  {
+   "description": "The lead this report was pulled for. A lead from the Borrower Portal only uses reports pulled for it, because its PAN is not verified.",
+   "fieldname": "loan_lead",
+   "fieldtype": "Link",
+   "label": "Loan Lead",
+   "options": "Loan Lead",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_applicant",
@@ -132,7 +142,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-15 18:30:00.000000",
+ "modified": "2026-10-06 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Credit Bureau Report",

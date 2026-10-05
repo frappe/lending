@@ -41,6 +41,7 @@ class BureauAdapter(BaseAdapter):
 				"applicant_type": context.get("applicant_type"),
 				"applicant": context.get("applicant"),
 				"pan": context.get("pan"),
+				"loan_lead": context.get("loan_lead"),
 				"external_id": parsed.get("external_id"),
 				"score": cint(parsed.get("score")),
 				"total_emi": parsed.get("total_emi") or 0,
@@ -256,6 +257,7 @@ def build_pull_context(source, lead) -> dict:
 		"consent_version": lead.get("bureau_consent_version"),
 		"applicant_type": source.get("applicant_type") if source.doctype != LOAN_LEAD else None,
 		"applicant": source.get("applicant"),
+		"loan_lead": lead.get("name"),
 	}
 
 
