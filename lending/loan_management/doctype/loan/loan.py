@@ -108,6 +108,7 @@ class Loan(LoanController):
 		monthly_repayment_amount: DF.Currency
 		moratorium_tenure: DF.Int
 		moratorium_type: DF.Literal["", "EMI", "Principal"]
+		no_interest_till_month_end: DF.Check
 		payment_account: DF.Link | None
 		penalty_charges_rate: DF.Percent
 		penalty_income_account: DF.Link | None

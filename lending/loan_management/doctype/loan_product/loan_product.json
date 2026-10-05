@@ -16,6 +16,7 @@
   "penalty_interest_rate",
   "bpi_recovery_method",
   "bpi_treatment",
+  "emi_rounding_method",
   "column_break_2",
   "company",
   "cyclic_day_of_the_month",
@@ -557,11 +558,19 @@
    "fieldtype": "Select",
    "label": "BPI Treatment",
    "options": "On top of first EMI\nAdjust within the EMI amount"
+  },
+  {
+   "default": "Round to Nearest",
+   "description": "How the calculated EMI is rounded. Round to Nearest rounds off normally. Round Up always rounds up, which can close the loan before the entered tenure. No Rounding keeps the exact value.",
+   "fieldname": "emi_rounding_method",
+   "fieldtype": "Select",
+   "label": "EMI Rounding Method",
+   "options": "Round to Nearest\nRound Up\nNo Rounding"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-23 12:00:00.000000",
+ "modified": "2026-09-23 14:21:16.257722",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

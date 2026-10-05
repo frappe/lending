@@ -12,11 +12,14 @@
   "column_break_applicant",
   "bureau",
   "report_date",
+  "external_id",
   "findings_section",
   "score",
   "total_emi",
+  "obligations_known",
   "payload_section",
   "raw_payload",
+  "report_pdf",
   "amended_from"
  ],
  "fields": [
@@ -47,7 +50,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Manual is a score keyed in by an underwriter rather than pulled from a bureau.",
+   "description": "Manual is a score keyed in by an underwriter, not pulled from a bureau.",
    "fieldname": "bureau",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -88,7 +91,7 @@
    "label": "Raw Payload"
   },
   {
-   "description": "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes.",
+   "description": "Whatever the bureau returned, verbatim. Kept for disputes.",
    "fieldname": "raw_payload",
    "fieldtype": "Long Text",
    "label": "Raw Payload",
@@ -102,13 +105,34 @@
    "options": "Credit Bureau Report",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "description": "The provider's own reference for this pull. Quote it when raising a dispute.",
+   "fieldname": "external_id",
+   "fieldtype": "Data",
+   "label": "External ID",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "description": "Clear this when the bureau did not report obligations. Total EMI is then read as unknown rather than zero, and affordability rules refer the application.",
+   "fieldname": "obligations_known",
+   "fieldtype": "Check",
+   "label": "Existing Obligations Known"
+  },
+  {
+   "fieldname": "report_pdf",
+   "fieldtype": "Attach",
+   "label": "Report PDF",
+   "permlevel": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-02 12:00:00.000000",
+ "modified": "2026-09-15 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Credit Bureau Report",
