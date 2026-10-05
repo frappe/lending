@@ -7,7 +7,7 @@ from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, flt, getdate, strip_html, today
 
-from lending.portal import login
+from lending.portal import login, preview
 from lending.portal.accounts import CUSTOMER_TYPES, customer_for_applicant, link_portal_user
 from lending.portal.core import (
 	as_administrator,
@@ -200,6 +200,7 @@ def telephony_otp():
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_mobile_code() -> dict:
+	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -218,6 +219,7 @@ def send_mobile_code() -> dict:
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def confirm_mobile_code() -> dict:
 	"""Check the OTP and return the token submit_lead requires."""
+	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -392,6 +394,7 @@ def settle_lead(lead: str, mobile: str):
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def submit_lead() -> dict:
 	"""Create a draft Loan Lead (a submitted one skips the rule steps) and return its offer."""
+	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	token = clean(frappe.form_dict.get("token"))
@@ -549,6 +552,7 @@ def refuse_existing_account():
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_account_code() -> dict:
 	"""Email a code that proves the borrower owns the address their account will log in with."""
+	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	lead_for_account(clean(frappe.form_dict.get("token")))
@@ -572,6 +576,7 @@ def send_account_code() -> dict:
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
 	"""Create the login for the lead the account token names, and sign the borrower in."""
+	preview.refuse_writes()
 	assert_public_apply_enabled()
 
 	# Read once: the writes below leave form_dict without it by the time it is spent.
@@ -651,6 +656,7 @@ def create_account() -> dict:
 @rate_limit(limit=5, seconds=60 * 60)
 def create_customer_lead() -> dict:
 	"""Like submit_lead for a logged-in borrower; identity comes from their Customer, not the request."""
+	preview.refuse_writes()
 	customer = read_own_customer()
 	applicant = applicant_for(customer)
 	data = read_loan_request(applicant["applicant_type"], applicant["company_name"])

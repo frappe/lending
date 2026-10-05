@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 
+from lending.portal import preview
 from lending.portal.core import (
 	CHOSEN_LOAN_KEY,
 	chosen_loan,
@@ -38,6 +39,7 @@ def get_accounts_page() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def choose_account(name: str) -> dict:
+	preview.refuse_writes()
 	customers = get_portal_customers()
 	loans = get_loans(customers) if customers else []
 	if not name or name not in [loan.name for loan in loans]:

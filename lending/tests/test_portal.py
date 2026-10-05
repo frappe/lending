@@ -2584,6 +2584,39 @@ class TestPortalPreview(PortalPeople):
 		self.assertNotIn("Editor's own loan", titles)
 		self.assertIn("Personal Loan", titles)
 
+	def test_nothing_in_the_preview_sends_or_saves(self):
+		# The frame is clickable and runs as the editor: an OTP from Apply would text a stranger.
+		writes = (
+			send_mobile_code,
+			confirm_mobile_code,
+			submit_lead,
+			send_account_code,
+			create_account,
+			create_customer_lead,
+			request_disbursement,
+			upload_document,
+			lambda: choose_account("LN-PREVIEW-0001"),
+			lambda: set_appearance("dark"),
+		)
+		frappe.local.form_dict = frappe._dict({"mobile_number": MOBILE, "name": "LN-PREVIEW-0001"})
+
+		with self.from_page(self.FRAME):
+			for number, write in enumerate(writes):
+				# rate_limit counts by IP before the body runs; called directly, every write shares one count.
+				with (
+					patch.object(frappe.local, "request_ip", f"10.0.0.{number}", create=True),
+					self.assertRaisesRegex(frappe.ValidationError, "preview", msg=getattr(write, "__name__", "")),
+				):
+					write()
+
+	def test_marking_all_read_in_the_preview_leaves_the_editors_own_marks(self):
+		frappe.defaults.set_user_default(READ_KEY, json.dumps(["editors-own-key"]))
+
+		with self.from_page(self.FRAME):
+			self.assertEqual(mark_all_as_read(), {"read": 0})
+
+		self.assertEqual(read_keys(), {"editors-own-key"})
+
 	def test_saving_details_in_the_preview_writes_nothing(self):
 		frappe.local.form_dict = frappe._dict({"customer": "CUST-PREVIEW-0001", "email": "x@example.com"})
 

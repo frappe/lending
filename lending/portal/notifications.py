@@ -75,6 +75,10 @@ def get_notifications() -> dict:
 @frappe.whitelist(methods=["POST"])
 def mark_all_as_read() -> dict:
 	"""Mark the server's current rows read; nothing comes from the browser, which also prunes stale keys."""
+	# The preview runs as the settings editor: the made-up rows' keys would replace the editor's own.
+	if preview.is_preview():
+		return {"read": 0}
+
 	waiting, activity = current_rows()
 	keys = sorted({row_key(row) for row in waiting[:ATTENTION_LIMIT] + activity})
 	frappe.defaults.set_user_default(READ_KEY, json.dumps(keys))

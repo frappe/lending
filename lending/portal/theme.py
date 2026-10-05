@@ -57,6 +57,10 @@ HEAD_TAG = re.compile(r"<head\b[^>]*>")
 
 @frappe.whitelist(methods=["POST"])
 def set_appearance(appearance: str) -> str:
+	# Imported here: preview builds on this module.
+	from lending.portal import preview
+
+	preview.refuse_writes()
 	if appearance not in CHOICES:
 		frappe.throw(_("Appearance must be light, dark or system."), frappe.ValidationError)
 

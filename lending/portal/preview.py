@@ -60,6 +60,12 @@ def is_preview() -> bool:
 	return frappe.has_permission("Lending Settings", "write")
 
 
+def refuse_writes():
+	"""For an endpoint that sends or saves: in the preview it would act for the editor, or text a stranger."""
+	if is_preview():
+		frappe.throw(_("This is a preview, so nothing was sent or saved."), frappe.ValidationError)
+
+
 # Every figure, from the overview to the certificate, comes from one schedule per loan, so they agree.
 INSTALMENT_DAYS = 30
 DISBURSAL_DAYS = 3

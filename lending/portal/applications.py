@@ -508,6 +508,9 @@ def read_upload():
 @frappe.whitelist(methods=["POST"])
 def upload_document() -> dict:
 	"""Attach a private file to one of the borrower's own draft applications."""
+	from lending.portal import preview
+
+	preview.refuse_writes()
 	# ignore_permissions below: Website Users hold no write on Loan Application; ownership is checked here.
 	application = editable_application()
 	document_type = clean(frappe.form_dict.get("document_type"))
