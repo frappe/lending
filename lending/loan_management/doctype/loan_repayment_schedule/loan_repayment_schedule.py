@@ -1111,7 +1111,7 @@ class LoanRepaymentSchedule(Document):
 		elif self.repayment_frequency == "Daily":
 			return 1
 		elif self.repayment_frequency == "Quarterly":
-			return 3
+			return date_diff(payment_date, add_months(payment_date, -3))
 		elif self.repayment_frequency == "One Time":
 			return date_diff(self.repayment_start_date, self.posting_date)
 
