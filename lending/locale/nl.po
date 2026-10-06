@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-09-27 14:47+0000\n"
-"PO-Revision-Date: 2026-09-28 20:39\n"
+"POT-Creation-Date: 2026-10-04 14:55+0000\n"
+"PO-Revision-Date: 2026-10-05 21:25\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -69,8 +69,18 @@ msgstr "<span class=\"h4\"><b>Jouw sneltoetsen</b></span>"
 msgid "=="
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:425
+#: lending/loan_origination/decisioning.py:450
 msgid "A between rule needs two comma separated values. {0} has {1}."
+msgstr ""
+
+#. Description of the 'Bureau Consent Given' (Check) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "A bureau pull is refused without this."
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:180
+msgid "A bureau report link must be https, not {0}."
 msgstr ""
 
 #. Description of the 'Variable' (Autocomplete) field in DocType 'Decision
@@ -91,6 +101,10 @@ msgstr ""
 msgid "A lead cannot be converted to a Loan Application until every enabled medium is verified."
 msgstr ""
 
+#: lending/loan_integrations/api.py:30
+msgid "A {0} call for {1} is still open as {2}. Settle that request before asking again."
+msgstr ""
+
 #. Name of a report
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.json
 msgid "ALM Audit Report"
@@ -101,11 +115,11 @@ msgstr ""
 msgid "Account Info"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:118
+#: lending/loan_management/doctype/loan_product/loan_product.py:119
 msgid "Account {0} does not belong to company {1}"
 msgstr "Account {0} behoort niet tot bedrijf {1}"
 
-#: lending/loan_management/doctype/loan/loan.py:192
+#: lending/loan_management/doctype/loan/loan.py:193
 msgid "Account {0} does not belongs to company {1}"
 msgstr "Account {0} behoort niet tot bedrijf {1}"
 
@@ -534,7 +548,7 @@ msgstr ""
 msgid "Amounts"
 msgstr "Bedragen"
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:261
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:305
 msgid "An OTP can only be sent while the lead is a draft."
 msgstr ""
 
@@ -576,6 +590,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:56
 #: lending/loan_management/doctype/process_loan_statement_of_accounts_applicant/process_loan_statement_of_accounts_applicant.json
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:31
@@ -740,7 +755,7 @@ msgstr ""
 msgid "Applicants not selected."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:103
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:105
 msgid "Application Closed"
 msgstr ""
 
@@ -756,11 +771,11 @@ msgstr ""
 msgid "Approve"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:337
+#: lending/loan_origination/decisioning.py:362
 msgid "Approve downgraded to Refer. {0} could not be checked."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:328
+#: lending/loan_origination/decisioning.py:353
 msgid "Approve downgraded to Refer. {0} was not scored."
 msgstr ""
 
@@ -1047,13 +1062,42 @@ msgstr ""
 msgid "Bureau"
 msgstr ""
 
+#. Label of the bureau_consent (Check) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Bureau Consent Given"
+msgstr ""
+
+#. Label of the bureau_consent_text (Small Text) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Bureau Consent Wording"
+msgstr ""
+
+#. Label of the bureau_consent_version (Data) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Bureau Consent Wording Version"
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:272
+msgid "Bureau Pull Failed"
+msgstr ""
+
+#. Label of the bureau_report (Link) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:72
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Bureau Report"
 msgstr ""
 
+#: lending/loan_integrations/bureau.py:281
+msgid "Bureau Report Not Stored"
+msgstr ""
+
 #. Label of the bureau_score (Int) field in DocType 'Loan Decision'
+#. Label of the bureau_score (Int) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:73
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Bureau Score"
 msgstr ""
 
@@ -1078,6 +1122,10 @@ msgstr ""
 msgid "CRIF"
 msgstr ""
 
+#: lending/loan_integrations/api.py:33
+msgid "Call Already In Flight"
+msgstr ""
+
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -1095,15 +1143,15 @@ msgstr ""
 msgid "Cancellation Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:310
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:316
 msgid "Cannot cancel Loan Repayment Schedule {0} while Loan Disbursement {1} is submitted. Cancel the Loan Disbursement first."
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:901
+#: lending/loan_management/doctype/loan/loan.py:902
 msgid "Cannot close loan as there is an outstanding of {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:951
+#: lending/loan_management/doctype/loan/loan.py:952
 msgid "Cannot close this loan until full repayment"
 msgstr ""
 
@@ -1115,11 +1163,11 @@ msgstr ""
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:204
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:248
 msgid "Cannot send an OTP to more than {0} leads at a time."
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:486
+#: lending/loan_management/doctype/loan/loan.py:487
 msgid "Cannot un mark as NPA before watch period end date"
 msgstr ""
 
@@ -1147,11 +1195,11 @@ msgstr ""
 msgid "Capitalize Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:556
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:557
 msgid "Capitalize amount for charge {0} cannot be negative"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:559
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:560
 msgid "Capitalize amount for charge {0} cannot exceed overdue amount {1}"
 msgstr ""
 
@@ -1231,11 +1279,11 @@ msgstr ""
 msgid "Charge applied successfully for amount {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:525
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:526
 msgid "Charge {0} does not exist in unpaid demands"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:537
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:538
 msgid "Charge {0} with overdue amount {1} is missing from the charges table. Please refresh the page to get latest charges."
 msgstr ""
 
@@ -1335,6 +1383,12 @@ msgstr ""
 #. 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
 msgid "Clear demand allocation before repost"
+msgstr ""
+
+#. Description of the 'Existing Obligations Known' (Check) field in DocType
+#. 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Clear this when the bureau did not report obligations. Total EMI is then read as unknown rather than zero, and affordability rules refer the application."
 msgstr ""
 
 #. Label of the clearance_date (Date) field in DocType 'Loan Disbursement'
@@ -1520,6 +1574,20 @@ msgstr ""
 msgid "Components"
 msgstr ""
 
+#. Label of the bureau_consent_on (Datetime) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Consent Given On"
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:243
+msgid "Consent Required"
+msgstr ""
+
+#. Label of the bureau_consent_version (Data) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Consent Wording Version"
+msgstr ""
+
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:302
 msgid "Consolidated NPA suspense for {0} ({1} to {2})"
 msgstr ""
@@ -1540,7 +1608,7 @@ msgstr ""
 msgid "Consolidation Details"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:369
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:417
 msgid "Cooling Period"
 msgstr ""
 
@@ -1583,11 +1651,11 @@ msgstr "Kostenplaats"
 msgid "Cost Center {0} does not belong to company {1}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:202
+#: lending/loan_management/doctype/loan/loan.py:203
 msgid "Cost center is mandatory for loans having rate of interest greater than 0"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:219
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:263
 msgid "Could not send the OTP."
 msgstr ""
 
@@ -1627,6 +1695,21 @@ msgstr ""
 #. Label of the credit_adjustment_amount (Currency) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Credit Adjustment Amount"
+msgstr ""
+
+#. Label of the bureau_consent_section (Section Break) field in DocType 'Loan
+#. Lead'
+#. Label of the bureau_section (Section Break) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Credit Bureau"
+msgstr ""
+
+#. Label of the credit_bureau_adapter (Select) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Credit Bureau Adapter"
 msgstr ""
 
 #. Name of a DocType
@@ -2087,6 +2170,11 @@ msgstr ""
 msgid "EMI (Principal + Interest)"
 msgstr ""
 
+#. Label of the emi_rounding_method (Select) field in DocType 'Loan Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "EMI Rounding Method"
+msgstr ""
+
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:114
 msgid "EMIs Paid"
 msgstr ""
@@ -2100,7 +2188,7 @@ msgstr ""
 msgid "Effective Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:339
+#: lending/loan_management/doctype/loan_application/loan_application.py:347
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr ""
 
@@ -2190,6 +2278,10 @@ msgstr "Automatische e-mail inschakelen"
 msgid "Enable Partner Accounting"
 msgstr ""
 
+#: lending/loan_integrations/base.py:58
+msgid "Enable either Sandbox or Production in {0} before calling it."
+msgstr ""
+
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Product'
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Repayment
 #. Schedule'
@@ -2257,9 +2349,20 @@ msgstr ""
 msgid "Excess amount repayment limit during loan closure"
 msgstr ""
 
+#. Label of the obligations_known (Check) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Existing Obligations Known"
+msgstr ""
+
 #. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Experian"
+msgstr ""
+
+#. Label of the external_id (Data) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "External ID"
 msgstr ""
 
 #. Label of the fldg_section (Section Break) field in DocType 'Loan Partner'
@@ -2345,11 +2448,11 @@ msgstr ""
 msgid "Flat Interest Rate"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:245
+#: lending/loan_management/doctype/loan/loan.py:246
 msgid "Flat Interest Rate loans can only have monthly and yearly repayment frequency"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:241
+#: lending/loan_management/doctype/loan/loan.py:242
 msgid "Flat Interest Rate loans cannot have 'Repay Fixed Amount per Period' repayment method"
 msgstr ""
 
@@ -2387,6 +2490,11 @@ msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:18
 msgid "From Date cannot be after To Date"
+msgstr ""
+
+#. Description of the 'Bureau Score' (Int) field in DocType 'Loan Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "From the most recent bureau report on file for this PAN."
 msgstr ""
 
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
@@ -2468,6 +2576,12 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Help Text"
 msgstr "Helptekst"
+
+#. Description of the 'EMI Rounding Method' (Select) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "How the calculated EMI is rounded. Round to Nearest rounds off normally. Round Up always rounds up, which can close the loan before the entered tenure. No Rounding keeps the exact value."
+msgstr ""
 
 #. Label of the advance_payment_handling (Select) field in DocType 'Loan
 #. Product'
@@ -2686,7 +2800,7 @@ msgstr ""
 msgid "Interest Waiver Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:417
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:418
 msgid "Interest Waiver Amount cannot be greater than overdue interest"
 msgstr ""
 
@@ -2836,15 +2950,15 @@ msgstr ""
 msgid "Is Written Off"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:364
+#: lending/loan_origination/decisioning.py:389
 msgid "Kept the higher recommended rate of interest. {0} would have priced the risk lower."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:372
+#: lending/loan_origination/decisioning.py:397
 msgid "Kept the tighter amount cap. {0} would have been looser."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:380
+#: lending/loan_origination/decisioning.py:405
 msgid "Kept the tighter tenure cap. {0} would have been looser."
 msgstr ""
 
@@ -3070,7 +3184,7 @@ msgstr ""
 msgid "Loan Account"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:125
+#: lending/loan_management/doctype/loan_product/loan_product.py:126
 msgid "Loan Account and Payment Account cannot be same"
 msgstr ""
 
@@ -3935,7 +4049,7 @@ msgstr ""
 msgid "Loan Security Assignment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:363
+#: lending/loan_management/doctype/loan_application/loan_application.py:371
 msgid "Loan Security Assignment Created : {0}"
 msgstr ""
 
@@ -4168,11 +4282,11 @@ msgstr ""
 msgid "Loan Write Off will be automatically created on loan closure request if pending amount is below this limit"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:608
+#: lending/loan_management/doctype/loan/loan.py:609
 msgid "Loan amount cannot be greater than {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:612
+#: lending/loan_management/doctype/loan/loan.py:613
 msgid "Loan amount is mandatory"
 msgstr ""
 
@@ -4236,7 +4350,7 @@ msgstr ""
 
 #. Description of the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
-msgid "Manual is a score keyed in by an underwriter rather than pulled from a bureau."
+msgid "Manual is a score keyed in by an underwriter, not pulled from a bureau."
 msgstr ""
 
 #. Description of the 'Manual NPA' (Check) field in DocType 'Loan'
@@ -4284,7 +4398,7 @@ msgstr ""
 msgid "Maximum Loan Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:615
+#: lending/loan_management/doctype/loan/loan.py:616
 msgid "Maximum Loan Amount is mandatory for secured Loans without a Loan Application"
 msgstr ""
 
@@ -4294,7 +4408,7 @@ msgstr ""
 msgid "Maximum Loan Value"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:242
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:286
 msgid "Medium must be one of: {0}."
 msgstr ""
 
@@ -4335,7 +4449,7 @@ msgstr "Lid"
 msgid "Migration Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:253
+#: lending/loan_management/doctype/loan/loan.py:254
 msgid "Migration Date is mandatory for imported loans"
 msgstr ""
 
@@ -4409,15 +4523,15 @@ msgid "Monthly Repayment Amount"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:148
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:968
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:988
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/utils.py:48
+#: lending/loan_management/doctype/loan_repayment_schedule/utils.py:70
 msgid "Monthly Repayment Amount must be greater than periodic interest amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/utils.py:37
+#: lending/loan_management/doctype/loan_repayment_schedule/utils.py:59
 msgid "Monthly Repayment Amount must be greater than zero"
 msgstr ""
 
@@ -4523,8 +4637,12 @@ msgstr ""
 msgid "New Repayment Start Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:539
+#: lending/loan_management/doctype/loan/loan.py:540
 msgid "New maximum limit amount cannot be lesser than the utilized limit amount"
+msgstr ""
+
+#: lending/loan_integrations/base.py:101
+msgid "No API credentials are set in {0} for the {1} environment."
 msgstr ""
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:91
@@ -4544,15 +4662,25 @@ msgstr ""
 msgid "No Records for these settings."
 msgstr "Er zijn geen gegevens beschikbaar voor deze instellingen."
 
+#. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "No Rounding"
+msgstr ""
+
+#: lending/loan_integrations/adapters/__init__.py:48
+msgid "No adapter is registered for {0}. Registered adapters: {1}."
+msgstr ""
+
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
 msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:196
+#: lending/loan_origination/decisioning.py:221
 msgid "No enabled {0} strategy applies to {1}, so no rule was checked."
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1186
+#: lending/loan_management/doctype/loan/loan.py:1187
 msgid "No excess amount pending for refund"
 msgstr ""
 
@@ -4564,11 +4692,11 @@ msgstr ""
 msgid "No reason code was recorded."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:232
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:262
 msgid "No scorecard applies to this loan product. Nothing was scored."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:249
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:279
 msgid "No underwriting strategy applies to this loan product."
 msgstr ""
 
@@ -4681,20 +4809,20 @@ msgstr ""
 msgid "OTP Verification Mandatory"
 msgstr ""
 
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:309
+msgid "OTP for {0} is not enabled in Loan Origination Settings."
+msgstr ""
+
 #. Label of the otp_for_email (Check) field in DocType 'Loan Origination
 #. Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
-msgid "OTP for Email"
+msgid "OTP via Email"
 msgstr ""
 
 #. Label of the otp_for_sms (Check) field in DocType 'Loan Origination
 #. Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
-msgid "OTP for SMS"
-msgstr ""
-
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:265
-msgid "OTP for {0} is not enabled in Loan Origination Settings."
+msgid "OTP via SMS"
 msgstr ""
 
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
@@ -4743,7 +4871,7 @@ msgstr ""
 msgid "One Time"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1127
+#: lending/loan_management/doctype/loan/loan.py:1128
 msgid "Only submitted unpledge requests can be approved"
 msgstr ""
 
@@ -4777,7 +4905,7 @@ msgstr ""
 msgid "Opening Principal Outstanding"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:686
+#: lending/loan_management/doctype/loan/loan.py:687
 msgid "Opening entry for imported loan {0}"
 msgstr ""
 
@@ -4811,7 +4939,7 @@ msgstr "Overige details"
 msgid "Outcome"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:346
+#: lending/loan_origination/decisioning.py:371
 msgid "Outcome {0} superseded by {1}. Its reason codes and terms are dropped."
 msgstr ""
 
@@ -5182,7 +5310,7 @@ msgstr ""
 msgid "Penalty Waiver Account"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:426
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:427
 msgid "Penalty Waiver cannot be greater than overdue penalty interest"
 msgstr ""
 
@@ -5229,16 +5357,16 @@ msgstr "Begindatum periode"
 msgid "Please add customer refund account in Loan Product"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:55
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:77
 msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr ""
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:142
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:959
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:979
 msgid "Please enter Repayment Periods"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:966
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:986
 msgid "Please enter monthly repayment amount"
 msgstr ""
 
@@ -5246,15 +5374,15 @@ msgstr ""
 msgid "Please enter repayment Amount"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:48
-msgid "Please install the Telephony app to send OTPs, or turn OTP for Email and SMS off."
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:70
+msgid "Please install the Telephony app to send OTPs, or turn OTP via Email and OTP via SMS off."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:284
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:332
 msgid "Please install the Telephony app to send and verify OTPs."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:200
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:244
 msgid "Please pass Loan Leads as a list of lead names."
 msgstr ""
 
@@ -5284,7 +5412,7 @@ msgstr "Selecteer Company."
 msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:166
+#: lending/loan_management/doctype/loan/loan.py:167
 #: lending/loan_management/doctype/loan_application/loan_application.py:153
 msgid "Please select Loan Product for company {0}"
 msgstr ""
@@ -5334,11 +5462,11 @@ msgstr ""
 msgid "Please set Interest Income Account in Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:729
+#: lending/loan_management/doctype/loan/loan.py:730
 msgid "Please set Loan Account for the Loan Product {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:734
+#: lending/loan_management/doctype/loan/loan.py:735
 msgid "Please set Payment Account for the Loan Product {0}"
 msgstr ""
 
@@ -5374,11 +5502,11 @@ msgstr ""
 msgid "Please set {0} in either Company or Loan Product"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:270
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:314
 msgid "Please set {0} on this lead first."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:313
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:361
 msgid "Please verify the applicant's {0} before converting this lead."
 msgstr ""
 
@@ -5767,7 +5895,7 @@ msgstr ""
 msgid "Proposed Pledges"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:267
+#: lending/loan_management/doctype/loan_application/loan_application.py:275
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr ""
 
@@ -5787,7 +5915,7 @@ msgstr ""
 msgid "Qty is mandatory for loan security!"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:381
+#: lending/loan_management/doctype/loan_application/loan_application.py:389
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr ""
 
@@ -5864,7 +5992,7 @@ msgstr ""
 msgid "Reason For Freezing"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:145
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:147
 msgid "Reason codes: {0}."
 msgstr ""
 
@@ -5920,20 +6048,26 @@ msgstr ""
 msgid "Recommended Terms"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:371
+#: lending/loan_origination/decisioning.py:396
 msgid "Recommended amount capped at {0}."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:363
+#: lending/loan_origination/decisioning.py:388
 msgid "Recommended rate of interest {0}."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:379
+#: lending/loan_origination/decisioning.py:404
 msgid "Recommended tenure capped at {0}."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:151
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:153
 msgid "Recommended terms: {0}. Apply them on the application itself, so the repayment schedule is rebuilt with them."
+msgstr ""
+
+#. Description of the 'Bureau Consent Wording Version' (Data) field in DocType
+#. 'Loan Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Recorded on each lead that consents, so old consents keep the wording they were given against."
 msgstr ""
 
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
@@ -6126,7 +6260,7 @@ msgstr ""
 msgid "Repayment Account"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:240
+#: lending/loan_management/doctype/loan_application/loan_application.py:248
 msgid "Repayment Amount must be greater than "
 msgstr ""
 
@@ -6245,7 +6379,7 @@ msgstr ""
 msgid "Repayment Start Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:956
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:976
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr ""
 
@@ -6267,7 +6401,7 @@ msgstr ""
 msgid "Repayment cannot be made for closed loan"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:236
+#: lending/loan_management/doctype/loan/loan.py:237
 msgid "Repayment periods is mandatory for term loans"
 msgstr ""
 
@@ -6280,8 +6414,13 @@ msgstr ""
 msgid "Report Date"
 msgstr "Rapport datum"
 
-#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:35
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.py:38
 msgid "Report Date cannot be in the future."
+msgstr ""
+
+#. Label of the report_pdf (Attach) field in DocType 'Credit Bureau Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "Report PDF"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
@@ -6362,6 +6501,18 @@ msgstr ""
 msgid "Round Off Account is mandatory"
 msgstr ""
 
+#. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Round Up"
+msgstr ""
+
+#. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
+#. Product'
+#: lending/loan_management/doctype/loan_product/loan_product.json
+msgid "Round to Nearest"
+msgstr ""
+
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:55
 msgid "Row {0}: Loan Security {1} added multiple times"
 msgstr ""
@@ -6424,19 +6575,19 @@ msgstr ""
 msgid "Rows {0} and {1} of {2} overlap. A value inside the overlap would score differently depending on row order."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:470
+#: lending/loan_origination/decisioning.py:495
 msgid "Rule value {0} is not a number, but {1} is. Write 100000 rather than 100,000."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:302
+#: lending/loan_origination/decisioning.py:327
 msgid "Rule {0} did not match. {1} is {2}."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:310
+#: lending/loan_origination/decisioning.py:335
 msgid "Rule {0} matched on {1}. Outcome {2}."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:294
+#: lending/loan_origination/decisioning.py:319
 msgid "Rule {0} skipped. {1} was not collected for this applicant."
 msgstr ""
 
@@ -6486,7 +6637,7 @@ msgstr ""
 msgid "Sanctioned Amount Tolerance (%)"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:572
+#: lending/loan_management/doctype/loan/loan.py:573
 #: lending/loan_management/doctype/loan_application/loan_application.py:200
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr ""
@@ -6513,7 +6664,7 @@ msgstr ""
 msgid "Score"
 msgstr "Score"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:272
 msgid "Score {0}, grade {1}."
 msgstr ""
 
@@ -6599,7 +6750,7 @@ msgstr ""
 msgid "Select {0}s By"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:173
+#: lending/loan_management/doctype/loan/loan.py:174
 #: lending/loan_management/doctype/loan_application/loan_application.py:160
 msgid "Selected employee belongs to {0}. Please select an employee from company {1}."
 msgstr ""
@@ -6622,6 +6773,10 @@ msgstr "E-mails verzenden"
 #. Label of the servicer_fee (Check) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Servicer Fee"
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:208
+msgid "Set a Credit Bureau Adapter in {0} before pulling a report."
 msgstr ""
 
 #. Description of the 'Loan Disbursement' (Link) field in DocType 'Process Loan
@@ -6710,11 +6865,6 @@ msgstr ""
 msgid "Stop On Match"
 msgstr ""
 
-#. Description of the 'Stop On Match' (Check) field in DocType 'Decision Rule'
-#: lending/loan_origination/doctype/decision_rule/decision_rule.json
-msgid "Stop evaluating the strategy once this rule matches."
-msgstr ""
-
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:118
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:128
 msgid "Strategies"
@@ -6745,7 +6895,7 @@ msgstr ""
 msgid "Subsidy Adjustments"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:142
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:144
 msgid "Supersedes {0}."
 msgstr ""
 
@@ -6814,12 +6964,38 @@ msgstr ""
 msgid "The amount paid ({0}) cannot be greater than the payable amount ({1}) for Security Deposit Adjustment repayments."
 msgstr ""
 
+#: lending/loan_integrations/bureau.py:242
+msgid "The applicant has not consented to a credit bureau pull, so their report cannot be fetched."
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:277
+msgid "The bureau answered but its report could not be stored, so this enquiry is already spent. Settle Integration Request {0} before anyone pulls again."
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:192
+msgid "The bureau report link at {0} points inside our own network."
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:132
+msgid "The bureau report link redirected more than {0} times."
+msgstr ""
+
+#: lending/loan_integrations/bureau.py:269
+msgid "The credit bureau could not be reached. See Integration Request {0}."
+msgstr ""
+
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
 msgid "The following loans do not exist: {}"
+msgstr ""
+
+#. Description of the 'External ID' (Data) field in DocType 'Credit Bureau
+#. Report'
+#: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
+msgid "The provider's own reference for this pull. Quote it when raising a dispute."
 msgstr ""
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
@@ -6850,7 +7026,7 @@ msgstr ""
 msgid "There are overlapping accruals here {}, the current acrrual date gets accrued from {} to {}"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:83
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
 msgid "There is nothing to submit. No rule in {0} matched this applicant, so no decision was reached."
 msgstr ""
 
@@ -6862,7 +7038,7 @@ msgstr ""
 msgid "This applicant cannot clear the knockout rules yet. {0} was not collected, so the rules that reject on it could not be checked."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:365
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:413
 msgid "This applicant was rejected within the last {0} days. A cooling period applies, so this lead cannot be taken forward yet."
 msgstr ""
 
@@ -6874,11 +7050,11 @@ msgstr ""
 msgid "This repost is already {0}. Wait for it to finish before submitting again."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:13
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.js:12
 msgid "This repost is {0} in the background. Please wait for it to finish."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:336
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:384
 msgid "This rule runs as a workflow task and cannot be called directly."
 msgstr ""
 
@@ -7033,7 +7209,7 @@ msgstr ""
 msgid "Total net payable amount is {0} and total adjustment amount is {1}. For Manual or Internal Foreclosure, shortfall {2} exceeds the allowed write-off limit of {3} as per the Loan Product Auto Write Off Amount."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:530
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:531
 msgid "Total overdue amount for charge {0} is {1}, but table shows {2}. Please remove the duplicate charges and refresh the page."
 msgstr ""
 
@@ -7105,7 +7281,7 @@ msgstr ""
 msgid "Unaccrued Interest Waiver"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:431
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:432
 msgid "Unaccrued Interest Waiver cannot be greater than overdue amount"
 msgstr ""
 
@@ -7178,6 +7354,18 @@ msgstr ""
 msgid "Upfront Deduction"
 msgstr ""
 
+#. Description of the 'Bureau Consent Wording' (Small Text) field in DocType
+#. 'Loan Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Use the wording your bureau or aggregator requires."
+msgstr ""
+
+#. Description of the 'Credit Bureau Adapter' (Select) field in DocType 'Loan
+#. Origination Settings'
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
+msgid "Used for every credit bureau pull. Leave empty to turn pulls off. Credentials are set in the adapter's own settings."
+msgstr ""
+
 #. Label of the utilized_limit (Currency) field in DocType 'Loan Restructure
 #. Limit Log'
 #: lending/loan_management/doctype/loan_restructure_limit_log/loan_restructure_limit_log.json
@@ -7247,13 +7435,13 @@ msgstr ""
 msgid "Variables"
 msgstr "Variabelen"
 
-#. Description of the 'OTP for Email' (Check) field in DocType 'Loan
+#. Description of the 'OTP via Email' (Check) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Verify a lead's email address. Requires Email OTP in TP OTP Settings."
 msgstr ""
 
-#. Description of the 'OTP for SMS' (Check) field in DocType 'Loan Origination
+#. Description of the 'OTP via SMS' (Check) field in DocType 'Loan Origination
 #. Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Verify a lead's mobile number. Requires SMS in TP OTP Settings."
@@ -7287,7 +7475,7 @@ msgstr ""
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:421
+#: lending/loan_management/doctype/loan_restructure/loan_restructure.py:422
 msgid "Waiver amount for charge {0} cannot exceed overdue amount {1}"
 msgstr ""
 
@@ -7321,7 +7509,7 @@ msgstr ""
 #. Description of the 'Raw Payload' (Long Text) field in DocType 'Credit Bureau
 #. Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
-msgid "Whatever the bureau returned, verbatim. Behind permission level 1: the score and the total EMI are what the rules need, the rest is only here for disputes."
+msgid "Whatever the bureau returned, verbatim. Kept for disputes."
 msgstr ""
 
 #. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
@@ -7332,6 +7520,12 @@ msgstr ""
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "When this lead was rejected. What the applicant's cooling period is counted from."
+msgstr ""
+
+#. Description of the 'Consent Wording Version' (Data) field in DocType 'Loan
+#. Lead'
+#: lending/loan_origination/doctype/loan_lead/loan_lead.json
+msgid "Which wording the applicant agreed to."
 msgstr ""
 
 #. Description of the 'Auto create customer' (Check) field in DocType 'Lending
@@ -7392,7 +7586,7 @@ msgstr ""
 msgid "Write Off Settlement"
 msgstr ""
 
-#: lending/loan_management/doctype/loan/loan.py:1053
+#: lending/loan_management/doctype/loan/loan.py:1054
 msgid "Write Off amount cannot be greater than pending loan amount"
 msgstr ""
 
@@ -7410,15 +7604,23 @@ msgstr ""
 msgid "Written Off Amount"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:216
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:218
 msgid "Wrong Bureau Report"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:254
+msgid "Wrong Scorecard"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:236
+msgid "Wrong Strategy"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:255
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:299
 msgid "You do not have permission to send an OTP for {0}."
 msgstr ""
 
@@ -7427,7 +7629,7 @@ msgstr ""
 msgid "ZIP Code"
 msgstr "Postcode"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:85
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:87
 msgid "any strategy"
 msgstr ""
 
@@ -7436,7 +7638,7 @@ msgstr ""
 msgid "between"
 msgstr "tussen"
 
-#: lending/loan_origination/decisioning.py:197
+#: lending/loan_origination/decisioning.py:222
 msgid "decision"
 msgstr ""
 
@@ -7445,11 +7647,11 @@ msgstr ""
 msgid "in"
 msgstr "in"
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:161
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:163
 msgid "loan amount capped at {0}, currently {1}"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:187
+#: lending/loan_origination/decisioning.py:212
 msgid "no matching rule"
 msgstr ""
 
@@ -7462,20 +7664,24 @@ msgstr ""
 msgid "not in"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:160
-msgid "rate of interest {0}, currently {1}"
-msgstr ""
-
-#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:56
-msgid "telephony_label"
+#: lending/loan_integrations/bureau.py:180
+msgid "nothing"
 msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:162
+msgid "rate of interest {0}, currently {1}"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:78
+msgid "telephony_label"
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:164
 msgid "tenure capped at {0}, currently {1}"
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:198
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
+#: lending/loan_origination/decisioning.py:223
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:217
 msgid "this applicant"
 msgstr ""
 
@@ -7483,7 +7689,7 @@ msgstr ""
 msgid "this is the one that runs"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:242
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:272
 msgid "ungraded"
 msgstr ""
 
@@ -7491,51 +7697,75 @@ msgstr ""
 msgid "with reference no. {}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:130
+#: lending/loan_management/doctype/loan_product/loan_product.py:131
 msgid "{0} cannot be negative"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:184
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:228
 msgid "{0} changed while the OTP was in flight. Please try again."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:139
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:141
 msgid "{0} decided {1}."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:111
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:113
 msgid "{0} has changed since this decision was drafted. Save the decision again so it is made on what you are approving."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_lead/loan_lead.py:142
+#: lending/loan_origination/doctype/loan_lead/loan_lead.py:186
 msgid "{0} is already verified for this lead."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:145
+#: lending/loan_management/doctype/loan_product/loan_product.py:146
 msgid "{0} is mandatory. Please set it in Loan Product or Company"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:100
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:102
 msgid "{0} is no longer a draft, so a decision can no longer be recorded against it."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:213
+#: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:53
+msgid "{0} is not a registered credit bureau adapter. Registered adapters: {1}."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:251
+msgid "{0} is not a scorecard for {1}, so it cannot score this application."
+msgstr ""
+
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
 msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:403
+#: lending/loan_origination/decisioning.py:428
 msgid "{0} is not a supported decision rule operator."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:234
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:233
+msgid "{0} is not an enabled Underwriting strategy for {1}, so it cannot decide this application."
+msgstr ""
+
+#: lending/loan_integrations/base.py:67
+msgid "{0} is not set in {1}."
+msgstr ""
+
+#: lending/loan_integrations/base.py:126
+msgid "{0} is rate limiting us."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:259
 msgid "{0} is {1}, inside {2} to {3}. {4} points."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:186
+#: lending/loan_integrations/base.py:32
+msgid "{0} names no settings doctype, so there is nowhere to read its credentials from."
+msgstr ""
+
+#: lending/loan_origination/decisioning.py:211
 msgid "{0} returned {1}."
 msgstr ""
 
-#: lending/loan_origination/decisioning.py:243
+#: lending/loan_origination/decisioning.py:268
 msgid "{0} scored nothing. It was not collected for this applicant."
 msgstr ""
 
@@ -7544,15 +7774,15 @@ msgstr ""
 msgid "{0} should be between 1 and 99"
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:195
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:197
 msgid "{0} was cancelled and no longer governs this application."
 msgstr ""
 
-#: lending/loan_origination/doctype/loan_decision/loan_decision.py:181
+#: lending/loan_origination/doctype/loan_decision/loan_decision.py:183
 msgid "{0} was cancelled, but this application is no longer a draft, so the decision it recorded stands."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_product/loan_product.py:181
+#: lending/loan_management/doctype/loan_product/loan_product.py:182
 msgid "{0} {1} mandatory when Loan Accounting is enabled for {2}"
 msgstr ""
 
