@@ -20,7 +20,9 @@ Before creating a Loan Lead, it is advised to have:
 2. Select Applicant Type.
 3. Enter Applicant Name, Email, Mobile Number, Loan Product, and Loan Amount.
 4. Enter Proposed Tenure and other profile details as required.
-5. Save and Submit.
+5. Save. The lead is in the **Incoming** state.
+6. To move the lead forward, select **Actions** > **Run Basic Rules**, then **Run Pre-Qualification Rules**, then **Run Knockout Rules**. The lead is then in the **Pre-Qualified** state.
+7. To stop the lead at any state, select **Actions** > **Reject**.
 
 ![The Loan Lead form for Priya Nair, showing the Basic Details section.](images/lead-form.webp)
 
