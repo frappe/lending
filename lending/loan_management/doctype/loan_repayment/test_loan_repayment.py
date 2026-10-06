@@ -1025,6 +1025,61 @@ class TestLoanRepayment(FrappeTestCase):
 		self.assertEqual(loan.status, "Disbursed")
 		self.assertIsNone(loan.closure_date)
 
+	def test_closure_date_cleared_on_loc_repayment_cancel(self):
+		from lending.loan_management.doctype.loan.loan import auto_close_loc_loans
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-12-05",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			335533,
+			disbursement_date="2024-11-25",
+			repayment_start_date="2025-01-24",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Active")
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
+		)
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2025-01-23",
+			344890,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(flt(loan.utilized_limit_amount), 0)
+
+		auto_close_loc_loans(posting_date="2025-12-06")
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+		self.assertEqual(loan.closure_date, getdate("2025-12-06"))
+
+		repayment_entry.cancel()
+		loan.load_from_db()
+
+		self.assertEqual(loan.status, "Active")
+		self.assertIsNone(loan.closure_date)
+
 	def test_write_off_recovery_cancel(self):
 		set_loan_accrual_frequency("Daily")
 
