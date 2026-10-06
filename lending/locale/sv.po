@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-04 14:55+0000\n"
-"PO-Revision-Date: 2026-10-05 21:26\n"
+"PO-Revision-Date: 2026-10-06 21:21\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -92,11 +92,11 @@ msgstr "A mellan regel behöver två kommaseparerade värden. {0} har {1}."
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "A bureau pull is refused without this."
-msgstr ""
+msgstr "Utan detta avslås begäran om utdrag från register."
 
 #: lending/loan_integrations/bureau.py:180
 msgid "A bureau report link must be https, not {0}."
-msgstr ""
+msgstr "Länk till Kreditupplysningsbyrå Rapport måste vara https, inte {0}."
 
 #. Description of the 'Variable' (Autocomplete) field in DocType 'Decision
 #. Rule'
@@ -118,7 +118,7 @@ msgstr "Potentiell Kund kan inte konverteras till Låneansökan förrän alla ak
 
 #: lending/loan_integrations/api.py:30
 msgid "A {0} call for {1} is still open as {2}. Settle that request before asking again."
-msgstr ""
+msgstr "{0} anrop för {1} är fortfarande öppet som {2}. Avsluta begäran innan du frågar igen."
 
 #. Name of a report
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.json
@@ -1075,38 +1075,38 @@ msgstr "Massåterbetalning Logg"
 #. Label of the bureau (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Bureau"
-msgstr "Byrå"
+msgstr "Kreditupplysningsbyrå"
 
 #. Label of the bureau_consent (Check) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Bureau Consent Given"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Gav Samtycke"
 
 #. Label of the bureau_consent_text (Small Text) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Bureau Consent Wording"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Samtycke Formulering"
 
 #. Label of the bureau_consent_version (Data) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Bureau Consent Wording Version"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Samtycke Formulering Version"
 
 #: lending/loan_integrations/bureau.py:272
 msgid "Bureau Pull Failed"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Utdrag Misslyckades"
 
 #. Label of the bureau_report (Link) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:72
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Bureau Report"
-msgstr "Byrårapport"
+msgstr "Kreditupplysningsbyrå  Rapport"
 
 #: lending/loan_integrations/bureau.py:281
 msgid "Bureau Report Not Stored"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Rapport Inte Sparad"
 
 #. Label of the bureau_score (Int) field in DocType 'Loan Decision'
 #. Label of the bureau_score (Int) field in DocType 'Loan Lead'
@@ -1114,7 +1114,7 @@ msgstr ""
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Bureau Score"
-msgstr "Byråresultat"
+msgstr "Kreditupplysningsbyrå Resultat"
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -1139,7 +1139,7 @@ msgstr "CRIF"
 
 #: lending/loan_integrations/api.py:33
 msgid "Call Already In Flight"
-msgstr ""
+msgstr "Samtal är Redan i Luften"
 
 #. Label of the cancel_future_accruals_and_demands (Check) field in DocType
 #. 'Loan Repayment Repost'
@@ -1404,7 +1404,7 @@ msgstr "Ta bort efterfråga tilldelning före ombokning"
 #. 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Clear this when the bureau did not report obligations. Total EMI is then read as unknown rather than zero, and affordability rules refer the application."
-msgstr ""
+msgstr "Rensa detta när kreditupplysningsbyrå inte rapporterar skyldigheter. Total EMI läses då som okänt snarare än noll, och betalningsförmåga regler hänvisar till ansökan."
 
 #. Label of the clearance_date (Date) field in DocType 'Loan Disbursement'
 #. Label of the clearance_date (Date) field in DocType 'Loan Repayment'
@@ -1592,16 +1592,16 @@ msgstr "Komponenter"
 #. Label of the bureau_consent_on (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Consent Given On"
-msgstr ""
+msgstr "Samtycke lämnat"
 
 #: lending/loan_integrations/bureau.py:243
 msgid "Consent Required"
-msgstr ""
+msgstr "Samtycke Erfordras"
 
 #. Label of the bureau_consent_version (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Consent Wording Version"
-msgstr ""
+msgstr "Samtycke Formulering Version"
 
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.py:302
 msgid "Consolidated NPA suspense for {0} ({1} to {2})"
@@ -1719,20 +1719,20 @@ msgstr "Kredit Justering Belopp"
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Credit Bureau"
-msgstr ""
+msgstr "Kreditupplysningsbyrå"
 
 #. Label of the credit_bureau_adapter (Select) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Credit Bureau Adapter"
-msgstr ""
+msgstr "Kreditupplysningsbyrå Adapter"
 
 #. Name of a DocType
 #. Label of the bureau_report (Link) field in DocType 'Loan Decision'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Credit Bureau Report"
-msgstr "Kreditupplysning Byrå Rapport"
+msgstr "Kreditupplysningsbyrå Rapport"
 
 #. Label of the current_disbursed_amount (Currency) field in DocType 'Loan
 #. Disbursement'
@@ -2188,7 +2188,7 @@ msgstr "Månadsvis Avbetalning(Belopp + Ränta)"
 #. Label of the emi_rounding_method (Select) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "EMI Rounding Method"
-msgstr ""
+msgstr "Likställda Månadsvisa Avbetalning Avrundning Metod"
 
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:114
 msgid "EMIs Paid"
@@ -2295,7 +2295,7 @@ msgstr "Aktivera Partner Bokföring"
 
 #: lending/loan_integrations/base.py:58
 msgid "Enable either Sandbox or Production in {0} before calling it."
-msgstr ""
+msgstr "Aktivera antingen Test eller Produktion i {0} innan du anropar den."
 
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Product'
 #. Option for the 'Repayment Date On' (Select) field in DocType 'Loan Repayment
@@ -2368,7 +2368,7 @@ msgstr "Överskott belopp återbetalning gräns under låneavslutning"
 #. Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Existing Obligations Known"
-msgstr ""
+msgstr "Befintliga Kända Skyldigheter"
 
 #. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
@@ -2378,7 +2378,7 @@ msgstr "Erfarenhet"
 #. Label of the external_id (Data) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "External ID"
-msgstr ""
+msgstr "Externt ID"
 
 #. Label of the fldg_section (Section Break) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -2510,7 +2510,7 @@ msgstr "Från Datum kan inte vara senare än Till Datum"
 #. Description of the 'Bureau Score' (Int) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "From the most recent bureau report on file for this PAN."
-msgstr ""
+msgstr "Från senaste Kreditupplysningsbyrå Rapport som finns registrerad för denna kund."
 
 #. Option for the 'Repayment Type' (Select) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
@@ -2596,7 +2596,7 @@ msgstr "Hjälp Text"
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "How the calculated EMI is rounded. Round to Nearest rounds off normally. Round Up always rounds up, which can close the loan before the entered tenure. No Rounding keeps the exact value."
-msgstr ""
+msgstr "Hur den beräknade Likställda Månadsvisa Avbetalning avrundas. Alternativ ”Avrunda till Närmaste” avrundar på vanligt sätt. Alternativ ”Avrunda Uppåt” avrundar alltid uppåt, vilket kan leda till att lån löper ut före angiven löptid. Alternativet ”Ingen Avrundning” behåller exakt värde."
 
 #. Label of the advance_payment_handling (Select) field in DocType 'Loan
 #. Product'
@@ -4366,7 +4366,7 @@ msgstr "Manuella Anmärkningar"
 #. Description of the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Manual is a score keyed in by an underwriter, not pulled from a bureau."
-msgstr ""
+msgstr "Manuellt är resultat som knappas in av försäkringsgivare, inte hämtad från kreditupplysningsbyrå."
 
 #. Description of the 'Manual NPA' (Check) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -4658,7 +4658,7 @@ msgstr "Nya högsta gränsbelopp kan inte vara lägre än utnyttjad gränsbelopp
 
 #: lending/loan_integrations/base.py:101
 msgid "No API credentials are set in {0} for the {1} environment."
-msgstr ""
+msgstr "Inga API inloggningsuppgifter är angivna i {0} för {1} miljö."
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:91
 msgid "No Applicants found with selected options."
@@ -4681,11 +4681,11 @@ msgstr "Inga Poster för dessa inställningar."
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "No Rounding"
-msgstr ""
+msgstr "Ingen Avrundning"
 
 #: lending/loan_integrations/adapters/__init__.py:48
 msgid "No adapter is registered for {0}. Registered adapters: {1}."
-msgstr ""
+msgstr "Ingen låntagare är registrerad för {0}. Registrerade låntagare: {1}."
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:121
 msgid "No enabled Underwriting strategy applies to {0}, so this application cannot be decided at all."
@@ -4832,13 +4832,13 @@ msgstr "Engånglösenord för {0} är inte aktiverad i Lån Inställningar."
 #. Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "OTP via Email"
-msgstr ""
+msgstr "Engånglösenord via E-post"
 
 #. Label of the otp_for_sms (Check) field in DocType 'Loan Origination
 #. Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "OTP via SMS"
-msgstr ""
+msgstr "Engånglösenord via SMS"
 
 #. Label of the old_emi (Currency) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -5391,7 +5391,7 @@ msgstr "Ange återbetalning belopp"
 
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:70
 msgid "Please install the Telephony app to send OTPs, or turn OTP via Email and OTP via SMS off."
-msgstr ""
+msgstr "Installera Telefoni app för att skicka engångslösenord, eller inaktivera engångslösenord via E-post och SMS."
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:332
 msgid "Please install the Telephony app to send and verify OTPs."
@@ -6083,7 +6083,7 @@ msgstr "Rekommenderade villkor: {0}. Använd dem i själva ansökan, så att åt
 #. 'Loan Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Recorded on each lead that consents, so old consents keep the wording they were given against."
-msgstr ""
+msgstr "Registreras för varje potentiell kund som ger sitt samtycke, så att gamla samtycken behåller formulering som de ursprungligen gavs för."
 
 #. Option for the 'How to Handle Advance Payments' (Select) field in DocType
 #. 'Loan Product'
@@ -6436,7 +6436,7 @@ msgstr "Rapport Datum får inte vara i framtiden."
 #. Label of the report_pdf (Attach) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Report PDF"
-msgstr ""
+msgstr "Rapport PDF"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Assignment'
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
@@ -6520,13 +6520,13 @@ msgstr "Avrundning Konto erfordras"
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Round Up"
-msgstr ""
+msgstr "Avrunda Uppåt"
 
 #. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
 #. Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Round to Nearest"
-msgstr ""
+msgstr "Avrunda till Närmaste"
 
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:55
 msgid "Row {0}: Loan Security {1} added multiple times"
@@ -6792,7 +6792,7 @@ msgstr "Serviceavgift"
 
 #: lending/loan_integrations/bureau.py:208
 msgid "Set a Credit Bureau Adapter in {0} before pulling a report."
-msgstr ""
+msgstr "Ange Kreditupplysningsbyrå Låntagare i {0} innan rapport hämtas."
 
 #. Description of the 'Loan Disbursement' (Link) field in DocType 'Process Loan
 #. Accounting Detail'
@@ -6981,23 +6981,23 @@ msgstr "Betald belopp ({0}) kan inte vara högre än belopp som ska betalas ({1}
 
 #: lending/loan_integrations/bureau.py:242
 msgid "The applicant has not consented to a credit bureau pull, so their report cannot be fetched."
-msgstr ""
+msgstr "Sökande har inte gett sitt samtycke till kreditupplysning, varför kreditupplysning inte kan hämtas."
 
 #: lending/loan_integrations/bureau.py:277
 msgid "The bureau answered but its report could not be stored, so this enquiry is already spent. Settle Integration Request {0} before anyone pulls again."
-msgstr ""
+msgstr "Kreditupplysningsbyrå svarade, men rapport kunde inte sparas, så förfrågan är redan avklarad. Hantera integrationsbegäran {0} innan någon gör ett nytt försök."
 
 #: lending/loan_integrations/bureau.py:192
 msgid "The bureau report link at {0} points inside our own network."
-msgstr ""
+msgstr "Länk till kreditupplysningsbyrå rapport {0} leder till vårt eget nätverk."
 
 #: lending/loan_integrations/bureau.py:132
 msgid "The bureau report link redirected more than {0} times."
-msgstr ""
+msgstr "Länk till kreditupplysningsbyrå rapport omdirigerades mer än {0} gånger."
 
 #: lending/loan_integrations/bureau.py:269
 msgid "The credit bureau could not be reached. See Integration Request {0}."
-msgstr ""
+msgstr "Kreditupplysningsbyrå kunde inte nås. Se integrationsbegäran {0}."
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
 msgid "The following disbursements do not exist or are not submitted: {}"
@@ -7011,7 +7011,7 @@ msgstr "Följande lån finns inte: {}"
 #. Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "The provider's own reference for this pull. Quote it when raising a dispute."
-msgstr ""
+msgstr "Leverantör referensnummer för denna hämtning. Anges vid tvist."
 
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
 msgid "The repost did not finish and has been reset to Draft:"
@@ -7373,13 +7373,13 @@ msgstr "Förskott Avdrag"
 #. 'Loan Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Use the wording your bureau or aggregator requires."
-msgstr ""
+msgstr "Använd formulering som kreditupplysningsbyrå eller aggregator erfordrar."
 
 #. Description of the 'Credit Bureau Adapter' (Select) field in DocType 'Loan
 #. Origination Settings'
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.json
 msgid "Used for every credit bureau pull. Leave empty to turn pulls off. Credentials are set in the adapter's own settings."
-msgstr ""
+msgstr "Används vid varje kreditupplysning. Lämna fält tomt för att inaktivera kreditupplysningar. Inloggningsuppgifter anges i låntagare inställningar."
 
 #. Label of the utilized_limit (Currency) field in DocType 'Loan Restructure
 #. Limit Log'
@@ -7525,7 +7525,7 @@ msgstr "Vad denna verifikation ackumulerade: en rad per konto och källtyp, med 
 #. Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
 msgid "Whatever the bureau returned, verbatim. Kept for disputes."
-msgstr ""
+msgstr "Oavsett vad byrån svarade, ordagrant. Sparas för eventuella tvister."
 
 #. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
 #: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
@@ -7541,7 +7541,7 @@ msgstr "När denna ansökan avslogs. Från vilken tidpunkt sökandens karensperi
 #. Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Which wording the applicant agreed to."
-msgstr ""
+msgstr "Formulering som sökande godkände."
 
 #. Description of the 'Auto create customer' (Check) field in DocType 'Lending
 #. Settings'
@@ -7621,15 +7621,15 @@ msgstr "Avskriven Belopp"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:218
 msgid "Wrong Bureau Report"
-msgstr "Felaktig Byrårapport"
+msgstr "Felaktig Kreditupplysningsbyrå  Rapport"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:254
 msgid "Wrong Scorecard"
-msgstr ""
+msgstr "Felaktigt Resultatkort"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:236
 msgid "Wrong Strategy"
-msgstr ""
+msgstr "Fel Strategi"
 
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.py:107
 msgid "You are trying to unpledge more."
@@ -7681,7 +7681,7 @@ msgstr "inte i"
 
 #: lending/loan_integrations/bureau.py:180
 msgid "nothing"
-msgstr ""
+msgstr "ingenting"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:162
 msgid "rate of interest {0}, currently {1}"
@@ -7742,15 +7742,15 @@ msgstr "{0} är inte längre utkast, så beslut kan inte längre registreras mot
 
 #: lending/loan_origination/doctype/loan_origination_settings/loan_origination_settings.py:53
 msgid "{0} is not a registered credit bureau adapter. Registered adapters: {1}."
-msgstr ""
+msgstr "{0} är inte registrerad kreditupplysningsbyrå låntagare. Registrerade låntagare: {1}."
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:251
 msgid "{0} is not a scorecard for {1}, so it cannot score this application."
-msgstr ""
+msgstr "{0} är inte resultatkort för {1}, så det kan inte betygsätta denna ansökan."
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:215
 msgid "{0} is not a submitted Credit Bureau Report for {1}, so it cannot be used to decide this application."
-msgstr "{0} är inte godkänd Kreditupplysning Byrå Rapport för {1}, så den kan inte användas för att fatta beslut om denna ansökan."
+msgstr "{0} är inte godkänd Kreditupplysningsbyrå Rapport för {1}, så den kan inte användas för att fatta beslut om denna ansökan."
 
 #: lending/loan_origination/decisioning.py:428
 msgid "{0} is not a supported decision rule operator."
@@ -7758,15 +7758,15 @@ msgstr "{0} är inte operatör som stöds i beslutsreglerna."
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:233
 msgid "{0} is not an enabled Underwriting strategy for {1}, so it cannot decide this application."
-msgstr ""
+msgstr "{0} är inte aktiverad kreditprövningsstrategi för {1}, och kan därför inte fatta beslut om denna ansökan."
 
 #: lending/loan_integrations/base.py:67
 msgid "{0} is not set in {1}."
-msgstr ""
+msgstr "{0} är inte angiven i {1}."
 
 #: lending/loan_integrations/base.py:126
 msgid "{0} is rate limiting us."
-msgstr ""
+msgstr "{0} begränsar oss."
 
 #: lending/loan_origination/decisioning.py:259
 msgid "{0} is {1}, inside {2} to {3}. {4} points."
@@ -7774,7 +7774,7 @@ msgstr "{0} är {1}, inuti {2} till {3}. {4} poäng."
 
 #: lending/loan_integrations/base.py:32
 msgid "{0} names no settings doctype, so there is nowhere to read its credentials from."
-msgstr ""
+msgstr "{0} anger ingen doctype inställning, så det finns ingenstans att hämta dess autentiseringsuppgifter ifrån."
 
 #: lending/loan_origination/decisioning.py:211
 msgid "{0} returned {1}."
