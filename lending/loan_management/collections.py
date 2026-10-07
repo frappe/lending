@@ -425,34 +425,31 @@ def send_dunning_for_case(case_name, process_collection_dunning):
 @frappe.whitelist()
 def launch_hardship(case_name: str, restructure_type: str) -> str:
 	"""Create a Loan Restructure from a Collection Case, link it, and mark the case
-	Hardship Requested. The permission check below is the real gate: a Loan Officer
-	or Processor has write access to Collection Case but not create access to Loan
-	Repayment Schedule, which Loan Restructure.after_insert creates on its own
-	without ignore_permissions, so the insert itself must run as Administrator.
+	Hardship Requested. Requires Loan Restructure create permission, not just
+	Collection Case write: Loan Restructure.after_insert creates a Loan Repayment
+	Schedule on its own without ignore_permissions, and only Loan Manager /
+	System Manager can create one, so a Loan Officer/Processor cannot complete
+	this action -- checked up front rather than failing deep inside the insert.
 	"""
 	frappe.has_permission("Collection Case", "write", doc=case_name, throw=True)
+	frappe.has_permission("Loan Restructure", "create", throw=True)
 
 	case = frappe.get_doc("Collection Case", case_name)
 	loan_details = frappe.db.get_value(
 		"Loan", case.loan, ["repayment_method", "monthly_repayment_amount"], as_dict=True
 	)
 
-	current_user = frappe.session.user
-	try:
-		frappe.set_user("Administrator")
-		restructure = frappe.new_doc("Loan Restructure")
-		restructure.loan = case.loan
-		restructure.restructure_type = restructure_type
-		restructure.restructure_date = nowdate()
-		if loan_details.repayment_method == "Repay Fixed Amount per Period":
-			# update_restructured_loan_details() only derives the EMI for "Repay Over
-			# Number of Periods"; a fixed-amount loan must keep its existing
-			# installment going forward or the draft schedule gets zero-payment rows.
-			restructure.new_repayment_method = loan_details.repayment_method
-			restructure.new_monthly_repayment_amount = loan_details.monthly_repayment_amount
-		restructure.insert(ignore_permissions=True)
-	finally:
-		frappe.set_user(current_user)
+	restructure = frappe.new_doc("Loan Restructure")
+	restructure.loan = case.loan
+	restructure.restructure_type = restructure_type
+	restructure.restructure_date = nowdate()
+	if loan_details.repayment_method == "Repay Fixed Amount per Period":
+		# update_restructured_loan_details() only derives the EMI for "Repay Over
+		# Number of Periods"; a fixed-amount loan must keep its existing
+		# installment going forward or the draft schedule gets zero-payment rows.
+		restructure.new_repayment_method = loan_details.repayment_method
+		restructure.new_monthly_repayment_amount = loan_details.monthly_repayment_amount
+	restructure.insert()
 
 	case.linked_restructure = restructure.name
 	case.status = "Hardship Requested"

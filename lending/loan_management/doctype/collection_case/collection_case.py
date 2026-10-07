@@ -2,7 +2,8 @@
 # For license information, please see license.txt
 
 from frappe.model.document import Document
-from frappe.utils import getdate, today
+from frappe.utils import flt, getdate, today
+from frappe.utils.formatters import format_value
 
 
 class CollectionCase(Document):
@@ -71,3 +72,18 @@ class CollectionCase(Document):
 			self.status = "Broken PTP"
 		elif open_ptp_exists:
 			self.status = "Promise to Pay"
+
+	def get_formatted_overdue_amount(self):
+		"""The amount actually due right now (overdue principal + interest demands),
+		as distinct from outstanding_amount (the loan's whole remaining balance) --
+		used in the dunning Notification message so it doesn't overstate what a
+		borrower owes for a single missed installment. Called from the Notification
+		template as {{ doc.get_formatted_overdue_amount() }}. Uses the same
+		formatting/currency-resolution path as Document.get_formatted(), reusing
+		outstanding_amount's own Currency df so both figures render consistently."""
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
+		amounts = calculate_amounts(self.loan, today())
+		overdue_amount = flt(amounts.get("payable_principal_amount", 0)) + flt(amounts.get("interest_amount", 0))
+		df = self.meta.get_field("outstanding_amount")
+		return format_value(overdue_amount, df=df, doc=self)

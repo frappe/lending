@@ -6,6 +6,12 @@ frappe.ui.form.on('Collection Case', {
 		if (frm.doc.linked_restructure || ['Resolved', 'Closed'].includes(frm.doc.status)) {
 			return;
 		}
+		// launch_hardship also creates a Loan Repayment Schedule internally, which
+		// only Loan Manager / System Manager can do -- hide the button for anyone
+		// who can't actually complete the action instead of letting it fail server-side.
+		if (!frappe.perm.has_perm('Loan Restructure', 0, 'create')) {
+			return;
+		}
 
 		frm.add_custom_button(__('Hardship / Restructure'), function() {
 			frappe.prompt(

@@ -113,6 +113,7 @@
    "reqd": 1
   },
   {
+   "description": "Remaining loan balance (principal + overdue interest), not just the overdue installment.",
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "Outstanding Amount",
@@ -197,7 +198,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-07 10:00:00.000000",
+ "modified": "2026-10-07 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Collection Case",
