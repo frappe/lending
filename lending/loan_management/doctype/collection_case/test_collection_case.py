@@ -2,7 +2,9 @@
 # See license.txt
 
 import frappe
+from frappe.utils import add_days
 
+from lending.loan_management.doctype.loan.loan import create_dpd_record
 from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 	create_process_loan_classification,
 )
@@ -99,34 +101,36 @@ class TestCollectionCase(LendingTestSuite):
 	def test_case_bucket_refreshes_on_de_escalation(self):
 		"""A partial payment that lowers DPD into a less severe bucket (without
 		clearing it to 0) must still update the open case's bucket/amounts, not
-		just leave it stuck at the older, higher bucket."""
-		loan, disbursement = self.create_overdue_loan()
-		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+		just leave it stuck at the older, higher bucket.
 
-		create_process_loan_classification(posting_date="2024-06-10", loan=loan.name)
+		Driven directly via create_dpd_record (same as the re-escalation test
+		below) rather than a real backdated repayment: create_overdue_loan()'s own
+		seed repayment already reposts the loan's single unpaid demand all the way
+		to today's real date, so any fixed-date repayment here would still land
+		deep in the same bucket instead of crossing one.
+		"""
+		loan, disbursement = self.create_overdue_loan()
+
+		last_log_date = frappe.db.get_value(
+			"Collection Case Log", {"loan": loan.name}, "posting_date", order_by="posting_date desc"
+		)
+		day_1 = add_days(last_log_date, 1)
+		day_2 = add_days(last_log_date, 2)
+
+		create_dpd_record(loan.name, disbursement.name, day_1, 75)  # Doubtful 1 (61-90)
 		case_before = frappe.db.get_value(
 			"Collection Case", {"loan": loan.name, "status": "Open"}, ["name", "bucket", "days_past_due"], as_dict=1
 		)
-		self.assertTrue(case_before)
-		self.assertGreater(case_before.days_past_due, 30)
+		self.assertEqual(case_before.bucket, "Doubtful 1")
 
-		# Clears only the oldest (April) EMI, leaving the May EMI still overdue --
-		# DPD should drop to date_diff(today, May EMI due date), not to 0.
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-06-10", 44425, loan_disbursement=disbursement.name
-		)
-		repayment_entry.submit()
-
-		create_process_loan_classification(
-			posting_date="2024-06-11", loan=loan.name, force_update_dpd_in_loan=1
-		)
+		create_dpd_record(loan.name, disbursement.name, day_2, 45)  # Sub-Standard 2 (31-60)
 
 		case_after = frappe.db.get_value(
 			"Collection Case", case_before.name, ["status", "bucket", "days_past_due"], as_dict=1
 		)
 		self.assertEqual(case_after.status, "Open")
-		self.assertLess(case_after.days_past_due, case_before.days_past_due)
-		self.assertNotEqual(case_after.bucket, case_before.bucket)
+		self.assertEqual(case_after.bucket, "Sub-Standard 2")
+		self.assertEqual(case_after.days_past_due, 45)
 
 		self.assertTrue(
 			frappe.db.exists(
@@ -134,3 +138,39 @@ class TestCollectionCase(LendingTestSuite):
 				{"loan": loan.name, "event": "Bucket De-escalated", "collection_case": case_before.name},
 			)
 		)
+
+	def test_case_bucket_corrects_on_re_escalation_after_de_escalation(self):
+		"""Escalate -> de-escalate -> re-escalate back to the same higher bucket.
+		latest_log must pick up the de-escalation, or the re-escalation looks like
+		"no change" against the stale pre-de-escalation bucket and the case is left
+		showing the lower bucket while DPD has actually climbed back up.
+
+		create_overdue_loan()'s seed repayment is itself backdated, so its own
+		repost walks the DPD all the way up to today's real date before this test
+		even starts (visible as a run of "Bucket Escalated" logs up to "Loss") --
+		so the sequence below is layered on top of that, each step dated after the
+		fixture's own last log, rather than trying to inject DPD readings earlier
+		than what the fixture already produced (which the stale-history guard
+		would then reject as older than what's on file).
+		"""
+		loan, disbursement = self.create_overdue_loan()
+
+		last_log_date = frappe.db.get_value(
+			"Collection Case Log", {"loan": loan.name}, "posting_date", order_by="posting_date desc"
+		)
+		day_1 = add_days(last_log_date, 1)
+		day_2 = add_days(last_log_date, 2)
+		day_3 = add_days(last_log_date, 3)
+
+		create_dpd_record(loan.name, disbursement.name, day_1, 35)  # Sub-Standard 2 (31-60)
+		case = frappe.db.get_value(
+			"Collection Case", {"loan": loan.name, "status": "Open"}, ["name", "bucket"], as_dict=1
+		)
+		self.assertEqual(case.bucket, "Sub-Standard 2")
+
+		create_dpd_record(loan.name, disbursement.name, day_2, 10)  # Sub-Standard 1 (1-30)
+		self.assertEqual(frappe.db.get_value("Collection Case", case.name, "bucket"), "Sub-Standard 1")
+
+		create_dpd_record(loan.name, disbursement.name, day_3, 35)  # back to Sub-Standard 2
+		self.assertEqual(frappe.db.get_value("Collection Case", case.name, "bucket"), "Sub-Standard 2")
+		self.assertEqual(frappe.db.get_value("Collection Case", case.name, "days_past_due"), 35)

@@ -46,7 +46,7 @@ def on_dpd_log_upsert(doc, method=None):
 	# yesterday (the normal daily classification date) and wrongly block it.
 	latest_log = frappe.db.get_value(
 		"Collection Case Log",
-		{"loan": doc.loan, "event": ("in", ["Case Opened", "Bucket Escalated", "Resolved"])},
+		{"loan": doc.loan, "event": ("in", ["Case Opened", "Bucket Escalated", "Bucket De-escalated", "Resolved"])},
 		["posting_date", "to_bucket"],
 		order_by="posting_date desc, creation desc",
 		as_dict=True,
