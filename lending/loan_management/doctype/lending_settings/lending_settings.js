@@ -5,12 +5,9 @@ const SETTINGS = "lending.loan_management.doctype.lending_settings.lending_setti
 const CUSTOM = "Custom";
 const PREVIEW_STYLE_ID = "lending-theme-preview";
 const PREVIEW_PARAM = "lending_preview";
-const SCREEN_STYLE_ID = "lending-preview-screen";
 
-// The portal renders at a desktop size, then shrinks to the form's width, so it never falls to its narrow layout.
-// It runs in the Desk session, so the portal drops Log out and Appearance from its menu and keeps
-// navigation to the made-up borrower's pages; see guardPreview in lending/portal/studio_build/app.py.
-const SCREEN = { width: 1440, height: 900 };
+// The preview runs in the Desk session, so the portal drops Log out and Appearance from its menu and
+// keeps navigation to the made-up borrower's pages; see guardPreview in lending/portal/studio_build/app.py.
 
 const THEME_DESCRIPTIONS = {
 	Ocean: __("Two shades of blue"),
@@ -43,7 +40,8 @@ frappe.ui.form.on("Lending Settings", {
 			apply: frm.doc.enable_borrower_portal && frm.doc.enable_public_apply,
 		};
 		load_swatches(frm);
-		// The layout is built once, so a save that publishes or unpublishes pages must reload the frame.
+		sync_preview_button(frm);
+		// A save that publishes or unpublishes pages must reload an open preview.
 		load_page(frm);
 	},
 
@@ -100,54 +98,43 @@ function render_swatches(frm) {
 	});
 }
 
-// The grid repaints on every colour change; the preview frame is built once so it keeps its page.
 function build_layout(frm, $wrapper) {
 	if ($wrapper.find('[data-region="swatches"]').length) return;
 
 	$wrapper.html(`
-		<div data-region="swatches" style="display: grid; gap: 16px;
+		<div data-region="swatches" style="display: grid; gap: 16px; margin-bottom: var(--margin-xl);
 			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
-
-		<div style="margin-top: var(--margin-xl);">
-			<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-				gap: 12px; margin-bottom: var(--margin-sm);">
-				<div>
-					<div style="font-weight: 600; color: var(--text-color);">${__("Preview")}</div>
-					<div style="font-size: var(--text-sm); color: var(--text-muted);">
-						${__("The portal with the colours on this form, saved or not, filled with a made-up borrower.")}
-					</div>
-				</div>
-				<div style="display: flex; gap: 8px; align-items: center;">
-					<select class="form-control input-xs" data-control="page" style="width: auto;"></select>
-					<div class="btn-group" role="group">
-						<button type="button" class="btn btn-xs btn-default" data-mode="light">${__("Light")}</button>
-						<button type="button" class="btn btn-xs btn-default" data-mode="dark">${__("Dark")}</button>
-					</div>
-				</div>
-			</div>
-			<div data-region="screen" style="position: relative; overflow: hidden;
-				aspect-ratio: ${SCREEN.width} / ${SCREEN.height}; border: 1px solid var(--border-color);
-				border-radius: var(--radius); background: var(--card-bg);">
-				<iframe scrolling="no" style="position: absolute; top: 0; left: 0; border: 0;
-					width: ${SCREEN.width}px; height: ${SCREEN.height}px; transform-origin: 0 0;"></iframe>
-				<div data-region="unpublished" style="display: none; height: 100%; align-items: center;
-					justify-content: center; color: var(--text-muted); font-size: var(--text-sm);">
-					${__("Save to publish the portal, then the preview appears here.")}
-				</div>
-			</div>
-		</div>
 	`);
+}
 
-	frm.theme_preview = { $wrapper, mode: "light" };
-	fit_screen($wrapper);
+// The portal's pages are published only when the settings are saved, so an unsaved switch would 404.
+function sync_preview_button(frm) {
+	const $button = preview_button(frm);
+	if (!$button) return;
 
-	$wrapper.find('[data-control="page"]').on("change", () => load_page(frm));
-	$wrapper.find("[data-mode]").on("click", function () {
-		frm.theme_preview.mode = $(this).attr("data-mode");
-		apply_preview(frm);
-	});
+	const live = Boolean(frm.portal_published?.portal);
+	$button.prop("disabled", !live).attr("title", live ? "" : __("Save to publish the portal, then preview it."));
+}
 
-	load_page(frm);
+// Sits in the section's own heading, whose clicks and Enter otherwise fold the section.
+function preview_button(frm) {
+	const $head = frm.fields_dict.portal_theme_section?.head;
+	if (!$head) return null;
+
+	let $button = $head.find('[data-control="preview"]');
+	if ($button.length) return $button;
+
+	$head.css({ display: "flex", "align-items": "center", gap: "4px" });
+	$button = $(`
+		<button type="button" class="btn btn-sm btn-default" data-control="preview" style="margin-left: auto;">
+			${frappe.utils.icon("maximize", "sm")} ${__("Preview")}
+		</button>
+	`).appendTo($head);
+
+	$button.on("click keydown keyup keypress", (event) => event.stopPropagation());
+	$button.on("click", () => open_preview(frm));
+
+	return $button;
 }
 
 function swatch_card(name, swatch, selected) {
@@ -190,11 +177,94 @@ function palette_strip(mode) {
 	`;
 }
 
-function load_page(frm) {
-	const $wrapper = frm.theme_preview?.$wrapper;
-	if (!$wrapper) return;
+function open_preview(frm) {
+	if (frm.theme_preview || !frm.portal_published?.portal) return;
 
-	const $picker = $wrapper.find('[data-control="page"]');
+	const $overlay = $(`
+		<div role="dialog" aria-modal="true" aria-label="${__("Portal theme preview")}"
+			style="position: fixed; inset: 0; z-index: 1050; display: flex; flex-direction: column;
+				background: var(--bg-color);">
+			${preview_toolbar(frm)}
+			<iframe style="flex: 1; width: 100%; border: 0;"></iframe>
+		</div>
+	`).appendTo(document.body);
+
+	const on_key = (event) => event.key === "Escape" && close_preview(frm);
+	frm.theme_preview = { $overlay, mode: "light", on_key };
+	$(document).on("keydown", on_key);
+	$("body").css("overflow", "hidden");
+	// The overlay sits on <body>, so Back would otherwise leave it over the next page.
+	frappe.router.once("change", () => close_preview(frm));
+
+	$overlay.find('[data-control="page"]').on("change", () => load_page(frm));
+	$overlay.find('[data-control="close"]').on("click", () => close_preview(frm));
+	$overlay.find("[data-mode]").on("click", function () {
+		frm.theme_preview.mode = $(this).attr("data-mode");
+		apply_preview(frm);
+	});
+
+	load_page(frm);
+}
+
+function preview_toolbar(frm) {
+	const theme = frm.doc.portal_theme || CUSTOM;
+	const unsaved = frm.is_dirty() ? frappe.ui.badge.html({ label: __("Not saved"), theme: "orange" }) : "";
+
+	return `
+		<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;
+			height: 48px; flex-shrink: 0; padding: 0 12px 0 16px; background: var(--card-bg);
+			border-bottom: 1px solid var(--border-color); box-shadow: var(--shadow-sm); position: relative;">
+			<div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+				<span style="font-weight: 600; color: var(--text-color);"
+					title="${__("Filled with a made-up borrower")}">${__("Preview")}</span>
+				${frappe.ui.badge.html({ label: theme === CUSTOM ? __("Custom") : __(theme) })}
+				${unsaved}
+				<select class="form-control input-xs" data-control="page" aria-label="${__("Page")}"
+					style="width: 220px; margin-left: 8px;"></select>
+			</div>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<div class="btn-group" role="group" aria-label="${__("Appearance")}">
+					${mode_button("light", "sun", __("Light"))}
+					${mode_button("dark", "moon", __("Dark"))}
+				</div>
+				<button type="button" class="btn btn-xs btn-default icon-btn" data-control="close"
+					title="${__("Close")}" aria-label="${__("Close")}">
+					${frappe.utils.icon("x", "sm")}
+				</button>
+			</div>
+		</div>
+	`;
+}
+
+function mode_button(mode, icon, label) {
+	return `
+		<button type="button" class="btn btn-xs btn-default" data-mode="${mode}"
+			style="display: inline-flex; align-items: center; gap: 4px;">
+			${frappe.utils.icon(icon, "sm")} ${label}
+		</button>
+	`;
+}
+
+function close_preview(frm) {
+	const preview = frm.theme_preview;
+	if (!preview) return;
+
+	$(document).off("keydown", preview.on_key);
+	$("body").css("overflow", "");
+	preview.$overlay.remove();
+	delete frm.theme_preview;
+}
+
+function load_page(frm) {
+	const $overlay = frm.theme_preview?.$overlay;
+	if (!$overlay) return;
+
+	if (!frm.portal_published?.portal) {
+		close_preview(frm);
+		return;
+	}
+
+	const $picker = $overlay.find('[data-control="page"]');
 	const chosen = $picker.val();
 	const pages = published_pages(frm);
 	$picker.html(
@@ -204,17 +274,8 @@ function load_page(frm) {
 	);
 	$picker.val(pages.some((page) => page.route === chosen) ? chosen : pages[0]?.route);
 
-	const frame = $wrapper.find("iframe")[0];
-	const live = Boolean(frm.portal_published?.portal);
-	$wrapper.find('[data-region="unpublished"]').css("display", live ? "none" : "flex");
-	$(frame).toggle(live);
-	if (!live) {
-		frame.src = "about:blank";
-		return;
-	}
-
+	const frame = $overlay.find("iframe")[0];
 	frame.onload = () => {
-		hide_scrollbars(frame.contentDocument);
 		watch_portal_styles(frame.contentDocument);
 		apply_preview(frm);
 	};
@@ -222,7 +283,6 @@ function load_page(frm) {
 	frame.src = `${$picker.val()}?${PREVIEW_PARAM}=1`;
 }
 
-// The portal's pages are published only when the settings are saved, so an unsaved switch would 404.
 function published_pages(frm) {
 	const published = frm.portal_published || {};
 	return PREVIEW_PAGES.filter((page) => !page.public_apply || published.apply);
@@ -233,12 +293,12 @@ function apply_preview(frm) {
 	const preview = frm.theme_preview;
 	if (!preview) return;
 
-	const { $wrapper, mode } = preview;
-	$wrapper.find("[data-mode]").each(function () {
+	const { $overlay, mode } = preview;
+	$overlay.find("[data-mode]").each(function () {
 		$(this).toggleClass("active", $(this).attr("data-mode") === mode);
 	});
 
-	const doc = $wrapper.find("iframe")[0]?.contentDocument;
+	const doc = $overlay.find("iframe")[0]?.contentDocument;
 	if (!doc?.documentElement) return;
 
 	doc.documentElement.dataset.appearance = mode;
@@ -263,31 +323,6 @@ function apply_preview(frm) {
 }
 
 const refresh_preview = frappe.utils.debounce((frm) => apply_preview(frm), 300);
-
-function fit_screen($wrapper) {
-	const screen = $wrapper.find('[data-region="screen"]')[0];
-	const frame = screen.querySelector("iframe");
-	const fit = () => {
-		frame.style.transform = `scale(${screen.clientWidth / SCREEN.width})`;
-	};
-
-	fit();
-	new ResizeObserver(fit).observe(screen);
-}
-
-// A still screen: the inner panes would otherwise show their own scrollbars.
-function hide_scrollbars(doc) {
-	if (!doc?.head || doc.getElementById(SCREEN_STYLE_ID)) return;
-
-	const style = doc.createElement("style");
-	style.id = SCREEN_STYLE_ID;
-	style.textContent = `
-		html, body { overflow: hidden !important; }
-		* { scrollbar-width: none !important; }
-		*::-webkit-scrollbar { display: none !important; }
-	`;
-	doc.head.appendChild(style);
-}
 
 // The page renders its own saved theme as it navigates; switch each copy off so only the preview paints.
 function watch_portal_styles(doc) {
