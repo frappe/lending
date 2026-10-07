@@ -1518,13 +1518,16 @@ class LoanRepayment(LoanController):
 
 			if self.repayment_type in ("Write Off Settlement", "Write Off Recovery"):
 				query = query.set(loan.status, "Written Off")
+				query = query.set(loan.closure_date, None)
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif self.repayment_type == "Full Settlement":
 				query = query.set(loan.status, "Disbursed")
+				query = query.set(loan.closure_date, None)
 				self.update_repayment_schedule_status(cancel=1)
 				self.reverse_future_accruals_and_demands(loan_repayment=self.name)
 			elif is_closed:
+				query = query.set(loan.closure_date, None)
 				if repayment_schedule_type == "Line of Credit":
 					query = query.set(loan.status, "Active")
 				else:
