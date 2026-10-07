@@ -25,9 +25,9 @@ Before creating a Decision Strategy, it is advised to have:
 
 Lending runs one strategy for each stage. A strategy for the applicant's loan product always wins over a strategy with no product. Among those, the highest **Priority** runs.
 
-:::tip
+<!-- :::tip
 To try out a new strategy, give it a lower priority than the live one and check it with [Test Run](/lending/loan-decision#test-run) on a Loan Decision.
-:::
+::: -->
 
 #### Rules
 
@@ -70,8 +70,4 @@ The **Vehicle Loan Underwriting** strategy above has four rules:
 A rule on a missing value is skipped. If any rule is skipped, an Approve becomes **Refer**.
 :::
 
-#### Related topics
 
-- [Credit Decisioning](/lending/credit-decisioning)
-- [Scorecard](/lending/scorecard)
-- [Loan Decision](/lending/loan-decision)

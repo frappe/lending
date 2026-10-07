@@ -12,7 +12,7 @@ Every pull is billed, and it leaves an enquiry on the applicant's credit file th
 
 Before pulling a credit bureau report, it is mandatory to have:
 
-- An app that provides a credit bureau adapter, installed and set up.
+- The **eKYC India** app installed, with your Surepass token in **Surepass Settings**.
 - The **Loan Lead Workflow** activated. See [Workflow](/erpnext/workflows).
 - The applicant's **PAN** on the Loan Lead.
 
@@ -45,7 +45,7 @@ Lending pulls only once for each Loan Lead and each Loan Application. To turn pu
 | Message | What to do |
 | --- | --- |
 | Consent Required | Record consent on the Loan Lead, then run the transition again. |
-| Set a Credit Bureau Adapter… | Select an adapter, or disable the pull task. |
+| Set a Credit Bureau Adapter | Select an adapter, or disable the pull task. |
 | Bureau Pull Failed | Fix the cause shown in the Integration Request, then pull again. |
 | Bureau Report Not Stored | The bureau answered, so the enquiry is already billed and recorded. Do not mark the Integration Request as **Failed**: Lending then pulls again, which adds a second charge and a second enquiry. Get the report from the bureau with the **Request ID** on the Integration Request, and ask your system administrator to reconcile the request. |
 | Call Already In Flight | If the Integration Request is **Authorized**, the bureau answered: do the steps for **Bureau Report Not Stored**. If it is **Queued**, Lending does not know if the bureau answered. Ask the bureau if it has an enquiry for this request. Only if it has none, ask your system administrator to mark the request as **Failed**, then pull again. |

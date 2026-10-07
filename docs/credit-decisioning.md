@@ -61,10 +61,4 @@ A reason code tells the applicant why a rule declined them. Every Decline rule m
 - **Loan Underwriter** can read strategies and scorecards, and create and submit Loan Decisions.
 - **Loan Officer** runs the workflow transitions, but needs write permission on Loan Lead and read permission on Credit Bureau Report. Lending does not grant these by default.
 
-#### Related topics
 
-- [Decision Strategy](/lending/decision-strategy)
-- [Scorecard](/lending/scorecard)
-- [Loan Decision](/lending/loan-decision)
-- [Credit Bureau](/lending/credit-bureau)
-- [Loan Lead](/lending/loan-lead)

@@ -31,8 +31,3 @@ The score starts at the **Base Score**, and each matching band adds its points. 
 Score only numeric variables. A row on `employment_type`, `applicant_type`, or `loan_product` never scores, so it turns every Approve into Refer.
 :::
 
-#### Related topics
-
-- [Credit Decisioning](/lending/credit-decisioning)
-- [Decision Strategy](/lending/decision-strategy)
-- [Loan Decision](/lending/loan-decision)

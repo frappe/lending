@@ -77,8 +77,3 @@ When **OTP Verification Mandatory** is checked, a lead cannot be converted to a 
 - The **Mobile Number** must include the country code, for example `+91 98200 41122`.
 - If an SMS does not arrive, open **TP SMS Log** to see why Twilio refused it.
 
-#### Related topics
-
-- [OTP Verification API](/lending/loan-management/api-documentation/otp-verification)
-- [Loan Lead](/lending/loan-lead)
-- [Borrower Portal](/lending/borrower-portals)

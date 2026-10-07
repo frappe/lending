@@ -23,11 +23,11 @@ On submit, the decision and the recommended terms are copied to the Loan Applica
 
 ![Priya Nair's Loan Application after submission, with Recommended Rate of Interest 10.5% and Decision LDEC-2026-00008 highlighted.](images/decisioning-loan-application.webp)
 
-#### Test Run
+<!-- #### Test Run
 
 **Test Run** shows what every Underwriting strategy for the loan product would decide, without saving anything. Use it to compare a new strategy with the live one.
 
-![The Test Run dialog for Priya Nair's application, showing the scorecard result, the collected variables, and the Vehicle Loan Underwriting strategy marked as the one that runs.](images/decisioning-test-run.webp)
+![The Test Run dialog for Priya Nair's application, showing the scorecard result, the collected variables, and the Vehicle Loan Underwriting strategy marked as the one that runs.](images/decisioning-test-run.webp) -->
 
 #### Things to note
 
@@ -40,9 +40,4 @@ On submit, the decision and the recommended terms are copied to the Loan Applica
 A Decline decision does not stop the Loan Application from being approved. Lending records the decision but does not enforce it.
 :::
 
-#### Related topics
 
-- [Credit Decisioning](/lending/credit-decisioning)
-- [Decision Strategy](/lending/decision-strategy)
-- [Scorecard](/lending/scorecard)
-- [Credit Bureau](/lending/credit-bureau)
