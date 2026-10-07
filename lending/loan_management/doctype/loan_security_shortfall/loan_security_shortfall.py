@@ -10,6 +10,7 @@ from frappe.utils import flt, get_datetime
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
+from lending.vehicle_finance.loan_hooks import is_fixed_valuation_security
 
 
 class LoanSecurityShortfall(Document):
@@ -148,6 +149,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			)
 
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
+		if only_fixed_valuation_securities(pledged_securities):
+			continue
+
 		ltv_ratio = 0.0
 		security_value = 0.0
 
@@ -175,6 +179,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 	# Applicant-wise shortfall processing
 	for applicant in applicants:
+		if only_fixed_valuation_securities(get_pledged_security_qty(applicant=applicant)):
+			continue
+
 		security_value = get_total_pledged_security_value(applicant=applicant, on_shortfall_check=True)
 		pending_principal_amount = get_pending_principal_amount_for_applicant(applicant)
 
@@ -236,6 +243,11 @@ def create_loan_security_shortfall(
 	ltv_shortfall.shortfall_percentage = shortfall_ratio
 	ltv_shortfall.process_loan_security_shortfall = process_loan_security_shortfall
 	ltv_shortfall.save()
+
+
+def only_fixed_valuation_securities(pledged_securities):
+	securities = [security for security, qty in pledged_securities.items() if flt(qty) > 0]
+	return bool(securities) and all(is_fixed_valuation_security(security) for security in securities)
 
 
 def get_ltv_ratio(loan_security):

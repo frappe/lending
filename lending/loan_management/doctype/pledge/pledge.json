@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_security",
+  "vehicle",
   "loan_security_name",
   "loan_security_type",
   "loan_security_code",
@@ -85,11 +86,19 @@
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "fetch_from": "loan_security.vehicle",
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "options": "Loan Vehicle",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:49.051427",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Pledge",

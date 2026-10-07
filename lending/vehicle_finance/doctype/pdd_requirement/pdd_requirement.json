@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "asset_condition",
+  "due_in_days",
+  "blocks_next_disbursement"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "Loan Document Type",
+   "reqd": 1
+  },
+  {
+   "description": "Blank applies to every asset condition",
+   "fieldname": "asset_condition",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Asset Condition",
+   "options": "\nNew\nUsed\nRefinance"
+  },
+  {
+   "fieldname": "due_in_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Due in Days",
+   "reqd": 1
+  },
+  {
+   "fieldname": "blocks_next_disbursement",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Blocks Next Disbursement"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-03 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Vehicle Finance",
+ "name": "PDD Requirement",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

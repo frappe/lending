@@ -22,6 +22,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.vehicle_finance.loan_hooks import get_fixed_security_value, validate_loan_application
 
 
 class LoanApplication(Document):
@@ -76,6 +77,7 @@ class LoanApplication(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		validate_loan_application(self)
 		self.set_pledge_amount()
 		self.set_loan_amount()
 		self.validate_loan_amount()
@@ -209,7 +211,9 @@ class LoanApplication(Document):
 				frappe.throw(_("Qty is mandatory for loan security!"))
 
 			if not proposed_pledge.loan_security_price:
-				loan_security_price = get_loan_security_price(proposed_pledge.loan_security)
+				loan_security_price = get_loan_security_price(
+					proposed_pledge.loan_security
+				) or get_fixed_security_value(proposed_pledge.loan_security)
 
 				if loan_security_price:
 					proposed_pledge.loan_security_price = loan_security_price

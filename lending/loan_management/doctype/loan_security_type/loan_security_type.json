@@ -10,6 +10,8 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
+  "valuation_method",
+  "is_vehicle",
   "disabled"
  ],
  "fields": [
@@ -43,10 +45,25 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "default": "Market Price",
+   "description": "Fixed Valuation securities are valued once at pledge and skip Loan Security Price lookups and the daily shortfall check",
+   "fieldname": "valuation_method",
+   "fieldtype": "Select",
+   "label": "Valuation Method",
+   "options": "Market Price\nFixed Valuation"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.valuation_method=='Fixed Valuation'",
+   "fieldname": "is_vehicle",
+   "fieldtype": "Check",
+   "label": "Is Vehicle"
   }
  ],
  "links": [],
- "modified": "2025-03-19 11:46:50.950227",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

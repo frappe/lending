@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "VVAL-.YYYY.-.#####",
+ "creation": "2026-10-03 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vehicle",
+  "valuation_date",
+  "valuer",
+  "odometer_km",
+  "condition_grade",
+  "column_break_1",
+  "market_value",
+  "distress_value",
+  "report",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Vehicle",
+   "options": "Loan Vehicle",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "valuation_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Valuation Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valuer",
+   "fieldtype": "Link",
+   "label": "Valuer",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "odometer_km",
+   "fieldtype": "Int",
+   "label": "Odometer (km)"
+  },
+  {
+   "fieldname": "condition_grade",
+   "fieldtype": "Select",
+   "label": "Condition Grade",
+   "options": "\nA\nB\nC\nD"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "market_value",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Market Value",
+   "reqd": 1
+  },
+  {
+   "fieldname": "distress_value",
+   "fieldtype": "Currency",
+   "label": "Distress Value"
+  },
+  {
+   "fieldname": "report",
+   "fieldtype": "Attach",
+   "label": "Valuation Report"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Vehicle Valuation",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-03 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Vehicle Finance",
+ "name": "Vehicle Valuation",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Officer",
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

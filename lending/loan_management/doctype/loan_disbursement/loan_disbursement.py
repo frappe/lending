@@ -42,6 +42,11 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.loan_management.utils import loan_accounting_enabled
+from lending.vehicle_finance.loan_hooks import (
+	create_post_disbursal_documents,
+	delete_post_disbursal_documents,
+	validate_disbursement,
+)
 
 
 # nosemgrep
@@ -114,6 +119,7 @@ class LoanDisbursement(LoanController):
 
 		self.validate_repayment_start_date()
 		self.calculate_total_emi_charges()
+		validate_disbursement(self)
 		self.assign_tranche_number()
 
 	def on_update(self):
@@ -180,6 +186,8 @@ class LoanDisbursement(LoanController):
 			self.db_set("broken_period_interest_days", flt(schedule.broken_period_interest_days, precision))
 
 	def on_submit(self):
+		create_post_disbursal_documents(self)
+
 		if self.is_term_loan:
 			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 			if loan_status == "Partially Disbursed":
@@ -326,6 +334,7 @@ class LoanDisbursement(LoanController):
 
 	def on_cancel(self):
 		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule", "Sales Invoice", "Loan Demand"]
+		delete_post_disbursal_documents(self)
 
 		self.set_status_and_amounts(cancel=1)
 
