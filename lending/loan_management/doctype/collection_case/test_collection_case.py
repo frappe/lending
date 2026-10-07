@@ -95,3 +95,42 @@ class TestCollectionCase(LendingTestSuite):
 		)
 		self.assertEqual(case.status, "Resolved")
 		self.assertEqual(case.days_past_due, 0)
+
+	def test_case_bucket_refreshes_on_de_escalation(self):
+		"""A partial payment that lowers DPD into a less severe bucket (without
+		clearing it to 0) must still update the open case's bucket/amounts, not
+		just leave it stuck at the older, higher bucket."""
+		loan, disbursement = self.create_overdue_loan()
+		process_daily_loan_demands(posting_date="2024-05-05", loan=loan.name)
+
+		create_process_loan_classification(posting_date="2024-06-10", loan=loan.name)
+		case_before = frappe.db.get_value(
+			"Collection Case", {"loan": loan.name, "status": "Open"}, ["name", "bucket", "days_past_due"], as_dict=1
+		)
+		self.assertTrue(case_before)
+		self.assertGreater(case_before.days_past_due, 30)
+
+		# Clears only the oldest (April) EMI, leaving the May EMI still overdue --
+		# DPD should drop to date_diff(today, May EMI due date), not to 0.
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-06-10", 44425, loan_disbursement=disbursement.name
+		)
+		repayment_entry.submit()
+
+		create_process_loan_classification(
+			posting_date="2024-06-11", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		case_after = frappe.db.get_value(
+			"Collection Case", case_before.name, ["status", "bucket", "days_past_due"], as_dict=1
+		)
+		self.assertEqual(case_after.status, "Open")
+		self.assertLess(case_after.days_past_due, case_before.days_past_due)
+		self.assertNotEqual(case_after.bucket, case_before.bucket)
+
+		self.assertTrue(
+			frappe.db.exists(
+				"Collection Case Log",
+				{"loan": loan.name, "event": "Bucket De-escalated", "collection_case": case_before.name},
+			)
+		)

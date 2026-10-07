@@ -77,7 +77,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Event",
-   "options": "Case Opened\nBucket Escalated\nDunning Sent\nPromise to Pay Captured\nPromise to Pay Broken\nHardship Requested\nResolved",
+   "options": "Case Opened\nBucket Escalated\nBucket De-escalated\nDunning Sent\nPromise to Pay Captured\nPromise to Pay Broken\nHardship Requested\nResolved",
    "read_only": 1,
    "reqd": 1
   },
@@ -92,7 +92,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-17 10:00:00.000000",
+ "modified": "2026-10-07 16:42:59.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Collection Case Log",

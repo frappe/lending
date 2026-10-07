@@ -87,7 +87,23 @@ def on_dpd_log_upsert(doc, method=None):
 			)
 		return
 
-	if not is_bucket_escalation(from_bucket_code, to_bucket_code, loan_details.company):
+	is_escalation = is_bucket_escalation(from_bucket_code, to_bucket_code, loan_details.company)
+
+	if not is_escalation:
+		# Bucket moved down (e.g. a partial payment) without clearing the loan, so
+		# there's no new case to open -- but an already-open case's bucket/amounts
+		# still need to track the de-escalation, or they stay stuck at the old,
+		# higher bucket until the loan either resolves or escalates again.
+		if open_case:
+			refresh_case_amounts(open_case, doc.loan, days_past_due, posting_date)
+			if to_bucket_code:
+				frappe.db.set_value(
+					"Collection Case", open_case, {"bucket": to_bucket_code, "classification_code": to_bucket_code}
+				)
+				create_collection_case_log(
+					doc.loan, from_bucket_code, to_bucket_code, days_past_due, "Bucket De-escalated",
+					open_case, posting_date=posting_date,
+				)
 		return
 
 	branch = get_applicant_branch(loan_details.applicant_type, loan_details.applicant)
