@@ -123,6 +123,7 @@
 				{%
 					var total_debit = 0, total_credit = 0;
 					for (var i = 0; i < data.length; i++) {
+						if (!data[i].posting_date) continue;
 						total_debit += data[i].debit || 0;
 						total_credit += data[i].credit || 0;
 					}
