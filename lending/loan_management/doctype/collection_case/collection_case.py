@@ -74,13 +74,8 @@ class CollectionCase(Document):
 			self.status = "Promise to Pay"
 
 	def get_formatted_overdue_amount(self):
-		"""The amount actually due right now (overdue principal + interest demands),
-		as distinct from outstanding_amount (the loan's whole remaining balance) --
-		used in the dunning Notification message so it doesn't overstate what a
-		borrower owes for a single missed installment. Called from the Notification
-		template as {{ doc.get_formatted_overdue_amount() }}. Uses the same
-		formatting/currency-resolution path as Document.get_formatted(), reusing
-		outstanding_amount's own Currency df so both figures render consistently."""
+		"""Overdue principal + interest only -- unlike outstanding_amount, the loan's
+		whole remaining balance. Called from the dunning Notification template."""
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 
 		amounts = calculate_amounts(self.loan, today())

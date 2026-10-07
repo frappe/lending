@@ -425,14 +425,14 @@ def send_dunning_for_case(case_name, process_collection_dunning):
 @frappe.whitelist()
 def launch_hardship(case_name: str, restructure_type: str) -> str:
 	"""Create a Loan Restructure from a Collection Case, link it, and mark the case
-	Hardship Requested. Requires Loan Restructure create permission, not just
-	Collection Case write: Loan Restructure.after_insert creates a Loan Repayment
-	Schedule on its own without ignore_permissions, and only Loan Manager /
-	System Manager can create one, so a Loan Officer/Processor cannot complete
-	this action -- checked up front rather than failing deep inside the insert.
+	Hardship Requested. Loan Restructure.after_insert creates a Loan Repayment
+	Schedule on its own without ignore_permissions, so that permission is checked
+	up front too -- otherwise a Loan Officer/Processor with Collection Case write
+	and Loan Restructure create would still fail deep inside the insert.
 	"""
 	frappe.has_permission("Collection Case", "write", doc=case_name, throw=True)
 	frappe.has_permission("Loan Restructure", "create", throw=True)
+	frappe.has_permission("Loan Repayment Schedule", "create", throw=True)
 
 	case = frappe.get_doc("Collection Case", case_name)
 	loan_details = frappe.db.get_value(
