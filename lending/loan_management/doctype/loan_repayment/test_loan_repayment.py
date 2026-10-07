@@ -23,6 +23,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.tests.test_utils import (
+	create_demand_offset_order,
 	create_loan,
 	create_loan_write_off,
 	create_repayment_entry,
@@ -1093,15 +1094,78 @@ class TestLoanRepayment(LendingTestSuite):
 			posting_date="2025-06-05", loan=loan.name, company="_Test Company"
 		)
 
-		create_repayment_entry(
+		repayment_entry = create_repayment_entry(
 			loan.name,
 			"2025-06-05",
 			paid_amount=2540342.47,
-		).submit()
+		)
+		repayment_entry.submit()
 
 		loan.load_from_db()
 
 		self.assertEqual(loan.status, "Closed")
+		self.assertEqual(loan.closure_date, getdate("2025-06-05"))
+
+		repayment_entry.cancel()
+		loan.load_from_db()
+
+		self.assertEqual(loan.status, "Disbursed")
+		self.assertIsNone(loan.closure_date)
+
+	def test_closure_date_cleared_on_loc_repayment_cancel(self):
+		from lending.loan_management.doctype.loan.loan import auto_close_loc_loans
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			2700000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-30",
+			rate_of_interest=17.25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-28",
+			limit_applicable_end="2025-12-05",
+		)
+		loan.submit()
+
+		disbursement = make_loan_disbursement_entry(
+			loan.name,
+			335533,
+			disbursement_date="2024-11-25",
+			repayment_start_date="2025-01-24",
+			repayment_frequency="One Time",
+		)
+		disbursement.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Active")
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-23", loan=loan.name, company="_Test Company"
+		)
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			"2025-01-23",
+			344890,
+			loan_disbursement=disbursement.name,
+			repayment_type="Pre Payment",
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(flt(loan.utilized_limit_amount), 0)
+
+		auto_close_loc_loans(posting_date="2025-12-06")
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Closed")
+		self.assertEqual(loan.closure_date, getdate("2025-12-06"))
+
+		repayment_entry.cancel()
+		loan.load_from_db()
+
+		self.assertEqual(loan.status, "Active")
+		self.assertIsNone(loan.closure_date)
 
 	def test_write_off_recovery_cancel(self):
 		set_loan_accrual_frequency("Daily")
@@ -2525,6 +2589,97 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 		self.assertTrue(charge_draft.is_new())
 		self.assertEqual(charge_draft.repayment_type, "Charge Payment")
+
+	def test_partial_settlement_allocates_to_emi_interest(self):
+		"""Partial Settlement must allocate to real Interest demand, not leave it unaccounted for."""
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2025-02-15",
+			"2025-01-25",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-25", repayment_start_date="2025-02-15"
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-02-15", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2025-02-15", loan=loan.name)
+
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2025-02-15", payment_type="Partial Settlement"
+		)
+		self.assertGreater(amounts["interest_amount"], 0, "test setup must leave EMI Interest demand due")
+
+		repayment = create_repayment_entry(
+			loan.name, "2025-02-15", amounts["payable_amount"], repayment_type="Partial Settlement"
+		)
+		repayment.submit()
+
+		self.assertEqual(flt(repayment.principal_amount_paid, 2), flt(amounts["payable_principal_amount"], 2))
+		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(amounts["interest_amount"], 2))
+
+		allocated = sum(d.paid_amount for d in repayment.get("repayment_details"))
+		self.assertEqual(flt(allocated, 2), flt(repayment.amount_paid, 2))
+
+	def test_partial_settlement_interest_first_order_does_not_double_pay(self):
+		"""With an Interest-before-Principal offset order, the Interest step must not
+		also get claimed again by the Principal step's unscoped demand match."""
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		create_demand_offset_order(
+			"Test Interest First Settlement Order", ["Penalty", "Interest", "Principal", "Charges"]
+		)
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_settlement_collection",
+			"Test Interest First Settlement Order",
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2025-02-15",
+			"2025-01-25",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-25", repayment_start_date="2025-02-15"
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-02-15", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2025-02-15", loan=loan.name)
+
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2025-02-15", payment_type="Partial Settlement"
+		)
+		self.assertGreater(amounts["interest_amount"], 0, "test setup must leave EMI Interest demand due")
+
+		repayment = create_repayment_entry(
+			loan.name, "2025-02-15", amounts["payable_amount"], repayment_type="Partial Settlement"
+		)
+		repayment.submit()
+
+		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(amounts["interest_amount"], 2))
+		self.assertEqual(flt(repayment.principal_amount_paid, 2), flt(amounts["payable_principal_amount"], 2))
+
+		allocated = sum(d.paid_amount for d in repayment.get("repayment_details"))
+		self.assertEqual(flt(allocated, 2), flt(repayment.amount_paid, 2))
 
 
 def make_bank_account(gl_account):
