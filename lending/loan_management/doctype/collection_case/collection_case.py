@@ -46,8 +46,10 @@ class CollectionCase(Document):
 		self.reconcile_promise_to_pay()
 
 	def reconcile_promise_to_pay(self):
-		"""Mark an Open PTP as Broken once its promised date has passed with nothing paid against it."""
-		if self.status not in ("Promise to Pay", "Broken PTP"):
+		"""Mark an Open PTP as Broken once its promised date has passed unpaid. Runs
+		regardless of status, since a promise can be added before anyone flips the
+		case to "Promise to Pay"."""
+		if self.status in ("Resolved", "Closed", "Hardship Requested"):
 			return
 
 		open_ptp_exists = False

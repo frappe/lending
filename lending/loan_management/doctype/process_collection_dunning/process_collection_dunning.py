@@ -37,7 +37,7 @@ class ProcessCollectionDunning(Document):
 		open_cases = frappe.get_all("Collection Case", filters=filters, pluck="name")
 
 		if self.loan:
-			process_collection_dunning_batch(open_cases, self.posting_date, self.name)
+			process_collection_dunning_batch(open_cases, self.name)
 		else:
 			BATCH_SIZE = 5000
 			for i in range(0, len(open_cases), BATCH_SIZE):
@@ -45,7 +45,6 @@ class ProcessCollectionDunning(Document):
 				frappe.enqueue(
 					process_collection_dunning_batch,
 					collection_cases=batch,
-					posting_date=self.posting_date,
 					process_collection_dunning=self.name,
 					queue="long",
 					enqueue_after_commit=True,
