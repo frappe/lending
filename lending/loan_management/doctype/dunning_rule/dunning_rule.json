@@ -15,8 +15,6 @@
   "column_break_1",
   "min_dpd",
   "max_dpd",
-  "channel",
-  "communication_template",
   "cadence_days",
   "disabled"
  ],
@@ -70,21 +68,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "channel",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Channel",
-   "options": "Email\nSMS\nWhatsApp",
-   "reqd": 1
-  },
-  {
-   "fieldname": "communication_template",
-   "fieldtype": "Link",
-   "label": "Communication Template",
-   "options": "Email Template",
-   "reqd": 1
-  },
-  {
    "default": "1",
    "fieldname": "cadence_days",
    "fieldtype": "Int",
@@ -100,7 +83,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-17 10:00:00.000000",
+ "modified": "2026-10-07 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Dunning Rule",

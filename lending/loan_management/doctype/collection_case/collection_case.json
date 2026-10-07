@@ -11,6 +11,7 @@
   "loan",
   "applicant_type",
   "applicant",
+  "applicant_email",
   "company",
   "branch",
   "loan_product",
@@ -54,6 +55,13 @@
    "fieldtype": "Dynamic Link",
    "label": "Applicant",
    "options": "applicant_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "applicant_email",
+   "fieldtype": "Data",
+   "label": "Applicant Email",
+   "options": "Email",
    "read_only": 1
   },
   {
@@ -189,7 +197,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-17 10:00:00.000000",
+ "modified": "2026-10-07 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Collection Case",

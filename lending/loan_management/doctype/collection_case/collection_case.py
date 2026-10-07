@@ -21,6 +21,7 @@ class CollectionCase(Document):
 
 		activities: DF.Table[CollectionActivity]
 		applicant: DF.DynamicLink | None
+		applicant_email: DF.Data | None
 		applicant_type: DF.Literal["", "Customer", "Employee"]
 		assigned_agent: DF.Link | None
 		branch: DF.Link | None

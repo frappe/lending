@@ -40,9 +40,13 @@ def on_dpd_log_upsert(doc, method=None):
 
 	posting_date = getdate(doc.posting_date) if doc.posting_date else today()
 
+	# Only DPD-observation events carry a bucket reading; Dunning Sent/Hardship
+	# Requested are administrative and are usually logged with today's wall-clock
+	# date, which would otherwise look "newer" than a legitimate DPD update dated
+	# yesterday (the normal daily classification date) and wrongly block it.
 	latest_log = frappe.db.get_value(
 		"Collection Case Log",
-		{"loan": doc.loan},
+		{"loan": doc.loan, "event": ("in", ["Case Opened", "Bucket Escalated", "Resolved"])},
 		["posting_date", "to_bucket"],
 		order_by="posting_date desc, creation desc",
 		as_dict=True,
@@ -87,6 +91,7 @@ def on_dpd_log_upsert(doc, method=None):
 		return
 
 	branch = get_applicant_branch(loan_details.applicant_type, loan_details.applicant)
+	applicant_email = get_applicant_email(loan_details.applicant_type, loan_details.applicant)
 	outstanding_amount = get_case_outstanding_amount(doc.loan, posting_date)
 
 	case = get_or_create_case(
@@ -96,6 +101,7 @@ def on_dpd_log_upsert(doc, method=None):
 		loan_product=loan_details.loan_product,
 		applicant_type=loan_details.applicant_type,
 		applicant=loan_details.applicant,
+		applicant_email=applicant_email,
 		bucket=to_bucket_code,
 		classification_code=to_bucket_code,
 		days_past_due=days_past_due,
@@ -149,6 +155,20 @@ def get_applicant_branch(applicant_type, applicant):
 	return None
 
 
+def get_applicant_email(applicant_type, applicant):
+	"""Resolved once onto Collection Case.applicant_email so the core Notification
+	doctype's "receiver by document field" can send to it directly -- Notification
+	reads a plain field off the doc, it cannot follow a Dynamic Link to Customer/
+	Employee itself."""
+	if applicant_type == "Customer":
+		return frappe.db.get_value("Customer", applicant, "email_id")
+	if applicant_type == "Employee":
+		return frappe.db.get_value("Employee", applicant, "personal_email") or frappe.db.get_value(
+			"Employee", applicant, "company_email"
+		)
+	return None
+
+
 def refresh_case_amounts(case_name, loan, days_past_due, posting_date):
 	"""Keep an open case's days_past_due/outstanding_amount current while the loan
 	stays in the same bucket (e.g. a partial payment reduces DPD without crossing
@@ -171,8 +191,8 @@ def get_case_outstanding_amount(loan, posting_date):
 	return amounts.get("pending_principal_amount", 0) + amounts.get("interest_amount", 0)
 
 
-def get_or_create_case(loan, company, branch, loan_product, applicant_type, applicant, bucket,
-	classification_code, days_past_due, outstanding_amount):
+def get_or_create_case(loan, company, branch, loan_product, applicant_type, applicant, applicant_email,
+	bucket, classification_code, days_past_due, outstanding_amount):
 	"""Upsert the single open Collection Case for a loan (one open case per loan)."""
 	existing = frappe.db.get_value(
 		"Collection Case",
@@ -196,6 +216,7 @@ def get_or_create_case(loan, company, branch, loan_product, applicant_type, appl
 			"loan_product": loan_product,
 			"applicant_type": applicant_type,
 			"applicant": applicant,
+			"applicant_email": applicant_email,
 			"bucket": bucket,
 			"classification_code": classification_code,
 			"days_past_due": days_past_due,
@@ -310,7 +331,10 @@ def create_collection_case_log(loan, from_bucket, to_bucket, days_past_due, even
 
 
 def pick_dunning_rule(company, loan_product, classification_code, days_past_due):
-	"""Narrowest matching Dunning Rule: min_dpd <= dpd <= max_dpd, smallest range wins."""
+	"""Narrowest matching Dunning Rule: min_dpd <= dpd <= max_dpd, smallest range wins.
+	The rule only decides whether a case is due for dunning (cadence); the message
+	itself is owned by the "Collection Case Dunning" core Notification, so admins
+	can edit the subject/body/recipients from the desk without touching code."""
 	rules = frappe.get_all(
 		"Dunning Rule",
 		filters={
@@ -319,8 +343,7 @@ def pick_dunning_rule(company, loan_product, classification_code, days_past_due)
 			"min_dpd": ("<=", days_past_due),
 			"max_dpd": (">=", days_past_due),
 		},
-		fields=["name", "loan_product", "classification_code", "min_dpd", "max_dpd", "channel",
-			"communication_template", "cadence_days"],
+		fields=["name", "loan_product", "classification_code", "min_dpd", "max_dpd", "cadence_days"],
 	)
 
 	matching = [
@@ -377,27 +400,21 @@ def send_dunning_for_case(case_name, process_collection_dunning):
 	if last_dunning_date and add_days(last_dunning_date, rule.cadence_days) > getdate(today()):
 		return
 
-	sent = send_loan_notification(
-		case.loan, case.applicant_type, case.applicant, rule.channel, rule.communication_template
-	)
+	# Fires any enabled "Method" Notification on Collection Case whose method is
+	# "notify_dunning" (subject/body/channel/recipients all live on the
+	# Notification doc -- editable from the desk, no deploy needed to change them).
+	case.run_method("notify_dunning")
 
 	case.append(
 		"activities",
 		{
 			"activity_type": "System Dunning",
-			"channel": rule.channel,
 			"activity_date": nowdate(),
 			"outcome": "",
-			"template_used": rule.communication_template,
-			"notes": _("Auto dunning via {0}").format(rule.name)
-			if sent
-			else _("Auto dunning via {0} failed: no recipient address on file").format(rule.name),
+			"notes": _("Auto dunning via {0}").format(rule.name),
 		},
 	)
 	case.save(ignore_permissions=True)
-
-	if not sent:
-		return
 
 	create_collection_case_log(
 		case.loan, case.bucket, case.bucket, case.days_past_due, "Dunning Sent",
@@ -405,55 +422,37 @@ def send_dunning_for_case(case_name, process_collection_dunning):
 	)
 
 
-def send_loan_notification(loan, applicant_type, applicant, channel, communication_template):
-	"""Email is sent via frappe.sendmail; SMS/WhatsApp are logged as a Communication
-	for an integration layer to pick up, since no gateway ships with lending.
-	Returns False (not sent) only for an Email rule with no recipient on file."""
-	template = frappe.get_doc("Email Template", communication_template)
-	formatted = template.get_formatted_email({"loan": loan, "applicant": applicant})
-	subject, message = formatted["subject"], formatted["message"]
-
-	recipient = None
-	if applicant_type == "Customer":
-		recipient = frappe.db.get_value("Customer", applicant, "email_id")
-	elif applicant_type == "Employee":
-		recipient = frappe.db.get_value("Employee", applicant, "personal_email") or frappe.db.get_value(
-			"Employee", applicant, "company_email"
-		)
-
-	if channel == "Email":
-		if not recipient:
-			return False
-		frappe.sendmail(recipients=[recipient], subject=subject, message=message, reference_doctype="Loan", reference_name=loan)
-	else:
-		frappe.get_doc(
-			{
-				"doctype": "Communication",
-				"communication_type": "Communication",
-				"communication_medium": channel,
-				"subject": subject,
-				"content": message,
-				"reference_doctype": "Loan",
-				"reference_name": loan,
-				"sent_or_received": "Sent",
-			}
-		).insert(ignore_permissions=True)
-
-	return True
-
-
 @frappe.whitelist()
 def launch_hardship(case_name: str, restructure_type: str) -> str:
-	"""Create a Loan Restructure from a Collection Case, link it, and mark the case Hardship Requested."""
+	"""Create a Loan Restructure from a Collection Case, link it, and mark the case
+	Hardship Requested. The permission check below is the real gate: a Loan Officer
+	or Processor has write access to Collection Case but not create access to Loan
+	Repayment Schedule, which Loan Restructure.after_insert creates on its own
+	without ignore_permissions, so the insert itself must run as Administrator.
+	"""
 	frappe.has_permission("Collection Case", "write", doc=case_name, throw=True)
 
 	case = frappe.get_doc("Collection Case", case_name)
+	loan_details = frappe.db.get_value(
+		"Loan", case.loan, ["repayment_method", "monthly_repayment_amount"], as_dict=True
+	)
 
-	restructure = frappe.new_doc("Loan Restructure")
-	restructure.loan = case.loan
-	restructure.restructure_type = restructure_type
-	restructure.restructure_date = nowdate()
-	restructure.insert(ignore_permissions=True)
+	current_user = frappe.session.user
+	try:
+		frappe.set_user("Administrator")
+		restructure = frappe.new_doc("Loan Restructure")
+		restructure.loan = case.loan
+		restructure.restructure_type = restructure_type
+		restructure.restructure_date = nowdate()
+		if loan_details.repayment_method == "Repay Fixed Amount per Period":
+			# update_restructured_loan_details() only derives the EMI for "Repay Over
+			# Number of Periods"; a fixed-amount loan must keep its existing
+			# installment going forward or the draft schedule gets zero-payment rows.
+			restructure.new_repayment_method = loan_details.repayment_method
+			restructure.new_monthly_repayment_amount = loan_details.monthly_repayment_amount
+		restructure.insert(ignore_permissions=True)
+	finally:
+		frappe.set_user(current_user)
 
 	case.linked_restructure = restructure.name
 	case.status = "Hardship Requested"

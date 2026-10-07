@@ -16,9 +16,7 @@ class DunningRule(Document):
 		from frappe.types import DF
 
 		cadence_days: DF.Int
-		channel: DF.Literal["Email", "SMS", "WhatsApp"]
 		classification_code: DF.Link | None
-		communication_template: DF.Link
 		company: DF.Link
 		disabled: DF.Check
 		loan_product: DF.Link | None
