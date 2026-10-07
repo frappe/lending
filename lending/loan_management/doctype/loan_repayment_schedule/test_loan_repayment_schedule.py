@@ -4,7 +4,7 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, flt, get_datetime, getdate
+from frappe.utils import add_days, date_diff, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
@@ -320,8 +320,71 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 	def test_get_repayment_periods_with_zero_interest(self):
 		self.assertEqual(get_repayment_periods(10000, 0, 10000, "Monthly"), 1)
 
+	def test_monthly_repayment_amount_does_not_round_down_to_zero(self):
+		emi = get_monthly_repayment_amount(1, 0, 3, "Monthly", "Round to Nearest")
+		self.assertGreater(emi, 0)
+
+		emi = get_monthly_repayment_amount(1, 0, 3, "Monthly", "No Rounding")
+		self.assertGreater(emi, 0)
+
+		emi = get_monthly_repayment_amount(10000, 10, 12, "Monthly", "Round to Nearest")
+		self.assertGreater(emi, 1)
+
 	def test_get_next_payment_date_advances_when_schedule_type_is_blank(self):
 		# Blank repayment_schedule_type should still advance the date for Monthly frequency
 		schedule = frappe._dict(repayment_schedule_type="", repayment_frequency="Monthly")
 		next_date = LoanRepaymentSchedule.get_next_payment_date(schedule, getdate("2025-01-13"))
 		self.assertEqual(next_date, getdate("2025-02-13"))
+
+	def test_quarterly_repayment_schedule_uses_calendar_days(self):
+		# posting_date and repayment_start_date fall on the 31st so that
+		# add_months() clamping (31 -> 30 -> 28/29) is exercised, not just
+		# the common case.
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 1",
+			1000000,
+			"Repay Over Number of Periods",
+			3,
+			repayment_start_date="2026-01-31",
+			posting_date="2025-10-31",
+			rate_of_interest=12,
+			applicant_type="Customer",
+			repayment_frequency="Quarterly",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name,
+			1000000,
+			disbursement_date="2025-10-31",
+			repayment_start_date="2026-01-31",
+			repayment_frequency="Quarterly",
+		)
+
+		schedule_name = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "status": "Active"}, "name"
+		)
+		schedule = frappe.get_doc("Loan Repayment Schedule", schedule_name)
+		rows = schedule.repayment_schedule
+
+		# Every quarterly row (after the first, which is already measured
+		# from posting_date) must use the real calendar-day gap between
+		# payment dates (90-92 days), not a hardcoded "3".
+		for i in range(1, len(rows)):
+			expected_days = date_diff(rows[i].payment_date, rows[i - 1].payment_date)
+			self.assertEqual(
+				rows[i].number_of_days,
+				expected_days,
+				f"Row {i} ({rows[i].payment_date}) should use {expected_days} calendar days, "
+				f"not {rows[i].number_of_days}",
+			)
+			self.assertGreater(
+				rows[i].number_of_days,
+				3,
+				f"Row {i} ({rows[i].payment_date}) interest days must not be the raw "
+				"month count for Quarterly frequency",
+			)
+
+		# Loan must fully amortize: balance after the final row is zero.
+		self.assertEqual(flt(rows[-1].balance_loan_amount), 0)

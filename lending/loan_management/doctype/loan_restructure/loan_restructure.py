@@ -400,15 +400,16 @@ class LoanRestructure(AccountsController):
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 
-		schedule = frappe.db.get_value(
+		schedule_name, repayment_frequency = frappe.db.get_value(
 			"Loan Repayment Schedule",
 			filters,
-			"name",
+			["name", "repayment_frequency"],
 			order_by="posting_date desc, creation desc",
 			for_update=True,
 		)
 
-		frappe.db.set_value("Loan Repayment Schedule", schedule, "status", "Active")
+		frappe.db.set_value("Loan Repayment Schedule", schedule_name, "status", "Active")
+		frappe.db.set_value("Loan", self.loan, "repayment_frequency", repayment_frequency)
 
 	def validate_waiver_amount(self):
 		if flt(self.interest_waiver_amount) > flt(self.interest_overdue) - flt(
@@ -576,8 +577,16 @@ class LoanRestructure(AccountsController):
 			)
 
 		if self.new_repayment_method == "Repay Over Number of Periods":
+			emi_rounding_method = (
+				frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method")
+				or "Round to Nearest"
+			)
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
-				self.new_loan_amount, self.new_rate_of_interest, self.new_repayment_period_in_months, "Monthly"
+				self.new_loan_amount,
+				self.new_rate_of_interest,
+				self.new_repayment_period_in_months,
+				"Monthly",
+				emi_rounding_method,
 			)
 
 	def restructure_loan(self):
@@ -647,6 +656,12 @@ class LoanRestructure(AccountsController):
 			schedule.update(schedule_details)
 			schedule.insert()
 
+	def get_new_repayment_frequency(self):
+		if self.old_repayment_frequency == "One Time" and self.new_repayment_period_in_months > 1:
+			return "Monthly"
+
+		return self.old_repayment_frequency
+
 	def get_schedule_details(self, adjusted_interest=0):
 		return {
 			"loan": self.loan,
@@ -660,7 +675,7 @@ class LoanRestructure(AccountsController):
 			"loan_amount": self.new_loan_amount,
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
-			"repayment_frequency": self.old_repayment_frequency,
+			"repayment_frequency": self.get_new_repayment_frequency(),
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,
@@ -685,12 +700,14 @@ class LoanRestructure(AccountsController):
 		total_amount_paid = 0
 		loan_amount = self.new_loan_amount
 		monthly_repayment_amount = schedule.monthly_repayment_amount
+		repayment_frequency = schedule.repayment_frequency
 
 		if cancel:
 			total_principal_paid = self.total_principal_paid
 			total_amount_paid = self.total_amount_paid
 			loan_amount = self.disbursed_amount
 			monthly_repayment_amount = self.old_emi
+			repayment_frequency = self.old_repayment_frequency
 
 		frappe.db.set_value(
 			"Loan",
@@ -699,6 +716,7 @@ class LoanRestructure(AccountsController):
 				"loan_amount": loan_amount,
 				"rate_of_interest": self.new_rate_of_interest,
 				"monthly_repayment_amount": monthly_repayment_amount,
+				"repayment_frequency": repayment_frequency,
 				"total_payment": total_payment,
 				"total_interest_payable": total_interest_payable,
 				"total_principal_paid": total_principal_paid,
