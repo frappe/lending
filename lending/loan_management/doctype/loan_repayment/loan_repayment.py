@@ -2043,6 +2043,14 @@ class LoanRepayment(AccountsController):
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
+			if (
+				d.demand_type == "Interest"
+				and self.repayment_type == "Partial Settlement"
+				and pending_amount > 0
+			):
+				pending_amount = self.adjust_component(
+					pending_amount, "EMI", demands, demand_subtype="Interest"
+				)
 			if d.demand_type == "Penalty" and pending_amount > 0:
 				pending_amount = self.adjust_component(pending_amount, "Penalty", demands)
 			if d.demand_type == "Additional Interest" and pending_amount > 0:
