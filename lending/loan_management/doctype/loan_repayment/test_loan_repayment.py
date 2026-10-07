@@ -23,6 +23,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.tests.test_utils import (
+	create_demand_offset_order,
 	create_loan,
 	create_loan_write_off,
 	create_repayment_entry,
@@ -2590,10 +2591,7 @@ class TestLoanRepayment(LendingTestSuite):
 		self.assertEqual(charge_draft.repayment_type, "Charge Payment")
 
 	def test_partial_settlement_allocates_to_emi_interest(self):
-		"""A Partial Settlement payment that covers Principal and most of the
-		Interest due must still allocate the remaining part to Interest,
-		instead of leaving it unaccounted for.
-		"""
+		"""Partial Settlement must allocate to real Interest demand, not leave it unaccounted for."""
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 		loan = create_loan(
 			"_Test Customer 1",
@@ -2621,18 +2619,64 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 		self.assertGreater(amounts["interest_amount"], 0, "test setup must leave EMI Interest demand due")
 
-		# Pay 1 rupee less than the full payable amount, so this stays a
-		# genuine partial settlement and the leftover must be allocated to
-		# Interest rather than silently dropped.
-		pay_amount = flt(amounts["payable_amount"] - 1, 2)
-
 		repayment = create_repayment_entry(
-			loan.name, "2025-02-15", pay_amount, repayment_type="Partial Settlement"
+			loan.name, "2025-02-15", amounts["payable_amount"], repayment_type="Partial Settlement"
 		)
 		repayment.submit()
 
-		expected_interest_paid = flt(amounts["interest_amount"] - 1, 2)
-		self.assertEqual(flt(repayment.total_interest_paid, 2), expected_interest_paid)
+		self.assertEqual(flt(repayment.principal_amount_paid, 2), flt(amounts["payable_principal_amount"], 2))
+		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(amounts["interest_amount"], 2))
+
+		allocated = sum(d.paid_amount for d in repayment.get("repayment_details"))
+		self.assertEqual(flt(allocated, 2), flt(repayment.amount_paid, 2))
+
+	def test_partial_settlement_interest_first_order_does_not_double_pay(self):
+		"""With an Interest-before-Principal offset order, the Interest step must not
+		also get claimed again by the Principal step's unscoped demand match."""
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		create_demand_offset_order(
+			"Test Interest First Settlement Order", ["Penalty", "Interest", "Principal", "Charges"]
+		)
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_settlement_collection",
+			"Test Interest First Settlement Order",
+		)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			"2025-02-15",
+			"2025-01-25",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-25", repayment_start_date="2025-02-15"
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-02-15", company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2025-02-15", loan=loan.name)
+
+		amounts = calculate_amounts(
+			against_loan=loan.name, posting_date="2025-02-15", payment_type="Partial Settlement"
+		)
+		self.assertGreater(amounts["interest_amount"], 0, "test setup must leave EMI Interest demand due")
+
+		repayment = create_repayment_entry(
+			loan.name, "2025-02-15", amounts["payable_amount"], repayment_type="Partial Settlement"
+		)
+		repayment.submit()
+
+		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(amounts["interest_amount"], 2))
+		self.assertEqual(flt(repayment.principal_amount_paid, 2), flt(amounts["payable_principal_amount"], 2))
 
 		allocated = sum(d.paid_amount for d in repayment.get("repayment_details"))
 		self.assertEqual(flt(allocated, 2), flt(repayment.amount_paid, 2))

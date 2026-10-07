@@ -2013,10 +2013,18 @@ class LoanRepayment(LoanController):
 						self.principal_amount_paid += pending_amount
 						pending_amount = 0
 
-			if d.demand_type == "Interest" and pending_amount > 0:
+			if d.demand_type == "Normal" and pending_amount > 0:
 				pending_amount = self.adjust_component(
 					pending_amount, "Normal", demands, demand_subtype="Interest"
 				)
+				pending_amount = self.adjust_component(
+					pending_amount, "EMI", demands, demand_subtype="Interest"
+				)
+			if (
+				d.demand_type == "Interest"
+				and self.repayment_type == "Partial Settlement"
+				and pending_amount > 0
+			):
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
