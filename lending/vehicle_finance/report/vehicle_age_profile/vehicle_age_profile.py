@@ -30,16 +30,16 @@ def get_data(filters):
 	if filters.get("company"):
 		conditions["hypothecated_to"] = filters["company"]
 
-	vehicles = frappe.get_all(
+	vehicles = frappe.get_list(
 		"Loan Vehicle",
 		filters=conditions,
 		fields=["name", "current_loan", "asset_condition", "segment", "manufacturing_month", "manufacturing_year"],
 	)
 	loans = {
 		loan.name: loan
-		for loan in frappe.get_all(
+		for loan in frappe.get_list(
 			"Loan",
-			filters={"name": ("in", {v.current_loan for v in vehicles})},
+			filters={"name": ("in", list({v.current_loan for v in vehicles}))},
 			fields=["name", "posting_date", "repayment_periods"],
 		)
 	}

@@ -49,15 +49,15 @@ def get_columns(filters):
 
 
 def get_data(filters, group_by):
-	vehicles = frappe.get_all(
+	vehicles = frappe.get_list(
 		"Loan Vehicle",
 		filters={"status": "Financed", **({"hypothecated_to": filters["company"]} if filters.get("company") else {})},
 		fields=["name", "current_loan", "asset_value", group_by],
 	)
 	loans = {
 		loan.name: loan
-		for loan in frappe.get_all(
-			"Loan", filters={"name": ("in", {v.current_loan for v in vehicles})}, fields=LOAN_FIELDS
+		for loan in frappe.get_list(
+			"Loan", filters={"name": ("in", list({v.current_loan for v in vehicles}))}, fields=LOAN_FIELDS
 		)
 	}
 	vehicles_per_loan = {}

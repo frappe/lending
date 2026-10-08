@@ -22,7 +22,11 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
-from lending.vehicle_finance.loan_hooks import get_fixed_security_value, validate_loan_application
+from lending.vehicle_finance.loan_hooks import (
+	get_fixed_security_value,
+	validate_loan_application,
+	validate_loan_application_approval,
+)
 
 
 class LoanApplication(Document):
@@ -89,6 +93,7 @@ class LoanApplication(Document):
 		self.validate_employee()
 
 		self.get_repayment_details()
+		validate_loan_application_approval(self)
 		self.check_sanctioned_amount_limit()
 
 	def before_save(self):

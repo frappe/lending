@@ -10,7 +10,10 @@ from frappe.utils import flt, get_datetime
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
-from lending.vehicle_finance.loan_hooks import is_fixed_valuation_security
+from lending.vehicle_finance.loan_hooks import (
+	get_fixed_security_eligible_value,
+	is_fixed_valuation_security,
+)
 
 
 class LoanSecurityShortfall(Document):
@@ -156,6 +159,11 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		security_value = 0.0
 
 		for security, qty in pledged_securities.items():
+			fixed_value = get_fixed_security_eligible_value(security)
+			if fixed_value is not None:
+				outstanding_amount -= fixed_value * flt(qty)
+				continue
+
 			if not ltv_ratio:
 				ltv_ratio = get_ltv_ratio(security)
 			security_value += flt(loan_security_price_map.get(security)) * flt(qty)

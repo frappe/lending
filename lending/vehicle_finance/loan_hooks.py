@@ -24,6 +24,7 @@ MONTHS = [
 	"December",
 ]
 RC_NAME_MATCH_THRESHOLD = 0.85
+OPEN_PDD_STATUSES = ("Pending", "Overdue")
 
 
 def is_fixed_valuation_security(loan_security):
@@ -36,6 +37,30 @@ def is_fixed_valuation_security(loan_security):
 def get_fixed_security_value(loan_security):
 	if is_fixed_valuation_security(loan_security):
 		return flt(frappe.db.get_value("Loan Security", loan_security, "original_security_value"))
+
+
+def get_fixed_security_eligible_value(loan_security):
+	if not is_fixed_valuation_security(loan_security):
+		return None
+
+	pledge = DocType("Pledge")
+	assignment = DocType("Loan Security Assignment")
+	row = (
+		frappe.qb.from_(pledge)
+		.inner_join(assignment)
+		.on(pledge.parent == assignment.name)
+		.select(pledge.post_haircut_amount, pledge.qty)
+		.where(pledge.loan_security == loan_security)
+		.where(assignment.docstatus == 1)
+		.where(assignment.status == "Pledged")
+		.orderby(assignment.creation, order=frappe.qb.desc)
+		.limit(1)
+	).run(as_dict=True)
+
+	if not row or not flt(row[0].qty):
+		return 0.0
+
+	return flt(row[0].post_haircut_amount) / flt(row[0].qty)
 
 
 def get_loan_vehicles(loan):
@@ -97,66 +122,141 @@ def normalise_name(name):
 	return re.sub(r"[^a-z0-9 ]", "", re.sub(r"\s+", " ", (name or "").casefold())).strip()
 
 
-def validate_loan_application(doc):
+def get_application_vehicle_rows(doc):
 	vehicle_rows = []
 	for row in doc.get("proposed_pledges"):
-		if row.vehicle and not row.loan_security:
+		if row.vehicle:
 			row.loan_security = frappe.db.get_value("Loan Vehicle", row.vehicle, "loan_security")
-		elif row.loan_security and not row.vehicle:
+		elif row.loan_security:
 			row.vehicle = frappe.db.get_value("Loan Security", row.loan_security, "vehicle")
 
+		if row.vehicle:
+			vehicle_rows.append(row)
+
+	return vehicle_rows
+
+
+def validate_loan_application(doc):
+	vehicle_rows = get_application_vehicle_rows(doc)
+	if not vehicle_rows:
+		return
+
+	context = get_vehicle_rule_context("Loan Application", doc.name, doc)
+	validate_vehicle_count(len(vehicle_rows), context)
+
+	for row in vehicle_rows:
+		apply_vehicle_rule(row, get_proposed_vehicle(row), context)
+
+
+def validate_loan_application_approval(doc):
+	if doc.status != "Approved":
+		return
+
+	vehicle_rows = [row for row in doc.get("proposed_pledges") if row.vehicle]
+	if not vehicle_rows:
+		return
+
+	context = get_vehicle_rule_context("Loan Application", doc.name, doc)
+	for row in vehicle_rows:
+		vehicle = frappe.get_doc("Loan Vehicle", row.vehicle)
+		validate_vehicle_for_approval(row, vehicle, get_ltv_rule(context.loan_product, vehicle), context)
+
+
+def validate_assignment_vehicles(doc):
+	vehicle_rows = []
+	for row in doc.get("securities"):
+		row.vehicle = row.loan_security and frappe.db.get_value("Loan Security", row.loan_security, "vehicle")
 		if row.vehicle:
 			vehicle_rows.append(row)
 
 	if not vehicle_rows:
 		return
 
-	loan_product = frappe.get_cached_doc("Loan Product", doc.loan_product)
-	max_vehicles = loan_product.max_vehicles_per_loan or 1
-	if len(vehicle_rows) > max_vehicles:
+	if doc.loan:
+		context = get_vehicle_rule_context("Loan", doc.loan)
+	elif doc.loan_application:
+		context = get_vehicle_rule_context("Loan Application", doc.loan_application)
+	else:
+		frappe.throw(_("A vehicle can only be pledged against a Loan or a Loan Application"))
+
+	pledged_vehicles = set(get_loan_vehicles(doc.loan)) if doc.loan else set()
+	validate_vehicle_count(len(pledged_vehicles | {row.vehicle for row in vehicle_rows}), context)
+
+	for row in vehicle_rows:
+		vehicle = get_proposed_vehicle(row)
+		rule = apply_vehicle_rule(row, vehicle, context)
+		validate_vehicle_for_approval(row, vehicle, rule, context)
+
+
+def get_vehicle_rule_context(doctype, name, doc=None):
+	values = doc or frappe.db.get_value(
+		doctype,
+		name,
+		["loan_product", "posting_date", "repayment_periods", "applicant_name"],
+		as_dict=1,
+	)
+	return frappe._dict(
+		loan_product=frappe.get_cached_doc("Loan Product", values.loan_product),
+		posting_date=getdate(values.posting_date),
+		repayment_periods=values.repayment_periods,
+		applicant_name=values.get("applicant_name"),
+	)
+
+
+def validate_vehicle_count(count, context):
+	max_vehicles = context.loan_product.max_vehicles_per_loan or 1
+	if count > max_vehicles:
 		frappe.throw(
 			_("Loan Product {0} allows at most {1} vehicle(s) per loan").format(
-				frappe.bold(doc.loan_product), max_vehicles
+				frappe.bold(context.loan_product.name), max_vehicles
 			)
 		)
 
-	for row in vehicle_rows:
-		vehicle = frappe.get_doc("Loan Vehicle", row.vehicle)
-		if vehicle.status != "Proposed":
-			frappe.throw(
-				_("Row {0}: Vehicle {1} is {2}. Only a Proposed vehicle can be added.").format(
-					row.idx, frappe.bold(vehicle.name), vehicle.status
-				)
+
+def get_proposed_vehicle(row):
+	vehicle = frappe.get_doc("Loan Vehicle", row.vehicle)
+	if vehicle.status in ("Financed", "Repossessed"):
+		frappe.throw(
+			_("Row {0}: Vehicle {1} is already financed under Loan {2}").format(
+				row.idx, frappe.bold(vehicle.name), frappe.bold(vehicle.current_loan)
 			)
+		)
 
-		rule = get_ltv_rule(loan_product, vehicle)
-		if not rule:
-			frappe.throw(
-				_("Row {0}: Loan Product {1} has no LTV rule for a {2} {3} vehicle").format(
-					row.idx, frappe.bold(doc.loan_product), vehicle.asset_condition, vehicle.segment
-				)
+	if vehicle.status != "Proposed":
+		frappe.throw(
+			_("Row {0}: Vehicle {1} is {2}. Only a Proposed vehicle can be added.").format(
+				row.idx, frappe.bold(vehicle.name), vehicle.status
 			)
+		)
 
-		if not vehicle.asset_value:
-			frappe.throw(
-				_("Row {0}: Vehicle {1} has no asset value. Set the invoice value or submit a valuation.").format(
-					row.idx, frappe.bold(vehicle.name)
-				)
+	return vehicle
+
+
+def apply_vehicle_rule(row, vehicle, context):
+	rule = get_ltv_rule(context.loan_product, vehicle)
+	if not rule:
+		frappe.throw(
+			_("Row {0}: Loan Product {1} has no LTV rule for a {2} {3} vehicle").format(
+				row.idx, frappe.bold(context.loan_product.name), vehicle.asset_condition, vehicle.segment
 			)
+		)
 
-		row.qty = 1
-		row.loan_security_price = vehicle.asset_value
-		row.haircut = 100 - flt(rule.max_ltv_percent)
+	if not vehicle.asset_value:
+		frappe.throw(
+			_("Row {0}: Vehicle {1} has no asset value. Set the invoice value or submit a valuation.").format(
+				row.idx, frappe.bold(vehicle.name)
+			)
+		)
 
-		if doc.status == "Approved":
-			validate_vehicle_for_approval(doc, row, vehicle, rule, loan_product)
+	row.qty = 1
+	row.loan_security_price = vehicle.asset_value
+	row.haircut = 100 - flt(rule.max_ltv_percent)
+	return rule
 
 
-def validate_vehicle_for_approval(doc, row, vehicle, rule, loan_product):
-	posting_date = getdate(doc.posting_date)
-
+def validate_vehicle_for_approval(row, vehicle, rule, context):
 	if rule.max_age_at_sanction_years:
-		age = get_vehicle_age_in_years(vehicle, posting_date)
+		age = get_vehicle_age_in_years(vehicle, context.posting_date)
 		if age > rule.max_age_at_sanction_years:
 			frappe.throw(
 				_("Row {0}: Vehicle {1} is {2} years old, above the {3} year limit at sanction").format(
@@ -164,8 +264,8 @@ def validate_vehicle_for_approval(doc, row, vehicle, rule, loan_product):
 				)
 			)
 
-	if rule.max_age_at_maturity_years and doc.repayment_periods:
-		maturity_date = add_months(posting_date, doc.repayment_periods)
+	if rule.max_age_at_maturity_years and context.repayment_periods:
+		maturity_date = add_months(context.posting_date, context.repayment_periods)
 		age = get_vehicle_age_in_years(vehicle, maturity_date)
 		if age > rule.max_age_at_maturity_years:
 			frappe.throw(
@@ -175,7 +275,7 @@ def validate_vehicle_for_approval(doc, row, vehicle, rule, loan_product):
 			)
 
 	if vehicle.asset_condition != "New":
-		validity_days = loan_product.valuation_validity_days or 90
+		validity_days = context.loan_product.valuation_validity_days or 90
 		valuation_date = vehicle.valuation and frappe.db.get_value(
 			"Vehicle Valuation", vehicle.valuation, "valuation_date"
 		)
@@ -186,11 +286,11 @@ def validate_vehicle_for_approval(doc, row, vehicle, rule, loan_product):
 				)
 			)
 
-	validate_rc_owner_name(doc, row, vehicle)
+	validate_rc_owner_name(context, row, vehicle)
 
 
-def validate_rc_owner_name(doc, row, vehicle):
-	applicant_name = doc.get("applicant_name") or vehicle.applicant_name
+def validate_rc_owner_name(context, row, vehicle):
+	applicant_name = context.applicant_name or vehicle.applicant_name
 	if not vehicle.rc_owner_name or not applicant_name:
 		return
 
@@ -207,18 +307,6 @@ def validate_rc_owner_name(doc, row, vehicle):
 		frappe.throw(message, title=_("RC Owner Mismatch"))
 
 	frappe.msgprint(message, title=_("RC Owner Mismatch"), indicator="orange")
-
-
-def validate_assignment_vehicles(doc):
-	securities = [row.loan_security for row in doc.get("securities") if row.loan_security]
-	for vehicle in get_vehicles_for_securities(securities):
-		status, current_loan = frappe.db.get_value("Loan Vehicle", vehicle, ["status", "current_loan"])
-		if status in ("Financed", "Repossessed") and (not doc.loan or current_loan != doc.loan):
-			frappe.throw(
-				_("Vehicle {0} is already financed under Loan {1}").format(
-					frappe.bold(vehicle), frappe.bold(current_loan)
-				)
-			)
 
 
 def mark_vehicles_financed(loan_security_assignment, loan):
@@ -243,8 +331,11 @@ def update_vehicles_on_security_release(doc, cancel=False):
 	if not doc.loan:
 		return
 
-	pledged_qty = get_pledged_security_qty(loan=doc.loan)
 	securities = [row.loan_security for row in doc.securities]
+	if cancel:
+		restore_released_assignments(doc.loan, securities)
+
+	pledged_qty = get_pledged_security_qty(loan=doc.loan)
 	vehicles = frappe.get_all(
 		"Loan Security",
 		filters={"name": ("in", securities), "vehicle": ("is", "set")},
@@ -266,6 +357,22 @@ def update_vehicles_on_security_release(doc, cancel=False):
 			if vehicle.hypothecation_status == "Endorsed":
 				values["hypothecation_status"] = "Termination Requested"
 			frappe.db.set_value("Loan Vehicle", vehicle.name, values)
+
+
+def restore_released_assignments(loan, securities):
+	assignments = frappe.get_all(
+		"Pledge",
+		filters={"loan_security": ("in", securities), "parenttype": "Loan Security Assignment"},
+		pluck="parent",
+	)
+	for assignment in frappe.get_all(
+		"Loan Security Assignment",
+		filters={"name": ("in", assignments), "loan": loan, "status": "Released", "docstatus": 1},
+		pluck="name",
+	):
+		frappe.db.set_value(
+			"Loan Security Assignment", assignment, {"status": "Pledged", "release_time": None}
+		)
 
 
 def validate_disbursement(doc):
@@ -348,12 +455,23 @@ def create_post_disbursal_documents(doc):
 
 
 def delete_post_disbursal_documents(doc):
-	for name in frappe.get_all(
-		"Post Disbursal Document",
-		filters={"loan_disbursement": doc.name, "status": ("in", ("Pending", "Overdue"))},
+	remaining = frappe.get_all(
+		"Loan Disbursement",
+		filters={"against_loan": doc.against_loan, "docstatus": 1, "name": ("!=", doc.name)},
+		order_by="disbursement_date asc, creation asc",
 		pluck="name",
+		limit=1,
+	)
+
+	for document in frappe.get_all(
+		"Post Disbursal Document",
+		filters={"loan_disbursement": doc.name},
+		fields=["name", "status"],
 	):
-		frappe.delete_doc("Post Disbursal Document", name, ignore_permissions=True)
+		if remaining:
+			frappe.db.set_value("Post Disbursal Document", document.name, "loan_disbursement", remaining[0])
+		elif document.status in OPEN_PDD_STATUSES:
+			frappe.delete_doc("Post Disbursal Document", document.name, ignore_permissions=True)
 
 
 @frappe.whitelist()

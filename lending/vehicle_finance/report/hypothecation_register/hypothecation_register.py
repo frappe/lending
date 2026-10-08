@@ -31,7 +31,7 @@ def get_data(filters):
 	if filters.get("hypothecation_status"):
 		conditions["hypothecation_status"] = filters["hypothecation_status"]
 
-	return frappe.get_all(
+	return frappe.get_list(
 		"Loan Vehicle",
 		filters=conditions,
 		fields=[

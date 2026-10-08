@@ -10,22 +10,28 @@ from frappe.utils import add_days, getdate, nowdate
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
+from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+	get_total_pledged_security_value,
+)
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	check_for_ltv_shortfall,
 )
 from lending.tests.test_utils import (
+	create_loan,
 	create_loan_application,
 	create_loan_product,
+	create_loan_security_price,
 	create_loan_with_security,
 	make_customer,
 	make_loan_disbursement_entry,
 	master_init,
 )
 from lending.tests.utils import LendingTestSuite
+from lending.vehicle_finance.doctype.loan_vehicle.loan_vehicle import mark_repossessed
 from lending.vehicle_finance.doctype.post_disbursal_document.post_disbursal_document import (
 	mark_overdue_documents,
 )
-from lending.vehicle_finance.loan_hooks import issue_noc
+from lending.vehicle_finance.loan_hooks import get_loan_vehicles, issue_noc
 
 APPLICANT = "_Test CV Customer"
 PRODUCT = "CV Loan"
@@ -229,6 +235,155 @@ class TestLoanVehicle(LendingTestSuite):
 		frappe.db.set_single_value("Lending Settings", "issue_noc_on_settled_loans", 1)
 		self.assertEqual(issue_noc(loan.name), [vehicle.name])
 
+	def test_direct_assignment_applies_product_ltv(self):
+		vehicle = create_vehicle()
+		loan = make_direct_loan()
+
+		assignment = frappe.get_doc(
+			"Loan Security Assignment", assign_vehicles(loan.name, [vehicle])
+		)
+
+		self.assertEqual(assignment.total_security_value, 1000000)
+		self.assertEqual(assignment.maximum_loan_value, 850000)
+		self.assertEqual(assignment.securities[0].haircut, 15)
+		self.assertEqual(frappe.db.get_value("Loan Vehicle", vehicle.name, "status"), "Financed")
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [vehicle])
+
+	def test_direct_assignment_applies_age_and_valuation_rules(self):
+		loan = make_direct_loan()
+
+		old_vehicle = create_used_vehicle(manufacturing_year=getdate().year - 9)
+		create_valuation(old_vehicle.name)
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [old_vehicle])
+
+		stale = create_used_vehicle()
+		create_valuation(stale.name, valuation_date=add_days(nowdate(), -120))
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [stale])
+
+		no_rule = create_used_vehicle(asset_condition="Refinance")
+		create_valuation(no_rule.name)
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [no_rule])
+
+	def test_direct_assignment_applies_vehicle_count(self):
+		loan = make_direct_loan()
+		assign_vehicles(loan.name, [create_vehicle(), create_vehicle()])
+
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [create_vehicle()])
+
+	def test_vehicle_needs_loan_or_application_to_pledge(self):
+		vehicle = create_vehicle()
+
+		self.assertRaises(
+			frappe.ValidationError,
+			create_loan_security_assignment,
+			applicant_type="Customer",
+			applicant=APPLICANT,
+			company="_Test Company",
+			securities=[{"loan_security": vehicle.loan_security, "qty": 1}],
+		)
+
+	def test_application_takes_security_from_vehicle(self):
+		vehicle = create_vehicle()
+		other = create_vehicle()
+
+		application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			PRODUCT,
+			[{"vehicle": vehicle.name, "loan_security": other.loan_security}],
+			"Repay Over Number of Periods",
+			48,
+			do_not_save=True,
+		)
+		application.save()
+
+		self.assertEqual(application.proposed_pledges[0].loan_security, vehicle.loan_security)
+
+	def test_approval_checks_use_computed_tenure(self):
+		vehicle = create_vehicle()
+		application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			PRODUCT,
+			[{"vehicle": vehicle.name}],
+			do_not_save=True,
+		)
+		application.repayment_method = "Repay Fixed Amount per Period"
+		application.repayment_amount = 12000
+		application.status = "Approved"
+
+		self.assertRaises(frappe.ValidationError, application.save)
+
+	def test_mixed_collateral_counts_vehicle_value_in_shortfall(self):
+		create_loan_security_price(
+			"Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		vehicle = create_vehicle()
+		loan = make_direct_loan(950000)
+		create_loan_security_assignment(
+			loan=loan.name,
+			securities=[
+				{"loan_security": vehicle.loan_security, "qty": 1},
+				{"loan_security": "Test Security 1", "qty": 400},
+			],
+		)
+		self.assertEqual(get_total_pledged_security_value(loan=loan.name), 950000)
+
+		make_loan_disbursement_entry(
+			loan.name, 900000, disbursement_date="2026-04-01", repayment_start_date="2026-05-05"
+		)
+		check_for_ltv_shortfall(None, loan=loan.name, applicant=APPLICANT)
+
+		self.assertFalse(frappe.db.exists("Loan Security Shortfall", {"loan": loan.name}))
+
+	def test_repossessing_one_vehicle_keeps_other_pledges(self):
+		first, second = create_vehicle(), create_vehicle()
+		loan = make_direct_loan()
+		assignment = assign_vehicles(loan.name, [first, second])
+
+		mark_repossessed(first.name)
+		self.assertEqual(frappe.db.get_value("Loan Security Assignment", assignment, "status"), "Pledged")
+		self.assertIn(second.name, get_loan_vehicles(loan.name))
+
+		mark_repossessed(second.name)
+		self.assertEqual(frappe.db.get_value("Loan Security Assignment", assignment, "status"), "Repossessed")
+
+	def test_cancelling_noc_release_restores_vehicle(self):
+		vehicle = create_vehicle()
+		loan = make_loan([vehicle])
+		frappe.db.set_value("Loan Vehicle", vehicle.name, "hypothecation_status", "Endorsed")
+		loan.db_set("status", "Loan Closure Requested")
+		issue_noc(loan.name)
+
+		frappe.get_doc("Loan Security Release", {"loan": loan.name, "docstatus": 1}).cancel()
+
+		vehicle.reload()
+		self.assertEqual(vehicle.status, "Financed")
+		self.assertEqual(vehicle.hypothecation_status, "Endorsed")
+		self.assertFalse(vehicle.noc_issued_on)
+		self.assertTrue(
+			frappe.db.exists("Loan Security Assignment", {"loan": loan.name, "status": "Pledged"})
+		)
+
+	def test_cancelling_first_tranche_keeps_documents(self):
+		vehicle = create_vehicle()
+		loan = make_loan([vehicle])
+		first = make_loan_disbursement_entry(
+			loan.name, 300000, disbursement_date="2026-04-01", repayment_start_date="2026-05-05"
+		)
+		frappe.db.set_value("Post Disbursal Document", {"loan": loan.name}, "blocks_next_disbursement", 0)
+		second = make_loan_disbursement_entry(
+			loan.name, 200000, disbursement_date="2026-04-02", repayment_start_date="2026-05-05"
+		)
+
+		first.cancel()
+
+		documents = frappe.get_all(
+			"Post Disbursal Document", filters={"loan": loan.name}, pluck="loan_disbursement"
+		)
+		self.assertEqual(len(documents), 3)
+		self.assertEqual(set(documents), {second.name})
+
 	def test_assignment_cancel_reverts_vehicle(self):
 		vehicle = create_vehicle()
 		loan = make_loan([vehicle])
@@ -358,3 +513,24 @@ def make_loan(vehicles):
 	)
 	loan.submit()
 	return loan
+
+
+def make_direct_loan(loan_amount=850000):
+	loan = create_loan(
+		APPLICANT,
+		PRODUCT,
+		loan_amount,
+		"Repay Over Number of Periods",
+		48,
+		repayment_start_date="2026-05-05",
+		posting_date="2026-04-01",
+	)
+	loan.submit()
+	return loan
+
+
+def assign_vehicles(loan, vehicles):
+	return create_loan_security_assignment(
+		loan=loan,
+		securities=[{"loan_security": vehicle.loan_security, "qty": 1} for vehicle in vehicles],
+	)

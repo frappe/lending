@@ -189,7 +189,22 @@ def mark_repossessed(vehicle: str):
 		filters={"name": ("in", assignments), "loan": doc.current_loan, "status": "Pledged", "docstatus": 1},
 		pluck="name",
 	):
-		frappe.db.set_value("Loan Security Assignment", assignment, "status", "Repossessed")
+		if all_assignment_vehicles_repossessed(assignment):
+			frappe.db.set_value("Loan Security Assignment", assignment, "status", "Repossessed")
+
+
+def all_assignment_vehicles_repossessed(assignment):
+	securities = frappe.get_all("Pledge", filters={"parent": assignment}, pluck="loan_security")
+	vehicles = frappe.get_all(
+		"Loan Security", filters={"name": ("in", securities)}, fields=["name", "vehicle"]
+	)
+	if len(vehicles) != len(set(securities)) or not all(row.vehicle for row in vehicles):
+		return False
+
+	return not frappe.db.exists(
+		"Loan Vehicle",
+		{"name": ("in", [row.vehicle for row in vehicles]), "status": ("!=", "Repossessed")},
+	)
 
 
 @frappe.whitelist()

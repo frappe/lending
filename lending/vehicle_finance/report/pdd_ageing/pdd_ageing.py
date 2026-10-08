@@ -34,7 +34,7 @@ def get_data(filters):
 			conditions[fieldname] = filters.get(fieldname)
 
 	as_on_date = getdate(filters.get("as_on_date"))
-	rows = frappe.get_all(
+	rows = frappe.get_list(
 		"Post Disbursal Document",
 		filters=conditions,
 		fields=["name", "loan", "applicant", "vehicle", "document_type", "status", "due_date"],
