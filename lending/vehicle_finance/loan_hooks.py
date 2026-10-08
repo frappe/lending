@@ -1,12 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import math
 import re
 from difflib import SequenceMatcher
 
 import frappe
 from frappe import _
 from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import add_days, add_months, flt, getdate, nowdate
 
 MONTHS = [
@@ -39,28 +41,31 @@ def get_fixed_security_value(loan_security):
 		return flt(frappe.db.get_value("Loan Security", loan_security, "original_security_value"))
 
 
-def get_fixed_security_eligible_value(loan_security):
+def get_fixed_security_eligible_value(loan_security, loan=None, applicant=None):
 	if not is_fixed_valuation_security(loan_security):
 		return None
 
 	pledge = DocType("Pledge")
 	assignment = DocType("Loan Security Assignment")
-	row = (
+	query = (
 		frappe.qb.from_(pledge)
 		.inner_join(assignment)
 		.on(pledge.parent == assignment.name)
-		.select(pledge.post_haircut_amount, pledge.qty)
+		.select(fn.Sum(pledge.post_haircut_amount).as_("amount"), fn.Sum(pledge.qty).as_("qty"))
 		.where(pledge.loan_security == loan_security)
 		.where(assignment.docstatus == 1)
 		.where(assignment.status == "Pledged")
-		.orderby(assignment.creation, order=frappe.qb.desc)
-		.limit(1)
-	).run(as_dict=True)
+	)
+	if loan:
+		query = query.where(assignment.loan == loan)
+	if applicant:
+		query = query.where(assignment.applicant == applicant)
 
+	row = query.run(as_dict=True)
 	if not row or not flt(row[0].qty):
 		return 0.0
 
-	return flt(row[0].post_haircut_amount) / flt(row[0].qty)
+	return flt(row[0].amount) / flt(row[0].qty)
 
 
 def get_loan_vehicles(loan):
@@ -189,18 +194,104 @@ def validate_assignment_vehicles(doc):
 
 
 def get_vehicle_rule_context(doctype, name, doc=None):
-	values = doc or frappe.db.get_value(
-		doctype,
-		name,
-		["loan_product", "posting_date", "repayment_periods", "applicant_name"],
-		as_dict=1,
-	)
-	return frappe._dict(
+	if doc:
+		values = doc
+	elif doctype == "Loan":
+		values = frappe.db.get_value(
+			"Loan",
+			name,
+			[
+				"loan_product",
+				"posting_date",
+				"applicant_name",
+				"loan_amount",
+				"rate_of_interest",
+				"repayment_method",
+				"repayment_periods",
+				"repayment_frequency",
+				"repayment_start_date",
+				"monthly_repayment_amount",
+			],
+			as_dict=1,
+		)
+	else:
+		values = frappe.db.get_value(
+			doctype,
+			name,
+			[
+				"loan_product",
+				"posting_date",
+				"applicant_name",
+				"loan_amount",
+				"rate_of_interest",
+				"repayment_method",
+				"repayment_periods",
+				"repayment_amount",
+			],
+			as_dict=1,
+		)
+
+	context = frappe._dict(
 		loan_product=frappe.get_cached_doc("Loan Product", values.loan_product),
 		posting_date=getdate(values.posting_date),
-		repayment_periods=values.repayment_periods,
 		applicant_name=values.get("applicant_name"),
+		repayment_frequency=values.get("repayment_frequency") or "Monthly",
+		repayment_start_date=values.get("repayment_start_date"),
+		repayment_periods=values.get("repayment_periods"),
 	)
+	if not context.repayment_periods and values.get("repayment_method") == "Repay Fixed Amount per Period":
+		context.repayment_periods = get_periods_for_fixed_amount(
+			values.get("loan_amount"),
+			values.get("rate_of_interest"),
+			values.get("monthly_repayment_amount") or values.get("repayment_amount"),
+			context.repayment_frequency,
+		)
+
+	return context
+
+
+PERIODS_PER_YEAR = {"Monthly": 12, "Quarterly": 4, "Weekly": 52, "Bi-Weekly": 26, "Daily": 365}
+
+
+def get_periods_for_fixed_amount(loan_amount, rate_of_interest, repayment_amount, repayment_frequency):
+	loan_amount, repayment_amount = flt(loan_amount), flt(repayment_amount)
+	periods_per_year = PERIODS_PER_YEAR.get(repayment_frequency)
+	if not loan_amount or not repayment_amount or not periods_per_year:
+		return None
+
+	rate = flt(rate_of_interest) / (100 * periods_per_year)
+	if not rate:
+		return math.ceil(loan_amount / repayment_amount)
+
+	if repayment_amount <= loan_amount * rate:
+		return None
+
+	return math.ceil(
+		(math.log(repayment_amount) - math.log(repayment_amount - loan_amount * rate)) / math.log(1 + rate)
+	)
+
+
+def get_maturity_date(context):
+	if context.repayment_frequency == "One Time":
+		return getdate(context.repayment_start_date) if context.repayment_start_date else None
+
+	if not context.repayment_periods:
+		return None
+
+	if context.repayment_start_date:
+		start, periods = getdate(context.repayment_start_date), context.repayment_periods - 1
+	else:
+		start, periods = context.posting_date, context.repayment_periods
+
+	if context.repayment_frequency == "Quarterly":
+		return add_months(start, 3 * periods)
+	if context.repayment_frequency == "Weekly":
+		return add_days(start, 7 * periods)
+	if context.repayment_frequency == "Bi-Weekly":
+		return add_days(start, 14 * periods)
+	if context.repayment_frequency == "Daily":
+		return add_days(start, periods)
+	return add_months(start, periods)
 
 
 def validate_vehicle_count(count, context):
@@ -264,8 +355,8 @@ def validate_vehicle_for_approval(row, vehicle, rule, context):
 				)
 			)
 
-	if rule.max_age_at_maturity_years and context.repayment_periods:
-		maturity_date = add_months(context.posting_date, context.repayment_periods)
+	maturity_date = rule.max_age_at_maturity_years and get_maturity_date(context)
+	if maturity_date:
 		age = get_vehicle_age_in_years(vehicle, maturity_date)
 		if age > rule.max_age_at_maturity_years:
 			frappe.throw(
@@ -333,7 +424,7 @@ def update_vehicles_on_security_release(doc, cancel=False):
 
 	securities = [row.loan_security for row in doc.securities]
 	if cancel:
-		restore_released_assignments(doc.loan, securities)
+		restore_released_assignments(doc.name)
 
 	pledged_qty = get_pledged_security_qty(loan=doc.loan)
 	vehicles = frappe.get_all(
@@ -359,19 +450,16 @@ def update_vehicles_on_security_release(doc, cancel=False):
 			frappe.db.set_value("Loan Vehicle", vehicle.name, values)
 
 
-def restore_released_assignments(loan, securities):
-	assignments = frappe.get_all(
-		"Pledge",
-		filters={"loan_security": ("in", securities), "parenttype": "Loan Security Assignment"},
-		pluck="parent",
-	)
+def restore_released_assignments(loan_security_release):
 	for assignment in frappe.get_all(
 		"Loan Security Assignment",
-		filters={"name": ("in", assignments), "loan": loan, "status": "Released", "docstatus": 1},
+		filters={"released_by": loan_security_release, "status": "Released", "docstatus": 1},
 		pluck="name",
 	):
 		frappe.db.set_value(
-			"Loan Security Assignment", assignment, {"status": "Pledged", "release_time": None}
+			"Loan Security Assignment",
+			assignment,
+			{"status": "Pledged", "release_time": None, "released_by": None},
 		)
 
 
@@ -505,6 +593,7 @@ def issue_noc(loan: str):
 		if flt(pledged_qty.get(v.loan_security)) > 0
 	]
 
+	release = None
 	if securities:
 		release = frappe.new_doc("Loan Security Release")
 		release.applicant_type = loan_doc.applicant_type
@@ -525,7 +614,11 @@ def issue_noc(loan: str):
 			filters={"loan": loan, "status": "Pledged", "docstatus": 1},
 			pluck="name",
 		):
-			frappe.db.set_value("Loan Security Assignment", assignment, "status", "Released")
+			frappe.db.set_value(
+				"Loan Security Assignment",
+				assignment,
+				{"status": "Released", "released_by": release and release.name},
+			)
 
 	for vehicle in vehicles:
 		frappe.db.set_value(

@@ -33,6 +33,7 @@ def get_data(filters):
 
 	return frappe.get_list(
 		"Loan Vehicle",
+		limit_page_length=0,
 		filters=conditions,
 		fields=[
 			"name",

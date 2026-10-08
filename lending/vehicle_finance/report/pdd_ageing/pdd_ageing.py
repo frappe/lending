@@ -36,6 +36,7 @@ def get_data(filters):
 	as_on_date = getdate(filters.get("as_on_date"))
 	rows = frappe.get_list(
 		"Post Disbursal Document",
+		limit_page_length=0,
 		filters=conditions,
 		fields=["name", "loan", "applicant", "vehicle", "document_type", "status", "due_date"],
 		order_by="due_date asc",

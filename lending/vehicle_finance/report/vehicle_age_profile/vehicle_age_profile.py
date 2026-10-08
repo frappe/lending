@@ -32,6 +32,7 @@ def get_data(filters):
 
 	vehicles = frappe.get_list(
 		"Loan Vehicle",
+		limit_page_length=0,
 		filters=conditions,
 		fields=["name", "current_loan", "asset_condition", "segment", "manufacturing_month", "manufacturing_year"],
 	)
@@ -39,6 +40,7 @@ def get_data(filters):
 		loan.name: loan
 		for loan in frappe.get_list(
 			"Loan",
+			limit_page_length=0,
 			filters={"name": ("in", list({v.current_loan for v in vehicles}))},
 			fields=["name", "posting_date", "repayment_periods"],
 		)

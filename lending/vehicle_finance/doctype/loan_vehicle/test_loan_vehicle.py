@@ -13,6 +13,9 @@ from lending.loan_management.doctype.loan_application.loan_application import (
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_total_pledged_security_value,
 )
+from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+	release_loan_security_assignment,
+)
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	check_for_ltv_shortfall,
 )
@@ -21,6 +24,7 @@ from lending.tests.test_utils import (
 	create_loan_application,
 	create_loan_product,
 	create_loan_security_price,
+	create_loan_security_release,
 	create_loan_with_security,
 	make_customer,
 	make_loan_disbursement_entry,
@@ -384,6 +388,53 @@ class TestLoanVehicle(LendingTestSuite):
 		self.assertEqual(len(documents), 3)
 		self.assertEqual(set(documents), {second.name})
 
+	def test_fixed_security_value_comes_from_own_pledges(self):
+		security = create_fixed_security()
+		first_loan, second_loan = make_direct_loan(), make_direct_loan()
+		frappe.db.set_value("Loan Security", security, "haircut", 50)
+		create_loan_security_assignment(loan=first_loan.name, securities=[{"loan_security": security, "qty": 2}])
+		frappe.db.set_value("Loan Security", security, "haircut", 20)
+		create_loan_security_assignment(loan=second_loan.name, securities=[{"loan_security": security, "qty": 2}])
+
+		self.assertEqual(get_total_pledged_security_value(loan=first_loan.name), 100000)
+		self.assertEqual(get_total_pledged_security_value(loan=second_loan.name), 160000)
+
+	def test_cancelling_release_keeps_earlier_released_assignment(self):
+		security = create_fixed_security()
+		loan = make_direct_loan()
+		assign_vehicles(loan.name, [create_vehicle()])
+
+		pledge = [{"loan_security": security, "qty": 1}]
+		first = create_loan_security_assignment(loan=loan.name, securities=pledge)
+		release_loan_security_assignment(first)
+
+		create_loan_security_assignment(loan=loan.name, securities=pledge)
+		create_loan_security_release(APPLICANT, "Customer", pledge, loan=loan.name).cancel()
+
+		self.assertEqual(frappe.db.get_value("Loan Security Assignment", first, "status"), "Released")
+
+	def test_direct_assignment_checks_maturity_for_fixed_amount_loans(self):
+		loan = create_loan(
+			APPLICANT,
+			PRODUCT,
+			850000,
+			"Repay Fixed Amount per Period",
+			monthly_repayment_amount=12000,
+			repayment_start_date="2026-05-05",
+			posting_date="2026-04-01",
+		)
+		loan.submit()
+
+		self.assertRaises(frappe.ValidationError, assign_vehicles, loan.name, [create_vehicle()])
+
+	def test_reports_return_all_rows(self):
+		vehicles = [create_vehicle() for _ in range(21)]
+		for vehicle in vehicles:
+			vehicle.db_set({"status": "Financed", "hypothecated_to": "_Test Company"})
+
+		register = {row["name"] for row in run("Hypothecation Register", filters={})["result"]}
+		self.assertTrue({vehicle.name for vehicle in vehicles} <= register)
+
 	def test_assignment_cancel_reverts_vehicle(self):
 		vehicle = create_vehicle()
 		loan = make_loan([vehicle])
@@ -534,3 +585,24 @@ def assign_vehicles(loan, vehicles):
 		loan=loan,
 		securities=[{"loan_security": vehicle.loan_security, "qty": 1} for vehicle in vehicles],
 	)
+
+
+def create_fixed_security():
+	if not frappe.db.exists("Loan Security Type", "_Test Fixed Deposit"):
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Type",
+				"loan_security_type": "_Test Fixed Deposit",
+				"valuation_method": "Fixed Valuation",
+			}
+		).insert()
+
+	return frappe.get_doc(
+		{
+			"doctype": "Loan Security",
+			"loan_security_code": f"_Test FD {unique_suffix()}",
+			"loan_security_name": "_Test FD",
+			"loan_security_type": "_Test Fixed Deposit",
+			"original_security_value": 100000,
+		}
+	).insert().name

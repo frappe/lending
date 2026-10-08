@@ -971,7 +971,7 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 	pledged_securities = get_pledged_security_qty(loan=loan, applicant=applicant)
 
 	for security, qty in pledged_securities.items():
-		fixed_value = get_fixed_security_eligible_value(security)
+		fixed_value = get_fixed_security_eligible_value(security, loan=loan, applicant=applicant)
 		if fixed_value is not None:
 			security_value += fixed_value * qty
 		elif on_shortfall_check:

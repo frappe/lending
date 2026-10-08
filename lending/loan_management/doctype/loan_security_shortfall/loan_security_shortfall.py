@@ -159,7 +159,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		security_value = 0.0
 
 		for security, qty in pledged_securities.items():
-			fixed_value = get_fixed_security_eligible_value(security)
+			fixed_value = get_fixed_security_eligible_value(security, loan=loan.name)
 			if fixed_value is not None:
 				outstanding_amount -= fixed_value * flt(qty)
 				continue
