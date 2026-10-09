@@ -1229,23 +1229,23 @@ class TestLoan(LendingTestSuite):
 			"Repay Over Number of Periods",
 			6,
 			"Customer",
-			posting_date="2024-07-05",
-			repayment_start_date="2024-08-05",
+			posting_date="2026-09-03",
+			repayment_start_date="2026-10-04",
 			rate_of_interest=22,
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-09-03", repayment_start_date="2026-10-04"
 		)
-		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
+		process_daily_loan_demands(posting_date="2026-10-04", loan=loan.name)
 
 		# Pay exactly the currently-due principal plus a small overshoot as a
 		# Partial Settlement, with interest left unpaid.
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-08-05")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2026-10-04")
 		overshoot = 2000
 		pay_amount = flt(amounts["payable_principal_amount"] + overshoot, 2)
-		rep = create_repayment_entry(loan.name, "2024-08-05", pay_amount, repayment_type="Partial Settlement")
+		rep = create_repayment_entry(loan.name, "2026-10-04", pay_amount, repayment_type="Partial Settlement")
 		rep.submit()
 
 		# principal_amount_paid must be fully backed by repayment_details
