@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-04 14:55+0000\n"
-"PO-Revision-Date: 2026-10-05 21:25\n"
+"PO-Revision-Date: 2026-10-09 21:54\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -2205,7 +2205,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:14
 msgid "Emails Queued"
-msgstr ""
+msgstr "Correos electrónicos en cola"
 
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Name of a role
@@ -4660,7 +4660,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:16
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:34
 msgid "No Records for these settings."
-msgstr ""
+msgstr "No hay registros para estas configuraciones."
 
 #. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
 #. Product'
@@ -5878,12 +5878,12 @@ msgstr ""
 #. Label of the product_code (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Code"
-msgstr ""
+msgstr "Código de Producto"
 
 #. Label of the product_name (Data) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Name"
-msgstr ""
+msgstr "Nombre de Producto"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
@@ -7424,7 +7424,7 @@ msgstr "Tipo de valor"
 #. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "Variable"
-msgstr ""
+msgstr "Variable"
 
 #. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
