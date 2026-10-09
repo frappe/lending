@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.utils import add_days
+from frappe.utils import add_days, nowdate
 
 from lending.loan_management.doctype.loan.loan import create_dpd_record
 from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
@@ -26,31 +26,44 @@ class TestCollectionCase(LendingTestSuite):
 		loan_classification_ranges()
 
 	def create_overdue_loan(self):
-		"""A disbursed loan whose first EMI (due 2024-04-05) is left unpaid past due date.
+		"""A disbursed loan whose first EMI (due 30 days after disbursement) is left unpaid past due date.
 
 		update_days_past_due_in_loans only writes a Days Past Due Log once at least
 		one Loan Repayment exists against the loan, so a token early repayment is
 		made first to seed that, matching how the core DPD engine expects to be driven.
+
+		Dates are anchored to nowdate() rather than hardcoded, since the DPD repost
+		triggered by the seed repayment walks day-by-day from its value_date up to
+		the real current date - a fixed historical date makes every test in this
+		file slower every day that passes in real time. The whole timeline sits
+		at least 40 days before nowdate() so that callers can still move a further
+		30-40 days forward (classification/resolution dates) without landing in
+		the future, matching the original 2024-03-06 -> 2024-05-11 span.
 		"""
+		posting_date = add_days(nowdate(), -70)
+		repayment_start_date = add_days(nowdate(), -40)
+
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 1",
 			500000,
 			"Repay Over Number of Periods",
 			12,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-06",
+			repayment_start_date=repayment_start_date,
+			posting_date=posting_date,
 			rate_of_interest=12,
 			applicant_type="Customer",
 		)
 		loan.submit()
 
 		disbursement = make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date=posting_date, repayment_start_date=repayment_start_date
 		)
-		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
+		process_daily_loan_demands(posting_date=repayment_start_date, loan=loan.name)
 
-		seed_repayment = create_repayment_entry(loan.name, "2024-04-06", 100, loan_disbursement=disbursement.name)
+		seed_repayment = create_repayment_entry(
+			loan.name, add_days(repayment_start_date, 1), 100, loan_disbursement=disbursement.name
+		)
 		seed_repayment.submit()
 
 		return loan, disbursement
@@ -58,7 +71,7 @@ class TestCollectionCase(LendingTestSuite):
 	def test_case_opens_on_dpd_bucket_escalation(self):
 		loan, _disbursement = self.create_overdue_loan()
 
-		create_process_loan_classification(posting_date="2024-05-10", loan=loan.name)
+		create_process_loan_classification(posting_date=add_days(nowdate(), -5), loan=loan.name)
 
 		case = frappe.db.get_value(
 			"Collection Case",
@@ -80,16 +93,17 @@ class TestCollectionCase(LendingTestSuite):
 	def test_case_resolves_when_dpd_returns_to_zero(self):
 		loan, disbursement = self.create_overdue_loan()
 
-		create_process_loan_classification(posting_date="2024-05-10", loan=loan.name)
+		resolution_date = add_days(nowdate(), -5)
+		create_process_loan_classification(posting_date=resolution_date, loan=loan.name)
 		self.assertTrue(frappe.db.exists("Collection Case", {"loan": loan.name, "status": "Open"}))
 
 		repayment_entry = create_repayment_entry(
-			loan.name, "2024-05-10", 47523, loan_disbursement=disbursement.name
+			loan.name, resolution_date, 47523, loan_disbursement=disbursement.name
 		)
 		repayment_entry.submit()
 
 		create_process_loan_classification(
-			posting_date="2024-05-11", loan=loan.name, force_update_dpd_in_loan=1
+			posting_date=add_days(resolution_date, 1), loan=loan.name, force_update_dpd_in_loan=1
 		)
 
 		case = frappe.db.get_value(
