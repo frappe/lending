@@ -170,9 +170,11 @@ class LoanDisbursement(LoanController):
 		if draft_schedule:
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
 			schedule.update(self.get_schedule_details())
-			schedule.save()
 		else:
-			schedule = frappe.get_doc(self.get_schedule_details()).insert()
+			schedule = frappe.get_doc(self.get_schedule_details())
+
+		schedule.flags.ignore_permissions = self.flags.ignore_permissions
+		schedule.save()
 
 		self.db_set("monthly_repayment_amount", schedule.monthly_repayment_amount)
 		if loan_details.status == "Sanctioned":
@@ -495,7 +497,7 @@ class LoanDisbursement(LoanController):
 			next_tranche += 1
 
 	def validate_disbursal_amount(self):
-		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
+		possible_disbursal_amount, pending_principal_amount = calculate_disbursal_amount(self.against_loan)
 		limit_details = frappe.db.get_value(
 			"Loan",
 			self.against_loan,
@@ -978,6 +980,11 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 	frappe.has_permission("Loan", "read", doc=loan, throw=True)
 
+	return calculate_disbursal_amount(loan, on_current_security_price)
+
+
+def calculate_disbursal_amount(loan: str, on_current_security_price: int = 0):
+	"""Checks no permissions; the caller must."""
 	loan_details = frappe.get_value(
 		"Loan",
 		loan,

@@ -1,0 +1,1767 @@
+{
+ "blocks": [
+  {
+   "baseStyles": {
+    "color": "var(--ink-gray-8)",
+    "display": "flex",
+    "flexDirection": "row",
+    "height": "100%",
+    "overflowX": "hidden",
+    "scrollbarColor": "var(--outline-gray-3) transparent",
+    "scrollbarWidth": "thin",
+    "width": "100%"
+   },
+   "blockName": "body",
+   "children": [
+    {
+     "baseStyles": {
+      "borderRight": "1px solid var(--outline-gray-1)",
+      "overflowX": "visible",
+      "position": "relative"
+     },
+     "children": [
+      {
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "height": "100%",
+        "padding": "0.5rem"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "flexShrink": "0",
+          "gap": "8px",
+          "height": "48px",
+          "justifyContent": "center",
+          "marginTop": "-8px",
+          "padding": "0 6px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "borderRadius": "6px",
+            "flexShrink": "0",
+            "height": "28px",
+            "overflow": "hidden",
+            "width": "28px"
+           },
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container1-imageview1",
+           "componentName": "ImageView",
+           "componentProps": {
+            "alt": "",
+            "image": "{{ loan.data.brand_logo }}",
+            "shape": "square",
+            "size": "lg"
+           },
+           "visibilityCondition": "{{ loan.data.brand_logo }}"
+          },
+          {
+           "baseStyles": {
+            "alignItems": "center",
+            "backgroundColor": "var(--portal-primary, var(--surface-gray-4))",
+            "borderRadius": "6px",
+            "color": "var(--portal-primary-ink, var(--ink-gray-8))",
+            "display": "flex",
+            "flexShrink": "0",
+            "height": "28px",
+            "justifyContent": "center",
+            "width": "28px"
+           },
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container1-textblock1",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-base",
+            "tag": "p",
+            "text": "{{ loan.data.brand_initial }}"
+           },
+           "visibilityCondition": "{{ loan.data.show_wordmark }}"
+          },
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-8)",
+            "flex": "1 1 0%",
+            "fontWeight": "500",
+            "minWidth": "0px",
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "whiteSpace": "nowrap"
+           },
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container1-textblock2",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-base",
+            "tag": "p",
+            "text": "{{ loan.data.brand_name || '' }}"
+           },
+           "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
+          }
+         ],
+         "componentId": "loans-0-sidebar1-container1-container1",
+         "componentName": "container",
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "flex": "1 1 0%",
+          "margin": "0 -4px",
+          "overflowX": "hidden",
+          "overflowY": "auto",
+          "padding": "2px 4px"
+         },
+         "children": [
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem1",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/overview') }}",
+            "icon": "lucide-layout-dashboard",
+            "label": "Account overview",
+            "to": "/overview"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem2",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/loans', '/loan/') }}",
+            "icon": "lucide-wallet",
+            "label": "Loan account",
+            "to": "/loans"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem3",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/applications', '/application/') }}",
+            "icon": "lucide-file-text",
+            "label": "Application",
+            "to": "/applications"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem4",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/statement') }}",
+            "icon": "lucide-receipt",
+            "label": "Statement of account",
+            "to": "/statement"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem5",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/certificate') }}",
+            "icon": "lucide-award",
+            "label": "Interest certificate",
+            "to": "/certificate"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container2-sidebaritem6",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/profile') }}",
+            "icon": "lucide-user",
+            "label": "Personal details",
+            "to": "/profile"
+           }
+          }
+         ],
+         "componentId": "loans-0-sidebar1-container1-container2",
+         "componentName": "container",
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "marginTop": "auto"
+         },
+         "children": [
+          {
+           "children": [],
+           "componentId": "loans-0-sidebar1-container1-container3-dropdown1",
+           "componentName": "Dropdown",
+           "componentProps": {
+            "align": "start",
+            "options": "{{ accountMenu(loan.data.can_switch) || [] }}",
+            "side": "top"
+           },
+           "componentSlots": {
+            "trigger": {
+             "slotContent": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "borderRadius": "8px",
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px",
+                "height": "32px",
+                "justifyContent": "center",
+                "padding": "0 6px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flexShrink": "0"
+                 },
+                 "children": [],
+                 "classes": [
+                  "portal-avatar"
+                 ],
+                 "componentEvents": {},
+                 "componentId": "loans-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
+                 "componentName": "Avatar",
+                 "componentProps": {
+                  "label": "{{ loan.data.holder_name || '' }}",
+                  "shape": "circle",
+                  "size": "md"
+                 },
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-8)",
+                  "flex": "1 1 0%",
+                  "minWidth": "0px",
+                  "overflow": "hidden",
+                  "textOverflow": "ellipsis",
+                  "whiteSpace": "nowrap"
+                 },
+                 "children": [],
+                 "componentEvents": {},
+                 "componentId": "loans-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-sm",
+                  "tag": "p",
+                  "text": "{{ loan.data.holder_name || '' }}"
+                 },
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
+                }
+               ],
+               "classes": [
+                "hover:bg-surface-gray-2"
+               ],
+               "componentEvents": {},
+               "componentId": "loans-0-sidebar1-container1-container3-dropdown1-trigger-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "mobileStyles": {},
+               "originalElement": "div",
+               "tabletStyles": {}
+              }
+             ],
+             "slotName": "trigger"
+            }
+           }
+          }
+         ],
+         "componentId": "loans-0-sidebar1-container1-container3",
+         "componentName": "container",
+         "originalElement": "div"
+        }
+       ],
+       "componentId": "loans-0-sidebar1-container1",
+       "componentName": "container",
+       "originalElement": "div"
+      },
+      {
+       "baseStyles": {
+        "backgroundColor": "var(--surface-sidebar)",
+        "borderColor": "var(--outline-gray-1)",
+        "borderRadius": "9999px",
+        "borderStyle": "solid",
+        "borderWidth": "1px",
+        "bottom": "80px",
+        "boxShadow": "var(--elevation-sm)",
+        "position": "absolute",
+        "right": "-12px"
+       },
+       "children": [],
+       "classes": [
+        "opacity-0",
+        "group-hover:opacity-100",
+        "transition-opacity",
+        "hover:!bg-surface-gray-2"
+       ],
+       "componentEvents": {
+        "click": {
+         "action": "Run Script",
+         "event": "click",
+         "script": "sidebarCollapsed.value = !sidebarCollapsed.value"
+        }
+       },
+       "componentId": "loans-0-sidebar1-button1",
+       "componentName": "Button",
+       "componentProps": {
+        "icon": "{{ typeof sidebarCollapsed !== 'undefined' && sidebarCollapsed ? 'lucide-chevron-right' : 'lucide-chevron-left' }}",
+        "label": "Toggle sidebar",
+        "size": "xs",
+        "variant": "ghost"
+       }
+      }
+     ],
+     "classes": [
+      "group"
+     ],
+     "componentId": "loans-0-sidebar1",
+     "componentName": "Sidebar",
+     "componentProps": {
+      "collapsed": {
+       "$type": "variable",
+       "name": "sidebarCollapsed"
+      },
+      "width": "14rem"
+     },
+     "mobileStyles": {
+      "display": "none"
+     }
+    },
+    {
+     "baseStyles": {
+      "display": "flex",
+      "flex": "1",
+      "flexDirection": "column",
+      "height": "100%",
+      "minWidth": "0px",
+      "overflowY": "auto"
+     },
+     "children": [
+      {
+       "children": [],
+       "componentId": "loans-0-container1-borrower_header1",
+       "componentName": "borrower_header",
+       "componentProps": {
+        "action_label": "",
+        "action_route": "",
+        "breadcrumbs": "{{ loan.data.breadcrumbs }}",
+        "crumb": "{{ loan.data.crumb }}",
+        "note": "{{ loan.data.head_note }}",
+        "status": "{{ loan.data.account_status }}",
+        "status_tone": "{{ loan.data.account_tone }}"
+       },
+       "isStudioComponent": true
+      },
+      {
+       "baseStyles": {
+        "display": "flex",
+        "flex": "1",
+        "flexDirection": "column",
+        "gap": "16px",
+        "padding": "20px",
+        "width": "100%"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "20px",
+          "padding": "20px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "alignItems": "start",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "gap": "12px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "backgroundColor": "var(--surface-gray-2)",
+              "borderRadius": "var(--radius-5)",
+              "color": "var(--ink-gray-8)",
+              "display": "flex",
+              "flex": "0 0 auto",
+              "height": "40px",
+              "justifyContent": "center",
+              "width": "40px"
+             },
+             "children": [],
+             "componentId": "loans-0-container1-container1-container1-container1-html1",
+             "componentName": "HTML",
+             "componentProps": {
+              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
+             }
+            },
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "2px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-9)",
+                "fontWeight": "600"
+               },
+               "children": [],
+               "componentId": "loans-0-container1-container1-container1-container1-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-lg",
+                "tag": "h2",
+                "text": "Loan details"
+               }
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "children": [],
+               "componentId": "loans-0-container1-container1-container1-container1-container1-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "{{ loan.data.summary_note }}"
+               }
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container1-container1-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            },
+            {
+             "baseStyles": {
+              "flex": "1 1 auto"
+             },
+             "children": [],
+             "componentId": "loans-0-container1-container1-container1-container1-container2",
+             "componentName": "container",
+             "originalElement": "div"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "flex-end",
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "4px"
+             },
+             "children": [
+              {
+               "children": [],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "openRequest()"
+                }
+               },
+               "componentId": "loans-0-container1-container1-container1-container1-container3-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Request disbursement",
+                "size": "md",
+                "variant": "solid"
+               },
+               "visibilityCondition": "{{ loan.data.drawdown.open }}"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "children": [],
+               "componentId": "loans-0-container1-container1-container1-container1-container3-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "{{ loan.data.drawdown.note }}"
+               },
+               "visibilityCondition": "{{ loan.data.drawdown.note }}"
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container1-container1-container3",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "loans-0-container1-container1-container1-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "16px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "flexShrink": "0",
+              "overflow": "hidden"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexWrap": "wrap",
+                "marginInlineStart": "-21px",
+                "rowGap": "16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 380px",
+                  "flexWrap": "wrap",
+                  "rowGap": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Loan amount (sanctioned)"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.sanctioned }}"
+                     }
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container1",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container2-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Amount received"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container2-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.disbursed }}"
+                     }
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1-container2",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container1",
+                 "componentName": "container",
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 380px",
+                  "flexWrap": "wrap",
+                  "rowGap": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Interest rate (p.a.)"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.rate }}"
+                     }
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container1",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container2-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Tenure"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container2-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.tenure }}"
+                     }
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2-container2",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container1-container2-container1-container1-container2",
+                 "componentName": "container",
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container1-container2-container1-container1",
+               "componentName": "container",
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container1-container2-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            },
+            {
+             "children": [],
+             "componentId": "loans-0-container1-container1-container1-container2-divider1",
+             "componentName": "Divider"
+            },
+            {
+             "baseStyles": {
+              "flexShrink": "0",
+              "overflow": "hidden"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexWrap": "wrap",
+                "marginInlineStart": "-21px",
+                "rowGap": "16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 380px",
+                  "flexWrap": "wrap",
+                  "rowGap": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "EMI amount"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.instalment }}"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container1-textblock3",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "{{ loan.data.terms.frequency }}"
+                     },
+                     "visibilityCondition": "{{ loan.data.terms.frequency }}"
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container1",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "alignItems": "center",
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "gap": "4px"
+                     },
+                     "children": [
+                      {
+                       "baseStyles": {
+                        "color": "var(--ink-gray-6)"
+                       },
+                       "children": [],
+                       "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container2-container1-textblock1",
+                       "componentName": "TextBlock",
+                       "componentProps": {
+                        "fontSize": "text-sm",
+                        "tag": "p",
+                        "text": "Total repayable"
+                       }
+                      },
+                      {
+                       "baseStyles": {
+                        "alignItems": "center",
+                        "color": "var(--ink-gray-5)",
+                        "cursor": "help",
+                        "display": "flex",
+                        "flex": "0 0 auto"
+                       },
+                       "children": [],
+                       "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container2-container1-html1",
+                       "componentName": "HTML",
+                       "componentProps": {
+                        "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Principal plus all interest over the tenure</title><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg>"
+                       }
+                      }
+                     ],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container2-container1",
+                     "componentName": "container",
+                     "originalElement": "div"
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container2-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.total }}"
+                     }
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1-container2",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container1",
+                 "componentName": "container",
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 380px",
+                  "flexWrap": "wrap",
+                  "rowGap": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Paid so far"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontVariantNumeric": "tabular-nums",
+                      "fontWeight": "600"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-xl",
+                      "tag": "div",
+                      "text": "{{ loan.data.terms.paid }}"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container1-textblock3",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "{{ loan.data.terms.written_off }}"
+                     },
+                     "visibilityCondition": "{{ loan.data.terms.written_off }}"
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container1",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "borderInlineStartColor": "var(--outline-gray-2)",
+                    "borderInlineStartStyle": "solid",
+                    "borderInlineStartWidth": "1px",
+                    "display": "flex",
+                    "flex": "1 1 190px",
+                    "flexDirection": "column",
+                    "gap": "4px",
+                    "minWidth": "0px",
+                    "paddingInline": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container2-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-sm",
+                      "tag": "p",
+                      "text": "Next due date"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "alignItems": "center",
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "gap": "8px"
+                     },
+                     "children": [
+                      {
+                       "baseStyles": {
+                        "alignItems": "center",
+                        "color": "var(--ink-gray-5)",
+                        "display": "flex",
+                        "flex": "0 0 auto"
+                       },
+                       "children": [],
+                       "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container2-container1-html1",
+                       "componentName": "HTML",
+                       "componentProps": {
+                        "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
+                       }
+                      },
+                      {
+                       "baseStyles": {
+                        "color": "var(--ink-gray-9)",
+                        "fontVariantNumeric": "tabular-nums",
+                        "fontWeight": "600"
+                       },
+                       "children": [],
+                       "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container2-container1-textblock1",
+                       "componentName": "TextBlock",
+                       "componentProps": {
+                        "fontSize": "text-xl",
+                        "tag": "div",
+                        "text": "{{ loan.data.terms.next_due }}"
+                       }
+                      }
+                     ],
+                     "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container2-container1",
+                     "componentName": "container",
+                     "originalElement": "div"
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2-container2",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container1-container2-container2-container1-container2",
+                 "componentName": "container",
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container1-container2-container2-container1",
+               "componentName": "container",
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container1-container2-container2",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "loans-0-container1-container1-container1-container2",
+           "componentName": "container",
+           "originalElement": "div",
+           "visibilityCondition": "{{ loan.data.terms }}"
+          }
+         ],
+         "componentId": "loans-0-container1-container1-container1",
+         "componentName": "container",
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "display": "flex",
+          "flexWrap": "wrap",
+          "gap": "16px",
+          "width": "100%"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flex": "1 1 320px",
+            "flexDirection": "column",
+            "minWidth": "0px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "backgroundColor": "var(--surface-base)",
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "borderStyle": "solid",
+              "borderWidth": "1px",
+              "display": "flex",
+              "flex": "1 1 auto",
+              "flexDirection": "column",
+              "gap": "20px",
+              "padding": "20px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "start",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "12px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-gray-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "40px",
+                  "justifyContent": "center",
+                  "width": "40px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "fontWeight": "500",
+                    "letterSpacing": "0",
+                    "lineHeight": "1"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container1-container1-container1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-xl",
+                    "tag": "div",
+                    "text": "\u20b9"
+                   }
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container2-container1-container1-container1-container1",
+                 "componentName": "container",
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "gap": "2px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "fontWeight": "600",
+                    "letterSpacing": "0"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container1-container1-container1-container2-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-lg",
+                    "tag": "h2",
+                    "text": "Payoff amount"
+                   }
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)",
+                    "letterSpacing": "0"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container1-container1-container1-container2-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Total amount required to close this loan."
+                   }
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container2-container1-container1-container1-container2",
+                 "componentName": "container",
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container2-container1-container1-container1",
+               "componentName": "container",
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": "0px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container1-container1-container2-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-sm",
+                  "tag": "p",
+                  "text": "Outstanding amount"
+                 }
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontSize": "27px",
+                  "fontVariationSettings": "'opsz' 32, 'cv11' 1",
+                  "fontWeight": "600",
+                  "letterSpacing": "-0.02em",
+                  "marginTop": "6px"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container1-container1-container2-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-3xl",
+                  "tag": "div",
+                  "text": "{{ loan.data.payoff_total }}"
+                 }
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-5)",
+                  "marginTop": "4px"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container1-container1-container2-textblock3",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-sm",
+                  "tag": "p",
+                  "text": "{{ loan.data.payoff_note }}"
+                 }
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container2-container1-container1-container2",
+               "componentName": "container",
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "width": "100%"
+               },
+               "children": [],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "toast.success('We will be in touch about closing this loan.')"
+                }
+               },
+               "componentId": "loans-0-container1-container1-container2-container1-container1-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Request closure",
+                "size": "md",
+                "variant": "subtle"
+               }
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container2-container1-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "loans-0-container1-container1-container2-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flex": "1 1 320px",
+            "flexDirection": "column",
+            "minWidth": "0px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "backgroundColor": "var(--surface-base)",
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "borderStyle": "solid",
+              "borderWidth": "1px",
+              "display": "flex",
+              "flex": "1 1 auto",
+              "flexDirection": "column",
+              "gap": "20px",
+              "padding": "20px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "start",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "12px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-gray-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "40px",
+                  "justifyContent": "center",
+                  "width": "40px"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-container1-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
+                 }
+                },
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "gap": "2px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "fontWeight": "600",
+                    "letterSpacing": "0"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container2-container1-container1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-lg",
+                    "tag": "h2",
+                    "text": "Charges"
+                   }
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)",
+                    "letterSpacing": "0"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container2-container1-container1-container1-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Additional charges applicable on this loan."
+                   }
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-container1-container1",
+                 "componentName": "container",
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container2-container2-container1-container1",
+               "componentName": "container",
+               "originalElement": "div"
+              },
+              {
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": "12px",
+                  "padding": "10px 0"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "gap": "2px",
+                    "minWidth": "0px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "fontWeight": "500"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-base",
+                      "tag": "p",
+                      "text": "{{ dataItem.label }}"
+                     }
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "children": [],
+                     "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "{{ dataItem.detail }}"
+                     },
+                     "visibilityCondition": "{{ dataItem.detail }}"
+                    }
+                   ],
+                   "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1-container1",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "flex": "1 1 auto"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1-container2",
+                   "componentName": "container",
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "fontVariantNumeric": "tabular-nums",
+                    "fontWeight": "600",
+                    "whiteSpace": "nowrap"
+                   },
+                   "children": [],
+                   "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-base",
+                    "tag": "p",
+                    "text": "{{ dataItem.value }}"
+                   }
+                  }
+                 ],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1-container1",
+                 "componentName": "container",
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container2-container2-container1-repeater1",
+               "componentName": "Repeater",
+               "componentProps": {
+                "data": "{{ loan.data.charges }}",
+                "dataKey": "name",
+                "emptyStateMessage": ""
+               },
+               "visibilityCondition": "{{ (loan.data.charges || []).length > 0 }}"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flex": "1 1 auto",
+                "flexDirection": "column",
+                "gap": "4px",
+                "justifyContent": "center",
+                "padding": "12px 16px 16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-gray-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "40px",
+                  "justifyContent": "center",
+                  "marginBottom": "10px",
+                  "width": "40px"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-container2-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/></svg>"
+                 }
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-container2-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "p",
+                  "text": "No charges on this loan"
+                 }
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)",
+                  "textAlign": "center"
+                 },
+                 "children": [],
+                 "componentId": "loans-0-container1-container1-container2-container2-container1-container2-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Any processing fees or other charges will appear here."
+                 }
+                }
+               ],
+               "componentId": "loans-0-container1-container1-container2-container2-container1-container2",
+               "componentName": "container",
+               "originalElement": "div",
+               "visibilityCondition": "{{ !(loan.data.charges || []).length }}"
+              }
+             ],
+             "componentId": "loans-0-container1-container1-container2-container2-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "loans-0-container1-container1-container2-container2",
+           "componentName": "container",
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "loans-0-container1-container1-container2",
+         "componentName": "container",
+         "originalElement": "div"
+        },
+        {
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "12px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "children": [],
+             "componentId": "loans-0-container1-container1-dialog1-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "{{ loan.data.drawdown.note }}"
+             }
+            },
+            {
+             "children": [],
+             "componentId": "loans-0-container1-container1-dialog1-container1-formcontrol1",
+             "componentName": "FormControl",
+             "componentProps": {
+              "label": "Amount",
+              "modelValue": {
+               "$type": "variable",
+               "name": "requestAmount"
+              },
+              "placeholder": "0.00",
+              "required": true,
+              "type": "number",
+              "variant": "outline"
+             }
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "children": [],
+             "componentId": "loans-0-container1-container1-dialog1-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "We will check your request and be in touch before we pay it out."
+             }
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "children": [],
+               "componentId": "loans-0-container1-container1-dialog1-container1-container1-container1",
+               "componentName": "container",
+               "originalElement": "div"
+              },
+              {
+               "children": [],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "requestOpen.value = false"
+                }
+               },
+               "componentId": "loans-0-container1-container1-dialog1-container1-container1-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Cancel",
+                "size": "sm",
+                "variant": "subtle"
+               }
+              },
+              {
+               "children": [],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendRequest()"
+                }
+               },
+               "componentId": "loans-0-container1-container1-dialog1-container1-container1-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "disabled": "{{ !requestAmount }}",
+                "label": "Send request",
+                "loading": "{{ requesting }}",
+                "size": "sm",
+                "variant": "solid"
+               }
+              }
+             ],
+             "componentId": "loans-0-container1-container1-dialog1-container1-container1",
+             "componentName": "container",
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "loans-0-container1-container1-dialog1-container1",
+           "componentName": "container",
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "loans-0-container1-container1-dialog1",
+         "componentName": "Dialog",
+         "componentProps": {
+          "modelValue": {
+           "$type": "variable",
+           "name": "requestOpen"
+          },
+          "size": "sm",
+          "title": "Request a disbursement"
+         }
+        }
+       ],
+       "componentId": "loans-0-container1-container1",
+       "componentName": "container",
+       "originalElement": "div"
+      },
+      {
+       "children": [],
+       "componentId": "loans-0-container1-borrower_footer1",
+       "componentName": "borrower_footer",
+       "componentProps": {
+        "links": "{{ loan.data.footer_links }}",
+        "note": "{{ loan.data.copyright_note }}"
+       },
+       "isStudioComponent": true
+      },
+      {
+       "children": [],
+       "componentId": "loans-0-container1-borrower_alerts1",
+       "componentName": "borrower_alerts",
+       "isStudioComponent": true
+      },
+      {
+       "children": [],
+       "componentId": "loans-0-container1-borrower_search1",
+       "componentName": "borrower_search",
+       "isStudioComponent": true
+      }
+     ],
+     "componentId": "loans-0-container1",
+     "componentName": "container",
+     "originalElement": "div"
+    },
+    {
+     "baseStyles": {
+      "display": "none"
+     },
+     "children": [],
+     "componentId": "loans-0-html1",
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ loan.data.brand_style || '' }}"
+     }
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "componentId": "loans-0",
+   "componentName": "div",
+   "originalElement": "body"
+  }
+ ],
+ "creation": "2026-09-26 23:52:26.910419",
+ "doctype": "Studio Page",
+ "frappe_app": "lending",
+ "is_standard": 1,
+ "modified": "2026-10-03 02:32:10.008171",
+ "modified_by": "Administrator",
+ "name": "loan_account",
+ "owner": "Administrator",
+ "page_name": "page-6e9e1c39",
+ "page_title": "Loan account",
+ "published": 1,
+ "resources": [
+  {
+   "auto": 1,
+   "method": "GET",
+   "resource_name": "loan",
+   "resource_type": "API Resource",
+   "url": "lending.portal.loans.get_loan_detail"
+  },
+  {
+   "method": "GET",
+   "resource_name": "alerts",
+   "resource_type": "API Resource",
+   "url": "lending.portal.notifications.get_notifications"
+  }
+ ],
+ "route": "/loans",
+ "studio_app": "borrower-portal",
+ "variables": []
+}
