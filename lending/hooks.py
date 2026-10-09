@@ -4,7 +4,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
-required_apps = ["erpnext"]
+required_apps = ["erpnext", "frappe/studio"]
 app_logo_url = "/assets/lending/images/frappe-lending-logo.svg"
 
 add_to_apps_screen = [
@@ -89,6 +89,23 @@ fixtures = [
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
+# The Studio sidebar does not read these; portal.core.nav_items and portal.search do.
+portal_menu_items = [
+	{"title": "Account overview", "route": "/borrower-portal/overview"},
+	{"title": "Loan accounts", "route": "/borrower-portal/loans", "covers": "/borrower-portal/loan"},
+	{
+		"title": "Application",
+		"route": "/borrower-portal/applications",
+		"covers": "/borrower-portal/application",
+	},
+	{"title": "Statement of account", "route": "/borrower-portal/statement"},
+	{"title": "Interest certificate", "route": "/borrower-portal/certificate"},
+	{"title": "Personal details", "route": "/borrower-portal/profile"},
+]
+
+# Studio sends guests to the site's /login; borrowers get the portal's own page instead.
+page_renderer = "lending.portal.login.PortalLoginRedirect"
+
 # Home Pages
 # ----------
 
@@ -120,6 +137,12 @@ fixtures = [
 
 # before_install = "lending.install.before_install"
 after_install = "lending.install.after_install"
+
+after_migrate = [
+	"lending.loan_management.doctype.lending_settings.lending_settings.sync_portal_pages",
+	# Built from lending/portal/print_formats.py, not a fixture, so a lender's edits survive.
+	"lending.portal.print_formats.ensure",
+]
 
 # Uninstallation
 # ------------
@@ -286,7 +309,7 @@ ignore_links_on_delete = [
 # Request Events
 # ----------------
 # before_request = ["lending.utils.before_request"]
-# after_request = ["lending.utils.after_request"]
+after_request = ["lending.portal.theme.after_request"]
 
 # Job Events
 # ----------
@@ -352,6 +375,8 @@ workflow_methods = [
 	}
 ]
 
+# Survive frappe.clear_cache(), so a migrate does not strand visitors mid-form.
+persistent_cache_keys = ["portal-apply-*"]
 # Another app adds its own provider by naming its adapter class here.
 # lending_integration_adapters = ["partner_app.adapters.experian.ExperianAdapter"]
 

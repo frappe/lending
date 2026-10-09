@@ -968,6 +968,37 @@ def make_loan_disbursement(
 	frappe.has_permission("Loan Disbursement", "create", throw=True)
 	frappe.has_permission("Loan", "read", doc=loan, throw=True)
 
+	disbursement_entry = new_loan_disbursement(
+		loan,
+		disbursement_amount,
+		repayment_start_date=repayment_start_date,
+		repayment_frequency=repayment_frequency,
+		posting_date=posting_date,
+		disbursement_date=disbursement_date,
+		bank_account=bank_account,
+		is_term_loan=is_term_loan,
+	)
+
+	if submit:
+		disbursement_entry.submit()
+
+	if as_dict:
+		return disbursement_entry.as_dict()
+	else:
+		return disbursement_entry
+
+
+def new_loan_disbursement(
+	loan: str,
+	disbursement_amount: float | None = None,
+	repayment_start_date: str | date | datetime | None = None,
+	repayment_frequency: str | None = None,
+	posting_date: str | date | datetime | None = None,
+	disbursement_date: str | date | datetime | None = None,
+	bank_account: str | None = None,
+	is_term_loan: int | None = None,
+):
+	"""Checks no permissions; the caller must."""
 	loan_doc = frappe.get_doc("Loan", loan)
 	disbursement_entry = frappe.new_doc("Loan Disbursement")
 	disbursement_entry.against_loan = loan_doc.name
@@ -997,13 +1028,7 @@ def make_loan_disbursement(
 			},
 		)
 
-	if submit:
-		disbursement_entry.submit()
-
-	if as_dict:
-		return disbursement_entry.as_dict()
-	else:
-		return disbursement_entry
+	return disbursement_entry
 
 
 @frappe.whitelist()

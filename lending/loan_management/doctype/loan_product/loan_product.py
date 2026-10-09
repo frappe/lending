@@ -65,6 +65,7 @@ class LoanProduct(Document):
 		penalty_receivable_account: DF.Link | None
 		penalty_suspense_account: DF.Link | None
 		penalty_waiver_account: DF.Link | None
+		portal_applicant_type: DF.Literal["", "Individual", "Business"]
 		product_code: DF.Data
 		product_name: DF.Data
 		rate_of_interest: DF.Percent
@@ -72,6 +73,7 @@ class LoanProduct(Document):
 		repayment_schedule_type: DF.Literal["", "Monthly as per repayment start date", "Pro-rated calendar months", "Monthly as per cycle date", "Line of Credit", "Flat Interest Rate"]
 		same_as_regular_interest_accounts: DF.Check
 		sanctioned_amount_tolerance_percentage: DF.Percent
+		show_on_portal: DF.Check
 		security_deposit_account: DF.Link | None
 		subsidy_adjustment_account: DF.Link | None
 		suspense_collection_account: DF.Link | None

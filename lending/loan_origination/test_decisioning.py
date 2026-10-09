@@ -30,6 +30,16 @@ TEST_CUSTOMER = "_Test Loan Customer"
 TEST_PAN = "ABCDE1234F"
 
 
+class DecisioningTestSuite(LendingTestSuite):
+	"""For tests that let run_strategy pick a strategy from the site."""
+
+	def setUp(self):
+		super().setUp()
+		# A site strategy for the lead's product would outrank the product-agnostic ones these
+		# tests create; the per-test rollback puts them back.
+		frappe.db.set_value("Decision Strategy", {"disabled": 0}, "disabled", 1)
+
+
 def make_lead(income=60000, employment_type="Salaried", date_of_birth="1992-01-01", **overrides):
 	values = {
 		"doctype": "Loan Lead",
@@ -228,7 +238,7 @@ class TestUncollectedVariables(LendingTestSuite):
 		self.assertEqual(verdict.skipped_variables, [])
 
 
-class TestKnockoutBlocksTheTransition(LendingTestSuite):
+class TestKnockoutBlocksTheTransition(DecisioningTestSuite):
 	def test_a_knockout_decline_throws_so_the_transition_rolls_back(self):
 		make_strategy(
 			[rule(10, "loan_amount", ">", "1000", "Decline", reason_code=make_reason())],
@@ -265,7 +275,7 @@ class TestKnockoutBlocksTheTransition(LendingTestSuite):
 		self.assertIsNone(run_strategy(make_lead(), "Underwriting-does-not-exist"))
 
 
-class TestPreQualificationIsRecordedNotEnforced(LendingTestSuite):
+class TestPreQualificationIsRecordedNotEnforced(DecisioningTestSuite):
 	def prequalify(self, rules, **lead):
 		make_strategy(
 			rules, strategy_name="Test Pre-Qualification Strategy", strategy_type=PRE_QUALIFICATION
@@ -418,7 +428,7 @@ class TestVariableSnapshotIsSerialisable(LendingTestSuite):
 		self.assertEqual(json.loads(frappe.as_json(context)).keys(), context.keys())
 
 
-class TestPriorityDecidesWhichStrategyRunsForALead(LendingTestSuite):
+class TestPriorityDecidesWhichStrategyRunsForALead(DecisioningTestSuite):
 	def prequalify(self, lead=None):
 		lead = lead or make_lead()
 		verdict = run_strategy(lead, PRE_QUALIFICATION)
@@ -614,7 +624,7 @@ def comments_on(lead):
 	)
 
 
-class TestTheKnockoutGateFailsClosed(LendingTestSuite):
+class TestTheKnockoutGateFailsClosed(DecisioningTestSuite):
 	def test_a_decline_that_could_not_be_checked_stops_the_transition(self):
 		make_strategy(
 			[rule(10, "bureau_score", "<", "600", "Decline", reason_code=make_reason())],
@@ -665,7 +675,7 @@ class TestTheKnockoutGateFailsClosed(LendingTestSuite):
 		self.assertIn("declined", str(raised.exception))
 
 
-class TestAStageThatRanNothingSaysSo(LendingTestSuite):
+class TestAStageThatRanNothingSaysSo(DecisioningTestSuite):
 	def test_no_strategy_is_recorded_on_the_lead(self):
 		lead = make_lead()
 

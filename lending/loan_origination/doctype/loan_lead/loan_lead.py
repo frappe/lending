@@ -62,6 +62,7 @@ class LoanLead(Document):
 		bureau_score: DF.Int
 		company_name: DF.Data | None
 		contact: DF.Link | None
+		customer: DF.Link | None
 		date_of_birth: DF.Date | None
 		email: DF.Data
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
@@ -494,5 +495,9 @@ def convert_to_loan_application(loan_lead: Document):
 	loan_application.loan_product = loan_lead.loan_product
 	loan_application.loan_amount = loan_lead.loan_amount
 	loan_application.repayment_periods = loan_lead.proposed_tenure
+
+	if loan_lead.customer:
+		loan_application.applicant_type = "Customer"
+		loan_application.applicant = loan_lead.customer
 
 	loan_application.save()

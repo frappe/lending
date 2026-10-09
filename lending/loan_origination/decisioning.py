@@ -595,7 +595,8 @@ def latest_bureau_report_for_pan(pan):
 
 
 def _latest_report(filters):
-	reports = frappe.get_list(
+	# get_all: callers gate on the lead or application, and a portal guest saves a lead too.
+	reports = frappe.get_all(
 		"Credit Bureau Report",
 		filters=dict(filters, docstatus=1),
 		fields=BUREAU_FIELDS,
