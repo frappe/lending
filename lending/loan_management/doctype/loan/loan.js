@@ -112,6 +112,27 @@ frappe.ui.form.on('Loan', {
 			}
 		}
 
+		if (frm.doc.docstatus == 1 && frm.doc.is_secured_loan
+			&& ["Closed", "Loan Closure Requested", "Settled"].includes(frm.doc.status)) {
+			frappe.db.count("Loan Vehicle", {
+				filters: { current_loan: frm.doc.name, noc_issued_on: ["is", "not set"], status: ["in", ["Financed", "Released"]] }
+			}).then((count) => {
+				if (count) {
+					frm.add_custom_button(__('Issue NOC'), function() {
+						frappe.call({
+							method: "lending.vehicle_finance.loan_hooks.issue_noc",
+							args: { loan: frm.doc.name },
+							freeze: true,
+							callback: function(r) {
+								frappe.msgprint(__("NOC issued for {0}", [r.message.join(", ")]));
+								frm.reload_doc();
+							}
+						});
+					}, __('Status'));
+				}
+			});
+		}
+
 		if (frm.doc.docstatus == 1 && frm.doc.is_secured_loan) {
 			frm.add_custom_button(__('Loan Security Ledger'), function() {
 				frappe.route_options = {

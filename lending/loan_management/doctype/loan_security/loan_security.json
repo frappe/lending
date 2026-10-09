@@ -17,7 +17,8 @@
   "loan_security_type",
   "available_security_value",
   "loan_to_value_ratio",
-  "disabled"
+  "disabled",
+  "vehicle"
  ],
  "fields": [
   {
@@ -86,11 +87,19 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "no_copy": 1,
+   "options": "Loan Vehicle",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 11:21:09.533212",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",

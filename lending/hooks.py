@@ -211,6 +211,7 @@ scheduler_events = {
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 		"lending.loan_management.doctype.process_loan_accounting.process_loan_accounting.process_loan_accounting",
 		"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.send_auto_email",
+		"lending.vehicle_finance.doctype.post_disbursal_document.post_disbursal_document.mark_overdue_documents",
 	],
 	"monthly_long": [
 		"lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit.calculate_monthly_restructure_limit",

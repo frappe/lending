@@ -2,7 +2,8 @@
 # For license information, please see license.txt
 
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -21,4 +22,6 @@ class LoanSecurityType(Document):
 		loan_to_value_ratio: DF.Percent
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if self.is_vehicle and self.valuation_method != "Fixed Valuation":
+			frappe.throw(_("A vehicle security type must use Fixed Valuation"))

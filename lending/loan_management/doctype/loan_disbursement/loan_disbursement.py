@@ -42,6 +42,12 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.loan_management.utils import loan_accounting_enabled
+from lending.vehicle_finance.loan_hooks import (
+	create_post_disbursal_documents,
+	delete_post_disbursal_documents,
+	get_fixed_security_eligible_value,
+	validate_disbursement,
+)
 
 
 # nosemgrep
@@ -114,6 +120,7 @@ class LoanDisbursement(LoanController):
 
 		self.validate_repayment_start_date()
 		self.calculate_total_emi_charges()
+		validate_disbursement(self)
 		self.assign_tranche_number()
 
 	def on_update(self):
@@ -180,6 +187,8 @@ class LoanDisbursement(LoanController):
 			self.db_set("broken_period_interest_days", flt(schedule.broken_period_interest_days, precision))
 
 	def on_submit(self):
+		create_post_disbursal_documents(self)
+
 		if self.is_term_loan:
 			loan_status = frappe.db.get_value("Loan", self.against_loan, "status")
 			if loan_status == "Partially Disbursed":
@@ -326,6 +335,7 @@ class LoanDisbursement(LoanController):
 
 	def on_cancel(self):
 		self.flags.ignore_links = ["GL Entry", "Loan Repayment Schedule", "Sales Invoice", "Loan Demand"]
+		delete_post_disbursal_documents(self)
 
 		self.set_status_and_amounts(cancel=1)
 
@@ -961,7 +971,10 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 	pledged_securities = get_pledged_security_qty(loan=loan, applicant=applicant)
 
 	for security, qty in pledged_securities.items():
-		if on_shortfall_check:
+		fixed_value = get_fixed_security_eligible_value(security, loan=loan, applicant=applicant)
+		if fixed_value is not None:
+			security_value += fixed_value * qty
+		elif on_shortfall_check:
 			loan_to_value_ratio = detail_map.get(security, 0)
 			security_value += (loan_security_price_map.get(security, 0) * qty * loan_to_value_ratio) / 100
 		else:
