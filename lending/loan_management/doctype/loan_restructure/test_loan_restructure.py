@@ -50,8 +50,8 @@ class TestLoanRestructure(LendingTestSuite):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
+			repayment_start_date="2026-09-28",
+			posting_date="2026-08-14",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 			penalty_charges_rate=36,
@@ -60,16 +60,16 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
 		)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
+			posting_date="2026-09-27", loan=loan.name, company="_Test Company"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
 
-		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2024-04-10")
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-03")
 
 		sales_invoice = frappe.get_doc(
 			{
@@ -77,8 +77,8 @@ class TestLoanRestructure(LendingTestSuite):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2024-02-20",
-				"value_date": "2024-02-20",
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
@@ -93,8 +93,8 @@ class TestLoanRestructure(LendingTestSuite):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2024-02-20",
-				"value_date": "2024-02-20",
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Documentation Charge", "qty": 1, "rate": 1000}],
@@ -104,7 +104,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2024-04-11",
+			restructure_date="2026-10-04",
 			interest_waiver_amount=500,
 			penal_waiver_amount=10,
 		)
@@ -129,8 +129,8 @@ class TestLoanRestructure(LendingTestSuite):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
+			repayment_start_date="2026-09-28",
+			posting_date="2026-08-14",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 			penalty_charges_rate=36,
@@ -139,20 +139,20 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
 		)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
+			posting_date="2026-09-27", loan=loan.name, company="_Test Company"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
 
-		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2024-04-10")
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-03")
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2024-04-11",
+			restructure_date="2026-10-04",
 			interest_waiver_amount=500,
 			penal_waiver_amount=10,
 		)
@@ -182,18 +182,18 @@ class TestLoanRestructure(LendingTestSuite):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
+			repayment_start_date="2026-09-28",
+			posting_date="2026-08-14",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
 
 		frappe.get_doc(
 			{
@@ -201,8 +201,8 @@ class TestLoanRestructure(LendingTestSuite):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2024-02-20",
-				"value_date": "2024-02-20",
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"debit_to": "Processing Fee Receivable Account - _TC",
@@ -220,8 +220,8 @@ class TestLoanRestructure(LendingTestSuite):
 				"customer": "_Test Customer 1",
 				"company": "_Test Company",
 				"loan": loan.name,
-				"posting_date": "2024-02-20",
-				"value_date": "2024-02-20",
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
 				"posting_time": "00:06:10",
 				"set_posting_time": 1,
 				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 2000}],
@@ -230,7 +230,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2024-04-11",
+			restructure_date="2026-10-04",
 			interest_waiver_amount=500,
 			loan_restructure_charges=[
 				{"charge": "Processing Fee", "capitalize_amount": 6000, "treatment_of_other_charges": "Capitalize"},
@@ -260,7 +260,7 @@ class TestLoanRestructure(LendingTestSuite):
 			{
 				"loan": loan.name,
 				"docstatus": 1,
-				"value_date": "2024-04-11",
+				"value_date": "2026-10-04",
 			},
 			["outstanding_amount", "status"],
 			as_dict=True,
@@ -392,8 +392,8 @@ class TestLoanRestructure(LendingTestSuite):
 			100000,
 			"Repay Over Number of Periods",
 			22,
-			repayment_start_date="2024-04-05",
-			posting_date="2024-02-20",
+			repayment_start_date="2026-05-29",
+			posting_date="2026-04-14",
 			rate_of_interest=8.5,
 			applicant_type="Customer",
 		)
@@ -401,21 +401,21 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-04-14", repayment_start_date="2026-05-29"
 		)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
+			posting_date="2026-05-28", loan=loan.name, company="_Test Company"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
-		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2024-04-10")
-		create_process_loan_classification(posting_date="2024-04-11", loan=loan.name)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-05-29")
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-06-03")
+		create_process_loan_classification(posting_date="2026-06-04", loan=loan.name)
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2024-04-11",
-			repayment_start_date="2024-05-11",
+			restructure_date="2026-06-04",
+			repayment_start_date="2026-07-04",
 		)
 
 		loan_restructure.status = "Approved"
@@ -426,15 +426,15 @@ class TestLoanRestructure(LendingTestSuite):
 		self.assertEqual(loan.days_past_due, 0)
 		self.assertEqual(loan.is_npa, 0)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2024-08-11")
-		create_process_loan_classification(posting_date="2024-08-11", loan=loan.name, force_update_dpd_in_loan=1)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-04")
+		create_process_loan_classification(posting_date="2026-10-04", loan=loan.name, force_update_dpd_in_loan=1)
 
 		loan.load_from_db()
 		self.assertEqual(loan.is_npa, 1)
 		watch_period_days = frappe.db.get_value(
 			"Company", "_Test Company", "watch_period_post_loan_restructure_in_days"
 		)
-		watch_period_end_date = add_days("2024-08-11", watch_period_days)
+		watch_period_end_date = add_days("2026-10-04", watch_period_days)
 
 		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
@@ -455,32 +455,32 @@ class TestLoanRestructure(LendingTestSuite):
 			2300000.00,
 			"Repay Over Number of Periods",
 			24,
-			repayment_start_date="2025-10-05",
-			posting_date="2025-09-13",
+			repayment_start_date="2026-05-06",
+			posting_date="2026-04-14",
 			rate_of_interest=27,
 			applicant_type="Customer",
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2025-09-13", repayment_start_date="2025-10-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-04-14", repayment_start_date="2026-05-06"
 		)
 
-		process_daily_loan_demands(loan=loan.name, posting_date="2026-02-05")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-06")
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2026-02-18", loan=loan.name, company="_Test Company"
+			posting_date="2026-09-19", loan=loan.name, company="_Test Company"
 		)
 
-		create_process_loan_classification(posting_date="2026-02-18", loan=loan.name, force_update_dpd_in_loan=1)
+		create_process_loan_classification(posting_date="2026-09-19", loan=loan.name, force_update_dpd_in_loan=1)
 
 		loan.load_from_db()
 		classification_code = loan.classification_code
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2026-02-18",
-			repayment_start_date="2026-03-05",
+			restructure_date="2026-09-19",
+			repayment_start_date="2026-10-04",
 			interest_waiver_amount=1001,
 			unaccrued_interest_waiver=1002,
 		)
