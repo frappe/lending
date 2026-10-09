@@ -9,6 +9,9 @@ from frappe.utils import flt
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.loan_management.doctype.loan_security_type.loan_security_type import (
+	sync_haircut_and_ltv,
+)
 
 
 class LoanSecurity(Document):
@@ -32,6 +35,7 @@ class LoanSecurity(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		sync_haircut_and_ltv(self, derive_haircut=False)
 		self.update_available_security_value()
 
 	def update_available_security_value(self):
