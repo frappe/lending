@@ -1359,17 +1359,17 @@ class TestLoanRepayment(LendingTestSuite):
 			"Repay Over Number of Periods",
 			24,
 			"Customer",
-			repayment_start_date="2025-02-05",
-			posting_date="2025-01-06",
+			repayment_start_date="2026-06-05",
+			posting_date="2026-05-06",
 			rate_of_interest=28,
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-05-06", repayment_start_date="2026-06-05"
 		)
 
-		emi_dates = ["2025-02-05", "2025-03-05", "2025-04-05", "2025-05-05"]
+		emi_dates = ["2026-06-05", "2026-07-05", "2026-08-05", "2026-09-05"]
 		for emi_date in emi_dates:
 			accrual_date = add_days(emi_date, -1)
 			process_loan_interest_accrual_for_loans(
@@ -1378,9 +1378,9 @@ class TestLoanRepayment(LendingTestSuite):
 			process_daily_loan_demands(loan=loan.name, posting_date=emi_date)
 			create_repayment_entry(loan.name, emi_date, 54889).submit()
 
-		pre_payment_date = "2025-05-21"
+		pre_payment_date = "2026-09-21"
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-05-20", company="_Test Company"
+			loan=loan.name, posting_date="2026-09-20", company="_Test Company"
 		)
 
 		amounts = calculate_amounts(loan.name, pre_payment_date)
