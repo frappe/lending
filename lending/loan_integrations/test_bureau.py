@@ -24,7 +24,7 @@ RESPONSE = {"reference": "bureau-ref-001", "score": "750", "document_url": SIGNE
 
 
 @register
-class FakeBureauAdapter(BureauAdapter):
+class StubBureauAdapter(BureauAdapter):
 	key = "_Test Bureau"
 	bureau = "Experian"
 
@@ -56,7 +56,7 @@ def a_pdf() -> bytes:
 	return buffer.getvalue()
 
 
-def use_adapter(adapter=FakeBureauAdapter.key):
+def use_adapter(adapter=StubBureauAdapter.key):
 	frappe.db.set_single_value("Loan Origination Settings", "credit_bureau_adapter", adapter)
 
 	return adapter
@@ -73,8 +73,8 @@ class TestAdapterRouting(LendingTestSuite):
 	def test_the_settings_pick_the_adapter(self):
 		use_adapter()
 
-		self.assertEqual(bureau.select_bureau_adapter(), FakeBureauAdapter.key)
-		self.assertIsInstance(get_adapter(FakeBureauAdapter.key), FakeBureauAdapter)
+		self.assertEqual(bureau.select_bureau_adapter(), StubBureauAdapter.key)
+		self.assertIsInstance(get_adapter(StubBureauAdapter.key), StubBureauAdapter)
 
 	def test_an_unregistered_adapter_is_refused(self):
 		settings = frappe.get_doc("Loan Origination Settings")
@@ -139,7 +139,7 @@ class TestBureauPull(LendingTestSuite):
 		self.lead = make_consenting_lead()
 
 	def pull(self, response=None):
-		with patch.object(FakeBureauAdapter, "pull", return_value=response or RESPONSE):
+		with patch.object(StubBureauAdapter, "pull", return_value=response or RESPONSE):
 			return bureau.pull_credit_bureau_report(self.lead)
 
 	def test_a_pull_files_a_submitted_report_against_the_pan(self):
@@ -235,7 +235,7 @@ class TestBureauPull(LendingTestSuite):
 		)
 
 	def test_an_answer_we_could_not_store_keeps_the_bureau_reference(self):
-		with patch.object(FakeBureauAdapter, "persist", side_effect=IntegrationError("no room")):
+		with patch.object(StubBureauAdapter, "persist", side_effect=IntegrationError("no room")):
 			result = self.pull()
 
 		self.assertEqual(result["status"], log.UNRECORDED)
@@ -245,7 +245,7 @@ class TestBureauPull(LendingTestSuite):
 		)
 
 	def test_a_bureau_that_never_answered_is_asked_again(self):
-		with patch.object(FakeBureauAdapter, "pull", side_effect=ConnectionError("no route")):
+		with patch.object(StubBureauAdapter, "pull", side_effect=ConnectionError("no route")):
 			unreachable = bureau.pull_credit_bureau_report(self.lead)
 
 		self.assertEqual(unreachable["status"], log.FAILED)

@@ -597,32 +597,32 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 			100000,
 			"Repay Over Number of Periods",
 			30,
-			repayment_start_date="2026-08-29",
-			posting_date="2026-08-09",
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
 			rate_of_interest=10,
 			applicant_type="Customer",
 		)
 		loan.submit()
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2026-08-09", repayment_start_date="2026-08-29"
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
 		)
-		process_daily_loan_demands(posting_date="2026-08-29", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
 
-		for date in ["2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03"]:
+		for date in ["2024-10-05", "2024-10-06", "2024-10-07", "2024-10-08", "2024-10-09", "2024-10-10"]:
 			create_process_loan_classification(posting_date=date, loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2026-08-29", 3000)
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-05", 3000)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, "2026-09-02", 782)
+		repayment_entry = create_repayment_entry(loan.name, "2024-10-09", 782)
 		repayment_entry.submit()
 
-		process_daily_loan_demands(posting_date="2026-09-29", loan=loan.name)
+		process_daily_loan_demands(posting_date="2024-11-05", loan=loan.name)
 
-		repayment_entry = create_repayment_entry(loan.name, "2026-09-29", 3000)
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-05", 3000)
 		repayment_entry.submit()
 
-		repayment_entry = create_repayment_entry(loan.name, "2026-10-04", 782)
+		repayment_entry = create_repayment_entry(loan.name, "2024-11-10", 782)
 		repayment_entry.submit()
 
 		frappe.db.sql(
@@ -631,7 +631,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 			loan.name,
 		)
 
-		create_process_loan_classification(posting_date="2026-08-29", loan=loan.name)
+		create_process_loan_classification(posting_date="2024-10-05", loan=loan.name)
 
 		dpd_logs = frappe.db.sql(
 			"""
@@ -645,19 +645,19 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		)
 
 		expected_dpd_values = {
-			"2026-08-29": 1,
-			"2026-08-30": 2,
-			"2026-08-31": 3,
-			"2026-09-01": 4,
-			"2026-09-02": 0,  # Fully repaid
-			"2026-09-03": 0,
-			"2026-09-28": 0,
-			"2026-09-29": 1,  # DPD starts again after repayment
-			"2026-09-30": 2,
-			"2026-10-01": 3,
-			"2026-10-02": 4,
-			"2026-10-03": 5,
-			"2026-10-04": 0,  # Fully repaid
+			"2024-10-05": 1,
+			"2024-10-06": 2,
+			"2024-10-07": 3,
+			"2024-10-08": 4,
+			"2024-10-09": 0,  # Fully repaid
+			"2024-10-10": 0,
+			"2024-11-04": 0,
+			"2024-11-05": 1,  # DPD starts again after repayment
+			"2024-11-06": 2,
+			"2024-11-07": 3,
+			"2024-11-08": 4,
+			"2024-11-09": 5,
+			"2024-11-10": 0,  # Fully repaid
 		}
 
 		for log in dpd_logs:

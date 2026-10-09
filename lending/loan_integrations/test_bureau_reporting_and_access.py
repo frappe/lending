@@ -3,44 +3,21 @@
 from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.utils import cint
 
 from lending.loan_integrations import bureau, log
 from lending.loan_integrations.adapters import adapter_choices, register, registry
-from lending.loan_integrations.base import IntegrationError
-from lending.loan_integrations.bureau import BureauAdapter
+from lending.loan_integrations.test_bureau import (
+	RESPONSE,
+	SIGNED_URL,
+	StubBureauAdapter,
+	make_consenting_lead,
+	use_adapter,
+)
 from lending.loan_origination.decisioning import build_variable_context
 from lending.loan_origination.test_decisioning import make_application, make_lead
 from lending.tests.utils import LendingTestSuite
 
 TEST_PAN = "AAAPT0000A"
-
-
-SIGNED_URL = (
-	"https://reports.example.com/r.pdf?X-Amz-Credential=AKIATESTKEY000000000&X-Amz-Signature=beef"
-)
-
-
-RESPONSE = {"reference": "bureau-ref-001", "score": "750", "document_url": SIGNED_URL}
-
-
-@register
-class FakeBureauAdapter(BureauAdapter):
-	key = "_Test Bureau"
-	bureau = "Experian"
-
-	def parse(self, response: dict) -> dict:
-		if not cint(response.get("score")):
-			raise IntegrationError("the bureau refused the request")
-
-		return {
-			"external_id": response.get("reference"),
-			"score": cint(response.get("score")),
-			"obligations_known": False,
-			"total_emi": 0,
-			"report_url": response.get("document_url"),
-			"payload": {k: v for k, v in response.items() if k != "document_url"},
-		}
 
 
 def a_pdf() -> bytes:
@@ -57,26 +34,13 @@ def a_pdf() -> bytes:
 	return buffer.getvalue()
 
 
-def use_adapter(adapter=FakeBureauAdapter.key):
-	frappe.db.set_single_value("Loan Origination Settings", "credit_bureau_adapter", adapter)
-
-	return adapter
-
-
-def make_consenting_lead(**overrides):
-	lead = make_lead(pan=TEST_PAN, gender="Male", bureau_consent=1, **overrides)
-	lead.reload()
-
-	return lead
-
-
 class TestOnePullPerDocument(LendingTestSuite):
 	def setUp(self):
 		use_adapter()
 		self.lead = make_consenting_lead()
 
 	def pull(self, source):
-		with patch.object(FakeBureauAdapter, "pull", return_value=RESPONSE):
+		with patch.object(StubBureauAdapter, "pull", return_value=RESPONSE):
 			return bureau.pull_credit_bureau_report(source)
 
 	def test_an_application_is_pulled_for_even_though_its_lead_already_was(self):
@@ -111,7 +75,7 @@ class TestTheLeadShowsWhatWasPulled(LendingTestSuite):
 		self.lead = make_consenting_lead()
 
 	def test_the_score_reaches_the_lead_once_the_pull_has_run(self):
-		with patch.object(FakeBureauAdapter, "pull", return_value=RESPONSE):
+		with patch.object(StubBureauAdapter, "pull", return_value=RESPONSE):
 			result = bureau.pull_credit_bureau_report(self.lead)
 
 		# The workflow saves the lead after its tasks, which is what carries the score across.
@@ -167,7 +131,7 @@ class TestReportLinkIsChecked(LendingTestSuite):
 
 class TestCredentialsAndAccess(LendingTestSuite):
 	def test_a_call_without_credentials_says_so_rather_than_sending_the_word_none(self):
-		class Unconfigured(FakeBureauAdapter):
+		class Unconfigured(StubBureauAdapter):
 			key = "_Test Unconfigured"
 			settings = frappe._dict(name="_Test Settings")
 
@@ -197,7 +161,7 @@ class TestLogRedaction(LendingTestSuite):
 class TestAddingAnotherBureau(LendingTestSuite):
 	def test_a_new_bureau_reuses_the_whole_machinery(self):
 		@register
-		class EquifaxAdapter(FakeBureauAdapter):
+		class EquifaxAdapter(StubBureauAdapter):
 			key = "_Test Equifax"
 			bureau = "Equifax"
 
