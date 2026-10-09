@@ -6,7 +6,7 @@ import copy
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_months, format_date, getdate, today
+from frappe.utils import add_days, add_months, flt, format_date, getdate, today
 from frappe.utils.jinja import validate_template
 from frappe.utils.pdf import get_pdf
 from frappe.www.printview import get_letter_head, get_print_style
@@ -109,11 +109,16 @@ def get_statement_dict(doc):
 			continue
 		filters = get_report_filters(doc, entry)
 		columns, data = get_loan_soa(filters)
-		if not data:
+		if is_empty_statement(data):
 			continue
 		statement_dict[entry.applicant] = get_html(doc, filters, columns, data)
 
 	return statement_dict
+
+
+def is_empty_statement(data):
+	has_transactions = any(row.get("posting_date") for row in data)
+	return not has_transactions and not flt(data[-1].get("balance"))
 
 
 def get_rendered_letter_head(doc, applicant=None):

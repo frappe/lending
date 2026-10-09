@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "creation": "2026-09-17 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "promised_date",
+  "promised_amount",
+  "status",
+  "actual_paid_amount",
+  "captured_by",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "promised_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Promised Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "promised_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Promised Amount",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Open\nKept\nBroken\nPartial",
+   "reqd": 1
+  },
+  {
+   "fieldname": "actual_paid_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Actual Paid Amount"
+  },
+  {
+   "fieldname": "captured_by",
+   "fieldtype": "Link",
+   "label": "Captured By",
+   "options": "User"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-17 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Promise to Pay",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -254,7 +254,11 @@ class LoanRepaymentRepost(Document):
 						"Write Off Settlement",
 						"Full Settlement",
 					):
-						frappe.db.set_value("Loan", repayment_doc.against_loan, "status", "Disbursed")
+						frappe.db.set_value(
+							"Loan",
+							repayment_doc.against_loan,
+							{"status": "Disbursed", "closure_date": None},
+						)
 					repayment_doc.update_repayment_schedule_status(cancel=1)
 
 			LoanRepayment = DocType("Loan Repayment")

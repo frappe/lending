@@ -104,6 +104,12 @@ class LoanRepaymentSchedule(Document):
 		self.reset_index()
 		self.set_maturity_date()
 
+	def get_emi_rounding_method(self):
+		return (
+			frappe.db.get_value("Loan Product", self.loan_product, "emi_rounding_method")
+			or "Round to Nearest"
+		)
+
 	def reset_index(self):
 		for idx, row in enumerate(self.get("repayment_schedule"), start=1):
 			row.idx = idx
@@ -396,6 +402,7 @@ class LoanRepaymentSchedule(Document):
 		partner_schedule_type=None,
 	):
 		payment_date = self.repayment_start_date
+		previous_payment_date = self.posting_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
 		is_first_emi = True
@@ -403,11 +410,19 @@ class LoanRepaymentSchedule(Document):
 
 		if self.repayment_schedule_type == "Flat Interest Rate":
 			monthly_repayment_amount = get_flat_monthly_repayment_amount(
-				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+				balance_amount,
+				rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
+				self.get_emi_rounding_method(),
 			)
 		elif not self.restructure_type and self.repayment_method != "Repay Fixed Amount per Period":
 			monthly_repayment_amount = get_monthly_repayment_amount(
-				balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+				balance_amount,
+				rate_of_interest,
+				self.repayment_periods,
+				self.repayment_frequency,
+				self.get_emi_rounding_method(),
 			)
 		else:
 			monthly_repayment_amount = self.monthly_repayment_amount
@@ -451,7 +466,11 @@ class LoanRepaymentSchedule(Document):
 					):
 						balance_amount = self.loan_amount + moratorium_interest
 						monthly_repayment_amount = get_monthly_repayment_amount(
-							balance_amount, rate_of_interest, self.repayment_periods, self.repayment_frequency
+							balance_amount,
+							rate_of_interest,
+							self.repayment_periods,
+							self.repayment_frequency,
+							self.get_emi_rounding_method(),
 						)
 						moratorium_interest = 0
 
@@ -465,6 +484,7 @@ class LoanRepaymentSchedule(Document):
 				schedule_field,
 				principal_share_percentage,
 				interest_share_percentage,
+				previous_payment_date,
 			)
 
 			(
@@ -562,6 +582,7 @@ class LoanRepaymentSchedule(Document):
 				)
 				balance_amount = 0
 
+			previous_payment_date = payment_date
 			payment_date = self.get_next_payment_date(payment_date)
 			carry_forward_interest = 0
 			additional_days = 0
@@ -770,6 +791,7 @@ class LoanRepaymentSchedule(Document):
 							self.rate_of_interest,
 							self.repayment_periods,
 							self.repayment_frequency,
+							self.get_emi_rounding_method(),
 						)
 						return (
 							previous_interest_amount,
@@ -869,6 +891,7 @@ class LoanRepaymentSchedule(Document):
 						self.rate_of_interest,
 						self.repayment_periods - completed_tenure,
 						self.repayment_frequency,
+						self.get_emi_rounding_method(),
 					)
 
 				if self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time":
@@ -976,6 +999,7 @@ class LoanRepaymentSchedule(Document):
 		schedule_field,
 		principal_share_percentage,
 		interest_share_percentage,
+		previous_payment_date=None,
 	):
 		months = 365
 		if self.repayment_frequency == "Monthly":
@@ -990,7 +1014,7 @@ class LoanRepaymentSchedule(Document):
 				months,
 			)
 		else:
-			days = self.get_non_monthly_days(payment_date)
+			days = self.get_non_monthly_days(payment_date, previous_payment_date)
 
 		return days, months
 
@@ -1081,7 +1105,7 @@ class LoanRepaymentSchedule(Document):
 		)
 
 
-	def get_non_monthly_days(self, payment_date):
+	def get_non_monthly_days(self, payment_date, previous_payment_date=None):
 		if payment_date == self.repayment_start_date:
 			return date_diff(payment_date, self.posting_date)
 		elif self.repayment_frequency == "Bi-Weekly":
@@ -1091,7 +1115,7 @@ class LoanRepaymentSchedule(Document):
 		elif self.repayment_frequency == "Daily":
 			return 1
 		elif self.repayment_frequency == "Quarterly":
-			return 3
+			return date_diff(payment_date, previous_payment_date)
 		elif self.repayment_frequency == "One Time":
 			return date_diff(self.repayment_start_date, self.posting_date)
 
