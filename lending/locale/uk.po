@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-04 14:55+0000\n"
-"PO-Revision-Date: 2026-10-05 21:26\n"
+"PO-Revision-Date: 2026-10-10 22:24\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -150,13 +150,13 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Accounting Details"
-msgstr ""
+msgstr "Облікові дані"
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Accounting Dimension"
-msgstr ""
+msgstr "Вимір обліку"
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Loan'
@@ -180,7 +180,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Accounting Dimensions"
-msgstr ""
+msgstr "Виміри обліку"
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.js:7
 #: lending/public/js/loan_common.js:14
@@ -4746,7 +4746,7 @@ msgstr ""
 #. Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Normal Interest Journal Entry"
-msgstr ""
+msgstr "Запис журналу звичайних відсотків"
 
 #. Label of the normal_limit_section (Section Break) field in DocType 'Loan
 #. Restructure Limit Log'
@@ -5503,7 +5503,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.py:54
 msgid "Please set up Branch as an Accounting Dimension before transferring loans between branches."
-msgstr ""
+msgstr "Будь ласка, налаштуйте відділення як вимір обліку, перш ніж передавати позики між відділеннями."
 
 #: lending/loan_management/doctype/loan_demand/loan_demand.py:181
 msgid "Please set {0} Accrual Account in Loan Product {1}"
@@ -6627,7 +6627,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
 msgid "Sales Invoice"
-msgstr ""
+msgstr "Рахунок-фактура (продаж)"
 
 #. Label of the same_as_regular_interest_accounts (Check) field in DocType
 #. 'Loan Product'
@@ -6809,7 +6809,7 @@ msgstr "Встановлюється, коли цей документ є кор
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Settled"
-msgstr ""
+msgstr "Врегульовано"
 
 #. Label of the settlement_date (Date) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
@@ -7573,7 +7573,7 @@ msgstr ""
 #. Label of the write_off_amount (Currency) field in DocType 'Loan Write Off'
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Amount"
-msgstr ""
+msgstr "Сума списання"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Loan Write
 #. Off'
