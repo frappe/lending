@@ -35,6 +35,9 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
+from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+	validate_lien_references,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -413,6 +416,9 @@ class Loan(LoanController):
 				is_imported=1,
 			)
 
+	def before_submit(self):
+		self.validate_requested_pledge_is_locked()
+
 	def on_submit(self):
 		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
@@ -615,9 +621,9 @@ class Loan(LoanController):
 		if self.is_secured_loan and not self.maximum_loan_amount and not self.loan_application:
 			frappe.throw(_("Maximum Loan Amount is mandatory for secured Loans without a Loan Application"))
 
-	def link_loan_security_assignment(self):
+	def get_requested_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
-			lsa_details = frappe.db.get_value(
+			return frappe.db.get_value(
 				"Loan Security Assignment",
 				{
 					"loan_application": self.loan_application,
@@ -627,19 +633,31 @@ class Loan(LoanController):
 				["name", "maximum_loan_value"],
 			)
 
-			if lsa_details:
-				lsa, maximum_loan_value = lsa_details
-				frappe.db.set_value(
-					"Loan Security Assignment",
-					lsa,
-					{
-						"loan": self.name,
-						"pledge_time": now_datetime(),
-						"status": "Pledged",
-					},
+	def validate_requested_pledge_is_locked(self):
+		# Creating the loan marks the requested pledge as Pledged.
+		if lsa_details := self.get_requested_loan_security_assignment():
+			validate_lien_references(
+				frappe.get_all(
+					"Pledge",
+					filters={"parent": lsa_details[0], "parenttype": "Loan Security Assignment"},
+					fields=["loan_security", "lien_reference"],
 				)
+			)
 
-				self.db_set("maximum_loan_amount", maximum_loan_value)
+	def link_loan_security_assignment(self):
+		if lsa_details := self.get_requested_loan_security_assignment():
+			lsa, maximum_loan_value = lsa_details
+			frappe.db.set_value(
+				"Loan Security Assignment",
+				lsa,
+				{
+					"loan": self.name,
+					"pledge_time": now_datetime(),
+					"status": "Pledged",
+				},
+			)
+
+			self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def cancel_loan_security_assignment(self):
 		if not self.loan_application:

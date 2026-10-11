@@ -10,9 +10,6 @@ from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, get
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
-from lending.loan_management.doctype.loan_application.loan_application import (
-	create_loan_security_assignment,
-)
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
@@ -38,6 +35,7 @@ from lending.tests.test_utils import (
 	create_loan_partner,
 	create_loan_product,
 	create_loan_security,
+	create_loan_security_assignment,
 	create_loan_security_price,
 	create_loan_security_type,
 	create_loan_with_security,
@@ -47,6 +45,7 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 	set_loan_settings_in_company,
+	set_release_references,
 	setup_loan_demand_offset_order,
 )
 from lending.tests.utils import LendingTestSuite
@@ -607,6 +606,7 @@ class TestLoan(LendingTestSuite):
 
 		unpledge_request = unpledge_security(loan=loan.name, save=1)
 		unpledge_request.submit()
+		set_release_references(unpledge_request)
 		unpledge_request.status = "Approved"
 		unpledge_request.save()
 		loan.load_from_db()
@@ -653,6 +653,7 @@ class TestLoan(LendingTestSuite):
 
 		unpledge_request = unpledge_security(loan=loan.name, security_map=unpledge_map, save=1)
 		unpledge_request.submit()
+		set_release_references(unpledge_request)
 		unpledge_request.status = "Approved"
 		unpledge_request.save()
 		unpledge_request.submit()
@@ -677,6 +678,7 @@ class TestLoan(LendingTestSuite):
 		unpledge_map = {"Test Security 1": 4000}
 		unpledge_request = unpledge_security(loan=loan.name, security_map=unpledge_map, save=1)
 		unpledge_request.submit()
+		set_release_references(unpledge_request)
 		unpledge_request.status = "Approved"
 		unpledge_request.save()
 		unpledge_request.submit()

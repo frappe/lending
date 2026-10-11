@@ -5,7 +5,8 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, now_datetime
+from frappe.query_builder import functions as fn
+from frappe.utils import cint, comma_and, flt, now_datetime
 
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
@@ -48,6 +49,13 @@ class LoanSecurityAssignment(Document):
 	def validate(self):
 		self.validate_securities()
 		self.set_loan_and_security_values()
+		self.validate_security_limits()
+
+	def before_submit(self):
+		# With a loan application the pledge stays Pledge Requested until the loan is created,
+		# so Loan.link_loan_security_assignment runs this check instead.
+		if not self.loan_application:
+			validate_lien_references(self.securities)
 
 	def on_submit(self):
 		if self.loan:
@@ -98,6 +106,63 @@ class LoanSecurityAssignment(Document):
 				frappe.throw(
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
+
+		disabled = frappe.get_all(
+			"Loan Security", filters={"name": ("in", security_list), "disabled": 1}, pluck="name"
+		)
+		if disabled:
+			frappe.throw(_("Loan Security {0} is disabled.").format(comma_and(disabled)))
+
+	def validate_security_limits(self):
+		limits = {
+			d.name: d
+			for d in frappe.get_all(
+				"Loan Security Type",
+				filters={"name": ("in", {row.loan_security_type for row in self.securities})},
+				fields=["name", "max_single_security_pct", "max_exposure_per_security"],
+			)
+		}
+
+		capped = [
+			row.loan_security
+			for row in self.securities
+			if flt(limits.get(row.loan_security_type, {}).get("max_exposure_per_security"))
+		]
+		pledged_qty = get_pledged_qty(capped) if capped else {}
+
+		for row in self.securities:
+			limit = limits.get(row.loan_security_type)
+			if not limit:
+				continue
+
+			share = flt(row.amount) / flt(self.total_security_value) * 100 if self.total_security_value else 0
+			if flt(limit.max_single_security_pct) and flt(share, 2) > flt(limit.max_single_security_pct):
+				frappe.throw(
+					_("Row {0}: {1} is {2}% of this pledge. Loan Security Type {3} allows at most {4}%.").format(
+						row.idx,
+						frappe.bold(row.loan_security),
+						flt(share, 2),
+						frappe.bold(row.loan_security_type),
+						flt(limit.max_single_security_pct),
+					),
+					title=_("Pledge Too Concentrated"),
+				)
+
+			if flt(limit.max_exposure_per_security):
+				exposure = (flt(pledged_qty.get(row.loan_security)) + flt(row.qty)) * flt(row.loan_security_price)
+				if exposure > flt(limit.max_exposure_per_security):
+					frappe.throw(
+						_(
+							"Row {0}: {1} pledged across all borrowers would be worth {2}. Loan Security Type {3} allows at most {4}."
+						).format(
+							row.idx,
+							frappe.bold(row.loan_security),
+							frappe.format_value(exposure, {"fieldtype": "Currency"}),
+							frappe.bold(row.loan_security_type),
+							frappe.format_value(limit.max_exposure_per_security, {"fieldtype": "Currency"}),
+						),
+						title=_("Exposure Limit Reached"),
+					)
 
 	def set_loan_and_security_values(self):
 		total_security_value = 0
@@ -157,6 +222,51 @@ class LoanSecurityAssignment(Document):
 			)
 
 		update_loan(self.loan, total_available_security_value)
+
+
+def validate_lien_references(securities):
+	missing = [row.get("loan_security") for row in securities if not (row.get("lien_reference") or "").strip()]
+
+	if missing:
+		frappe.throw(
+			_("Add the lien reference for {0} before the pledge is marked Pledged.").format(
+				comma_and(missing)
+			),
+			title=_("Lien Reference Missing"),
+		)
+
+
+def get_pledged_qty(securities):
+	# Pledge Requested counts too: it becomes Pledged without passing validate again.
+	lsa = frappe.qb.DocType("Loan Security Assignment")
+	pledge = frappe.qb.DocType("Pledge")
+	release = frappe.qb.DocType("Loan Security Release")
+	unpledge = frappe.qb.DocType("Unpledge")
+
+	pledged = frappe._dict(
+		frappe.qb.from_(pledge)
+		.inner_join(lsa)
+		.on(pledge.parent == lsa.name)
+		.select(pledge.loan_security, fn.Sum(pledge.qty))
+		.where(lsa.docstatus == 1)
+		.where(lsa.status.isin(["Pledge Requested", "Pledged"]))
+		.where(pledge.loan_security.isin(securities))
+		.groupby(pledge.loan_security)
+		.run()
+	)
+	released = frappe._dict(
+		frappe.qb.from_(unpledge)
+		.inner_join(release)
+		.on(unpledge.parent == release.name)
+		.select(unpledge.loan_security, fn.Sum(unpledge.qty))
+		.where(release.docstatus == 1)
+		.where(release.status == "Approved")
+		.where(unpledge.loan_security.isin(securities))
+		.groupby(unpledge.loan_security)
+		.run()
+	)
+
+	return {security: flt(qty) - flt(released.get(security)) for security, qty in pledged.items()}
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):

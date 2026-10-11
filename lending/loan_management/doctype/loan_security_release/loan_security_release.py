@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import functions as fn
-from frappe.utils import flt, get_datetime, getdate
+from frappe.utils import comma_and, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
@@ -39,6 +39,22 @@ class LoanSecurityRelease(Document):
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
+		self.validate_release_references()
+
+	def before_update_after_submit(self):
+		# Approval changes the status on a submitted release, which skips validate.
+		self.validate_release_references()
+
+	def validate_release_references(self):
+		if self.status != "Approved":
+			return
+
+		missing = [row.loan_security for row in self.securities if not (row.release_reference or "").strip()]
+		if missing:
+			frappe.throw(
+				_("Add the release reference for {0} before approving the release.").format(comma_and(missing)),
+				title=_("Release Reference Missing"),
+			)
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)

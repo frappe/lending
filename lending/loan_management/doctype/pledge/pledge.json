@@ -9,6 +9,7 @@
   "loan_security_name",
   "loan_security_type",
   "loan_security_code",
+  "lien_reference",
   "column_break_5",
   "qty",
   "haircut",
@@ -85,11 +86,19 @@
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Proof that the security is locked, such as the depository pledge number, the gold packet number or the mortgage registration number. Required before the pledge is marked Pledged.",
+   "fieldname": "lien_reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lien Reference"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:49.051427",
+ "modified": "2026-10-09 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Pledge",
