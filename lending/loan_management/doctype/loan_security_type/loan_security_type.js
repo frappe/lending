@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Type', {
-	// refresh: function(frm) {
-
-	// },
+	haircut: function(frm) {
+		frm.set_value('loan_to_value_ratio', 100 - flt(frm.doc.haircut));
+	},
 });

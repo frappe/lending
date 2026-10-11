@@ -239,9 +239,8 @@ def create_loan_security_shortfall(
 
 
 def get_ltv_ratio(loan_security):
-	loan_security_type = frappe.db.get_value("Loan Security", loan_security, "loan_security_type")
-	ltv_ratio = frappe.db.get_value("Loan Security Type", loan_security_type, "loan_to_value_ratio")
-	return ltv_ratio
+	# The security's own LTV, so that an overridden haircut is honoured here too.
+	return frappe.db.get_value("Loan Security", loan_security, "loan_to_value_ratio")
 
 
 def update_pending_shortfall(shortfall):
