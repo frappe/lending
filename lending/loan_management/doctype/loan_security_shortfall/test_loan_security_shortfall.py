@@ -82,6 +82,40 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
+	def test_shortfall_and_release_use_security_ltv(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		pledges = [{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		# The type "Stock" stays at LTV 50, so only the security's own LTV gives these results
+		self.assertEqual(flt(frappe.db.get_value("Loan Security Type", "Stock", "loan_to_value_ratio")), 50)
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 70)
+
+		# 6,000 units left at ₹250 allow ₹10,50,000 against ₹10,00,000 drawn; 5,700 allow ₹9,97,500
+		unpledge_security(loan=loan.name, security_map={"Test Security 2": 2000}, save=1)
+		with self.assertRaises(frappe.ValidationError):
+			unpledge_security(loan=loan.name, security_map={"Test Security 2": 2300}, save=1)
+
+		# 8,000 units at ₹150 allow ₹8,40,000, so the loan is ₹1,60,000 short
+		create_loan_security_price(
+			"Test Security 2", 150, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+		self.assertEqual(flt(shortfall.security_value, 2), 1200000.00)
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 160000.00)
+
 	def test_disbursal_check_with_shortfall(self):
 		pledges = [
 			{
