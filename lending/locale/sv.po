@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-04 14:55+0000\n"
-"PO-Revision-Date: 2026-10-06 21:21\n"
+"POT-Creation-Date: 2026-10-11 15:52+0000\n"
+"PO-Revision-Date: 2026-10-12 23:18\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -58,7 +58,7 @@ msgstr "<br>\n"
 "<li>\n"
 "Du kan använda <a href=\"https://jinja.palletsprojects.com/en/2.11.x/\" target=\"_blank\">Jinja-taggar</a> i <b>Subject</b>, <b>Body</b> och <b>PDF Name</b> fält för  dynamiska värden.\n"
 "</li><li>\n"
-"    Alla fält i denna doctype är tillgängliga under <b>doc</b> objekt och sökande rad är tillgänglig under <b>applicant</b> -objekt (fält: applicant, applicant_name, email).\n"
+"    Alla fält i denna dokumenttyp är tillgängliga under <b>doc</b> objekt och sökande rad är tillgänglig under <b>applicant</b> -objekt (fält: applicant, applicant_name, email).\n"
 "</li></ul>\n"
 "<h4> Exempel</h4>\n"
 "<!-- {% raw %} -->\n"
@@ -212,6 +212,27 @@ msgstr "Ackumulerade Detaljer"
 msgid "Accrual Type"
 msgstr "Beräkning Typ"
 
+#. Label of the activities_tab (Tab Break) field in DocType 'Collection Case'
+#. Label of the activities (Table) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Activities"
+msgstr "Aktiviteter"
+
+#. Label of the activity_date (Datetime) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Activity Date"
+msgstr "Aktivitet Datum"
+
+#. Label of the activity_type (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Activity Type"
+msgstr "Aktivitet Typ"
+
+#. Label of the actual_paid_amount (Currency) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Actual Paid Amount"
+msgstr "Faktiskt Betalt Belopp"
+
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.js:6
 msgid "Add Loan Security"
 msgstr "Lägg till Lånesäkerhet"
@@ -247,7 +268,7 @@ msgstr "Lägg till i sista Likställda Månadsvisa Avbetalning"
 msgid "Add to first repayment"
 msgstr "Lägg till första återbetalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2219
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2230
 msgid "Addition Interest Waiver Account is mandatory"
 msgstr "Tillägg Ränta Avskrivning Konto erfordras"
 
@@ -284,7 +305,7 @@ msgstr "Extra Ränta Belopp"
 msgid "Additional Interest Income"
 msgstr "Extra Ränta Intäkt"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2246
 msgid "Additional Interest Income Account is mandatory"
 msgstr "Extra Ränta Intäkt Konto erfordras"
 
@@ -294,7 +315,7 @@ msgstr "Extra Ränta Intäkt Konto erfordras"
 msgid "Additional Interest Receivable"
 msgstr "Extra Ränta Fordring"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2229
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2240
 msgid "Additional Interest Receivable Account is mandatory"
 msgstr "Extra Ränta Fordring Konto erfordras"
 
@@ -316,7 +337,7 @@ msgstr "Extra Uppskjuten Ränta Post"
 msgid "Additional Interest Waiver"
 msgstr "Extra Ränta Avskrivning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2238
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2249
 msgid "Additional Interest Waiver Account is mandatory"
 msgstr "Extra Ränta Avskrivning Konto erfordras"
 
@@ -415,7 +436,7 @@ msgstr "Förskott Betalning"
 msgid "Adverse Action Reason"
 msgstr "Negativ Åtgärd Orsak"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2309
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2320
 msgid "Against Account is mandatory"
 msgstr "Mot konto erfordras"
 
@@ -445,6 +466,11 @@ msgstr "Ålder"
 #: lending/loan_management/report/alm_audit_report/alm_audit_report.py:27
 msgid "Ageing"
 msgstr "Åldrande"
+
+#. Label of the agent (Link) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Agent"
+msgstr "Användare"
 
 #. Option for the 'Select Applicants By' (Select) field in DocType 'Process
 #. Loan Statement of Accounts'
@@ -571,6 +597,12 @@ msgstr "En engånglösenord kan endast skickas så länge ansökan är ett utkas
 msgid "Another Loan Restructure is already initiated for this Loan"
 msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Answered"
+msgstr "Besvarad"
+
+#. Label of the applicant (Dynamic Link) field in DocType 'Collection Case'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Application'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Demand'
@@ -594,6 +626,7 @@ msgstr "En annan låneomstrukturering har redan inletts för detta lån"
 #. Label of the applicant (Dynamic Link) field in DocType 'Credit Bureau
 #. Report'
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -652,7 +685,9 @@ msgstr "Sökande (Låntagare)"
 msgid "Applicant Details"
 msgstr "Sökande Detaljer"
 
+#. Label of the applicant_email (Data) field in DocType 'Collection Case'
 #. Label of the applicant_email (Data) field in DocType 'Loan Co-Applicants'
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_origination/doctype/loan_co_applicants/loan_co_applicants.json
 msgid "Applicant Email"
 msgstr "Sökande E-post"
@@ -689,6 +724,7 @@ msgstr "Sökande Namn"
 msgid "Applicant Phone Number"
 msgstr "Sökandes Telefonnummer"
 
+#. Label of the applicant_type (Select) field in DocType 'Collection Case'
 #. Label of the applicant_type (Select) field in DocType 'Loan'
 #. Label of the applicant_type (Select) field in DocType 'Loan Application'
 #. Label of the applicant_type (Select) field in DocType 'Loan Balance
@@ -716,6 +752,7 @@ msgstr "Sökandes Telefonnummer"
 #. Label of the applicant_type (Select) field in DocType 'Credit Bureau Report'
 #. Label of the applicant_type (Select) field in DocType 'Loan Decision'
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -810,6 +847,11 @@ msgstr "Godkänd"
 msgid "As on Date"
 msgstr "Datum"
 
+#. Label of the assigned_agent (Link) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Assigned Agent"
+msgstr "Tilldelad Handläggare"
+
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:91
 msgid "Atlest one security needs to be assigned"
 msgstr "Minst ett garanti måste tilldelas"
@@ -847,6 +889,10 @@ msgstr "Skapa kund automatiskt"
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Auto create disbursement on loan booking"
 msgstr "Skapa utbetalning automatiskt vid registrering av lån"
+
+#: lending/loan_management/collections.py:430
+msgid "Auto dunning via {0}"
+msgstr "Automatisk påminnelse via {0}"
 
 #. Label of the available_amount (Currency) field in DocType 'Loan Security
 #. Deposit'
@@ -963,11 +1009,11 @@ msgstr "Bank"
 msgid "Bank Account"
 msgstr "Bank Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3439
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3450
 msgid "Bank Transaction {0} is already fully reconciled"
 msgstr "Bank Transaktion {0} är redan helt avstämd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3467
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3478
 msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
 msgstr "Bank Transaktion {0} är från {1} {2}, inte från lånesökande {3}"
 
@@ -1041,6 +1087,16 @@ msgstr "Både Fast Insättning och Bolag Garanti"
 msgid "Branch Details"
 msgstr "Filialuppgifter"
 
+#. Option for the 'Status' (Select) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Broken"
+msgstr "Avbruten"
+
+#. Option for the 'Status' (Select) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Broken PTP"
+msgstr "Avbruten PTP"
+
 #. Label of the broken_period_interest (Currency) field in DocType 'Loan
 #. Disbursement'
 #. Label of the broken_period_interest (Currency) field in DocType 'Loan
@@ -1064,6 +1120,21 @@ msgstr "Bruten Period Räntedagar"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Broken Period Interest Recovery Account"
 msgstr "Bruten Period Ränta Återställning Konto"
+
+#. Label of the bucket (Data) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Bucket"
+msgstr ""
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Bucket De-escalated"
+msgstr ""
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Bucket Escalated"
+msgstr ""
 
 #. Name of a DocType
 #. Label of the bulk_repayment_log (Link) field in DocType 'Loan Repayment'
@@ -1137,6 +1208,11 @@ msgstr "CIBIL"
 msgid "CRIF"
 msgstr "CRIF"
 
+#. Label of the cadence_days (Int) field in DocType 'Dunning Rule'
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+msgid "Cadence Days"
+msgstr "Kadens Dagar"
+
 #: lending/loan_integrations/api.py:33
 msgid "Call Already In Flight"
 msgstr "Samtal är Redan i Luften"
@@ -1174,7 +1250,7 @@ msgstr "Kan inte avsluta detta lån förrän full återbetalning"
 msgid "Cannot create loan until application is approved"
 msgstr "Kan inte skapa lån förrän ansökan är godkänd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2599
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2610
 msgid "Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
 msgstr "Kan inte göra förskott eller förskottsbetalningar under moratorieperiod. (Moratoriet Slutdatum: {}, Registrering Datum: {})"
 
@@ -1218,6 +1294,11 @@ msgstr "Belopp för avgift {0} får inte vara negativt"
 msgid "Capitalize amount for charge {0} cannot exceed overdue amount {1}"
 msgstr "Belopp för avgift {0} får inte överstiga förfallet belopp {1}"
 
+#. Label of the captured_by (Link) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Captured By"
+msgstr "Infångad Av"
+
 #. Option for the 'Penal Treatment' (Select) field in DocType 'Loan
 #. Restructure'
 #. Option for the 'Charges Treatment' (Select) field in DocType 'Loan
@@ -1226,6 +1307,11 @@ msgstr "Belopp för avgift {0} får inte överstiga förfallet belopp {1}"
 #: lending/loan_management/doctype/loan_restructure_charges/loan_restructure_charges.json
 msgid "Carry Forward"
 msgstr "Vidarebefordra"
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Case Opened"
+msgstr ""
 
 #. Option for the 'Organization Type' (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -1277,7 +1363,7 @@ msgstr "Avgift Kod"
 msgid "Charge Payment"
 msgstr "Avgift Betalning"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3477
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3488
 msgid "Charge Payment needs the charges to pay against. Use Edit in Full Page to select them before submitting."
 msgstr "Avgift Betalning behöver avgifter som ska betalas mot anges. Använd Redigera i Helsida för att välja dem innan godkännande."
 
@@ -1354,10 +1440,12 @@ msgstr "Avgift Avskrivning"
 msgid "Charges Waiver Amount"
 msgstr "Avgift Avskrivning Belopp"
 
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:225
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:297
 msgid "Charges: {0}"
 msgstr "Avgifter: {0}"
 
+#. Label of the classification_code (Link) field in DocType 'Collection Case'
+#. Label of the classification_code (Link) field in DocType 'Dunning Rule'
 #. Label of the classification_code (Link) field in DocType 'Loan'
 #. Label of the classification_code (Data) field in DocType 'Loan
 #. Classification'
@@ -1365,6 +1453,8 @@ msgstr "Avgifter: {0}"
 #. Classification Range'
 #. Label of the classification_code (Link) field in DocType 'Loan IRAC
 #. Provisioning Configuration'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_classification/loan_classification.json
 #: lending/loan_management/doctype/loan_classification_range/loan_classification_range.json
@@ -1417,8 +1507,17 @@ msgstr "Avräkning Datum"
 msgid "Close Loan"
 msgstr "Avsluta Lån"
 
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:87
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:144
+#. Label of the closed_on (Date) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Closed On"
+msgstr "Stängd Datum"
+
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:118
+msgid "Closing (Opening + Total)"
+msgstr "Stängning (Öppning + Totalt)"
+
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:89
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:145
 msgid "Closing Balance"
 msgstr "Stängning Saldo"
 
@@ -1472,6 +1571,28 @@ msgstr "Samutlåning"
 msgid "Code length, validity and attempt limits are set in TP OTP Settings."
 msgstr "Kodlängd, giltighetstid och gränser för antalet försök anges i TP OTP Inställningar."
 
+#. Name of a DocType
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Collection Activity"
+msgstr ""
+
+#. Name of a DocType
+#. Label of the collection_case (Link) field in DocType 'Collection Case Log'
+#. Label of a Link in the Lending Workspace
+#. Label of a shortcut in the Lending Workspace
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+#: lending/loan_management/workspace/lending/lending.json
+msgid "Collection Case"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a Link in the Lending Workspace
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+#: lending/loan_management/workspace/lending/lending.json
+msgid "Collection Case Log"
+msgstr ""
+
 #. Label of the collection_offset_sequence_section (Section Break) field in
 #. DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
@@ -1514,6 +1635,13 @@ msgstr "Inkasso Procent"
 msgid "Collection at partner's percentage"
 msgstr "Inkasso enligt partnerns procentandel"
 
+#. Label of a Card Break in the Lending Workspace
+#: lending/loan_management/workspace/lending/lending.json
+msgid "Collections"
+msgstr ""
+
+#. Label of the company (Link) field in DocType 'Collection Case'
+#. Label of the company (Link) field in DocType 'Dunning Rule'
 #. Label of the company (Link) field in DocType 'Loan'
 #. Label of the company (Link) field in DocType 'Loan Application'
 #. Label of the company (Link) field in DocType 'Loan Balance Adjustment'
@@ -1530,6 +1658,7 @@ msgstr "Inkasso enligt partnerns procentandel"
 #. Label of the company (Link) field in DocType 'Loan Security Release'
 #. Label of the company (Link) field in DocType 'Loan Transfer'
 #. Label of the company (Link) field in DocType 'Loan Write Off'
+#. Label of the company (Link) field in DocType 'Process Collection Dunning'
 #. Label of the company (Link) field in DocType 'Process Loan Accounting'
 #. Label of the company (Link) field in DocType 'Process Loan Interest Accrual'
 #. Label of the company (Link) field in DocType 'Process Loan Statement of
@@ -1538,6 +1667,8 @@ msgstr "Inkasso enligt partnerns procentandel"
 #. Label of a shortcut in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/dashboard_chart_source/top_10_pledged_loan_securities/top_10_pledged_loan_securities.js:8
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -1554,6 +1685,7 @@ msgstr "Inkasso enligt partnerns procentandel"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
@@ -1662,7 +1794,7 @@ msgstr "Endast Bolag Garanti"
 msgid "Cost Center"
 msgstr "Resultat Enheter"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3495
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3506
 msgid "Cost Center {0} does not belong to company {1}"
 msgstr "Resultat Enhet {0} tillhör inte {1}"
 
@@ -1691,7 +1823,7 @@ msgstr "Kredit ({0})"
 msgid "Credit Account"
 msgstr "Kredit Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2367
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2378
 msgid "Credit Account is mandatory"
 msgstr "Kredit Konto erfordras"
 
@@ -1752,6 +1884,7 @@ msgstr "Aktuell Belopp"
 msgid "Current Restructure Count"
 msgstr "Aktuell Omstrukturering Antal"
 
+#. Option for the 'Applicant Type' (Select) field in DocType 'Collection Case'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Application'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Balance
@@ -1780,6 +1913,7 @@ msgstr "Aktuell Omstrukturering Antal"
 #. Report'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -1806,7 +1940,7 @@ msgstr "Kund"
 msgid "Customer Refund Account"
 msgstr "Kund Återbetalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2257
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2268
 msgid "Customer Refund Account is mandatory"
 msgstr "Kund Återbetalning Konto erfordras"
 
@@ -1837,10 +1971,14 @@ msgstr "Datum då konsoliderad bokföring register faktiskt bokförs. Motsvarar 
 msgid "Day of every month on which the repayment date is considered"
 msgstr "Dag i varje månad då återbetalning dagen anses infalla"
 
+#. Label of the days_past_due (Int) field in DocType 'Collection Case'
+#. Label of the days_past_due (Int) field in DocType 'Collection Case Log'
 #. Label of the days_past_due (Int) field in DocType 'Days Past Due Log'
 #. Label of the days_past_due (Int) field in DocType 'Loan'
 #. Label of the days_past_due (Int) field in DocType 'Loan Disbursement'
 #. Label of the days_past_due (Int) field in DocType 'Loan Repayment'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
@@ -1864,6 +2002,10 @@ msgstr "Förfallna Dagar Logg"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Days Past Due Threshold for NPA"
 msgstr "Dagar Efter Förfallodatum Tröskelvärde för Ej Presterande Tillgång"
+
+#: lending/loan_management/collections.py:261
+msgid "Days past due returned to 0"
+msgstr ""
 
 #. Label of the debit (Currency) field in DocType 'Process Loan Accounting
 #. Detail'
@@ -1984,7 +2126,7 @@ msgstr "Förfallen Utestående Belopp"
 msgid "Delinquent Utilized Limit"
 msgstr "Förfallen Utnyttjad Gräns"
 
-#: lending/loan_origination/doctype/loan_lead/test_loan_lead.py:568
+#: lending/loan_origination/doctype/loan_lead/test_loan_lead_otp.py:469
 msgid "Delivery failed."
 msgstr "Leverans misslyckades."
 
@@ -2091,7 +2233,7 @@ msgstr "Utbetald belopp får inte vara noll"
 #: lending/loan_management/doctype/loan_limit_change_log/loan_limit_change_log.json
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:178
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:246
 msgid "Disbursement"
 msgstr "Utbetalning"
 
@@ -2158,6 +2300,11 @@ msgstr "Utbetalning & Återbetalning"
 msgid "Disbursement date is out of approved limit dates"
 msgstr "Utbetalning datum är utanför godkänd datum intervall"
 
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Dispute Raised"
+msgstr ""
+
 #: lending/loan_management/doctype/loan/loan.js:256
 msgid "Do you really want to close this loan"
 msgstr "Vill du verkligen stänga detta lån"
@@ -2165,6 +2312,18 @@ msgstr "Vill du verkligen stänga detta lån"
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.js:30
 msgid "Do you really want to release this loan security assignment?"
 msgstr "Vill du verkligen släppa denna garanti tilldelning?"
+
+#. Name of a DocType
+#. Label of a Link in the Lending Workspace
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+#: lending/loan_management/workspace/lending/lending.json
+msgid "Dunning Rule"
+msgstr ""
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Dunning Sent"
+msgstr ""
 
 #. Option for the 'Moratorium Type' (Select) field in DocType 'Loan'
 #. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
@@ -2222,6 +2381,7 @@ msgstr "E-posta Verifiering Status"
 msgid "Emails Queued"
 msgstr "E-post i Kö"
 
+#. Option for the 'Applicant Type' (Select) field in DocType 'Collection Case'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan'
 #. Name of a role
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Application'
@@ -2250,6 +2410,7 @@ msgstr "E-post i Kö"
 #. Option for the 'Applicant Type' (Select) field in DocType 'Credit Bureau
 #. Report'
 #. Option for the 'Applicant Type' (Select) field in DocType 'Loan Decision'
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -2329,7 +2490,7 @@ msgstr "Alla sökande börjar här. Attributpoäng läggs till ovanpå."
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:131
 msgid "Every enabled Underwriting strategy that applies to {0}. Strategies for other loan products are left out because they can never run here."
-msgstr "Varje aktiverad Kreditprövning strategi som gäller för {0}. Strategier för andra låneartiklar utelämnas eftersom de aldrig kan köras här."
+msgstr "Varje aktiverad Kreditprövning strategi som gäller för {0}. Strategier för andra låneartiklar utelämnas eftersom de aldrig kan exekveras här."
 
 #. Description of the 'Variable Snapshot' (Code) field in DocType 'Loan
 #. Decision'
@@ -2434,6 +2595,12 @@ msgstr "Misslyckad Återbetalning"
 msgid "Fetch Applicants"
 msgstr "Hämta Sökande"
 
+#. Option for the 'Activity Type' (Select) field in DocType 'Collection
+#. Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Field Visit"
+msgstr ""
+
 #. Label of the filter_duration (Int) field in DocType 'Process Loan Statement
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
@@ -2502,6 +2669,11 @@ msgstr "Låsning Datum"
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 msgid "From Branch"
 msgstr "Från Filial"
+
+#. Label of the from_bucket (Data) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "From Bucket"
+msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:18
 msgid "From Date cannot be after To Date"
@@ -2586,6 +2758,17 @@ msgstr "Värderingsavdrag %"
 msgid "Haircut percentage is the percentage difference between market value of the Loan Security and the value ascribed to that Loan Security when used as collateral for that loan."
 msgstr "Värderingsavdrag är procentuell skillnad mellan marknadsvärde på lånesäkerhet och det värde som tillskrivs lånesäkerhet när den används som säkerhet för lån i fråga."
 
+#: lending/loan_management/doctype/collection_case/collection_case.js:16
+msgid "Hardship / Restructure"
+msgstr "Svårigheter / Omstrukturering"
+
+#. Option for the 'Status' (Select) field in DocType 'Collection Case'
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Hardship Requested"
+msgstr ""
+
 #. Label of the help_text (HTML) field in DocType 'Process Loan Statement of
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
@@ -2615,6 +2798,11 @@ msgstr "Om aktiverad kommer ingen ränta att beräknas från respektive utbetaln
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
 msgid "Ignore On Cancel Amount Update"
 msgstr "Ignorera vid Annullera Belopp Uppdatering"
+
+#. Option for the 'Channel' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "In Person"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -2748,7 +2936,7 @@ msgstr "Ränta Vidarebefordrad"
 msgid "Interest Income Account"
 msgstr "Ränte Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2175
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2186
 msgid "Interest Income Account is mandatory"
 msgstr "Ränta Intäkt Konto erfordras"
 
@@ -2777,7 +2965,7 @@ msgstr "Räntesats (%)"
 msgid "Interest Receivable Account"
 msgstr "Räntefordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2170
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2181
 msgid "Interest Receivable Account is mandatory"
 msgstr "Räntefordring Konto erfordras"
 
@@ -2805,7 +2993,7 @@ msgstr "Ränta Avskrivning"
 msgid "Interest Waiver Account"
 msgstr "Ränta Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2252
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2263
 msgid "Interest Waiver Account is mandatory"
 msgstr "Ränta Avstånd Konto erfordras"
 
@@ -2824,7 +3012,7 @@ msgstr "Ränta Avskrivning Belopp kan inte vara högre än förfallen ränta"
 msgid "Interest accrued from {0} to {1} against loan: {2}"
 msgstr "Ränta beräknad från {0} till {1} mot lån: {2}"
 
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:221
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:293
 msgid "Interest: {0}"
 msgstr "Ränta: {0}"
 
@@ -2838,7 +3026,7 @@ msgstr "Intern Utmätning"
 #. 'Process Loan Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Internal: JSON list of [doctype, name] pairs for cancelled source docs whose reversal this voucher captured. Used on cancel to reopen exactly those docs, not every cancelled doc in the period."
-msgstr "Intern: JSON lista med [doctype, name] par för annullerade ursprung dokument vars återföring denna verifikation registrerade. Används vid annullering för att öppna exakt dessa dokument igen, inte alla annullerade dokument under period."
+msgstr "Intern: JSON lista med [dokumenttyp, name] par för annullerade ursprung dokument vars återföring denna verifikation registrerade. Används vid annullering för att öppna exakt dessa dokument igen, inte alla annullerade dokument under period."
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:885
 msgid "Invalid Loan Disbursement linked for payment"
@@ -2965,6 +3153,11 @@ msgstr "Är Avstånd Befrielse"
 msgid "Is Written Off"
 msgstr "Är Avskriven"
 
+#. Option for the 'Status' (Select) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Kept"
+msgstr "Behålls"
+
 #: lending/loan_origination/decisioning.py:389
 msgid "Kept the higher recommended rate of interest. {0} would have priced the risk lower."
 msgstr "Behöll högre rekommenderade räntesats. {0} skulle ha värderat risken lägre."
@@ -3015,6 +3208,10 @@ msgstr "Senaste Beräkning Datum"
 msgid "Latest Price"
 msgstr "Senaste Pris"
 
+#: lending/loan_management/doctype/collection_case/collection_case.js:41
+msgid "Launch Hardship Restructure"
+msgstr "Starta Svårighet Omstrukturering"
+
 #. Label of the lead_source (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
@@ -3047,6 +3244,12 @@ msgstr "Lämnas tomt, senast godkända rapport används för denna sökande."
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Left blank, the scorecard for the loan product is used."
 msgstr "Lämnas tomt, resultatkort för låneartikel används."
+
+#. Option for the 'Activity Type' (Select) field in DocType 'Collection
+#. Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Legal Notice"
+msgstr "Rättslig Information"
 
 #. Name of a Workspace
 #. Title of a Workspace Sidebar
@@ -3093,11 +3296,18 @@ msgstr "Gräns Förnyelse"
 msgid "Line of Credit"
 msgstr "Kredit Gräns"
 
+#. Label of the linked_restructure (Link) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Linked Restructure"
+msgstr "Länkad Omstrukturering"
+
 #: lending/loan_origination/doctype/loan_lead/applicant_exposure.py:61
 msgid "Live Loan Limit"
 msgstr "Aktuell Lånegräns"
 
 #. Label of the loan (Link) field in DocType 'Bulk Repayment Log'
+#. Label of the loan (Link) field in DocType 'Collection Case'
+#. Label of the loan (Link) field in DocType 'Collection Case Log'
 #. Label of the loan (Link) field in DocType 'Days Past Due Log'
 #. Name of a DocType
 #. Label of the loan (Link) field in DocType 'Loan Accrual Repost Detail'
@@ -3117,6 +3327,7 @@ msgstr "Aktuell Lånegräns"
 #. Label of the loan (Link) field in DocType 'Loan Security Release'
 #. Label of the loan (Link) field in DocType 'Loan Transfer Detail'
 #. Label of the loan (Link) field in DocType 'Loan Write Off'
+#. Label of the loan (Link) field in DocType 'Process Collection Dunning'
 #. Label of the loan (Link) field in DocType 'Process Loan Accounting'
 #. Label of the loan (Link) field in DocType 'Process Loan Demand'
 #. Label of the loan (Link) field in DocType 'Process Loan Security Shortfall'
@@ -3125,6 +3336,8 @@ msgstr "Aktuell Lånegräns"
 #. Label of a shortcut in the Lending Workspace
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/bulk_repayment_log/bulk_repayment_log.json
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_accrual_repost_detail/loan_accrual_repost_detail.json
@@ -3145,6 +3358,7 @@ msgstr "Aktuell Lånegräns"
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 #: lending/loan_management/doctype/loan_transfer_detail/loan_transfer_detail.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_security_shortfall/process_loan_security_shortfall.json
@@ -3203,9 +3417,9 @@ msgstr "Lån Konto"
 msgid "Loan Account and Payment Account cannot be same"
 msgstr "Lånekonto och Betalkonto får inte vara samma"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2166
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2196
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2224
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2177
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2207
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2235
 msgid "Loan Account is mandatory"
 msgstr "Lånekonto erfordras"
 
@@ -3527,7 +3741,7 @@ msgstr "Låneutbetalning Avgifter"
 msgid "Loan Disbursement ID"
 msgstr "Lån Utbetalning ID"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3486
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3497
 msgid "Loan Disbursement {0} is not a submitted disbursement of Loan {1}"
 msgstr "Låneutbetalning {0} är inte godkänd utbetalning av lån {1}"
 
@@ -3606,7 +3820,10 @@ msgid "Loan Management"
 msgstr "Lån Hantering"
 
 #. Name of a role
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
@@ -3631,6 +3848,7 @@ msgstr "Lån Hantering"
 #: lending/loan_management/doctype/loan_security_type/loan_security_type.json
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -3650,6 +3868,14 @@ msgstr "Ansvarig"
 #: lending/loan_management/doctype/loan_npa_log/loan_npa_log.json
 msgid "Loan NPA Log"
 msgstr "Ej Presterande Tillgång Logg"
+
+#. Name of a role
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
+msgid "Loan Officer"
+msgstr "Lånehandläggare"
 
 #. Label of the loan_origination_section (Section Break) field in DocType
 #. 'Lending Settings'
@@ -3764,6 +3990,13 @@ msgstr "Partner"
 msgid "Loan Processes"
 msgstr "Processer"
 
+#. Name of a role
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Loan Processor"
+msgstr ""
+
+#. Label of the loan_product (Link) field in DocType 'Collection Case'
+#. Label of the loan_product (Link) field in DocType 'Dunning Rule'
 #. Label of the loan_product (Link) field in DocType 'Loan'
 #. Label of the loan_product (Link) field in DocType 'Loan Application'
 #. Label of the loan_product (Link) field in DocType 'Loan Demand'
@@ -3775,6 +4008,8 @@ msgstr "Processer"
 #. Label of the loan_product (Link) field in DocType 'Loan Repayment Schedule'
 #. Label of the loan_product (Link) field in DocType 'Loan Restructure'
 #. Label of the loan_product (Link) field in DocType 'Loan Write Off'
+#. Label of the loan_product (Link) field in DocType 'Process Collection
+#. Dunning'
 #. Label of the loan_product (Link) field in DocType 'Process Loan
 #. Classification'
 #. Label of the loan_product (Link) field in DocType 'Process Loan Demand'
@@ -3789,6 +4024,8 @@ msgstr "Processer"
 #. Label of the loan_product (Link) field in DocType 'Loan Lead'
 #. Label of the loan_product (Link) field in DocType 'Scorecard'
 #. Label of a Workspace Sidebar Item
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_application/loan_application.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
@@ -3800,6 +4037,7 @@ msgstr "Processer"
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
@@ -3941,7 +4179,7 @@ msgstr "Återbetalning Typ"
 msgid "Loan Repayment and Closure"
 msgstr "Återbetalning & Avslut"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3436
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3447
 msgid "Loan Repayment can only be created against a deposit"
 msgstr "Låneåterbetalning kan endast skapas mot inbetalning"
 
@@ -4314,15 +4552,15 @@ msgstr "Ej Presterande Tillgång"
 msgid "Loan {0} closed"
 msgstr "Lån {0} stängd"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3459
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3470
 msgid "Loan {0} does not belong to the company of Bank Account {1}"
 msgstr "Lån {0} tillhör inte bolag för Bank Konto {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3452
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3463
 msgid "Loan {0} does not exist"
 msgstr "Lån {0} finns inte"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3455
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3466
 msgid "Loan {0} must be submitted"
 msgstr "Lån {0} måste godkännas"
 
@@ -4378,6 +4616,11 @@ msgstr "Manuellt angiven som Ej Presterande Tillgång"
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:58
 msgid "Maturity Date"
 msgstr "Förfallo Datum"
+
+#. Label of the max_dpd (Int) field in DocType 'Dunning Rule'
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+msgid "Max DPD"
+msgstr ""
 
 #. Label of the max_dpd_range (Int) field in DocType 'Loan Classification
 #. Range'
@@ -4468,11 +4711,20 @@ msgstr "Migrering Datum"
 msgid "Migration Date is mandatory for imported loans"
 msgstr "Migrering Datum erfordras för importerade lån"
 
+#. Label of the min_dpd (Int) field in DocType 'Dunning Rule'
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+msgid "Min DPD"
+msgstr ""
+
 #. Label of the min_dpd_range (Int) field in DocType 'Loan Classification
 #. Range'
 #: lending/loan_management/doctype/loan_classification_range/loan_classification_range.json
 msgid "Min DPD Range"
 msgstr "Min Dagar Efter Förfallodatum Intervall"
+
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.py:30
+msgid "Min DPD cannot be greater than Max DPD"
+msgstr ""
 
 #. Label of the min_range (Float) field in DocType 'Scorecard Attribute'
 #: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
@@ -4514,7 +4766,7 @@ msgstr "Mobilnummer Verifiering Status"
 msgid "Mode Of Payment"
 msgstr "Betalning Sätt"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3492
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3503
 msgid "Mode of Payment {0} does not exist"
 msgstr "Betalning Sätt {0} finns inte"
 
@@ -4538,7 +4790,7 @@ msgid "Monthly Repayment Amount"
 msgstr "Månadsvis Återbetalning Belopp"
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:148
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:988
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:991
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr "Månadsvis Återbetalning Belopp kan inte vara högre än lånebelopp"
 
@@ -4656,6 +4908,11 @@ msgstr "Nytt Återbetalning Start Datum"
 msgid "New maximum limit amount cannot be lesser than the utilized limit amount"
 msgstr "Nya högsta gränsbelopp kan inte vara lägre än utnyttjad gränsbelopp"
 
+#. Label of the next_action_date (Date) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Next Action Date"
+msgstr ""
+
 #: lending/loan_integrations/base.py:101
 msgid "No API credentials are set in {0} for the {1} environment."
 msgstr "Inga API inloggningsuppgifter är angivna i {0} för {1} miljö."
@@ -4676,6 +4933,11 @@ msgstr "Ingen ränteberäkning Till Månad Slutet"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:34
 msgid "No Records for these settings."
 msgstr "Inga Poster för dessa inställningar."
+
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "No Response"
+msgstr ""
 
 #. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
 #. Product'
@@ -4781,9 +5043,14 @@ msgstr "Ej Förhandskvalificerad"
 msgid "Not permitted to read {0}"
 msgstr "Ej tillåtet att läsa {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2969
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2980
 msgid "Not permitted to view one or more of the selected loans"
 msgstr "Ej tillåtet att visa en eller flera av valda lån"
+
+#. Label of the notes (Small Text) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Notes"
+msgstr "Anteckningar"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:61
 msgid "Nothing below has been saved. No Loan Decision was created and {0} was not touched."
@@ -4799,6 +5066,11 @@ msgstr "Ingenting samlades in för denna sökande."
 #: lending/loan_management/doctype/repayment_schedule/repayment_schedule.json
 msgid "Number Of Days"
 msgstr "Antal Dagar"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Number Unreachable"
+msgstr ""
 
 #. Description of the '# Docs' (Int) field in DocType 'Process Loan Accounting
 #. Detail'
@@ -4890,6 +5162,15 @@ msgstr "En Gång"
 msgid "Only submitted unpledge requests can be approved"
 msgstr "Endast inlämnade ej pantsatta ansökningar kan godkännas"
 
+#. Label of the opened_on (Date) field in DocType 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Opened On"
+msgstr "Öppnad"
+
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:116
+msgid "Opening"
+msgstr "Öppning"
+
 #. Label of the opening_additional_outstanding (Currency) field in DocType
 #. 'Loan Import Details'
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json
@@ -4946,9 +5227,11 @@ msgstr "Ursprunglig Garanti Värde"
 msgid "Other Details"
 msgstr "Övriga Detaljer"
 
+#. Label of the outcome (Select) field in DocType 'Collection Activity'
 #. Label of the outcome (Select) field in DocType 'Decision Rule'
 #. Label of the outcome_section (Section Break) field in DocType 'Loan
 #. Decision'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
 msgid "Outcome"
@@ -4963,7 +5246,10 @@ msgstr "Resultat {0} har ersatts av {1}. Dess orsaks koder och termer har tagits
 msgid "Outdated"
 msgstr "Föråldrad"
 
+#. Label of the outstanding_amount (Currency) field in DocType 'Collection
+#. Case'
 #. Label of the outstanding_amount (Currency) field in DocType 'Loan Demand'
+#: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 msgid "Outstanding Amount"
 msgstr "Utestående Belopp"
@@ -5014,6 +5300,11 @@ msgstr "Amortering belopp minskning plus ränta vid partner avkastning på inves
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Page Break After Each Statement"
 msgstr "Sidbrytning efter varje Kontoutdrag"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Paid"
+msgstr "Betald"
 
 #. Label of the paid_amount (Currency) field in DocType 'Loan Demand'
 #. Label of the paid_amount (Currency) field in DocType 'Loan Repayment Detail'
@@ -5069,7 +5360,7 @@ msgstr "Partner Inkasso Procentuellt"
 msgid "Partner Interest Share"
 msgstr "Partner Ränta Andel"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2371
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2382
 msgid "Partner Interest Share is mandatory"
 msgstr "Partner Ränta Delning erfordras"
 
@@ -5145,7 +5436,7 @@ msgstr "Tidigare Kassaflöde Rapport"
 msgid "Payable Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2369
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2380
 msgid "Payable Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -5176,9 +5467,9 @@ msgstr "Betalbar Belopp"
 msgid "Payment Account"
 msgstr "Betalning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2177
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2346
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2488
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2188
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2357
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2499
 msgid "Payment Account is mandatory"
 msgstr "Betalning Konto erfordras"
 
@@ -5277,7 +5568,7 @@ msgstr "Straffavgift Sats"
 msgid "Penalty Income Account"
 msgstr "Straffavgift Intäkt Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2206
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2217
 msgid "Penalty Income Account is mandatory"
 msgstr "Straffavgift Intäkt Konto erfordras"
 
@@ -5303,7 +5594,7 @@ msgstr "Straffavgift Försenad"
 msgid "Penalty Receivable Account"
 msgstr "Straffavgift Fordring Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2200
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2211
 msgid "Penalty Receivable Account is mandatory"
 msgstr "Straffavgift Fordring Konto erfordras"
 
@@ -5329,7 +5620,7 @@ msgstr "Straffavgift Avskrivning Konto"
 msgid "Penalty Waiver cannot be greater than overdue penalty interest"
 msgstr "Avskrivning av straffavgift kan inte vara högre än försenad straffavgift ränta"
 
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:223
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:295
 msgid "Penalty: {0}"
 msgstr "Straff: {0}"
 
@@ -5377,11 +5668,11 @@ msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr "Aktivera {0} i TP OTP Inställningar för att använda {1}."
 
 #: lending/loan_management/doctype/loan_application/loan_application.py:142
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:979
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:982
 msgid "Please enter Repayment Periods"
 msgstr "Ange Återbetalning Perioder"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:986
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:989
 msgid "Please enter monthly repayment amount"
 msgstr "Ange månatlig återbetalning belopp"
 
@@ -5432,7 +5723,7 @@ msgstr "Välj Utbetalning för Kredit Återbetalning"
 msgid "Please select Loan Product for company {0}"
 msgstr "Välj Låneartikel för {0}"
 
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:253
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.py:258
 msgid "Please select a Loan Product."
 msgstr "Välj Artikel."
 
@@ -5465,7 +5756,7 @@ msgstr "Ange konto för Extra Ränta Intäkt Konto i {0}"
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr "Ange Bruten Period Ränta Återställning Konto för {0}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2261
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2272
 msgid "Please set Customer Refund Account in Loan Product {0}"
 msgstr "Ange Kund Återbetalning Konto i {0}"
 
@@ -5513,7 +5804,7 @@ msgstr "Ange {0} Ackumulerad Konto i Lån Artikel {1}"
 msgid "Please set {0} Receivable Account in Loan Product {1}"
 msgstr "Ange {0} Fordring Konto i {1}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2539
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2550
 msgid "Please set {0} in either Company or Loan Product"
 msgstr "Ange {0} i antingen Bolag eller Artikel"
 
@@ -5587,6 +5878,7 @@ msgstr "Ange Värderingsavdrag Belopp"
 msgid "Post Restructure Charge (No Existing Demand)"
 msgstr "Efter Omstrukturering Avgift (Ingen Befintlig Efterfråga)"
 
+#. Label of the posting_date (Date) field in DocType 'Collection Case Log'
 #. Label of the posting_date (Date) field in DocType 'Days Past Due Log'
 #. Label of the posting_date (Date) field in DocType 'Loan'
 #. Label of the posting_date (Datetime) field in DocType 'Loan Adjustment'
@@ -5600,6 +5892,8 @@ msgstr "Efter Omstrukturering Avgift (Ingen Befintlig Efterfråga)"
 #. Label of the posting_date (Datetime) field in DocType 'Loan Repayment
 #. Schedule'
 #. Label of the posting_date (Date) field in DocType 'Loan Write Off'
+#. Label of the posting_date (Date) field in DocType 'Process Collection
+#. Dunning'
 #. Label of the posting_date (Date) field in DocType 'Process Loan Accounting'
 #. Label of the posting_date (Date) field in DocType 'Process Loan
 #. Classification'
@@ -5608,6 +5902,7 @@ msgstr "Efter Omstrukturering Avgift (Ingen Befintlig Efterfråga)"
 #. Accrual'
 #. Label of the posting_date (Date) field in DocType 'Process Loan Restructure
 #. Limit'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json
 #: lending/loan_management/doctype/loan/loan.json
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json
@@ -5619,6 +5914,7 @@ msgstr "Efter Omstrukturering Avgift (Ingen Befintlig Efterfråga)"
 #: lending/loan_management/doctype/loan_repayment_repost_detail/loan_repayment_repost_detail.json
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 #: lending/loan_management/doctype/process_loan_classification/process_loan_classification.json
 #: lending/loan_management/doctype/process_loan_demand/process_loan_demand.json
@@ -5634,7 +5930,7 @@ msgstr "Registrering Datum"
 msgid "Posting Date (End Date)"
 msgstr "Registrering Datum (Slutdatum)"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3504
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3515
 msgid "Posting Date and Reference Date must be valid dates"
 msgstr "Registrering Datum och Referens Datum måste vara giltiga datum"
 
@@ -5796,7 +6092,7 @@ msgstr "Utestående Belopp"
 msgid "Principal Overdue"
 msgstr "Förfallen Belopp"
 
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:219
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:291
 msgid "Principal: {0}"
 msgstr "Belopp: {0}"
 
@@ -5806,8 +6102,8 @@ msgstr "Belopp: {0}"
 msgid "Print Preferences"
 msgstr "Utskrift Inställningar"
 
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:98
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:155
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:100
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:156
 msgid "Printed on {0}"
 msgstr "Utskriven {0}"
 
@@ -5816,6 +6112,16 @@ msgstr "Utskriven {0}"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Pro-rated calendar months"
 msgstr "Proportionellt kalender månader"
+
+#. Label of the process_collection_dunning (Link) field in DocType 'Collection
+#. Case Log'
+#. Name of a DocType
+#. Label of a Link in the Lending Workspace
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+#: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
+#: lending/loan_management/workspace/lending/lending.json
+msgid "Process Collection Dunning"
+msgstr ""
 
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
@@ -5899,6 +6205,38 @@ msgstr "Artikelkod"
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Product Name"
 msgstr "Artikelnamn"
+
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#. Option for the 'Status' (Select) field in DocType 'Collection Case'
+#. Label of the promise_to_pay_tab (Tab Break) field in DocType 'Collection
+#. Case'
+#. Label of the promise_to_pay (Table) field in DocType 'Collection Case'
+#. Name of a DocType
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Promise to Pay"
+msgstr "Lånelöfte"
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Promise to Pay Broken"
+msgstr "Lönelöfte Brutet"
+
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Promise to Pay Captured"
+msgstr "Lönelöfte Registrerat"
+
+#. Label of the promised_amount (Currency) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Promised Amount"
+msgstr "Utlovat Belopp"
+
+#. Label of the promised_date (Date) field in DocType 'Promise to Pay'
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
+msgid "Promised Date"
+msgstr "Utlovat Datum"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/proposed_pledge/proposed_pledge.json
@@ -6123,7 +6461,7 @@ msgstr "Referens Nummer. "
 msgid "Reference Number"
 msgstr "Referens Nummer"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3498
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3509
 msgid "Reference Number cannot be longer than 140 characters"
 msgstr "Referensnummer kan inte vara längre än 140 tecken"
 
@@ -6180,6 +6518,11 @@ msgstr "Återbetalningsbelopp kan inte vara högre än netto betald belopp"
 msgid "Refund amount cannot be more than available amount"
 msgstr "Återbetalningsbelopp kan inte vara högre än tillgänglig belopp"
 
+#. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Refused"
+msgstr "Avvisad"
+
 #. Option for the 'Accrual Type' (Select) field in DocType 'Loan Interest
 #. Accrual'
 #. Option for the 'Accrual Type' (Select) field in DocType 'Process Loan
@@ -6210,8 +6553,16 @@ msgstr "Släpp Tid"
 msgid "Released"
 msgstr "Släppt"
 
+#. Description of the 'Outstanding Amount' (Currency) field in DocType
+#. 'Collection Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Remaining loan balance (principal + overdue interest), not just the overdue installment."
+msgstr "Återstående lånesaldo (kapital + förfallen ränta), inte bara förfallen avbetalning."
+
 #. Label of the remarks (Data) field in DocType 'Loan Balance Adjustment'
+#. Label of the remarks (Small Text) field in DocType 'Promise to Pay'
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json
+#: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:73
 msgid "Remarks"
 msgstr "Anmärkningar"
@@ -6264,7 +6615,7 @@ msgstr "Återbetala Över Antal Perioder"
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/doctype/loan_limit_change_log/loan_limit_change_log.json
 #: lending/loan_management/doctype/process_loan_interest_accrual/process_loan_interest_accrual.json
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:234
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:306
 msgid "Repayment"
 msgstr "Återbetalning"
 
@@ -6394,7 +6745,7 @@ msgstr "Återbetalning Schema Typ"
 msgid "Repayment Start Date"
 msgstr "Återbetalning Startdatum"
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:976
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:979
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr "Återbetalning Start Datum erfordras för termin lån"
 
@@ -6408,7 +6759,7 @@ msgstr "Återbetalning Start Datum {0} får inte infalla före Utbetalning Datum
 msgid "Repayment Type"
 msgstr "Återbetalning Typ"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3473
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3484
 msgid "Repayment Type {0} cannot be created from a Bank Transaction"
 msgstr "Återbetalning Typ {0} kan inte skapas från Bank Transaktion"
 
@@ -6462,6 +6813,19 @@ msgstr "Begärd"
 msgid "Rescheduled"
 msgstr "Omlagd"
 
+#. Label of the resolution_reason (Small Text) field in DocType 'Collection
+#. Case'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+msgid "Resolution Reason"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Collection Case'
+#. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case/collection_case.json
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "Resolved"
+msgstr "Löst"
+
 #. Label of the restructure_charge_amount (Currency) field in DocType 'Loan
 #. Restructure Charges'
 #: lending/loan_management/doctype/loan_restructure_charges/loan_restructure_charges.json
@@ -6490,6 +6854,7 @@ msgstr "Omstrukturering Datum {0} kan inte vara efter Återbetalning Start Datum
 #. Label of the restructure_type (Select) field in DocType 'Loan Repayment
 #. Schedule'
 #. Label of the restructure_type (Select) field in DocType 'Loan Restructure'
+#: lending/loan_management/doctype/collection_case/collection_case.js:22
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
 msgid "Restructure Type"
@@ -6512,7 +6877,7 @@ msgstr "Omstrukturerad"
 msgid "Reversed Source Docs"
 msgstr "Omvänd Ursprung Dokument"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2348
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2359
 msgid "Round Off Account is mandatory"
 msgstr "Avrundning Konto erfordras"
 
@@ -6590,6 +6955,11 @@ msgstr "Rad {0}: {1} {2} är ovanför {3} {4}."
 msgid "Rows {0} and {1} of {2} overlap. A value inside the overlap would score differently depending on row order."
 msgstr "Rader {0} och {1} av {2} överlappar. Ett värde inom överlappning skulle ge olika resultat beroende på radordning."
 
+#. Label of the rule_name (Data) field in DocType 'Dunning Rule'
+#: lending/loan_management/doctype/dunning_rule/dunning_rule.json
+msgid "Rule Name"
+msgstr "Regel Namn"
+
 #: lending/loan_origination/decisioning.py:495
 msgid "Rule value {0} is not a number, but {1} is. Write 100000 rather than 100,000."
 msgstr "Regelvärde {0} är inte tal, men {1} är det. Skriv 100000 istället för 100 000."
@@ -6613,7 +6983,7 @@ msgstr "Reglerna bedöms i stigande ordning. Den första som uppfyller villkoren
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:40
 msgid "Running every strategy…"
-msgstr "Kör alla strategier…"
+msgstr "Exekvera alla strategier…"
 
 #. Option for the 'Employment Type' (Select) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -6930,6 +7300,12 @@ msgstr "Uppskjuten Inkasso Konto"
 msgid "Suspense Interest Income"
 msgstr "Uppskjuten Ränta Intäkt"
 
+#. Option for the 'Activity Type' (Select) field in DocType 'Collection
+#. Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "System Dunning"
+msgstr "System Påminnelse"
+
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Taxes"
@@ -6939,6 +7315,11 @@ msgstr "Moms"
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Taxes and Charges"
 msgstr "Moms och Avgifter"
+
+#. Label of the template_used (Link) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "Template Used"
+msgstr "Använd Mall"
 
 #. Label of the repayment_periods (Int) field in DocType 'Loan'
 #. Label of the tenure (Int) field in DocType 'Loan Disbursement'
@@ -6999,11 +7380,11 @@ msgstr "Länk till kreditupplysningsbyrå rapport omdirigerades mer än {0} gån
 msgid "The credit bureau could not be reached. See Integration Request {0}."
 msgstr "Kreditupplysningsbyrå kunde inte nås. Se integrationsbegäran {0}."
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3581
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3592
 msgid "The following disbursements do not exist or are not submitted: {}"
 msgstr "Följande utbetalningar finns inte eller är inte godkända: {}"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3567
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3578
 msgid "The following loans do not exist: {}"
 msgstr "Följande lån finns inte: {}"
 
@@ -7013,7 +7394,7 @@ msgstr "Följande lån finns inte: {}"
 msgid "The provider's own reference for this pull. Quote it when raising a dispute."
 msgstr "Leverantör referensnummer för denna hämtning. Anges vid tvist."
 
-#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:536
+#: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.py:540
 msgid "The repost did not finish and has been reset to Draft:"
 msgstr "Ombokning slutfördes inte och har återställts till Utkast:"
 
@@ -7071,12 +7452,17 @@ msgstr "Denna ombokning är {0} och sker i bakgrunden. Vänta tills den är klar
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:384
 msgid "This rule runs as a workflow task and cannot be called directly."
-msgstr "Denna regel körs som arbetsflöde uppgift och kan inte anropas direkt."
+msgstr "Denna regel exekveras som arbetsflöde uppgift och kan inte anropas direkt."
 
 #. Label of the to_branch (Link) field in DocType 'Loan Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
 msgid "To Branch"
 msgstr "Till Filial"
+
+#. Label of the to_bucket (Data) field in DocType 'Collection Case Log'
+#: lending/loan_management/doctype/collection_case_log/collection_case_log.json
+msgid "To Bucket"
+msgstr ""
 
 #. Label of the total_amount_paid (Currency) field in DocType 'Loan'
 #. Label of the total_amount_paid (Currency) field in DocType 'Loan
@@ -7099,13 +7485,13 @@ msgstr "Totalt Betalda Avgifter"
 msgid "Total Charges Payable"
 msgstr "Totalt Avgifter att Betala"
 
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:83
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:138
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:85
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:139
 msgid "Total Credit"
 msgstr "Totalt Kredit"
 
-#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:79
-#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:132
+#: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:81
+#: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:133
 msgid "Total Debit"
 msgstr "Totalt Debet"
 
@@ -7236,7 +7622,7 @@ msgstr "Tranch Nummer"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:83
 msgid "Transaction DocType"
-msgstr "Transaktions DocType"
+msgstr "Transaktions DokumentTyp"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:43
 #: lending/loan_management/report/loan_security_ledger/loan_security_ledger.py:25
@@ -7486,7 +7872,7 @@ msgstr "Avstånd {0} belopp {1} kan inte vara högre än förfallet belopp {2}"
 msgid "Waiver Account"
 msgstr "Avskrivning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2499
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2510
 msgid "Waiver account not set for charge {0} in Loan Product {1}"
 msgstr "Avskrivning Konto inte angiven för avgift {0} i {1}"
 
@@ -7527,10 +7913,17 @@ msgstr "Vad denna verifikation ackumulerade: en rad per konto och källtyp, med 
 msgid "Whatever the bureau returned, verbatim. Kept for disputes."
 msgstr "Oavsett vad byrån svarade, ordagrant. Sparas för eventuella tvister."
 
+#. Option for the 'Activity Type' (Select) field in DocType 'Collection
+#. Activity'
+#. Option for the 'Channel' (Select) field in DocType 'Collection Activity'
+#: lending/loan_management/doctype/collection_activity/collection_activity.json
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
 #. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
 #: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
 msgid "When more than one strategy matches, the highest priority runs."
-msgstr "När mer än en strategi stämmer, körs den med högsta prioritet."
+msgstr "När mer än en strategi stämmer, exekveras den med högsta prioritet."
 
 #. Description of the 'Rejected On' (Datetime) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
@@ -7592,7 +7985,7 @@ msgstr "Avskrivning Återställning"
 msgid "Write Off Recovery Account"
 msgstr "Avskrivning Återställning Konto"
 
-#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2287
+#: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2298
 msgid "Write Off Recovery Account is mandatory"
 msgstr "Avskrivning Återställning Konto erfordras"
 
@@ -7702,7 +8095,7 @@ msgstr "denna sökande"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:154
 msgid "this is the one that runs"
-msgstr "detta är den som körs"
+msgstr "detta är den som exekveras"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:272
 msgid "ungraded"
@@ -7774,7 +8167,7 @@ msgstr "{0} är {1}, inuti {2} till {3}. {4} poäng."
 
 #: lending/loan_integrations/base.py:32
 msgid "{0} names no settings doctype, so there is nowhere to read its credentials from."
-msgstr "{0} anger ingen doctype inställning, så det finns ingenstans att hämta dess autentiseringsuppgifter ifrån."
+msgstr "{0} anger ingen dokumenttyp inställning, så det finns ingenstans att hämta dess autentiseringsuppgifter ifrån."
 
 #: lending/loan_origination/decisioning.py:211
 msgid "{0} returned {1}."
