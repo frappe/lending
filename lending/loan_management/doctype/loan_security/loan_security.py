@@ -80,6 +80,7 @@ class LoanSecurity(Document):
 				"status": ("in", ["Disbursed", "Partially Disbursed"]),
 				"is_secured_loan": 1,
 			},
+			limit=0,
 		)
 		if not loans:
 			return
