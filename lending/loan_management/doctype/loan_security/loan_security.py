@@ -86,10 +86,12 @@ class LoanSecurity(Document):
 			"shortfall check:"
 		).format(old_ltv, flt(self.loan_to_value_ratio))
 		if newly_short_loans:
-			message += "<br>" + _("Loans: {0}").format(", ".join(map(frappe.bold, newly_short_loans)))
+			message += "<br>" + _("Loans: {0}").format(
+				", ".join(frappe.bold(loan) for loan in newly_short_loans)
+			)
 		if newly_short_customers:
 			message += "<br>" + _("Customers: {0}").format(
-				", ".join(map(frappe.bold, newly_short_customers))
+				", ".join(frappe.bold(customer) for customer in newly_short_customers)
 			)
 
 		frappe.msgprint(message, title=_("Running Loans Affected"), indicator="orange")
