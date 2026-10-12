@@ -113,6 +113,51 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		messages = [message.get("message") for message in frappe.get_message_log()]
 		self.assertFalse(any(loan.name in message for message in messages))
 
+	def test_lowering_ltv_warns_about_customer_level_pledges(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("LTV Warning Customer")).insert().name
+		create_loan_security_assignment(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=[{"loan_security": "Test Security 1", "qty": 4000.00}],
+			company="_Test Company",
+		)
+
+		loan = create_loan(
+			customer,
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, 500000, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+
+		security = frappe.get_doc("Loan Security", "Test Security 1")
+		self.addCleanup(frappe.db.set_value, "Loan Security", security.name, "loan_to_value_ratio", 50)
+
+		# ₹20,00,000 of shares: LTV 30 allows ₹6,00,000, LTV 20 allows ₹4,00,000 against ₹5,00,000 drawn
+		frappe.clear_messages()
+		security.loan_to_value_ratio = 30
+		security.save()
+
+		messages = [message.get("message") for message in frappe.get_message_log()]
+		self.assertFalse(any(customer in message for message in messages))
+
+		frappe.clear_messages()
+		security.loan_to_value_ratio = 20
+		security.save()
+
+		messages = [message.get("message") for message in frappe.get_message_log()]
+		self.assertTrue(any(customer in message for message in messages))
+
 	def test_disbursal_check_with_shortfall(self):
 		pledges = [
 			{

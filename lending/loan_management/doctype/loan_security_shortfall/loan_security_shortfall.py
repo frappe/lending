@@ -123,6 +123,14 @@ def get_loan_shortfall(loan, pledged_securities, loan_security_price_map, ltv_ra
 			flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
 		)
 
+	security_value, allowed_amount = get_allowed_amount(
+		pledged_securities, loan_security_price_map, ltv_ratio_map
+	)
+
+	return outstanding_amount, security_value, outstanding_amount - allowed_amount
+
+
+def get_allowed_amount(pledged_securities, loan_security_price_map, ltv_ratio_map):
 	security_value = 0.0
 	allowed_amount = 0.0
 
@@ -131,7 +139,7 @@ def get_loan_shortfall(loan, pledged_securities, loan_security_price_map, ltv_ra
 		security_value += value
 		allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
 
-	return outstanding_amount, security_value, outstanding_amount - allowed_amount
+	return security_value, allowed_amount
 
 
 def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applicant=None):

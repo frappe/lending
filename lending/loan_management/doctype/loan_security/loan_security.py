@@ -46,13 +46,8 @@ class LoanSecurity(Document):
 		)
 
 	def warn_if_running_loans_go_into_shortfall(self):
-		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
-			get_pledged_security_qty,
-		)
 		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-			LOAN_OUTSTANDING_FIELDS,
 			get_current_price_map,
-			get_loan_shortfall,
 			get_ltv_ratio_map,
 		)
 
@@ -61,62 +56,45 @@ class LoanSecurity(Document):
 			return
 
 		old_ltv = flt(doc_before_save.loan_to_value_ratio)
-		if flt(self.loan_to_value_ratio) >= old_ltv:
+		if flt(self.loan_to_value_ratio) >= old_ltv or not frappe.has_permission("Loan", "read"):
 			return
 
-		if not frappe.has_permission("Loan", "read"):
+		assignments = self.get_assignments_with_this_security()
+		if not assignments:
 			return
 
-		loan_names = self.get_loans_with_this_security()
-		if not loan_names:
-			return
-
-		# get_list, not get_all: the user only sees loans they may read
-		loans = frappe.get_list(
-			"Loan",
-			fields=LOAN_OUTSTANDING_FIELDS,
-			filters={
-				"name": ("in", loan_names),
-				"status": ("in", ["Disbursed", "Partially Disbursed"]),
-				"is_secured_loan": 1,
-			},
-			limit=0,
+		pledges_by_loan = self.get_pledges_by_running_loan({row.loan for row in assignments if row.loan})
+		pledges_by_customer = self.get_pledges_by_customer(
+			{row.applicant for row in assignments if row.applicant_type == "Customer"}
 		)
-		if not loans:
-			return
 
-		pledges_by_loan = {loan.name: get_pledged_security_qty(loan=loan.name) for loan in loans}
-		securities = list({security for pledges in pledges_by_loan.values() for security in pledges})
+		all_pledges = [pledges for _loan, pledges in pledges_by_loan] + list(pledges_by_customer.values())
+		securities = list({security for pledges in all_pledges for security in pledges})
 		price_map = get_current_price_map(securities)
 		old_ltv_map = get_ltv_ratio_map(securities)
 		new_ltv_map = {**old_ltv_map, self.name: self.loan_to_value_ratio}
 
-		def is_short(loan, ltv_map):
-			_outstanding, security_value, shortfall_amount = get_loan_shortfall(
-				loan, pledges_by_loan[loan.name], price_map, ltv_map
-			)
-			return security_value and flt(shortfall_amount, 6) > 0
-
-		newly_short = [
-			loan.name for loan in loans if is_short(loan, new_ltv_map) and not is_short(loan, old_ltv_map)
-		]
-		if not newly_short:
+		newly_short_loans = get_newly_short_loans(pledges_by_loan, price_map, old_ltv_map, new_ltv_map)
+		newly_short_customers = get_newly_short_customers(
+			pledges_by_customer, price_map, old_ltv_map, new_ltv_map
+		)
+		if not newly_short_loans and not newly_short_customers:
 			return
 
-		frappe.msgprint(
-			_(
-				"Lowering the Loan To Value Ratio from {0}% to {1}% puts these running loans into "
-				"shortfall at the next shortfall check: {2}"
-			).format(
-				old_ltv,
-				flt(self.loan_to_value_ratio),
-				", ".join(frappe.bold(loan) for loan in newly_short),
-			),
-			title=_("Running Loans Affected"),
-			indicator="orange",
-		)
+		message = _(
+			"Lowering the Loan To Value Ratio from {0}% to {1}% creates these shortfalls at the next "
+			"shortfall check:"
+		).format(old_ltv, flt(self.loan_to_value_ratio))
+		if newly_short_loans:
+			message += "<br>" + _("Loans: {0}").format(", ".join(map(frappe.bold, newly_short_loans)))
+		if newly_short_customers:
+			message += "<br>" + _("Customers: {0}").format(
+				", ".join(map(frappe.bold, newly_short_customers))
+			)
 
-	def get_loans_with_this_security(self):
+		frappe.msgprint(message, title=_("Running Loans Affected"), indicator="orange")
+
+	def get_assignments_with_this_security(self):
 		pledge = frappe.qb.DocType("Pledge")
 		assignment = frappe.qb.DocType("Loan Security Assignment")
 
@@ -124,14 +102,88 @@ class LoanSecurity(Document):
 			frappe.qb.from_(pledge)
 			.inner_join(assignment)
 			.on(pledge.parent == assignment.name)
-			.select(assignment.loan)
+			.select(assignment.loan, assignment.applicant_type, assignment.applicant)
 			.distinct()
 			.where(pledge.loan_security == self.name)
 			.where(assignment.docstatus == 1)
 			.where(assignment.status == "Pledged")
-			.where(assignment.loan.isnotnull())
-			.run(pluck=True)
+			.run(as_dict=True)
 		)
+
+	def get_pledges_by_running_loan(self, loan_names):
+		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+			get_pledged_security_qty,
+		)
+		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+			LOAN_OUTSTANDING_FIELDS,
+		)
+
+		if not loan_names:
+			return []
+
+		# get_list, not get_all: the user only sees loans they may read
+		loans = frappe.get_list(
+			"Loan",
+			fields=LOAN_OUTSTANDING_FIELDS,
+			filters={
+				"name": ("in", list(loan_names)),
+				"status": ("in", ["Disbursed", "Partially Disbursed"]),
+				"is_secured_loan": 1,
+			},
+			limit=0,
+		)
+		return [(loan, get_pledged_security_qty(loan=loan.name)) for loan in loans]
+
+	def get_pledges_by_customer(self, customers):
+		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+			get_pledged_security_qty,
+		)
+
+		if not customers or not frappe.has_permission("Customer", "read"):
+			return {}
+
+		visible_customers = frappe.get_list(
+			"Customer", filters={"name": ("in", list(customers))}, pluck="name", limit=0
+		)
+		return {
+			customer: get_pledged_security_qty(applicant=customer) for customer in visible_customers
+		}
+
+
+def get_newly_short_loans(pledges_by_loan, price_map, old_ltv_map, new_ltv_map):
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		get_loan_shortfall,
+	)
+
+	def is_short(loan, pledges, ltv_map):
+		_outstanding, security_value, shortfall_amount = get_loan_shortfall(
+			loan, pledges, price_map, ltv_map
+		)
+		return security_value and flt(shortfall_amount, 6) > 0
+
+	return [
+		loan.name
+		for loan, pledges in pledges_by_loan
+		if is_short(loan, pledges, new_ltv_map) and not is_short(loan, pledges, old_ltv_map)
+	]
+
+
+def get_newly_short_customers(pledges_by_customer, price_map, old_ltv_map, new_ltv_map):
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		get_allowed_amount,
+		get_pending_principal_amount_for_applicant,
+	)
+
+	newly_short = []
+	for customer, pledges in pledges_by_customer.items():
+		pending_principal = get_pending_principal_amount_for_applicant(customer)
+		_value, old_allowed = get_allowed_amount(pledges, price_map, old_ltv_map)
+		_value, new_allowed = get_allowed_amount(pledges, price_map, new_ltv_map)
+
+		if flt(new_allowed) < pending_principal <= flt(old_allowed):
+			newly_short.append(customer)
+
+	return newly_short
 
 
 @frappe.whitelist()
