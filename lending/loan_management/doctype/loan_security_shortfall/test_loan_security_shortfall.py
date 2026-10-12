@@ -158,6 +158,84 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		messages = [message.get("message") for message in frappe.get_message_log()]
 		self.assertTrue(any(customer in message for message in messages))
 
+	def set_security_ltvs(self, ltv_by_security):
+		# The type "Stock" stays at 50, so neither the type's LTV nor the first security's gives these results
+		self.assertEqual(flt(frappe.db.get_value("Loan Security Type", "Stock", "loan_to_value_ratio")), 50)
+
+		for security, ltv in ltv_by_security.items():
+			self.addCleanup(frappe.db.set_value, "Loan Security", security, "loan_to_value_ratio", 50)
+			frappe.db.set_value("Loan Security", security, "loan_to_value_ratio", ltv)
+
+	def test_shortfall_and_release_use_each_security_ltv(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		# ₹5,00,000 of each security, lent at haircut 50
+		pledges = [
+			{"loan_security": "Test Security 1", "qty": 1000.00, "haircut": 50},
+			{"loan_security": "Test Security 2", "qty": 2000.00, "haircut": 50},
+		]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		self.assertEqual(loan.loan_amount, 500000)
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		# LTV 80 and 40 allow ₹4,00,000 + ₹2,00,000 = ₹6,00,000. Each unit of security 2 released frees ₹100
+		self.set_security_ltvs({"Test Security 1": 80, "Test Security 2": 40})
+
+		with self.assertRaises(frappe.ValidationError):
+			unpledge_security(loan=loan.name, security_map={"Test Security 2": 1100}, save=1)
+
+		unpledge_security(loan=loan.name, security_map={"Test Security 2": 900}, save=1)
+
+		# LTV 60 and 30 allow ₹3,00,000 + ₹1,50,000 = ₹4,50,000 against ₹5,00,000 drawn
+		self.set_security_ltvs({"Test Security 1": 60, "Test Security 2": 30})
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name, "status": "Pending"})
+		self.assertEqual(flt(shortfall.security_value, 2), 1000000.00)
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 50000.00)
+
+	def test_sanctioned_limit_uses_each_security_ltv(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+			update_sanctioned_loan_amount_for_applicant,
+		)
+
+		customer = frappe.get_doc(get_customer_dict("Unequal LTV Customer")).insert().name
+		create_loan_security_assignment(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=[
+				{"loan_security": "Test Security 1", "qty": 1000.00},
+				{"loan_security": "Test Security 2", "qty": 2000.00},
+			],
+			company="_Test Company",
+		)
+
+		# LTV 80 and 40 on ₹5,00,000 each allow ₹4,00,000 + ₹2,00,000
+		self.set_security_ltvs({"Test Security 1": 80, "Test Security 2": 40})
+
+		update_sanctioned_loan_amount_for_applicant(customer, "Customer")
+		sanctioned_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit"
+		)
+		self.assertEqual(flt(sanctioned_limit), 600000)
+
+		frappe.db.set_value("Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit", 0)
+		create_process_loan_security_shortfall()
+		sanctioned_limit = frappe.db.get_value(
+			"Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit"
+		)
+		self.assertEqual(flt(sanctioned_limit), 600000)
+
 	def test_disbursal_check_with_shortfall(self):
 		pledges = [
 			{
