@@ -239,8 +239,11 @@ def create_loan_security_shortfall(
 
 
 def get_ltv_ratio(loan_security):
-	loan_security_type = frappe.db.get_value("Loan Security", loan_security, "loan_security_type")
-	ltv_ratio = frappe.db.get_value("Loan Security Type", loan_security_type, "loan_to_value_ratio")
+	loan_security_type, ltv_ratio = frappe.db.get_value(
+		"Loan Security", loan_security, ["loan_security_type", "loan_to_value_ratio"]
+	)
+	if not flt(ltv_ratio):
+		ltv_ratio = frappe.db.get_value("Loan Security Type", loan_security_type, "loan_to_value_ratio")
 	return ltv_ratio
 
 
