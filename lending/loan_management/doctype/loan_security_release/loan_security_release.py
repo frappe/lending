@@ -62,12 +62,13 @@ class LoanSecurityRelease(Document):
 			get_pending_principal_amount,
 		)
 		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-			get_ltv_ratio,
+			get_ltv_ratio_map,
 		)
 
 		pledge_qty_map = get_pledged_security_qty(loan=self.loan, applicant=self.applicant)
 		securities = list(pledge_qty_map)
 		loan_security_price_map = get_loan_security_price_map(securities)
+		ltv_ratio_map = get_ltv_ratio_map(securities)
 
 		if self.loan:
 			loan_details = frappe.get_value(
@@ -91,8 +92,8 @@ class LoanSecurityRelease(Document):
 			pending_principal_amount = get_pending_principal_amount(loan_details)
 
 			security_value = 0
+			allowed_amount = 0
 			unpledge_qty_map = {}
-			ltv_ratio = 0
 
 			for security in self.securities:
 				pledged_qty = pledge_qty_map.get(security.loan_security, 0)
@@ -111,9 +112,6 @@ class LoanSecurityRelease(Document):
 				unpledge_qty_map[security.loan_security] += security.qty
 
 			for security in pledge_qty_map:
-				if not ltv_ratio:
-					ltv_ratio = get_ltv_ratio(security)
-
 				qty_after_unpledge = pledge_qty_map.get(security, 0) - unpledge_qty_map.get(security, 0)
 				current_price = loan_security_price_map.get(security)
 
@@ -122,22 +120,23 @@ class LoanSecurityRelease(Document):
 						"Pledge", {"loan_security": security}, "loan_security_price"
 					)
 
-				security_value += qty_after_unpledge * current_price
+				value = qty_after_unpledge * flt(current_price)
+				security_value += value
+				allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
 
-			if not security_value and flt(pending_principal_amount, 2) > 0:
-				self._throw(security_value, pending_principal_amount, ltv_ratio)
+			if flt(pending_principal_amount, 2) > flt(allowed_amount, 2):
+				self._throw(security_value, pending_principal_amount, allowed_amount)
 
-			if security_value and flt(pending_principal_amount / security_value) * 100 > ltv_ratio:
-				self._throw(security_value, pending_principal_amount, ltv_ratio)
-
-	def _throw(self, security_value, pending_principal_amount, ltv_ratio):
+	def _throw(self, security_value, pending_principal_amount, allowed_amount):
 		msg = _("Loan Security Value after unpledge is {0}").format(frappe.bold(security_value))
 		msg += "<br>"
 		msg += _("Pending principal amount for loan {0} is {1}").format(
 			frappe.bold(self.loan), frappe.bold(flt(pending_principal_amount, 2))
 		)
 		msg += "<br>"
-		msg += _("Loan To Security Value ratio must always be {0}").format(frappe.bold(ltv_ratio))
+		msg += _("Maximum loan allowed against the remaining securities is {0}").format(
+			frappe.bold(flt(allowed_amount, 2))
+		)
 		frappe.throw(msg, title=_("Loan To Value ratio breach"))
 
 	def on_update_after_submit(self):
@@ -169,7 +168,7 @@ class LoanSecurityRelease(Document):
 
 def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-		get_ltv_ratio,
+		get_ltv_ratio_map,
 	)
 
 	if not applicant or not applicant_type:
@@ -186,14 +185,16 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 
 	current_pledged_qty = get_pledged_security_qty(applicant=applicant)
 	loan_security_price_map = {}
+	ltv_ratio_map = {}
 
 	if current_pledged_qty:
 		loan_security_price_map = get_loan_security_price_map(list(current_pledged_qty))
+		ltv_ratio_map = get_ltv_ratio_map(list(current_pledged_qty))
 
 	new_sanctioned_loan_amount = 0
 	for security, qty in current_pledged_qty.items():
 		current_price = flt(loan_security_price_map.get(security))
-		new_sanctioned_loan_amount += (flt(qty) * current_price * flt(get_ltv_ratio(security))) / 100
+		new_sanctioned_loan_amount += (flt(qty) * current_price * flt(ltv_ratio_map.get(security))) / 100
 
 	frappe.db.set_value(
 		"Sanctioned Loan Amount",

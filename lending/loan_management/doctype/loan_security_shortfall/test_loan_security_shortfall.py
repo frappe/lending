@@ -82,6 +82,37 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
+	def test_lowering_ltv_warns_about_running_loans(self):
+		pledges = [{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}]
+
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		security = frappe.get_doc("Loan Security", "Test Security 2")
+		self.addCleanup(frappe.db.set_value, "Loan Security", security.name, "loan_to_value_ratio", 50)
+
+		frappe.clear_messages()
+		security.loan_to_value_ratio = 40
+		security.save()
+
+		messages = [message.get("message") for message in frappe.get_message_log()]
+		self.assertTrue(any(loan.name in message for message in messages))
+
+		frappe.clear_messages()
+		security.loan_to_value_ratio = 60
+		security.save()
+
+		messages = [message.get("message") for message in frappe.get_message_log()]
+		self.assertFalse(any(loan.name in message for message in messages))
+
 	def test_disbursal_check_with_shortfall(self):
 		pledges = [
 			{

@@ -6,17 +6,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import (
-	add_days,
-	add_months,
-	cint,
-	date_diff,
-	flt,
-	get_datetime,
-	get_last_day,
-	getdate,
-	nowdate,
-)
+from frappe.utils import add_days, add_months, cint, date_diff, flt, get_last_day, getdate, nowdate
 
 import erpnext
 from erpnext.accounts.general_ledger import process_gl_map
@@ -937,21 +927,15 @@ def make_sales_invoice_for_charge(
 
 
 def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_check=False):
-	update_time = get_datetime()
-
-	loan_security_price_map = frappe._dict(
-		frappe.get_all(
-			"Loan Security Price",
-			fields=["loan_security", "loan_security_price"],
-			filters={"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)},
-			as_list=1,
-		)
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		get_current_price_map,
+		get_ltv_ratio_map,
 	)
 
+	loan_security_price_map = get_current_price_map()
+
 	if on_shortfall_check:
-		detail_map = frappe._dict(
-			frappe.get_all("Loan Security", fields=["name", "loan_to_value_ratio"], as_list=1)
-		)
+		detail_map = get_ltv_ratio_map()
 	else:
 		detail_map = frappe._dict(
 			frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)

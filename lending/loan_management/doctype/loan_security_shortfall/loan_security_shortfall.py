@@ -86,21 +86,60 @@ def add_security(loan: str):
 	return loan_security_assignment.as_dict()
 
 
+LOAN_OUTSTANDING_FIELDS = [
+	"name",
+	"loan_amount",
+	"total_principal_paid",
+	"total_payment",
+	"total_interest_payable",
+	"disbursed_amount",
+	"status",
+]
+
+
+def get_current_price_map(loan_securities=None):
+	update_time = get_datetime()
+	filters = {"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)}
+	if loan_securities:
+		filters["loan_security"] = ("in", loan_securities)
+
+	return frappe._dict(
+		frappe.get_all(
+			"Loan Security Price",
+			fields=["loan_security", "loan_security_price"],
+			filters=filters,
+			as_list=1,
+		)
+	)
+
+
+def get_loan_shortfall(loan, pledged_securities, loan_security_price_map, ltv_ratio_map):
+	if loan.status == "Disbursed":
+		outstanding_amount = (
+			flt(loan.total_payment) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
+		)
+	else:
+		outstanding_amount = (
+			flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
+		)
+
+	security_value = 0.0
+	allowed_amount = 0.0
+
+	for security, qty in pledged_securities.items():
+		value = flt(loan_security_price_map.get(security)) * flt(qty)
+		security_value += value
+		allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
+
+	return outstanding_amount, security_value, outstanding_amount - allowed_amount
+
+
 def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applicant=None):
 	from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 		get_total_pledged_security_value,
 	)
 
-	update_time = get_datetime()
-
-	loan_security_price_map = frappe._dict(
-		frappe.get_all(
-			"Loan Security Price",
-			fields=["loan_security", "loan_security_price"],
-			filters={"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)},
-			as_list=1,
-		)
-	)
+	loan_security_price_map = get_current_price_map()
 
 	filters={"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1}
 
@@ -110,19 +149,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 	if applicant:
 		filters["applicant"] = applicant
 
-	loans = frappe.get_all(
-		"Loan",
-		fields=[
-			"name",
-			"loan_amount",
-			"total_principal_paid",
-			"total_payment",
-			"total_interest_payable",
-			"disbursed_amount",
-			"status",
-		],
-		filters=filters,
-	)
+	loans = frappe.get_all("Loan", fields=LOAN_OUTSTANDING_FIELDS, filters=filters)
 
 	applicant_filters = {}
 	if applicant:
@@ -136,29 +163,19 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		)
 	)
 
+	ltv_ratio_map = get_ltv_ratio_map()
+
 	# Loan-wise shortfall processing
 	for loan in loans:
-		if loan.status == "Disbursed":
-			outstanding_amount = (
-				flt(loan.total_payment) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
-		else:
-			outstanding_amount = (
-				flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
+		outstanding_amount, security_value, shortfall_amount = get_loan_shortfall(
+			loan, get_pledged_security_qty(loan=loan.name), loan_security_price_map, ltv_ratio_map
+		)
 
-		pledged_securities = get_pledged_security_qty(loan=loan.name)
-		ltv_ratio = 0.0
-		security_value = 0.0
+		if not security_value:
+			continue
 
-		for security, qty in pledged_securities.items():
-			if not ltv_ratio:
-				ltv_ratio = get_ltv_ratio(security)
-			security_value += flt(loan_security_price_map.get(security)) * flt(qty)
-
-		current_ratio = (outstanding_amount / security_value) * 100 if security_value else 0
-		if flt(current_ratio, 6) > flt(ltv_ratio, 6):
-			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
+		if flt(shortfall_amount, 6) > 0:
+			current_ratio = (outstanding_amount / security_value) * 100
 			create_loan_security_shortfall(
 				outstanding_amount,
 				security_value,
@@ -168,10 +185,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				loan=loan.name,
 			)
 		elif loan_shortfall_map.get(loan.name):
-			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
-			if flt(shortfall_amount, 6) <= 0:
-				shortfall = loan_shortfall_map.get(loan.name)
-				update_pending_shortfall(shortfall)
+			update_pending_shortfall(loan_shortfall_map.get(loan.name))
 
 	# Applicant-wise shortfall processing
 	for applicant in applicants:
@@ -238,10 +252,11 @@ def create_loan_security_shortfall(
 	ltv_shortfall.save()
 
 
-def get_ltv_ratio(loan_security):
-	loan_security_type = frappe.db.get_value("Loan Security", loan_security, "loan_security_type")
-	ltv_ratio = frappe.db.get_value("Loan Security Type", loan_security_type, "loan_to_value_ratio")
-	return ltv_ratio
+def get_ltv_ratio_map(loan_securities=None):
+	filters = {"name": ("in", loan_securities)} if loan_securities else {}
+	return frappe._dict(
+		frappe.get_all("Loan Security", filters=filters, fields=["name", "loan_to_value_ratio"], as_list=1)
+	)
 
 
 def update_pending_shortfall(shortfall):
