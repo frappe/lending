@@ -55,9 +55,9 @@ class LoanSecurityAssignment(Document):
 		self.validate_security_limits()
 
 	def before_submit(self):
-		# With a loan application the pledge stays Pledge Requested until the loan is created,
-		# so Loan.validate_requested_pledge runs this check instead.
-		if not self.loan_application:
+		# With only a loan application the pledge stays Pledge Requested until the loan is created,
+		# so Loan.validate_requested_pledge runs this check instead. With a loan, on_submit credits it now.
+		if self.loan or not self.loan_application:
 			validate_lien_references(self.securities)
 
 	def before_update_after_submit(self):
@@ -139,10 +139,12 @@ class LoanSecurityAssignment(Document):
 				if flt(limits.get(row.loan_security_type, {}).get("max_exposure_per_security"))
 			}
 		)
-		pledged_qty = {}
+		pledged_qty, current_prices = {}, {}
 		if capped:
 			lock_loan_securities(capped)
 			pledged_qty = get_pledged_qty_map(securities=capped, for_update=True)
+			# A row from a loan application keeps the price from when it was applied for.
+			current_prices = get_loan_security_price_map(capped)
 
 		shares = {}
 		if any(flt(limit.max_single_security_pct) for limit in limits.values()):
@@ -179,7 +181,8 @@ class LoanSecurityAssignment(Document):
 				frappe.throw(msg, title=_("Pledge Too Concentrated"))
 
 			if flt(limit.max_exposure_per_security):
-				exposure = (flt(pledged_qty.get(row.loan_security)) + flt(row.qty)) * flt(row.loan_security_price)
+				price = flt(current_prices.get(row.loan_security)) or flt(row.loan_security_price)
+				exposure = (flt(pledged_qty.get(row.loan_security)) + flt(row.qty)) * price
 				if exposure > flt(limit.max_exposure_per_security):
 					frappe.throw(
 						_(

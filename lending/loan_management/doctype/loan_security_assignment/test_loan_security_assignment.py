@@ -313,3 +313,56 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
 		)
 		self.assertRaises(frappe.ValidationError, loan.submit)
+
+	def test_pledge_with_loan_and_application_needs_lien_reference(self):
+		loan = make_loan()
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 100.00, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+
+		# Submitting with a loan credits the loan at once, so the lock must already be recorded.
+		self.assertRaises(
+			frappe.ValidationError, create_pledge_from_application, loan_application, loan=loan.name
+		)
+
+	def test_exposure_cap_uses_current_price(self):
+		already_pledged = get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0)
+		# Room for 100 more units at today's price of 500.
+		frappe.db.set_value(
+			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 100) * 500
+		)
+
+		# 150 units at an old price of 100 would look like room to spare.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 1", "qty": 150, "loan_security_price": 100}],
+		)
+
+	def test_left_over_releases_do_not_hide_other_pledges(self):
+		before = get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0)
+
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-1"}],
+			applicant="_Test Loan Customer 1",
+		).submit()
+
+		# This applicant releases 100 units, then the assignment is cancelled as well.
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-2"}])
+		lsa.submit()
+		release = make_release(
+			[{"loan_security": "Test Security 1", "qty": 100, "release_reference": "UNPLEDGE-1"}]
+		)
+		release.status = "Approved"
+		release.save()
+		lsa.reload()
+		lsa.cancel()
+
+		self.assertEqual(
+			get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0), before + 100
+		)

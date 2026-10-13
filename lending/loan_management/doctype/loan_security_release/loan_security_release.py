@@ -245,13 +245,19 @@ def get_pledged_qty_map(loan=None, applicant=None, securities=None, for_update=F
 	unpledge_query = frappe.qb.from_(unpldge_doctype).inner_join(loan_security_release_doctype).on(
 		unpldge_doctype.parent == loan_security_release_doctype.name
 	).select(
-		unpldge_doctype.loan_security, fn.Sum(unpldge_doctype.qty).as_("qty")
+		loan_security_release_doctype.applicant_type,
+		loan_security_release_doctype.applicant,
+		unpldge_doctype.loan_security,
+		fn.Sum(unpldge_doctype.qty).as_("qty"),
 	).where(loan_security_release_doctype.docstatus == 1).where(loan_security_release_doctype.status == "Approved")
 
 	pledge_query = frappe.qb.from_(pledge_doctype).inner_join(loan_security_assignment_doctype).on(
 		pledge_doctype.parent == loan_security_assignment_doctype.name
 	).select(
-		pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty")
+		loan_security_assignment_doctype.applicant_type,
+		loan_security_assignment_doctype.applicant,
+		pledge_doctype.loan_security,
+		fn.Sum(pledge_doctype.qty).as_("qty"),
 	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
 
 	if loan:
@@ -271,11 +277,22 @@ def get_pledged_qty_map(loan=None, applicant=None, securities=None, for_update=F
 		unpledge_query = unpledge_query.for_update()
 		pledge_query = pledge_query.for_update()
 
-	unpledges = frappe._dict(unpledge_query.groupby(unpldge_doctype.loan_security).run())
-	pledges = frappe._dict(pledge_query.groupby(pledge_doctype.loan_security).run())
+	unpledges = unpledge_query.groupby(
+		loan_security_release_doctype.applicant_type,
+		loan_security_release_doctype.applicant,
+		unpldge_doctype.loan_security,
+	).run()
+	pledges = pledge_query.groupby(
+		loan_security_assignment_doctype.applicant_type,
+		loan_security_assignment_doctype.applicant,
+		pledge_doctype.loan_security,
+	).run()
 
-	for security, qty in pledges.items():
-		current_pledges.setdefault(security, qty)
-		current_pledges[security] -= unpledges.get(security, 0.0)
+	# Net releases against the same applicant's pledges, so releases left over from a
+	# cancelled or already released assignment cannot hide another applicant's pledge.
+	released = {(applicant_type, applicant, security): qty for applicant_type, applicant, security, qty in unpledges}
+	for applicant_type, applicant, security, qty in pledges:
+		remaining = flt(qty) - flt(released.get((applicant_type, applicant, security)))
+		current_pledges[security] = current_pledges.get(security, 0.0) + max(remaining, 0.0)
 
 	return current_pledges
