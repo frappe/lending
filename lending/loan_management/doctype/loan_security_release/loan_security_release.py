@@ -36,6 +36,15 @@ class LoanSecurityRelease(Document):
 		unpledge_time: DF.Datetime | None
 	# end: auto-generated types
 
+	def save(self, *args, **kwargs):
+		# Saving locks this release's row before any hook runs, and approving the final release
+		# writes the Loan. Lock the Loan first, in the same order as a top-up pledge, so the
+		# two cannot deadlock.
+		if self.loan:
+			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
+
+		return super().save(*args, **kwargs)
+
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()

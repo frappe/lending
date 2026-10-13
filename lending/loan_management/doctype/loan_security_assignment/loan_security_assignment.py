@@ -132,6 +132,17 @@ class LoanSecurityAssignment(Document):
 			)
 		}
 
+		if not any(
+			flt(limit.max_single_security_pct) or flt(limit.max_exposure_per_security) for limit in limits.values()
+		):
+			return
+
+		if self.loan:
+			# Locks are taken Loan, then Loan Security, then pledge and release rows. A Loan Security
+			# Release locks its Loan before its own row (see LoanSecurityRelease.save), so the two
+			# cannot deadlock.
+			lock_loan(self.loan)
+
 		capped = sorted(
 			{
 				row.loan_security
@@ -205,8 +216,7 @@ class LoanSecurityAssignment(Document):
 			quantities[row.loan_security] = quantities.get(row.loan_security, 0) + flt(row.qty)
 
 		if self.loan:
-			# Concurrent top-ups on the same loan are checked one after the other.
-			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
+			# The Loan is locked in validate_security_limits, so concurrent top-ups are checked in turn.
 			for security, qty in get_pledged_qty_map(loan=self.loan, for_update=True).items():
 				quantities[security] = quantities.get(security, 0) + flt(qty)
 
@@ -295,6 +305,10 @@ def validate_lien_references(securities):
 		_("Add the lien reference for {0} before the pledge is marked Pledged."),
 		_("Lien Reference Missing"),
 	)
+
+
+def lock_loan(loan):
+	frappe.db.get_value("Loan", loan, "name", for_update=True)
 
 
 def lock_loan_securities(securities):
