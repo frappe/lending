@@ -4,11 +4,15 @@
 import frappe
 from frappe.utils import add_days, nowdate
 
+from lending.loan_management.doctype.loan.loan import unpledge_security
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment as create_pledge_from_application,
 )
 from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
-	get_pledged_qty,
+	release_loan_security_assignment,
+)
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_pledged_qty_map,
 )
 from lending.tests.test_utils import (
 	create_loan,
@@ -28,17 +32,36 @@ from lending.tests.utils import LendingTestSuite
 APPLICANT = "_Test Loan Customer"
 
 
-def make_pledge(securities):
+def make_pledge(securities, loan=None, applicant=APPLICANT):
 	lsa = frappe.new_doc("Loan Security Assignment")
 	lsa.update(
 		{
 			"applicant_type": "Customer",
-			"applicant": APPLICANT,
+			"applicant": applicant,
 			"company": "_Test Company",
+			"loan": loan,
 			"securities": securities,
 		}
 	)
 	return lsa.insert()
+
+
+def make_loan():
+	loan = create_loan(
+		"_Test Customer 1",
+		"Term Loan Product 5",
+		100000,
+		"Repay Over Number of Periods",
+		12,
+		repayment_start_date="2024-04-05",
+		posting_date="2024-03-06",
+		rate_of_interest=25,
+		applicant_type="Customer",
+		limit_applicable_start="2024-01-05",
+		limit_applicable_end="2024-12-05",
+	)
+	loan.submit()
+	return loan
 
 
 def make_release(securities):
@@ -174,7 +197,7 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		self.assertEqual(lsa.total_security_value, 100000)
 
 	def test_exposure_cap_counts_existing_pledges(self):
-		already_pledged = get_pledged_qty(["Test Security 1"]).get("Test Security 1", 0)
+		already_pledged = get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0)
 		# Room for 1,500 more units at 500 each.
 		frappe.db.set_value(
 			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 1500) * 500
@@ -202,3 +225,91 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		release.save()
 
 		self.assertTrue(release.unpledge_time)
+
+	def test_top_up_share_is_measured_across_the_loan(self):
+		loan = make_loan()
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 1000, "lien_reference": "PSN-1"}], loan=loan.name
+		).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		# 1,00,000 next to the 5,00,000 already on the loan is 16.67%, not 100%.
+		self.assertTrue(make_pledge([{"loan_security": "Test Security 2", "qty": 400}], loan=loan.name))
+
+		# 10,00,000 next to 5,00,000 is 66.67%.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 2", "qty": 4000}],
+			loan=loan.name,
+		)
+
+	def test_lien_reference_cannot_be_cleared_once_pledged(self):
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-1"}])
+		lsa.submit()
+
+		lsa.securities[0].lien_reference = ""
+		self.assertRaises(frappe.ValidationError, lsa.save)
+
+	def test_release_button_needs_release_reference(self):
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-1"}])
+		lsa.submit()
+
+		self.assertRaises(frappe.ValidationError, release_loan_security_assignment, lsa.name)
+
+		release_loan_security_assignment(lsa.name, " UNPLEDGE-1 ")
+		lsa.reload()
+
+		self.assertEqual(lsa.status, "Released")
+		self.assertEqual(lsa.release_reference, "UNPLEDGE-1")
+
+	def test_unpledge_security_takes_release_references(self):
+		loan = make_loan()
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-1"}], loan=loan.name
+		).submit()
+
+		self.assertRaises(
+			frappe.ValidationError, unpledge_security, loan=loan.name, save=1, submit=1, approve=1
+		)
+
+		release = unpledge_security(
+			loan=loan.name,
+			save=1,
+			submit=1,
+			approve=1,
+			release_references={"Test Security 1": "UNPLEDGE-1"},
+		)
+		self.assertEqual(release.status, "Approved")
+		self.assertEqual(release.securities[0].release_reference, "UNPLEDGE-1")
+
+	def test_requested_pledge_holds_no_exposure_until_the_loan(self):
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+		lsa = create_pledge_from_application(loan_application)
+		pledge_row = frappe.db.get_value("Pledge", {"parent": lsa}, "name")
+		frappe.db.set_value("Pledge", pledge_row, "lien_reference", "PSN-1")
+
+		already_pledged = get_pledged_qty_map(securities=["Test Security 2"]).get("Test Security 2", 0)
+		# Room for 100 more units at 250 each, not for the 8,000 requested as well.
+		frappe.db.set_value(
+			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 100) * 250
+		)
+
+		# The requested pledge is not counted, so another borrower's pledge that fits on its own goes through.
+		make_pledge(
+			[{"loan_security": "Test Security 2", "qty": 100, "lien_reference": "PSN-2"}],
+			applicant="_Test Loan Customer 1",
+		).submit()
+
+		# Creating the loan would mark the 8,000 Pledged, so the cap is checked again.
+		loan = create_loan_with_security(
+			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		self.assertRaises(frappe.ValidationError, loan.submit)

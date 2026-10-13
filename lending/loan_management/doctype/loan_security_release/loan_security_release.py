@@ -46,14 +46,12 @@ class LoanSecurityRelease(Document):
 		self.validate_release_references()
 
 	def validate_release_references(self):
-		if self.status != "Approved":
-			return
-
-		missing = [row.loan_security for row in self.securities if not (row.release_reference or "").strip()]
-		if missing:
-			frappe.throw(
-				_("Add the release reference for {0} before approving the release.").format(comma_and(missing)),
-				title=_("Release Reference Missing"),
+		if self.status == "Approved":
+			validate_references(
+				self.securities,
+				"release_reference",
+				_("Add the release reference for {0} before approving the release."),
+				_("Release Reference Missing"),
 			)
 
 	def on_cancel(self):
@@ -219,6 +217,12 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 	)
 
 
+def validate_references(securities, fieldname, message, title):
+	missing = [row.get("loan_security") for row in securities if not (row.get(fieldname) or "").strip()]
+	if missing:
+		frappe.throw(message.format(comma_and(missing)), title=title)
+
+
 @frappe.whitelist()
 def get_pledged_security_qty(loan: str | None = None, applicant: str | None = None):
 	if loan:
@@ -226,6 +230,10 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 	else:
 		frappe.has_permission("Loan", "read", throw=True)
 
+	return get_pledged_qty_map(loan=loan, applicant=applicant)
+
+
+def get_pledged_qty_map(loan=None, applicant=None, securities=None, for_update=False):
 	current_pledges = {}
 
 	unpldge_doctype = frappe.qb.DocType("Unpledge")
@@ -253,6 +261,15 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 	if applicant:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
+
+	if securities:
+		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security.isin(securities))
+		pledge_query = pledge_query.where(pledge_doctype.loan_security.isin(securities))
+
+	if for_update:
+		# A locking read sees the latest committed pledges, not this transaction's snapshot.
+		unpledge_query = unpledge_query.for_update()
+		pledge_query = pledge_query.for_update()
 
 	unpledges = frappe._dict(unpledge_query.groupby(unpldge_doctype.loan_security).run())
 	pledges = frappe._dict(pledge_query.groupby(pledge_doctype.loan_security).run())

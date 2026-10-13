@@ -417,7 +417,7 @@ class Loan(LoanController):
 			)
 
 	def before_submit(self):
-		self.validate_requested_pledge_is_locked()
+		self.validate_requested_pledge()
 
 	def on_submit(self):
 		self.link_loan_security_assignment()
@@ -633,16 +633,13 @@ class Loan(LoanController):
 				["name", "maximum_loan_value"],
 			)
 
-	def validate_requested_pledge_is_locked(self):
-		# Creating the loan marks the requested pledge as Pledged.
+	def validate_requested_pledge(self):
+		# Creating the loan marks the requested pledge as Pledged, and only Pledged
+		# assignments count toward the exposure cap, so both checks run here.
 		if lsa_details := self.get_requested_loan_security_assignment():
-			validate_lien_references(
-				frappe.get_all(
-					"Pledge",
-					filters={"parent": lsa_details[0], "parenttype": "Loan Security Assignment"},
-					fields=["loan_security", "lien_reference"],
-				)
-			)
+			lsa = frappe.get_doc("Loan Security Assignment", lsa_details[0])
+			validate_lien_references(lsa.securities)
+			lsa.validate_security_limits()
 
 	def link_loan_security_assignment(self):
 		if lsa_details := self.get_requested_loan_security_assignment():
@@ -1100,12 +1097,17 @@ def unpledge_security(
 	save: int = 0,
 	submit: int = 0,
 	approve: int = 0,
+	release_references: dict | None = None,
 ):
 	frappe.has_permission("Loan Security Release", "create", throw=True)
 
 	# if no security_map is passed it will be considered as full unpledge
 	if security_map and isinstance(security_map, str):
 		security_map = json.loads(security_map)
+
+	# {loan_security: reference}, needed to approve the release
+	if release_references and isinstance(release_references, str):
+		release_references = json.loads(release_references)
 
 	if loan:
 		frappe.has_permission("Loan", "write", doc=loan, throw=True)
@@ -1131,6 +1133,9 @@ def unpledge_security(
 			pledge_doc.applicant_type,
 			pledge_doc.applicant,
 		)
+
+	for row in unpledge_request.securities:
+		row.release_reference = (release_references or {}).get(row.loan_security)
 
 	if save:
 		unpledge_request.save()
