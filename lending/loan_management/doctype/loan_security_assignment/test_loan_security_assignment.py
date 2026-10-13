@@ -344,6 +344,22 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			[{"loan_security": "Test Security 1", "qty": 150, "loan_security_price": 100}],
 		)
 
+	def test_share_cap_uses_current_price(self):
+		loan = make_loan()
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 1000, "lien_reference": "PSN-1"}], loan=loan.name
+		).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		# At the old price of 100 this is 4,00,000 next to 5,00,000 on the loan, 44.44%.
+		# At today's price of 250 it is 10,00,000, 66.67%.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 2", "qty": 4000, "loan_security_price": 100}],
+			loan=loan.name,
+		)
+
 	def test_left_over_releases_do_not_hide_other_pledges(self):
 		before = get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0)
 

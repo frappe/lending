@@ -198,16 +198,24 @@ class LoanSecurityAssignment(Document):
 					)
 
 	def get_security_shares(self):
-		# A top-up adds to the collateral already on the loan, so the share is measured across both.
-		values = {}
+		# A top-up adds to the collateral already on the loan, so the share is measured across both,
+		# all at the current price.
+		quantities = {}
 		for row in self.securities:
-			values[row.loan_security] = values.get(row.loan_security, 0) + flt(row.amount)
+			quantities[row.loan_security] = quantities.get(row.loan_security, 0) + flt(row.qty)
 
 		if self.loan:
-			on_loan = get_pledged_qty_map(loan=self.loan)
-			prices = get_loan_security_price_map(list(on_loan)) if on_loan else {}
-			for security, qty in on_loan.items():
-				values[security] = values.get(security, 0) + flt(qty) * flt(prices.get(security))
+			# Concurrent top-ups on the same loan are checked one after the other.
+			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
+			for security, qty in get_pledged_qty_map(loan=self.loan, for_update=True).items():
+				quantities[security] = quantities.get(security, 0) + flt(qty)
+
+		current_prices = get_loan_security_price_map(list(quantities))
+		saved_prices = {row.loan_security: flt(row.loan_security_price) for row in self.securities}
+		values = {
+			security: qty * (flt(current_prices.get(security)) or saved_prices.get(security, 0))
+			for security, qty in quantities.items()
+		}
 
 		total = sum(values.values())
 		return {security: value / total * 100 for security, value in values.items()} if total else {}
