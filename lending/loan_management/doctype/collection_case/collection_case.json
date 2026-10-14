@@ -1,0 +1,246 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:CASE-{loan}-{YY}-{#####}",
+ "creation": "2026-09-17 10:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan",
+  "applicant_type",
+  "applicant",
+  "applicant_email",
+  "company",
+  "branch",
+  "loan_product",
+  "column_break_1",
+  "bucket",
+  "classification_code",
+  "days_past_due",
+  "outstanding_amount",
+  "status",
+  "section_break_1",
+  "assigned_agent",
+  "next_action_date",
+  "opened_on",
+  "closed_on",
+  "resolution_reason",
+  "linked_restructure",
+  "promise_to_pay_tab",
+  "promise_to_pay",
+  "activities_tab",
+  "activities"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loan",
+   "options": "Loan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Customer\nEmployee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "applicant",
+   "fieldtype": "Dynamic Link",
+   "label": "Applicant",
+   "options": "applicant_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "applicant_email",
+   "fieldtype": "Data",
+   "label": "Applicant Email",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch"
+  },
+  {
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bucket",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Bucket",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "classification_code",
+   "fieldtype": "Link",
+   "label": "Classification Code",
+   "options": "Loan Classification",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "days_past_due",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Days Past Due",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Remaining loan balance (principal + overdue interest), not just the overdue installment.",
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nIn Progress\nPromise to Pay\nBroken PTP\nHardship Requested\nResolved\nClosed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "assigned_agent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Assigned Agent",
+   "options": "User"
+  },
+  {
+   "fieldname": "next_action_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Next Action Date"
+  },
+  {
+   "fieldname": "opened_on",
+   "fieldtype": "Date",
+   "label": "Opened On",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "closed_on",
+   "fieldtype": "Date",
+   "label": "Closed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolution_reason",
+   "fieldtype": "Small Text",
+   "label": "Resolution Reason"
+  },
+  {
+   "fieldname": "linked_restructure",
+   "fieldtype": "Link",
+   "label": "Linked Restructure",
+   "options": "Loan Restructure",
+   "read_only": 1
+  },
+  {
+   "fieldname": "promise_to_pay_tab",
+   "fieldtype": "Tab Break",
+   "label": "Promise to Pay"
+  },
+  {
+   "fieldname": "promise_to_pay",
+   "fieldtype": "Table",
+   "label": "Promise to Pay",
+   "options": "Promise to Pay"
+  },
+  {
+   "fieldname": "activities_tab",
+   "fieldtype": "Tab Break",
+   "label": "Activities"
+  },
+  {
+   "fieldname": "activities",
+   "fieldtype": "Table",
+   "label": "Activities",
+   "options": "Collection Activity"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-07 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Collection Case",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Officer",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Processor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

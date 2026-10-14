@@ -27,17 +27,17 @@ class TestLoanWriteOff(LendingTestSuite):
 			"Repay Over Number of Periods",
 			4,
 			"Customer",
-			repayment_start_date="2024-11-05",
-			posting_date="2024-10-05",
+			repayment_start_date="2026-10-04",
+			posting_date="2026-09-03",
 			rate_of_interest=25,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-10-05", repayment_start_date="2024-11-05"
+			loan.name, loan.loan_amount, disbursement_date="2026-09-03", repayment_start_date="2026-10-04"
 		)
-		loan_write_1 = create_loan_write_off(loan.name, "2024-11-05", write_off_amount=50000)
+		loan_write_1 = create_loan_write_off(loan.name, "2026-10-04", write_off_amount=50000)
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Written Off")
 
@@ -45,8 +45,8 @@ class TestLoanWriteOff(LendingTestSuite):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Disbursed")
 
-		loan_write_1 = create_loan_write_off(loan.name, "2024-11-05", write_off_amount=50000)
-		loan_write_2 = create_loan_write_off(loan.name, "2024-11-05", write_off_amount=50000)
+		loan_write_1 = create_loan_write_off(loan.name, "2026-10-04", write_off_amount=50000)
+		loan_write_2 = create_loan_write_off(loan.name, "2026-10-04", write_off_amount=50000)
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Written Off")
@@ -63,7 +63,7 @@ class TestLoanWriteOff(LendingTestSuite):
 			"Loan Repayment",
 			filters={
 				"against_loan": loan.name,
-				"value_date": ("<=", get_datetime("2024-11-05")),
+				"value_date": ("<=", get_datetime("2026-10-04")),
 				"docstatus": 2,
 				"is_write_off_waiver": 1,
 			},

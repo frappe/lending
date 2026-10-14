@@ -202,6 +202,33 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 		statement_dict = get_statement_dict(doc)
 		self.assertNotIn("_Test Loan Customer 2", statement_dict)
 
+	def test_statement_dict_keeps_balance_only_applicant(self):
+		self.make_loan_with_activity()
+		doc = self.create_process_doc("_Test Loan Customer")
+		doc.from_date = add_months(today(), 1)
+		doc.to_date = add_months(today(), 12)
+
+		statement_dict = get_statement_dict(doc)
+		self.assertIn("_Test Loan Customer", statement_dict)
+
+	def test_statement_footer_totals_exclude_summary_rows(self):
+		from frappe.utils import fmt_money
+
+		from lending.loan_management.report.loan_statement_of_account.loan_statement_of_account import (
+			execute as get_loan_soa,
+		)
+
+		self.make_loan_with_activity()
+		doc = self.create_process_doc("_Test Loan Customer")
+		_, data = get_loan_soa(get_report_filters(doc, doc.applicants[0]))
+		transactions = [row for row in data if row.get("posting_date")]
+		currency = data[0]["currency"]
+
+		statement = get_statement_dict(doc)["_Test Loan Customer"]
+		total_debit = sum(row["debit"] for row in transactions)
+		self.assertIn(fmt_money(total_debit, currency=currency), statement)
+		self.assertNotIn(fmt_money(sum(row["debit"] for row in data), currency=currency), statement)
+
 	def test_get_report_pdf_consolidated(self):
 		self.make_loan_with_activity()
 		doc = self.create_process_doc("_Test Loan Customer")

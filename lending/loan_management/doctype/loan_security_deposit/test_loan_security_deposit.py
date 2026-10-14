@@ -43,7 +43,7 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			"Repay Over Number of Periods",
 			4,
 			"Customer",
-			posting_date="2024-03-25",
+			posting_date="2026-08-24",
 			rate_of_interest=10,
 		)
 		loan.submit()
@@ -51,20 +51,20 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
-			disbursement_date="2024-03-25",
-			repayment_start_date="2024-04-01",
+			disbursement_date="2026-08-24",
+			repayment_start_date="2026-08-31",
 			withhold_security_deposit=1,
 		)
 
-		process_daily_loan_demands(posting_date="2024-05-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2026-09-30", loan=loan.name)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-05-01")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2026-09-30")
 		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
 
-		repayment_entry_1 = create_repayment_entry(loan.name, "2024-05-01", payable_amount)
+		repayment_entry_1 = create_repayment_entry(loan.name, "2026-09-30", payable_amount)
 		repayment_entry_1.submit()
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-05-05")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2026-10-04")
 		total_net_payable = round(
 			float(amounts["unaccrued_interest"] or 0.0)
 			+ float(amounts["interest_amount"] or 0.0)
@@ -81,7 +81,7 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			{
 				"doctype": "Loan Adjustment",
 				"loan": loan.name,
-				"posting_date": "2024-05-05",
+				"posting_date": "2026-10-04",
 				"foreclosure_type": "Internal Foreclosure",
 				"adjustments": [{"loan_repayment_type": "Normal Repayment", "amount": total_net_payable}],
 			}

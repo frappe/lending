@@ -6,7 +6,7 @@
    "label": "New Loans"
   }
  ],
- "content": "[{\"id\":\"u4VgJQmS5B\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Loans\",\"col\":12}},{\"id\":\"_38WStznya\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"FnMXBOAVyS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Company\",\"col\":3}},{\"id\":\"t7o_K__1jB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Loan Application\",\"col\":3}},{\"id\":\"IRiNDC6w1p\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Loan\",\"col\":3}},{\"id\":\"xbbo0FYbq0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":3}},{\"id\":\"7ZL4Bro-Vi\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yhyioTViZ3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"oYFn4b1kSw\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan\",\"col\":4}},{\"id\":\"vZepJF5tl9\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Processes\",\"col\":4}},{\"id\":\"k-393Mjhqe\",\"type\":\"card\",\"data\":{\"card_name\":\"Disbursement and Repayment\",\"col\":4}},{\"id\":\"6crJ0DBiBJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Security\",\"col\":4}},{\"id\":\"8Nc9Vms3yK\",\"type\":\"card\",\"data\":{\"card_name\":\"Taxes and Charges\",\"col\":4}},{\"id\":\"4FHo-JB0QJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Transfers\",\"col\":4}},{\"id\":\"cC9JraXgnP\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Classification\",\"col\":4}},{\"id\":\"aQN7y-zrup\",\"type\":\"card\",\"data\":{\"card_name\":\"Co-Lending\",\"col\":4}},{\"id\":\"didc1K7uY4\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Adjustments\",\"col\":4}},{\"id\":\"wH0P6qZKNg\",\"type\":\"card\",\"data\":{\"card_name\":\"Banking\",\"col\":4}},{\"id\":\"mhOcQEJd2Y\",\"type\":\"card\",\"data\":{\"card_name\":\"LOS\",\"col\":4}},{\"id\":\"Um5YwxVLRJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"u4VgJQmS5B\",\"type\":\"chart\",\"data\":{\"chart_name\":\"New Loans\",\"col\":12}},{\"id\":\"_38WStznya\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"FnMXBOAVyS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Company\",\"col\":3}},{\"id\":\"t7o_K__1jB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Loan Application\",\"col\":3}},{\"id\":\"IRiNDC6w1p\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Loan\",\"col\":3}},{\"id\":\"xbbo0FYbq0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":3}},{\"id\":\"wR2kNq8xTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Collection Case\",\"col\":3}},{\"id\":\"7ZL4Bro-Vi\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yhyioTViZ3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"oYFn4b1kSw\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan\",\"col\":4}},{\"id\":\"vZepJF5tl9\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Processes\",\"col\":4}},{\"id\":\"k-393Mjhqe\",\"type\":\"card\",\"data\":{\"card_name\":\"Disbursement and Repayment\",\"col\":4}},{\"id\":\"6crJ0DBiBJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Security\",\"col\":4}},{\"id\":\"8Nc9Vms3yK\",\"type\":\"card\",\"data\":{\"card_name\":\"Taxes and Charges\",\"col\":4}},{\"id\":\"4FHo-JB0QJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Transfers\",\"col\":4}},{\"id\":\"cC9JraXgnP\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Classification\",\"col\":4}},{\"id\":\"qP3sVn8dWk\",\"type\":\"card\",\"data\":{\"card_name\":\"Collections\",\"col\":4}},{\"id\":\"aQN7y-zrup\",\"type\":\"card\",\"data\":{\"card_name\":\"Co-Lending\",\"col\":4}},{\"id\":\"didc1K7uY4\",\"type\":\"card\",\"data\":{\"card_name\":\"Loan Adjustments\",\"col\":4}},{\"id\":\"wH0P6qZKNg\",\"type\":\"card\",\"data\":{\"card_name\":\"Banking\",\"col\":4}},{\"id\":\"mhOcQEJd2Y\",\"type\":\"card\",\"data\":{\"card_name\":\"LOS\",\"col\":4}},{\"id\":\"Um5YwxVLRJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2020-03-12 16:35:55.299820",
  "custom_blocks": [],
  "docstatus": 0,
@@ -207,6 +207,55 @@
    "label": "Days Past Due Logs",
    "link_count": 0,
    "link_to": "Days Past Due Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Collections",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Collection Case",
+   "link_count": 0,
+   "link_to": "Collection Case",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Collection Case Log",
+   "link_count": 0,
+   "link_to": "Collection Case Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dunning Rule",
+   "link_count": 0,
+   "link_to": "Dunning Rule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Process Collection Dunning",
+   "link_count": 0,
+   "link_to": "Process Collection Dunning",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -606,7 +655,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-31 15:23:18.551440",
+ "modified": "2026-10-07 16:24:15.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending",
@@ -641,6 +690,14 @@
   {
    "label": "Loan",
    "link_to": "Loan",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "format": "{} Open",
+   "label": "Collection Case",
+   "link_to": "Collection Case",
+   "stats_filter": "{ \"status\": \"Open\" }",
    "type": "DocType"
   },
   {

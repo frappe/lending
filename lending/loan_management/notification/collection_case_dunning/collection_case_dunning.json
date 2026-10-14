@@ -1,0 +1,31 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "",
+ "condition_type": "",
+ "creation": "2026-10-07 12:00:00.000000",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Collection Case",
+ "enabled": 1,
+ "event": "Method",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear Customer,</p>\n\n<p>Your loan <strong>{{ doc.loan }}</strong> is {{ doc.days_past_due }} days past due. The amount currently overdue is <strong>{{ doc.get_formatted_overdue_amount() }}</strong>. Please pay this at the earliest to avoid further charges. (Remaining loan balance: {{ doc.get_formatted(\"outstanding_amount\") }})</p>\n\n<p>Thank you.</p>",
+ "method": "notify_dunning",
+ "minutes_offset": 0,
+ "modified": "2026-10-07 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Collection Case Dunning",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "applicant_email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Your loan {{ doc.loan }} payment is overdue"
+}

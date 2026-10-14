@@ -163,6 +163,10 @@ doc_events = {
 	"Journal Entry": {
 		"on_cancel": "lending.overrides.journal_entry.add_ignore_linked_doctypes_for_jv",
 	},
+	"Days Past Due Log": {
+		"after_insert": "lending.loan_management.collections.on_dpd_log_upsert",
+		"on_update": "lending.loan_management.collections.on_dpd_log_upsert",
+	},
 }
 
 accounting_dimension_doctypes = [
@@ -189,6 +193,7 @@ scheduler_events = {
 		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
+		"lending.loan_management.doctype.process_collection_dunning.process_collection_dunning.create_process_collection_dunning",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 		"lending.loan_management.doctype.process_loan_accounting.process_loan_accounting.process_loan_accounting",
 		"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.send_auto_email",
