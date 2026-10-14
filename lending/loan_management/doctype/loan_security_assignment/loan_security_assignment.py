@@ -222,6 +222,12 @@ class LoanSecurityAssignment(Document):
 
 		current_prices = get_loan_security_price_map(list(quantities))
 		saved_prices = {row.loan_security: flt(row.loan_security_price) for row in self.securities}
+		if self.loan:
+			# A security already on the loan whose price has expired keeps the price it was pledged at,
+			# so it still counts toward the total.
+			for security, price in self.get_loan_pledge_prices().items():
+				saved_prices.setdefault(security, price)
+
 		values = {
 			security: qty * (flt(current_prices.get(security)) or saved_prices.get(security, 0))
 			for security, qty in quantities.items()
@@ -229,6 +235,22 @@ class LoanSecurityAssignment(Document):
 
 		total = sum(values.values())
 		return {security: value / total * 100 for security, value in values.items()} if total else {}
+
+	def get_loan_pledge_prices(self):
+		pledge = frappe.qb.DocType("Pledge")
+		lsa = frappe.qb.DocType("Loan Security Assignment")
+		rows = (
+			frappe.qb.from_(pledge)
+			.inner_join(lsa)
+			.on(pledge.parent == lsa.name)
+			.select(pledge.loan_security, pledge.loan_security_price)
+			.where(lsa.loan == self.loan)
+			.where(lsa.docstatus == 1)
+			.where(lsa.status == "Pledged")
+			.orderby(lsa.pledge_time)
+		).run()
+		# The latest pledge of each security wins.
+		return {security: flt(price) for security, price in rows}
 
 	def validate_lien_references_kept(self):
 		before = self.get_doc_before_save()

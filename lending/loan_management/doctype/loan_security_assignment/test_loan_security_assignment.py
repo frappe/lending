@@ -379,6 +379,27 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			loan=loan.name,
 		)
 
+	def test_share_cap_keeps_the_pledged_price_once_it_expires(self):
+		loan = make_loan()
+		make_pledge(
+			[
+				{"loan_security": "Test Security 1", "qty": 1000, "lien_reference": "PSN-1"},
+				{"loan_security": "Test Security 2", "qty": 2000, "lien_reference": "PSN-2"},
+			],
+			loan=loan.name,
+		).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		price = frappe.qb.DocType("Loan Security Price")
+		frappe.qb.update(price).set(price.valid_upto, add_days(nowdate(), -1)).where(
+			price.loan_security == "Test Security 2"
+		).run()
+
+		# 5,05,000 next to the 5,00,000 of Test Security 2 at its pledged price is 50.25%.
+		self.assertTrue(
+			make_pledge([{"loan_security": "Test Security 1", "qty": 10}], loan=loan.name)
+		)
+
 	def test_left_over_releases_do_not_hide_other_pledges(self):
 		before = get_pledged_qty_map(securities=["Test Security 1"]).get("Test Security 1", 0)
 
