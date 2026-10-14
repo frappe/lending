@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, flt, getdate, nowdate
 
@@ -116,6 +118,24 @@ class TestMarginCall(LendingTestSuite):
 		self.assertEqual(shortfall.status, "Sale Triggered")
 		self.assertTrue(shortfall.notified_on)
 		self.assertTrue(frappe.db.exists("Loan Security Sale", {"loan_security_shortfall": shortfall.name}))
+
+	def test_sell_level_of_a_security_no_longer_held_is_ignored(self):
+		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+			CollateralValuation,
+		)
+
+		frappe.db.set_value("Loan Security", "Test Security 1", "sell_ltv", 60)
+		loan = make_secured_loan(self.applicant)
+
+		# Security 1 sits in the map at 0, as a fully released or sold security does
+		valuation = CollateralValuation()
+		with patch(
+			"lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall.get_pledged_security_qty",
+			return_value={"Test Security 1": 0, "Test Security 2": 8000},
+		):
+			collateral = valuation.value_loan(loan)
+
+		self.assertFalse(collateral.has_sell_level)
 
 	def test_cure_by_repayment(self):
 		loan = make_secured_loan(self.applicant)
