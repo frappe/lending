@@ -113,14 +113,7 @@ class LoanSecurityRelease(Document):
 
 			for security in pledge_qty_map:
 				qty_after_unpledge = pledge_qty_map.get(security, 0) - unpledge_qty_map.get(security, 0)
-				current_price = loan_security_price_map.get(security)
-
-				if not current_price:
-					current_price = frappe.db.get_value(
-						"Pledge", {"loan_security": security}, "loan_security_price"
-					)
-
-				value = qty_after_unpledge * flt(current_price)
+				value = qty_after_unpledge * flt(loan_security_price_map.get(security))
 				security_value += value
 				allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
 

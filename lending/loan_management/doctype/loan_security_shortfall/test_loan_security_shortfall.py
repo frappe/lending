@@ -122,6 +122,53 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		self.assertEqual(flt(shortfall.security_value, 2), 1000000.00)
 		self.assertEqual(flt(shortfall.shortfall_amount, 2), 50000.00)
 
+	def test_loan_with_no_current_price_goes_short(self):
+		pledges = [{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		frappe.db.delete("Loan Security Price", {"loan_security": "Test Security 2"})
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+		self.assertEqual(flt(shortfall.security_value), 0)
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 1000000.00)
+
+	def test_release_values_a_security_with_no_current_price_at_zero(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		pledges = [
+			{"loan_security": "Test Security 1", "qty": 1000.00, "haircut": 50},
+			{"loan_security": "Test Security 2", "qty": 2000.00, "haircut": 50},
+		]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		# At LTV 80, ₹10,00,000 of collateral allows ₹8,00,000 against ₹5,00,000 drawn
+		frappe.db.set_value("Loan Security", "Test Security 1", "loan_to_value_ratio", 80)
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 80)
+
+		# Without a price for security 2, the 900 units left of security 1 allow only ₹3,60,000
+		frappe.db.delete("Loan Security Price", {"loan_security": "Test Security 2"})
+		with self.assertRaises(frappe.ValidationError):
+			unpledge_security(loan=loan.name, security_map={"Test Security 1": 100}, save=1)
+
 	def test_blank_security_ltv_falls_back_to_type(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
