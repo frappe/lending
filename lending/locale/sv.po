@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-11 15:52+0000\n"
-"PO-Revision-Date: 2026-10-12 23:18\n"
+"PO-Revision-Date: 2026-10-13 23:33\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1124,17 +1124,17 @@ msgstr "Bruten Period Ränta Återställning Konto"
 #. Label of the bucket (Data) field in DocType 'Collection Case'
 #: lending/loan_management/doctype/collection_case/collection_case.json
 msgid "Bucket"
-msgstr ""
+msgstr "Bucket"
 
 #. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "Bucket De-escalated"
-msgstr ""
+msgstr "Bucket Deeskalerad"
 
 #. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "Bucket Escalated"
-msgstr ""
+msgstr "Bucket Eskalerad"
 
 #. Name of a DocType
 #. Label of the bulk_repayment_log (Link) field in DocType 'Loan Repayment'
@@ -1311,7 +1311,7 @@ msgstr "Vidarebefordra"
 #. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "Case Opened"
-msgstr ""
+msgstr "Ärende Öppnat"
 
 #. Option for the 'Organization Type' (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -1574,7 +1574,7 @@ msgstr "Kodlängd, giltighetstid och gränser för antalet försök anges i TP O
 #. Name of a DocType
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Collection Activity"
-msgstr ""
+msgstr "Inkasso Aktivitet"
 
 #. Name of a DocType
 #. Label of the collection_case (Link) field in DocType 'Collection Case Log'
@@ -1584,14 +1584,14 @@ msgstr ""
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Collection Case"
-msgstr ""
+msgstr "Inkasso Ärende"
 
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Collection Case Log"
-msgstr ""
+msgstr "Inkasso Ärende Logg"
 
 #. Label of the collection_offset_sequence_section (Section Break) field in
 #. DocType 'Loan Product'
@@ -1638,7 +1638,7 @@ msgstr "Inkasso enligt partnerns procentandel"
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Collections"
-msgstr ""
+msgstr "Samlingar"
 
 #. Label of the company (Link) field in DocType 'Collection Case'
 #. Label of the company (Link) field in DocType 'Dunning Rule'
@@ -2005,7 +2005,7 @@ msgstr "Dagar Efter Förfallodatum Tröskelvärde för Ej Presterande Tillgång"
 
 #: lending/loan_management/collections.py:261
 msgid "Days past due returned to 0"
-msgstr ""
+msgstr "Antal förfallna dagar återställdes till 0"
 
 #. Label of the debit (Currency) field in DocType 'Process Loan Accounting
 #. Detail'
@@ -2303,7 +2303,7 @@ msgstr "Utbetalning datum är utanför godkänd datum intervall"
 #. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Dispute Raised"
-msgstr ""
+msgstr "Tvist har Uppstått"
 
 #: lending/loan_management/doctype/loan/loan.js:256
 msgid "Do you really want to close this loan"
@@ -2318,12 +2318,12 @@ msgstr "Vill du verkligen släppa denna garanti tilldelning?"
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Dunning Rule"
-msgstr ""
+msgstr "Påminnelse Regel"
 
 #. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "Dunning Sent"
-msgstr ""
+msgstr "Påminnelse Skickad"
 
 #. Option for the 'Moratorium Type' (Select) field in DocType 'Loan'
 #. Option for the 'Demand Type' (Select) field in DocType 'Loan Demand'
@@ -2599,7 +2599,7 @@ msgstr "Hämta Sökande"
 #. Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Field Visit"
-msgstr ""
+msgstr "Fältbesök"
 
 #. Label of the filter_duration (Int) field in DocType 'Process Loan Statement
 #. of Accounts'
@@ -2673,7 +2673,7 @@ msgstr "Från Filial"
 #. Label of the from_bucket (Data) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "From Bucket"
-msgstr ""
+msgstr "Från Bucket"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:18
 msgid "From Date cannot be after To Date"
@@ -2767,7 +2767,7 @@ msgstr "Svårigheter / Omstrukturering"
 #: lending/loan_management/doctype/collection_case/collection_case.json
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "Hardship Requested"
-msgstr ""
+msgstr "Svårighet Begärd"
 
 #. Label of the help_text (HTML) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -2802,7 +2802,7 @@ msgstr "Ignorera vid Annullera Belopp Uppdatering"
 #. Option for the 'Channel' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "In Person"
-msgstr ""
+msgstr "Personligen"
 
 #. Option for the 'Status' (Select) field in DocType 'Loan Repayment Repost'
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json
@@ -3993,7 +3993,7 @@ msgstr "Processer"
 #. Name of a role
 #: lending/loan_management/doctype/collection_case/collection_case.json
 msgid "Loan Processor"
-msgstr ""
+msgstr "Lånehandläggare"
 
 #. Label of the loan_product (Link) field in DocType 'Collection Case'
 #. Label of the loan_product (Link) field in DocType 'Dunning Rule'
@@ -4620,7 +4620,7 @@ msgstr "Förfallo Datum"
 #. Label of the max_dpd (Int) field in DocType 'Dunning Rule'
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 msgid "Max DPD"
-msgstr ""
+msgstr "Högst Förfallo Dagar"
 
 #. Label of the max_dpd_range (Int) field in DocType 'Loan Classification
 #. Range'
@@ -4714,7 +4714,7 @@ msgstr "Migrering Datum erfordras för importerade lån"
 #. Label of the min_dpd (Int) field in DocType 'Dunning Rule'
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json
 msgid "Min DPD"
-msgstr ""
+msgstr "Minst Förfallo Dagar"
 
 #. Label of the min_dpd_range (Int) field in DocType 'Loan Classification
 #. Range'
@@ -4724,7 +4724,7 @@ msgstr "Min Dagar Efter Förfallodatum Intervall"
 
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.py:30
 msgid "Min DPD cannot be greater than Max DPD"
-msgstr ""
+msgstr "Minst Förfallo Dagar kan inte vara högre än Högst Förfallo Dagar"
 
 #. Label of the min_range (Float) field in DocType 'Scorecard Attribute'
 #: lending/loan_origination/doctype/scorecard_attribute/scorecard_attribute.json
@@ -4911,7 +4911,7 @@ msgstr "Nya högsta gränsbelopp kan inte vara lägre än utnyttjad gränsbelopp
 #. Label of the next_action_date (Date) field in DocType 'Collection Case'
 #: lending/loan_management/doctype/collection_case/collection_case.json
 msgid "Next Action Date"
-msgstr ""
+msgstr "Nästa Åtgärd Datum"
 
 #: lending/loan_integrations/base.py:101
 msgid "No API credentials are set in {0} for the {1} environment."
@@ -4937,7 +4937,7 @@ msgstr "Inga Poster för dessa inställningar."
 #. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "No Response"
-msgstr ""
+msgstr "Inget svar"
 
 #. Option for the 'EMI Rounding Method' (Select) field in DocType 'Loan
 #. Product'
@@ -5070,7 +5070,7 @@ msgstr "Antal Dagar"
 #. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Number Unreachable"
-msgstr ""
+msgstr "Nummer oåtkomligt"
 
 #. Description of the '# Docs' (Int) field in DocType 'Process Loan Accounting
 #. Detail'
@@ -6121,7 +6121,7 @@ msgstr "Proportionellt kalender månader"
 #: lending/loan_management/doctype/process_collection_dunning/process_collection_dunning.json
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Process Collection Dunning"
-msgstr ""
+msgstr "Behandla Inkasso Påminnelse"
 
 #. Name of a DocType
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
@@ -6817,7 +6817,7 @@ msgstr "Omlagd"
 #. Case'
 #: lending/loan_management/doctype/collection_case/collection_case.json
 msgid "Resolution Reason"
-msgstr ""
+msgstr "Lösning Anledning"
 
 #. Option for the 'Status' (Select) field in DocType 'Collection Case'
 #. Option for the 'Event' (Select) field in DocType 'Collection Case Log'
@@ -7462,7 +7462,7 @@ msgstr "Till Filial"
 #. Label of the to_bucket (Data) field in DocType 'Collection Case Log'
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json
 msgid "To Bucket"
-msgstr ""
+msgstr "Till Bucket"
 
 #. Label of the total_amount_paid (Currency) field in DocType 'Loan'
 #. Label of the total_amount_paid (Currency) field in DocType 'Loan
