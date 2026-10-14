@@ -340,6 +340,7 @@ def after_install():
 	make_property_setter_for_journal_entry()
 	add_server_scripts()
 	add_adverse_action_reasons()
+	add_vehicle_finance_defaults()
 
 
 def before_uninstall():
@@ -420,6 +421,27 @@ def add_adverse_action_reasons():
 		doc.reason_code = reason_code
 		doc.description = description
 		doc.insert(ignore_permissions=True)
+
+
+PDD_DOCUMENT_TYPES = ("RC", "Tax Invoice", "Insurance Policy", "Hypothecation Endorsement", "Permit")
+
+
+def add_vehicle_finance_defaults():
+	for document_type in PDD_DOCUMENT_TYPES:
+		if not frappe.db.exists("Loan Document Type", document_type):
+			frappe.get_doc({"doctype": "Loan Document Type", "loan_document_type": document_type}).insert(
+				ignore_permissions=True
+			)
+
+	if not frappe.db.exists("Loan Security Type", "Vehicle"):
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Type",
+				"loan_security_type": "Vehicle",
+				"valuation_method": "Fixed Valuation",
+				"is_vehicle": 1,
+			}
+		).insert(ignore_permissions=True)
 
 
 def delete_custom_fields(custom_fields):

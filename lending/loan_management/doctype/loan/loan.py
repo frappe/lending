@@ -43,6 +43,7 @@ from lending.loan_management.utils import (
 	update_repayment_schedule_demand_generated,
 )
 from lending.utils import daterange
+from lending.vehicle_finance.loan_hooks import mark_vehicles_financed
 
 
 # nosemgrep
@@ -640,6 +641,7 @@ class Loan(LoanController):
 				)
 
 				self.db_set("maximum_loan_amount", maximum_loan_value)
+				mark_vehicles_financed(lsa, self.name)
 
 	def cancel_loan_security_assignment(self):
 		if not self.loan_application:

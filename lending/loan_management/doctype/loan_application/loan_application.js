@@ -30,6 +30,14 @@ frappe.ui.form.on('Loan Application', {
 	refresh: function (frm) {
 		frm.trigger("toggle_fields");
 		frm.trigger("add_toolbar_buttons");
+		frm.set_query("vehicle", "proposed_pledges", () => {
+			return {
+				filters: {
+					status: "Proposed",
+					applicant: frm.doc.applicant
+				}
+			};
+		});
 		frm.set_query('loan_product', () => {
 			return {
 				filters: {
@@ -174,7 +182,7 @@ frappe.ui.form.on("Proposed Pledge", {
 	loan_security: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 
-		if (row.loan_security) {
+		if (row.loan_security && !row.vehicle) {
 			frappe.call({
 				method: "lending.loan_management.doctype.loan_security_price.loan_security_price.get_loan_security_price",
 				args: {
@@ -185,6 +193,20 @@ frappe.ui.form.on("Proposed Pledge", {
 					frm.events.calculate_amounts(frm, cdt, cdn);
 				}
 			})
+		}
+	},
+
+	vehicle: function (frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+
+		if (row.vehicle) {
+			frappe.db.get_value("Loan Vehicle", row.vehicle, ["loan_security", "asset_value"], (r) => {
+				frappe.model.set_value(cdt, cdn, {
+					loan_security: r.loan_security,
+					qty: 1,
+					loan_security_price: r.asset_value
+				});
+			});
 		}
 	},
 

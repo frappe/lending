@@ -16,6 +16,12 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
 )
+from lending.vehicle_finance.loan_hooks import (
+	get_fixed_security_value,
+	mark_vehicles_financed,
+	revert_vehicles_to_proposed,
+	validate_assignment_vehicles,
+)
 
 
 class LoanSecurityAssignment(Document):
@@ -47,6 +53,7 @@ class LoanSecurityAssignment(Document):
 
 	def validate(self):
 		self.validate_securities()
+		validate_assignment_vehicles(self)
 		self.set_loan_and_security_values()
 
 	def on_submit(self):
@@ -57,6 +64,9 @@ class LoanSecurityAssignment(Document):
 		if not self.loan_application:
 			self.db_set("status", "Pledged")
 			self.db_set("pledge_time", now_datetime())
+
+			if self.loan:
+				mark_vehicles_financed(self.name, self.loan)
 
 			# Create Sanctioned Loan Amount Record
 			current_sanctioned_amount = frappe.db.get_value(
@@ -82,6 +92,7 @@ class LoanSecurityAssignment(Document):
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
 		self.db_set("pledge_time", None)
+		revert_vehicles_to_proposed(self.name)
 		if self.loan:
 			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
@@ -108,7 +119,9 @@ class LoanSecurityAssignment(Document):
 				frappe.throw(_("Qty is mandatory for loan security!"))
 
 			if not pledge.loan_security_price:
-				loan_security_price = get_loan_security_price(pledge.loan_security)
+				loan_security_price = get_loan_security_price(
+					pledge.loan_security
+				) or get_fixed_security_value(pledge.loan_security)
 
 				if loan_security_price:
 					pledge.loan_security_price = loan_security_price

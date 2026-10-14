@@ -84,6 +84,14 @@
   "write_off_recovery_account",
   "co_lending_tab",
   "loan_partners",
+  "vehicle_finance_tab",
+  "max_vehicles_per_loan",
+  "column_break_vfin",
+  "valuation_validity_days",
+  "vehicle_ltv_section",
+  "vehicle_ltv_rules",
+  "pdd_section",
+  "pdd_requirements",
   "connections_tab"
  ],
  "fields": [
@@ -566,11 +574,55 @@
    "fieldtype": "Select",
    "label": "EMI Rounding Method",
    "options": "Round to Nearest\nRound Up\nNo Rounding"
+  },
+  {
+   "fieldname": "vehicle_finance_tab",
+   "fieldtype": "Tab Break",
+   "label": "Vehicle Finance"
+  },
+  {
+   "default": "1",
+   "fieldname": "max_vehicles_per_loan",
+   "fieldtype": "Int",
+   "label": "Max Vehicles per Loan"
+  },
+  {
+   "fieldname": "column_break_vfin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "90",
+   "description": "A Used or Refinance vehicle needs a valuation at most this old when the application is approved",
+   "fieldname": "valuation_validity_days",
+   "fieldtype": "Int",
+   "label": "Valuation Validity (Days)"
+  },
+  {
+   "fieldname": "vehicle_ltv_section",
+   "fieldtype": "Section Break",
+   "label": "LTV and Age Rules"
+  },
+  {
+   "fieldname": "vehicle_ltv_rules",
+   "fieldtype": "Table",
+   "label": "Vehicle LTV Rules",
+   "options": "Vehicle LTV Rule"
+  },
+  {
+   "fieldname": "pdd_section",
+   "fieldtype": "Section Break",
+   "label": "Post Disbursal Documents"
+  },
+  {
+   "fieldname": "pdd_requirements",
+   "fieldtype": "Table",
+   "label": "PDD Requirements",
+   "options": "PDD Requirement"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-23 14:21:16.257722",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

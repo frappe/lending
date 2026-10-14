@@ -11,6 +11,7 @@ from frappe.utils import flt, get_datetime, getdate
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
+from lending.vehicle_finance.loan_hooks import update_vehicles_on_security_release
 
 
 class LoanSecurityRelease(Document):
@@ -43,6 +44,7 @@ class LoanSecurityRelease(Document):
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
 		self.db_set("status", "Requested")
+		update_vehicles_on_security_release(self, cancel=True)
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_duplicate_securities(self):
@@ -150,6 +152,7 @@ class LoanSecurityRelease(Document):
 
 			self.db_set("unpledge_time", get_datetime())
 			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+			update_vehicles_on_security_release(self)
 
 	def update_loan_status(self, cancel=0):
 		if cancel:

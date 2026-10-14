@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "loan_security",
+  "vehicle",
   "loan_security_name",
   "qty",
   "loan_security_price",
@@ -64,12 +65,19 @@
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle",
+   "options": "Loan Vehicle"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:50.369102",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Proposed Pledge",

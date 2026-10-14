@@ -9,7 +9,11 @@
   "auto_create_customer",
   "column_break_hwkk",
   "borrower_portal_section",
-  "portal_logo"
+  "portal_logo",
+  "vehicle_finance_section",
+  "block_on_rc_owner_name_mismatch",
+  "column_break_vfin",
+  "issue_noc_on_settled_loans"
  ],
  "fields": [
   {
@@ -37,13 +41,35 @@
    "fieldname": "portal_logo",
    "fieldtype": "Attach Image",
    "label": "Portal Logo"
+  },
+  {
+   "fieldname": "vehicle_finance_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Finance"
+  },
+  {
+   "default": "0",
+   "description": "By default a mismatch between the RC owner name and the applicant name only warns",
+   "fieldname": "block_on_rc_owner_name_mismatch",
+   "fieldtype": "Check",
+   "label": "Block Approval on RC Owner Name Mismatch"
+  },
+  {
+   "fieldname": "column_break_vfin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "issue_noc_on_settled_loans",
+   "fieldtype": "Check",
+   "label": "Issue NOC on Settled Loans"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-18 16:26:49.539993",
+ "modified": "2026-10-03 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",
