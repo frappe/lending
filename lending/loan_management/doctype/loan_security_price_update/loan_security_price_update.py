@@ -4,9 +4,11 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_to_date, cint, flt, get_datetime, getdate
+from frappe.utils import add_days, add_to_date, cint, flt, get_datetime
 
 import erpnext
+
+from lending.loan_management.utils import add_working_days
 
 SHORTFALL_JOB = "lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall"
 
@@ -167,25 +169,7 @@ class LoanSecurityPriceUpdate(Document):
 			cint(frappe.db.get_value("Loan Security Type", self.loan_security_type, "price_validity_days")),
 			1,
 		)
-		holidays = self.get_holidays()
-		next_day = getdate(self.price_date)
-		for _day in range(validity_days):
-			next_day = add_days(next_day, 1)
-			while next_day in holidays:
-				next_day = add_days(next_day, 1)
-		return add_days(next_day, -1)
-
-	def get_holidays(self):
-		if not self.holiday_list:
-			return set()
-		return {
-			getdate(holiday)
-			for holiday in frappe.get_all(
-				"Holiday",
-				filters={"parent": self.holiday_list, "holiday_date": (">", self.price_date)},
-				pluck="holiday_date",
-			)
-		}
+		return add_days(add_working_days(self.price_date, validity_days, self.holiday_list), -1)
 
 	def get_pledged_securities(self):
 		pledge = frappe.qb.DocType("Pledge")

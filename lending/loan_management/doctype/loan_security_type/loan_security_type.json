@@ -10,6 +10,7 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
+  "sell_ltv",
   "price_validity_days",
   "disabled"
  ],
@@ -44,6 +45,12 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "description": "Above this loan-to-value ratio the shortfall goes straight to Sale Triggered, without waiting for the cure period. Leave blank for no early sale",
+   "fieldname": "sell_ltv",
+   "fieldtype": "Percent",
+   "label": "Sell LTV"
   },
   {
    "default": "1",

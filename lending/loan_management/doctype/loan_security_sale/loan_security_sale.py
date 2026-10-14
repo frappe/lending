@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, nowdate
 
+from lending.loan_management.collections import get_applicant_email
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
@@ -37,6 +38,7 @@ class LoanSecuritySale(Document):
 		amended_from: DF.Link | None
 		amount_to_recover: DF.Currency
 		applicant: DF.DynamicLink | None
+		applicant_email: DF.Data | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		charge_voucher: DF.DynamicLink | None
 		charge_voucher_type: DF.Link | None
@@ -58,11 +60,13 @@ class LoanSecuritySale(Document):
 		if self.docstatus == 0:
 			self.status = "Draft"
 			self.set_amount_to_recover()
+			self.applicant_email = get_applicant_email(self.applicant_type, self.applicant)
 		self.validate_items()
 		self.set_proceeds()
 
 	def before_submit(self):
 		self.validate_sold_items()
+		self.validate_shortfall_open()
 		if flt(self.charges) and not frappe.db.get_single_value("Lending Settings", "sale_charge"):
 			frappe.throw(_("Set the Sale Charge in Lending Settings to charge a fee on the sale"))
 
@@ -70,6 +74,8 @@ class LoanSecuritySale(Document):
 		self.db_set("status", "Sold")
 		self.update_assignment_status()
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+		if self.loan_security_shortfall:
+			self.trigger_shortfall_sale()
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
@@ -206,6 +212,25 @@ class LoanSecuritySale(Document):
 			row.proceeds = flt(row.sold_qty) * flt(row.sale_price)
 		self.gross_proceeds = sum(flt(row.proceeds) for row in self.items)
 		self.net_proceeds = self.gross_proceeds - flt(self.charges)
+
+	def validate_shortfall_open(self):
+		if (
+			self.loan_security_shortfall
+			and frappe.db.get_value("Loan Security Shortfall", self.loan_security_shortfall, "status")
+			== "Completed"
+		):
+			frappe.throw(
+				_(
+					"Loan Security Shortfall {0} is already cured. To record this sale anyway, clear the shortfall and pick another reason"
+				).format(frappe.bold(self.loan_security_shortfall))
+			)
+
+	def trigger_shortfall_sale(self):
+		status = frappe.db.get_value("Loan Security Shortfall", self.loan_security_shortfall, "status")
+		if status in ("Pending", "Notified", "Escalated"):
+			frappe.db.set_value(
+				"Loan Security Shortfall", self.loan_security_shortfall, "status", "Sale Triggered"
+			)
 
 	def validate_sold_items(self):
 		if not any(flt(row.sold_qty) > 0 for row in self.items):
