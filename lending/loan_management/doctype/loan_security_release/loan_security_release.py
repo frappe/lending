@@ -65,13 +65,18 @@ class LoanSecurityRelease(Document):
 
 			key = (row.loan_security_assignment, row.loan_security)
 			if key not in unreleased:
+				message = (
+					_("Row {0}: {1} is not a pledge of {2} by {3} on Loan {4}.")
+					if self.loan
+					else _("Row {0}: {1} is not a pledge of {2} by {3}.")
+				)
 				frappe.throw(
-					_("Row {0}: {1} is not a pledge of {2} by {3}{4}.").format(
+					message.format(
 						row.idx,
 						frappe.bold(row.loan_security_assignment),
 						frappe.bold(row.loan_security),
 						frappe.bold(self.applicant),
-						_(" on Loan {0}").format(frappe.bold(self.loan)) if self.loan else "",
+						frappe.bold(self.loan),
 					)
 				)
 			if flt(row.qty) > flt(unreleased[key]):
@@ -111,16 +116,23 @@ class LoanSecurityRelease(Document):
 				remaining -= qty
 
 			if remaining > 0:
-				frappe.throw(
+				message = (
 					_(
-						"Row {0}: only {1} of {2} is pledged by {3}{4} and not yet released. You are trying to release {5}."
-					).format(
+						"Row {0}: only {1} of {2} is pledged by {3} on Loan {5} and not yet released. You are trying to release {4}."
+					)
+					if self.loan
+					else _(
+						"Row {0}: only {1} of {2} is pledged by {3} and not yet released. You are trying to release {4}."
+					)
+				)
+				frappe.throw(
+					message.format(
 						row.idx,
 						flt(row.qty) - remaining,
 						frappe.bold(row.loan_security),
 						frappe.bold(self.applicant),
-						_(" on Loan {0}").format(frappe.bold(self.loan)) if self.loan else "",
 						flt(row.qty),
+						frappe.bold(self.loan),
 					),
 					title=_("Loan Security Release Error"),
 				)
