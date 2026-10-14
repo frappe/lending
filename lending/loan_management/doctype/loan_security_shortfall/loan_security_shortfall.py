@@ -22,25 +22,32 @@ class LoanSecurityShortfall(Document):
 		from frappe.types import DF
 
 		applicant: DF.DynamicLink | None
+		applicant_email: DF.Data | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		cure_by: DF.Date | None
+		cure_method: DF.Literal["", "Repayment", "Additional Pledge", "Price Recovery", "Sale"]
 		loan: DF.Link | None
 		loan_amount: DF.Currency
+		notified_on: DF.Datetime | None
 		process_loan_security_shortfall: DF.Link | None
 		security_value: DF.Currency
 		shortfall_amount: DF.Currency
 		shortfall_percentage: DF.Percent
 		shortfall_time: DF.Datetime | None
-		status: DF.Literal["", "Pending", "Completed"]
+		status: DF.Literal["", "Pending", "Notified", "Escalated", "Sale Triggered", "Completed"]
 	# end: auto-generated types
 
 	pass
 
 
-def update_shortfall_status(loan, security_value, on_cancel=0):
+OPEN_STATUSES = ("Pending", "Notified", "Escalated", "Sale Triggered")
+
+
+def update_shortfall_status(loan, security_value, on_cancel=0, cure_method=None):
 	loan_security_shortfall = frappe.db.get_value(
 		"Loan Security Shortfall",
-		{"loan": loan, "status": "Pending"},
-		["name", "shortfall_amount"],
+		{"loan": loan, "status": ("in", OPEN_STATUSES)},
+		["name", "shortfall_amount", "creation"],
 		as_dict=1,
 		for_update=True,
 	)
@@ -56,8 +63,10 @@ def update_shortfall_status(loan, security_value, on_cancel=0):
 				"status": "Completed",
 				"shortfall_amount": loan_security_shortfall.shortfall_amount,
 				"shortfall_percentage": 0,
+				"cure_method": cure_method or get_cure_method(loan_security_shortfall, loan),
 			},
 		)
+		discard_untouched_sales(loan_security_shortfall.name)
 	else:
 		frappe.db.set_value(
 			"Loan Security Shortfall",
@@ -132,11 +141,15 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 	loan_shortfall_map = frappe._dict(
 		frappe.get_all(
-			"Loan Security Shortfall", fields=["loan", "name"], filters={"status": "Pending"}, as_list=1
+			"Loan Security Shortfall",
+			fields=["loan", "name"],
+			filters={"status": ("in", OPEN_STATUSES)},
+			as_list=1,
 		)
 	)
 
 	ltv_ratio_map = get_ltv_ratio_map()
+	sell_ltv_map = get_ltv_ratio_map(field="sell_ltv")
 
 	# Loan-wise shortfall processing
 	for loan in loans:
@@ -152,11 +165,16 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
 		security_value = 0.0
 		allowed_amount = 0.0
+		sell_amount = 0.0
+		has_sell_level = False
 
 		for security, qty in pledged_securities.items():
 			value = flt(loan_security_price_map.get(security)) * flt(qty)
 			security_value += value
 			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
+			# A security with no sell level never triggers an early sale by itself
+			sell_amount += value * (flt(sell_ltv_map.get(security)) or 100) / 100
+			has_sell_level = has_sell_level or bool(flt(sell_ltv_map.get(security)))
 
 		shortfall_amount = outstanding_amount - allowed_amount
 		# A security with no current price is valued at 0, so a missing price raises a shortfall
@@ -169,9 +187,10 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				current_ratio,
 				process_loan_security_shortfall,
 				loan=loan.name,
+				sale_triggered=has_sell_level and flt(outstanding_amount - sell_amount, 6) > 0,
 			)
 		elif loan_shortfall_map.get(loan.name) and flt(shortfall_amount, 6) <= 0:
-			update_pending_shortfall(loan_shortfall_map.get(loan.name))
+			update_pending_shortfall(loan_shortfall_map.get(loan.name), loan.name)
 
 	# Applicant-wise shortfall processing
 	for applicant in applicants:
@@ -180,7 +199,8 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 		shortfall_amount = security_value - pending_principal_amount
 		if flt(shortfall_amount) < 0:
-			current_ratio = (abs(shortfall_amount)/pending_principal_amount) * 100
+			collateral_value = get_collateral_value(applicant, loan_security_price_map)
+			current_ratio = (pending_principal_amount / collateral_value) * 100 if collateral_value else 0
 			create_loan_security_shortfall(
 				pending_principal_amount,
 				security_value,
@@ -207,15 +227,16 @@ def create_loan_security_shortfall(
 	process_loan_security_shortfall,
 	loan=None,
 	applicant=None,
+	sale_triggered=False,
 ):
 
 	if loan:
-		filters = {"loan": loan, "status": "Pending"}
+		filters = {"loan": loan, "status": ("in", OPEN_STATUSES)}
 	elif applicant:
 		# Exclude loan-linked shortfalls: the applicant field is auto-filled via
 		# fetch_from="loan.applicant", so without this guard the applicant-wise path
 		# would find and overwrite loan-wise shortfalls with wrong security_value.
-		filters = {"applicant": applicant, "status": "Pending", "loan": ("is", "not set")}
+		filters = {"applicant": applicant, "status": ("in", OPEN_STATUSES), "loan": ("is", "not set")}
 
 	existing_shortfall = frappe.db.get_value(
 		"Loan Security Shortfall", filters=filters, fieldname="name"
@@ -235,11 +256,15 @@ def create_loan_security_shortfall(
 	ltv_shortfall.shortfall_amount = shortfall_amount
 	ltv_shortfall.shortfall_percentage = shortfall_ratio
 	ltv_shortfall.process_loan_security_shortfall = process_loan_security_shortfall
+	if sale_triggered:
+		ltv_shortfall.status = "Sale Triggered"
 	ltv_shortfall.save()
 
 
-def get_ltv_ratio_map(loan_securities=None):
-	"""LTV of each Loan Security, or of its Loan Security Type when the security has none."""
+def get_ltv_ratio_map(loan_securities=None, field="loan_to_value_ratio"):
+	"""LTV of each Loan Security, or of its Loan Security Type when the security has none.
+
+	`field` can be sell_ltv to read the sell level the same way."""
 	security = frappe.qb.DocType("Loan Security")
 	security_type = frappe.qb.DocType("Loan Security Type")
 
@@ -249,15 +274,15 @@ def get_ltv_ratio_map(loan_securities=None):
 		.on(security.loan_security_type == security_type.name)
 		.select(
 			security.name,
-			security.loan_to_value_ratio,
-			security_type.loan_to_value_ratio.as_("type_ltv_ratio"),
+			security[field].as_("security_ratio"),
+			security_type[field].as_("type_ratio"),
 		)
 	)
 	if loan_securities:
 		query = query.where(security.name.isin(loan_securities))
 
 	return {
-		row.name: flt(row.loan_to_value_ratio) or flt(row.type_ltv_ratio)
+		row.name: flt(row.security_ratio) or flt(row.type_ratio)
 		for row in query.run(as_dict=True)
 	}
 
@@ -266,13 +291,51 @@ def has_pledged_qty(pledged_securities):
 	return any(flt(qty) > 0 for qty in pledged_securities.values())
 
 
-def update_pending_shortfall(shortfall):
-	# Get all pending loan security shortfall
+def get_collateral_value(applicant, loan_security_price_map):
+	return sum(
+		flt(loan_security_price_map.get(security)) * flt(qty)
+		for security, qty in get_pledged_security_qty(applicant=applicant).items()
+	)
+
+
+def update_pending_shortfall(shortfall, loan):
+	shortfall_details = frappe.db.get_value(
+		"Loan Security Shortfall", shortfall, ["name", "creation"], as_dict=1
+	)
 	frappe.db.set_value(
 		"Loan Security Shortfall",
 		shortfall,
-		{"status": "Completed", "shortfall_amount": 0, "shortfall_percentage": 0},
+		{
+			"status": "Completed",
+			"shortfall_amount": 0,
+			"shortfall_percentage": 0,
+			"cure_method": get_cure_method(shortfall_details, loan),
+		},
 	)
+	discard_untouched_sales(shortfall)
+
+
+def discard_untouched_sales(shortfall):
+	"""Delete draft sales of a cured shortfall that staff have not started filling in."""
+	for sale in frappe.get_all(
+		"Loan Security Sale", filters={"loan_security_shortfall": shortfall, "docstatus": 0}, pluck="name"
+	):
+		if not frappe.db.exists("Loan Security Sale Item", {"parent": sale, "sold_qty": (">", 0)}):
+			frappe.delete_doc("Loan Security Sale", sale, ignore_permissions=True)
+
+
+def get_cure_method(shortfall, loan):
+	"""Best guess at what cured the shortfall, from what happened to the loan since it opened."""
+	if frappe.db.exists("Loan Security Sale", {"loan_security_shortfall": shortfall.name, "docstatus": 1}):
+		return "Sale"
+
+	since = {"creation": (">=", shortfall.creation), "docstatus": 1}
+	if frappe.db.exists("Loan Repayment", {"against_loan": loan, **since}):
+		return "Repayment"
+	if frappe.db.exists("Loan Security Assignment", {"loan": loan, "status": "Pledged", **since}):
+		return "Additional Pledge"
+	return "Price Recovery"
+
 
 def get_pending_principal_amount_for_applicant(applicant):
 	loan = frappe.qb.DocType("Loan")

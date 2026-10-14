@@ -14,6 +14,7 @@
   "applicant_type",
   "applicant",
   "company",
+  "applicant_email",
   "status",
   "securities_section",
   "amount_to_recover",
@@ -89,6 +90,13 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "applicant_email",
+   "fieldtype": "Data",
+   "label": "Applicant Email",
+   "options": "Email",
    "read_only": 1
   },
   {

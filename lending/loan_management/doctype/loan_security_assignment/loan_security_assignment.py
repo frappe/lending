@@ -51,7 +51,7 @@ class LoanSecurityAssignment(Document):
 
 	def on_submit(self):
 		if self.loan:
-			update_shortfall_status(self.loan, self.total_security_value)
+			update_shortfall_status(self.loan, self.total_security_value, cure_method="Additional Pledge")
 			update_loan(self.loan, self.maximum_loan_value)
 
 		if not self.loan_application:
