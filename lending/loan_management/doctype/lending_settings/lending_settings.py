@@ -16,6 +16,7 @@ class LendingSettings(Document):
 
 		auto_create_customer: DF.Check
 		portal_logo: DF.AttachImage | None
+		sale_charge: DF.Link | None
 	# end: auto-generated types
 
 	pass
