@@ -125,14 +125,17 @@ class LoanSecurityRelease(Document):
 					title=_("Loan Security Release Error"),
 				)
 
-			# A blank row can take a pledge that another row already frees, so the two are merged.
+			# A blank row can take a pledge that another row already frees, so the two are merged,
+			# keeping the release reference of each.
 			for name, qty in pieces:
 				key = (row.loan_security, name)
 				if key in rows:
 					rows[key]["qty"] += qty
-					rows[key]["release_reference"] = rows[key].get("release_reference") or values.get(
-						"release_reference"
-					)
+					references = (rows[key].get("release_reference") or "").split(", ")
+					if values.get("release_reference") not in references:
+						rows[key]["release_reference"] = ", ".join(
+							filter(None, [*references, values.get("release_reference")])
+						)
 				else:
 					rows[key] = {**values, "qty": qty, "loan_security_assignment": name}
 

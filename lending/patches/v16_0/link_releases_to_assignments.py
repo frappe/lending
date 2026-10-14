@@ -17,9 +17,11 @@ def execute():
 	releases = frappe.get_all(
 		"Loan Security Release",
 		filters={"docstatus": 1},
-		fields=["name", "applicant_type", "applicant", "loan"],
+		fields=["name", "applicant_type", "applicant", "loan", "status"],
 		order_by="creation asc",
 	)
+	# Approved releases have freed their shares, so they take the pledges before open requests.
+	releases.sort(key=lambda release: release.status != "Approved")
 
 	for release in releases:
 		rows = frappe.get_all(

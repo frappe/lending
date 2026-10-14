@@ -622,13 +622,33 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		)
 
 		release = make_release(
-			[{"loan_security": "Test Security 1", "qty": 30}, {"loan_security": "Test Security 1", "qty": 5}],
+			[
+				{"loan_security": "Test Security 1", "qty": 30, "release_reference": "UNPLEDGE-1"},
+				{"loan_security": "Test Security 1", "qty": 5, "release_reference": "UNPLEDGE-2"},
+			],
 			applicant=applicant,
 		)
 		self.assertEqual(
-			[(row.loan_security_assignment, row.qty) for row in release.securities],
-			[(first.name, 35)],
+			[(row.loan_security_assignment, row.qty, row.release_reference) for row in release.securities],
+			[(first.name, 35, "UNPLEDGE-1, UNPLEDGE-2")],
 		)
+
+	def test_patch_links_approved_releases_before_open_requests(self):
+		applicant = "_Test Approved First Customer"
+		(pledge,) = self.make_pledges(applicant, 100)
+		request = make_unlinked_release(applicant, 100)
+		frappe.db.set_value(
+			"Loan Security Release", request.name, {"status": "Requested", "unpledge_time": None}
+		)
+		approved = make_unlinked_release(applicant, 100)
+
+		link_releases_to_assignments()
+
+		self.assertEqual(
+			frappe.db.get_value("Unpledge", {"parent": approved.name}, "loan_security_assignment"),
+			pledge.name,
+		)
+		self.assertFalse(frappe.db.get_value("Unpledge", {"parent": request.name}, "loan_security_assignment"))
 
 	def test_old_release_with_nothing_left_to_free_cannot_be_approved(self):
 		applicant = "_Test Old Requests Customer"
