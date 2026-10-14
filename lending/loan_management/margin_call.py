@@ -38,7 +38,8 @@ class MarginCall:
 		self.cure_days = cure_days
 
 	def process(self):
-		if self.doc.status not in PROCESSED_STATUSES:
+		# A price feed gap is not a price fall: wait for the prices before telling the borrower
+		if self.doc.status not in PROCESSED_STATUSES or self.doc.missing_price:
 			return
 
 		if not self.doc.notified_on:

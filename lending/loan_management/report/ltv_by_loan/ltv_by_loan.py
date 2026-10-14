@@ -47,6 +47,7 @@ def get_data(filters):
 				"current_ltv": get_current_ltv(outstanding_amount, value),
 				"ltv_limit": get_current_ltv(collateral.allowed_amount, value),
 				"sell_ltv": get_current_ltv(collateral.sell_amount, value) if collateral.has_sell_level else None,
+				"missing_price": collateral.missing_price,
 				"loan_security_shortfall": shortfall.get("name"),
 				"shortfall_status": shortfall.get("status"),
 				"currency": currency,
@@ -120,6 +121,7 @@ def get_columns():
 		{"label": _("Current LTV"), "fieldname": "current_ltv", "fieldtype": "Percent", "width": 110},
 		{"label": _("LTV Limit"), "fieldname": "ltv_limit", "fieldtype": "Percent", "width": 100},
 		{"label": _("Sell LTV"), "fieldname": "sell_ltv", "fieldtype": "Percent", "width": 100},
+		{"label": _("Prices Missing"), "fieldname": "missing_price", "fieldtype": "Check", "width": 110},
 		{
 			"label": _("Open Shortfall"),
 			"fieldname": "loan_security_shortfall",

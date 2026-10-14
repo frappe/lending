@@ -61,6 +61,7 @@ def get_shortfalls(filters):
 			shortfall.creation,
 			shortfall.notified_on,
 			shortfall.cure_by,
+			shortfall.missing_price,
 		)
 		.where(shortfall.status.isin([filters.status] if filters.status else list(OPEN_STATUSES)))
 		# An applicant-wise shortfall has no loan, and so no company
@@ -112,6 +113,7 @@ def get_columns():
 			"width": 130,
 		},
 		{"label": _("Current LTV"), "fieldname": "current_ltv", "fieldtype": "Percent", "width": 100},
+		{"label": _("Prices Missing"), "fieldname": "missing_price", "fieldtype": "Check", "width": 110},
 		{"label": _("Opened On"), "fieldname": "opened_on", "fieldtype": "Date", "width": 100},
 		{"label": _("Days Open"), "fieldname": "days_open", "fieldtype": "Int", "width": 90},
 		{"label": _("Ageing"), "fieldname": "ageing", "fieldtype": "Data", "width": 80},
