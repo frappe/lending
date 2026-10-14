@@ -41,6 +41,67 @@ class LoanSecurityShortfall(Document):
 
 
 OPEN_STATUSES = ("Pending", "Notified", "Escalated", "Sale Triggered")
+DRAWN_SECURED_LOANS = {"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1}
+OUTSTANDING_FIELDS = [
+	"name",
+	"loan_amount",
+	"total_principal_paid",
+	"total_payment",
+	"total_interest_payable",
+	"disbursed_amount",
+	"status",
+]
+
+
+class CollateralValuation:
+	"""Values a loan's pledged collateral at current prices against each security's LTV and sell level."""
+
+	def __init__(self, price_map=None):
+		self.price_map = price_map if price_map is not None else get_current_price_map()
+		self.ltv_ratio_map = get_ltv_ratio_map()
+		self.sell_ltv_map = get_ltv_ratio_map(field="sell_ltv")
+
+	def value_loan(self, loan):
+		collateral = frappe._dict(
+			pledged_qty=get_pledged_security_qty(loan=loan),
+			security_value=0.0,
+			allowed_amount=0.0,
+			sell_amount=0.0,
+			has_sell_level=False,
+		)
+		for security, qty in collateral.pledged_qty.items():
+			# Fully released or sold securities stay in the map at 0 and must not bring their sell level
+			if flt(qty) <= 0:
+				continue
+			value = flt(self.price_map.get(security)) * flt(qty)
+			sell_ltv = flt(self.sell_ltv_map.get(security))
+			collateral.security_value += value
+			collateral.allowed_amount += value * flt(self.ltv_ratio_map.get(security)) / 100
+			# A security with no sell level never triggers an early sale by itself
+			collateral.sell_amount += value * (sell_ltv or 100) / 100
+			collateral.has_sell_level = collateral.has_sell_level or bool(sell_ltv)
+		return collateral
+
+
+def get_current_price_map():
+	update_time = get_datetime()
+	return frappe._dict(
+		frappe.get_all(
+			"Loan Security Price",
+			fields=["loan_security", "loan_security_price"],
+			filters={"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)},
+			as_list=1,
+		)
+	)
+
+
+def get_outstanding_amount(loan):
+	drawn_amount = loan.total_payment if loan.status == "Disbursed" else loan.disbursed_amount
+	return flt(drawn_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
+
+
+def get_current_ltv(loan_amount, security_value):
+	return (flt(loan_amount) / security_value) * 100 if security_value else 0
 
 
 def update_shortfall_status(loan, security_value, on_cancel=0, cure_method=None):
@@ -100,18 +161,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		get_total_pledged_security_value,
 	)
 
-	update_time = get_datetime()
+	loan_security_price_map = get_current_price_map()
 
-	loan_security_price_map = frappe._dict(
-		frappe.get_all(
-			"Loan Security Price",
-			fields=["loan_security", "loan_security_price"],
-			filters={"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)},
-			as_list=1,
-		)
-	)
-
-	filters={"status": ("in", ["Disbursed", "Partially Disbursed"]), "is_secured_loan": 1}
+	filters = dict(DRAWN_SECURED_LOANS)
 
 	if loan:
 		filters["name"] = loan
@@ -119,19 +171,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 	if applicant:
 		filters["applicant"] = applicant
 
-	loans = frappe.get_all(
-		"Loan",
-		fields=[
-			"name",
-			"loan_amount",
-			"total_principal_paid",
-			"total_payment",
-			"total_interest_payable",
-			"disbursed_amount",
-			"status",
-		],
-		filters=filters,
-	)
+	loans = frappe.get_all("Loan", fields=OUTSTANDING_FIELDS, filters=filters)
 
 	applicant_filters = {}
 	if applicant:
@@ -148,46 +188,25 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		)
 	)
 
-	ltv_ratio_map = get_ltv_ratio_map()
-	sell_ltv_map = get_ltv_ratio_map(field="sell_ltv")
+	valuation = CollateralValuation(loan_security_price_map)
 
 	# Loan-wise shortfall processing
 	for loan in loans:
-		if loan.status == "Disbursed":
-			outstanding_amount = (
-				flt(loan.total_payment) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
-		else:
-			outstanding_amount = (
-				flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
+		outstanding_amount = get_outstanding_amount(loan)
+		collateral = valuation.value_loan(loan.name)
 
-		pledged_securities = get_pledged_security_qty(loan=loan.name)
-		security_value = 0.0
-		allowed_amount = 0.0
-		sell_amount = 0.0
-		has_sell_level = False
-
-		for security, qty in pledged_securities.items():
-			value = flt(loan_security_price_map.get(security)) * flt(qty)
-			security_value += value
-			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
-			# A security with no sell level never triggers an early sale by itself
-			sell_amount += value * (flt(sell_ltv_map.get(security)) or 100) / 100
-			has_sell_level = has_sell_level or bool(flt(sell_ltv_map.get(security)))
-
-		shortfall_amount = outstanding_amount - allowed_amount
+		shortfall_amount = outstanding_amount - collateral.allowed_amount
 		# A security with no current price is valued at 0, so a missing price raises a shortfall
-		if has_pledged_qty(pledged_securities) and flt(shortfall_amount, 6) > 0:
-			current_ratio = (outstanding_amount / security_value) * 100 if security_value else 0
+		if has_pledged_qty(collateral.pledged_qty) and flt(shortfall_amount, 6) > 0:
 			create_loan_security_shortfall(
 				outstanding_amount,
-				security_value,
+				collateral.security_value,
 				shortfall_amount,
-				current_ratio,
+				get_current_ltv(outstanding_amount, collateral.security_value),
 				process_loan_security_shortfall,
 				loan=loan.name,
-				sale_triggered=has_sell_level and flt(outstanding_amount - sell_amount, 6) > 0,
+				sale_triggered=collateral.has_sell_level
+				and flt(outstanding_amount - collateral.sell_amount, 6) > 0,
 			)
 		elif loan_shortfall_map.get(loan.name) and flt(shortfall_amount, 6) <= 0:
 			update_pending_shortfall(loan_shortfall_map.get(loan.name), loan.name)
@@ -200,12 +219,11 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		shortfall_amount = security_value - pending_principal_amount
 		if flt(shortfall_amount) < 0:
 			collateral_value = get_collateral_value(applicant, loan_security_price_map)
-			current_ratio = (pending_principal_amount / collateral_value) * 100 if collateral_value else 0
 			create_loan_security_shortfall(
 				pending_principal_amount,
 				security_value,
 				abs(shortfall_amount),
-				current_ratio,
+				get_current_ltv(pending_principal_amount, collateral_value),
 				process_loan_security_shortfall,
 				applicant=applicant,
 			)
