@@ -134,7 +134,7 @@ class LoanSecurityRelease(Document):
 					references = (rows[key].get("release_reference") or "").split(", ")
 					if values.get("release_reference") not in references:
 						rows[key]["release_reference"] = ", ".join(
-							filter(None, [*references, values.get("release_reference")])
+							[ref for ref in [*references, values.get("release_reference")] if ref]
 						)
 				else:
 					rows[key] = {**values, "qty": qty, "loan_security_assignment": name}
