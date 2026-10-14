@@ -23,6 +23,7 @@
   "cure_by",
   "column_break_margin_call",
   "cure_method",
+  "missing_price",
   "applicant_email",
   "section_break_8",
   "process_loan_security_shortfall"
@@ -134,6 +135,15 @@
    "fieldtype": "Select",
    "label": "Cure Method",
    "options": "\nRepayment\nAdditional Pledge\nPrice Recovery\nSale",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Some pledged securities have no current price, so they count at 0. The margin call waits, and no early sale starts, until their prices are loaded",
+   "fieldname": "missing_price",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Prices Missing",
    "read_only": 1
   },
   {

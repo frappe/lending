@@ -28,6 +28,7 @@ class LoanSecurityShortfall(Document):
 		cure_method: DF.Literal["", "Repayment", "Additional Pledge", "Price Recovery", "Sale"]
 		loan: DF.Link | None
 		loan_amount: DF.Currency
+		missing_price: DF.Check
 		notified_on: DF.Datetime | None
 		process_loan_security_shortfall: DF.Link | None
 		security_value: DF.Currency
@@ -68,11 +69,13 @@ class CollateralValuation:
 			allowed_amount=0.0,
 			sell_amount=0.0,
 			has_sell_level=False,
+			missing_price=False,
 		)
 		for security, qty in collateral.pledged_qty.items():
 			# Fully released or sold securities stay in the map at 0 and must not bring their sell level
 			if flt(qty) <= 0:
 				continue
+			collateral.missing_price = collateral.missing_price or not flt(self.price_map.get(security))
 			value = flt(self.price_map.get(security)) * flt(qty)
 			sell_ltv = flt(self.sell_ltv_map.get(security))
 			collateral.security_value += value
@@ -205,8 +208,11 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				get_current_ltv(outstanding_amount, collateral.security_value),
 				process_loan_security_shortfall,
 				loan=loan.name,
-				sale_triggered=collateral.has_sell_level
+				# A missing price counts as 0 and would start a sale on data, not on a price fall
+				sale_triggered=not collateral.missing_price
+				and collateral.has_sell_level
 				and flt(outstanding_amount - collateral.sell_amount, 6) > 0,
+				missing_price=collateral.missing_price,
 			)
 		elif loan_shortfall_map.get(loan.name) and flt(shortfall_amount, 6) <= 0:
 			update_pending_shortfall(loan_shortfall_map.get(loan.name), loan.name)
@@ -218,14 +224,15 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 		shortfall_amount = security_value - pending_principal_amount
 		if flt(shortfall_amount) < 0:
-			collateral_value = get_collateral_value(applicant, loan_security_price_map)
+			collateral = get_applicant_collateral(applicant, loan_security_price_map)
 			create_loan_security_shortfall(
 				pending_principal_amount,
 				security_value,
 				abs(shortfall_amount),
-				get_current_ltv(pending_principal_amount, collateral_value),
+				get_current_ltv(pending_principal_amount, collateral.security_value),
 				process_loan_security_shortfall,
 				applicant=applicant,
+				missing_price=collateral.missing_price,
 			)
 
 		sanctioned_limit = frappe.db.get_value(
@@ -246,6 +253,7 @@ def create_loan_security_shortfall(
 	loan=None,
 	applicant=None,
 	sale_triggered=False,
+	missing_price=False,
 ):
 
 	if loan:
@@ -274,6 +282,7 @@ def create_loan_security_shortfall(
 	ltv_shortfall.shortfall_amount = shortfall_amount
 	ltv_shortfall.shortfall_percentage = shortfall_ratio
 	ltv_shortfall.process_loan_security_shortfall = process_loan_security_shortfall
+	ltv_shortfall.missing_price = missing_price
 	if sale_triggered:
 		ltv_shortfall.status = "Sale Triggered"
 	ltv_shortfall.save()
@@ -309,10 +318,15 @@ def has_pledged_qty(pledged_securities):
 	return any(flt(qty) > 0 for qty in pledged_securities.values())
 
 
-def get_collateral_value(applicant, loan_security_price_map):
-	return sum(
-		flt(loan_security_price_map.get(security)) * flt(qty)
+def get_applicant_collateral(applicant, loan_security_price_map):
+	held = {
+		security: flt(qty)
 		for security, qty in get_pledged_security_qty(applicant=applicant).items()
+		if flt(qty) > 0
+	}
+	return frappe._dict(
+		security_value=sum(flt(loan_security_price_map.get(security)) * qty for security, qty in held.items()),
+		missing_price=any(not flt(loan_security_price_map.get(security)) for security in held),
 	)
 
 

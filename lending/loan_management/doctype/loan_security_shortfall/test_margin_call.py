@@ -137,6 +137,26 @@ class TestMarginCall(LendingTestSuite):
 
 		self.assertFalse(collateral.has_sell_level)
 
+	def test_missing_price_holds_the_margin_call(self):
+		frappe.db.set_value("Loan Security", "Test Security 2", "sell_ltv", 60)
+		loan = make_secured_loan(self.applicant)
+
+		frappe.db.delete("Loan Security Price", {"loan_security": "Test Security 2"})
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan})
+		self.assertTrue(shortfall.missing_price)
+		self.assertEqual(shortfall.status, "Pending")
+		self.assertFalse(shortfall.notified_on)
+
+		# Once a real price below the sell level arrives, the margin call goes ahead
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall.reload()
+		self.assertFalse(shortfall.missing_price)
+		self.assertEqual(shortfall.status, "Sale Triggered")
+		self.assertTrue(shortfall.notified_on)
+
 	def test_cure_by_repayment(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
