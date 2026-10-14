@@ -10,6 +10,7 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
+  "price_validity_days",
   "disabled"
  ],
  "fields": [
@@ -43,10 +44,19 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "default": "1",
+   "description": "Working days a new price from a Loan Security Price Update stays valid, e.g. 1 for shares and 365 for property",
+   "fieldname": "price_validity_days",
+   "fieldtype": "Int",
+   "label": "Price Validity (Working Days)",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "links": [],
- "modified": "2025-03-19 11:46:50.950227",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

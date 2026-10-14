@@ -19,6 +19,7 @@ class LoanSecurityType(Document):
 		haircut: DF.Percent
 		loan_security_type: DF.Data
 		loan_to_value_ratio: DF.Percent
+		price_validity_days: DF.Int
 	# end: auto-generated types
 
 	pass
