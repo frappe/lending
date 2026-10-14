@@ -545,6 +545,109 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		self.assertEqual(frappe.db.get_value("Loan Security Release", release.name, "docstatus"), 2)
 		self.assertEqual(frappe.db.get_value("Loan Security Assignment", lsa.name, "docstatus"), 2)
 
+	def test_cancelling_an_imported_closed_loan_keeps_it_closed(self):
+		loan = make_loan()
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 100, "lien_reference": "PSN-1"}],
+			loan=loan.name,
+			applicant=loan.applicant,
+		).submit()
+		unpledge_security(
+			loan=loan.name,
+			save=1,
+			submit=1,
+			approve=1,
+			release_references={"Test Security 1": "UNPLEDGE-1"},
+		)
+		frappe.db.set_value("Loan", loan.name, "is_imported", 1)
+
+		loan.reload()
+		loan.cancel()
+
+		self.assertEqual(frappe.db.get_value("Loan", loan.name, "status"), "Closed")
+
+	def make_loan_pledges(self, loan, *quantities):
+		pledges = []
+		for qty in quantities:
+			lsa = make_pledge(
+				[{"loan_security": "Test Security 1", "qty": qty, "lien_reference": f"PSN-{qty}"}],
+				loan=loan.name,
+				applicant=loan.applicant,
+			)
+			lsa.submit()
+			pledges.append(lsa)
+		return pledges
+
+	def test_rows_split_across_pledges_cannot_release_more_than_the_loan_holds(self):
+		loan = self.make_loan_pledges(make_loan(), 50, 50)[0].loan
+		# An old release of this loan the patch could not link still lowers what the loan holds.
+		old = make_unlinked_release("_Test Customer 1", 50)
+		frappe.db.set_value("Loan Security Release", old.name, "loan", loan)
+
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"unpledge more",
+			unpledge_security,
+			loan=loan,
+			security_map={"Test Security 1": 100},
+			save=1,
+		)
+
+	def test_release_without_a_loan_leaves_the_loans_pledges(self):
+		loan = make_loan()
+		self.make_loan_pledges(loan, 50)
+		(free,) = self.make_pledges(loan.applicant, 50)
+
+		release = self.approve_release(loan.applicant, 50)
+
+		self.assertEqual(
+			[(row.loan_security_assignment, row.qty) for row in release.securities], [(free.name, 50)]
+		)
+		loan.reload()
+		loan.cancel()
+
+	def test_a_blank_row_merges_with_a_row_on_the_same_pledge(self):
+		applicant = "_Test Merged Release Customer"
+		first, second = self.make_pledges(applicant, 50, 30)
+
+		release = make_release(
+			[
+				{"loan_security": "Test Security 1", "qty": 10, "loan_security_assignment": first.name},
+				{"loan_security": "Test Security 1", "qty": 5},
+			],
+			applicant=applicant,
+		)
+		self.assertEqual(
+			[(row.loan_security_assignment, row.qty) for row in release.securities], [(first.name, 15)]
+		)
+
+		release = make_release(
+			[{"loan_security": "Test Security 1", "qty": 30}, {"loan_security": "Test Security 1", "qty": 5}],
+			applicant=applicant,
+		)
+		self.assertEqual(
+			[(row.loan_security_assignment, row.qty) for row in release.securities],
+			[(first.name, 35)],
+		)
+
+	def test_old_release_with_nothing_left_to_free_cannot_be_approved(self):
+		applicant = "_Test Old Requests Customer"
+		self.make_pledges(applicant, 100)
+		requests = []
+		for _i in range(2):
+			release = make_unlinked_release(applicant, 100)
+			frappe.db.set_value(
+				"Loan Security Release", release.name, {"status": "Requested", "unpledge_time": None}
+			)
+			requests.append(release)
+
+		link_releases_to_assignments()
+
+		second = frappe.get_doc("Loan Security Release", requests[1].name)
+		self.assertFalse(second.securities[0].loan_security_assignment)
+		second.status = "Approved"
+		self.assertRaisesRegex(frappe.ValidationError, "No pledge is left", second.save)
+
 	def test_patch_links_old_releases_to_the_oldest_pledges(self):
 		applicant = "_Test Old Release Customer"
 		first, second = self.make_pledges(applicant, 50, 30)

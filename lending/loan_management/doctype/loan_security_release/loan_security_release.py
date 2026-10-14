@@ -47,8 +47,8 @@ class LoanSecurityRelease(Document):
 		return super().save(*args, **kwargs)
 
 	def validate(self):
-		self.allocate_to_assignments()
 		self.validate_duplicate_securities()
+		self.allocate_to_assignments()
 		self.validate_unpledge_qty()
 		self.validate_release_references()
 
@@ -56,7 +56,7 @@ class LoanSecurityRelease(Document):
 		# Each row names the pledge it frees, so that pledge cannot be cancelled while this
 		# release still subtracts its shares. A row left blank takes the oldest pledges of that
 		# security first, split into one row per pledge where needed.
-		candidates = self.get_candidate_assignments()
+		candidates = get_candidate_assignments(self.loan, self.applicant_type, self.applicant)
 		unreleased = get_unreleased_qty(candidates, exclude_release=self.name, for_update=True)
 
 		for row in self.securities:
@@ -68,7 +68,7 @@ class LoanSecurityRelease(Document):
 				message = (
 					_("Row {0}: {1} is not a pledge of {2} by {3} on Loan {4}.")
 					if self.loan
-					else _("Row {0}: {1} is not a pledge of {2} by {3}.")
+					else _("Row {0}: {1} is not a pledge of {2} by {3} without a loan.")
 				)
 				frappe.throw(
 					message.format(
@@ -95,25 +95,13 @@ class LoanSecurityRelease(Document):
 			return
 
 		fields = get_unpledge_fields()
-		rows = []
+		rows = {}
 		for row in self.securities:
 			values = {field: row.get(field) for field in fields}
 			if row.loan_security_assignment:
-				rows.append(values)
-				continue
-
-			remaining = flt(row.qty)
-			for name in candidates:
-				free = flt(unreleased.get((name, row.loan_security)))
-				if remaining <= 0:
-					break
-				if free <= 0:
-					continue
-
-				qty = min(free, remaining)
-				rows.append({**values, "qty": qty, "loan_security_assignment": name})
-				unreleased[(name, row.loan_security)] -= qty
-				remaining -= qty
+				pieces, remaining = [(row.loan_security_assignment, flt(row.qty))], 0
+			else:
+				pieces, remaining = allocate(flt(row.qty), row.loan_security, candidates, unreleased)
 
 			if remaining > 0:
 				message = (
@@ -122,7 +110,7 @@ class LoanSecurityRelease(Document):
 					)
 					if self.loan
 					else _(
-						"Row {0}: only {1} of {2} is pledged by {3} and not yet released. You are trying to release {4}."
+						"Row {0}: only {1} of {2} is pledged by {3} without a loan and not yet released. You are trying to release {4}."
 					)
 				)
 				frappe.throw(
@@ -137,24 +125,36 @@ class LoanSecurityRelease(Document):
 					title=_("Loan Security Release Error"),
 				)
 
+			# A blank row can take a pledge that another row already frees, so the two are merged.
+			for name, qty in pieces:
+				key = (row.loan_security, name)
+				if key in rows:
+					rows[key]["qty"] += qty
+					rows[key]["release_reference"] = rows[key].get("release_reference") or values.get(
+						"release_reference"
+					)
+				else:
+					rows[key] = {**values, "qty": qty, "loan_security_assignment": name}
+
 		self.set("securities", [])
-		for row in rows:
+		for row in rows.values():
 			self.append("securities", row)
-
-	def get_candidate_assignments(self):
-		filters = {"docstatus": 1, "status": "Pledged"}
-		if self.loan:
-			filters["loan"] = self.loan
-		else:
-			filters.update({"applicant_type": self.applicant_type, "applicant": self.applicant})
-
-		return frappe.get_all(
-			"Loan Security Assignment", filters=filters, order_by="pledge_time asc, creation asc", pluck="name"
-		)
 
 	def before_update_after_submit(self):
 		# Approval changes the status on a submitted release, which skips validate.
 		self.validate_release_references()
+		self.validate_rows_linked()
+
+	def validate_rows_linked(self):
+		# A release made before rows were linked, whose shares the patch found already released
+		# by another release, must not be approved as well.
+		if self.status == "Approved" and self.has_value_changed("status"):
+			validate_references(
+				self.securities,
+				"loan_security_assignment",
+				_("No pledge is left to release {0} from. Cancel this release."),
+				_("Already Released"),
+			)
 
 	def validate_release_references(self):
 		if self.status == "Approved":
@@ -171,8 +171,11 @@ class LoanSecurityRelease(Document):
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_duplicate_securities(self):
+		# Blank rows are merged per pledge once allocated, so only the named rows can repeat.
 		seen = set()
 		for d in self.securities:
+			if not d.loan_security_assignment:
+				continue
 			key = (d.loan_security, d.loan_security_assignment)
 			if key in seen:
 				frappe.throw(
@@ -219,9 +222,12 @@ class LoanSecurityRelease(Document):
 			unpledge_qty_map = {}
 			ltv_ratio = 0
 
+			# One security can be split across rows, one per pledge, so the rows are summed.
 			for security in self.securities:
 				pledged_qty = pledge_qty_map.get(security.loan_security, 0)
-				if security.qty > pledged_qty:
+				unpledge_qty_map.setdefault(security.loan_security, 0)
+				unpledge_qty_map[security.loan_security] += security.qty
+				if unpledge_qty_map[security.loan_security] > pledged_qty:
 					msg = _("Row {0}: {1} of {2} is pledged against Loan {3}.").format(
 						security.idx,
 						pledged_qty,
@@ -231,9 +237,6 @@ class LoanSecurityRelease(Document):
 					msg += "<br>"
 					msg += _("You are trying to unpledge more.")
 					frappe.throw(msg, title=_("Loan Security Release Error"))
-
-				unpledge_qty_map.setdefault(security.loan_security, 0)
-				unpledge_qty_map[security.loan_security] += security.qty
 
 			for security in pledge_qty_map:
 				if not ltv_ratio:
@@ -278,8 +281,9 @@ class LoanSecurityRelease(Document):
 
 	def update_loan_status(self, cancel=0):
 		if cancel:
-			loan_status = frappe.get_value("Loan", self.loan, "status")
-			if loan_status == "Closed":
+			# Cancelling a Loan cancels its releases too, and that Loan sets its own status.
+			loan = frappe.db.get_value("Loan", self.loan, ["status", "docstatus"], as_dict=True)
+			if loan and loan.docstatus == 1 and loan.status == "Closed":
 				frappe.db.set_value("Loan", self.loan, "status", "Loan Closure Requested")
 		else:
 			pledged_qty = 0
@@ -338,6 +342,42 @@ def get_unpledge_fields():
 	return [
 		df.fieldname for df in frappe.get_meta("Unpledge").fields if df.fieldtype not in no_value_fields
 	]
+
+
+def get_candidate_assignments(loan, applicant_type, applicant):
+	# A release without a loan frees only pledges without one, so it cannot lower a loan's
+	# security without that loan's LTV check, or block that loan's cancellation.
+	filters = {"docstatus": 1, "status": "Pledged"}
+	if loan:
+		filters["loan"] = loan
+	else:
+		filters.update({"applicant_type": applicant_type, "applicant": applicant, "loan": ("is", "not set")})
+
+	return frappe.get_all(
+		"Loan Security Assignment", filters=filters, order_by="pledge_time asc, creation asc", pluck="name"
+	)
+
+
+def allocate(qty, loan_security, candidates, unreleased):
+	"""Take `qty` of `loan_security` from the oldest candidates first.
+
+	Return [(assignment, qty)] and the quantity left over.
+	"""
+	pieces = []
+	for name in candidates:
+		if qty <= 0:
+			break
+
+		free = flt(unreleased.get((name, loan_security)))
+		if free <= 0:
+			continue
+
+		taken = min(free, qty)
+		pieces.append((name, taken))
+		unreleased[(name, loan_security)] -= taken
+		qty -= taken
+
+	return pieces, qty
 
 
 def get_unreleased_qty(assignments, exclude_release=None, for_update=False):

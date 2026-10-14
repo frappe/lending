@@ -2,6 +2,8 @@ import frappe
 from frappe.utils import flt
 
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	allocate,
+	get_candidate_assignments,
 	get_unpledge_fields,
 	get_unreleased_qty,
 )
@@ -29,7 +31,7 @@ def execute():
 		if all(row.loan_security_assignment for row in rows):
 			continue
 
-		candidates = get_candidates(release)
+		candidates = get_candidate_assignments(release.loan, release.applicant_type, release.applicant)
 		unreleased = get_unreleased_qty(candidates)
 		next_idx = max(row.idx for row in rows) + 1
 
@@ -37,18 +39,7 @@ def execute():
 			if row.loan_security_assignment:
 				continue
 
-			pieces, remaining = [], flt(row.qty)
-			for name in candidates:
-				free = flt(unreleased.get((name, row.loan_security)))
-				if remaining <= 0:
-					break
-				if free <= 0:
-					continue
-				qty = min(free, remaining)
-				pieces.append((name, qty))
-				unreleased[(name, row.loan_security)] -= qty
-				remaining -= qty
-
+			pieces, remaining = allocate(flt(row.qty), row.loan_security, candidates, unreleased)
 			if not pieces:
 				continue
 			if remaining > 0:
@@ -77,15 +68,3 @@ def execute():
 				)
 				piece.db_insert()
 				next_idx += 1
-
-
-def get_candidates(release):
-	filters = {"docstatus": 1, "status": "Pledged"}
-	if release.loan:
-		filters["loan"] = release.loan
-	else:
-		filters.update({"applicant_type": release.applicant_type, "applicant": release.applicant})
-
-	return frappe.get_all(
-		"Loan Security Assignment", filters=filters, order_by="pledge_time asc, creation asc", pluck="name"
-	)
