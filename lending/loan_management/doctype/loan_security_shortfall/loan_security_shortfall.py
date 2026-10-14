@@ -159,8 +159,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
 
 		shortfall_amount = outstanding_amount - allowed_amount
-		if security_value and flt(shortfall_amount, 6) > 0:
-			current_ratio = (outstanding_amount / security_value) * 100
+		# A security with no current price is valued at 0, so a missing price raises a shortfall
+		if has_pledged_qty(pledged_securities) and flt(shortfall_amount, 6) > 0:
+			current_ratio = (outstanding_amount / security_value) * 100 if security_value else 0
 			create_loan_security_shortfall(
 				outstanding_amount,
 				security_value,
@@ -259,6 +260,10 @@ def get_ltv_ratio_map(loan_securities=None):
 		row.name: flt(row.loan_to_value_ratio) or flt(row.type_ltv_ratio)
 		for row in query.run(as_dict=True)
 	}
+
+
+def has_pledged_qty(pledged_securities):
+	return any(flt(qty) > 0 for qty in pledged_securities.values())
 
 
 def update_pending_shortfall(shortfall):
