@@ -175,6 +175,25 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			frappe.ValidationError, make_pledge, [{"loan_security": "Test Security 1", "qty": 100}]
 		)
 
+	def test_security_disabled_after_the_request_is_not_pledged_by_the_loan(self):
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 100, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+		lsa = create_pledge_from_application(loan_application)
+		frappe.db.set_value("Pledge", {"parent": lsa}, "lien_reference", "PSN-1")
+		frappe.db.set_value("Loan Security", "Test Security 2", "disabled", 1)
+
+		loan = create_loan_with_security(
+			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+
+		self.assertRaisesRegex(frappe.ValidationError, "is disabled", loan.submit)
+
 	def test_single_security_share_cap(self):
 		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
 

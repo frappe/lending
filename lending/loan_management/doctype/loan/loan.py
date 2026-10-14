@@ -635,9 +635,11 @@ class Loan(LoanController):
 
 	def validate_requested_pledge(self):
 		# Creating the loan marks the requested pledge as Pledged, and only Pledged
-		# assignments count toward the exposure cap, so both checks run here.
+		# assignments count toward the exposure cap, so these checks run here. A security
+		# can also be disabled after the request was saved.
 		if lsa_details := self.get_requested_loan_security_assignment():
 			lsa = frappe.get_doc("Loan Security Assignment", lsa_details[0])
+			lsa.validate_securities()
 			validate_lien_references(lsa.securities)
 			lsa.validate_security_limits()
 
