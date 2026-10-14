@@ -197,6 +197,26 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 	)
 
 
+def get_sold_qty_map(company=None, by_applicant=False):
+	"""Quantity sold by submitted Loan Security Sales, per security or per (applicant, security)."""
+	sale = frappe.qb.DocType("Loan Security Sale")
+	item = frappe.qb.DocType("Loan Security Sale Item")
+	keys = [sale.applicant, item.loan_security] if by_applicant else [item.loan_security]
+
+	query = (
+		frappe.qb.from_(item)
+		.inner_join(sale)
+		.on(item.parent == sale.name)
+		.select(*keys, fn.Sum(item.sold_qty))
+		.where(sale.docstatus == 1)
+		.groupby(*keys)
+	)
+	if company:
+		query = query.where(sale.company == company)
+
+	return {(tuple(row[:-1]) if by_applicant else row[0]): flt(row[-1]) for row in query.run()}
+
+
 @frappe.whitelist()
 def get_pledged_security_qty(loan: str | None = None, applicant: str | None = None):
 	if loan:
@@ -222,21 +242,36 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 		pledge_doctype.parent == loan_security_assignment_doctype.name
 	).select(
 		pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty")
-	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
+	).where(loan_security_assignment_doctype.docstatus == 1).where(
+		# A Repossessed assignment's pledges stay counted so that the sales which emptied it net them out
+		loan_security_assignment_doctype.status.isin(["Pledged", "Repossessed"])
+	)
+
+	sale_item_doctype = frappe.qb.DocType("Loan Security Sale Item")
+	sale_doctype = frappe.qb.DocType("Loan Security Sale")
+
+	sale_query = frappe.qb.from_(sale_item_doctype).inner_join(sale_doctype).on(
+		sale_item_doctype.parent == sale_doctype.name
+	).select(
+		sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty")
+	).where(sale_doctype.docstatus == 1)
 
 	if loan:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.loan == loan)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.loan == loan)
+		sale_query = sale_query.where(sale_doctype.loan == loan)
 
 	if applicant:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
+		sale_query = sale_query.where(sale_doctype.applicant == applicant)
 
 	unpledges = frappe._dict(unpledge_query.groupby(unpldge_doctype.loan_security).run())
 	pledges = frappe._dict(pledge_query.groupby(pledge_doctype.loan_security).run())
+	sales = frappe._dict(sale_query.groupby(sale_item_doctype.loan_security).run())
 
 	for security, qty in pledges.items():
 		current_pledges.setdefault(security, qty)
-		current_pledges[security] -= unpledges.get(security, 0.0)
+		current_pledges[security] -= unpledges.get(security, 0.0) + sales.get(security, 0.0)
 
 	return current_pledges
