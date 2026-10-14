@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import comma_and, flt, get_datetime, getdate
@@ -46,9 +47,98 @@ class LoanSecurityRelease(Document):
 		return super().save(*args, **kwargs)
 
 	def validate(self):
+		self.allocate_to_assignments()
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
 		self.validate_release_references()
+
+	def allocate_to_assignments(self):
+		# Each row names the pledge it frees, so that pledge cannot be cancelled while this
+		# release still subtracts its shares. A row left blank takes the oldest pledges of that
+		# security first, split into one row per pledge where needed.
+		candidates = self.get_candidate_assignments()
+		unreleased = get_unreleased_qty(candidates, exclude_release=self.name, for_update=True)
+
+		for row in self.securities:
+			if not row.loan_security_assignment:
+				continue
+
+			key = (row.loan_security_assignment, row.loan_security)
+			if key not in unreleased:
+				frappe.throw(
+					_("Row {0}: {1} is not a pledge of {2} by {3}{4}.").format(
+						row.idx,
+						frappe.bold(row.loan_security_assignment),
+						frappe.bold(row.loan_security),
+						frappe.bold(self.applicant),
+						_(" on Loan {0}").format(frappe.bold(self.loan)) if self.loan else "",
+					)
+				)
+			if flt(row.qty) > flt(unreleased[key]):
+				frappe.throw(
+					_("Row {0}: only {1} of {2} on {3} is not yet released.").format(
+						row.idx,
+						flt(unreleased[key]),
+						frappe.bold(row.loan_security),
+						frappe.bold(row.loan_security_assignment),
+					),
+					title=_("Already Released"),
+				)
+			unreleased[key] -= flt(row.qty)
+
+		if all(row.loan_security_assignment for row in self.securities):
+			return
+
+		fields = get_unpledge_fields()
+		rows = []
+		for row in self.securities:
+			values = {field: row.get(field) for field in fields}
+			if row.loan_security_assignment:
+				rows.append(values)
+				continue
+
+			remaining = flt(row.qty)
+			for name in candidates:
+				free = flt(unreleased.get((name, row.loan_security)))
+				if remaining <= 0:
+					break
+				if free <= 0:
+					continue
+
+				qty = min(free, remaining)
+				rows.append({**values, "qty": qty, "loan_security_assignment": name})
+				unreleased[(name, row.loan_security)] -= qty
+				remaining -= qty
+
+			if remaining > 0:
+				frappe.throw(
+					_(
+						"Row {0}: only {1} of {2} is pledged by {3}{4} and not yet released. You are trying to release {5}."
+					).format(
+						row.idx,
+						flt(row.qty) - remaining,
+						frappe.bold(row.loan_security),
+						frappe.bold(self.applicant),
+						_(" on Loan {0}").format(frappe.bold(self.loan)) if self.loan else "",
+						flt(row.qty),
+					),
+					title=_("Loan Security Release Error"),
+				)
+
+		self.set("securities", [])
+		for row in rows:
+			self.append("securities", row)
+
+	def get_candidate_assignments(self):
+		filters = {"docstatus": 1, "status": "Pledged"}
+		if self.loan:
+			filters["loan"] = self.loan
+		else:
+			filters.update({"applicant_type": self.applicant_type, "applicant": self.applicant})
+
+		return frappe.get_all(
+			"Loan Security Assignment", filters=filters, order_by="pledge_time asc, creation asc", pluck="name"
+		)
 
 	def before_update_after_submit(self):
 		# Approval changes the status on a submitted release, which skips validate.
@@ -69,16 +159,16 @@ class LoanSecurityRelease(Document):
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_duplicate_securities(self):
-		security_list = []
+		seen = set()
 		for d in self.securities:
-			if d.loan_security not in security_list:
-				security_list.append(d.loan_security)
-			else:
+			key = (d.loan_security, d.loan_security_assignment)
+			if key in seen:
 				frappe.throw(
 					_("Row {0}: Loan Security {1} added multiple times").format(
 						d.idx, frappe.bold(d.loan_security)
 					)
 				)
+			seen.add(key)
 
 	def validate_unpledge_qty(self):
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
@@ -230,6 +320,54 @@ def validate_references(securities, fieldname, message, title):
 	missing = [row.get("loan_security") for row in securities if not (row.get(fieldname) or "").strip()]
 	if missing:
 		frappe.throw(message.format(comma_and(missing)), title=title)
+
+
+def get_unpledge_fields():
+	return [
+		df.fieldname for df in frappe.get_meta("Unpledge").fields if df.fieldtype not in no_value_fields
+	]
+
+
+def get_unreleased_qty(assignments, exclude_release=None, for_update=False):
+	"""Return {(assignment, loan_security): qty} still to be released on each assignment.
+
+	A submitted release that is not yet approved already claims its quantity, so two
+	releases cannot both be made for the same shares.
+	"""
+	if not assignments:
+		return {}
+
+	pledge = frappe.qb.DocType("Pledge")
+	unpledge = frappe.qb.DocType("Unpledge")
+	release = frappe.qb.DocType("Loan Security Release")
+
+	pledged_query = (
+		frappe.qb.from_(pledge)
+		.select(pledge.parent, pledge.loan_security, fn.Sum(pledge.qty))
+		.where(pledge.parenttype == "Loan Security Assignment")
+		.where(pledge.parent.isin(assignments))
+		.groupby(pledge.parent, pledge.loan_security)
+	)
+	released_query = (
+		frappe.qb.from_(unpledge)
+		.inner_join(release)
+		.on(unpledge.parent == release.name)
+		.select(unpledge.loan_security_assignment, unpledge.loan_security, fn.Sum(unpledge.qty))
+		.where(release.docstatus == 1)
+		.where(unpledge.loan_security_assignment.isin(assignments))
+		.groupby(unpledge.loan_security_assignment, unpledge.loan_security)
+	)
+	if exclude_release:
+		released_query = released_query.where(release.name != exclude_release)
+	if for_update:
+		pledged_query = pledged_query.for_update()
+		released_query = released_query.for_update()
+
+	released = {(name, security): flt(qty) for name, security, qty in released_query.run()}
+	return {
+		(name, security): flt(qty) - released.get((name, security), 0.0)
+		for name, security, qty in pledged_query.run()
+	}
 
 
 @frappe.whitelist()

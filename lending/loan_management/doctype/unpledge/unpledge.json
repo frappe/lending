@@ -12,7 +12,8 @@
   "haircut",
   "column_break_5",
   "qty",
-  "release_reference"
+  "release_reference",
+  "loan_security_assignment"
  ],
  "fields": [
   {
@@ -70,12 +71,21 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Release Reference"
+  },
+  {
+   "description": "The pledge this row frees. Left blank, it is filled from the applicant's oldest pledges of this security when the release is saved.",
+   "fieldname": "loan_security_assignment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Security Assignment",
+   "options": "Loan Security Assignment",
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-09 15:00:00.000000",
+ "modified": "2026-10-14 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Unpledge",

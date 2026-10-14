@@ -659,6 +659,12 @@ class Loan(LoanController):
 			self.db_set("maximum_loan_amount", maximum_loan_value)
 
 	def cancel_loan_security_assignment(self):
+		# Releases link to the Loan and to the assignments they free, so they are cancelled first.
+		for release in frappe.get_all(
+			"Loan Security Release", filters={"loan": self.name, "docstatus": 1}, pluck="name"
+		):
+			frappe.get_doc("Loan Security Release", release).cancel()
+
 		if not self.loan_application:
 			for assignment in frappe.get_all(
 				"Loan Security Assignment",
