@@ -118,6 +118,28 @@ class TestLoanSecuritySale(LendingTestSuite):
 				row.loan_disbursement,
 			)
 
+	def test_line_of_credit_proceeds_pay_the_sale_charge(self):
+		from lending.tests.test_utils import add_or_update_loan_charges
+
+		add_or_update_loan_charges("Term Loan Product 5")
+		frappe.db.set_single_value("Lending Settings", "sale_charge", "Processing Fee")
+
+		loan = make_line_of_credit_loan(self.applicant)
+		sale = make_sale(loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 2000})
+		sale.charges = 5000
+		sell(sale, {"Test Security 2": (2000, 250)})
+		sale.apply_proceeds()
+
+		demand = frappe.db.get_value(
+			"Loan Demand",
+			{"loan": loan, "demand_type": "Charges", "demand_subtype": "Processing Fee", "docstatus": 1},
+			["loan_disbursement", "outstanding_amount"],
+			as_dict=True,
+		)
+		self.assertTrue(demand.loan_disbursement)
+		self.assertEqual(flt(demand.outstanding_amount), 0)
+
 	def test_release_without_a_loan_cannot_exceed_the_pledge(self):
 		from lending.tests.test_utils import create_loan_security_release
 
