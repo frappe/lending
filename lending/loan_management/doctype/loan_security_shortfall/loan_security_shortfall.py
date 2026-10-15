@@ -32,6 +32,7 @@ class LoanSecurityShortfall(Document):
 		missing_price: DF.Check
 		notified_on: DF.Datetime | None
 		process_loan_security_shortfall: DF.Link | None
+		reminded_on: DF.Datetime | None
 		security_value: DF.Currency
 		shortfall_amount: DF.Currency
 		shortfall_percentage: DF.Percent

@@ -21,6 +21,7 @@
   "margin_call_section",
   "notified_on",
   "cure_by",
+  "reminded_on",
   "column_break_margin_call",
   "cure_method",
   "missing_price",
@@ -125,6 +126,13 @@
    "fieldname": "cure_by",
    "fieldtype": "Date",
    "label": "Cure By",
+   "read_only": 1
+  },
+  {
+   "description": "When the Margin Call Reminder was sent, two days before Cure By",
+   "fieldname": "reminded_on",
+   "fieldtype": "Datetime",
+   "label": "Reminded On",
    "read_only": 1
   },
   {

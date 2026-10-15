@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import cint, get_datetime, getdate, nowdate
+from frappe.utils import cint, date_diff, get_datetime, nowdate
 
 import erpnext
 
@@ -7,6 +7,7 @@ from lending.loan_management.collections import get_applicant_email
 from lending.loan_management.utils import add_working_days
 
 PROCESSED_STATUSES = ("Pending", "Notified", "Sale Triggered")
+REMINDER_DAYS = 2
 
 
 def process_open_shortfalls():
@@ -45,10 +46,18 @@ class MarginCall:
 		if not self.doc.notified_on and not self.notify():
 			return
 
-		if self.doc.status == "Notified" and getdate(self.doc.cure_by) < getdate(nowdate()):
+		days_left = date_diff(self.doc.cure_by, nowdate()) if self.doc.cure_by else None
+		if self.doc.status == "Notified" and days_left < 0:
 			self.escalate()
+		elif self.doc.status == "Notified" and days_left <= REMINDER_DAYS and not self.doc.reminded_on:
+			self.remind()
 		elif self.doc.status == "Sale Triggered":
 			self.draft_sale()
+
+	def remind(self):
+		self.doc.db_set("reminded_on", get_datetime())
+		# Sends the standard "Margin Call Reminder" Notification
+		self.doc.run_method("remind_margin_call")
 
 	def notify(self):
 		"""Send the notice and start the cure period; without an email, flag it for staff instead."""

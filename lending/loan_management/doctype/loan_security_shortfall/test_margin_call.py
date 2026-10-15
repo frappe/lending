@@ -178,6 +178,26 @@ class TestMarginCall(LendingTestSuite):
 		self.assertEqual(shortfall.status, "Notified")
 		self.assertTrue(shortfall.cure_by)
 
+	def test_reminder_waits_for_prices_and_goes_once(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+		frappe.db.set_value("Loan Security Shortfall", shortfall, "cure_by", add_days(nowdate(), 2))
+
+		# Prices gone: the check flags the shortfall, and no reminder goes out
+		frappe.db.delete("Loan Security Price", {"loan_security": "Test Security 2"})
+		create_process_loan_security_shortfall()
+		self.assertFalse(frappe.db.get_value("Loan Security Shortfall", shortfall, "reminded_on"))
+
+		set_price(200)
+		create_process_loan_security_shortfall()
+		reminded_on = frappe.db.get_value("Loan Security Shortfall", shortfall, "reminded_on")
+		self.assertTrue(reminded_on)
+
+		process_open_shortfalls()
+		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall, "reminded_on"), reminded_on)
+
 	def test_cure_by_repayment(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
