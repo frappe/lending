@@ -189,6 +189,23 @@ class TestMarginCall(LendingTestSuite):
 		self.assertEqual(status, "Completed")
 		self.assertEqual(cure_method, "Additional Pledge")
 
+	def test_pledge_too_small_at_ltv_keeps_the_shortfall_open(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+
+		# ₹3,00,000 more collateral covers only ₹1,50,000 at LTV 50, short of the ₹2,00,000 gap
+		create_loan_security_assignment(
+			loan=loan, securities=[{"loan_security": "Test Security 2", "qty": 1500, "haircut": 50}]
+		)
+
+		status, shortfall_amount = frappe.db.get_value(
+			"Loan Security Shortfall", shortfall, ["status", "shortfall_amount"]
+		)
+		self.assertNotEqual(status, "Completed")
+		self.assertEqual(flt(shortfall_amount, 2), 50000)
+
 	def test_drawdown_blocked_while_short(self):
 		loan = make_secured_loan(self.applicant, disbursed_amount=700000)
 		set_price(100)
