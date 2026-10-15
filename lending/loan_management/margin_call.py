@@ -42,8 +42,8 @@ class MarginCall:
 		if self.doc.status not in PROCESSED_STATUSES or self.doc.missing_price:
 			return
 
-		if not self.doc.notified_on:
-			self.notify()
+		if not self.doc.notified_on and not self.notify():
+			return
 
 		if self.doc.status == "Notified" and getdate(self.doc.cure_by) < getdate(nowdate()):
 			self.escalate()
@@ -51,7 +51,16 @@ class MarginCall:
 			self.draft_sale()
 
 	def notify(self):
+		"""Send the notice and start the cure period; without an email, flag it for staff instead."""
 		self.doc.applicant_email = get_applicant_email(self.doc.applicant_type, self.doc.applicant)
+		if not self.doc.applicant_email:
+			if not self.doc.email_missing:
+				self.doc.email_missing = 1
+				# Saved, not db_set, so that the Margin Call Email Missing alert fires
+				self.doc.save(ignore_permissions=True)
+			return False
+
+		self.doc.email_missing = 0
 		self.doc.notified_on = get_datetime()
 		self.doc.cure_by = add_working_days(nowdate(), self.cure_days, self.get_holiday_list())
 		if self.doc.status == "Pending":
@@ -59,6 +68,7 @@ class MarginCall:
 		self.doc.save(ignore_permissions=True)
 		# Sends the standard "Margin Call Notice" Notification
 		self.doc.run_method("notify_margin_call")
+		return True
 
 	def escalate(self):
 		self.doc.db_set("status", "Escalated")

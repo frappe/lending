@@ -26,6 +26,7 @@ class LoanSecurityShortfall(Document):
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		cure_by: DF.Date | None
 		cure_method: DF.Literal["", "Repayment", "Additional Pledge", "Price Recovery", "Sale"]
+		email_missing: DF.Check
 		loan: DF.Link | None
 		loan_amount: DF.Currency
 		missing_price: DF.Check

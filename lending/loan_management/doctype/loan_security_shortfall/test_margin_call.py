@@ -41,6 +41,7 @@ class TestMarginCall(LendingTestSuite):
 		frappe.db.set_single_value("Lending Settings", {"enable_margin_call": 1, "margin_cure_days": 7})
 		set_price(250)
 		self.applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+		frappe.db.set_value("Customer", self.applicant, "email_id", "borrower@example.com")
 
 	def test_shortfall_is_notified_then_escalated_to_a_draft_sale(self):
 		# 8,000 units at ₹250 with haircut 50 lend ₹10,00,000
@@ -156,6 +157,26 @@ class TestMarginCall(LendingTestSuite):
 		self.assertFalse(shortfall.missing_price)
 		self.assertEqual(shortfall.status, "Sale Triggered")
 		self.assertTrue(shortfall.notified_on)
+
+	def test_borrower_without_email_is_flagged_and_not_notified(self):
+		frappe.db.set_value("Customer", self.applicant, "email_id", None)
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan})
+		self.assertTrue(shortfall.email_missing)
+		self.assertEqual(shortfall.status, "Pending")
+		self.assertFalse(shortfall.notified_on)
+		self.assertFalse(shortfall.cure_by)
+
+		# Once staff add the email, the next run sends the notice and starts the cure period
+		frappe.db.set_value("Customer", self.applicant, "email_id", "borrower@example.com")
+		process_open_shortfalls()
+		shortfall.reload()
+		self.assertFalse(shortfall.email_missing)
+		self.assertEqual(shortfall.status, "Notified")
+		self.assertTrue(shortfall.cure_by)
 
 	def test_cure_by_repayment(self):
 		loan = make_secured_loan(self.applicant)

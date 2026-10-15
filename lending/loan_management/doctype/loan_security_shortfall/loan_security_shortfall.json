@@ -24,6 +24,7 @@
   "column_break_margin_call",
   "cure_method",
   "missing_price",
+  "email_missing",
   "applicant_email",
   "section_break_8",
   "process_loan_security_shortfall"
@@ -144,6 +145,15 @@
    "fieldtype": "Check",
    "in_standard_filter": 1,
    "label": "Prices Missing",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "The borrower has no email address, so no margin call notice was sent and the cure period has not started. Add an email to the borrower and the next daily run sends the notice",
+   "fieldname": "email_missing",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Email Missing",
    "read_only": 1
   },
   {
