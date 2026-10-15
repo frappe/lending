@@ -17,6 +17,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	get_pledged_security_qty,
 	update_sanctioned_loan_amount_for_applicant,
 )
+from lending.loan_management.doctype.loan_security_sale.proceeds import SaleProceeds
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	get_ltv_ratio_map,
 )
@@ -34,6 +35,9 @@ class LoanSecuritySale(Document):
 		from lending.loan_management.doctype.loan_security_sale_item.loan_security_sale_item import (
 			LoanSecuritySaleItem,
 		)
+		from lending.loan_management.doctype.loan_security_sale_repayment.loan_security_sale_repayment import (
+			LoanSecuritySaleRepayment,
+		)
 
 		amended_from: DF.Link | None
 		amount_to_recover: DF.Currency
@@ -47,11 +51,11 @@ class LoanSecuritySale(Document):
 		gross_proceeds: DF.Currency
 		items: DF.Table[LoanSecuritySaleItem]
 		loan: DF.Link
-		loan_repayment: DF.Link | None
 		loan_security_shortfall: DF.Link | None
 		net_proceeds: DF.Currency
 		posting_date: DF.Date
 		reason: DF.Literal["Margin Call Not Cured", "Loan Default", "Borrower Request"]
+		repayments: DF.Table[LoanSecuritySaleRepayment]
 		status: DF.Literal["Draft", "Sold", "Proceeds Applied", "Cancelled"]
 		surplus_amount: DF.Currency
 	# end: auto-generated types
@@ -79,8 +83,9 @@ class LoanSecuritySale(Document):
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
-		# The submitted sale links to both, so neither can be cancelled before the sale itself
-		self.cancel_linked("Loan Repayment", self.loan_repayment)
+		# The submitted sale links to its repayments and charge, so none can be cancelled before it
+		for row in reversed(self.repayments):
+			self.cancel_linked("Loan Repayment", row.loan_repayment)
 		self.cancel_linked(self.charge_voucher_type, self.charge_voucher)
 		self.update_assignment_status()
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
@@ -129,36 +134,8 @@ class LoanSecuritySale(Document):
 		if self.docstatus != 1 or status != "Sold":
 			frappe.throw(_("Only a sold Loan Security Sale can apply its proceeds"))
 
-		self.book_charges()
-		payable_amount = calculate_amounts(self.loan, self.posting_date, payment_type="Loan Closure")[
-			"payable_amount"
-		]
-		amount_paid = min(flt(self.gross_proceeds), flt(payable_amount))
-
-		repayment = None
-		if amount_paid > 0:
-			repayment = frappe.get_doc(
-				{
-					"doctype": "Loan Repayment",
-					"against_loan": self.loan,
-					"company": self.company,
-					"posting_date": self.posting_date,
-					"value_date": self.posting_date,
-					"amount_paid": amount_paid,
-					"repayment_type": "Normal Repayment",
-					"reference_number": self.name,
-					"reference_date": self.posting_date,
-				}
-			).insert()
-			repayment.submit()
-
-		self.db_set(
-			{
-				"status": "Proceeds Applied",
-				"loan_repayment": repayment.name if repayment else None,
-				"surplus_amount": flt(self.gross_proceeds) - amount_paid,
-			}
-		)
+		surplus_amount = SaleProceeds(self).apply()
+		self.db_set({"status": "Proceeds Applied", "surplus_amount": surplus_amount})
 
 	def set_amount_to_recover(self):
 		if flt(self.amount_to_recover) or not self.loan:
@@ -261,33 +238,3 @@ class LoanSecuritySale(Document):
 			if status != assignment.status:
 				frappe.db.set_value("Loan Security Assignment", assignment.name, "status", status)
 
-	def book_charges(self):
-		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
-		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
-			make_sales_invoice_for_charge,
-		)
-		from lending.loan_management.utils import loan_accounting_enabled
-
-		if not flt(self.charges):
-			return
-
-		charge = frappe.db.get_single_value("Lending Settings", "sale_charge")
-		if loan_accounting_enabled(self.company):
-			voucher = make_sales_invoice_for_charge(
-				self.loan,
-				"remarks",
-				_("Sale charge for Loan Security Sale {0}").format(self.name),
-				self.applicant if self.applicant_type == "Customer" else None,
-				self.posting_date,
-				self.company,
-				[frappe._dict(charge=charge, amount=self.charges)],
-			)
-		else:
-			voucher = create_loan_demand(
-				loan=self.loan,
-				demand_date=self.posting_date,
-				demand_type="Charges",
-				demand_subtype=charge,
-				amount=self.charges,
-			)
-		self.db_set({"charge_voucher_type": voucher.doctype, "charge_voucher": voucher.name})

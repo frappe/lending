@@ -14,6 +14,7 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 	create_process_loan_security_shortfall,
 )
 from lending.tests.test_utils import (
+	create_loan,
 	create_loan_application,
 	create_loan_security,
 	create_loan_security_price,
@@ -64,7 +65,10 @@ class TestLoanSecuritySale(LendingTestSuite):
 		sale.apply_proceeds()
 		sale.reload()
 		self.assertEqual(sale.status, "Proceeds Applied")
-		self.assertEqual(frappe.db.get_value("Loan Repayment", sale.loan_repayment, "amount_paid"), 400000)
+		self.assertEqual(len(sale.repayments), 1)
+		self.assertEqual(
+			frappe.db.get_value("Loan Repayment", sale.repayments[0].loan_repayment, "amount_paid"), 400000
+		)
 		self.assertEqual(flt(sale.surplus_amount), 0)
 
 		create_process_loan_security_shortfall()
@@ -82,9 +86,37 @@ class TestLoanSecuritySale(LendingTestSuite):
 
 		sale.apply_proceeds()
 		sale.reload()
-		amount_paid = flt(frappe.db.get_value("Loan Repayment", sale.loan_repayment, "amount_paid"))
+		amount_paid = sum(flt(row.amount) for row in sale.repayments)
 		self.assertGreaterEqual(amount_paid, 1000000)
 		self.assertEqual(flt(sale.surplus_amount, 2), flt(1600000 - amount_paid, 2))
+
+	def test_proceeds_above_dues_are_applied_when_the_product_caps_normal_repayment(self):
+		frappe.db.set_value("Loan Product", "Stock Loan", "validate_normal_repayment", 1)
+
+		sale = make_sale(self.loan, reason="Borrower Request")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
+		sell(sale, {"Test Security 2": (1000, 250)})
+		sale.apply_proceeds()
+		sale.reload()
+
+		self.assertEqual(sale.repayments[0].repayment_type, "Pre Payment")
+		self.assertEqual(flt(sale.repayments[0].amount), 250000)
+
+	def test_line_of_credit_proceeds_repay_each_disbursement(self):
+		loan = make_line_of_credit_loan(self.applicant)
+		sale = make_sale(loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 2000})
+		sell(sale, {"Test Security 2": (2000, 250)})
+		sale.apply_proceeds()
+		sale.reload()
+
+		self.assertEqual(len(sale.repayments), 2)
+		self.assertTrue(all(row.loan_disbursement for row in sale.repayments))
+		for row in sale.repayments:
+			self.assertEqual(
+				frappe.db.get_value("Loan Repayment", row.loan_repayment, "loan_disbursement"),
+				row.loan_disbursement,
+			)
 
 	def test_sale_charge_is_demanded_from_the_borrower(self):
 		from lending.tests.test_utils import add_or_update_loan_charges
@@ -138,7 +170,9 @@ class TestLoanSecuritySale(LendingTestSuite):
 		self.assertTrue(sale.charge_voucher)
 
 		sale.cancel()
-		self.assertEqual(frappe.db.get_value("Loan Repayment", sale.loan_repayment, "docstatus"), 2)
+		self.assertEqual(
+			frappe.db.get_value("Loan Repayment", sale.repayments[0].loan_repayment, "docstatus"), 2
+		)
 		self.assertEqual(frappe.db.get_value(sale.charge_voucher_type, sale.charge_voucher, "docstatus"), 2)
 
 	def test_exposure_report_counts_the_sale(self):
@@ -181,6 +215,35 @@ def set_price(price):
 	create_loan_security_price(
 		"Test Security 2", price, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
 	)
+
+
+def make_line_of_credit_loan(applicant):
+	"""A ₹5,00,000 credit line with two ₹1,00,000 drawdowns, secured by 4,000 units of security 2."""
+	loan = create_loan(
+		applicant,
+		"Term Loan Product 5",
+		500000,
+		"Repay Over Number of Periods",
+		12,
+		repayment_start_date=add_days(nowdate(), 20),
+		posting_date=add_days(nowdate(), -30),
+		rate_of_interest=25,
+		applicant_type="Customer",
+		limit_applicable_start=add_days(nowdate(), -60),
+		limit_applicable_end=add_days(nowdate(), 300),
+	)
+	loan.submit()
+	for days_ago in (20, 10):
+		make_loan_disbursement_entry(
+			loan.name,
+			100000,
+			disbursement_date=add_days(nowdate(), -days_ago),
+			repayment_start_date=add_days(nowdate(), 20),
+		)
+	create_loan_security_assignment(
+		loan=loan.name, securities=[{"loan_security": "Test Security 2", "qty": 4000}]
+	)
+	return loan.name
 
 
 def make_secured_loan(applicant, qty):
