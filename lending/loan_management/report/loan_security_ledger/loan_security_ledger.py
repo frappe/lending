@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import functions as fn
 from frappe.query_builder.custom import ConstantColumn
+from frappe.utils import get_datetime
 
 
 def execute(filters: dict | None = None):
@@ -103,7 +104,7 @@ def get_data(filters) -> list[list]:
 	).inner_join(security_doctype).on(
 		sale_item_doctype.loan_security == security_doctype.name
 	).select(
-		sale_doctype.loan, ConstantColumn("Loan Security Sale").as_("doctype"), sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty"), sale_doctype.posting_date.as_("date"), security_doctype.loan_security_type
+		sale_doctype.loan, ConstantColumn("Loan Security Sale").as_("doctype"), sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty"), sale_doctype.creation.as_("date"), security_doctype.loan_security_type
 	).where(sale_doctype.docstatus == 1)
 
 	if loan:
@@ -129,7 +130,8 @@ def get_data(filters) -> list[list]:
 	pledges = pledge_query.groupby(pledge_doctype.loan_security).run(as_dict=True)
 	sales = sale_query.groupby(sale_item_doctype.loan_security).run(as_dict=True)
 
-	result = pledges + unpledges + sales
+	# A row with no time recorded would otherwise break the sort on a None
+	result = sorted(pledges + unpledges + sales, key=lambda row: get_datetime(row.date))
 
 	if filters.get("loan_security"):
 		for d in result:
@@ -140,4 +142,4 @@ def get_data(filters) -> list[list]:
 
 			d["balance_qty"] = balance_qty
 
-	return sorted(result, key=lambda x: x.date)
+	return result
