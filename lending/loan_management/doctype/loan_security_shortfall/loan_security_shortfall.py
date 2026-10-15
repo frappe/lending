@@ -193,6 +193,15 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		)
 	)
 
+	applicant_shortfall_map = frappe._dict(
+		frappe.get_all(
+			"Loan Security Shortfall",
+			fields=["applicant", "name"],
+			filters={"status": ("in", OPEN_STATUSES), "loan": ("is", "not set")},
+			as_list=1,
+		)
+	)
+
 	valuation = CollateralValuation(loan_security_price_map)
 
 	# Loan-wise shortfall processing
@@ -236,6 +245,8 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				applicant=applicant,
 				missing_price=collateral.missing_price,
 			)
+		elif applicant_shortfall_map.get(applicant):
+			update_pending_shortfall(applicant_shortfall_map[applicant], loan=None)
 
 		sanctioned_limit = frappe.db.get_value(
 			"Sanctioned Loan Amount", {"applicant": applicant}, "name"
@@ -365,7 +376,7 @@ def recheck_loan_shortfall(loan, cure_method=None):
 
 def update_pending_shortfall(shortfall, loan, cure_method=None):
 	shortfall_details = frappe.db.get_value(
-		"Loan Security Shortfall", shortfall, ["name", "creation"], as_dict=1
+		"Loan Security Shortfall", shortfall, ["name", "creation", "applicant"], as_dict=1
 	)
 	frappe.db.set_value(
 		"Loan Security Shortfall",
@@ -395,9 +406,13 @@ def get_cure_method(shortfall, loan):
 		return "Sale"
 
 	since = {"creation": (">=", shortfall.creation), "docstatus": 1}
-	if frappe.db.exists("Loan Repayment", {"against_loan": loan, **since}):
+	# An applicant-wise shortfall has no loan, so look at everything the applicant did
+	repayments = {"against_loan": loan} if loan else {"applicant": shortfall.applicant}
+	pledges = {"loan": loan} if loan else {"applicant": shortfall.applicant}
+
+	if frappe.db.exists("Loan Repayment", {**repayments, **since}):
 		return "Repayment"
-	if frappe.db.exists("Loan Security Assignment", {"loan": loan, "status": "Pledged", **since}):
+	if frappe.db.exists("Loan Security Assignment", {**pledges, "status": "Pledged", **since}):
 		return "Additional Pledge"
 	return "Price Recovery"
 

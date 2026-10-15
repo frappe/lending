@@ -301,3 +301,12 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		# Test Customer Sanctioned Limit
 		sanctioned_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit")
 		self.assertEqual(flt(sanctioned_limit), 400000)
+
+		# Back at ₹500 the pledge allows ₹10,00,000, so the applicant-wise shortfall completes
+		update_loan_security_price("Test Security 1", 500, "INR", get_datetime(), get_datetime(add_to_date(nowdate(), hours=24)))
+		create_process_loan_security_shortfall()
+		status, cure_method = frappe.db.get_value(
+			"Loan Security Shortfall", shortfall_details.name, ["status", "cure_method"]
+		)
+		self.assertEqual(status, "Completed")
+		self.assertEqual(cure_method, "Price Recovery")
