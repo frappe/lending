@@ -64,7 +64,8 @@ def get_loans(filters):
 	if filters.applicant:
 		loan_filters["applicant"] = filters.applicant
 
-	return frappe.get_all("Loan", filters=loan_filters, fields=["name", "applicant"])
+	# get_list, so that a reader's user permissions (for example, one company) apply
+	return frappe.get_list("Loan", filters=loan_filters, fields=["name", "applicant"])
 
 
 def get_security_map():

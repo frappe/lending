@@ -63,7 +63,8 @@ def get_loans(filters):
 		if filters.get(field):
 			loan_filters[field] = filters.get(field)
 
-	return frappe.get_all(
+	# get_list, so that a reader's user permissions (for example, one company) apply
+	return frappe.get_list(
 		"Loan", filters=loan_filters, fields=[*OUTSTANDING_FIELDS, "applicant", "loan_product"]
 	)
 

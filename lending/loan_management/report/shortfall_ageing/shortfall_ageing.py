@@ -23,7 +23,7 @@ def get_data(filters):
 	today = getdate(nowdate())
 
 	data = []
-	for shortfall in get_shortfalls(filters):
+	for shortfall in filter_permitted(get_shortfalls(filters)):
 		days_open = date_diff(today, shortfall.creation)
 		sale = sale_map.get(shortfall.name, {})
 		data.append(
@@ -73,6 +73,18 @@ def get_shortfalls(filters):
 		query = query.where(shortfall.applicant == filters.applicant)
 
 	return query.run(as_dict=True)
+
+
+def filter_permitted(shortfalls):
+	"""Keep the shortfalls whose loan, or applicant when there is no loan, the reader may see."""
+	loans = {row.loan for row in shortfalls if row.loan}
+	permitted_loans = set(frappe.get_list("Loan", filters={"name": ("in", loans)}, pluck="name")) if loans else set()
+	return [
+		row
+		for row in shortfalls
+		if (row.loan in permitted_loans)
+		or (not row.loan and frappe.has_permission("Customer", "read", doc=row.applicant))
+	]
 
 
 def get_sale_map():

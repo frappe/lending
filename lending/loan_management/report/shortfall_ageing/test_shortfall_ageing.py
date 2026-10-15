@@ -51,8 +51,46 @@ class TestShortfallAgeing(LendingTestSuite):
 		_columns, data = execute({"company": "_Test Company", "status": "Escalated"})
 		self.assertNotIn(shortfall, [row["loan_security_shortfall"] for row in data])
 
+	def test_reader_restricted_to_another_company_sees_no_rows(self):
+		from lending.loan_management.report.ltv_by_loan.ltv_by_loan import execute as ltv_by_loan
+
+		applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+		loan = make_secured_loan(applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		def loans_seen_by(user):
+			frappe.set_user(user)
+			try:
+				_columns, ageing = execute({"company": "_Test Company"})
+				_columns, ltv = ltv_by_loan({"company": "_Test Company"})
+			finally:
+				frappe.set_user("Administrator")
+			return {row["loan"] for row in ageing}, {row["loan"] for row in ltv}
+
+		ageing, ltv = loans_seen_by(make_reporter_restricted_to("_Test Company 1"))
+		self.assertNotIn(loan, ageing)
+		self.assertNotIn(loan, ltv)
+
+		ageing, ltv = loans_seen_by(make_reporter_restricted_to("_Test Company"))
+		self.assertIn(loan, ageing)
+		self.assertIn(loan, ltv)
+
 	def test_buckets(self):
 		self.assertEqual(get_bucket(0), "0-7")
 		self.assertEqual(get_bucket(7), "0-7")
 		self.assertEqual(get_bucket(30), "16-30")
 		self.assertEqual(get_bucket(31), "31+")
+
+
+def make_reporter_restricted_to(company):
+	email = f"_test_reporter_{frappe.scrub(company)}@example.com"
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Loan Reporter", "send_welcome_email": 0}
+		).insert()
+	frappe.get_doc("User", email).add_roles("Loan Reporter")
+	frappe.get_doc(
+		{"doctype": "User Permission", "user": email, "allow": "Company", "for_value": company}
+	).insert()
+	return email
