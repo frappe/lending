@@ -161,7 +161,20 @@ class TestLoanSecuritySale(LendingTestSuite):
 				sale.apply_proceeds()
 		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan, "demand_type": "Charges"}))
 
-	def test_moratorium_refuses_proceeds_that_do_not_close_the_loan(self):
+	def test_moratorium_applies_partial_proceeds_as_normal_repayment(self):
+		set_moratorium(self.loan, add_days(nowdate(), 90))
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
+		sell(sale, {"Test Security 2": (1000, 200)})
+		sale.apply_proceeds()
+		sale.reload()
+
+		self.assertEqual(sale.repayments[0].repayment_type, "Normal Repayment")
+		self.assertEqual(flt(sale.repayments[0].amount), 200000)
+		self.assertEqual(sale.status, "Proceeds Applied")
+
+	def test_moratorium_refuses_partial_proceeds_when_the_product_caps_normal_repayment(self):
+		frappe.db.set_value("Loan Product", "Stock Loan", "validate_normal_repayment", 1)
 		set_moratorium(self.loan, add_days(nowdate(), 90))
 		sale = make_sale(self.loan, reason="Loan Default")
 		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
