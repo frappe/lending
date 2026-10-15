@@ -91,20 +91,13 @@ class SaleProceeds:
 
 		# A moratorium bars Pre Payment but not closure, which accepts a shortfall up to the write-off amount
 		loan_product = frappe.db.get_value("Loan", self.sale.loan, "loan_product")
-		write_off_amount, validate_normal_repayment = frappe.get_cached_value(
-			"Loan Product", loan_product, ["write_off_amount", "validate_normal_repayment"]
-		)
+		write_off_amount = frappe.get_cached_value("Loan Product", loan_product, "write_off_amount")
 		if flt(amount, 2) >= flt(flt(closure_amount) - flt(write_off_amount), 2):
 			return "Loan Closure"
-
-		# Nor does it bar Normal Repayment, unless the product caps that at the dues
-		if not validate_normal_repayment:
-			return "Normal Repayment"
-
 		currency = frappe.get_cached_value("Company", self.sale.company, "default_currency")
 		frappe.throw(
 			_(
-				"Loan {0} is in moratorium until {1}, and its product caps Normal Repayment at the dues of {2}. The proceeds exceed the dues but do not close the loan, so apply them after the moratorium ends"
+				"Loan {0} is in moratorium until {1}. The proceeds exceed the dues of {2} but do not close the loan, so apply them after the moratorium ends"
 			).format(
 				frappe.bold(self.sale.loan),
 				frappe.bold(formatdate(moratorium_end_date)),
