@@ -17,11 +17,29 @@ frappe.ui.form.on("Loan Security Sale", {
 		}
 
 		if (frm.doc.docstatus === 1 && frm.doc.status === "Sold") {
-			frm.add_custom_button(__("Apply Proceeds"), () =>
-				frm
-					.call({ method: "apply_proceeds", doc: frm.doc, freeze: true })
-					.then(() => frm.reload_doc())
-			);
+			frm.add_custom_button(__("Apply Proceeds"), () => {
+				// A sale held back by a moratorium is applied later, on a date past its end
+				frappe.prompt(
+					{
+						fieldname: "proceeds_date",
+						fieldtype: "Date",
+						label: __("Proceeds Date"),
+						default: frm.doc.posting_date,
+						reqd: 1,
+					},
+					({ proceeds_date }) =>
+						frm
+							.call({
+								method: "apply_proceeds",
+								doc: frm.doc,
+								args: { proceeds_date },
+								freeze: true,
+							})
+							.then(() => frm.reload_doc()),
+					__("Apply Proceeds"),
+					__("Apply")
+				);
+			});
 		}
 	},
 

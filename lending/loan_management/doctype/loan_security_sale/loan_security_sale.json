@@ -26,6 +26,7 @@
   "charge_voucher",
   "net_proceeds",
   "column_break_proceeds",
+  "proceeds_date",
   "surplus_amount",
   "repayments_section",
   "repayments",
@@ -195,6 +196,14 @@
    "read_only": 1
   },
   {
+   "description": "Date the proceeds were applied to the loan",
+   "fieldname": "proceeds_date",
+   "fieldtype": "Date",
+   "label": "Proceeds Date",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "description": "Proceeds left after the loan is paid, to refund to the borrower",
    "fieldname": "surplus_amount",
    "fieldtype": "Currency",
@@ -217,7 +226,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-15 12:00:00.000000",
+ "modified": "2026-10-15 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",

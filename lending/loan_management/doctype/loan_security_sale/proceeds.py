@@ -14,8 +14,9 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 class SaleProceeds:
 	"""Charges the sale fee and repays the loan from a submitted sale's gross proceeds."""
 
-	def __init__(self, sale):
+	def __init__(self, sale, proceeds_date):
 		self.sale = sale
+		self.proceeds_date = proceeds_date
 
 	def apply(self):
 		"""Repay each open disbursement in turn and return the surplus left for the borrower."""
@@ -58,12 +59,12 @@ class SaleProceeds:
 				"against_loan": self.sale.loan,
 				"loan_disbursement": disbursement,
 				"company": self.sale.company,
-				"posting_date": self.sale.posting_date,
-				"value_date": self.sale.posting_date,
+				"posting_date": self.proceeds_date,
+				"value_date": self.proceeds_date,
 				"amount_paid": amount,
 				"repayment_type": repayment_type,
 				"reference_number": self.sale.name,
-				"reference_date": self.sale.posting_date,
+				"reference_date": self.proceeds_date,
 			}
 		).insert()
 		repayment.submit()
@@ -85,7 +86,7 @@ class SaleProceeds:
 		if flt(amount, 2) <= flt(dues, 2):
 			return "Normal Repayment"
 
-		moratorium_end_date = get_moratorium_end_date(self.sale.loan, self.sale.posting_date)
+		moratorium_end_date = get_moratorium_end_date(self.sale.loan, self.proceeds_date)
 		if not moratorium_end_date:
 			return "Pre Payment"
 
@@ -97,7 +98,7 @@ class SaleProceeds:
 		currency = frappe.get_cached_value("Company", self.sale.company, "default_currency")
 		frappe.throw(
 			_(
-				"Loan {0} is in moratorium until {1}. The proceeds exceed the dues of {2} but do not close the loan, so apply them after the moratorium ends"
+				"Loan {0} is in moratorium until {1}. The proceeds exceed the dues of {2} but do not close the loan, so apply them with a Proceeds Date after the moratorium ends"
 			).format(
 				frappe.bold(self.sale.loan),
 				frappe.bold(formatdate(moratorium_end_date)),
@@ -109,7 +110,7 @@ class SaleProceeds:
 	def get_amounts(self, disbursement, payment_type=None):
 		return calculate_amounts(
 			self.sale.loan,
-			self.sale.posting_date,
+			self.proceeds_date,
 			payment_type=payment_type,
 			loan_disbursement=disbursement,
 		)
@@ -132,7 +133,7 @@ class SaleProceeds:
 				"remarks",
 				_("Sale charge for Loan Security Sale {0}").format(sale.name),
 				sale.applicant if sale.applicant_type == "Customer" else None,
-				sale.posting_date,
+				self.proceeds_date,
 				sale.company,
 				[frappe._dict(charge=charge, amount=sale.charges)],
 			)
@@ -152,7 +153,7 @@ class SaleProceeds:
 		else:
 			voucher = create_loan_demand(
 				loan=sale.loan,
-				demand_date=sale.posting_date,
+				demand_date=self.proceeds_date,
 				demand_type="Charges",
 				demand_subtype=charge,
 				amount=sale.charges,

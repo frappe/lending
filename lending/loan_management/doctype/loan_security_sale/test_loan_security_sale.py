@@ -171,6 +171,28 @@ class TestLoanSecuritySale(LendingTestSuite):
 			sale.apply_proceeds()
 		self.assertFalse(frappe.db.exists("Loan Repayment", {"reference_number": sale.name}))
 
+	def test_moratorium_proceeds_are_applied_on_a_later_date(self):
+		loan = make_line_of_credit_loan(self.applicant)
+		set_moratorium(loan, add_days(nowdate(), -2))
+		sale = make_sale(loan, reason="Loan Default")
+		sale.posting_date = add_days(nowdate(), -5)
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 200})
+		sell(sale, {"Test Security 2": (200, 250)})
+
+		with self.assertRaises(frappe.ValidationError):
+			sale.apply_proceeds()
+		with self.assertRaises(frappe.ValidationError):
+			sale.apply_proceeds(proceeds_date=add_days(nowdate(), 1))
+
+		sale.apply_proceeds(proceeds_date=nowdate())
+		sale.reload()
+		self.assertEqual(str(sale.proceeds_date), nowdate())
+		self.assertEqual(sale.repayments[0].repayment_type, "Pre Payment")
+		self.assertEqual(
+			str(frappe.db.get_value("Loan Repayment", sale.repayments[0].loan_repayment, "value_date"))[:10],
+			nowdate(),
+		)
+
 	def test_moratorium_closes_the_loan_when_proceeds_cover_it(self):
 		set_moratorium(self.loan, add_days(nowdate(), 90))
 		sale = make_sale(self.loan, reason="Loan Default")

@@ -6,7 +6,7 @@ import math
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate
+from frappe.utils import flt, getdate, nowdate
 
 from lending.loan_management.collections import get_applicant_email
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
@@ -54,6 +54,7 @@ class LoanSecuritySale(Document):
 		loan_security_shortfall: DF.Link | None
 		net_proceeds: DF.Currency
 		posting_date: DF.Date
+		proceeds_date: DF.Date | None
 		reason: DF.Literal["Margin Call Not Cured", "Loan Default", "Borrower Request"]
 		repayments: DF.Table[LoanSecuritySaleRepayment]
 		status: DF.Literal["Draft", "Sold", "Proceeds Applied", "Cancelled"]
@@ -126,7 +127,7 @@ class LoanSecuritySale(Document):
 			remaining -= sell_qty * cover_map[security]
 
 	@frappe.whitelist()
-	def apply_proceeds(self):
+	def apply_proceeds(self, proceeds_date: str | None = None):
 		# A locking read sees a parallel click's commit, and the reload drops any values the client sent
 		status = frappe.db.get_value(self.doctype, self.name, "status", for_update=True)
 		self.reload()
@@ -135,8 +136,17 @@ class LoanSecuritySale(Document):
 		if self.docstatus != 1 or status != "Sold":
 			frappe.throw(_("Only a sold Loan Security Sale can apply its proceeds"))
 
-		surplus_amount = SaleProceeds(self).apply()
-		self.db_set({"status": "Proceeds Applied", "surplus_amount": surplus_amount})
+		# Proceeds held back by a moratorium are applied later, on a date past its end
+		proceeds_date = getdate(proceeds_date or self.posting_date)
+		if proceeds_date < getdate(self.posting_date):
+			frappe.throw(_("Proceeds Date cannot be before the Posting Date of the sale"))
+		if proceeds_date > getdate(nowdate()):
+			frappe.throw(_("Proceeds Date cannot be in the future"))
+
+		surplus_amount = SaleProceeds(self, proceeds_date).apply()
+		self.db_set(
+			{"status": "Proceeds Applied", "surplus_amount": surplus_amount, "proceeds_date": proceeds_date}
+		)
 
 	def set_amount_to_recover(self):
 		if flt(self.amount_to_recover) or not self.loan:
