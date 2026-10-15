@@ -118,6 +118,14 @@ class TestLoanSecuritySale(LendingTestSuite):
 				row.loan_disbursement,
 			)
 
+	def test_release_without_a_loan_cannot_exceed_the_pledge(self):
+		from lending.tests.test_utils import create_loan_security_release
+
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_security_release(
+				self.applicant, "Customer", [{"loan_security": "Test Security 2", "qty": 1000000}]
+			)
+
 	def test_sale_charge_is_demanded_from_the_borrower(self):
 		from lending.tests.test_utils import add_or_update_loan_charges
 
@@ -209,6 +217,24 @@ class TestLoanSecuritySale(LendingTestSuite):
 		sale.append("items", {"loan_security": "Test Security 2", "sold_qty": 8001, "sale_price": 200})
 		with self.assertRaises(frappe.ValidationError):
 			sale.save()
+
+	def test_release_cannot_be_approved_after_a_sale_consumed_its_collateral(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		# At ₹500, 5,000 units left still allow ₹12,50,000 against ₹10,00,000 drawn
+		set_price(500)
+		release = unpledge_security(
+			loan=self.loan, security_map={"Test Security 2": 3000}, save=1, submit=1
+		)
+
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 6000})
+		sell(sale, {"Test Security 2": (6000, 500)})
+
+		release.status = "Approved"
+		with self.assertRaises(frappe.ValidationError):
+			release.save()
+		self.assertEqual(get_pledged_security_qty(loan=self.loan)["Test Security 2"], 2000)
 
 	def test_cancel_returns_the_collateral(self):
 		sale = make_sale(self.loan, reason="Loan Default")
