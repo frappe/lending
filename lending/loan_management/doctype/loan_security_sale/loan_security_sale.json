@@ -26,8 +26,9 @@
   "charge_voucher",
   "net_proceeds",
   "column_break_proceeds",
-  "loan_repayment",
   "surplus_amount",
+  "repayments_section",
+  "repayments",
   "amended_from"
  ],
  "fields": [
@@ -180,11 +181,17 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "loan_repayment",
-   "fieldtype": "Link",
-   "label": "Loan Repayment",
+   "fieldname": "repayments_section",
+   "fieldtype": "Section Break",
+   "label": "Repayments"
+  },
+  {
+   "description": "One Loan Repayment per open disbursement on a Line of Credit, else one for the loan",
+   "fieldname": "repayments",
+   "fieldtype": "Table",
+   "label": "Repayments",
    "no_copy": 1,
-   "options": "Loan Repayment",
+   "options": "Loan Security Sale Repayment",
    "read_only": 1
   },
   {
@@ -210,7 +217,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-14 12:00:00.000000",
+ "modified": "2026-10-15 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",
