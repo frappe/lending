@@ -65,6 +65,7 @@ class LoanSecuritySale(Document):
 			self.status = "Draft"
 			self.set_amount_to_recover()
 			self.applicant_email = get_applicant_email(self.applicant_type, self.applicant)
+		self.validate_shortfall_loan()
 		self.validate_items()
 		self.set_proceeds()
 
@@ -189,6 +190,19 @@ class LoanSecuritySale(Document):
 			row.proceeds = flt(row.sold_qty) * flt(row.sale_price)
 		self.gross_proceeds = sum(flt(row.proceeds) for row in self.items)
 		self.net_proceeds = self.gross_proceeds - flt(self.charges)
+
+	def validate_shortfall_loan(self):
+		if not self.loan_security_shortfall:
+			return
+		shortfall_loan = frappe.db.get_value("Loan Security Shortfall", self.loan_security_shortfall, "loan")
+		if shortfall_loan != self.loan:
+			frappe.throw(
+				_("Loan Security Shortfall {0} is for Loan {1}, not for Loan {2}").format(
+					frappe.bold(self.loan_security_shortfall),
+					frappe.bold(shortfall_loan or _("none")),
+					frappe.bold(self.loan),
+				)
+			)
 
 	def validate_shortfall_open(self):
 		if (

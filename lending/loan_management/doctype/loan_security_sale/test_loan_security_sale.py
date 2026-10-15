@@ -193,6 +193,17 @@ class TestLoanSecuritySale(LendingTestSuite):
 		sell(sale, {"Test Security 2": (3000, 200)})
 		self.assertEqual(before - exposure(), 3000)
 
+	def test_shortfall_must_belong_to_the_loan(self):
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": self.loan}, "name")
+
+		other_loan = make_secured_loan(self.applicant, 4000)
+		sale = make_sale(other_loan, loan_security_shortfall=shortfall)
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 100})
+		with self.assertRaises(frappe.ValidationError):
+			sale.insert()
+
 	def test_cannot_sell_more_than_pledged(self):
 		sale = make_sale(self.loan, reason="Loan Default")
 		sale.append("items", {"loan_security": "Test Security 2", "sold_qty": 8001, "sale_price": 200})
