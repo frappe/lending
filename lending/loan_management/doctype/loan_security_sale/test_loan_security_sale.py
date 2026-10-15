@@ -140,6 +140,43 @@ class TestLoanSecuritySale(LendingTestSuite):
 		self.assertTrue(demand.loan_disbursement)
 		self.assertEqual(flt(demand.outstanding_amount), 0)
 
+	def test_moratorium_refuses_proceeds_that_do_not_close_the_loan(self):
+		set_moratorium(self.loan, add_days(nowdate(), 90))
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
+		sell(sale, {"Test Security 2": (1000, 200)})
+
+		with self.assertRaises(frappe.ValidationError):
+			sale.apply_proceeds()
+		self.assertFalse(frappe.db.exists("Loan Repayment", {"reference_number": sale.name}))
+
+	def test_moratorium_closes_the_loan_when_proceeds_cover_it(self):
+		set_moratorium(self.loan, add_days(nowdate(), 90))
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 8000})
+		sell(sale, {"Test Security 2": (8000, 250)})
+		sale.apply_proceeds()
+		sale.reload()
+
+		self.assertEqual(sale.repayments[0].repayment_type, "Loan Closure")
+		self.assertGreater(flt(sale.surplus_amount), 0)
+
+	def test_moratorium_closure_accepts_the_write_off_shortfall(self):
+		from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+
+		set_moratorium(self.loan, add_days(nowdate(), 90))
+		frappe.db.set_value("Loan Product", "Stock Loan", "write_off_amount", 100)
+		self.addCleanup(frappe.db.set_value, "Loan Product", "Stock Loan", "write_off_amount", 0)
+
+		closure = flt(calculate_amounts(self.loan, nowdate(), payment_type="Loan Closure")["payable_amount"])
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1})
+		sell(sale, {"Test Security 2": (1, closure - 50)})
+		sale.apply_proceeds()
+		sale.reload()
+
+		self.assertEqual(sale.repayments[0].repayment_type, "Loan Closure")
+
 	def test_release_without_a_loan_cannot_exceed_the_pledge(self):
 		from lending.tests.test_utils import create_loan_security_release
 
@@ -273,6 +310,15 @@ class TestLoanSecuritySale(LendingTestSuite):
 def set_price(price):
 	create_loan_security_price(
 		"Test Security 2", price, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+	)
+
+
+def set_moratorium(loan, end_date):
+	frappe.db.set_value(
+		"Loan Repayment Schedule",
+		{"loan": loan, "docstatus": 1, "status": "Active"},
+		"moratorium_end_date",
+		end_date,
 	)
 
 
