@@ -118,6 +118,23 @@ def _claim_milestone(event: str) -> bool:
 	return claimed
 
 
+def _release_milestone(event: str) -> None:
+	frappe.db.delete(MILESTONE_DOCTYPE, {"event": event})
+
+
+def _claim_and_send(event: str, send) -> None:
+	"""Claim a once-only event, then send it. A failed send gives the claim back
+	so a later attempt can still send the event."""
+	if not _claim_milestone(event):
+		return
+
+	try:
+		send()
+	except Exception:
+		_release_milestone(event)
+		raise
+
+
 def capture_first(event: str, properties: dict | None = None, drives_conversion: bool = True) -> None:
 	"""Fire once per site, and only while the site is young.
 
@@ -130,14 +147,11 @@ def capture_first(event: str, properties: dict | None = None, drives_conversion:
 	if not age or age > ACTIVATION_WINDOW_DAYS:
 		return
 
-	if not _claim_milestone(event):
-		return
-
 	properties = {"day_since_install": age, **(properties or {})}
 	if drives_conversion:
-		capture(event, properties)
+		_claim_and_send(event, lambda: capture(event, properties))
 	else:
-		_capture(event, APP, properties=sanitize_properties(properties))
+		_claim_and_send(event, lambda: _capture(event, APP, properties=sanitize_properties(properties)))
 
 
 # ---- Conversion --------------------------------------------------------------
@@ -162,15 +176,17 @@ def _track_conversion() -> None:
 	if days_since_first_capture <= CONVERSION_WINDOW_DAYS:
 		return
 
-	if _claim_milestone(CONVERSION_EVENT):
-		_capture(
+	_claim_and_send(
+		CONVERSION_EVENT,
+		lambda: _capture(
 			CONVERSION_EVENT,
 			APP,
 			properties={
 				"days_since_first_capture": days_since_first_capture,
 				"day_since_install": site_age(),
 			},
-		)
+		),
+	)
 
 
 # ---- Recurring usage ---------------------------------------------------------

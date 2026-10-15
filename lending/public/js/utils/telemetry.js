@@ -69,6 +69,27 @@ const LENDING_REPORTS = new Set([
 	"ALM Audit Report",
 ]);
 
+// Route parts that are sent as text. Anything else is sent as "other", so a custom
+// or malformed route can never add free text to an event.
+const LIST_VIEWS = new Set([
+	"List",
+	"Report",
+	"Dashboard",
+	"Kanban",
+	"Calendar",
+	"Gantt",
+	"Tree",
+	"Map",
+	"Image",
+	"Inbox",
+	"Files",
+]);
+const ROUTE_TYPES = new Set(["Workspaces", "List", "Form", "query-report", "report", ""]);
+
+function fixed_option(value, allowed) {
+	return allowed.has(value) ? value : "other";
+}
+
 function lending_capture(event, props) {
 	if (!frappe.telemetry?.enabled) return;
 	try {
@@ -92,7 +113,7 @@ function classify(route) {
 	}
 
 	if (head === "List" && LENDING_DOCTYPES.has(route[1])) {
-		return { event: "viewed_list", props: { doctype: route[1], view: route[2] || "List" } };
+		return { event: "viewed_list", props: { doctype: route[1], view: fixed_option(route[2] || "List", LIST_VIEWS) } };
 	}
 
 	if (head === "Form" && LENDING_DOCTYPES.has(route[1])) {
@@ -177,7 +198,7 @@ function track_landing() {
 	const route = frappe.get_route() || [];
 	const hit = classify(route);
 	lending_capture("landed_on_desk", {
-		route_type: route[0] || "",
+		route_type: fixed_option(route[0] || "", ROUTE_TYPES),
 		landed_in_lending: Boolean(hit),
 		...(hit ? hit.props : {}),
 	});

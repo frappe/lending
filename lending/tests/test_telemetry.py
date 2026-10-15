@@ -153,12 +153,71 @@ class TestLendingTelemetry(LendingTestSuite):
 			},
 		)
 
-	def test_daily_pulse_is_aggregate_only(self):
-		capture_daily_portfolio_pulse()
+	def stub_portfolio_counts(self):
+		self.count_filters = {}
+		counts = {"Loan": 5, "Loan Disbursement": 3, "Loan Repayment": 4, "Loan Demand": 6}
 
-		for props in self.events("portfolio_daily_summary"):
-			self.assertTrue(all(isinstance(v, int) for v in props.values()))
-			self.assertIn("weekday", props)
+		def fake_count(doctype, filters=None, *args, **kwargs):
+			self.count_filters[doctype] = filters
+			if doctype == "Loan" and "is_npa" in filters:
+				return 1
+			if doctype == "Loan" and "days_past_due" in filters:
+				return 2
+			return counts[doctype]
+
+		return patch("frappe.db.count", side_effect=fake_count)
+
+	def test_daily_pulse_sends_one_summary_of_yesterday(self):
+		with patch("lending.telemetry.today", return_value="2026-03-12"), self.stub_portfolio_counts():
+			capture_daily_portfolio_pulse()
+
+		summaries = self.events("portfolio_daily_summary")
+		self.assertEqual(len(summaries), 1)
+		self.assertEqual(
+			summaries[0],
+			{
+				"active_loans": 5,
+				"npa_loans": 1,
+				"overdue_loans": 2,
+				"disbursements": 3,
+				"repayments": 4,
+				"demands_raised": 6,
+				# 2026-03-11 is a Wednesday, Monday is 0
+				"weekday": 2,
+			},
+		)
+		self.assertEqual(self.count_filters["Loan Repayment"]["posting_date"], "2026-03-11")
+		self.assertEqual(self.count_filters["Loan Demand"]["demand_date"], "2026-03-11")
+
+	def test_daily_pulse_is_silent_without_active_loans(self):
+		with patch("frappe.db.count", return_value=0):
+			capture_daily_portfolio_pulse()
+
+		self.assertEqual(self.events("portfolio_daily_summary"), [])
+
+	def test_failed_send_gives_the_claim_back(self):
+		self.release("first_loan_booked")
+
+		with patch("lending.telemetry._capture", side_effect=RuntimeError("provider down")):
+			on_loan_submit(frappe._dict())
+
+		self.assertFalse(frappe.db.exists(MILESTONE_DOCTYPE, "first_loan_booked"))
+
+		on_loan_submit(frappe._dict())
+		self.assertEqual(len(self.events("first_loan_booked")), 1)
+
+	def test_failed_conversion_send_can_be_retried(self):
+		self.release(CONVERSION_EVENT, FIRST_CAPTURE_MILESTONE)
+		capture("_test_usage")
+		frappe.db.set_value(MILESTONE_DOCTYPE, FIRST_CAPTURE_MILESTONE, "creation", "2000-01-01 10:00:00")
+
+		with patch("lending.telemetry._capture", side_effect=RuntimeError("provider down")):
+			with self.assertRaises(RuntimeError):
+				capture("_test_usage")
+		self.assertFalse(frappe.db.exists(MILESTONE_DOCTYPE, CONVERSION_EVENT))
+
+		capture("_test_usage")
+		self.assertEqual(len(self.events(CONVERSION_EVENT)), 1)
 
 	def test_table_driven_submit_event(self):
 		self.release("first_credit_bureau_report_pulled")
