@@ -14,7 +14,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	update_sanctioned_loan_amount_for_applicant,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-	update_shortfall_status,
+	recheck_loan_shortfall,
 )
 
 
@@ -51,7 +51,6 @@ class LoanSecurityAssignment(Document):
 
 	def on_submit(self):
 		if self.loan:
-			update_shortfall_status(self.loan, self.total_security_value, cure_method="Additional Pledge")
 			update_loan(self.loan, self.maximum_loan_value)
 
 		if not self.loan_application:
@@ -75,6 +74,10 @@ class LoanSecurityAssignment(Document):
 				}).insert()
 			else:
 				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+
+		# Only once the status is Pledged does the new collateral count in the loan's value
+		if self.loan:
+			recheck_loan_shortfall(self.loan, cure_method="Additional Pledge")
 
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()

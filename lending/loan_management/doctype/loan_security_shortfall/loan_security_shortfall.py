@@ -330,7 +330,38 @@ def get_applicant_collateral(applicant, loan_security_price_map):
 	)
 
 
-def update_pending_shortfall(shortfall, loan):
+def recheck_loan_shortfall(loan, cure_method=None):
+	"""Re-value the loan of an open shortfall after its collateral changed, at each security's LTV."""
+	shortfall = frappe.db.get_value(
+		"Loan Security Shortfall",
+		{"loan": loan, "status": ("in", OPEN_STATUSES)},
+		"name",
+		for_update=True,
+	)
+	if not shortfall:
+		return
+
+	outstanding_amount = get_outstanding_amount(
+		frappe.db.get_value("Loan", loan, OUTSTANDING_FIELDS, as_dict=1)
+	)
+	collateral = CollateralValuation().value_loan(loan)
+	shortfall_amount = outstanding_amount - collateral.allowed_amount
+
+	if flt(shortfall_amount, 6) <= 0:
+		update_pending_shortfall(shortfall, loan, cure_method)
+	else:
+		frappe.db.set_value(
+			"Loan Security Shortfall",
+			shortfall,
+			{
+				"security_value": collateral.security_value,
+				"shortfall_amount": shortfall_amount,
+				"shortfall_percentage": get_current_ltv(outstanding_amount, collateral.security_value),
+			},
+		)
+
+
+def update_pending_shortfall(shortfall, loan, cure_method=None):
 	shortfall_details = frappe.db.get_value(
 		"Loan Security Shortfall", shortfall, ["name", "creation"], as_dict=1
 	)
@@ -341,7 +372,7 @@ def update_pending_shortfall(shortfall, loan):
 			"status": "Completed",
 			"shortfall_amount": 0,
 			"shortfall_percentage": 0,
-			"cure_method": get_cure_method(shortfall_details, loan),
+			"cure_method": cure_method or get_cure_method(shortfall_details, loan),
 		},
 	)
 	discard_untouched_sales(shortfall)
