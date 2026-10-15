@@ -195,29 +195,60 @@ class TestLendingTelemetry(LendingTestSuite):
 
 		self.assertEqual(self.events("portfolio_daily_summary"), [])
 
+	def fail_only_for(self, target):
+		"""Stub `_capture` to raise for one event. Records whether that event's claim
+		existed at the moment of the send, so the test proves it got that far."""
+		self.claim_held_during_send = None
+
+		def collect_or_fail(event, app, properties=None):
+			if event == target:
+				self.claim_held_during_send = bool(frappe.db.exists(MILESTONE_DOCTYPE, target))
+				raise RuntimeError("provider down")
+			self.captured.append((event, properties or {}))
+
+		return patch("lending.telemetry._capture", side_effect=collect_or_fail)
+
+	def start_conversion_clock(self):
+		self.release(CONVERSION_EVENT, FIRST_CAPTURE_MILESTONE)
+		capture("_test_usage")
+		frappe.db.set_value(MILESTONE_DOCTYPE, FIRST_CAPTURE_MILESTONE, "creation", "2000-01-01 10:00:00")
+
 	def test_failed_send_gives_the_claim_back(self):
 		self.release("first_loan_booked")
 
-		with patch("lending.telemetry._capture", side_effect=RuntimeError("provider down")):
+		with self.fail_only_for("first_loan_booked"):
 			on_loan_submit(frappe._dict())
 
+		self.assertTrue(self.claim_held_during_send)
 		self.assertFalse(frappe.db.exists(MILESTONE_DOCTYPE, "first_loan_booked"))
 
 		on_loan_submit(frappe._dict())
 		self.assertEqual(len(self.events("first_loan_booked")), 1)
 
 	def test_failed_conversion_send_can_be_retried(self):
-		self.release(CONVERSION_EVENT, FIRST_CAPTURE_MILESTONE)
-		capture("_test_usage")
-		frappe.db.set_value(MILESTONE_DOCTYPE, FIRST_CAPTURE_MILESTONE, "creation", "2000-01-01 10:00:00")
+		self.start_conversion_clock()
 
-		with patch("lending.telemetry._capture", side_effect=RuntimeError("provider down")):
-			with self.assertRaises(RuntimeError):
-				capture("_test_usage")
+		with self.fail_only_for(CONVERSION_EVENT), self.assertRaises(RuntimeError):
+			capture("_test_usage")
+
+		self.assertTrue(self.claim_held_during_send)
 		self.assertFalse(frappe.db.exists(MILESTONE_DOCTYPE, CONVERSION_EVENT))
 
 		capture("_test_usage")
 		self.assertEqual(len(self.events(CONVERSION_EVENT)), 1)
+
+	def test_failed_conversion_does_not_resend_a_sent_milestone(self):
+		self.release("first_loan_disbursed")
+		self.start_conversion_clock()
+
+		with self.fail_only_for(CONVERSION_EVENT), self.assertRaises(RuntimeError):
+			capture_first("first_loan_disbursed")
+
+		self.assertEqual(len(self.events("first_loan_disbursed")), 1)
+		self.assertTrue(frappe.db.exists(MILESTONE_DOCTYPE, "first_loan_disbursed"))
+
+		capture_first("first_loan_disbursed")
+		self.assertEqual(len(self.events("first_loan_disbursed")), 1)
 
 	def test_table_driven_submit_event(self):
 		self.release("first_credit_bureau_report_pulled")

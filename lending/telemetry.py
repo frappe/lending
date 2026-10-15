@@ -122,17 +122,19 @@ def _release_milestone(event: str) -> None:
 	frappe.db.delete(MILESTONE_DOCTYPE, {"event": event})
 
 
-def _claim_and_send(event: str, send) -> None:
+def _claim_and_send(event: str, send) -> bool:
 	"""Claim a once-only event, then send it. A failed send gives the claim back
-	so a later attempt can still send the event."""
+	so a later attempt can still send the event. Returns True if it was sent."""
 	if not _claim_milestone(event):
-		return
+		return False
 
 	try:
 		send()
 	except Exception:
 		_release_milestone(event)
 		raise
+
+	return True
 
 
 def capture_first(event: str, properties: dict | None = None, drives_conversion: bool = True) -> None:
@@ -148,10 +150,11 @@ def capture_first(event: str, properties: dict | None = None, drives_conversion:
 		return
 
 	properties = {"day_since_install": age, **(properties or {})}
-	if drives_conversion:
-		_claim_and_send(event, lambda: capture(event, properties))
-	else:
-		_claim_and_send(event, lambda: _capture(event, APP, properties=sanitize_properties(properties)))
+	sent = _claim_and_send(event, lambda: _capture(event, APP, properties=sanitize_properties(properties)))
+
+	# Outside the claim: a conversion failure must not give back an event already sent.
+	if sent and drives_conversion:
+		_track_conversion()
 
 
 # ---- Conversion --------------------------------------------------------------
