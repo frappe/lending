@@ -20,6 +20,12 @@ class SaleProceeds:
 	def apply(self):
 		"""Repay each open disbursement in turn and return the surplus left for the borrower."""
 		disbursements = self.get_disbursements()
+		if not disbursements and flt(self.sale.charges):
+			frappe.throw(
+				_(
+					"Loan {0} has no open disbursement to book the sale charge against. Cancel and amend this sale without the charge to apply the proceeds"
+				).format(frappe.bold(self.sale.loan))
+			)
 		# A drawdown's repayment reads only that drawdown's demands, so the fee rides on the first one paid
 		self.book_charges(disbursements[0] if disbursements else None)
 		remaining = flt(self.sale.gross_proceeds)
@@ -132,9 +138,17 @@ class SaleProceeds:
 			)
 			# The invoice's own loan_disbursement would stop it raising the demand, so tag the demand instead
 			if disbursement:
-				frappe.db.set_value(
-					"Loan Demand", {"sales_invoice": voucher.name}, "loan_disbursement", disbursement
+				demands = frappe.get_all(
+					"Loan Demand", filters={"sales_invoice": voucher.name, "docstatus": 1}, pluck="name"
 				)
+				if not demands:
+					frappe.throw(
+						_("Sales Invoice {0} raised no Loan Demand for the sale charge").format(
+							frappe.bold(voucher.name)
+						)
+					)
+				for demand in demands:
+					frappe.db.set_value("Loan Demand", demand, "loan_disbursement", disbursement)
 		else:
 			voucher = create_loan_demand(
 				loan=sale.loan,

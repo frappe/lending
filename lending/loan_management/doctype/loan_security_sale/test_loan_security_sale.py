@@ -140,6 +140,27 @@ class TestLoanSecuritySale(LendingTestSuite):
 		self.assertTrue(demand.loan_disbursement)
 		self.assertEqual(flt(demand.outstanding_amount), 0)
 
+	def test_sale_charge_needs_an_open_drawdown_on_a_line_of_credit(self):
+		from unittest.mock import patch
+
+		from lending.loan_management.doctype.loan_security_sale.proceeds import SaleProceeds
+		from lending.tests.test_utils import add_or_update_loan_charges
+
+		add_or_update_loan_charges("Term Loan Product 5")
+		frappe.db.set_single_value("Lending Settings", "sale_charge", "Processing Fee")
+
+		loan = make_line_of_credit_loan(self.applicant)
+		sale = make_sale(loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 2000})
+		sale.charges = 5000
+		sell(sale, {"Test Security 2": (2000, 250)})
+
+		# Every drawdown closed leaves nothing for the fee to ride on
+		with patch.object(SaleProceeds, "get_disbursements", return_value=[]):
+			with self.assertRaises(frappe.ValidationError):
+				sale.apply_proceeds()
+		self.assertFalse(frappe.db.exists("Loan Demand", {"loan": loan, "demand_type": "Charges"}))
+
 	def test_moratorium_refuses_proceeds_that_do_not_close_the_loan(self):
 		set_moratorium(self.loan, add_days(nowdate(), 90))
 		sale = make_sale(self.loan, reason="Loan Default")
