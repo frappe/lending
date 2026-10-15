@@ -70,6 +70,31 @@ class LoanSecurityRelease(Document):
 		loan_security_price_map = get_loan_security_price_map(securities)
 		ltv_ratio_map = get_ltv_ratio_map(securities)
 
+		unpledge_qty_map = {}
+		for security in self.securities:
+			pledged_qty = pledge_qty_map.get(security.loan_security, 0)
+			if security.qty > pledged_qty:
+				if self.loan:
+					msg = _("Row {0}: {1} of {2} is pledged against Loan {3}.").format(
+						security.idx,
+						pledged_qty,
+						frappe.bold(security.loan_security),
+						frappe.bold(self.loan),
+					)
+				else:
+					msg = _("Row {0}: {1} of {2} is pledged by {3}.").format(
+						security.idx,
+						pledged_qty,
+						frappe.bold(security.loan_security),
+						frappe.bold(self.applicant),
+					)
+				msg += "<br>"
+				msg += _("You are trying to unpledge more.")
+				frappe.throw(msg, title=_("Loan Security Release Error"))
+
+			unpledge_qty_map.setdefault(security.loan_security, 0)
+			unpledge_qty_map[security.loan_security] += security.qty
+
 		if self.loan:
 			loan_details = frappe.get_value(
 				"Loan",
@@ -93,24 +118,6 @@ class LoanSecurityRelease(Document):
 
 			security_value = 0
 			allowed_amount = 0
-			unpledge_qty_map = {}
-
-			for security in self.securities:
-				pledged_qty = pledge_qty_map.get(security.loan_security, 0)
-				if security.qty > pledged_qty:
-					msg = _("Row {0}: {1} of {2} is pledged against Loan {3}.").format(
-						security.idx,
-						pledged_qty,
-						frappe.bold(security.loan_security),
-						frappe.bold(self.loan),
-					)
-					msg += "<br>"
-					msg += _("You are trying to unpledge more.")
-					frappe.throw(msg, title=_("Loan Security Release Error"))
-
-				unpledge_qty_map.setdefault(security.loan_security, 0)
-				unpledge_qty_map[security.loan_security] += security.qty
-
 			for security in pledge_qty_map:
 				qty_after_unpledge = pledge_qty_map.get(security, 0) - unpledge_qty_map.get(security, 0)
 				value = qty_after_unpledge * flt(loan_security_price_map.get(security))
@@ -131,6 +138,13 @@ class LoanSecurityRelease(Document):
 			frappe.bold(flt(allowed_amount, 2))
 		)
 		frappe.throw(msg, title=_("Loan To Value ratio breach"))
+
+	def before_update_after_submit(self):
+		# Approval is what consumes the collateral, so recheck it under the lock a Loan Security Sale takes
+		if self.status == "Approved" and self.has_value_changed("status"):
+			if self.loan:
+				frappe.db.get_value("Loan", self.loan, "name", for_update=True)
+			self.validate_unpledge_qty()
 
 	def on_update_after_submit(self):
 		self.approve()
