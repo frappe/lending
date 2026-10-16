@@ -82,6 +82,91 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		self.assertEqual(loan_security_shortfall.status, "Completed")
 		self.assertEqual(loan_security_shortfall.shortfall_amount, 0)
 
+	def test_shortfall_and_release_use_security_ltv(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		# ₹5,00,000 of each security, lent at haircut 50
+		pledges = [
+			{"loan_security": "Test Security 1", "qty": 1000.00, "haircut": 50},
+			{"loan_security": "Test Security 2", "qty": 2000.00, "haircut": 50},
+		]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		self.assertEqual(loan.loan_amount, 500000)
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		# The type "Stock" stays at LTV 50, so neither the type's LTV nor the first security's gives these results
+		self.assertEqual(flt(frappe.db.get_value("Loan Security Type", "Stock", "loan_to_value_ratio")), 50)
+
+		# LTV 80 and 40 allow ₹4,00,000 + ₹2,00,000. Each unit of security 2 released frees ₹100
+		frappe.db.set_value("Loan Security", "Test Security 1", "loan_to_value_ratio", 80)
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 40)
+
+		unpledge_security(loan=loan.name, security_map={"Test Security 2": 900}, save=1)
+		with self.assertRaises(frappe.ValidationError):
+			unpledge_security(loan=loan.name, security_map={"Test Security 2": 1100}, save=1)
+
+		# LTV 60 and 30 allow ₹3,00,000 + ₹1,50,000 against ₹5,00,000 drawn
+		frappe.db.set_value("Loan Security", "Test Security 1", "loan_to_value_ratio", 60)
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 30)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+		self.assertEqual(flt(shortfall.security_value, 2), 1000000.00)
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 50000.00)
+
+	def test_blank_security_ltv_falls_back_to_type(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+			get_total_pledged_security_value,
+		)
+
+		pledges = [{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+
+		customer = frappe.get_doc(get_customer_dict("Blank LTV Customer")).insert().name
+		create_loan_security_assignment(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=[{"loan_security": "Test Security 2", "qty": 4000.00}],
+			company="_Test Company",
+		)
+
+		# The security has no LTV, so both checks use the type's LTV of 50 instead of 0
+		self.assertEqual(flt(frappe.db.get_value("Loan Security Type", "Stock", "loan_to_value_ratio")), 50)
+		frappe.db.set_value("Loan Security", "Test Security 2", "loan_to_value_ratio", 0)
+
+		# 4,000 units at ₹250 allow ₹5,00,000
+		self.assertEqual(
+			flt(get_total_pledged_security_value(applicant=customer, on_shortfall_check=True)), 500000
+		)
+
+		# 8,000 units at ₹100 allow ₹4,00,000 against ₹10,00,000 drawn
+		create_loan_security_price(
+			"Test Security 2", 100, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 600000.00)
+
 	def test_disbursal_check_with_shortfall(self):
 		pledges = [
 			{

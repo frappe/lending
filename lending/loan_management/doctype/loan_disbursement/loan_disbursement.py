@@ -949,9 +949,11 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 	)
 
 	if on_shortfall_check:
-		detail_map = frappe._dict(
-			frappe.get_all("Loan Security", fields=["name", "loan_to_value_ratio"], as_list=1)
+		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+			get_ltv_ratio_map,
 		)
+
+		detail_map = get_ltv_ratio_map()
 	else:
 		detail_map = frappe._dict(
 			frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)
