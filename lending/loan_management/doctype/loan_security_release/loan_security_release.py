@@ -36,6 +36,15 @@ class LoanSecurityRelease(Document):
 		unpledge_time: DF.Datetime | None
 	# end: auto-generated types
 
+	def save(self, *args, **kwargs):
+		# Saving locks this release's row before any hook runs, and approving the final release
+		# writes the Loan. Lock the Loan first, in the same order as a top-up pledge, so the
+		# two cannot deadlock.
+		if self.loan:
+			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
+
+		return super().save(*args, **kwargs)
+
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
@@ -211,6 +220,10 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 	else:
 		frappe.has_permission("Loan", "read", throw=True)
 
+	return get_pledged_qty_map(loan=loan, applicant=applicant)
+
+
+def get_pledged_qty_map(loan=None, applicant=None, securities=None, for_update=False):
 	current_pledges = {}
 
 	unpldge_doctype = frappe.qb.DocType("Unpledge")
@@ -222,13 +235,19 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 	unpledge_query = frappe.qb.from_(unpldge_doctype).inner_join(loan_security_release_doctype).on(
 		unpldge_doctype.parent == loan_security_release_doctype.name
 	).select(
-		unpldge_doctype.loan_security, fn.Sum(unpldge_doctype.qty).as_("qty")
+		loan_security_release_doctype.applicant_type,
+		loan_security_release_doctype.applicant,
+		unpldge_doctype.loan_security,
+		fn.Sum(unpldge_doctype.qty).as_("qty"),
 	).where(loan_security_release_doctype.docstatus == 1).where(loan_security_release_doctype.status == "Approved")
 
 	pledge_query = frappe.qb.from_(pledge_doctype).inner_join(loan_security_assignment_doctype).on(
 		pledge_doctype.parent == loan_security_assignment_doctype.name
 	).select(
-		pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty")
+		loan_security_assignment_doctype.applicant_type,
+		loan_security_assignment_doctype.applicant,
+		pledge_doctype.loan_security,
+		fn.Sum(pledge_doctype.qty).as_("qty"),
 	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
 
 	if loan:
@@ -239,11 +258,31 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
 
-	unpledges = frappe._dict(unpledge_query.groupby(unpldge_doctype.loan_security).run())
-	pledges = frappe._dict(pledge_query.groupby(pledge_doctype.loan_security).run())
+	if securities:
+		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security.isin(securities))
+		pledge_query = pledge_query.where(pledge_doctype.loan_security.isin(securities))
 
-	for security, qty in pledges.items():
-		current_pledges.setdefault(security, qty)
-		current_pledges[security] -= unpledges.get(security, 0.0)
+	if for_update:
+		# A locking read sees the latest committed pledges, not this transaction's snapshot.
+		unpledge_query = unpledge_query.for_update()
+		pledge_query = pledge_query.for_update()
+
+	unpledges = unpledge_query.groupby(
+		loan_security_release_doctype.applicant_type,
+		loan_security_release_doctype.applicant,
+		unpldge_doctype.loan_security,
+	).run()
+	pledges = pledge_query.groupby(
+		loan_security_assignment_doctype.applicant_type,
+		loan_security_assignment_doctype.applicant,
+		pledge_doctype.loan_security,
+	).run()
+
+	# Net releases against the same applicant's pledges, so releases left over from a
+	# cancelled or already released assignment cannot hide another applicant's pledge.
+	released = {(applicant_type, applicant, security): qty for applicant_type, applicant, security, qty in unpledges}
+	for applicant_type, applicant, security, qty in pledges:
+		remaining = flt(qty) - flt(released.get((applicant_type, applicant, security)))
+		current_pledges[security] = current_pledges.get(security, 0.0) + max(remaining, 0.0)
 
 	return current_pledges

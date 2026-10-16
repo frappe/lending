@@ -362,6 +362,7 @@ def create_loan_security_assignment(loan_application: str | None = None, loan: s
 				"qty": pledge.get("qty"),
 				"loan_security_price": pledge.get("loan_security_price"),
 				"haircut": pledge.get("haircut"),
+				"lien_reference": pledge.get("lien_reference"),
 			},
 		)
 
