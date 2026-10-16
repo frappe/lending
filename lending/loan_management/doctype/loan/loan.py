@@ -35,9 +35,6 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 from lending.loan_management.doctype.loan_limit_change_log.loan_limit_change_log import (
 	create_loan_limit_change_log,
 )
-from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
-	validate_lien_references,
-)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -640,7 +637,6 @@ class Loan(LoanController):
 		if lsa_details := self.get_requested_loan_security_assignment():
 			lsa = frappe.get_doc("Loan Security Assignment", lsa_details[0])
 			lsa.validate_securities()
-			validate_lien_references(lsa.securities)
 			lsa.validate_security_limits()
 
 	def link_loan_security_assignment(self):
@@ -1107,7 +1103,7 @@ def unpledge_security(
 	if security_map and isinstance(security_map, str):
 		security_map = json.loads(security_map)
 
-	# {loan_security: reference}, needed to approve the release
+	# {loan_security: reference}, optional
 	if release_references and isinstance(release_references, str):
 		release_references = json.loads(release_references)
 

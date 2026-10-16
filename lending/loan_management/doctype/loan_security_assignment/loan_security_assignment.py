@@ -14,7 +14,6 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_qty_map,
 	update_sanctioned_loan_amount_for_applicant,
-	validate_references,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	update_shortfall_status,
@@ -53,15 +52,6 @@ class LoanSecurityAssignment(Document):
 		self.validate_securities()
 		self.set_loan_and_security_values()
 		self.validate_security_limits()
-
-	def before_submit(self):
-		# With only a loan application the pledge stays Pledge Requested until the loan is created,
-		# so Loan.validate_requested_pledge runs this check instead. With a loan, on_submit credits it now.
-		if self.loan or not self.loan_application:
-			validate_lien_references(self.securities)
-
-	def before_update_after_submit(self):
-		self.validate_lien_references_kept()
 
 	def on_submit(self):
 		if self.loan:
@@ -252,14 +242,6 @@ class LoanSecurityAssignment(Document):
 		# The latest pledge of each security wins.
 		return {security: flt(price) for security, price in rows}
 
-	def validate_lien_references_kept(self):
-		before = self.get_doc_before_save()
-		if self.status != "Pledged" or not before:
-			return
-
-		had_reference = {row.name for row in before.securities if (row.lien_reference or "").strip()}
-		validate_lien_references([row for row in self.securities if row.name in had_reference])
-
 	def set_loan_and_security_values(self):
 		total_security_value = 0
 		maximum_loan_value = 0
@@ -318,15 +300,6 @@ class LoanSecurityAssignment(Document):
 			)
 
 		update_loan(self.loan, total_available_security_value)
-
-
-def validate_lien_references(securities):
-	validate_references(
-		securities,
-		"lien_reference",
-		_("Add the lien reference for {0} before the pledge is marked Pledged."),
-		_("Lien Reference Missing"),
-	)
 
 
 def lock_loan(loan):
@@ -437,14 +410,12 @@ def update_loan_securities_values(
 def release_loan_security_assignment(loan_security_assignment: str, release_reference: str | None = None):
 	frappe.has_permission("Loan Security Assignment", "write", doc=loan_security_assignment, throw=True)
 
-	if not (release_reference or "").strip():
-		frappe.throw(
-			_("Add the release reference before releasing {0}.").format(frappe.bold(loan_security_assignment)),
-			title=_("Release Reference Missing"),
-		)
-
 	frappe.db.set_value(
 		"Loan Security Assignment",
 		loan_security_assignment,
-		{"status": "Released", "release_time": now_datetime(), "release_reference": release_reference.strip()},
+		{
+			"status": "Released",
+			"release_time": now_datetime(),
+			"release_reference": (release_reference or "").strip() or None,
+		},
 	)

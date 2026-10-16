@@ -31,8 +31,7 @@ frappe.ui.form.on('Loan Security Assignment', {
 			fieldname: "release_reference",
 			fieldtype: "Data",
 			label: __("Release Reference"),
-			reqd: 1,
-			description: __("The depository unpledge number, the gold handover receipt or the mortgage release deed number."),
+			description: __("Optional. The depository unpledge number, the gold handover receipt or the mortgage release deed number."),
 		}, function (values) {
 			frappe.call({
 				args: {

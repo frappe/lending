@@ -6,31 +6,11 @@ from erpnext.setup.setup_wizard.operations.install_fixtures import set_global_de
 from erpnext.setup.utils import enable_all_roles_and_domains
 
 from lending.loan_management.doctype.loan_application.loan_application import (
-	create_loan_security_assignment as _create_loan_security_assignment,
+	create_loan_security_assignment,
 )
 from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
 	process_loan_interest_accrual_for_loans,
 )
-
-
-def create_loan_security_assignment(loan_application=None, securities=None, **kwargs):
-	"""Pledge as the real flow does, with the collateral already locked outside Frappe."""
-	if securities:
-		securities = [
-			{"lien_reference": f"_TEST-LIEN-{row.get('loan_security')}", **row} for row in securities
-		]
-
-	lsa = _create_loan_security_assignment(loan_application=loan_application, securities=securities, **kwargs)
-
-	for row in frappe.get_all("Pledge", filters={"parent": lsa, "lien_reference": ("is", "not set")}, pluck="name"):
-		frappe.db.set_value("Pledge", row, "lien_reference", f"_TEST-LIEN-{row}")
-
-	return lsa
-
-
-def set_release_references(loan_security_release):
-	for row in loan_security_release.securities:
-		row.release_reference = row.release_reference or f"_TEST-RELEASE-{row.loan_security}"
 
 
 def before_tests():
@@ -1101,8 +1081,7 @@ def create_loan_security_release(applicant, applicant_type, securities, loan=Non
 	for security in securities:
 		loan_security_release.append("securities", {
 			"loan_security": security.get("loan_security"),
-			"qty": security.get("qty"),
-			"release_reference": f"_TEST-RELEASE-{security.get('loan_security')}",
+			"qty": security.get("qty")
 		})
 
 	loan_security_release.insert()

@@ -65,7 +65,7 @@
   },
   {
    "allow_on_submit": 1,
-   "description": "Proof that the lock was removed, such as the depository unpledge number, the gold handover receipt or the mortgage release deed number. Required before the release is approved.",
+   "description": "Proof that the lock was removed, such as the depository unpledge number, the gold handover receipt or the mortgage release deed number.",
    "fieldname": "release_reference",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -75,7 +75,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-09 15:00:00.000000",
+ "modified": "2026-10-16 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Unpledge",

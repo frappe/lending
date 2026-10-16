@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import functions as fn
-from frappe.utils import comma_and, flt, get_datetime, getdate
+from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
@@ -48,20 +48,6 @@ class LoanSecurityRelease(Document):
 	def validate(self):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
-		self.validate_release_references()
-
-	def before_update_after_submit(self):
-		# Approval changes the status on a submitted release, which skips validate.
-		self.validate_release_references()
-
-	def validate_release_references(self):
-		if self.status == "Approved":
-			validate_references(
-				self.securities,
-				"release_reference",
-				_("Add the release reference for {0} before approving the release."),
-				_("Release Reference Missing"),
-			)
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
@@ -224,12 +210,6 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 		"sanctioned_amount_limit",
 		new_sanctioned_loan_amount,
 	)
-
-
-def validate_references(securities, fieldname, message, title):
-	missing = [row.get("loan_security") for row in securities if not (row.get(fieldname) or "").strip()]
-	if missing:
-		frappe.throw(message.format(comma_and(missing)), title=title)
 
 
 @frappe.whitelist()
