@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import functions as fn
 from frappe.query_builder.custom import ConstantColumn
+from frappe.utils import get_datetime
 
 
 def execute(filters: dict | None = None):
@@ -90,19 +91,36 @@ def get_data(filters) -> list[list]:
 		pledge_doctype.parent == loan_security_assignment_doctype.name
 	).select(
 		loan_security_assignment_doctype.loan, ConstantColumn("Loan Security Assignment").as_("doctype"), pledge_doctype.loan_security, fn.Sum(pledge_doctype.qty).as_("qty"), loan_security_assignment_doctype.pledge_time.as_("date"), pledge_doctype.loan_security_type
-	).where(loan_security_assignment_doctype.docstatus == 1).where(loan_security_assignment_doctype.status == "Pledged")
+	).where(loan_security_assignment_doctype.docstatus == 1).where(
+		loan_security_assignment_doctype.status.isin(["Pledged", "Repossessed"])
+	)
+
+	sale_item_doctype = frappe.qb.DocType("Loan Security Sale Item")
+	sale_doctype = frappe.qb.DocType("Loan Security Sale")
+	security_doctype = frappe.qb.DocType("Loan Security")
+
+	sale_query = frappe.qb.from_(sale_item_doctype).inner_join(sale_doctype).on(
+		sale_item_doctype.parent == sale_doctype.name
+	).inner_join(security_doctype).on(
+		sale_item_doctype.loan_security == security_doctype.name
+	).select(
+		sale_doctype.loan, ConstantColumn("Loan Security Sale").as_("doctype"), sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty"), sale_doctype.creation.as_("date"), security_doctype.loan_security_type
+	).where(sale_doctype.docstatus == 1)
 
 	if loan:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.loan == loan)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.loan == loan)
+		sale_query = sale_query.where(sale_doctype.loan == loan)
 
 	if applicant:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
+		sale_query = sale_query.where(sale_doctype.applicant == applicant)
 
 	if loan_security:
 		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security == loan_security)
 		pledge_query = pledge_query.where(pledge_doctype.loan_security == loan_security)
+		sale_query = sale_query.where(sale_item_doctype.loan_security == loan_security)
 
 	if loan_security:
 		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security == loan_security)
@@ -110,8 +128,10 @@ def get_data(filters) -> list[list]:
 
 	unpledges = unpledge_query.groupby(unpldge_doctype.loan_security).run(as_dict=True)
 	pledges = pledge_query.groupby(pledge_doctype.loan_security).run(as_dict=True)
+	sales = sale_query.groupby(sale_item_doctype.loan_security).run(as_dict=True)
 
-	result = pledges + unpledges
+	# A row with no time recorded would otherwise break the sort on a None
+	result = sorted(pledges + unpledges + sales, key=lambda row: get_datetime(row.date))
 
 	if filters.get("loan_security"):
 		for d in result:
@@ -122,4 +142,4 @@ def get_data(filters) -> list[list]:
 
 			d["balance_qty"] = balance_qty
 
-	return sorted(result, key=lambda x: x.date)
+	return result
