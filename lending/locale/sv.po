@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-11 15:52+0000\n"
-"PO-Revision-Date: 2026-10-13 23:33\n"
+"PO-Revision-Date: 2026-10-15 23:41\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1638,7 +1638,7 @@ msgstr "Inkasso enligt partnerns procentandel"
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Collections"
-msgstr "Samlingar"
+msgstr "Inkasso"
 
 #. Label of the company (Link) field in DocType 'Collection Case'
 #. Label of the company (Link) field in DocType 'Dunning Rule'
@@ -1709,7 +1709,7 @@ msgstr "Bolag"
 #. Partner Shareable'
 #: lending/loan_management/doctype/loan_partner_shareable/loan_partner_shareable.json
 msgid "Company Collection Percentage"
-msgstr "Bolag Inkasso Procent"
+msgstr "Procentuell Bolag Inkasso"
 
 #. Label of the completed_tenure (Int) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json
@@ -5353,7 +5353,7 @@ msgstr "Partner Kod"
 #. Partner Shareable'
 #: lending/loan_management/doctype/loan_partner_shareable/loan_partner_shareable.json
 msgid "Partner Collection Percentage"
-msgstr "Partner Inkasso Procentuellt"
+msgstr "Procentuell Partner Inkasso"
 
 #. Label of the partner_interest_share (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
