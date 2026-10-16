@@ -79,12 +79,56 @@ class LoanSecurityAssignment(Document):
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
 
+	def before_cancel(self):
+		self.validate_no_release_after_pledge()
+
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
 		self.db_set("pledge_time", None)
 		if self.loan:
 			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+
+	def validate_no_release_after_pledge(self):
+		# An approved release since this pledge may have freed its shares; cancelling it would count them twice.
+		# Missing times count as "after", so unknown order refuses rather than double counts.
+		if self.status != "Pledged":
+			return
+
+		release = frappe.qb.DocType("Loan Security Release")
+		unpledge = frappe.qb.DocType("Unpledge")
+
+		query = (
+			frappe.qb.from_(release)
+			.inner_join(unpledge)
+			.on(unpledge.parent == release.name)
+			.select(release.name)
+			.where(release.docstatus == 1)
+			.where(release.status == "Approved")
+			.where(release.applicant_type == self.applicant_type)
+			.where(release.applicant == self.applicant)
+			.where(unpledge.loan_security.isin([d.loan_security for d in self.securities]))
+			.limit(1)
+		)
+
+		if self.pledge_time:
+			query = query.where(
+				release.unpledge_time.isnull() | (release.unpledge_time >= self.pledge_time)
+			)
+
+		# A release without a loan is checked against the applicant's pledges, this one included.
+		if self.loan:
+			query = query.where(release.loan.isnull() | (release.loan == self.loan))
+		else:
+			query = query.where(release.loan.isnull())
+
+		if releases := query.run(pluck=True):
+			frappe.throw(
+				_("Loan Security Release {0} has already released these securities. Cancel it first.").format(
+					frappe.bold(releases[0])
+				),
+				title=_("Securities Already Released"),
+			)
 
 	def validate_securities(self):
 		if not self.get("securities"):

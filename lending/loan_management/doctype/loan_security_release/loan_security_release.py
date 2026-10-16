@@ -40,6 +40,10 @@ class LoanSecurityRelease(Document):
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
 
+	def before_submit(self):
+		# An amendment copies the cancelled release's time, which would skip approve().
+		self.unpledge_time = None
+
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
 		self.db_set("status", "Requested")
