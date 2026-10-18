@@ -9,32 +9,28 @@ JOINT_HOLDINGS = ("Joint", "Anyone or Survivor")
 REQUIRED_FIELDS = ("folio_number", "holding_mode", "holding_type")
 
 
-def validate_assignment(doc, method=None):
-	validate_lines(doc)
+def validate_mutual_fund_lines(doc):
+	# Details stay optional only while a submitted pledge waits as Pledge Requested for its loan
+	validate_lines(doc, require_details=doc.docstatus == 1 and doc.status != "Pledge Requested")
 
 
-def validate_direct_pledge(doc, method=None):
+def validate_direct_pledge(doc):
 	# A pledge from a Loan Application is submitted as Pledge Requested in one step, so the loan checks it instead
 	if not doc.loan_application:
 		validate_lines(doc, require_details=True)
 
 
-def validate_application_pledge(doc, method=None):
+def validate_application_pledge(loan_security_assignment):
 	"""Units pledged through a Loan Application become Pledged when the loan is submitted."""
-	if not (doc.is_secured_loan and doc.loan_application):
-		return
-	# The same lookup as Loan.link_loan_security_assignment, so only the assignment it pledges is checked
-	name = frappe.db.get_value(
-		"Loan Security Assignment",
-		{"loan_application": doc.loan_application, "status": "Pledge Requested", "docstatus": 1},
-		"name",
+	assignment = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
+	validate_lines(
+		assignment,
+		require_details=True,
+		title=_("Loan Security Assignment {0}").format(loan_security_assignment),
 	)
-	if name:
-		assignment = frappe.get_doc("Loan Security Assignment", name)
-		validate_lines(assignment, require_details=True, title=_("Loan Security Assignment {0}").format(name))
 
 
-def update_securities(doc, method=None):
+def update_securities(doc):
 	"""Copy Is Mutual Fund to the type's securities, which only fetch it when they are saved."""
 	if not doc.has_value_changed("is_mutual_fund"):
 		return

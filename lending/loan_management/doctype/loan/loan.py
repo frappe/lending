@@ -27,6 +27,7 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.mapper import get_payment_entry
 from erpnext.accounts.general_ledger import process_gl_map
 
+from lending.collateral.mutual_fund.pledge import validate_application_pledge
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -636,6 +637,7 @@ class Loan(LoanController):
 		# assignments count toward the exposure cap, so these checks run here. A security
 		# can also be disabled after the request was saved.
 		if lsa_details := self.get_requested_loan_security_assignment():
+			validate_application_pledge(lsa_details[0])
 			lsa = frappe.get_doc("Loan Security Assignment", lsa_details[0])
 			lsa.validate_securities()
 			lsa.validate_security_limits()
@@ -1124,8 +1126,11 @@ def unpledge_security(
 
 		security_map = {}
 		pledge_doc = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
+		# A mutual fund scheme can sit on more than one row, one per folio or purchase date
 		for security in pledge_doc.securities:
-			security_map.setdefault(security.loan_security, security.qty)
+			security_map[security.loan_security] = flt(security_map.get(security.loan_security)) + flt(
+				security.qty
+			)
 
 		unpledge_request = create_loan_security_release(
 			security_map,
