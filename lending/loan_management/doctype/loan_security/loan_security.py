@@ -21,14 +21,18 @@ class LoanSecurity(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		amfi_scheme_code: DF.Data | None
 		available_security_value: DF.Currency
 		disabled: DF.Check
 		haircut: DF.Percent
+		is_mutual_fund: DF.Check
 		loan_security_code: DF.Data
 		loan_security_name: DF.Data
 		loan_security_type: DF.Link
 		loan_to_value_ratio: DF.Percent
+		lock_in_days: DF.Int
 		original_security_value: DF.Currency
+		rta: DF.Literal["", "CAMS", "KFintech"]
 		sell_ltv: DF.Percent
 		utilized_security_value: DF.Currency
 	# end: auto-generated types

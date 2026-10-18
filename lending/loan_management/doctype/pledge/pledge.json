@@ -14,7 +14,15 @@
   "haircut",
   "loan_security_price",
   "amount",
-  "post_haircut_amount"
+  "post_haircut_amount",
+  "mutual_fund_section",
+  "is_mutual_fund",
+  "folio_number",
+  "holding_mode",
+  "column_break_mutual_fund",
+  "holding_type",
+  "all_holders_signed",
+  "purchase_date"
  ],
  "fields": [
   {
@@ -85,11 +93,66 @@
    "fieldtype": "Data",
    "label": "Loan Security Name",
    "read_only": 1
+  },
+  {
+   "depends_on": "is_mutual_fund",
+   "fieldname": "mutual_fund_section",
+   "fieldtype": "Section Break",
+   "label": "Mutual Fund"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_security.is_mutual_fund",
+   "fieldname": "is_mutual_fund",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Mutual Fund",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "folio_number",
+   "fieldtype": "Data",
+   "label": "Folio Number"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Demat units are pledged through CDSL or NSDL, others through the RTA or MFCentral",
+   "fieldname": "holding_mode",
+   "fieldtype": "Select",
+   "label": "Holding Mode",
+   "options": "\nDemat\nStatement of Account"
+  },
+  {
+   "fieldname": "column_break_mutual_fund",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "holding_type",
+   "fieldtype": "Select",
+   "label": "Holding Type",
+   "options": "\nSingle\nJoint\nAnyone or Survivor\nMinor"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "depends_on": "eval:[\"Joint\", \"Anyone or Survivor\"].includes(doc.holding_type)",
+   "fieldname": "all_holders_signed",
+   "fieldtype": "Check",
+   "label": "All Holders Signed the Lien"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Date these units were bought. Units bought on different dates go on separate lines",
+   "fieldname": "purchase_date",
+   "fieldtype": "Date",
+   "label": "Purchase Date"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2025-03-19 11:46:49.051427",
+ "modified": "2026-10-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Pledge",

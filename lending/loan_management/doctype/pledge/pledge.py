@@ -15,8 +15,13 @@ class Pledge(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		all_holders_signed: DF.Check
 		amount: DF.Currency
+		folio_number: DF.Data | None
 		haircut: DF.Percent
+		holding_mode: DF.Literal["", "Demat", "Statement of Account"]
+		holding_type: DF.Literal["", "Single", "Joint", "Anyone or Survivor", "Minor"]
+		is_mutual_fund: DF.Check
 		loan_security: DF.Link
 		loan_security_code: DF.Data | None
 		loan_security_name: DF.Data | None
@@ -26,6 +31,7 @@ class Pledge(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		post_haircut_amount: DF.Currency
+		purchase_date: DF.Date | None
 		qty: DF.Float
 	# end: auto-generated types
 
