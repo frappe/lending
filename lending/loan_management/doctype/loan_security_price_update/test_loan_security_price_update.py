@@ -2,12 +2,16 @@
 # See license.txt
 
 import frappe
-from frappe.utils import get_datetime
+from frappe.utils import add_days, get_datetime, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
-from lending.tests.test_utils import create_loan_security, create_loan_security_type
+from lending.tests.test_utils import (
+	create_loan_security,
+	create_loan_security_price,
+	create_loan_security_type,
+)
 from lending.tests.utils import LendingTestSuite
 
 # 2030-01-04 is a Friday
@@ -121,6 +125,10 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 		customer = frappe.get_doc(get_customer_dict("Price Update Customer")).insert().name
+		# A pledge needs a current price, so do not rely on one left behind by another test
+		create_loan_security_price(
+			"Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
 		create_loan_security_assignment(
 			applicant=customer,
 			applicant_type="Customer",
