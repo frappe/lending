@@ -12,7 +12,7 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 
 
 class SaleProceeds:
-	"""Charges the sale fee and repays the loan from a submitted sale's gross proceeds."""
+	"""Charges the sale fee and repays the loan from what the seller paid out of a submitted sale."""
 
 	def __init__(self, sale, proceeds_date):
 		self.sale = sale
@@ -29,7 +29,7 @@ class SaleProceeds:
 			)
 		# A drawdown's repayment reads only that drawdown's demands, so the fee rides on the first one paid
 		self.book_charges(disbursements[0] if disbursements else None)
-		remaining = flt(self.sale.gross_proceeds)
+		remaining = flt(self.sale.gross_proceeds) - flt(self.sale.deductions)
 		for disbursement in disbursements:
 			if remaining <= 0:
 				break

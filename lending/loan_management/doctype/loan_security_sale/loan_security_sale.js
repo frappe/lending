@@ -43,8 +43,12 @@ frappe.ui.form.on("Loan Security Sale", {
 		}
 	},
 
+	deductions(frm) {
+		set_net_proceeds(frm);
+	},
+
 	charges(frm) {
-		frm.set_value("net_proceeds", flt(frm.doc.gross_proceeds) - flt(frm.doc.charges));
+		set_net_proceeds(frm);
 	},
 });
 
@@ -64,5 +68,12 @@ function set_proceeds(frm, cdt, cdn) {
 
 	const gross = (frm.doc.items || []).reduce((total, item) => total + flt(item.proceeds), 0);
 	frm.set_value("gross_proceeds", gross);
-	frm.set_value("net_proceeds", gross - flt(frm.doc.charges));
+	set_net_proceeds(frm);
+}
+
+function set_net_proceeds(frm) {
+	frm.set_value(
+		"net_proceeds",
+		flt(frm.doc.gross_proceeds) - flt(frm.doc.deductions) - flt(frm.doc.charges)
+	);
 }

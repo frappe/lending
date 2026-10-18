@@ -21,6 +21,7 @@
   "items",
   "proceeds_section",
   "gross_proceeds",
+  "deductions",
   "charges",
   "charge_voucher_type",
   "charge_voucher",
@@ -144,6 +145,14 @@
    "read_only": 1
   },
   {
+   "description": "Kept by the seller before paying the lender, such as brokerage, exit load or the auctioneer's fee",
+   "fieldname": "deductions",
+   "fieldtype": "Currency",
+   "label": "Deductions",
+   "non_negative": 1,
+   "options": "Company:company:default_currency"
+  },
+  {
    "description": "Charged to the borrower as the Sale Charge in Lending Settings",
    "fieldname": "charges",
    "fieldtype": "Currency",
@@ -226,7 +235,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-15 15:00:00.000000",
+ "modified": "2026-10-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",

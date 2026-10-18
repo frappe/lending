@@ -49,6 +49,7 @@ class LoanSecuritySale(Document):
 		charge_voucher_type: DF.Link | None
 		charges: DF.Currency
 		company: DF.Link | None
+		deductions: DF.Currency
 		gross_proceeds: DF.Currency
 		items: DF.Table[LoanSecuritySaleItem]
 		loan: DF.Link
@@ -73,6 +74,9 @@ class LoanSecuritySale(Document):
 
 	def before_submit(self):
 		self.validate_sold_items()
+		# Checked at submit, because a draft can carry deductions before the sold qty is entered
+		if flt(self.net_proceeds) < 0:
+			frappe.throw(_("Deductions and Charges together cannot be more than the Gross Proceeds"))
 		self.validate_shortfall_open()
 		if flt(self.charges) and not frappe.db.get_single_value("Lending Settings", "sale_charge"):
 			frappe.throw(_("Set the Sale Charge in Lending Settings to charge a fee on the sale"))
@@ -203,7 +207,7 @@ class LoanSecuritySale(Document):
 		for row in self.items:
 			row.proceeds = flt(row.sold_qty) * flt(row.sale_price)
 		self.gross_proceeds = sum(flt(row.proceeds) for row in self.items)
-		self.net_proceeds = self.gross_proceeds - flt(self.charges)
+		self.net_proceeds = self.gross_proceeds - flt(self.deductions) - flt(self.charges)
 
 	def validate_shortfall_loan(self):
 		if not self.loan_security_shortfall:

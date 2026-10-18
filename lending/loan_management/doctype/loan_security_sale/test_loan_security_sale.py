@@ -137,6 +137,31 @@ class TestLoanSecuritySale(LendingTestSuite):
 		self.assertGreaterEqual(amount_paid, 1000000)
 		self.assertEqual(flt(sale.surplus_amount, 2), flt(1600000 - amount_paid, 2))
 
+	def test_deductions_are_kept_out_of_the_repayment(self):
+		# 8,000 units redeemed at ₹200 with 1% exit load: the fund house pays ₹15,84,000
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 8000})
+		sale.deductions = 16000
+		sell(sale, {"Test Security 2": (8000, 200)})
+		self.assertEqual(flt(sale.net_proceeds), 1584000)
+
+		sale.apply_proceeds()
+		sale.reload()
+		amount_paid = sum(flt(row.amount) for row in sale.repayments)
+		self.assertGreaterEqual(amount_paid, 1000000)
+		self.assertEqual(flt(sale.surplus_amount, 2), flt(1584000 - amount_paid, 2))
+
+	def test_deductions_and_charges_cannot_exceed_gross_proceeds(self):
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
+		# A draft keeps deductions entered before the sale is done
+		sale.deductions = 150000
+		sale.charges = 60000
+		sale.save()
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Deductions and Charges"):
+			sell(sale, {"Test Security 2": (1000, 200)})
+
 	def test_proceeds_above_dues_are_applied_when_the_product_caps_normal_repayment(self):
 		frappe.db.set_value("Loan Product", "Stock Loan", "validate_normal_repayment", 1)
 
