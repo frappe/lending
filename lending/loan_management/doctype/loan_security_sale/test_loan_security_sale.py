@@ -74,6 +74,24 @@ class TestLoanSecuritySale(LendingTestSuite):
 		create_process_loan_security_shortfall()
 		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall.name, "status"), "Completed")
 
+	def test_proceeds_that_do_not_cover_the_lost_cover_leave_the_shortfall_open(self):
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": self.loan, "status": "Pending"})
+
+		# Selling 1,000 units at ₹200 repays ₹2,00,000 but also takes ₹1,00,000 off the allowed amount
+		sale = make_sale(self.loan, loan_security_shortfall=shortfall.name)
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 1000})
+		sell(sale, {"Test Security 2": (1000, 200)})
+		self.assertEqual(
+			flt(frappe.db.get_value("Loan Security Shortfall", shortfall.name, "shortfall_amount")), 300000
+		)
+
+		sale.apply_proceeds()
+		shortfall.reload()
+		self.assertEqual(shortfall.status, "Sale Triggered")
+		self.assertGreaterEqual(flt(shortfall.shortfall_amount), 100000)
+
 	def test_sold_collateral_no_longer_supports_a_drawdown(self):
 		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 			get_disbursal_amount,

@@ -20,6 +20,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 from lending.loan_management.doctype.loan_security_sale.proceeds import SaleProceeds
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	get_ltv_ratio_map,
+	recheck_loan_shortfall,
 )
 
 
@@ -82,6 +83,8 @@ class LoanSecuritySale(Document):
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 		if self.loan_security_shortfall:
 			self.trigger_shortfall_sale()
+		# The sold units no longer cover the loan, so the repayments must cure the larger gap
+		recheck_loan_shortfall(self.loan)
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
@@ -91,6 +94,7 @@ class LoanSecuritySale(Document):
 		self.cancel_linked(self.charge_voucher_type, self.charge_voucher)
 		self.update_assignment_status()
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+		recheck_loan_shortfall(self.loan)
 
 	def cancel_linked(self, doctype, name):
 		if name and frappe.db.get_value(doctype, name, "docstatus") == 1:
