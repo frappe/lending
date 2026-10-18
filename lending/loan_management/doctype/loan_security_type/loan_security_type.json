@@ -10,6 +10,7 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
+  "metal",
   "disabled"
  ],
  "fields": [
@@ -43,10 +44,17 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "description": "Gold and silver collateral follows the LTV slabs of its gold loan product",
+   "fieldname": "metal",
+   "fieldtype": "Select",
+   "label": "Metal",
+   "options": "\nGold\nSilver"
   }
  ],
  "links": [],
- "modified": "2025-03-19 11:46:50.950227",
+ "modified": "2026-10-18 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

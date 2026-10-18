@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from lending.gold_loan.ltv import validate_gold_ltv_slabs
 from lending.loan_management.utils import loan_accounting_enabled
 
 
@@ -18,6 +19,7 @@ class LoanProduct(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from lending.gold_loan.doctype.gold_ltv_slab.gold_ltv_slab import GoldLTVSlab
 		from lending.loan_management.doctype.loan_charges.loan_charges import LoanCharges
 		from lending.loan_management.doctype.loan_product_loan_partner.loan_product_loan_partner import (
 			LoanProductLoanPartner,
@@ -46,6 +48,8 @@ class LoanProduct(Document):
 		disbursement_account: DF.Link | None
 		emi_rounding_method: DF.Literal["Round to Nearest", "Round Up", "No Rounding"]
 		excess_amount_acceptance_limit: DF.Float
+		gold_loan_purpose: DF.Literal["", "Consumption", "Income Generating"]
+		gold_ltv_slabs: DF.Table[GoldLTVSlab]
 		grace_period_in_days: DF.Int
 		interest_accrued_account: DF.Link | None
 		interest_income_account: DF.Link | None
@@ -91,6 +95,7 @@ class LoanProduct(Document):
 			self.validate_accounts()
 		self.validate_rates()
 		self.validate_demand_offset_sequences()
+		validate_gold_ltv_slabs(self)
 
 	def set_missing_values(self):
 		company_min_days_bw_disbursement_first_repayment = frappe.get_cached_value(

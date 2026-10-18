@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime
 
+from lending.gold_loan.ltv import cap_ltv_map
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -120,6 +121,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			"total_interest_payable",
 			"disbursed_amount",
 			"status",
+			"gold_ltv_cap",
 		],
 		filters=filters,
 	)
@@ -150,13 +152,14 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			)
 
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
+		loan_ltv_ratio_map = cap_ltv_map(ltv_ratio_map, loan.gold_ltv_cap)
 		security_value = 0.0
 		allowed_amount = 0.0
 
 		for security, qty in pledged_securities.items():
 			value = flt(loan_security_price_map.get(security)) * flt(qty)
 			security_value += value
-			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
+			allowed_amount += value * flt(loan_ltv_ratio_map.get(security)) / 100
 
 		shortfall_amount = outstanding_amount - allowed_amount
 		if security_value and flt(shortfall_amount, 6) > 0:

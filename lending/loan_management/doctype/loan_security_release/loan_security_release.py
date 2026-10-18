@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
+from lending.gold_loan.ltv import cap_ltv_map
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -85,11 +86,13 @@ class LoanSecurityRelease(Document):
 					"written_off_amount",
 					"disbursed_amount",
 					"status",
+					"gold_ltv_cap",
 				],
 				as_dict=1,
 			)
 
 			pending_principal_amount = get_pending_principal_amount(loan_details)
+			ltv_ratio_map = cap_ltv_map(ltv_ratio_map, loan_details.gold_ltv_cap)
 
 			security_value = 0
 			allowed_amount = 0

@@ -19,6 +19,7 @@ class LoanSecurityType(Document):
 		haircut: DF.Percent
 		loan_security_type: DF.Data
 		loan_to_value_ratio: DF.Percent
+		metal: DF.Literal["", "Gold", "Silver"]
 	# end: auto-generated types
 
 	pass
