@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-11 15:52+0000\n"
-"PO-Revision-Date: 2026-10-12 23:18\n"
+"PO-Revision-Date: 2026-10-18 23:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Hindi\n"
 "MIME-Version: 1.0\n"
@@ -126,7 +126,7 @@ msgstr "खाता {0} कंपनी {1} से संबंधित नह
 #. Label of the accounting_tab (Tab Break) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Accounting"
-msgstr ""
+msgstr "लेखांकन"
 
 #. Label of the accounting_details (Section Break) field in DocType 'Loan
 #. Disbursement'
@@ -135,13 +135,13 @@ msgstr ""
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 msgid "Accounting Details"
-msgstr ""
+msgstr "लेखांकन विवरण"
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 msgid "Accounting Dimension"
-msgstr ""
+msgstr "लेखांकन आयाम"
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Loan'
@@ -165,12 +165,12 @@ msgstr ""
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Accounting Dimensions"
-msgstr ""
+msgstr "लेखांकन आयाम"
 
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.js:7
 #: lending/public/js/loan_common.js:14
 msgid "Accounting Ledger"
-msgstr ""
+msgstr "लेखा बही"
 
 #. Label of the accounts_section (Section Break) field in DocType 'Loan
 #. Partner'
@@ -211,7 +211,7 @@ msgstr ""
 #. Label of the activity_type (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Activity Type"
-msgstr ""
+msgstr "गतिविधि प्रकार"
 
 #. Label of the actual_paid_amount (Currency) field in DocType 'Promise to Pay'
 #: lending/loan_management/doctype/promise_to_pay/promise_to_pay.json
@@ -476,7 +476,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charge_reference/loan_charge_reference.json
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
 msgid "Allocated Amount"
-msgstr ""
+msgstr "आवंटित राशि"
 
 #. Label of the allocated_date (Date) field in DocType 'Loan Security Deposit'
 #: lending/loan_management/doctype/loan_security_deposit/loan_security_deposit.json
@@ -572,7 +572,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:34
 msgid "Amounts"
-msgstr ""
+msgstr "मात्राएँ"
 
 #: lending/loan_origination/doctype/loan_lead/loan_lead.py:305
 msgid "An OTP can only be sent while the lead is a draft."
@@ -943,7 +943,7 @@ msgstr ""
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:67
 msgid "Balance ({0})"
-msgstr ""
+msgstr "शेष ({0})"
 
 #. Label of the balance_interest_amount (Currency) field in DocType 'Loan
 #. Restructure'
@@ -996,7 +996,7 @@ msgstr "बैंक खाता"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3450
 msgid "Bank Transaction {0} is already fully reconciled"
-msgstr ""
+msgstr "बैंक लेनदेन {0} पहले ही पूरी तरह से मिलान किया जा चुका है"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3478
 msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
@@ -1005,7 +1005,7 @@ msgstr ""
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
-msgstr ""
+msgstr "बैंकिंग"
 
 #. Label of the base_amount (Currency) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -1181,7 +1181,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "CC To"
-msgstr ""
+msgstr "CC तक"
 
 #. Option for the 'Bureau' (Select) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
@@ -1998,11 +1998,11 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
-msgstr ""
+msgstr "डेबिट"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:53
 msgid "Debit ({0})"
-msgstr ""
+msgstr "डेबिट ({0})"
 
 #. Option for the 'Adjustment Type' (Select) field in DocType 'Loan Balance
 #. Adjustment'
@@ -2175,7 +2175,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Disbursed"
-msgstr ""
+msgstr "वितरित"
 
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan'
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan
@@ -2431,7 +2431,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Enable Auto Email"
-msgstr ""
+msgstr "स्वचालित ईमेल सक्षम करें"
 
 #. Label of the enable_partner_accounting (Check) field in DocType 'Loan
 #. Partner'
@@ -2590,7 +2590,7 @@ msgstr ""
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Filter Duration (Months)"
-msgstr ""
+msgstr "फ़िल्टर अवधि (महीने)"
 
 #. Label of the findings_section (Section Break) field in DocType 'Credit
 #. Bureau Report'
@@ -3020,12 +3020,12 @@ msgstr "भुगतान के लिए अमान्य ऋण वित�
 #. Label of the invoice_date (Date) field in DocType 'Loan Demand'
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 msgid "Invoice Date"
-msgstr ""
+msgstr "चालान तिथि"
 
 #. Label of a Link in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Invoices"
-msgstr ""
+msgstr "चालान"
 
 #. Label of the is_adjustment (Check) field in DocType 'Process Loan
 #. Accounting'
@@ -3200,7 +3200,7 @@ msgstr ""
 #. Label of the lead_source (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
-msgstr ""
+msgstr "लीड स्रोत"
 
 #. Description of the 'Loan Product' (Link) field in DocType 'Scorecard'
 #: lending/loan_origination/doctype/scorecard/scorecard.json
@@ -3369,7 +3369,7 @@ msgstr ""
 #: lending/public/js/bank_reconciliation_tool.js:15
 #: lending/workspace_sidebar/lending.json
 msgid "Loan"
-msgstr ""
+msgstr "ऋण"
 
 #. Label of the loan (Link) field in DocType 'Loan Security Shortfall'
 #. Label of the loan (Link) field in DocType 'Process Loan Classification'
@@ -5035,7 +5035,7 @@ msgstr ""
 #. Label of the notes (Small Text) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Notes"
-msgstr ""
+msgstr "टिप्पणियाँ"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:61
 msgid "Nothing below has been saved. No Loan Decision was created and {0} was not touched."
@@ -5193,7 +5193,7 @@ msgstr ""
 #. Label of the operator (Select) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "Operator"
-msgstr ""
+msgstr "ऑपरेटर"
 
 #. Label of the organization_type (Select) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -5272,7 +5272,7 @@ msgstr ""
 #. Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "PDF Name"
-msgstr ""
+msgstr "PDF नाम"
 
 #. Option for the 'Repayment Schedule Type' (Select) field in DocType 'Loan
 #. Partner'
@@ -5296,7 +5296,7 @@ msgstr "चुकाया गया"
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
 msgid "Paid Amount"
-msgstr ""
+msgstr "भुगतान की गई राशि"
 
 #. Label of the partial_payment_mechanism (Data) field in DocType 'Loan
 #. Partner'
@@ -5419,7 +5419,7 @@ msgstr ""
 #. Label of the payable_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Payable Account"
-msgstr ""
+msgstr "देय खाता"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:2380
 msgid "Payable Account is mandatory"
@@ -5636,13 +5636,13 @@ msgstr "ऋण {0} की लंबित मूल राशि {1} है"
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Period End Date"
-msgstr ""
+msgstr "अवधि की समाप्ति तिथि"
 
 #. Label of the period_start_date (Date) field in DocType 'Process Loan
 #. Accounting'
 #: lending/loan_management/doctype/process_loan_accounting/process_loan_accounting.json
 msgid "Period Start Date"
-msgstr ""
+msgstr "अवधि प्रारंभ तिथि"
 
 #: lending/loan_management/doctype/loan_refund/loan_refund.py:137
 msgid "Please add customer refund account in Loan Product"
@@ -5680,7 +5680,7 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:8
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.js:23
 msgid "Please save before proceeding."
-msgstr ""
+msgstr "कृपया आगे बढ़ने से पहले सहेजें।"
 
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.js:37
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.js:47
@@ -6085,7 +6085,7 @@ msgstr ""
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Print Preferences"
-msgstr ""
+msgstr "प्रिंट प्राथमिकताएँ"
 
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:100
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:156
@@ -6296,7 +6296,7 @@ msgstr ""
 #. Label of the rate_of_interest (Percent) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Rate of Interest (%) Yearly"
-msgstr ""
+msgstr "वार्षिक ब्याज दर (%)"
 
 #. Option for the 'Sharing Parameter' (Select) field in DocType 'Loan Partner
 #. Adhoc Charges Shared'
@@ -6345,7 +6345,7 @@ msgstr "पुनर्गठन का कारण"
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Receivable Account"
-msgstr ""
+msgstr "प्राप्य खाता"
 
 #. Label of the recommended_amount (Currency) field in DocType 'Loan
 #. Application'
@@ -6432,7 +6432,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json
 msgid "Reference No"
-msgstr ""
+msgstr "संदर्भ संख्या"
 
 #. Label of the reference_number (Data) field in DocType 'Loan Balance
 #. Adjustment'
@@ -6982,7 +6982,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_demand/loan_demand.json
 #: lending/loan_management/doctype/loan_repayment_detail/loan_repayment_detail.json
 msgid "Sales Invoice"
-msgstr ""
+msgstr "बिक्री चालान"
 
 #. Label of the same_as_regular_interest_accounts (Check) field in DocType
 #. 'Loan Product'
@@ -7478,7 +7478,7 @@ msgstr "कुल क्रेडिट"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:81
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:133
 msgid "Total Debit"
-msgstr ""
+msgstr "कुल डेबिट"
 
 #. Label of the total_emi (Currency) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
@@ -7614,7 +7614,7 @@ msgstr ""
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:75
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:28
 msgid "Transaction Type"
-msgstr ""
+msgstr "लेन-देन प्रकार"
 
 #. Label of the transfer_date (Date) field in DocType 'Loan Transfer'
 #: lending/loan_management/doctype/loan_transfer/loan_transfer.json
@@ -7810,7 +7810,7 @@ msgstr "मान प्रकार"
 #. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "Variable"
-msgstr ""
+msgstr "चर"
 
 #. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
@@ -7819,7 +7819,7 @@ msgstr ""
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:87
 msgid "Variables"
-msgstr ""
+msgstr "चर"
 
 #. Description of the 'OTP via Email' (Check) field in DocType 'Loan
 #. Origination Settings'
@@ -7903,7 +7903,7 @@ msgstr ""
 #. Option for the 'Channel' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "WhatsApp"
-msgstr ""
+msgstr "WhatsApp"
 
 #. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
 #: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
@@ -7940,7 +7940,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_product/loan_product.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Account"
-msgstr ""
+msgstr "बट्टे खाते डालने का खाता"
 
 #. Label of the write_off_accounts_section (Section Break) field in DocType
 #. 'Loan Product'
@@ -7951,7 +7951,7 @@ msgstr ""
 #. Label of the write_off_amount (Currency) field in DocType 'Loan Write Off'
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Amount"
-msgstr ""
+msgstr "बट्टे खाते की राशि"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Loan Write
 #. Off'
@@ -8020,7 +8020,7 @@ msgstr ""
 #. Label of the zip_code (Int) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan_application/loan_application.json
 msgid "ZIP Code"
-msgstr ""
+msgstr "ZIP कोड"
 
 #: lending/loan_origination/doctype/loan_decision/loan_decision.py:87
 msgid "any strategy"
