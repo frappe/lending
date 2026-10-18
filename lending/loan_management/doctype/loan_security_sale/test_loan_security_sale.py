@@ -109,6 +109,18 @@ class TestLoanSecuritySale(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			make_loan_disbursement_entry(loan, 100000)
 
+	def test_ledger_shows_each_sale_on_its_own_row(self):
+		from lending.loan_management.report.loan_security_ledger.loan_security_ledger import execute
+
+		for qty in (1000, 2000):
+			sale = make_sale(self.loan, reason="Loan Default")
+			sale.append("items", {"loan_security": "Test Security 2", "qty": qty})
+			sell(sale, {"Test Security 2": (qty, 250)})
+
+		_columns, rows = execute(frappe._dict(loan=self.loan, loan_security="Test Security 2"))
+		self.assertEqual([row.qty for row in rows], [8000, 1000, 2000])
+		self.assertEqual([row.balance_qty for row in rows], [8000, 7000, 5000])
+
 	def test_full_sale_records_surplus_and_repossesses(self):
 		sale = make_sale(self.loan, reason="Loan Default")
 		sale.append("items", {"loan_security": "Test Security 2", "qty": 8000})

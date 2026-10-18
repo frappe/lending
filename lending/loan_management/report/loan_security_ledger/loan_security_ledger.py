@@ -126,9 +126,12 @@ def get_data(filters) -> list[list]:
 		unpledge_query = unpledge_query.where(unpldge_doctype.loan_security == loan_security)
 		pledge_query = pledge_query.where(pledge_doctype.loan_security == loan_security)
 
-	unpledges = unpledge_query.groupby(unpldge_doctype.loan_security).run(as_dict=True)
-	pledges = pledge_query.groupby(pledge_doctype.loan_security).run(as_dict=True)
-	sales = sale_query.groupby(sale_item_doctype.loan_security).run(as_dict=True)
+	# One row per document and security, so each keeps its own date, loan and running balance
+	unpledges = unpledge_query.groupby(unpldge_doctype.parent, unpldge_doctype.loan_security).run(
+		as_dict=True
+	)
+	pledges = pledge_query.groupby(pledge_doctype.parent, pledge_doctype.loan_security).run(as_dict=True)
+	sales = sale_query.groupby(sale_item_doctype.parent, sale_item_doctype.loan_security).run(as_dict=True)
 
 	# A row with no time recorded would otherwise break the sort on a None
 	result = sorted(pledges + unpledges + sales, key=lambda row: get_datetime(row.date))
