@@ -72,6 +72,33 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 			get_datetime("2030-01-08 23:59:59"),
 		)
 
+	def test_cancel_does_not_restore_over_a_later_price(self):
+		month_price = frappe.get_doc(
+			{
+				"doctype": "Loan Security Price",
+				"loan_security": "Test Security 1",
+				"loan_security_price": 500,
+				"valid_from": "2030-01-01 00:00:00",
+				"valid_upto": "2030-01-31 23:59:59",
+			}
+		).insert()
+		monday = make_price_update("2030-01-07", {"Test Security 1": 600})
+		frappe.get_doc(
+			{
+				"doctype": "Loan Security Price",
+				"loan_security": "Test Security 1",
+				"loan_security_price": 620,
+				"valid_from": "2030-01-08 00:00:00",
+				"valid_upto": "2030-01-10 23:59:59",
+			}
+		).insert()
+
+		monday.cancel()
+		self.assertEqual(
+			frappe.db.get_value("Loan Security Price", month_price.name, "valid_upto"),
+			get_datetime("2030-01-07 23:59:59"),
+		)
+
 	def test_rejects_a_price_date_before_an_existing_price(self):
 		make_price_update("2030-01-08", {"Test Security 1": 600})
 		with self.assertRaises(frappe.ValidationError):

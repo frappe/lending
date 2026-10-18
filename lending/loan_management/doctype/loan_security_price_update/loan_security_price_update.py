@@ -137,10 +137,19 @@ class LoanSecurityPriceUpdate(Document):
 
 	def restore_previous_prices(self):
 		for row in self.items:
-			if row.previous_price and frappe.db.exists("Loan Security Price", row.previous_price):
-				frappe.db.set_value(
-					"Loan Security Price", row.previous_price, "valid_upto", row.previous_valid_upto
-				)
+			if not (row.previous_price and frappe.db.exists("Loan Security Price", row.previous_price)):
+				continue
+			# A price entered after this update must stay the only one valid from its start
+			next_price_from = frappe.db.get_value(
+				"Loan Security Price",
+				{"loan_security": row.loan_security, "valid_from": (">=", get_datetime(self.price_date))},
+				"valid_from",
+				order_by="valid_from asc",
+			)
+			valid_upto = get_datetime(row.previous_valid_upto)
+			if next_price_from:
+				valid_upto = min(valid_upto, add_to_date(next_price_from, seconds=-1))
+			frappe.db.set_value("Loan Security Price", row.previous_price, "valid_upto", valid_upto)
 
 	def validate_no_later_price(self):
 		valid_from = get_datetime(self.price_date)
