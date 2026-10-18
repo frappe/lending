@@ -11,6 +11,7 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 	get_loan_security_price,
 )
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	lock_applicant,
 	update_sanctioned_loan_amount_for_applicant,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
@@ -95,6 +96,9 @@ class LoanSecurityAssignment(Document):
 		if self.status != "Pledged":
 			return
 
+		# Approving a release takes the same lock, and the locking read below sees its commit.
+		lock_applicant(self.applicant_type, self.applicant)
+
 		release = frappe.qb.DocType("Loan Security Release")
 		unpledge = frappe.qb.DocType("Unpledge")
 
@@ -109,6 +113,7 @@ class LoanSecurityAssignment(Document):
 			.where(release.applicant == self.applicant)
 			.where(unpledge.loan_security.isin([d.loan_security for d in self.securities]))
 			.limit(1)
+			.for_update()
 		)
 
 		if self.pledge_time:

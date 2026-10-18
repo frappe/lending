@@ -117,6 +117,26 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		first_doc.cancel()
 		self.assertEqual(get_pledged_security_qty(loan=loan.name)["Test Security 1"], 100)
 
+	def test_approve_release_after_pledge_cancel_is_refused(self):
+		loan = self.make_submitted_loan()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 100}]
+		first = create_loan_security_assignment(loan=loan.name, securities=pledge)
+
+		release = frappe.new_doc("Loan Security Release")
+		release.update(
+			{"applicant": "_Test Customer 1", "applicant_type": "Customer", "loan": loan.name}
+		)
+		release.company = "_Test Company"
+		release.append("securities", pledge[0])
+		release.insert()
+		release.submit()
+
+		frappe.get_doc("Loan Security Assignment", first).cancel()
+
+		release.status = "Approved"
+		self.assertRaises(frappe.ValidationError, release.save)
+
 	def test_amended_release_blocks_cancel_of_pledge_made_before_it(self):
 		loan = self.make_submitted_loan()
 

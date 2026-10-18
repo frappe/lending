@@ -43,6 +43,28 @@ class LoanSecurityRelease(Document):
 	def before_submit(self):
 		# An amendment copies the cancelled release's time, which would skip approve().
 		self.unpledge_time = None
+		self.validate_qty_still_pledged()
+
+	def before_update_after_submit(self):
+		self.validate_qty_still_pledged()
+
+	def validate_qty_still_pledged(self):
+		# Holds the applicant lock that a pledge cancel also takes, so the two cannot free the same shares.
+		if self.status != "Approved" or self.unpledge_time:
+			return
+
+		lock_applicant(self.applicant_type, self.applicant)
+		pledge_qty_map = get_current_pledges(loan=self.loan, applicant=self.applicant, for_update=True)
+
+		for security in self.securities:
+			pledged_qty = flt(pledge_qty_map.get(security.loan_security))
+			if security.qty > pledged_qty:
+				frappe.throw(
+					_("Row {0}: Only {1} of {2} is still pledged.").format(
+						security.idx, pledged_qty, frappe.bold(security.loan_security)
+					),
+					title=_("Loan Security Release Error"),
+				)
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
@@ -215,6 +237,14 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 	else:
 		frappe.has_permission("Loan", "read", throw=True)
 
+	return get_current_pledges(loan=loan, applicant=applicant)
+
+
+def lock_applicant(applicant_type, applicant):
+	frappe.db.get_value(applicant_type, applicant, "name", for_update=True)
+
+
+def get_current_pledges(loan=None, applicant=None, for_update=False):
 	current_pledges = {}
 
 	unpldge_doctype = frappe.qb.DocType("Unpledge")
@@ -243,8 +273,16 @@ def get_pledged_security_qty(loan: str | None = None, applicant: str | None = No
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.applicant == applicant)
 		pledge_query = pledge_query.where(loan_security_assignment_doctype.applicant == applicant)
 
-	unpledges = frappe._dict(unpledge_query.groupby(unpldge_doctype.loan_security).run())
-	pledges = frappe._dict(pledge_query.groupby(pledge_doctype.loan_security).run())
+	unpledge_query = unpledge_query.groupby(unpldge_doctype.loan_security)
+	pledge_query = pledge_query.groupby(pledge_doctype.loan_security)
+
+	# A locking read sees rows other requests committed after this transaction's snapshot.
+	if for_update:
+		unpledge_query = unpledge_query.for_update()
+		pledge_query = pledge_query.for_update()
+
+	unpledges = frappe._dict(unpledge_query.run())
+	pledges = frappe._dict(pledge_query.run())
 
 	for security, qty in pledges.items():
 		current_pledges.setdefault(security, qty)
