@@ -19,6 +19,7 @@ class LoanSecurityType(Document):
 
 		disabled: DF.Check
 		haircut: DF.Percent
+		is_mutual_fund: DF.Check
 		loan_security_type: DF.Data
 		loan_to_value_ratio: DF.Percent
 		max_exposure_per_security: DF.Currency

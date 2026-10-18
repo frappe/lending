@@ -84,7 +84,7 @@ fixtures = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Loan Security Price Update": "collateral/mutual_fund/price_update.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -184,7 +184,10 @@ doc_events = {
 	# ---- Usage telemetry: recurring feature usage (see lending/telemetry.py) ----
 	"Loan Lead": {"on_submit": "lending.telemetry.on_loan_lead_submit"},
 	"Loan Application": {"on_submit": "lending.telemetry.on_loan_application_submit"},
-	"Loan": {"on_submit": "lending.telemetry.on_loan_submit"},
+	"Loan": {
+		"on_submit": "lending.telemetry.on_loan_submit",
+		"before_submit": "lending.collateral.mutual_fund.pledge.validate_application_pledge",
+	},
 	"Loan Disbursement": {"on_submit": "lending.telemetry.on_loan_disbursement_submit"},
 	"Loan Repayment": {"on_submit": "lending.telemetry.on_loan_repayment_submit"},
 	"Loan Restructure": {"on_submit": "lending.telemetry.on_loan_restructure_submit"},
@@ -193,7 +196,12 @@ doc_events = {
 	"Loan Refund": {"on_submit": "lending.telemetry.on_submit_event"},
 	"Loan Balance Adjustment": {"on_submit": "lending.telemetry.on_submit_event"},
 	"Loan Transfer": {"on_submit": "lending.telemetry.on_submit_event"},
-	"Loan Security Assignment": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Security Assignment": {
+		"on_submit": "lending.telemetry.on_submit_event",
+		"validate": "lending.collateral.mutual_fund.pledge.validate_assignment",
+		"before_submit": "lending.collateral.mutual_fund.pledge.validate_direct_pledge",
+		"before_update_after_submit": "lending.collateral.mutual_fund.pledge.validate_assignment",
+	},
 	"Loan Security Release": {"on_submit": "lending.telemetry.on_submit_event"},
 	"Loan Security Deposit": {"on_submit": "lending.telemetry.on_submit_event"},
 	"Bulk Repayment Log": {"on_submit": "lending.telemetry.on_submit_event"},
@@ -210,7 +218,10 @@ doc_events = {
 	"Collection Case": {"after_insert": "lending.telemetry.on_collection_case_insert"},
 	# ---- Activation telemetry: post-install setup funnel (first-time milestones) ----
 	"Loan Product": {"after_insert": "lending.telemetry.on_milestone_insert"},
-	"Loan Security Type": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Security Type": {
+		"after_insert": "lending.telemetry.on_milestone_insert",
+		"on_update": "lending.collateral.mutual_fund.pledge.update_securities",
+	},
 	"Loan Partner": {"after_insert": "lending.telemetry.on_milestone_insert"},
 	"Dunning Rule": {"after_insert": "lending.telemetry.on_milestone_insert"},
 	"Decision Strategy": {"after_insert": "lending.telemetry.on_milestone_insert"},

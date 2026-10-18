@@ -11,6 +11,7 @@
   "column_break_5",
   "loan_to_value_ratio",
   "disabled",
+  "is_mutual_fund",
   "section_break_sale",
   "sell_ltv",
   "column_break_sale",
@@ -74,6 +75,13 @@
    "label": "Price Validity (Working Days)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Pledges of this type record the folio, holding and lock-in, and its price updates can read the AMFI NAV file",
+   "fieldname": "is_mutual_fund",
+   "fieldtype": "Check",
+   "label": "Is Mutual Fund"
   },
   {
    "collapsible": 1,
