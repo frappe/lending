@@ -7,6 +7,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
+from lending.collateral.mutual_fund.pledge import update_securities
+
 
 class LoanSecurityType(Document):
 	# begin: auto-generated types
@@ -28,6 +30,9 @@ class LoanSecurityType(Document):
 
 	def validate(self):
 		validate_sell_ltv(self)
+
+	def on_update(self):
+		update_securities(self)
 
 
 def validate_sell_ltv(doc):

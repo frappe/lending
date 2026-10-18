@@ -84,7 +84,7 @@ fixtures = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Loan Security Price Update": "collateral/mutual_fund/price_update.js"}
+# doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -180,17 +180,6 @@ doc_events = {
 	"Days Past Due Log": {
 		"after_insert": "lending.loan_management.collections.on_dpd_log_upsert",
 		"on_update": "lending.loan_management.collections.on_dpd_log_upsert",
-	},
-	"Loan Security Assignment": {
-		"validate": "lending.collateral.mutual_fund.pledge.validate_assignment",
-		"before_submit": "lending.collateral.mutual_fund.pledge.validate_direct_pledge",
-		"before_update_after_submit": "lending.collateral.mutual_fund.pledge.validate_assignment",
-	},
-	"Loan": {
-		"before_submit": "lending.collateral.mutual_fund.pledge.validate_application_pledge",
-	},
-	"Loan Security Type": {
-		"on_update": "lending.collateral.mutual_fund.pledge.update_securities",
 	},
 }
 

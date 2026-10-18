@@ -79,6 +79,49 @@ class TestMutualFundPledge(LendingTestSuite):
 		with self.assertRaisesRegex(frappe.ValidationError, "Folio Number"):
 			make_pledge([fund_line(FLEXI_CAP, folio_number=None)])
 
+	def test_pledged_details_cannot_be_cleared(self):
+		lsa = make_pledge([fund_line(ELSS, purchase_date=add_days(nowdate(), -1095))])
+		self.assertEqual(lsa.status, "Pledged")
+
+		for fieldname in ("folio_number", "holding_type", "purchase_date"):
+			lsa.reload()
+			lsa.securities[0].set(fieldname, None)
+			with self.assertRaisesRegex(frappe.ValidationError, "Enter the"):
+				lsa.save()
+
+	def test_purchases_of_one_scheme_go_on_separate_lines(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		lsa = make_pledge(
+			[
+				fund_line(ELSS, qty=300, purchase_date="2021-01-15"),
+				fund_line(ELSS, qty=200, purchase_date="2022-06-15"),
+			]
+		)
+		self.assertEqual(lsa.status, "Pledged")
+
+		# Releasing the pledge frees both purchases, not only the first line
+		release = unpledge_security(loan_security_assignment=lsa.name)
+		self.assertEqual([(row.loan_security, row.qty) for row in release.securities], [(ELSS, 500)])
+
+	def test_the_same_purchase_twice_is_refused(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "added multiple times"):
+			make_pledge(
+				[
+					fund_line(ELSS, qty=300, purchase_date="2021-01-15"),
+					fund_line(ELSS, qty=200, purchase_date="2021-01-15"),
+				]
+			)
+
+	def test_a_share_twice_is_still_refused(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "added multiple times"):
+			make_pledge(
+				[
+					{"loan_security": "Test Security 1", "qty": 100},
+					{"loan_security": "Test Security 1", "qty": 50},
+				]
+			)
+
 	def test_shares_line_needs_no_folio(self):
 		lsa = make_pledge(
 			[{"loan_security": "Test Security 1", "qty": 100}, fund_line(FLEXI_CAP, qty=100)]
@@ -249,6 +292,13 @@ def make_mutual_fund_securities():
 		(ELSS, "119544", 1095),
 		(CLOSED, "999999", 0),
 	):
+		# The site may already hold these real schemes; the test rolls this back
+		frappe.db.set_value(
+			"Loan Security",
+			{"amfi_scheme_code": amfi_scheme_code, "name": ("!=", code)},
+			"amfi_scheme_code",
+			None,
+		)
 		if not frappe.db.exists("Loan Security", code):
 			frappe.get_doc(
 				{
