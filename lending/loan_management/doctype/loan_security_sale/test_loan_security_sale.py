@@ -74,6 +74,23 @@ class TestLoanSecuritySale(LendingTestSuite):
 		create_process_loan_security_shortfall()
 		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall.name, "status"), "Completed")
 
+	def test_sold_collateral_no_longer_supports_a_drawdown(self):
+		from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
+			get_disbursal_amount,
+		)
+
+		loan = make_secured_loan(self.applicant, 8000, disbursed_amount=500000)
+		self.assertEqual(flt(get_disbursal_amount(loan)[0]), 500000)
+
+		# The 4,000 units sold added ₹5,00,000 of the ₹10,00,000 limit when they were pledged
+		sale = make_sale(loan, reason="Borrower Request")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 4000})
+		sell(sale, {"Test Security 2": (4000, 250)})
+
+		self.assertLessEqual(flt(get_disbursal_amount(loan)[0]), 0)
+		with self.assertRaises(frappe.ValidationError):
+			make_loan_disbursement_entry(loan, 100000)
+
 	def test_full_sale_records_surplus_and_repossesses(self):
 		sale = make_sale(self.loan, reason="Loan Default")
 		sale.append("items", {"loan_security": "Test Security 2", "qty": 8000})
@@ -394,7 +411,7 @@ def make_line_of_credit_loan(applicant):
 	return loan.name
 
 
-def make_secured_loan(applicant, qty):
+def make_secured_loan(applicant, qty, disbursed_amount=None):
 	pledges = [{"loan_security": "Test Security 2", "qty": qty, "haircut": 50}]
 	loan_application = create_loan_application(
 		"_Test Company", applicant, "Stock Loan", pledges, "Repay Over Number of Periods", 12
@@ -404,7 +421,7 @@ def make_secured_loan(applicant, qty):
 		applicant, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
 	)
 	loan.submit()
-	make_loan_disbursement_entry(loan.name, loan.loan_amount)
+	make_loan_disbursement_entry(loan.name, disbursed_amount or loan.loan_amount)
 	return loan.name
 
 

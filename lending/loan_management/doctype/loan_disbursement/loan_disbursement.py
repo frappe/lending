@@ -1038,6 +1038,7 @@ def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 		security_value = get_maximum_amount_as_per_pledged_security(loan) or flt(
 			loan_details.maximum_loan_amount
 		)
+		security_value = max(security_value - get_sold_security_value(loan), 0)
 
 	if not security_value and not loan_details.is_secured_loan:
 		security_value = flt(loan_details.loan_amount)
@@ -1067,3 +1068,33 @@ def get_maximum_amount_as_per_pledged_security(loan):
 	).run()[0][0] or 0
 
 	return flt(maximum_amount)
+
+
+def get_sold_security_value(loan):
+	"""The post-haircut value the loan's sold units added when they were pledged."""
+	pledge = DocType("Pledge")
+	assignment = DocType("Loan Security Assignment")
+	pledged = (
+		frappe.qb.from_(pledge)
+		.inner_join(assignment)
+		.on(pledge.parent == assignment.name)
+		.select(pledge.loan_security, fn.Sum(pledge.post_haircut_amount), fn.Sum(pledge.qty))
+		.where(assignment.loan == loan)
+		.where(assignment.docstatus == 1)
+		.where(assignment.status.isin(["Pledged", "Repossessed"]))
+		.groupby(pledge.loan_security)
+	).run()
+	value_per_unit = {security: flt(value) / flt(qty) for security, value, qty in pledged if flt(qty)}
+
+	sale = DocType("Loan Security Sale")
+	sale_item = DocType("Loan Security Sale Item")
+	sold = (
+		frappe.qb.from_(sale_item)
+		.inner_join(sale)
+		.on(sale_item.parent == sale.name)
+		.select(sale_item.loan_security, fn.Sum(sale_item.sold_qty))
+		.where(sale.loan == loan)
+		.where(sale.docstatus == 1)
+		.groupby(sale_item.loan_security)
+	).run()
+	return sum(flt(qty) * value_per_unit.get(security, 0) for security, qty in sold)
