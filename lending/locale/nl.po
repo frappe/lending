@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-11 15:52+0000\n"
-"PO-Revision-Date: 2026-10-12 23:18\n"
+"PO-Revision-Date: 2026-10-18 23:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -7810,7 +7810,7 @@ msgstr "Waardetype"
 #. Label of the variable (Autocomplete) field in DocType 'Decision Rule'
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json
 msgid "Variable"
-msgstr ""
+msgstr "Variabele"
 
 #. Label of the variable_snapshot (Code) field in DocType 'Loan Decision'
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json
