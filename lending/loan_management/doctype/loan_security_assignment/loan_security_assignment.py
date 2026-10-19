@@ -230,6 +230,8 @@ def update_loan_securities_values(
 			ls.utilized_security_value,
 			ls.original_security_value,
 		)
+		# One row per security: a repeated one would replay its old balances over the update just made
+		.distinct()
 		.where(lsa.status == "Pledged")
 		.where(lsa.loan == loan)
 	).run(as_dict=True)

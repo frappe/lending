@@ -9,6 +9,7 @@ from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
 from lending.tests.test_utils import (
+	create_loan,
 	create_loan_application,
 	create_loan_security,
 	create_loan_security_price,
@@ -103,6 +104,48 @@ class TestMutualFundPledge(LendingTestSuite):
 		# Releasing the pledge frees both purchases, not only the first line
 		release = unpledge_security(loan_security_assignment=lsa.name)
 		self.assertEqual([(row.loan_security, row.qty) for row in release.securities], [(ELSS, 500)])
+
+	def test_repeated_scheme_is_used_up_once_by_a_drawdown(self):
+		from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+			update_loan_securities_values,
+		)
+
+		loan = create_loan(
+			"_Test Loan Customer",
+			"Term Loan Product 5",
+			1500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2024-12-05",
+		)
+		frappe.db.set_value("Loan", loan.name, "is_secured_loan", 1)
+		frappe.db.set_value(
+			"Loan Security",
+			ELSS,
+			{"original_security_value": 10000, "available_security_value": 10000, "utilized_security_value": 0},
+		)
+		lsa = make_pledge(
+			[
+				fund_line(ELSS, qty=100, purchase_date="2021-01-15"),
+				fund_line(ELSS, qty=50, purchase_date="2022-06-15"),
+			]
+		)
+		frappe.db.set_value("Loan Security Assignment", lsa.name, "loan", loan.name)
+
+		# ₹15,000 uses up the ₹10,000 scheme; its second line must not replay the old balances
+		update_loan_securities_values(loan.name, 15000, "Loan Disbursement")
+
+		self.assertEqual(
+			frappe.db.get_value(
+				"Loan Security", ELSS, ["utilized_security_value", "available_security_value"], as_dict=1
+			),
+			{"utilized_security_value": 10000, "available_security_value": 0},
+		)
 
 	def test_the_same_purchase_twice_is_refused(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "added multiple times"):
