@@ -452,6 +452,8 @@ def capture_daily_portfolio_pulse():
 	# Runs just after midnight, so summarise the day that just ended.
 	day = add_days(today(), -1)
 	on_day = {"posting_date": day, "docstatus": 1}
+	# Repayment and demand dates hold a time, so match the whole day, not midnight only.
+	day_range = ["between", [f"{day} 00:00:00", f"{day} 23:59:59.999999"]]
 
 	# Not user activity, so skip `capture` to keep it out of the conversion check.
 	_capture(
@@ -462,8 +464,8 @@ def capture_daily_portfolio_pulse():
 			"npa_loans": frappe.db.count("Loan", {"docstatus": 1, "is_npa": 1}),
 			"overdue_loans": frappe.db.count("Loan", {"docstatus": 1, "days_past_due": [">", 0]}),
 			"disbursements": frappe.db.count("Loan Disbursement", on_day),
-			"repayments": frappe.db.count("Loan Repayment", on_day),
-			"demands_raised": frappe.db.count("Loan Demand", {"docstatus": 1, "demand_date": day}),
+			"repayments": frappe.db.count("Loan Repayment", {"docstatus": 1, "posting_date": day_range}),
+			"demands_raised": frappe.db.count("Loan Demand", {"docstatus": 1, "demand_date": day_range}),
 			# 0 = Monday .. 6 = Sunday
 			"weekday": getdate(day).weekday(),
 		},
