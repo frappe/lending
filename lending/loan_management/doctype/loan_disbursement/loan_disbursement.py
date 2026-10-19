@@ -22,7 +22,7 @@ import erpnext
 from erpnext.accounts.general_ledger import process_gl_map
 from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
-from lending.gold_loan.ltv import cap_haircut_map, cap_ltv_map
+from lending.gold_loan.ltv import cap_haircut_map, get_gold_ltv_cap
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -954,21 +954,15 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 			get_ltv_ratio_map,
 		)
 
-		detail_map = get_ltv_ratio_map()
+		detail_map = get_ltv_ratio_map(loan=loan, applicant=applicant)
 	else:
-		detail_map = frappe._dict(
-			frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)
+		detail_map = cap_haircut_map(
+			frappe._dict(frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)),
+			get_gold_ltv_cap(loan, applicant),
 		)
 
 	security_value = 0.0
 	pledged_securities = get_pledged_security_qty(loan=loan, applicant=applicant)
-
-	if loan:
-		cap_map = cap_ltv_map if on_shortfall_check else cap_haircut_map
-		detail_map = cap_map(
-			{security: detail_map.get(security, 0) for security in pledged_securities},
-			frappe.db.get_value("Loan", loan, "gold_ltv_cap"),
-		)
 
 	for security, qty in pledged_securities.items():
 		if on_shortfall_check:

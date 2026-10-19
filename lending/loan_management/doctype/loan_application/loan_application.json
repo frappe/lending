@@ -43,6 +43,7 @@
   "loan_security_details_section",
   "proposed_pledges",
   "maximum_loan_amount",
+  "gold_ltv_cap",
   "credit_assessment",
   "repayment_info",
   "repayment_method",
@@ -251,6 +252,15 @@
    "fieldtype": "Table",
    "label": "Proposed Pledges",
    "options": "Proposed Pledge"
+  },
+  {
+   "depends_on": "eval:doc.gold_ltv_cap",
+   "description": "Slab LTV of the gold loan product for the applicant's total. The loan made from this application keeps it",
+   "fieldname": "gold_ltv_cap",
+   "fieldtype": "Percent",
+   "label": "Gold LTV Cap",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.is_secured_loan == 1",

@@ -59,34 +59,44 @@ def apply_slab_haircut(doc, table):
 	if not lines:
 		return
 
-	if doc.get("loan"):
-		cap = flt(frappe.db.get_value("Loan", doc.loan, "gold_ltv_cap"))
-		if cap:
-			set_minimum_haircut(lines, 100 - cap)
-	else:
-		apply_new_loan_slab(doc, lines)
+	minimum_haircut = get_minimum_haircut(doc, lines)
+	if minimum_haircut:
+		set_minimum_haircut(lines, minimum_haircut)
 
 	if doc.doctype == "Loan Security Assignment":
 		doc.maximum_loan_value = sum(flt(line.post_haircut_amount) for line in doc.securities)
 
 
-def set_gold_ltv_cap(loan):
-	slabs = GoldLTVSlabs.for_product(loan.loan_product) if loan.is_secured_loan else None
-	if not slabs:
-		loan.gold_ltv_cap = 0
-		return
+def set_gold_ltv_cap(doc):
+	"""Fix the slab LTV of a Loan Application or Loan, which the shortfall and release checks then use."""
+	doc.gold_ltv_cap = get_application_cap(doc) or get_slab_ltv(doc)
 
-	other_total = get_borrower_total(
-		loan.applicant_type, loan.applicant, exclude_loan=None if loan.is_new() else loan.name
+
+def get_gold_ltv_cap(loan=None, applicant=None):
+	if loan:
+		return flt(frappe.db.get_value("Loan", loan, "gold_ltv_cap"))
+
+	# Applicant-wise checks pool every loan's collateral, so the strictest cap applies to all of it
+	caps = frappe.get_all(
+		"Loan",
+		filters={
+			"applicant": applicant,
+			"docstatus": 1,
+			"status": ("not in", CLOSED_LOAN_STATUSES),
+			"gold_ltv_cap": (">", 0),
+		},
+		pluck="gold_ltv_cap",
 	)
-	loan.gold_ltv_cap = slabs.get_ltv(other_total + flt(loan.loan_amount))
+	return min(flt(cap) for cap in caps) if caps else 0
 
 
-def cap_ltv_map(ltv_ratio_map, cap):
+def cap_ltv_map(ltv_ratio_map, cap, metal_securities=None):
 	if not flt(cap):
 		return ltv_ratio_map
 
-	metal_securities = get_metal_securities(list(ltv_ratio_map))
+	if metal_securities is None:
+		metal_securities = get_metal_securities(list(ltv_ratio_map))
+
 	return {
 		security: min(flt(ltv), flt(cap)) if security in metal_securities else ltv
 		for security, ltv in ltv_ratio_map.items()
@@ -99,13 +109,18 @@ def cap_haircut_map(haircut_map, cap):
 
 	metal_securities = get_metal_securities(list(haircut_map))
 	return {
-		security: max(flt(haircut), 100 - flt(cap)) if security in metal_securities else haircut
+		security: get_capped_haircut(security, haircut, cap) if security in metal_securities else haircut
 		for security, haircut in haircut_map.items()
 	}
 
 
+def get_capped_haircut(security, haircut, cap):
+	# The map holds the security's own haircut only, so fall back to the type's like a pledge does
+	return max(flt(haircut) or flt(get_haircut_percentage(security)), 100 - flt(cap))
+
+
 def validate_metal_pledge_has_loan(assignment):
-	# The applicant-wise shortfall has no loan, so it could never apply the slab cap
+	# A pledge with neither has no product, so no slab could ever apply to it
 	if not assignment.loan and not assignment.loan_application and get_metal_lines(assignment.securities):
 		frappe.throw(_("Gold and silver can be pledged only against a Loan or a Loan Application"))
 
@@ -118,9 +133,7 @@ def validate_credit_assessment(application):
 	if not get_metal_lines(application.proposed_pledges):
 		return
 
-	total = get_borrower_total(
-		application.applicant_type, application.applicant, purposes=GOLD_LOAN_PURPOSES
-	) + flt(application.loan_amount)
+	total = get_borrower_total(application, purposes=GOLD_LOAN_PURPOSES) + flt(application.loan_amount)
 	if total > threshold:
 		frappe.throw(
 			_(
@@ -153,22 +166,34 @@ def validate_gold_ltv_slabs(loan_product):
 		previous_amount = flt(slab.up_to_amount)
 
 
-def apply_new_loan_slab(doc, lines):
+def get_minimum_haircut(doc, lines):
+	if doc.get("loan"):
+		cap = get_gold_ltv_cap(doc.loan)
+		return 100 - cap if cap else 0
+
 	slabs = GoldLTVSlabs.for_product(get_loan_product(doc))
 	value = sum(flt(line.amount) for line in lines)
 	if not slabs or not value:
-		return
+		return 0
 
-	limit = slabs.get_limit(value, get_borrower_total(doc.applicant_type, doc.applicant))
-	set_minimum_haircut(lines, 100 * (1 - limit / value))
+	return 100 * (1 - slabs.get_limit(value, get_borrower_total(doc)) / value)
 
 
 def set_minimum_haircut(lines, minimum_haircut):
 	for line in lines:
-		# Start from the security's haircut, not the line's, so a lower slab haircut can take effect again
-		line.haircut = max(flt(get_haircut_percentage(line.loan_security)), minimum_haircut)
+		line.haircut = max(flt(line.haircut) or flt(get_haircut_percentage(line.loan_security)), minimum_haircut)
 		# Round first: cint truncates, so 2,49,999.9999 would lose a rupee
 		line.post_haircut_amount = cint(flt(flt(line.amount) * (1 - line.haircut / 100), 2))
+
+
+def get_application_cap(doc):
+	if doc.doctype == "Loan" and doc.loan_application:
+		return flt(frappe.db.get_value("Loan Application", doc.loan_application, "gold_ltv_cap"))
+
+
+def get_slab_ltv(doc):
+	slabs = GoldLTVSlabs.for_product(doc.loan_product)
+	return slabs.get_ltv(get_borrower_total(doc) + flt(doc.loan_amount)) if slabs else 0
 
 
 def get_loan_product(doc):
@@ -177,7 +202,8 @@ def get_loan_product(doc):
 	return frappe.db.get_value("Loan Application", doc.loan_application, "loan_product")
 
 
-def get_borrower_total(applicant_type, applicant, exclude_loan=None, purposes=("Consumption",)):
+def get_borrower_total(doc, purposes=("Consumption",)):
+	"""Sanctioned amount of the applicant's other open gold loans at this company."""
 	loan = DocType("Loan")
 	loan_product = DocType("Loan Product")
 
@@ -186,14 +212,21 @@ def get_borrower_total(applicant_type, applicant, exclude_loan=None, purposes=("
 		.inner_join(loan_product)
 		.on(loan.loan_product == loan_product.name)
 		.select(fn.Sum(loan.loan_amount))
-		.where(loan.applicant_type == applicant_type)
-		.where(loan.applicant == applicant)
+		.where(loan.company == doc.company)
+		.where(loan.applicant_type == doc.applicant_type)
+		.where(loan.applicant == doc.applicant)
 		.where(loan.docstatus == 1)
 		.where(loan.status.notin(CLOSED_LOAN_STATUSES))
 		.where(loan_product.gold_loan_purpose.isin(purposes))
 	)
-	if exclude_loan:
-		query = query.where(loan.name != exclude_loan)
+
+	if doc.doctype == "Loan" and not doc.is_new():
+		query = query.where(loan.name != doc.name)
+
+	# A loan made from this pledge's application is the pledge itself, not another loan
+	loan_application = doc.name if doc.doctype == "Loan Application" else doc.get("loan_application")
+	if loan_application:
+		query = query.where(fn.Coalesce(loan.loan_application, "") != loan_application)
 
 	return flt(query.run()[0][0])
 

@@ -47,7 +47,7 @@
   },
   {
    "default": "250000",
-   "description": "A gold or silver Loan Application needs a Credit Assessment when the applicant's total gold and silver loans, including it, are above this amount. Leave blank to skip the check",
+   "description": "A gold or silver Loan Application needs a Credit Assessment when the applicant's total gold and silver loans, including it, are above this amount. Set 0 to skip the check",
    "fieldname": "gold_credit_assessment_above",
    "fieldtype": "Currency",
    "label": "Credit Assessment Above"

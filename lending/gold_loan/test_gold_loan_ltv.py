@@ -15,6 +15,7 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 	create_process_loan_security_shortfall,
 )
 from lending.tests.test_utils import (
+	create_loan,
 	create_loan_application,
 	create_loan_product,
 	create_loan_security,
@@ -135,6 +136,57 @@ class TestGoldLoanLTV(LendingTestSuite):
 
 		application = make_application(MEENA_PLEDGE, credit_assessment="/files/assessment.pdf")
 		self.assertEqual(application.maximum_loan_amount, 299887)
+
+	def test_pledge_against_a_loan_made_without_collateral(self):
+		loan = create_loan(APPLICANT, CONSUMPTION_PRODUCT, 299887, "Repay Over Number of Periods", 12)
+		self.assertEqual(flt(loan.gold_ltv_cap), 80)
+
+		assignment = frappe.get_doc(
+			"Loan Security Assignment",
+			create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])]),
+		)
+		self.assertAlmostEqual(flt(assignment.securities[0].haircut), 20, places=2)
+		self.assertEqual(assignment.maximum_loan_value, 299887)
+
+	def test_applicant_wise_value_uses_the_slab_cap(self):
+		make_disbursed_meena_loan()
+
+		value = get_total_pledged_security_value(applicant=APPLICANT, on_shortfall_check=True)
+		self.assertEqual(flt(value, 2), flt(374859 * 0.8, 2))
+
+	def test_security_haircut_above_the_slab_is_kept(self):
+		frappe.db.set_value("Loan Security", "Gold 916", "haircut", 30)
+		application = make_application([dict(MEENA_PLEDGE[0], haircut=30)])
+
+		self.assertEqual(flt(application.proposed_pledges[0].haircut), 30)
+		self.assertEqual(application.maximum_loan_amount, 262401)
+
+	def test_current_price_limit_falls_back_to_the_type_haircut(self):
+		loan = make_disbursed_meena_loan()
+		frappe.db.set_value("Loan Security", "Gold 916", "haircut", 0)
+		frappe.db.set_value("Loan Security Type", "Gold", "haircut", 25)
+
+		self.assertEqual(flt(get_total_pledged_security_value(loan.name), 2), flt(374859 * 0.75, 2))
+
+	def test_loan_keeps_the_slab_its_application_was_priced_on(self):
+		application = make_application(MEENA_PLEDGE)
+
+		# A ₹4,00,000 loan sanctioned in between moves the borrower to the 75% slab
+		other = make_application([{"loan_security": "Gold 999", "qty": 60, "haircut": 15}], loan_amount=400000)
+		make_loan(other.name).submit()
+
+		self.assertEqual(flt(make_loan(application.name).gold_ltv_cap), 80)
+
+	def test_patch_sets_the_credit_assessment_threshold(self):
+		from lending.patches.v16_0.set_gold_credit_assessment_threshold import execute
+
+		frappe.db.delete("Singles", {"doctype": "Lending Settings", "field": "gold_credit_assessment_above"})
+		execute()
+		self.assertEqual(flt(frappe.db.get_single_value("Lending Settings", "gold_credit_assessment_above")), 250000)
+
+		frappe.db.set_single_value("Lending Settings", "gold_credit_assessment_above", 0)
+		execute()
+		self.assertFalse(flt(frappe.db.get_single_value("Lending Settings", "gold_credit_assessment_above")))
 
 	def test_invalid_slabs(self):
 		invalid_slabs = [

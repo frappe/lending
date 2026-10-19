@@ -8,7 +8,6 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
-from lending.gold_loan.ltv import cap_ltv_map
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -69,7 +68,7 @@ class LoanSecurityRelease(Document):
 		pledge_qty_map = get_pledged_security_qty(loan=self.loan, applicant=self.applicant)
 		securities = list(pledge_qty_map)
 		loan_security_price_map = get_loan_security_price_map(securities)
-		ltv_ratio_map = get_ltv_ratio_map(securities)
+		ltv_ratio_map = get_ltv_ratio_map(securities, loan=self.loan, applicant=self.applicant)
 
 		if self.loan:
 			loan_details = frappe.get_value(
@@ -86,13 +85,11 @@ class LoanSecurityRelease(Document):
 					"written_off_amount",
 					"disbursed_amount",
 					"status",
-					"gold_ltv_cap",
 				],
 				as_dict=1,
 			)
 
 			pending_principal_amount = get_pending_principal_amount(loan_details)
-			ltv_ratio_map = cap_ltv_map(ltv_ratio_map, loan_details.gold_ltv_cap)
 
 			security_value = 0
 			allowed_amount = 0
@@ -192,7 +189,7 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 
 	if current_pledged_qty:
 		loan_security_price_map = get_loan_security_price_map(list(current_pledged_qty))
-		ltv_ratio_map = get_ltv_ratio_map(list(current_pledged_qty))
+		ltv_ratio_map = get_ltv_ratio_map(list(current_pledged_qty), applicant=applicant)
 
 	new_sanctioned_loan_amount = 0
 	for security, qty in current_pledged_qty.items():
