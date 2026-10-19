@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
 "POT-Creation-Date: 2026-10-11 15:52+0000\n"
-"PO-Revision-Date: 2026-10-12 23:18\n"
+"PO-Revision-Date: 2026-10-18 23:49\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: Korean\n"
 "MIME-Version: 1.0\n"
@@ -117,7 +117,7 @@ msgstr ""
 
 #: lending/loan_management/doctype/loan_product/loan_product.py:119
 msgid "Account {0} does not belong to company {1}"
-msgstr ""
+msgstr "계정 {0}은(는) 회사 {1}에 속하지 않습니다"
 
 #: lending/loan_management/doctype/loan/loan.py:193
 msgid "Account {0} does not belongs to company {1}"
@@ -996,7 +996,7 @@ msgstr "은행 계좌"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3450
 msgid "Bank Transaction {0} is already fully reconciled"
-msgstr ""
+msgstr "은행 거래 {0}은(는) 이미 완전히 조정되었습니다"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:3478
 msgid "Bank Transaction {0} is from {1} {2}, not from the applicant of Loan {3}"
@@ -1005,7 +1005,7 @@ msgstr ""
 #. Label of a Card Break in the Lending Workspace
 #: lending/loan_management/workspace/lending/lending.json
 msgid "Banking"
-msgstr ""
+msgstr "뱅킹"
 
 #. Label of the base_amount (Currency) field in DocType 'Loan Interest Accrual'
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json
@@ -1046,7 +1046,7 @@ msgstr ""
 #. of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Biweekly"
-msgstr ""
+msgstr "격주"
 
 #. Label of the body (Text Editor) field in DocType 'Process Loan Statement of
 #. Accounts'
@@ -1801,7 +1801,7 @@ msgstr "신용 거래"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:60
 msgid "Credit ({0})"
-msgstr ""
+msgstr "대변 ({0})"
 
 #. Label of the credit_account (Link) field in DocType 'Loan Partner'
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
@@ -1998,11 +1998,11 @@ msgstr ""
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:48
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:80
 msgid "Debit"
-msgstr ""
+msgstr "차변"
 
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.py:53
 msgid "Debit ({0})"
-msgstr ""
+msgstr "차변 ({0})"
 
 #. Option for the 'Adjustment Type' (Select) field in DocType 'Loan Balance
 #. Adjustment'
@@ -2175,7 +2175,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan'
 #: lending/loan_management/doctype/loan/loan.json
 msgid "Disbursed"
-msgstr ""
+msgstr "지급됨"
 
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan'
 #. Label of the disbursed_amount (Currency) field in DocType 'Loan
@@ -3200,7 +3200,7 @@ msgstr ""
 #. Label of the lead_source (Data) field in DocType 'Loan Lead'
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json
 msgid "Lead Source"
-msgstr ""
+msgstr "리드 소스"
 
 #. Description of the 'Loan Product' (Link) field in DocType 'Scorecard'
 #: lending/loan_origination/doctype/scorecard/scorecard.json
@@ -5289,7 +5289,7 @@ msgstr ""
 #. Option for the 'Outcome' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "Paid"
-msgstr ""
+msgstr "지불됨"
 
 #. Label of the paid_amount (Currency) field in DocType 'Loan Demand'
 #. Label of the paid_amount (Currency) field in DocType 'Loan Repayment Detail'
@@ -6296,7 +6296,7 @@ msgstr ""
 #. Label of the rate_of_interest (Percent) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan_product/loan_product.json
 msgid "Rate of Interest (%) Yearly"
-msgstr ""
+msgstr "연간 이자율(%)"
 
 #. Option for the 'Sharing Parameter' (Select) field in DocType 'Loan Partner
 #. Adhoc Charges Shared'
@@ -6345,7 +6345,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_charges/loan_charges.json
 #: lending/loan_management/doctype/loan_partner/loan_partner.json
 msgid "Receivable Account"
-msgstr ""
+msgstr "매출채권 계정"
 
 #. Label of the recommended_amount (Currency) field in DocType 'Loan
 #. Application'
@@ -7335,7 +7335,7 @@ msgstr "약관 세부 정보"
 #. Statement of Accounts'
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.json
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "약관"
 
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.py:1073
 msgid "The Loan Disbursement {0} has been closed."
@@ -7478,7 +7478,7 @@ msgstr "총 학점"
 #: lending/loan_management/doctype/process_loan_statement_of_accounts/process_loan_statement_of_accounts.html:81
 #: lending/loan_management/report/loan_statement_of_account/loan_statement_of_account.html:133
 msgid "Total Debit"
-msgstr ""
+msgstr "차변 합계"
 
 #. Label of the total_emi (Currency) field in DocType 'Credit Bureau Report'
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json
@@ -7903,7 +7903,7 @@ msgstr ""
 #. Option for the 'Channel' (Select) field in DocType 'Collection Activity'
 #: lending/loan_management/doctype/collection_activity/collection_activity.json
 msgid "WhatsApp"
-msgstr ""
+msgstr "WhatsApp"
 
 #. Description of the 'Priority' (Int) field in DocType 'Decision Strategy'
 #: lending/loan_origination/doctype/decision_strategy/decision_strategy.json
@@ -7940,7 +7940,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan_product/loan_product.json
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Account"
-msgstr ""
+msgstr "손실 처리 계정"
 
 #. Label of the write_off_accounts_section (Section Break) field in DocType
 #. 'Loan Product'
@@ -7951,7 +7951,7 @@ msgstr ""
 #. Label of the write_off_amount (Currency) field in DocType 'Loan Write Off'
 #: lending/loan_management/doctype/loan_write_off/loan_write_off.json
 msgid "Write Off Amount"
-msgstr ""
+msgstr "손실 처리 금액"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Loan Write
 #. Off'
