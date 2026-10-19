@@ -76,6 +76,7 @@ class Loan(LoanController):
 		company: DF.Link
 		cost_center: DF.Link | None
 		credit_adjustment_amount: DF.Currency
+		credit_assessment: DF.Attach | None
 		days_past_due: DF.Int
 		debit_adjustment_amount: DF.Currency
 		disbursed_amount: DF.Currency

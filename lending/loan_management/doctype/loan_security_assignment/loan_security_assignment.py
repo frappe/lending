@@ -7,7 +7,11 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt, now_datetime
 
-from lending.gold_loan.ltv import apply_slab_haircut, validate_metal_pledge_has_loan
+from lending.gold_loan.ltv import (
+	apply_slab_haircut,
+	validate_credit_assessment,
+	validate_metal_pledge_has_loan,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
@@ -51,6 +55,7 @@ class LoanSecurityAssignment(Document):
 		validate_metal_pledge_has_loan(self)
 		self.set_loan_and_security_values()
 		apply_slab_haircut(self, "securities")
+		validate_credit_assessment(self)
 
 	def on_submit(self):
 		if self.loan:

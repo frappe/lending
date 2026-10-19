@@ -55,11 +55,12 @@ class GoldLTVSlabs:
 
 def apply_slab_haircut(doc, table):
 	"""Lend on the metal lines of a pledge no more than the slab allows."""
-	lines = get_metal_lines(doc.get(table))
+	rows = doc.get(table)
+	lines = get_metal_lines(rows)
 	if not lines:
 		return
 
-	minimum_haircut = get_minimum_haircut(doc, lines)
+	minimum_haircut = get_minimum_haircut(doc, lines, [row for row in rows if row not in lines])
 	if minimum_haircut:
 		set_minimum_haircut(lines, minimum_haircut)
 
@@ -125,15 +126,24 @@ def validate_metal_pledge_has_loan(assignment):
 		frappe.throw(_("Gold and silver can be pledged only against a Loan or a Loan Application"))
 
 
-def validate_credit_assessment(application):
+def validate_credit_assessment(doc):
+	"""Check a Loan Application, or a pledge against an existing Loan, which never passed one."""
 	threshold = flt(frappe.db.get_single_value("Lending Settings", "gold_credit_assessment_above"))
-	if not threshold or application.credit_assessment:
+	if not threshold:
 		return
 
-	if not get_metal_lines(application.proposed_pledges):
+	if doc.doctype == "Loan Application":
+		loan_doc, lines, assessment = doc, doc.proposed_pledges, doc.credit_assessment
+	elif doc.get("loan"):
+		loan_doc = frappe.get_doc("Loan", doc.loan)
+		lines, assessment = doc.securities, get_loan_credit_assessment(loan_doc)
+	else:
 		return
 
-	total = get_borrower_total(application, purposes=GOLD_LOAN_PURPOSES) + flt(application.loan_amount)
+	if assessment or not get_metal_lines(lines):
+		return
+
+	total = get_borrower_total(loan_doc, purposes=GOLD_LOAN_PURPOSES) + flt(loan_doc.loan_amount)
 	if total > threshold:
 		frappe.throw(
 			_(
@@ -166,7 +176,7 @@ def validate_gold_ltv_slabs(loan_product):
 		previous_amount = flt(slab.up_to_amount)
 
 
-def get_minimum_haircut(doc, lines):
+def get_minimum_haircut(doc, lines, other_lines):
 	if doc.get("loan"):
 		cap = get_gold_ltv_cap(doc.loan)
 		return 100 - cap if cap else 0
@@ -176,7 +186,9 @@ def get_minimum_haircut(doc, lines):
 	if not slabs or not value:
 		return 0
 
-	return 100 * (1 - slabs.get_limit(value, get_borrower_total(doc)) / value)
+	# Lending against the pledge's other collateral is part of this loan, so it moves the slab too
+	other_lending = sum(flt(line.post_haircut_amount) for line in other_lines)
+	return 100 * (1 - slabs.get_limit(value, get_borrower_total(doc) + other_lending) / value)
 
 
 def set_minimum_haircut(lines, minimum_haircut):
@@ -187,13 +199,27 @@ def set_minimum_haircut(lines, minimum_haircut):
 
 
 def get_application_cap(doc):
-	if doc.doctype == "Loan" and doc.loan_application:
-		return flt(frappe.db.get_value("Loan Application", doc.loan_application, "gold_ltv_cap"))
+	if doc.doctype != "Loan" or not doc.loan_application:
+		return 0
+
+	application = frappe.db.get_value(
+		"Loan Application", doc.loan_application, ["gold_ltv_cap", "loan_amount", "loan_product"], as_dict=True
+	)
+	# A loan that changed its amount or product may fall in another slab, so it works out its own
+	if application.loan_product != doc.loan_product or flt(application.loan_amount) != flt(doc.loan_amount):
+		return 0
+	return flt(application.gold_ltv_cap)
 
 
 def get_slab_ltv(doc):
 	slabs = GoldLTVSlabs.for_product(doc.loan_product)
 	return slabs.get_ltv(get_borrower_total(doc) + flt(doc.loan_amount)) if slabs else 0
+
+
+def get_loan_credit_assessment(loan):
+	if loan.credit_assessment or not loan.loan_application:
+		return loan.credit_assessment
+	return frappe.db.get_value("Loan Application", loan.loan_application, "credit_assessment")
 
 
 def get_loan_product(doc):

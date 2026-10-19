@@ -89,6 +89,29 @@ class TestGoldLoanLTV(LendingTestSuite):
 		self.assertEqual(flt(shares.haircut), 50)
 		self.assertEqual(application.maximum_loan_amount, 299887 + 25000)
 
+	def test_share_lending_counts_toward_the_gold_slab(self):
+		create_loan_security_price(
+			"Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		# ₹3,00,000 of gold alone gets ₹2,50,000 at 85%. With ₹50,000 against shares the total
+		# passes ₹2,50,000, so the gold must fit the 80% slab: ₹2,40,000
+		pledges = [
+			{"loan_security": "Gold 999", "qty": 30, "haircut": 15},
+			{"loan_security": "Test Security 1", "qty": 200, "haircut": 50},
+		]
+		application = make_application(pledges)
+
+		self.assertEqual(application.maximum_loan_amount, 290000)
+		self.assertAlmostEqual(flt(application.proposed_pledges[0].haircut), 20, places=2)
+
+		loan = make_loan(application.name)
+		loan.submit()
+		self.assertEqual(flt(loan.gold_ltv_cap), 80)
+
+		make_loan_disbursement_entry(loan.name, loan.loan_amount)
+		create_process_loan_security_shortfall()
+		self.assertFalse(frappe.db.exists("Loan Security Shortfall", {"loan": loan.name}))
+
 	def test_products_without_slabs_keep_the_security_haircut(self):
 		for product in (INCOME_PRODUCT, "Gold Consumption Loan No Slabs"):
 			application = make_application(MEENA_PLEDGE, loan_product=product)
@@ -176,6 +199,31 @@ class TestGoldLoanLTV(LendingTestSuite):
 		make_loan(other.name).submit()
 
 		self.assertEqual(flt(make_loan(application.name).gold_ltv_cap), 80)
+
+	def test_loan_with_a_larger_amount_works_out_its_own_cap(self):
+		# ₹3,50,000 of gold supports ₹2,80,000, but the application asks for ₹2,00,000: 85% slab
+		application = make_application(
+			[{"loan_security": "Gold 999", "qty": 35, "haircut": 15}], loan_amount=200000
+		)
+		self.assertEqual(application.maximum_loan_amount, 280000)
+		self.assertEqual(flt(application.gold_ltv_cap), 85)
+
+		loan = make_loan(application.name)
+		self.assertEqual(flt(loan.gold_ltv_cap), 85)
+
+		loan.loan_amount = 280000
+		loan.save()
+		self.assertEqual(flt(loan.gold_ltv_cap), 80)
+
+	def test_credit_assessment_for_gold_pledged_against_a_loan(self):
+		frappe.db.set_single_value("Lending Settings", "gold_credit_assessment_above", 250000)
+		loan = create_loan(APPLICANT, CONSUMPTION_PRODUCT, 299887, "Repay Over Number of Periods", 12)
+
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
+
+		loan.db_set("credit_assessment", "/files/assessment.pdf")
+		create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
 
 	def test_patch_sets_the_credit_assessment_threshold(self):
 		from lending.patches.v16_0.set_gold_credit_assessment_threshold import execute
