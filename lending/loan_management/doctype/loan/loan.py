@@ -87,6 +87,7 @@ class Loan(LoanController):
 		fldg_triggered: DF.Check
 		freeze_account: DF.Check
 		freeze_date: DF.Date | None
+		gold_loan_purpose: DF.Data | None
 		gold_ltv_cap: DF.Percent
 		interest_income_account: DF.Link | None
 		is_imported: DF.Check

@@ -136,6 +136,9 @@ def validate_credit_assessment(doc):
 		loan_doc, lines, assessment = doc, doc.proposed_pledges, doc.credit_assessment
 	elif doc.get("loan"):
 		loan_doc = frappe.get_doc("Loan", doc.loan)
+		# The Loan shows its Credit Assessment field only on a gold product, so ask only there
+		if not loan_doc.gold_loan_purpose:
+			return
 		lines, assessment = doc.securities, get_loan_credit_assessment(loan_doc)
 	else:
 		return

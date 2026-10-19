@@ -217,13 +217,17 @@ class TestGoldLoanLTV(LendingTestSuite):
 
 	def test_credit_assessment_for_gold_pledged_against_a_loan(self):
 		frappe.db.set_single_value("Lending Settings", "gold_credit_assessment_above", 250000)
-		loan = create_loan(APPLICANT, CONSUMPTION_PRODUCT, 299887, "Repay Over Number of Periods", 12)
 
-		with self.assertRaises(frappe.ValidationError):
+		for product, purpose in ((CONSUMPTION_PRODUCT, "Consumption"), (INCOME_PRODUCT, "Income Generating")):
+			loan = create_loan(APPLICANT, product, 299887, "Repay Over Number of Periods", 12)
+			# The form shows Credit Assessment while gold_loan_purpose is set and there is no application
+			self.assertEqual(loan.gold_loan_purpose, purpose)
+
+			with self.assertRaises(frappe.ValidationError):
+				create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
+
+			loan.db_set("credit_assessment", "/files/assessment.pdf")
 			create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
-
-		loan.db_set("credit_assessment", "/files/assessment.pdf")
-		create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
 
 	def test_patch_sets_the_credit_assessment_threshold(self):
 		from lending.patches.v16_0.set_gold_credit_assessment_threshold import execute
