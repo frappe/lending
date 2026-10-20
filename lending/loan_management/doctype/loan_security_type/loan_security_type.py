@@ -19,7 +19,10 @@ class LoanSecurityType(Document):
 		haircut: DF.Percent
 		loan_security_type: DF.Data
 		loan_to_value_ratio: DF.Percent
+		max_coin_weight: DF.Float
+		max_ornament_weight: DF.Float
 		metal: DF.Literal["", "Gold", "Silver"]
+		track_lien: DF.Check
 	# end: auto-generated types
 
 	pass

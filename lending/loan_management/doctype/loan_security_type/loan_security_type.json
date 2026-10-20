@@ -8,9 +8,12 @@
  "field_order": [
   "loan_security_type",
   "haircut",
+  "track_lien",
   "column_break_5",
   "loan_to_value_ratio",
   "metal",
+  "max_ornament_weight",
+  "max_coin_weight",
   "disabled"
  ],
  "fields": [
@@ -51,10 +54,31 @@
    "fieldtype": "Select",
    "label": "Metal",
    "options": "\nGold\nSilver"
+  },
+  {
+   "default": "0",
+   "description": "Each pledge and release needs a reference that proves the lien, such as the depository pledge number or the gold packet number",
+   "fieldname": "track_lien",
+   "fieldtype": "Check",
+   "label": "Track Lien"
+  },
+  {
+   "depends_on": "eval:doc.metal",
+   "description": "Gross weight in grams that one borrower can pledge. Leave blank for no cap",
+   "fieldname": "max_ornament_weight",
+   "fieldtype": "Float",
+   "label": "Max Ornament Weight (g)"
+  },
+  {
+   "depends_on": "eval:doc.metal",
+   "description": "Gross weight in grams that one borrower can pledge. Leave blank for no cap",
+   "fieldname": "max_coin_weight",
+   "fieldtype": "Float",
+   "label": "Max Coin Weight (g)"
   }
  ],
  "links": [],
- "modified": "2026-10-18 19:00:00.000000",
+ "modified": "2026-10-20 16:17:32.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
