@@ -16,6 +16,7 @@ from lending.loan_management.doctype.loan_security.loan_security import get_hair
 OPEN_ASSIGNMENT_STATUSES = ("Pledge Requested", "Pledged")
 ASSAY_FIELDS = ("gross_weight", "deduction_weight", "net_weight", "fineness", "defects")
 SNAPSHOT_FIELDS = ("status", "current_assignment", "packet_number", "assayed_on", *ASSAY_FIELDS)
+SERVER_ROW_FIELDS = ("status", "article_before", "released_or_sold_in_type", "released_or_sold_in")
 
 
 def set_article_lines(assignment):
@@ -37,6 +38,9 @@ def set_article_lines(assignment):
 	purities = {}
 
 	for row in assignment.articles:
+		if assignment.docstatus == 0:
+			# Set only by pledge, release and sale, never by the person saving the draft
+			row.update(dict.fromkeys(SERVER_ROW_FIELDS))
 		validate_article(assignment, row, articles[row.gold_article], counts, open_assignments)
 		set_article_qty(row, purities)
 
@@ -96,7 +100,10 @@ def pledge_articles(assignment):
 def restore_articles(assignment):
 	for row in assignment.get("articles"):
 		if row.article_before and frappe.db.get_value("Gold Article", row.gold_article, "current_assignment") == assignment.name:
-			frappe.db.set_value("Gold Article", row.gold_article, frappe.parse_json(row.article_before))
+			before = frappe.parse_json(row.article_before)
+			frappe.db.set_value(
+				"Gold Article", row.gold_article, {fieldname: before.get(fieldname) for fieldname in SNAPSHOT_FIELDS}
+			)
 
 
 def validate_release_references(release):
