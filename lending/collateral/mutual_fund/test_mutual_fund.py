@@ -319,6 +319,32 @@ class TestMutualFundHolding(LendingTestSuite):
 		frappe.db.set_value("Loan Security Assignment", other.name, "loan", loan)
 		self.assertEqual(frappe.get_doc("Mutual Fund Holding", holding).pledged_units, 600)
 
+	def test_releases_without_a_loan_are_netted_per_applicant(self):
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
+		make_approved_release(None, FLEXI_CAP, 400)
+		self.assertEqual(frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding).pledged_units, 200)
+
+	def test_editing_a_partly_released_pledge_counts_what_is_left(self):
+		first_loan, second_loan = make_loan(), make_loan()
+		first = make_pledge([fund_line(FLEXI_CAP, qty=600, units_held=1000)])
+		frappe.db.set_value("Loan Security Assignment", first.name, "loan", first_loan)
+		make_approved_release(first_loan, FLEXI_CAP, 400)
+
+		second = make_pledge([fund_line(FLEXI_CAP, qty=800)])
+		frappe.db.set_value("Loan Security Assignment", second.name, "loan", second_loan)
+
+		# 200 left on the first pledge and 800 on the second fill the 1,000 units exactly
+		first.reload()
+		first.securities[0].purchase_date = "2024-01-10"
+		first.save()
+
+	def test_the_database_refuses_a_second_record_of_a_folio(self):
+		make_holding(FLEXI_CAP)
+		duplicate = frappe.get_doc(holding_dict(FLEXI_CAP))
+		duplicate.set_new_name()
+		with self.assertRaises(frappe.UniqueValidationError):
+			duplicate.db_insert()
+
 	def test_units_held_cannot_go_below_pledged_units(self):
 		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
 		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
@@ -537,7 +563,7 @@ def make_approved_release(loan, security, qty):
 	release = frappe.get_doc(
 		{
 			"doctype": "Loan Security Release",
-			"loan": loan,
+			"loan": loan or None,
 			"applicant_type": "Customer",
 			"applicant": "_Test Loan Customer",
 			"company": "_Test Company",
