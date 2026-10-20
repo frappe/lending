@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from collections import defaultdict
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -8,8 +10,9 @@ from frappe.query_builder import functions as fn
 from frappe.utils import flt
 
 JOINT_HOLDINGS = ("Joint", "Anyone or Survivor")
-# Statuses whose units are still under lien. Partial releases are not netted until Unpledge names the holding
-OPEN_ASSIGNMENT_STATUSES = ("Pledge Requested", "Pledged", "Release Requested")
+# A Repossessed assignment stays counted so that the sales which emptied it net it out
+OPEN_ASSIGNMENT_STATUSES = ("Pledge Requested", "Pledged", "Release Requested", "Repossessed")
+FIXED_ONCE_PLEDGED = ("applicant_type", "applicant", "loan_security", "folio_number")
 
 
 class MutualFundHolding(Document):
@@ -52,12 +55,25 @@ class MutualFundHolding(Document):
 
 	def validate(self):
 		self.folio_number = (self.folio_number or "").strip()
+		pledged_units = self.pledged_units
+		self.validate_fixed_once_pledged(pledged_units)
 		self.validate_scheme()
 		self.validate_holding_type()
 		self.validate_duplicate()
-		self.validate_units_held()
+		self.validate_units_held(pledged_units)
 		self.set_applicant_name()
 		self.title = f"{self.folio_number} - {self.loan_security}"
+
+	def validate_fixed_once_pledged(self, pledged_units):
+		if not pledged_units:
+			return
+		for fieldname in FIXED_ONCE_PLEDGED:
+			if self.has_value_changed(fieldname):
+				frappe.throw(
+					_("{0} cannot be changed while units of this folio are pledged").format(
+						frappe.bold(_(self.meta.get_label(fieldname)))
+					)
+				)
 
 	def validate_scheme(self):
 		if not frappe.db.get_value("Loan Security", self.loan_security, "is_mutual_fund"):
@@ -91,11 +107,11 @@ class MutualFundHolding(Document):
 				)
 			)
 
-	def validate_units_held(self):
-		if self.units_held and not self.is_new() and self.pledged_units > flt(self.units_held):
+	def validate_units_held(self, pledged_units):
+		if self.units_held and pledged_units > flt(self.units_held):
 			frappe.throw(
 				_("Units Held cannot be less than the {0} units pledged from this folio").format(
-					frappe.bold(self.pledged_units)
+					frappe.bold(pledged_units)
 				)
 			)
 
@@ -107,19 +123,77 @@ class MutualFundHolding(Document):
 
 
 def get_pledged_units(holding, exclude_assignment=None):
-	"""Units of the holding on submitted pledges that are still open."""
+	"""Units of the holding on submitted pledges that are still open, less what was released or sold.
+
+	Releases and sales name the loan and the scheme, not the folio. They are netted on a loan where
+	this holding is the only folio of its scheme. Elsewhere the units stay counted in full.
+	"""
+	loan_security = frappe.db.get_value("Mutual Fund Holding", holding, "loan_security")
+	if not loan_security:
+		return 0
+
 	pledge = frappe.qb.DocType("Pledge")
 	assignment = frappe.qb.DocType("Loan Security Assignment")
-	query = (
+	lines = (
 		frappe.qb.from_(pledge)
 		.inner_join(assignment)
 		.on(pledge.parent == assignment.name)
-		.select(fn.Sum(pledge.qty))
+		.select(assignment.name, assignment.loan, pledge.mutual_fund_holding, fn.Sum(pledge.qty))
 		.where(pledge.parenttype == "Loan Security Assignment")
-		.where(pledge.mutual_fund_holding == holding)
+		.where(pledge.loan_security == loan_security)
 		.where(assignment.docstatus == 1)
 		.where(assignment.status.isin(OPEN_ASSIGNMENT_STATUSES))
+		.groupby(assignment.name, assignment.loan, pledge.mutual_fund_holding)
+	).run()
+
+	holding_qty, scheme_qty, excluded_qty = defaultdict(float), defaultdict(float), defaultdict(float)
+	for assignment_name, loan, line_holding, qty in lines:
+		scheme_qty[loan] += flt(qty)
+		if line_holding == holding:
+			holding_qty[loan] += flt(qty)
+			if assignment_name == exclude_assignment:
+				excluded_qty[loan] += flt(qty)
+
+	sole_folio_loans = [loan for loan, qty in holding_qty.items() if loan and qty == scheme_qty[loan]]
+	taken_out = get_released_and_sold_qty(loan_security, sole_folio_loans)
+
+	return sum(
+		max(qty - taken_out.get(loan, 0) - excluded_qty[loan], 0) for loan, qty in holding_qty.items()
 	)
-	if exclude_assignment:
-		query = query.where(assignment.name != exclude_assignment)
-	return flt(query.run()[0][0])
+
+
+def get_released_and_sold_qty(loan_security, loans):
+	if not loans:
+		return {}
+
+	unpledge = frappe.qb.DocType("Unpledge")
+	release = frappe.qb.DocType("Loan Security Release")
+	released = (
+		frappe.qb.from_(unpledge)
+		.inner_join(release)
+		.on(unpledge.parent == release.name)
+		.select(release.loan, fn.Sum(unpledge.qty))
+		.where(unpledge.loan_security == loan_security)
+		.where(release.docstatus == 1)
+		.where(release.status == "Approved")
+		.where(release.loan.isin(loans))
+		.groupby(release.loan)
+	).run()
+
+	item = frappe.qb.DocType("Loan Security Sale Item")
+	sale = frappe.qb.DocType("Loan Security Sale")
+	sold = (
+		frappe.qb.from_(item)
+		.inner_join(sale)
+		.on(item.parent == sale.name)
+		.select(sale.loan, fn.Sum(item.sold_qty))
+		.where(item.loan_security == loan_security)
+		.where(sale.docstatus == 1)
+		.where(sale.loan.isin(loans))
+		.groupby(sale.loan)
+	).run()
+
+	taken_out = defaultdict(float)
+	for loan, qty in (*released, *sold):
+		taken_out[loan] += flt(qty)
+	return taken_out

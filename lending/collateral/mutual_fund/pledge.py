@@ -102,7 +102,8 @@ def validate_holding(doc, row, title):
 
 
 def validate_units_held(doc, holding, units, title):
-	units_held = flt(frappe.db.get_value("Mutual Fund Holding", holding, "units_held"))
+	# The lock makes a second pledge of this folio wait, so both cannot count the same free units
+	units_held = flt(frappe.db.get_value("Mutual Fund Holding", holding, "units_held", for_update=True))
 	if not units_held:
 		return
 	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name)

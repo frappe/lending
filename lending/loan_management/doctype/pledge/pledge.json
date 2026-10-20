@@ -127,6 +127,7 @@
    "options": "Mutual Fund Holding"
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "mutual_fund_holding.folio_number",
    "fieldname": "folio_number",
    "fieldtype": "Data",
@@ -138,6 +139,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "mutual_fund_holding.holding_mode",
    "fieldname": "holding_mode",
    "fieldtype": "Data",

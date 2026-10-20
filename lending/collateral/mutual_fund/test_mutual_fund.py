@@ -198,6 +198,8 @@ class TestMutualFundPledge(LendingTestSuite):
 		loan.reload()
 		loan.submit()
 		self.assertEqual(frappe.db.get_value("Loan Security Assignment", name, "status"), "Pledged")
+		# The folio is fetched although the holding was set after submit
+		self.assertEqual(frappe.get_doc("Loan Security Assignment", name).securities[0].folio_number, "12345678/90")
 
 	def test_another_applicants_holding_cannot_be_entered_after_submit(self):
 		loan_application = create_loan_application(
@@ -284,6 +286,38 @@ class TestMutualFundHolding(LendingTestSuite):
 		holding = frappe.get_doc("Mutual Fund Holding", holding.name)
 		self.assertEqual(holding.pledged_units, 0)
 		self.assertEqual(holding.status, "Free")
+
+	def test_pledged_holding_keeps_its_owner_scheme_and_folio(self):
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
+		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
+		for fieldname, value in (
+			("applicant", "_Test Loan Customer 1"),
+			("loan_security", ELSS),
+			("folio_number", "99999999/99"),
+		):
+			holding.reload()
+			holding.set(fieldname, value)
+			with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed while"):
+				holding.save()
+
+		# Details that do not identify the folio stay editable
+		holding.reload()
+		holding.units_held = 2000
+		holding.save()
+
+	def test_releases_on_a_loan_with_one_folio_of_the_scheme_are_netted(self):
+		loan = make_loan()
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
+		frappe.db.set_value("Loan Security Assignment", lsa.name, "loan", loan)
+		holding = lsa.securities[0].mutual_fund_holding
+
+		make_approved_release(loan, FLEXI_CAP, 400)
+		self.assertEqual(frappe.get_doc("Mutual Fund Holding", holding).pledged_units, 200)
+
+		# With a second folio of the scheme on the loan, the release cannot be told apart
+		other = make_pledge([fund_line(FLEXI_CAP, qty=100, folio_number="55555555/55")])
+		frappe.db.set_value("Loan Security Assignment", other.name, "loan", loan)
+		self.assertEqual(frappe.get_doc("Mutual Fund Holding", holding).pledged_units, 600)
 
 	def test_units_held_cannot_go_below_pledged_units(self):
 		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
@@ -480,6 +514,43 @@ def make_pledge(securities):
 	lsa.save()
 	lsa.submit()
 	return lsa
+
+
+def make_loan():
+	return create_loan(
+		"_Test Loan Customer",
+		"Term Loan Product 5",
+		1500000,
+		"Repay Over Number of Periods",
+		12,
+		repayment_start_date="2024-04-05",
+		posting_date="2024-03-06",
+		rate_of_interest=25,
+		applicant_type="Customer",
+		limit_applicable_start="2024-01-05",
+		limit_applicable_end="2024-12-05",
+	).name
+
+
+def make_approved_release(loan, security, qty):
+	"""Record an approved release directly, since only its quantity matters here."""
+	release = frappe.get_doc(
+		{
+			"doctype": "Loan Security Release",
+			"loan": loan,
+			"applicant_type": "Customer",
+			"applicant": "_Test Loan Customer",
+			"company": "_Test Company",
+			"status": "Approved",
+			"docstatus": 1,
+			"securities": [{"loan_security": security, "qty": qty}],
+		}
+	)
+	release.set_new_name()
+	release.set_parent_in_children()
+	release.db_insert()
+	for row in release.securities:
+		row.db_insert()
 
 
 def make_draft_update(loan_security_type):
