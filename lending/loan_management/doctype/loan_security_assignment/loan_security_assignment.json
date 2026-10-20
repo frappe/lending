@@ -16,6 +16,8 @@
   "pledge_time",
   "release_time",
   "status",
+  "lien_status",
+  "lien_request_id",
   "loan_security_details_section",
   "securities",
   "section_break_10",
@@ -167,12 +169,32 @@
    "fieldtype": "Link",
    "label": "Loan Application",
    "options": "Loan Application"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "lien_status",
+   "description": "Lien on the mutual fund units held as a Statement of Account, marked through the registry set in Lending Settings",
+   "fieldname": "lien_status",
+   "fieldtype": "Select",
+   "label": "Lien Status",
+   "no_copy": 1,
+   "options": "\nOTP Sent\nMarked",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "lien_request_id",
+   "fieldname": "lien_request_id",
+   "fieldtype": "Data",
+   "label": "Lien Request ID",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-21 14:38:33.593531",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

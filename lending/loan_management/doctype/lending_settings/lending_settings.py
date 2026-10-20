@@ -17,6 +17,8 @@ class LendingSettings(Document):
 		auto_create_customer: DF.Check
 		enable_margin_call: DF.Check
 		margin_cure_days: DF.Int
+		mutual_fund_nav_adapter: DF.Literal[None]
+		mutual_fund_registry_adapter: DF.Literal[None]
 		portal_logo: DF.AttachImage | None
 		sale_charge: DF.Link | None
 	# end: auto-generated types

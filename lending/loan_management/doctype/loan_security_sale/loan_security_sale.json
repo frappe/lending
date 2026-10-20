@@ -29,6 +29,7 @@
   "column_break_proceeds",
   "proceeds_date",
   "surplus_amount",
+  "redemption_reference",
   "repayments_section",
   "repayments",
   "amended_from"
@@ -145,6 +146,15 @@
    "read_only": 1
   },
   {
+   "depends_on": "redemption_reference",
+   "description": "The registry's reference for the redemption of the pledged mutual fund units",
+   "fieldname": "redemption_reference",
+   "fieldtype": "Data",
+   "label": "Redemption Reference",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "description": "Kept by the seller before paying the lender, such as brokerage, exit load or the auctioneer's fee",
    "fieldname": "deductions",
    "fieldtype": "Currency",
@@ -235,7 +245,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",

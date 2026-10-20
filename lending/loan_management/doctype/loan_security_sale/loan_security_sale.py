@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowdate
 
+from lending.collateral.mutual_fund.registry import validate_redemption
 from lending.loan_management.collections import get_applicant_email
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
@@ -58,6 +59,7 @@ class LoanSecuritySale(Document):
 		posting_date: DF.Date
 		proceeds_date: DF.Date | None
 		reason: DF.Literal["Margin Call Not Cured", "Loan Default", "Borrower Request"]
+		redemption_reference: DF.Data | None
 		repayments: DF.Table[LoanSecuritySaleRepayment]
 		status: DF.Literal["Draft", "Sold", "Proceeds Applied", "Cancelled"]
 		surplus_amount: DF.Currency
@@ -74,6 +76,7 @@ class LoanSecuritySale(Document):
 
 	def before_submit(self):
 		self.validate_sold_items()
+		validate_redemption(self)
 		# Checked at submit, because a draft can carry deductions before the sold qty is entered
 		if flt(self.net_proceeds) < 0:
 			frappe.throw(_("Deductions and Charges together cannot be more than the Gross Proceeds"))

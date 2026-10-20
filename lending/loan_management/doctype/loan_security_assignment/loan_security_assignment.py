@@ -38,6 +38,8 @@ class LoanSecurityAssignment(Document):
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
 		company: DF.Link
 		description: DF.Text | None
+		lien_request_id: DF.Data | None
+		lien_status: DF.Literal["", "OTP Sent", "Marked"]
 		loan: DF.Link | None
 		loan_application: DF.Link | None
 		maximum_loan_value: DF.Currency

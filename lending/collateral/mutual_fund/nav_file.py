@@ -19,7 +19,14 @@ def read_nav_file(doc: str | dict, file_name: str):
 
 	file = frappe.get_doc("File", file_name)
 	file.check_permission("read")
-	navs = parse_nav_file(file.get_content(), getdate(doc.price_date))
+	filled = fill_prices(doc, file.get_content())
+	doc.save()
+	attach_file(file, doc)
+	return {"name": doc.name, "filled": filled}
+
+
+def fill_prices(doc, content):
+	navs = parse_nav_file(content, getdate(doc.price_date))
 
 	rows = {row.loan_security: row for row in doc.items}
 	filled = 0
@@ -40,9 +47,7 @@ def read_nav_file(doc: str | dict, file_name: str):
 
 	# A row left without a price would block the save. Dropped, it counts as missing instead
 	doc.set("items", [row for row in doc.items if flt(row.price) > 0])
-	doc.save()
-	attach_file(file, doc)
-	return {"name": doc.name, "filled": filled}
+	return filled
 
 
 def validate_price_update(doc):

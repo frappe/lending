@@ -14,7 +14,11 @@
   "enable_margin_call",
   "margin_cure_days",
   "column_break_collateral",
-  "sale_charge"
+  "sale_charge",
+  "mutual_fund_section",
+  "mutual_fund_registry_adapter",
+  "column_break_mutual_fund",
+  "mutual_fund_nav_adapter"
  ],
  "fields": [
   {
@@ -74,13 +78,34 @@
    "fieldtype": "Link",
    "label": "Sale Charge",
    "options": "Item"
+  },
+  {
+   "fieldname": "mutual_fund_section",
+   "fieldtype": "Section Break",
+   "label": "Mutual Funds"
+  },
+  {
+   "description": "Fetches holdings and marks, revokes and invokes liens. Leave empty to do these steps by hand.",
+   "fieldname": "mutual_fund_registry_adapter",
+   "fieldtype": "Select",
+   "label": "Mutual Fund Registry Adapter"
+  },
+  {
+   "fieldname": "column_break_mutual_fund",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Prices every mutual fund type each day from the NAV file. Leave empty to upload the NAV file by hand.",
+   "fieldname": "mutual_fund_nav_adapter",
+   "fieldtype": "Select",
+   "label": "Mutual Fund NAV Adapter"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-14 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",

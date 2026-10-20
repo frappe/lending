@@ -26,8 +26,42 @@ function add_read_nav_file_button(frm) {
 		.then(({ message }) => {
 			if (message?.is_mutual_fund) {
 				frm.add_custom_button(__("Fill Prices from AMFI"), () => read_nav_file(frm));
+				add_fetch_nav_button(frm);
 			}
 		});
+}
+
+function add_fetch_nav_button(frm) {
+	frappe
+		.call({ method: "lending.collateral.mutual_fund.registry.get_setup", type: "GET" })
+		.then(({ message }) => {
+			if (!message?.nav) return;
+			frm.add_custom_button(__("Fetch Latest NAV"), () =>
+				frappe
+					.call({
+						method: "lending.collateral.mutual_fund.nav_job.fetch_latest_nav",
+						args: { doc: frm.doc },
+						freeze: true,
+						freeze_message: __("Fetching NAVs..."),
+					})
+					.then(({ message }) => show_filled(frm, message))
+			);
+		});
+}
+
+function show_filled(frm, message) {
+	if (!message) return;
+	if (frm.is_new()) {
+		frappe.set_route("Form", frm.doctype, message.name);
+	} else {
+		frm.reload_doc();
+	}
+	if (message.filled) {
+		frappe.show_alert({
+			message: __("Filled {0} prices from AMFI", [message.filled]),
+			indicator: "green",
+		});
+	}
 }
 
 function read_nav_file(frm) {
@@ -42,19 +76,7 @@ function read_nav_file(frm) {
 					freeze: true,
 					freeze_message: __("Filling prices..."),
 				})
-				.then(({ message }) => {
-					if (frm.is_new()) {
-						frappe.set_route("Form", frm.doctype, message.name);
-					} else {
-						frm.reload_doc();
-					}
-					if (message.filled) {
-						frappe.show_alert({
-							message: __("Filled {0} prices from AMFI", [message.filled]),
-							indicator: "green",
-						});
-					}
-				});
+				.then(({ message }) => show_filled(frm, message));
 		},
 	});
 }

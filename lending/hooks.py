@@ -202,6 +202,9 @@ repost_allowed_doctypes = [
 # ---------------
 
 scheduler_events = {
+	"daily": [
+		"lending.collateral.mutual_fund.nav_job.update_navs",
+	],
 	"daily_long": [
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.schedule_accrual",
 		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",

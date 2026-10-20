@@ -9,6 +9,7 @@
   "loan_security_name",
   "loan_security_type",
   "loan_security_code",
+  "lien_reference",
   "column_break_5",
   "qty",
   "haircut",
@@ -142,6 +143,14 @@
    "fieldname": "purchase_date",
    "fieldtype": "Date",
    "label": "Purchase Date"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Proof that the security is locked, such as the depository pledge number, the gold packet number or the mortgage registration number.",
+   "fieldname": "lien_reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Lien Reference"
   }
  ],
  "istable": 1,

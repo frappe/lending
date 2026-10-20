@@ -11,6 +11,12 @@ _LOADED: set[str | None] = set()
 
 _BUILTIN_ADAPTERS = ()
 
+# Stand-ins for demos and tests. Never offered on a production site, where a fake lien would be a real loss
+_SAMPLE_ADAPTERS = (
+	"lending.collateral.mutual_fund.sample.SampleRegistryAdapter",
+	"lending.collateral.mutual_fund.sample.SampleNavAdapter",
+)
+
 
 def _site():
 	return getattr(frappe.local, "site", None)
@@ -32,7 +38,8 @@ def _load():
 	if site in _LOADED:
 		return
 
-	for path in (*_BUILTIN_ADAPTERS, *frappe.get_hooks("lending_integration_adapters")):
+	samples = _SAMPLE_ADAPTERS if frappe.conf.developer_mode else ()
+	for path in (*_BUILTIN_ADAPTERS, *samples, *frappe.get_hooks("lending_integration_adapters")):
 		register(frappe.get_attr(path))
 
 	_LOADED.add(site)

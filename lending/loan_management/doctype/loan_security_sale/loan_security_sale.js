@@ -16,6 +16,10 @@ frappe.ui.form.on("Loan Security Sale", {
 			frm.add_custom_button(__("Prefill Items"), () => frm.call("prefill_items"));
 		}
 
+		if (frm.doc.docstatus === 0 && !frm.is_new() && !frm.doc.redemption_reference) {
+			add_redemption_button(frm);
+		}
+
 		if (frm.doc.docstatus === 1 && frm.doc.status === "Sold") {
 			frm.add_custom_button(__("Apply Proceeds"), () => {
 				// A sale held back by a moratorium is applied later, on a date past its end
@@ -69,6 +73,36 @@ function set_proceeds(frm, cdt, cdn) {
 	const gross = (frm.doc.items || []).reduce((total, item) => total + flt(item.proceeds), 0);
 	frm.set_value("gross_proceeds", gross);
 	set_net_proceeds(frm);
+}
+
+function add_redemption_button(frm) {
+	frappe
+		.call({ method: "lending.collateral.mutual_fund.registry.get_setup", type: "GET" })
+		.then(({ message }) => {
+			if (!message?.registry) return;
+			frm.add_custom_button(
+				__("Request Redemption"),
+				() =>
+					(frm.is_dirty() ? frm.save() : Promise.resolve()).then(() =>
+						frappe
+							.call({
+								method: "lending.collateral.mutual_fund.registry.request_redemption",
+								args: { loan_security_sale: frm.doc.name },
+								freeze: true,
+								freeze_message: __("Redeeming units..."),
+							})
+							.then(({ message }) => {
+								if (!message) return;
+								frappe.show_alert({
+									message: __("Redeemed as {0}", [message]),
+									indicator: "green",
+								});
+								frm.reload_doc();
+							})
+					),
+				__("Mutual Fund")
+			);
+		});
 }
 
 function set_net_proceeds(frm) {

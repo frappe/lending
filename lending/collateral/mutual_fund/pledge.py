@@ -9,6 +9,7 @@ from frappe.query_builder import functions as fn
 from frappe.utils import add_days, cint, flt, formatdate, getdate, nowdate
 
 from lending.collateral.doctype.mutual_fund_holding.mutual_fund_holding import get_pledged_units
+from lending.collateral.mutual_fund.registry import validate_lien_marked
 
 
 def validate_mutual_fund_lines(doc):
@@ -20,16 +21,15 @@ def validate_direct_pledge(doc):
 	# A pledge from a Loan Application is submitted as Pledge Requested in one step, so the loan checks it instead
 	if not doc.loan_application:
 		validate_lines(doc, require_details=True)
+		validate_lien_marked(doc)
 
 
 def validate_application_pledge(loan_security_assignment):
 	"""Units pledged through a Loan Application become Pledged when the loan is submitted."""
 	assignment = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
-	validate_lines(
-		assignment,
-		require_details=True,
-		title=_("Loan Security Assignment {0}").format(loan_security_assignment),
-	)
+	title = _("Loan Security Assignment {0}").format(loan_security_assignment)
+	validate_lines(assignment, require_details=True, title=title)
+	validate_lien_marked(assignment, title=title)
 
 
 def update_securities(doc):

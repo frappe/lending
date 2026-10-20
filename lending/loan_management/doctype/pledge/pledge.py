@@ -20,6 +20,7 @@ class Pledge(Document):
 		haircut: DF.Percent
 		holding_mode: DF.Data | None
 		is_mutual_fund: DF.Check
+		lien_reference: DF.Data | None
 		loan_security: DF.Link
 		loan_security_code: DF.Data | None
 		loan_security_name: DF.Data | None

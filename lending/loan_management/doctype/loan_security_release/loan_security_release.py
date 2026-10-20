@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
+from lending.collateral.mutual_fund.registry import validate_lien_revoked
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -145,6 +146,7 @@ class LoanSecurityRelease(Document):
 			if self.loan:
 				frappe.db.get_value("Loan", self.loan, "name", for_update=True)
 			self.validate_unpledge_qty()
+			validate_lien_revoked(self)
 
 	def on_update_after_submit(self):
 		self.approve()
