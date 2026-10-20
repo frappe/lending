@@ -27,6 +27,7 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.mapper import get_payment_entry
 from erpnext.accounts.general_ledger import process_gl_map
 
+from lending.gold_loan.articles import pledge_articles, validate_lien_references
 from lending.gold_loan.ltv import set_gold_ltv_cap
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -634,6 +635,8 @@ class Loan(LoanController):
 
 			if lsa_details:
 				lsa, maximum_loan_value = lsa_details
+				assignment = frappe.get_doc("Loan Security Assignment", lsa)
+				validate_lien_references(assignment)
 				frappe.db.set_value(
 					"Loan Security Assignment",
 					lsa,
@@ -643,6 +646,7 @@ class Loan(LoanController):
 						"status": "Pledged",
 					},
 				)
+				pledge_articles(assignment)
 
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 

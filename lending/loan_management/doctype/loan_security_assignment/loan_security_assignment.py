@@ -7,6 +7,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt, now_datetime
 
+from lending.gold_loan.articles import (
+	pledge_articles,
+	restore_articles,
+	set_article_lines,
+	validate_assay,
+	validate_lien_references,
+)
 from lending.gold_loan.ltv import (
 	apply_slab_haircut,
 	validate_credit_assessment,
@@ -32,16 +39,22 @@ class LoanSecurityAssignment(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from lending.gold_loan.doctype.pledged_article.pledged_article import PledgedArticle
 		from lending.loan_management.doctype.pledge.pledge import Pledge
 
 		amended_from: DF.Link | None
 		applicant: DF.DynamicLink
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		articles: DF.Table[PledgedArticle]
+		assayed_by: DF.Data | None
+		borrower_present_at_assay: DF.Check
+		certificate_acknowledgement: DF.Attach | None
 		company: DF.Link
 		description: DF.Text | None
 		loan: DF.Link | None
 		loan_application: DF.Link | None
 		maximum_loan_value: DF.Currency
+		ownership_declaration: DF.Attach | None
 		pledge_time: DF.Datetime | None
 		reference_no: DF.Data | None
 		release_time: DF.Datetime | None
@@ -51,11 +64,17 @@ class LoanSecurityAssignment(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		set_article_lines(self)
 		self.validate_securities()
 		validate_metal_pledge_has_loan(self)
 		self.set_loan_and_security_values()
 		apply_slab_haircut(self, "securities")
 		validate_credit_assessment(self)
+
+	def before_submit(self):
+		validate_assay(self)
+		if not self.loan_application:
+			validate_lien_references(self)
 
 	def on_submit(self):
 		if self.loan:
@@ -84,12 +103,16 @@ class LoanSecurityAssignment(Document):
 			else:
 				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
+		pledge_articles(self)
+
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
+		pledge_articles(self)
 
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")
 		self.db_set("pledge_time", None)
+		restore_articles(self)
 		if self.loan:
 			update_loan(self.loan, self.maximum_loan_value, cancel=1)
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)

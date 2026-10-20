@@ -22,11 +22,13 @@ class LoanSecurity(Document):
 
 		available_security_value: DF.Currency
 		disabled: DF.Check
+		fineness: DF.Int
 		haircut: DF.Percent
 		loan_security_code: DF.Data
 		loan_security_name: DF.Data
 		loan_security_type: DF.Link
 		loan_to_value_ratio: DF.Percent
+		metal: DF.Data | None
 		original_security_value: DF.Currency
 		utilized_security_value: DF.Currency
 	# end: auto-generated types

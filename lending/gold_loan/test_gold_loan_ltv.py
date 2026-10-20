@@ -300,7 +300,7 @@ def setup_gold_securities():
 			}
 		).insert(ignore_permissions=True)
 
-	for security, price in (("Gold 916", 9000), ("Gold 999", 10000)):
+	for security, fineness, price in (("Gold 916", 916, 9000), ("Gold 999", 999, 10000)):
 		if not frappe.db.exists("Loan Security", security):
 			frappe.get_doc(
 				{
@@ -308,10 +308,13 @@ def setup_gold_securities():
 					"loan_security_type": "Gold",
 					"loan_security_code": security,
 					"loan_security_name": security,
+					"fineness": fineness,
 					"haircut": 15,
 					"loan_to_value_ratio": 85,
 				}
 			).insert(ignore_permissions=True)
+		else:
+			frappe.db.set_value("Loan Security", security, "fineness", fineness)
 		set_gold_price(security, price)
 
 

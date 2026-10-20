@@ -8,6 +8,11 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
+from lending.gold_loan.articles import (
+	release_articles,
+	restore_released_articles,
+	validate_release_references,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -42,6 +47,7 @@ class LoanSecurityRelease(Document):
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
+		restore_released_articles(self)
 		self.db_set("status", "Requested")
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
@@ -144,9 +150,11 @@ class LoanSecurityRelease(Document):
 
 	def approve(self):
 		if self.status == "Approved" and not self.unpledge_time:
+			validate_release_references(self)
 			if self.loan:
 				self.update_loan_status()
 
+			release_articles(self)
 			self.db_set("unpledge_time", get_datetime())
 			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
