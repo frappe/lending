@@ -1,0 +1,59 @@
+{
+ "app": "lending",
+ "charts": [],
+ "content": "[{\"id\": \"mfonboard01\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Mutual Fund Onboarding\", \"col\": 12}}, {\"id\": \"mfshortcut1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Mutual Fund Holding\", \"col\": 3}}, {\"id\": \"mfshortcut2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Loan Security\", \"col\": 3}}, {\"id\": \"mfshortcut3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Loan Security Price Update\", \"col\": 3}}, {\"id\": \"mfshortcut4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Loan Security Assignment\", \"col\": 3}}]",
+ "creation": "2026-10-20 00:00:00",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "loan",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Mutual Funds",
+ "links": [],
+ "modified": "2026-10-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Collateral",
+ "module_onboarding": "Mutual Fund Onboarding",
+ "name": "Mutual Funds",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [
+  {
+   "role": "Loan Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "label": "Mutual Fund Holding",
+   "link_to": "Mutual Fund Holding",
+   "type": "DocType"
+  },
+  {
+   "label": "Loan Security",
+   "link_to": "Loan Security",
+   "type": "DocType"
+  },
+  {
+   "label": "Loan Security Price Update",
+   "link_to": "Loan Security Price Update",
+   "type": "DocType"
+  },
+  {
+   "label": "Loan Security Assignment",
+   "link_to": "Loan Security Assignment",
+   "type": "DocType"
+  }
+ ],
+ "standard": 1,
+ "title": "Mutual Funds",
+ "type": "Workspace"
+}

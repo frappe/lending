@@ -1,0 +1,88 @@
+.lending-setup {
+	max-width: var(--page-max-width);
+	margin: calc(var(--spacing) * 6) auto;
+	padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+	border-radius: var(--radius-xl);
+	background-color: var(--surface-gray-1);
+}
+
+.lending-setup-head {
+	padding-inline: calc(var(--spacing) * 2);
+}
+
+.lending-setup-title {
+	font-size: var(--text-lg);
+	font-weight: 500;
+	color: var(--ink-gray-9);
+}
+
+.lending-setup-subtitle {
+	margin-top: calc(var(--spacing) * 1);
+	font-size: var(--text-sm);
+	color: var(--ink-gray-5);
+}
+
+.lending-setup-kinds {
+	display: flex;
+	flex-direction: column;
+	margin-top: calc(var(--spacing) * 4);
+}
+
+.lending-setup-kind {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 3);
+	width: 100%;
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+	border: none;
+	border-radius: var(--radius-md);
+	background: none;
+	color: var(--ink-gray-8);
+	text-align: start;
+}
+
+.lending-setup-kind:not(:disabled):hover {
+	background-color: var(--surface-base);
+}
+
+.lending-setup-kind:disabled {
+	cursor: default;
+	color: var(--ink-gray-5);
+}
+
+.lending-setup-icon {
+	display: flex;
+	flex-shrink: 0;
+}
+
+.lending-setup-text {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: calc(var(--spacing) * 2);
+	min-width: 0;
+}
+
+.lending-setup-label {
+	font-size: var(--text-base);
+	color: inherit;
+}
+
+.lending-setup-kind:not(:disabled) .lending-setup-label {
+	color: var(--ink-gray-9);
+}
+
+.lending-setup-description {
+	font-size: var(--text-base);
+	color: var(--ink-gray-5);
+}
+
+.lending-setup-status {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	flex-shrink: 0;
+	margin-inline-start: auto;
+	font-size: var(--text-sm);
+	color: var(--ink-gray-5);
+}
