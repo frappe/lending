@@ -1,0 +1,26 @@
+{
+ "content": null,
+ "creation": "2026-10-20 00:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "lending-setup",
+ "owner": "Administrator",
+ "page_name": "lending-setup",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Loan Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Lending Setup"
+}

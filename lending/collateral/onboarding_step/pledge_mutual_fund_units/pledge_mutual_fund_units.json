@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create Pledge",
+ "creation": "2026-10-20 00:00:06",
+ "description": "Pick the borrower, add a line for the holding and the units to pledge, and submit. The units are then held against the loan.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-20 00:00:00",
+ "modified_by": "Administrator",
+ "name": "Pledge Mutual Fund Units",
+ "owner": "Administrator",
+ "reference_document": "Loan Security Assignment",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Pledge your first units",
+ "validate_action": 1
+}
