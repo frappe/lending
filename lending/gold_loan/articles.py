@@ -1,17 +1,21 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+from collections import Counter
+
 import frappe
 from frappe import _
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import cint, flt, getdate, nowdate
+from frappe.utils import cint, flt, nowdate
 
 from lending.gold_loan.ltv import get_metal_lines, get_metal_securities
 from lending.loan_management.doctype.loan_security.loan_security import get_haircut_percentage
 
 OPEN_ASSIGNMENT_STATUSES = ("Pledge Requested", "Pledged")
 ASSAY_FIELDS = ("gross_weight", "deduction_weight", "net_weight", "fineness", "defects")
+SNAPSHOT_FIELDS = ("status", "current_assignment", "packet_number", "assayed_on", *ASSAY_FIELDS)
 
 
 def set_article_lines(assignment):
@@ -19,9 +23,22 @@ def set_article_lines(assignment):
 	if not assignment.get("articles"):
 		return
 
+	names = [row.gold_article for row in assignment.articles]
+	articles = {
+		article.name: article
+		for article in frappe.get_all(
+			"Gold Article",
+			filters={"name": ("in", names)},
+			fields=["name", "applicant_type", "applicant", "status", "metal", "article_kind", "gross_weight", "deduction_weight", "fineness"],
+		)
+	}
+	open_assignments = get_open_assignments(names, assignment.name)
+	counts = Counter(names)
+	purities = {}
+
 	for row in assignment.articles:
-		validate_article(assignment, row)
-		set_article_qty(row)
+		validate_article(assignment, row, articles[row.gold_article], counts, open_assignments)
+		set_article_qty(row, purities)
 
 	set_metal_lines(assignment)
 	validate_weight_caps(assignment)
@@ -58,23 +75,28 @@ def pledge_articles(assignment):
 		if row.status not in (None, "", "Pledged"):
 			continue
 
-		row.status = "Pledged"
-		frappe.db.set_value("Pledged Article", row.name, "status", "Pledged", update_modified=False)
-
+		article = frappe.db.get_value("Gold Article", row.gold_article, SNAPSHOT_FIELDS, as_dict=True)
+		row_values = {"status": "Pledged"}
 		values = {
 			"status": "Pledged",
 			"current_assignment": assignment.name,
 			"packet_number": packet_numbers.get(row.loan_security),
+			**{fieldname: row.get(fieldname) for fieldname in ASSAY_FIELDS},
 		}
-		if frappe.db.get_value("Gold Article", row.gold_article, "current_assignment") != assignment.name:
-			values.update({fieldname: row.get(fieldname) for fieldname in ASSAY_FIELDS}, assayed_on=nowdate())
+		if article.current_assignment != assignment.name:
+			# Cancel puts the article back as this pledge found it
+			row_values["article_before"] = json.dumps(article, default=str)
+			values["assayed_on"] = nowdate()
+
+		row.update(row_values)
+		frappe.db.set_value("Pledged Article", row.name, row_values, update_modified=False)
 		frappe.db.set_value("Gold Article", row.gold_article, values)
 
 
 def restore_articles(assignment):
 	for row in assignment.get("articles"):
-		if frappe.db.get_value("Gold Article", row.gold_article, "current_assignment") == assignment.name:
-			frappe.db.set_value("Gold Article", row.gold_article, get_previous_state(row.gold_article, assignment.name))
+		if row.article_before and frappe.db.get_value("Gold Article", row.gold_article, "current_assignment") == assignment.name:
+			frappe.db.set_value("Gold Article", row.gold_article, frappe.parse_json(row.article_before))
 
 
 def validate_release_references(release):
@@ -122,6 +144,10 @@ def restore_released_articles(release):
 		filters={"released_or_sold_in_type": release.doctype, "released_or_sold_in": release.name},
 		fields=["name", "parent", "gold_article", "loan_security"],
 	)
+	if not rows:
+		return
+
+	validate_articles_still_released(release, [row.gold_article for row in rows])
 	for row in rows:
 		frappe.db.set_value(
 			"Pledged Article",
@@ -142,27 +168,39 @@ def restore_released_articles(release):
 		)
 
 
-def validate_article(assignment, row):
-	if [article.gold_article for article in assignment.articles].count(row.gold_article) > 1:
+def validate_articles_still_released(release, gold_articles):
+	for article in frappe.get_all(
+		"Gold Article", filters={"name": ("in", gold_articles)}, fields=["name", "status", "current_assignment"]
+	):
+		if article.status == "Sold":
+			frappe.throw(
+				_("Gold Article {0} has been sold, so Loan Security Release {1} cannot be cancelled").format(
+					frappe.bold(article.name), frappe.bold(release.name)
+				)
+			)
+
+		if article.current_assignment:
+			frappe.throw(
+				_("Gold Article {0} is now pledged on Loan Security Assignment {1}. Cancel that assignment before you cancel this release").format(
+					frappe.bold(article.name), frappe.bold(article.current_assignment)
+				)
+			)
+
+
+def validate_article(assignment, row, article, counts, open_assignments):
+	if counts[row.gold_article] > 1:
 		frappe.throw(_("Row {0}: Gold Article {1} is added more than once").format(row.idx, frappe.bold(row.gold_article)))
 
-	article = frappe.db.get_value(
-		"Gold Article",
-		row.gold_article,
-		["applicant_type", "applicant", "status", "metal", "article_kind", "gross_weight", "deduction_weight", "fineness"],
-		as_dict=True,
-	)
 	if (article.applicant_type, article.applicant) != (assignment.applicant_type, assignment.applicant):
 		frappe.throw(_("Row {0}: Gold Article {1} belongs to another applicant").format(row.idx, frappe.bold(row.gold_article)))
 
 	if article.status == "Sold":
 		frappe.throw(_("Row {0}: Gold Article {1} has been sold").format(row.idx, frappe.bold(row.gold_article)))
 
-	other_assignment = get_open_assignment(row.gold_article, assignment.name)
-	if other_assignment:
+	if open_assignments.get(row.gold_article):
 		frappe.throw(
 			_("Row {0}: Gold Article {1} is already pledged on Loan Security Assignment {2}").format(
-				row.idx, frappe.bold(row.gold_article), frappe.bold(other_assignment)
+				row.idx, frappe.bold(row.gold_article), frappe.bold(open_assignments[row.gold_article])
 			)
 		)
 
@@ -174,7 +212,7 @@ def validate_article(assignment, row):
 		row.fineness = article.fineness
 
 
-def set_article_qty(row):
+def set_article_qty(row, purities):
 	if flt(row.gross_weight) <= 0:
 		frappe.throw(_("Row {0}: Enter the gross weight of Gold Article {1}").format(row.idx, frappe.bold(row.gold_article)))
 
@@ -184,7 +222,14 @@ def set_article_qty(row):
 	if not 0 < cint(row.fineness) <= 1000:
 		frappe.throw(_("Row {0}: Fineness must be above 0 and at most 1,000").format(row.idx))
 
-	security = get_nearest_purity(row.metal, cint(row.fineness))
+	if row.metal not in purities:
+		purities[row.metal] = get_purities(row.metal)
+
+	security = min(
+		purities[row.metal],
+		key=lambda purity: (abs(purity.fineness - cint(row.fineness)), purity.fineness),
+		default=None,
+	)
 	if not security:
 		frappe.throw(_("Set the fineness of each published {0} purity in its Loan Security").format(_(row.metal)))
 
@@ -239,11 +284,27 @@ def validate_weight_caps(assignment):
 
 
 def get_weight_caps(assignment):
+	security_types = dict(
+		frappe.get_all(
+			"Loan Security",
+			filters={"name": ("in", list({row.loan_security for row in assignment.articles}))},
+			fields=["name", "loan_security_type"],
+			as_list=True,
+		)
+	)
+	type_caps = {
+		security_type.name: security_type
+		for security_type in frappe.get_all(
+			"Loan Security Type",
+			filters={"name": ("in", list(set(security_types.values())))},
+			fields=["name", "max_ornament_weight", "max_coin_weight"],
+		)
+	}
+
 	caps = {}
 	for row in assignment.articles:
-		security_type = frappe.db.get_value("Loan Security", row.loan_security, "loan_security_type")
 		fieldname = "max_coin_weight" if row.article_kind == "Coin" else "max_ornament_weight"
-		cap = flt(frappe.db.get_value("Loan Security Type", security_type, fieldname))
+		cap = flt(type_caps[security_types[row.loan_security]].get(fieldname))
 		if cap:
 			key = (row.metal, row.article_kind)
 			caps[key] = min(caps.get(key, cap), cap)
@@ -267,19 +328,17 @@ def get_pledged_weights(assignment):
 	return {(metal, kind): flt(weight) for metal, kind, weight in rows}
 
 
-def get_open_assignment(gold_article, assignment):
+def get_open_assignments(gold_articles, assignment):
 	article = DocType("Pledged Article")
 	lsa = DocType("Loan Security Assignment")
 
-	rows = (
+	return dict(
 		open_article_rows(article, lsa)
-		.select(lsa.name)
-		.where(article.gold_article == gold_article)
+		.select(article.gold_article, lsa.name)
+		.where(article.gold_article.isin(gold_articles))
 		.where(lsa.name != assignment)
-		.limit(1)
-		.run(pluck=True)
+		.run()
 	)
-	return rows[0] if rows else None
 
 
 def get_pledged_rows(release):
@@ -312,11 +371,11 @@ def open_article_rows(article, lsa):
 	)
 
 
-def get_nearest_purity(metal, fineness):
+def get_purities(metal):
 	security = DocType("Loan Security")
 	security_type = DocType("Loan Security Type")
 
-	purities = (
+	return (
 		frappe.qb.from_(security)
 		.inner_join(security_type)
 		.on(security.loan_security_type == security_type.name)
@@ -327,39 +386,6 @@ def get_nearest_purity(metal, fineness):
 		.where(security.fineness > 0)
 		.run(as_dict=True)
 	)
-	return min(purities, key=lambda purity: (abs(purity.fineness - fineness), purity.fineness), default=None)
-
-
-def get_previous_state(gold_article, assignment):
-	"""The article as its last other submitted pledge left it, or as new if there is none."""
-	article = DocType("Pledged Article")
-	lsa = DocType("Loan Security Assignment")
-
-	previous = (
-		frappe.qb.from_(article)
-		.inner_join(lsa)
-		.on(article.parent == lsa.name)
-		.select(article.status, lsa.pledge_time, lsa.creation, *[article[fieldname] for fieldname in ASSAY_FIELDS])
-		.where(article.parenttype == "Loan Security Assignment")
-		.where(article.gold_article == gold_article)
-		.where(lsa.docstatus == 1)
-		.where(lsa.name != assignment)
-		.orderby(lsa.creation, order=frappe.qb.desc)
-		.limit(1)
-		.run(as_dict=True)
-	)
-
-	state = {"current_assignment": None, "packet_number": None}
-	if not previous:
-		return {**state, "status": "Available", "assayed_on": None, "defects": None, **dict.fromkeys(ASSAY_FIELDS[:4], 0)}
-
-	previous = previous[0]
-	return {
-		**state,
-		"status": "Sold" if previous.status == "Sold" else "Released",
-		"assayed_on": getdate(previous.pledge_time or previous.creation),
-		**{fieldname: previous[fieldname] for fieldname in ASSAY_FIELDS},
-	}
 
 
 def tracks_lien(loan_security_type):

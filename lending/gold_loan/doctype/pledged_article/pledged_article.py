@@ -13,6 +13,7 @@ class PledgedArticle(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		article_before: DF.JSON | None
 		article_kind: DF.Data | None
 		deduction_details: DF.SmallText | None
 		deduction_weight: DF.Float

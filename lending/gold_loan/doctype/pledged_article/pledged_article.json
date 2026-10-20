@@ -23,7 +23,8 @@
   "defects",
   "status",
   "released_or_sold_in_type",
-  "released_or_sold_in"
+  "released_or_sold_in",
+  "article_before"
  ],
  "fields": [
   {
@@ -174,11 +175,20 @@
    "no_copy": 1,
    "options": "released_or_sold_in_type",
    "read_only": 1
+  },
+  {
+   "description": "The Gold Article as this pledge found it. Cancel puts it back",
+   "fieldname": "article_before",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Article Before",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-10-20 16:17:32.000000",
+ "modified": "2026-10-20 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Gold Loan",
  "name": "Pledged Article",

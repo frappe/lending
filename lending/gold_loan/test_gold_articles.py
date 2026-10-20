@@ -101,6 +101,16 @@ class TestGoldArticles(LendingTestSuite):
 		necklace.reload()
 		self.assertEqual((necklace.status, necklace.current_assignment), ("Pledged", second.name))
 
+		# Cancelling the release would put the articles on two open assignments
+		assert_refused_and_rolled_back(self, release.cancel, f"now pledged on Loan Security Assignment .*{second.name}")
+
+		# The old assignment still saves after its articles moved on
+		first = frappe.get_doc("Loan Security Assignment", assignment.name)
+		first.certificate_acknowledgement = "/files/acknowledgement.pdf"
+		first.save()
+		self.assertEqual(flt(first.securities[0].qty, 3), 41.651)
+		self.assertEqual(frappe.db.get_value("Gold Article", necklace.name, "current_assignment"), second.name)
+
 	def test_partial_release_keeps_the_articles_pledged(self):
 		necklace, bangles = make_meena_articles()
 		loan = make_loan()
@@ -125,11 +135,17 @@ class TestGoldArticles(LendingTestSuite):
 
 	def test_cancel_puts_the_articles_back(self):
 		necklace = make_article("Necklace", 25, 3, 916)
+		# An assay the article came with, for example from an import
+		before = {"gross_weight": 30, "deduction_weight": 2, "net_weight": 28, "fineness": 900, "defects": "Dent on clasp"}
+		# db_set adds modified and modified_by to the dict it is given
+		necklace.db_set(dict(before))
 		assignment = make_assignment(make_loan(), [necklace])
+		self.assertEqual(frappe.db.get_value("Gold Article", necklace.name, "gross_weight"), 25)
 
 		assignment.cancel()
 		necklace.reload()
-		self.assertEqual((necklace.status, necklace.current_assignment, necklace.gross_weight), ("Available", None, 0))
+		self.assertEqual((necklace.status, necklace.current_assignment), ("Available", None))
+		self.assertEqual({fieldname: necklace.get(fieldname) for fieldname in before}, before)
 
 	def test_packet_number_with_track_lien(self):
 		first, second = make_loan(), make_loan()
@@ -171,9 +187,12 @@ class TestGoldArticles(LendingTestSuite):
 		)
 		assert_refused_and_rolled_back(self, loan.submit, "Lien Reference")
 
+		# A correction to the row while the article is on this assignment reaches the article
+		frappe.db.set_value("Pledged Article", assignment.articles[0].name, "defects", "Scratch on pendant")
 		assignment.reload()
 		assignment.securities[0].lien_reference = "PKT-9"
 		assignment.save()
+		self.assertEqual(frappe.db.get_value("Gold Article", necklace.name, "defects"), "Scratch on pendant")
 		loan.reload()
 		loan.submit()
 
