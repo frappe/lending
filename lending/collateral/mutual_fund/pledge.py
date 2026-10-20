@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _
+from frappe.query_builder import functions as fn
 from frappe.utils import add_days, cint, flt, formatdate, getdate, nowdate
 
 from lending.collateral.doctype.mutual_fund_holding.mutual_fund_holding import get_pledged_units
@@ -107,6 +108,8 @@ def validate_units_held(doc, holding, units, title):
 	if not units_held:
 		return
 	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name)
+	if doc.docstatus == 1:
+		units = get_remaining_units(doc, holding, units, pledged_elsewhere)
 	if pledged_elsewhere + units > units_held:
 		frappe.throw(
 			_(
@@ -132,6 +135,25 @@ def validate_lock_in(row, lock_in_days, pledge_date, title):
 			),
 			title=title,
 		)
+
+
+def get_remaining_units(doc, holding, units, pledged_elsewhere):
+	"""Units a submitted pledge still holds of the folio, after its releases and sales.
+
+	Lines linked to the holding in this save but not yet in the database count in full.
+	"""
+	pledge = frappe.qb.DocType("Pledge")
+	saved_units = flt(
+		(
+			frappe.qb.from_(pledge)
+			.select(fn.Sum(pledge.qty))
+			.where(pledge.parent == doc.name)
+			.where(pledge.parenttype == doc.doctype)
+			.where(pledge.mutual_fund_holding == holding)
+		).run()[0][0]
+	)
+	remaining = get_pledged_units(holding) - pledged_elsewhere
+	return remaining + max(units - saved_units, 0)
 
 
 def get_mutual_fund_lock_in(securities):
