@@ -158,6 +158,45 @@ class TestGoldArticles(LendingTestSuite):
 		assignment = make_assignment(second, [make_article("Coin", 8, 0, 999, kind="Coin")], lien_reference="PKT-7")
 		self.assertEqual(frappe.db.get_value("Loan Security Assignment", assignment.name, "status"), "Pledged")
 
+	def test_track_lien_covers_share_lines(self):
+		create_loan_security_price(
+			"Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		share_type = frappe.db.get_value("Loan Security", "Test Security 1", "loan_security_type")
+		frappe.db.set_value("Loan Security Type", share_type, "track_lien", 1)
+		shares = [{"loan_security": "Test Security 1", "qty": 100, "haircut": 50}]
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Lien Reference"):
+			make_assignment(make_loan(), [make_article("Necklace", 25, 3, 916)], securities=shares)
+
+		assignment = make_assignment(
+			make_loan(), [make_article("Bangles", 20, 0, 900)], securities=shares, lien_reference="CDSL-881"
+		)
+		self.assertEqual(frappe.db.get_value("Loan Security Assignment", assignment.name, "status"), "Pledged")
+
+	def test_packet_number_cannot_be_cleared_after_pledge(self):
+		frappe.db.set_value("Loan Security Type", "Gold", "track_lien", 1)
+		assignment = make_assignment(make_loan(), [make_article("Necklace", 25, 3, 916)], lien_reference="PKT-3")
+
+		assignment.reload()
+		assignment.securities[0].lien_reference = None
+		with self.assertRaisesRegex(frappe.ValidationError, "Lien Reference"):
+			assignment.save()
+
+	def test_an_article_claimed_by_another_pledge_is_refused_at_submit(self):
+		from lending.gold_loan.articles import pledge_articles
+
+		# Both loans come before the first pledge, which sets the applicant's sanctioned limit
+		first_loan, second_loan = make_loan(), make_loan()
+		necklace = make_article("Necklace", 25, 3, 916)
+		first = make_assignment(first_loan, [necklace])
+		second = make_assignment(second_loan, [make_article("Bangles", 20, 0, 900)])
+
+		# A second request that passed its checks before the first one claimed the necklace
+		second.append("articles", {"gold_article": necklace.name, **necklace.flags.assay})
+		with self.assertRaisesRegex(frappe.ValidationError, f"already pledged on Loan Security Assignment .*{first.name}"):
+			pledge_articles(second)
+
 	def test_release_reference_with_track_lien(self):
 		frappe.db.set_value("Loan Security Type", "Gold", "track_lien", 1)
 		loan = make_loan()

@@ -60,12 +60,13 @@ def validate_assay(assignment):
 
 
 def validate_lien_references(assignment):
-	for line in get_metal_lines(assignment.securities):
+	"""Every line whose type tracks liens needs its lien reference, such as a gold packet number."""
+	for line in assignment.securities:
 		if not line.lien_reference and tracks_lien(line.loan_security_type):
 			frappe.throw(
-				_("Row {0}: Enter the packet number in Lien Reference, because Loan Security Type {1} tracks liens").format(
-					line.idx, frappe.bold(line.loan_security_type)
-				)
+				_(
+					"Row {0}: Enter the Lien Reference, such as the gold packet or depository pledge number, because Loan Security Type {1} tracks liens"
+				).format(line.idx, frappe.bold(line.loan_security_type))
 			)
 
 
@@ -79,7 +80,16 @@ def pledge_articles(assignment):
 		if row.status not in (None, "", "Pledged"):
 			continue
 
-		article = frappe.db.get_value("Gold Article", row.gold_article, SNAPSHOT_FIELDS, as_dict=True)
+		# The lock makes a second pledge of this article wait, then see this claim and stop
+		article = frappe.db.get_value(
+			"Gold Article", row.gold_article, SNAPSHOT_FIELDS, as_dict=True, for_update=True
+		)
+		if article.status == "Pledged" and article.current_assignment not in (None, "", assignment.name):
+			frappe.throw(
+				_("Row {0}: Gold Article {1} is already pledged on Loan Security Assignment {2}").format(
+					row.idx, frappe.bold(row.gold_article), frappe.bold(article.current_assignment)
+				)
+			)
 		row_values = {"status": "Pledged"}
 		values = {
 			"status": "Pledged",
@@ -107,12 +117,12 @@ def restore_articles(assignment):
 
 
 def validate_release_references(release):
-	for line in get_metal_lines(release.securities):
+	for line in release.securities:
 		if not line.release_reference and tracks_lien(line.loan_security_type):
 			frappe.throw(
-				_("Row {0}: Enter the handover receipt number in Release Reference, because Loan Security Type {1} tracks liens").format(
-					line.idx, frappe.bold(line.loan_security_type)
-				)
+				_(
+					"Row {0}: Enter the Release Reference, such as the gold handover receipt or depository unpledge number, because Loan Security Type {1} tracks liens"
+				).format(line.idx, frappe.bold(line.loan_security_type))
 			)
 
 
@@ -396,4 +406,6 @@ def get_purities(metal):
 
 
 def tracks_lien(loan_security_type):
-	return cint(frappe.db.get_value("Loan Security Type", loan_security_type, "track_lien"))
+	return bool(loan_security_type) and cint(
+		frappe.db.get_value("Loan Security Type", loan_security_type, "track_lien")
+	)

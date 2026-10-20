@@ -149,8 +149,11 @@ class LoanSecurityRelease(Document):
 		self.approve()
 
 	def approve(self):
-		if self.status == "Approved" and not self.unpledge_time:
+		if self.status == "Approved":
+			# Also on later edits, so a required reference cannot be cleared after approval
 			validate_release_references(self)
+
+		if self.status == "Approved" and not self.unpledge_time:
 			if self.loan:
 				self.update_loan_status()
 

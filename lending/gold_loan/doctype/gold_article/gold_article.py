@@ -50,7 +50,7 @@ class GoldArticle(Document):
 			if self.has_value_changed(fieldname):
 				frappe.throw(
 					_("{0} cannot change once the article has been pledged").format(
-						self.meta.get_label(fieldname)
+						frappe.bold(_(self.meta.get_label(fieldname)))
 					)
 				)
 

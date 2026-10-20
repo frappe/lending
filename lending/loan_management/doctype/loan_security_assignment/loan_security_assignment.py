@@ -105,6 +105,11 @@ class LoanSecurityAssignment(Document):
 
 		pledge_articles(self)
 
+	def before_update_after_submit(self):
+		# A lien reference allows edits after submit, but a required one cannot be cleared once Pledged
+		if self.status == "Pledged":
+			validate_lien_references(self)
+
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
 		pledge_articles(self)
