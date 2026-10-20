@@ -1,12 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from collections import defaultdict
+
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, formatdate, getdate, nowdate
+from frappe.utils import add_days, cint, flt, formatdate, getdate, nowdate
 
-JOINT_HOLDINGS = ("Joint", "Anyone or Survivor")
-REQUIRED_FIELDS = ("folio_number", "holding_mode", "holding_type")
+from lending.collateral.doctype.mutual_fund_holding.mutual_fund_holding import get_pledged_units
 
 
 def validate_mutual_fund_lines(doc):
@@ -45,18 +46,24 @@ def update_securities(doc):
 def validate_lines(doc, require_details=False, title=None):
 	lock_in_map = get_mutual_fund_lock_in([row.loan_security for row in doc.securities])
 	pledge_date = getdate(doc.pledge_time or nowdate())
+	units_by_holding = defaultdict(float)
 	for row in doc.securities:
 		if row.loan_security not in lock_in_map:
 			continue
 		lock_in_days = lock_in_map[row.loan_security]
 		if require_details:
 			validate_details(row, lock_in_days, title)
-		validate_holding(row, title)
+		if row.mutual_fund_holding:
+			validate_holding(doc, row, title)
+			units_by_holding[row.mutual_fund_holding] += flt(row.qty)
 		validate_lock_in(row, lock_in_days, pledge_date, title)
+
+	for holding, units in units_by_holding.items():
+		validate_units_held(doc, holding, units, title)
 
 
 def validate_details(row, lock_in_days, title):
-	required = list(REQUIRED_FIELDS) + (["purchase_date"] if lock_in_days else [])
+	required = ["mutual_fund_holding"] + (["purchase_date"] if lock_in_days else [])
 	for fieldname in required:
 		if not row.get(fieldname):
 			frappe.throw(
@@ -67,17 +74,48 @@ def validate_details(row, lock_in_days, title):
 			)
 
 
-def validate_holding(row, title):
-	if row.holding_type == "Minor":
+def validate_holding(doc, row, title):
+	"""The folio's own checks run when the holding is saved. Here the holding must match the line."""
+	holding = frappe.db.get_value(
+		"Mutual Fund Holding",
+		row.mutual_fund_holding,
+		["applicant_type", "applicant", "loan_security"],
+		as_dict=True,
+	)
+	if (holding.applicant_type, holding.applicant) != (doc.applicant_type, doc.applicant):
 		frappe.throw(
-			_("Row {0}: Units in a minor's folio cannot be pledged").format(row.idx),
+			_("Row {0}: Mutual Fund Holding {1} belongs to another applicant").format(
+				row.idx, frappe.bold(row.mutual_fund_holding)
+			),
 			title=title,
 		)
-	if row.holding_type in JOINT_HOLDINGS and not row.all_holders_signed:
+	if holding.loan_security != row.loan_security:
+		frappe.throw(
+			_("Row {0}: Mutual Fund Holding {1} holds {2}, not {3}").format(
+				row.idx,
+				frappe.bold(row.mutual_fund_holding),
+				frappe.bold(holding.loan_security),
+				frappe.bold(row.loan_security),
+			),
+			title=title,
+		)
+
+
+def validate_units_held(doc, holding, units, title):
+	units_held = flt(frappe.db.get_value("Mutual Fund Holding", holding, "units_held"))
+	if not units_held:
+		return
+	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name)
+	if pledged_elsewhere + units > units_held:
 		frappe.throw(
 			_(
-				"Row {0}: Every holder of folio {1} must sign the lien. Tick All Holders Signed the Lien once they have"
-			).format(row.idx, frappe.bold(row.folio_number or "")),
+				"Mutual Fund Holding {0} has {1} units, and {2} are already pledged on other loans. This pledge can take at most {3}"
+			).format(
+				frappe.bold(holding),
+				frappe.bold(units_held),
+				frappe.bold(pledged_elsewhere),
+				frappe.bold(max(units_held - pledged_elsewhere, 0)),
+			),
 			title=title,
 		)
 

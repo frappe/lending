@@ -108,7 +108,11 @@ class LoanSecurityAssignment(Document):
 		# A mutual fund scheme can repeat for another folio or purchase date, since lock-in runs per purchase
 		security_list = []
 		for security in self.get("securities"):
-			key = (security.loan_security, security.folio_number or "", str(security.purchase_date or ""))
+			key = (
+				security.loan_security,
+				security.mutual_fund_holding or "",
+				str(security.purchase_date or ""),
+			)
 			if key not in security_list:
 				security_list.append(key)
 			else:

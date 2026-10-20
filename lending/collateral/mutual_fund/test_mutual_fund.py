@@ -56,11 +56,11 @@ class TestMutualFundPledge(LendingTestSuite):
 
 	def test_minor_folio_is_refused(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "minor"):
-			make_pledge([fund_line(FLEXI_CAP, holding_type="Minor")])
+			make_holding(FLEXI_CAP, holding_type="Minor")
 
 	def test_joint_folio_needs_every_holder_to_sign(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "must sign the lien"):
-			make_pledge([fund_line(FLEXI_CAP, holding_type="Joint")])
+			make_holding(FLEXI_CAP, holding_type="Joint")
 
 		lsa = make_pledge([fund_line(FLEXI_CAP, holding_type="Joint", all_holders_signed=1)])
 		self.assertEqual(lsa.status, "Pledged")
@@ -76,15 +76,17 @@ class TestMutualFundPledge(LendingTestSuite):
 		with self.assertRaisesRegex(frappe.ValidationError, "Purchase Date"):
 			make_pledge([fund_line(ELSS)])
 
-	def test_direct_pledge_needs_the_folio(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Folio Number"):
-			make_pledge([fund_line(FLEXI_CAP, folio_number=None)])
+	def test_direct_pledge_needs_the_holding(self):
+		line = fund_line(FLEXI_CAP)
+		line["mutual_fund_holding"] = None
+		with self.assertRaisesRegex(frappe.ValidationError, "Mutual Fund Holding"):
+			make_pledge([line])
 
 	def test_pledged_details_cannot_be_cleared(self):
 		lsa = make_pledge([fund_line(ELSS, purchase_date=add_days(nowdate(), -1095))])
 		self.assertEqual(lsa.status, "Pledged")
 
-		for fieldname in ("folio_number", "holding_type", "purchase_date"):
+		for fieldname in ("mutual_fund_holding", "purchase_date"):
 			lsa.reload()
 			lsa.securities[0].set(fieldname, None)
 			with self.assertRaisesRegex(frappe.ValidationError, "Enter the"):
@@ -187,7 +189,7 @@ class TestMutualFundPledge(LendingTestSuite):
 		loan = create_loan_with_security(
 			applicant, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
 		)
-		with self.assertRaisesRegex(frappe.ValidationError, "Folio Number"):
+		with self.assertRaisesRegex(frappe.ValidationError, "Mutual Fund Holding"):
 			loan.submit()
 
 		lsa = frappe.get_doc("Loan Security Assignment", name)
@@ -197,7 +199,7 @@ class TestMutualFundPledge(LendingTestSuite):
 		loan.submit()
 		self.assertEqual(frappe.db.get_value("Loan Security Assignment", name, "status"), "Pledged")
 
-	def test_minor_folio_cannot_be_entered_after_submit(self):
+	def test_another_applicants_holding_cannot_be_entered_after_submit(self):
 		loan_application = create_loan_application(
 			"_Test Company",
 			"_Test Loan Customer",
@@ -208,9 +210,87 @@ class TestMutualFundPledge(LendingTestSuite):
 		)
 		create_loan_security_assignment(loan_application)
 		lsa = frappe.get_doc("Loan Security Assignment", {"loan_application": loan_application})
-		lsa.securities[0].update(fund_line(FLEXI_CAP, qty=4000, holding_type="Minor"))
-		with self.assertRaisesRegex(frappe.ValidationError, "minor"):
+		lsa.securities[0].mutual_fund_holding = make_holding(FLEXI_CAP, applicant="_Test Loan Customer 1")
+		with self.assertRaisesRegex(frappe.ValidationError, "belongs to another applicant"):
 			lsa.save()
+
+
+class TestMutualFundHolding(LendingTestSuite):
+	def setUp(self):
+		setup_test_data()
+
+	def test_lots_of_one_folio_share_the_holding(self):
+		lsa = make_pledge(
+			[
+				fund_line(ELSS, qty=300, purchase_date="2021-01-15"),
+				fund_line(ELSS, qty=200, purchase_date="2022-06-15"),
+			]
+		)
+		self.assertEqual(lsa.securities[0].mutual_fund_holding, lsa.securities[1].mutual_fund_holding)
+		self.assertEqual(lsa.securities[0].folio_number, "12345678/90")
+
+		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
+		self.assertEqual(holding.pledged_units, 500)
+		self.assertEqual(holding.status, "Pledged")
+
+	def test_one_holding_per_folio_and_scheme(self):
+		make_holding(FLEXI_CAP)
+		duplicate = frappe.get_doc(holding_dict(FLEXI_CAP))
+		with self.assertRaisesRegex(frappe.ValidationError, "already recorded"):
+			duplicate.insert()
+
+		# The same folio holds other schemes of the fund house
+		self.assertTrue(make_holding(ELSS))
+
+	def test_holding_needs_a_fund_scheme(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "not a mutual fund scheme"):
+			make_holding("Test Security 1")
+
+	def test_holding_of_another_scheme_is_refused(self):
+		line = fund_line(FLEXI_CAP)
+		line["mutual_fund_holding"] = make_holding(ELSS)
+		with self.assertRaisesRegex(frappe.ValidationError, "holds"):
+			make_pledge([line])
+
+	def test_units_held_caps_pledges_across_loans(self):
+		make_pledge([fund_line(FLEXI_CAP, qty=600, units_held=1000)])
+
+		with self.assertRaisesRegex(frappe.ValidationError, "can take at most"):
+			make_pledge([fund_line(FLEXI_CAP, qty=401)])
+
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=400)])
+		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
+		self.assertEqual(holding.pledged_units, 1000)
+
+	def test_units_held_counts_lines_of_the_same_pledge(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "can take at most"):
+			make_pledge(
+				[
+					fund_line(ELSS, qty=300, purchase_date="2021-01-15", units_held=400),
+					fund_line(ELSS, qty=200, purchase_date="2022-06-15"),
+				]
+			)
+
+	def test_release_frees_the_holding(self):
+		from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+			release_loan_security_assignment,
+		)
+
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600, units_held=1000)])
+		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
+		self.assertEqual(holding.status, "Partly Pledged")
+
+		release_loan_security_assignment(lsa.name)
+		holding = frappe.get_doc("Mutual Fund Holding", holding.name)
+		self.assertEqual(holding.pledged_units, 0)
+		self.assertEqual(holding.status, "Free")
+
+	def test_units_held_cannot_go_below_pledged_units(self):
+		lsa = make_pledge([fund_line(FLEXI_CAP, qty=600)])
+		holding = frappe.get_doc("Mutual Fund Holding", lsa.securities[0].mutual_fund_holding)
+		holding.units_held = 500
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be less than"):
+			holding.save()
 
 
 class TestNavFile(LendingTestSuite):
@@ -356,16 +436,38 @@ def make_mutual_fund_securities():
 			).insert(ignore_permissions=True)
 
 
-def fund_line(security, qty=1000, **details):
-	line = {
+def fund_line(security, qty=1000, purchase_date=None, **holding_details):
+	line = {"loan_security": security, "qty": qty, "mutual_fund_holding": make_holding(security, **holding_details)}
+	if purchase_date:
+		line["purchase_date"] = purchase_date
+	return line
+
+
+def holding_dict(security, applicant="_Test Loan Customer", **details):
+	holding = {
+		"doctype": "Mutual Fund Holding",
+		"applicant_type": "Customer",
+		"applicant": applicant,
 		"loan_security": security,
-		"qty": qty,
 		"folio_number": "12345678/90",
 		"holding_mode": "Statement of Account",
 		"holding_type": "Single",
 	}
-	line.update(details)
-	return line
+	holding.update(details)
+	return holding
+
+
+def make_holding(security, applicant="_Test Loan Customer", **details):
+	"""Return the applicant's holding of the scheme, updated with the given details."""
+	values = holding_dict(security, applicant, **details)
+	name = frappe.db.get_value(
+		"Mutual Fund Holding",
+		{"applicant": applicant, "loan_security": security, "folio_number": values["folio_number"]},
+	)
+	holding = frappe.get_doc("Mutual Fund Holding", name) if name else frappe.new_doc("Mutual Fund Holding")
+	holding.update(values)
+	holding.save()
+	return holding.name
 
 
 def make_pledge(securities):
