@@ -372,7 +372,11 @@ class LoanDisbursement(LoanController):
 		)
 		if loan_schedule_type != "Line of Credit":
 			self.repayment_frequency = loan_frequency
-			if not self.repayment_start_date:
+			if (
+				not self.repayment_start_date
+				and loan_start_date
+				and getdate(loan_start_date) >= getdate(self.disbursement_date)
+			):
 				self.repayment_start_date = loan_start_date
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
