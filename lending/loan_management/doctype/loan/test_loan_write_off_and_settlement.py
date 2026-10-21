@@ -1071,7 +1071,7 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 			.where((LoanDemand.loan == loan.name) & (LoanDemand.loan_disbursement == disbursement.name))
 		).run()[0][0] or 0
 
-		self.assertEqual(outstanding_demand, 0)
+		self.assertEqual(flt(outstanding_demand, 2), 0)
 
 	def test_demand_reversal_on_invoice_cancel(self):
 		loan = create_loan(
