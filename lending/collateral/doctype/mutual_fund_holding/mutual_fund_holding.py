@@ -177,20 +177,27 @@ def get_pledged_units(holding, exclude_assignment=None):
 	).run()
 
 	holding_qty, scheme_qty, excluded_qty = defaultdict(float), defaultdict(float), defaultdict(float)
+	applicant_scheme_qty = applicant_holding_qty = 0
 	for assignment_name, loan, applicant_type, applicant, line_holding, qty in lines:
 		# Pledges without a loan are released per applicant
 		bucket = loan or (applicant_type, applicant)
 		scheme_qty[bucket] += flt(qty)
+		if (applicant_type, applicant) == no_loan:
+			applicant_scheme_qty += flt(qty)
 		if line_holding == holding:
 			holding_qty[bucket] += flt(qty)
+			applicant_holding_qty += flt(qty)
 			if assignment_name == exclude_assignment:
 				excluded_qty[bucket] += flt(qty)
 
 	sole_folio = [bucket for bucket, qty in holding_qty.items() if qty == scheme_qty[bucket]]
+	# A release without a loan is checked against all the applicant's pledges, loan or not, so its
+	# units belong to this folio only when no other folio of the scheme is pledged by the applicant
+	no_loan_sole_folio = no_loan in holding_qty and applicant_holding_qty == applicant_scheme_qty
 	taken_out = get_released_and_sold_qty(
 		loan_security,
 		[bucket for bucket in sole_folio if bucket != no_loan],
-		no_loan if no_loan in sole_folio else None,
+		no_loan if no_loan_sole_folio else None,
 	)
 
 	return sum(

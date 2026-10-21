@@ -108,7 +108,8 @@ def validate_units_held(doc, holding, units, title):
 	if not units_held:
 		return
 	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name)
-	if doc.docstatus == 1:
+	# While a draft is being submitted, its saved copy is still a draft and counts nowhere yet
+	if not doc.is_new() and frappe.db.get_value(doc.doctype, doc.name, "docstatus") == 1:
 		units = get_remaining_units(doc, holding, units, pledged_elsewhere)
 	if pledged_elsewhere + units > units_held:
 		frappe.throw(
