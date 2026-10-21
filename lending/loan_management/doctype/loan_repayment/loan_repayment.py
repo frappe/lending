@@ -181,14 +181,25 @@ class LoanRepayment(AccountsController):
 			frappe.throw("Repayment already made till date {0}".format(get_datetime(future_repayment_date)))
 
 	def validate_amount(self):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 		if not self.amount_paid:
 			frappe.throw(_("Amount paid cannot be zero"))
 
-		if self.repayment_type == "Normal Repayment" and self.amount_paid > self.payable_amount:
+		if self.repayment_type != "Normal Repayment":
+			return
+
+		# allow paying the full pending principal, so the loan can be closed
+		upcoming_principal_amount = max(
+			flt(self.pending_principal_amount, precision) - flt(self.payable_principal_amount, precision), 0
+		)
+		max_allowed_amount = flt(self.payable_amount, precision) + upcoming_principal_amount
+
+		if flt(self.amount_paid, precision) > flt(max_allowed_amount, precision):
 			frappe.throw(
-				_("Amount paid ({0}) cannot be greater than overdue amount ({1})").format(
-					flt(self.amount_paid), flt(self.payable_amount)
-				)
+				_(
+					"Amount paid ({0}) cannot be greater than the overdue amount with pending principal ({1})"
+				).format(flt(self.amount_paid, precision), flt(max_allowed_amount, precision))
 			)
 
 	def book_unaccrued_interest(self):
