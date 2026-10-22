@@ -854,6 +854,10 @@ class LoanRepaymentSchedule(Document):
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
+					# Advance payment made before the first EMI must not pull the first EMI earlier
+					if getdate(self.posting_date) < getdate(first_date):
+						next_emi_date = max(getdate(next_emi_date), getdate(prev_schedule.repayment_start_date))
+
 					self.repayment_start_date = frappe.db.get_value(
 						"Loan Restructure", self.loan_restructure, "repayment_start_date"
 					)
@@ -898,9 +902,12 @@ class LoanRepaymentSchedule(Document):
 					interest_amount = 0
 					principal_amount = 0
 
-					# Pre payment made even before the first EMI
+					# Pre payment made before the first EMI must not pull the first EMI earlier
 					if getdate(self.posting_date) < getdate(first_date):
-						next_emi_date = get_cyclic_date(self.loan_product, self.posting_date, ignore_bpi=True)
+						next_emi_date = max(
+							getdate(get_cyclic_date(self.loan_product, self.posting_date, ignore_bpi=True)),
+							getdate(prev_schedule.repayment_start_date),
+						)
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
