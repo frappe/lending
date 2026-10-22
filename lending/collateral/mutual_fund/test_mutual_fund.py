@@ -467,6 +467,16 @@ class TestMutualFundType(LendingTestSuite):
 		security_type.save()
 		self.assertEqual(frappe.db.get_value("Loan Security", FLEXI_CAP, "is_mutual_fund"), 1)
 
+	def test_a_scheme_keeps_its_own_haircut(self):
+		security = frappe.get_doc("Loan Security", FLEXI_CAP)
+		security.haircut = None
+		security.save()
+		self.assertEqual(security.haircut, 50)
+
+		security.haircut = 40
+		security.save()
+		self.assertEqual(frappe.db.get_value("Loan Security", FLEXI_CAP, "haircut"), 40)
+
 
 def setup_test_data():
 	master_init()
