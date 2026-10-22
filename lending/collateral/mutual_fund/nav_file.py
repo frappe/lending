@@ -47,11 +47,11 @@ def read_nav_file(doc: str | dict, file_name: str):
 
 def validate_price_update(doc):
 	if doc.doctype != "Loan Security Price Update":
-		frappe.throw(_("Only a Loan Security Price Update can read a NAV file"))
+		frappe.throw(_("Only a Loan Security Price Update can fill prices from AMFI"))
 	if doc.docstatus != 0:
-		frappe.throw(_("Only a draft Loan Security Price Update can read a NAV file"))
+		frappe.throw(_("Only a draft Loan Security Price Update can fill prices from AMFI"))
 	if not doc.price_date:
-		frappe.throw(_("Set the Price Date before you read a NAV file"))
+		frappe.throw(_("Set the Price Date before you fill prices from AMFI"))
 	if not (
 		doc.loan_security_type
 		and frappe.db.get_value("Loan Security Type", doc.loan_security_type, "is_mutual_fund")
