@@ -25,7 +25,7 @@ function add_read_nav_file_button(frm) {
 		.get_value("Loan Security Type", frm.doc.loan_security_type, "is_mutual_fund")
 		.then(({ message }) => {
 			if (message?.is_mutual_fund) {
-				frm.add_custom_button(__("Read AMFI NAV File"), () => read_nav_file(frm));
+				frm.add_custom_button(__("Fill Prices from AMFI"), () => read_nav_file(frm));
 			}
 		});
 }
@@ -40,7 +40,7 @@ function read_nav_file(frm) {
 					method: "lending.collateral.mutual_fund.nav_file.read_nav_file",
 					args: { doc: frm.doc, file_name: file.name },
 					freeze: true,
-					freeze_message: __("Reading NAV file..."),
+					freeze_message: __("Filling prices..."),
 				})
 				.then(({ message }) => {
 					if (frm.is_new()) {
@@ -50,7 +50,7 @@ function read_nav_file(frm) {
 					}
 					if (message.filled) {
 						frappe.show_alert({
-							message: __("Filled {0} prices from the NAV file", [message.filled]),
+							message: __("Filled {0} prices from AMFI", [message.filled]),
 							indicator: "green",
 						});
 					}

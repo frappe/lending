@@ -78,7 +78,7 @@
   },
   {
    "default": "0",
-   "description": "Pledges of this type record the folio, holding and lock-in, and its price updates can read the AMFI NAV file",
+   "description": "Pledges of this type record the folio, holding and lock-in, and its price updates can fill prices from AMFI",
    "fieldname": "is_mutual_fund",
    "fieldtype": "Check",
    "label": "Is Mutual Fund"
