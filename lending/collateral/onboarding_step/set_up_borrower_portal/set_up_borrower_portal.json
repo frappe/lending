@@ -1,0 +1,23 @@
+{
+ "action": "Update Settings",
+ "action_label": "Open Settings",
+ "creation": "2026-10-22 00:00:00",
+ "description": "Borrowers record their folios and pledge their units on the borrower portal. Add your logo under Borrower Portal so they see your brand there.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "field": "portal_logo",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-10-22 00:00:00",
+ "modified_by": "Administrator",
+ "name": "Set Up Borrower Portal",
+ "owner": "Administrator",
+ "reference_document": "Lending Settings",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Set up the borrower portal",
+ "validate_action": 1,
+ "value_to_validate": "%"
+}
