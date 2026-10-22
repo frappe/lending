@@ -854,6 +854,10 @@ class LoanRepaymentSchedule(Document):
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
+					# Advance payment made before the first EMI must not pull the first EMI earlier
+					if getdate(self.posting_date) < getdate(first_date):
+						next_emi_date = max(getdate(next_emi_date), self.get_first_emi_date(prev_schedule, schedule_field))
+
 					self.repayment_start_date = frappe.db.get_value(
 						"Loan Restructure", self.loan_restructure, "repayment_start_date"
 					)
@@ -898,9 +902,12 @@ class LoanRepaymentSchedule(Document):
 					interest_amount = 0
 					principal_amount = 0
 
-					# Pre payment made even before the first EMI
+					# Pre payment made before the first EMI must not pull the first EMI earlier
 					if getdate(self.posting_date) < getdate(first_date):
-						next_emi_date = get_cyclic_date(self.loan_product, self.posting_date, ignore_bpi=True)
+						next_emi_date = max(
+							getdate(get_cyclic_date(self.loan_product, self.posting_date, ignore_bpi=True)),
+							self.get_first_emi_date(prev_schedule, schedule_field),
+						)
 					else:
 						next_emi_date = self.get_next_payment_date(prev_repayment_date)
 
@@ -959,6 +966,14 @@ class LoanRepaymentSchedule(Document):
 			additional_principal_amount,
 			pending_prev_days,
 		)
+
+	def get_first_emi_date(self, prev_schedule, schedule_field):
+		# An early payment moves repayment_start_date ahead, but its schedule has no upfront interest row,
+		# so the first row is the first EMI. Other schedules keep the agreed date in repayment_start_date.
+		if prev_schedule.restructure_type in ("Pre Payment", "Advance Payment"):
+			return getdate(prev_schedule.get(schedule_field)[0].payment_date)
+
+		return getdate(prev_schedule.repayment_start_date)
 
 	def get_prev_schedule_demand_generated(self, prev_schedule, schedule_field, payment_date):
 		for row in prev_schedule.get(schedule_field):
