@@ -8,6 +8,11 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
+from lending.gold_loan.articles import (
+	release_articles,
+	restore_released_articles,
+	validate_release_references,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -42,6 +47,7 @@ class LoanSecurityRelease(Document):
 
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
+		restore_released_articles(self)
 		self.db_set("status", "Requested")
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
@@ -68,7 +74,7 @@ class LoanSecurityRelease(Document):
 		pledge_qty_map = get_pledged_security_qty(loan=self.loan, applicant=self.applicant)
 		securities = list(pledge_qty_map)
 		loan_security_price_map = get_loan_security_price_map(securities)
-		ltv_ratio_map = get_ltv_ratio_map(securities)
+		ltv_ratio_map = get_ltv_ratio_map(securities, loan=self.loan, applicant=self.applicant)
 
 		if self.loan:
 			loan_details = frappe.get_value(
@@ -143,10 +149,15 @@ class LoanSecurityRelease(Document):
 		self.approve()
 
 	def approve(self):
+		if self.status == "Approved":
+			# Also on later edits, so a required reference cannot be cleared after approval
+			validate_release_references(self)
+
 		if self.status == "Approved" and not self.unpledge_time:
 			if self.loan:
 				self.update_loan_status()
 
+			release_articles(self)
 			self.db_set("unpledge_time", get_datetime())
 			update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
@@ -189,7 +200,7 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 
 	if current_pledged_qty:
 		loan_security_price_map = get_loan_security_price_map(list(current_pledged_qty))
-		ltv_ratio_map = get_ltv_ratio_map(list(current_pledged_qty))
+		ltv_ratio_map = get_ltv_ratio_map(list(current_pledged_qty), applicant=applicant)
 
 	new_sanctioned_loan_amount = 0
 	for security, qty in current_pledged_qty.items():

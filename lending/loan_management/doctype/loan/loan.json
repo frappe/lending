@@ -36,6 +36,9 @@
   "disbursed_amount",
   "closure_date",
   "maximum_loan_amount",
+  "gold_ltv_cap",
+  "gold_loan_purpose",
+  "credit_assessment",
   "is_secured_loan",
   "is_term_loan",
   "term_details_section",
@@ -364,6 +367,32 @@
    "no_copy": 1,
    "options": "Company:company:default_currency",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.gold_ltv_cap",
+   "description": "Slab LTV of the gold loan product for the borrower's total when this loan was sanctioned. Caps the LTV of its gold and silver collateral",
+   "fieldname": "gold_ltv_cap",
+   "fieldtype": "Percent",
+   "label": "Gold LTV Cap",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_product.gold_loan_purpose",
+   "fieldname": "gold_loan_purpose",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Gold Loan Purpose",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.gold_loan_purpose && !doc.loan_application",
+   "description": "Required before gold or silver is pledged against this loan when the borrower's total gold and silver loans are above the amount in Lending Settings. A loan from a Loan Application uses the application's",
+   "fieldname": "credit_assessment",
+   "fieldtype": "Attach",
+   "label": "Credit Assessment",
+   "no_copy": 1
   },
   {
    "fieldname": "written_off_amount",
@@ -765,7 +794,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-23 15:52:02.225176",
+ "modified": "2026-10-18 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",

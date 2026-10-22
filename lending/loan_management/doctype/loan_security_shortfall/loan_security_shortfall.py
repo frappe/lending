@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime
 
+from lending.gold_loan.ltv import cap_ltv_map, get_gold_ltv_cap, get_metal_securities
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -120,6 +121,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			"total_interest_payable",
 			"disbursed_amount",
 			"status",
+			"gold_ltv_cap",
 		],
 		filters=filters,
 	)
@@ -137,6 +139,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 	)
 
 	ltv_ratio_map = get_ltv_ratio_map()
+	metal_securities = get_metal_securities(list(ltv_ratio_map))
 
 	# Loan-wise shortfall processing
 	for loan in loans:
@@ -150,13 +153,14 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			)
 
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
+		loan_ltv_ratio_map = cap_ltv_map(ltv_ratio_map, loan.gold_ltv_cap, metal_securities)
 		security_value = 0.0
 		allowed_amount = 0.0
 
 		for security, qty in pledged_securities.items():
 			value = flt(loan_security_price_map.get(security)) * flt(qty)
 			security_value += value
-			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
+			allowed_amount += value * flt(loan_ltv_ratio_map.get(security)) / 100
 
 		shortfall_amount = outstanding_amount - allowed_amount
 		if security_value and flt(shortfall_amount, 6) > 0:
@@ -237,8 +241,11 @@ def create_loan_security_shortfall(
 	ltv_shortfall.save()
 
 
-def get_ltv_ratio_map(loan_securities=None):
-	"""LTV of each Loan Security, or of its Loan Security Type when the security has none."""
+def get_ltv_ratio_map(loan_securities=None, loan=None, applicant=None):
+	"""LTV of each Loan Security, or of its Loan Security Type when the security has none.
+
+	Given a loan or an applicant, gold and silver are also capped at its slab LTV.
+	"""
 	security = frappe.qb.DocType("Loan Security")
 	security_type = frappe.qb.DocType("Loan Security Type")
 
@@ -255,10 +262,14 @@ def get_ltv_ratio_map(loan_securities=None):
 	if loan_securities:
 		query = query.where(security.name.isin(loan_securities))
 
-	return {
+	ltv_ratio_map = {
 		row.name: flt(row.loan_to_value_ratio) or flt(row.type_ltv_ratio)
 		for row in query.run(as_dict=True)
 	}
+	if loan or applicant:
+		ltv_ratio_map = cap_ltv_map(ltv_ratio_map, get_gold_ltv_cap(loan, applicant))
+
+	return ltv_ratio_map
 
 
 def update_pending_shortfall(shortfall):

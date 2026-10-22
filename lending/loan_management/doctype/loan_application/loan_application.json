@@ -43,6 +43,8 @@
   "loan_security_details_section",
   "proposed_pledges",
   "maximum_loan_amount",
+  "gold_ltv_cap",
+  "credit_assessment",
   "repayment_info",
   "repayment_method",
   "total_payable_amount",
@@ -252,6 +254,22 @@
    "options": "Proposed Pledge"
   },
   {
+   "depends_on": "eval:doc.gold_ltv_cap",
+   "description": "Slab LTV of the gold loan product for the applicant's total. The loan made from this application keeps it",
+   "fieldname": "gold_ltv_cap",
+   "fieldtype": "Percent",
+   "label": "Gold LTV Cap",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.is_secured_loan == 1",
+   "description": "Required for gold and silver collateral when the applicant's total gold and silver loans are above the amount in Lending Settings",
+   "fieldname": "credit_assessment",
+   "fieldtype": "Attach",
+   "label": "Credit Assessment"
+  },
+  {
    "fieldname": "maximum_loan_amount",
    "fieldtype": "Currency",
    "label": "Maximum Loan Amount",
@@ -385,7 +403,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-02 10:00:00.000000",
+ "modified": "2026-10-18 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

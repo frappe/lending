@@ -1,0 +1,200 @@
+{
+ "actions": [],
+ "creation": "2026-10-20 16:17:32.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "gold_article",
+  "article_kind",
+  "metal",
+  "description",
+  "pieces",
+  "image",
+  "column_break_weight",
+  "gross_weight",
+  "deduction_weight",
+  "deduction_details",
+  "net_weight",
+  "column_break_purity",
+  "fineness",
+  "loan_security",
+  "qty",
+  "defects",
+  "status",
+  "released_or_sold_in_type",
+  "released_or_sold_in",
+  "article_before"
+ ],
+ "fields": [
+  {
+   "fieldname": "gold_article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Gold Article",
+   "options": "Gold Article",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "gold_article.article_kind",
+   "fieldname": "article_kind",
+   "fieldtype": "Data",
+   "label": "Article Kind",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "gold_article.metal",
+   "fieldname": "metal",
+   "fieldtype": "Data",
+   "label": "Metal",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "gold_article.description",
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "gold_article.pieces",
+   "fieldname": "pieces",
+   "fieldtype": "Int",
+   "label": "Pieces",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "gold_article.image",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_weight",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "gold_article.gross_weight",
+   "fetch_if_empty": 1,
+   "fieldname": "gross_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Gross Weight (g)",
+   "non_negative": 1,
+   "precision": "3",
+   "reqd": 1
+  },
+  {
+   "description": "Stones, lac, strings and fastenings",
+   "fetch_from": "gold_article.deduction_weight",
+   "fetch_if_empty": 1,
+   "fieldname": "deduction_weight",
+   "fieldtype": "Float",
+   "label": "Deduction Weight (g)",
+   "non_negative": 1,
+   "precision": "3"
+  },
+  {
+   "fieldname": "deduction_details",
+   "fieldtype": "Small Text",
+   "label": "Deduction Details"
+  },
+  {
+   "fieldname": "net_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Net Weight (g)",
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_purity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Assayed at this pledge, in parts per 1,000",
+   "fetch_from": "gold_article.fineness",
+   "fetch_if_empty": 1,
+   "fieldname": "fineness",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Fineness",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "description": "The nearest published purity of this metal",
+   "fieldname": "loan_security",
+   "fieldtype": "Link",
+   "label": "Loan Security",
+   "options": "Loan Security",
+   "read_only": 1
+  },
+  {
+   "description": "Net weight in grams of the loan security's purity",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "description": "Damage or breakage seen at assay",
+   "fieldname": "defects",
+   "fieldtype": "Small Text",
+   "label": "Defects"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "no_copy": 1,
+   "options": "\nPledged\nReleased\nSold",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "released_or_sold_in_type",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Released or Sold In Type",
+   "no_copy": 1,
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.released_or_sold_in",
+   "fieldname": "released_or_sold_in",
+   "fieldtype": "Dynamic Link",
+   "label": "Released or Sold In",
+   "no_copy": 1,
+   "options": "released_or_sold_in_type",
+   "read_only": 1
+  },
+  {
+   "description": "The Gold Article as this pledge found it. Cancel puts it back",
+   "fieldname": "article_before",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Article Before",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-20 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Gold Loan",
+ "name": "Pledged Article",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

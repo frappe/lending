@@ -27,6 +27,8 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.mapper import get_payment_entry
 from erpnext.accounts.general_ledger import process_gl_map
 
+from lending.gold_loan.articles import pledge_articles, validate_lien_references
+from lending.gold_loan.ltv import set_gold_ltv_cap
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -75,6 +77,7 @@ class Loan(LoanController):
 		company: DF.Link
 		cost_center: DF.Link | None
 		credit_adjustment_amount: DF.Currency
+		credit_assessment: DF.Attach | None
 		days_past_due: DF.Int
 		debit_adjustment_amount: DF.Currency
 		disbursed_amount: DF.Currency
@@ -85,6 +88,8 @@ class Loan(LoanController):
 		fldg_triggered: DF.Check
 		freeze_account: DF.Check
 		freeze_date: DF.Date | None
+		gold_loan_purpose: DF.Data | None
+		gold_ltv_cap: DF.Percent
 		interest_income_account: DF.Link | None
 		is_imported: DF.Check
 		is_npa: DF.Check
@@ -142,6 +147,7 @@ class Loan(LoanController):
 		self.set_status()
 		self.set_loan_amount()
 		self.validate_loan_amount()
+		set_gold_ltv_cap(self)
 		self.set_missing_fields()
 		self.validate_loan_product()
 		self.validate_employee()
@@ -629,6 +635,8 @@ class Loan(LoanController):
 
 			if lsa_details:
 				lsa, maximum_loan_value = lsa_details
+				assignment = frappe.get_doc("Loan Security Assignment", lsa)
+				validate_lien_references(assignment)
 				frappe.db.set_value(
 					"Loan Security Assignment",
 					lsa,
@@ -638,6 +646,7 @@ class Loan(LoanController):
 						"status": "Pledged",
 					},
 				)
+				pledge_articles(assignment)
 
 				self.db_set("maximum_loan_amount", maximum_loan_value)
 

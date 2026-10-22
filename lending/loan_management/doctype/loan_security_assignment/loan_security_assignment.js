@@ -2,6 +2,24 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Assignment', {
+	setup: function(frm) {
+		frm.set_query("gold_article", "articles", () => ({
+			filters: {
+				applicant_type: frm.doc.applicant_type,
+				applicant: frm.doc.applicant,
+				status: ["in", ["Available", "Released"]],
+			},
+		}));
+	},
+
+	onload: function(frm) {
+		frappe.db.count("Loan Security Type", { filters: { metal: ["is", "set"] } }).then((count) => {
+			if (!count) {
+				frm.toggle_display("articles_section", false);
+			}
+		});
+	},
+
 	refresh: function(frm) {
 		if (frm.doc.status === "Release Requested") {
 			frm.add_custom_button(__("Release"), function() {

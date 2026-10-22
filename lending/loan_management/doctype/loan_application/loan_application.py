@@ -12,6 +12,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder import Criterion
 from frappe.utils import cint, flt, rounded
 
+from lending.gold_loan.ltv import apply_slab_haircut, set_gold_ltv_cap, validate_credit_assessment
 from lending.loan_management.doctype.loan.loan import (
 	get_sanctioned_amount_limit,
 	get_total_loan_amount,
@@ -52,7 +53,9 @@ class LoanApplication(Document):
 		city: DF.Data | None
 		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
+		credit_assessment: DF.Attach | None
 		decision: DF.Link | None
+		gold_ltv_cap: DF.Percent
 		country: DF.Link | None
 		documents: DF.Table[LoanApplicationDocument]
 		is_secured_loan: DF.Check
@@ -77,8 +80,11 @@ class LoanApplication(Document):
 
 	def validate(self):
 		self.set_pledge_amount()
+		apply_slab_haircut(self, "proposed_pledges")
 		self.set_loan_amount()
 		self.validate_loan_amount()
+		set_gold_ltv_cap(self)
+		validate_credit_assessment(self)
 
 		if self.is_term_loan:
 			self.validate_repayment_method()
