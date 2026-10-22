@@ -276,7 +276,7 @@ class TestLoanRepayment(LendingTestSuite):
 		self.assertEqual(loan.status, "Closed")
 
 	def test_prepayments_before_first_emi_keep_deferred_repayment_start_date(self):
-		for repayment_type, amount in (("Pre Payment", 4500), ("Advance Payment", 750)):
+		for repayment_type, amount in (("Pre Payment", 3000), ("Advance Payment", 750)):
 			loan = create_loan(
 				"_Test Customer 1",
 				"Term Loan Product 1",
@@ -294,6 +294,7 @@ class TestLoanRepayment(LendingTestSuite):
 			)
 
 			create_repayment_entry(loan.name, "2026-10-21", amount, repayment_type=repayment_type).submit()
+			create_repayment_entry(loan.name, "2026-10-22", amount, repayment_type=repayment_type).submit()
 
 			schedule = frappe.db.get_value(
 				"Loan Repayment Schedule", {"loan": loan.name, "status": "Active"}, "name"
