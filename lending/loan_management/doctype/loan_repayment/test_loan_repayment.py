@@ -275,6 +275,39 @@ class TestLoanRepayment(LendingTestSuite):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
 
+	def test_prepayments_before_first_emi_keep_deferred_repayment_start_date(self):
+		for repayment_type, amount in (("Pre Payment", 3000), ("Advance Payment", 750)):
+			loan = create_loan(
+				"_Test Customer 1",
+				"Term Loan Product 1",
+				9000,
+				"Repay Fixed Amount per Period",
+				monthly_repayment_amount=750,
+				repayment_start_date="2027-02-28",
+				posting_date="2026-10-21",
+				rate_of_interest=0,
+				applicant_type="Customer",
+			)
+			loan.submit()
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2026-10-21", repayment_start_date="2027-02-28"
+			)
+
+			create_repayment_entry(loan.name, "2026-10-21", amount, repayment_type=repayment_type).submit()
+			create_repayment_entry(loan.name, "2026-10-22", amount, repayment_type=repayment_type).submit()
+
+			schedule = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": loan.name, "status": "Active"}, "name"
+			)
+			emi_dates = frappe.db.get_all(
+				"Repayment Schedule",
+				{"parent": schedule, "principal_amount": (">", 0)},
+				pluck="payment_date",
+				order_by="payment_date",
+			)
+
+			self.assertEqual(getdate(emi_dates[0]), getdate("2027-02-28"), repayment_type)
+
 	def test_correct_generation_and_cancellation_of_demands_and_accruals(self):
 		set_loan_accrual_frequency(
 			"Daily"
