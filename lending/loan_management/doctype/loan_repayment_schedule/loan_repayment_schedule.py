@@ -968,10 +968,10 @@ class LoanRepaymentSchedule(Document):
 		)
 
 	def get_first_emi_date(self, prev_schedule, schedule_field):
-		# repayment_start_date moves ahead after an early payment, so read the first EMI row instead
-		for row in prev_schedule.get(schedule_field):
-			if row.principal_amount:
-				return getdate(row.payment_date)
+		# An early payment moves repayment_start_date ahead, but its schedule has no upfront interest row,
+		# so the first row is the first EMI. Other schedules keep the agreed date in repayment_start_date.
+		if prev_schedule.restructure_type in ("Pre Payment", "Advance Payment"):
+			return getdate(prev_schedule.get(schedule_field)[0].payment_date)
 
 		return getdate(prev_schedule.repayment_start_date)
 
