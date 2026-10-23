@@ -1426,6 +1426,22 @@ class TestInstallmentSkip(LendingTestSuite):
 		restructure.status = "Approved"
 		self.assertRaises(frappe.ValidationError, restructure.save)
 
+	def test_failed_installment_skip_request_leaves_no_demand_behind(self):
+		loan = self.make_loan_with_first_emi_paid()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-11-10")
+		demands = frappe.db.count("Loan Demand", {"loan": loan.name})
+
+		# Demands up to the day before the restructure date are generated first, then the request fails
+		self.assertRaises(
+			frappe.ValidationError,
+			skip_installments,
+			loan.name,
+			'["2026-11-08"]',
+			restructure_date="2026-11-11",
+		)
+
+		self.assertEqual(frappe.db.count("Loan Demand", {"loan": loan.name}), demands)
+
 	def test_installment_skip_starts_after_last_accrual(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 

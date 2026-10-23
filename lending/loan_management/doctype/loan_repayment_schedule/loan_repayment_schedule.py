@@ -112,17 +112,23 @@ class LoanRepaymentSchedule(Document):
 		self.reset_index()
 		self.set_maturity_date()
 
+	def get_skip_rows(self):
+		if not self.flags.skip_rows:
+			self.flags.skip_rows = SkipScheduleRows(self)
+
+		return self.flags.skip_rows
+
 	def is_installment_skip(self):
 		return self.restructure_type == "Installment Skip" and self.loan_restructure
 
 	def set_skip_resume_date(self):
 		# New rows are generated from here. The schedule keeps the loan's own start date afterwards.
 		if self.is_installment_skip():
-			self.repayment_start_date = SkipScheduleRows(self).get_resume_date()
+			self.repayment_start_date = self.get_skip_rows().get_resume_date()
 
 	def restore_original_start_date(self):
 		if self.is_installment_skip():
-			self.repayment_start_date = SkipScheduleRows(self).get_original_start_date()
+			self.repayment_start_date = self.get_skip_rows().get_original_start_date()
 
 	def get_emi_rounding_method(self):
 		return (
@@ -351,7 +357,7 @@ class LoanRepaymentSchedule(Document):
 
 		self.broken_period_interest = 0
 		if self.is_installment_skip():
-			SkipScheduleRows(self).copy_completed_rows()
+			self.get_skip_rows().copy_completed_rows()
 		(
 			previous_interest_amount,
 			balance_amount,
@@ -1155,7 +1161,7 @@ class LoanRepaymentSchedule(Document):
 			return False
 
 		if self.flags.skipped_dates is None:
-			self.flags.skipped_dates = SkipScheduleRows(self).get_skipped_dates()
+			self.flags.skipped_dates = self.get_skip_rows().get_skipped_dates()
 
 		return getdate(payment_date) in self.flags.skipped_dates
 
