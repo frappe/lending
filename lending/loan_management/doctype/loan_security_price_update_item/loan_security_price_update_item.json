@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "creation": "2026-10-14 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_security",
+  "loan_security_name",
+  "price",
+  "remarks",
+  "previous_price",
+  "previous_valid_upto"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_security",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Security",
+   "options": "Loan Security",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "loan_security.loan_security_name",
+   "fieldname": "loan_security_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Loan Security Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "description": "For example, the valuer's name",
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remarks"
+  },
+  {
+   "description": "The price this row's new price ended early. A cancel gives it back its old Valid Upto",
+   "fieldname": "previous_price",
+   "fieldtype": "Link",
+   "label": "Previous Price",
+   "no_copy": 1,
+   "options": "Loan Security Price",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_valid_upto",
+   "fieldtype": "Datetime",
+   "label": "Previous Valid Upto",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Security Price Update Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

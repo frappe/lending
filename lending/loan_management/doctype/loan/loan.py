@@ -1149,7 +1149,11 @@ def create_loan_security_release(unpledge_map, loan, company, applicant_type, ap
 
 @frappe.whitelist()
 def get_shortfall_applicants():
-	loans = frappe.get_list("Loan Security Shortfall", {"status": "Pending"}, pluck="loan")
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		OPEN_STATUSES,
+	)
+
+	loans = frappe.get_list("Loan Security Shortfall", {"status": ("in", OPEN_STATUSES)}, pluck="loan")
 	applicants = set(frappe.get_list("Loan", {"name": ("in", loans)}, pluck="name"))
 
 	return {"value": len(applicants), "fieldtype": "Int"}

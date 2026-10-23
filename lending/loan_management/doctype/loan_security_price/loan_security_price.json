@@ -15,7 +15,8 @@
   "section_break_6",
   "valid_from",
   "column_break_8",
-  "valid_upto"
+  "valid_upto",
+  "price_update"
  ],
  "fields": [
   {
@@ -75,11 +76,20 @@
   {
    "fieldname": "column_break_xegn",
    "fieldtype": "Column Break"
+  },
+  {
+   "description": "Blank when the price was entered by hand",
+   "fieldname": "price_update",
+   "fieldtype": "Link",
+   "label": "Price Update",
+   "options": "Loan Security Price Update",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 15:31:37.000177",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Price",
