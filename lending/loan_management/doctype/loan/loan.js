@@ -177,7 +177,7 @@ frappe.ui.form.on('Loan', {
 			}
 		}
 
-		if (frm.doc.docstatus == 1 && frm.doc.is_term_loan && ["Disbursed", "Partially Disbursed"].includes(frm.doc.status)) {
+		if (frm.doc.docstatus == 1 && frm.doc.is_term_loan && frm.doc.status == "Disbursed") {
 			frm.add_custom_button(__('Skip Installment'), function() {
 				frm.trigger("skip_installment");
 			}, __('Create'));

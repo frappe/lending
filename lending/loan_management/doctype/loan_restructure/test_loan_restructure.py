@@ -1144,6 +1144,105 @@ class TestInstallmentSkip(LendingTestSuite):
 		self.assertEqual(restructure.status, "Approved")
 		self.assertEqual(get_row(get_active_schedule(loan.name), "2026-11-07").demand_generated, 1)
 
+	def make_loan_with_first_emi_paid(self, method="Repay Over Number of Periods"):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			method,
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		return loan
+
+	def test_loan_manager_can_skip_installments(self):
+		loan = self.make_loan_with_first_emi_paid()
+
+		email = "loan.manager.skip@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "Loan Manager", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		user = frappe.get_doc("User", email)
+		user.add_roles("Loan Manager")
+
+		frappe.set_user(email)
+		try:
+			name = skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20")
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.db.get_value("Loan Restructure", name, "status"), "Approved")
+
+	def test_skipping_last_installment_keeps_principal_billed(self):
+		loan = self.make_loan_with_first_emi_paid()
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(
+				loan.name,
+				'["2027-03-07"]',
+				new_repayment_method="Repay Over Number of Periods",
+				restructure_date="2026-10-20",
+			),
+		)
+		self.assertEqual(restructure.status, "Approved")
+
+		rows = get_active_schedule(loan.name).repayment_schedule
+		skipped = get_row(get_active_schedule(loan.name), "2027-03-07")
+		self.assertEqual((skipped.total_payment, skipped.principal_amount), (0, 0))
+		self.assertEqual(flt(rows[-1].balance_loan_amount, 2), 0)
+		self.assertTrue(rows[-1].total_payment > 0)
+		self.assertEqual(rows[-1].demand_generated, 0)
+
+	def test_installment_skip_updates_loan_and_cancel_restores_it(self):
+		loan = self.make_loan_with_first_emi_paid()
+		old_emi, old_periods = frappe.db.get_value("Loan", loan.name, ["monthly_repayment_amount", "repayment_periods"])
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20"),
+		)
+
+		new_emi, new_periods = frappe.db.get_value("Loan", loan.name, ["monthly_repayment_amount", "repayment_periods"])
+		self.assertEqual(new_emi, get_active_schedule(loan.name).monthly_repayment_amount)
+		self.assertEqual(new_periods, old_periods + 1)
+
+		restructure.cancel()
+		emi, periods = frappe.db.get_value("Loan", loan.name, ["monthly_repayment_amount", "repayment_periods"])
+		self.assertEqual((emi, periods), (old_emi, old_periods))
+
+	def test_installment_skip_is_not_allowed_for_partially_disbursed_loan(self):
+		loan = self.make_loan_with_first_emi_paid()
+		frappe.db.set_value("Loan", loan.name, "status", "Partially Disbursed")
+
+		self.assertRaises(
+			frappe.ValidationError,
+			skip_installments,
+			loan.name,
+			'["2026-11-07"]',
+			restructure_date="2026-10-20",
+		)
+
 	def test_installment_skip_starts_after_last_accrual(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
