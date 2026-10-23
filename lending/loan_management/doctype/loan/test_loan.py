@@ -38,7 +38,7 @@ from lending.tests.test_utils import (
 	loan_classification_ranges,
 	make_loan_disbursement_entry,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestLoan(LendingTestSuite):
@@ -818,6 +818,7 @@ class TestLoan(LendingTestSuite):
 		loan.load_from_db()
 		self.assertTrue(loan.cancel())
 
+	@with_days_past_due_repost
 	def test_partial_settlement_extra_amount_not_added_to_principal(self):
 		loan = create_loan(
 			"_Test Customer 1",

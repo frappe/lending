@@ -1,8 +1,11 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, nowdate
 
 from erpnext.tests.utils import ERPNextTestSuite
 
+from lending.loan_management.doctype.loan import loan as loan_module
 from lending.tests.test_utils import (
 	create_loan_accounts,
 	create_loan_product,
@@ -18,6 +21,13 @@ from lending.tests.test_utils import (
 )
 
 CLASS_SAVEPOINT = "lending_test_class_data"
+
+
+def with_days_past_due_repost(test):
+	"""Run the backdated Days Past Due Log repost that LendingTestSuite skips by default"""
+	return patch.object(
+		loan_module, "repost_days_past_due_log", loan_module.repost_days_past_due_log
+	)(test)
 
 
 class BootStrapTestData:
@@ -65,9 +75,15 @@ class LendingTestSuite(ERPNextTestSuite):
 	Records built in `make_class_data` are created once per class and every test rolls back to them.
 	"""
 
+	# a backdated payment writes one Days Past Due Log per day up to today, so only classes that check DPD run it
+	repost_days_past_due = False
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		if not cls.repost_days_past_due:
+			cls.enterClassContext(patch.object(loan_module, "repost_days_past_due_log"))
+
 		try:
 			cls._set_up_class_data()
 		except Exception:
@@ -89,6 +105,7 @@ class LendingTestSuite(ERPNextTestSuite):
 
 	@classmethod
 	def _set_up_class_data(cls):
+		frappe.clear_cache()
 		cls.make_class_data()
 		frappe.db.savepoint(CLASS_SAVEPOINT)
 
@@ -105,6 +122,8 @@ class LendingTestSuite(ERPNextTestSuite):
 		frappe.db.before_commit.reset()
 		frappe.db.after_commit.reset()
 		frappe.db.run_after_transaction_callbacks(frappe.db.after_rollback)
+		# redis_cache'd lookups like get_dpd_threshold_map can still hold the rolled back values
+		frappe.clear_cache()
 		frappe.local.request_cache.clear()
 		if hasattr(frappe.local, "future_sle"):
 			frappe.local.future_sle.clear()

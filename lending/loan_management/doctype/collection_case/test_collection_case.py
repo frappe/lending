@@ -21,6 +21,8 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestCollectionCase(LendingTestSuite):
+	repost_days_past_due = True
+
 	@classmethod
 	def make_class_data(cls):
 		loan_classification_ranges()

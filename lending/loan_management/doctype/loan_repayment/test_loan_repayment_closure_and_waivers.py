@@ -34,7 +34,7 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 		set_loan_accrual_frequency("Weekly")
 
 	def test_write_off_recovery_cancel(self):
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -988,7 +988,7 @@ class TestWriteOffRecoveryWithCharges(LendingTestSuite):
 	def make_class_data(cls):
 		set_loan_accrual_frequency("Weekly")
 
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",

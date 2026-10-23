@@ -27,7 +27,7 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 COMPANY = "_Test Company"
 
@@ -313,6 +313,7 @@ class TestProcessLoanAccounting(ProcessLoanAccountingTestCase):
 		posted = sum(self.gl_count(a.name) for a in accruals)
 		self.assertTrue(posted > 0, "daily GL should be posted when consolidation is off")
 
+	@with_days_past_due_repost
 	def test_cancelling_older_voucher_does_not_touch_a_later_delta_voucher_suspense_je(self):
 		"""Cancelling an earlier voucher out of order must not cancel a later delta voucher's live
 		suspense JE for the same month.
@@ -377,6 +378,7 @@ class TestProcessLoanAccounting(ProcessLoanAccountingTestCase):
 			"the delta voucher's suspense JE must survive cancelling the older voucher for the same month",
 		)
 
+	@with_days_past_due_repost
 	def test_non_npa_loan_has_no_suspense_je(self):
 		"""A loan that never goes NPA should not get a consolidated suspense JE."""
 		posting_date = "2024-04-05"
@@ -646,6 +648,7 @@ class TestProcessLoanAccounting(ProcessLoanAccountingTestCase):
 		)
 		self.assertTrue(all(d.process_loan_accounting_voucher == voucher for d in demands))
 
+	@with_days_past_due_repost
 	def test_npa_suspense_penalty_and_additional_interest_consolidated(self):
 		"""NPA suspense consolidation must also cover penalty and additional-interest accruals, not
 		just Normal Interest -- live_suspense_buckets has a separate branch for each."""
@@ -961,6 +964,8 @@ class TestProcessLoanAccounting(ProcessLoanAccountingTestCase):
 
 
 class TestNpaLoanAccounting(ProcessLoanAccountingTestCase):
+	repost_days_past_due = True
+
 	@classmethod
 	def make_class_data(cls):
 		super().make_class_data()

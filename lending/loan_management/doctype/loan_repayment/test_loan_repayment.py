@@ -899,7 +899,7 @@ class TestLoanRepayment(LendingTestSuite):
 
 	def test_loan_repayment_cancel_with_amount_overlimit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",

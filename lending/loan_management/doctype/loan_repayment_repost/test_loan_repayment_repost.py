@@ -253,7 +253,7 @@ class TestSameDayRepaymentRepost(LendingTestSuite):
 	def make_class_data(cls):
 		set_loan_accrual_frequency("Weekly")
 
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",

@@ -211,7 +211,7 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 			self.assertEqual(repayment_schedule.repayment_start_date, getdate("2025-08-05"))
 
 	def test_date_after_advance_payment_rescheduling(self):
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",

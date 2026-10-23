@@ -27,7 +27,7 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestLoanRestructure(LendingTestSuite):
@@ -39,7 +39,7 @@ class TestLoanRestructure(LendingTestSuite):
 		loan_classification_ranges()
 
 	def test_loan_restructure_charges_waiver_and_capitalization(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -134,7 +134,7 @@ class TestLoanRestructure(LendingTestSuite):
 		self.assertEqual(sales_invoice.status, "Paid", "Expected the Sales Invoice for post-restructure charges to have status 'Paid'.")
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -201,7 +201,7 @@ class TestLoanRestructure(LendingTestSuite):
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_normal_restructure_first_emi_schedule_days(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -243,6 +243,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		self.assertEqual(date_diff_value, number_of_days_for_first_emi)
 
+	@with_days_past_due_repost
 	def test_non_npa_restructure_resets_dpd_without_watch_period(self):
 		"""
 		Verify that restructuring a non-NPA loan resets DPD to zero
@@ -303,6 +304,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
+	@with_days_past_due_repost
 	def test_npa_restructure_keeps_classification_same(self):
 		"""
 		Verify that after restructuring an NPA loan,
@@ -476,6 +478,7 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.reload()
 		self.assertEqual(loan.repayment_frequency, "One Time")
 
+	@with_days_past_due_repost
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
 		Verify that when DPD increases after NPA restructuring,

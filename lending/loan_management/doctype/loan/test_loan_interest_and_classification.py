@@ -24,7 +24,7 @@ from lending.tests.test_utils import (
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestLoanInterestAndClassification(LendingTestSuite):
@@ -367,6 +367,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		calculated_bpi_amount = flt(loan_repayment_schedule.repayment_schedule[0].interest_amount, 2)
 		self.assertEqual(calculated_bpi_amount, 79.45)
 
+	@with_days_past_due_repost
 	def test_npa_for_loc(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -407,6 +408,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		self.assertEqual(loan.utilized_limit_amount, 500000 - repayment_entry.principal_amount_paid)
 		self.assertEqual(loan.available_limit_amount, repayment_entry.principal_amount_paid)
 
+	@with_days_past_due_repost
 	def test_dpd_calculation_for_non_loc_loan_without_disbursement(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -481,6 +483,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 				f"DPD mismatch for {posting_date}: Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	@with_days_past_due_repost
 	def test_dpd_calculation(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -567,6 +570,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		dpd_in_loan = frappe.db.get_value("Loan", loan.name, "days_past_due")
 		self.assertEqual(dpd_in_loan, 0)
 
+	@with_days_past_due_repost
 	def test_dpd_calculation_for_loc_loan(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -660,6 +664,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 				f"DPD mismatch for {posting_date} (Disbursement: {disbursement}): Expected {expected_dpd}, got {dpd_value}",
 			)
 
+	@with_days_past_due_repost
 	def test_npa_marking_for_customer(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -780,6 +785,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		repayment_entry = create_repayment_entry(loan.name, "2025-04-11", 818)
 		repayment_entry.submit()
 
+	@with_days_past_due_repost
 	def test_npa_marking_for_customer_via_scheduler(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
@@ -919,6 +925,7 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 
 		self.assertEqual(len(gl_entries), 60)  # 30 days of interest accruals
 
+	@with_days_past_due_repost
 	def test_interest_accrual_creates_suspense_jv_for_npa_loan(self):
 		set_loan_accrual_frequency("Daily")
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict

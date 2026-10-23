@@ -24,7 +24,7 @@ class TestLoanRefund(LendingTestSuite):
 
 	@classmethod
 	def make_class_data(cls):
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 
 		loan = create_loan(
 			cls.applicant2,
