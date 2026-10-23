@@ -295,6 +295,9 @@ class LoanRestructure(AccountsController):
 				self.update_restructure_count()
 
 			self.update_repayment_schedule_status(status="Active")
+
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).update_loan_terms()
 		elif self.status == "Rejected":
 			self.update_repayment_schedule_status(status="Rejected")
 
@@ -366,6 +369,9 @@ class LoanRestructure(AccountsController):
 
 			if self.restructure_type == "Normal Restructure":
 				self.update_security_deposit_amount(cancel=1)
+
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).update_loan_terms(cancel=1)
 
 	def update_overdue_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -595,9 +601,15 @@ class LoanRestructure(AccountsController):
 				self.new_loan_amount,
 				self.new_rate_of_interest,
 				self.get_periods_for_emi(),
-				"Monthly",
+				self.get_frequency_for_emi(),
 				emi_rounding_method,
 			)
+
+	def get_frequency_for_emi(self):
+		if self.restructure_type == "Installment Skip":
+			return InstallmentSkip(self).repayment_frequency()
+
+		return "Monthly"
 
 	def get_periods_for_emi(self):
 		if self.restructure_type == "Installment Skip":

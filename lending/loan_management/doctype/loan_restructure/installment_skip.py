@@ -20,12 +20,18 @@ class InstallmentSkip:
 		self.open_rows = self.get_open_rows()
 
 	def prepare(self):
+		self.validate_loan_status()
 		self.validate_after_last_demand()
 		self.validate_nothing_due_is_unbilled()
 		self.validate_no_overdue()
 		self.validate_skipped_installments()
 		self.validate_nothing_billed_ahead()
 		self.set_terms()
+
+	def validate_loan_status(self):
+		# The schedule of a Partially Disbursed loan is rebuilt on every disbursement
+		if frappe.db.get_value("Loan", self.doc.loan, "status") == "Partially Disbursed":
+			frappe.throw(_("Installments cannot be skipped until the loan is fully disbursed"))
 
 	def get_active_schedule(self):
 		filters = {"loan": self.doc.loan, "docstatus": 1, "status": "Active"}
@@ -127,6 +133,31 @@ class InstallmentSkip:
 		)
 		return history, carried, len(self.open_rows)
 
+	def repayment_frequency(self):
+		return self.schedule.repayment_frequency
+
+	def update_loan_terms(self, cancel=0):
+		"""Show the new terms on the Loan. Payment history on the Loan stays as it is."""
+		schedule = self.get_active_schedule()
+		doc = self.doc
+
+		# The Loan counts installments without the broken period row, so add only the rows gained
+		old_row_count = doc.new_repayment_period_in_months
+		if doc.new_repayment_method == "Repay Fixed Amount per Period":
+			old_row_count -= len(doc.get("skipped_installments"))
+		new_periods = cint(doc.old_tenure) + len(schedule.repayment_schedule) - old_row_count
+
+		frappe.db.set_value(
+			"Loan",
+			doc.loan,
+			{
+				"monthly_repayment_amount": doc.old_emi if cancel else schedule.monthly_repayment_amount,
+				"repayment_periods": doc.old_tenure if cancel else new_periods,
+				"total_payment": sum(flt(row.total_payment) for row in schedule.repayment_schedule),
+				"total_interest_payable": sum(flt(row.interest_amount) for row in schedule.repayment_schedule),
+			},
+		)
+
 	def emi_periods(self):
 		"""Installments that carry principal when the maturity is kept"""
 		return len(self.open_rows) - len(self.doc.get("skipped_installments"))
@@ -140,6 +171,7 @@ class InstallmentSkip:
 		doc.treatment_of_normal_interest = "Add To First EMI"
 		doc.unaccrued_interest_treatment = "Add To First EMI"
 		doc.repayment_start_date = self.open_rows[0].payment_date
+		doc.old_tenure = doc.old_tenure or frappe.db.get_value("Loan", doc.loan, "repayment_periods")
 		doc.new_repayment_method = doc.new_repayment_method or "Repay Fixed Amount per Period"
 
 		# The new schedule keeps the earlier rows, so the period count covers them too
@@ -193,9 +225,12 @@ def skip_installments(
 		process_daily_loan_demands,
 	)
 
-	# Installments due before the skip date must be billed before the schedule is rebuilt
+	# Installments due before the skip date must be billed before the schedule is rebuilt.
+	# A Loan Manager cannot submit Process Loan Demand, so permission is checked above instead.
 	process_daily_loan_demands(
-		loan=loan, posting_date=add_days(getdate(restructure_date or nowdate()), -1)
+		loan=loan,
+		posting_date=add_days(getdate(restructure_date or nowdate()), -1),
+		ignore_permissions=True,
 	)
 
 	restructure = frappe.new_doc("Loan Restructure")
