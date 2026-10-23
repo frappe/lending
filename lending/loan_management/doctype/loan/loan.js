@@ -75,11 +75,11 @@ frappe.ui.form.on('Loan', {
 		const installments_path = "lending.loan_management.doctype.loan_restructure.installment_skip";
 
 		frappe.call({
-			method: `${installments_path}.get_open_installments`,
+			method: `${installments_path}.get_upcoming_installments`,
 			args: { loan: frm.doc.name },
 		}).then((r) => {
 			if (!(r.message || []).length) {
-				frappe.msgprint(__("There are no open installments to skip."));
+				frappe.msgprint(__("There are no upcoming installments to skip."));
 				return;
 			}
 

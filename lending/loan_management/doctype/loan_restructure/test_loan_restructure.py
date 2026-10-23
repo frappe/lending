@@ -12,7 +12,7 @@ from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_restructure.installment_skip import (
-	get_open_installments,
+	get_upcoming_installments,
 	skip_installments,
 )
 from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
@@ -756,7 +756,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		self.assertEqual(len(new_schedule.repayment_schedule), len(old_schedule.repayment_schedule) + 1)
 		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-04-07"))
 
-		# Principal is fully repaid and the skipped interest is billed with the next installment
+		# Principal is fully repaid and the skipped interest is added to the next installment demand
 		rebuilt_rows = [row for row in new_schedule.repayment_schedule if getdate(row.payment_date) >= getdate("2026-11-07")]
 		self.assertEqual(flt(sum(row.principal_amount for row in rebuilt_rows), 2), flt(pending_principal, 2))
 
@@ -823,7 +823,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		loan.load_from_db()
 		self.assertEqual(loan.days_past_due, 0)
 
-		# Next installment is billed once, with the skipped interest
+		# Next installment demand is raised once, with the skipped interest
 		process_daily_loan_demands(loan=loan.name, posting_date="2026-12-07")
 		new_schedule = get_active_schedule(loan.name)
 
@@ -1127,7 +1127,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		invalid_requests = [
 			# not a schedule date
 			("2026-10-20", ["2026-11-08"], None),
-			# already billed installment
+			# installment with demand already generated
 			("2026-10-20", ["2026-10-07"], None),
 			# same installment twice
 			("2026-10-20", ["2026-11-07", "2026-11-07"], None),
@@ -1259,7 +1259,7 @@ class TestInstallmentSkip(LendingTestSuite):
 
 		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
 
-		open_installments = get_open_installments(loan.name)
+		open_installments = get_upcoming_installments(loan.name)
 		self.assertEqual(getdate(open_installments[0]["payment_date"]), getdate("2026-11-07"))
 
 		restructure = skip_installments(
@@ -1339,12 +1339,28 @@ class TestInstallmentSkip(LendingTestSuite):
 		)
 		self.assertEqual(restructure.status, "Approved")
 
-		# The skipped date is at the end of the term, so the last billed row is the one before it
+		# The skipped date is at the end of the term, so the last payable row is the one before it
 		rows = get_active_schedule(loan.name).repayment_schedule
 		self.assertEqual(getdate(rows[-1].payment_date), getdate("2027-02-07"))
 		self.assertEqual(flt(rows[-1].balance_loan_amount, 2), 0)
 		self.assertEqual(rows[-1].demand_generated, 0)
 		self.assertTrue(all(getdate(row.payment_date) <= getdate("2027-02-07") for row in rows))
+
+	def test_later_skip_remembers_skipped_date_at_end_of_term(self):
+		loan = self.make_loan_with_first_emi_paid()
+
+		skip_installments(
+			loan.name,
+			'["2027-03-07"]',
+			new_repayment_method="Repay Over Number of Periods",
+			restructure_date="2026-10-20",
+		)
+		skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-21")
+
+		schedule = get_active_schedule(loan.name)
+		self.assertEqual(get_row(schedule, "2026-11-07").total_payment, 0)
+		self.assertFalse(any(getdate(row.payment_date) == getdate("2027-03-07") and row.total_payment for row in schedule.repayment_schedule))
+		self.assertEqual(flt(schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
 
 	def test_installment_skip_updates_loan_and_cancel_restores_it(self):
 		loan = self.make_loan_with_first_emi_paid()
@@ -1422,7 +1438,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		self.assertEqual(restructure.status, "Approved")
 		self.assertGreaterEqual(getdate(restructure.restructure_date), getdate("2026-11-08"))
 
-	def test_installment_skip_does_not_bill_interest_twice(self):
+	def test_installment_skip_does_not_demand_interest_twice(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
 		loan = create_loan(
@@ -1454,7 +1470,7 @@ class TestInstallmentSkip(LendingTestSuite):
 
 		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
 
-		# Interest is accrued till Nov 6 and the Nov 7 installment is billed and paid
+		# Interest is accrued till Nov 6 and the Nov 7 installment is demanded and paid
 		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-11-06")
 		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
 		create_repayment_entry(
@@ -1467,11 +1483,11 @@ class TestInstallmentSkip(LendingTestSuite):
 		)
 		new_schedule = get_active_schedule(loan.name)
 
-		# Starts at the billed installment, so nothing before it is added again
+		# Starts at the demanded installment, so nothing before it is added again
 		self.assertEqual(getdate(restructure.restructure_date), getdate("2026-11-07"))
 		self.assertEqual(restructure.unaccrued_interest, 0)
 
-		# Interest of Nov 7 to Jan 7 is billed once: skipped Dec 7 and the Jan 7 installment
+		# Interest of Nov 7 to Jan 7 is demanded once: skipped Dec 7 and the Jan 7 installment
 		self.assertAlmostEqual(
 			next_row(new_schedule, "2026-12-07").interest_amount,
 			restructure.new_loan_amount * 12 * 61 / 36500,
@@ -1487,7 +1503,7 @@ class TestInstallmentSkip(LendingTestSuite):
 				skipped_dates=["2027-01-07"],
 			)
 
-	def test_installment_skip_bills_installments_already_due_first(self):
+	def test_installment_skip_generates_demand_for_due_installments_first(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
 		loan = create_loan(
@@ -1507,9 +1523,9 @@ class TestInstallmentSkip(LendingTestSuite):
 			loan.name, loan.loan_amount, disbursement_date="2026-09-15", repayment_start_date="2026-10-25"
 		)
 
-		# Nothing is billed yet, so the broken period interest row of 25 Sep is still open
+		# No demand is generated yet, so the broken period interest row of 25 Sep is still open
 		self.assertEqual(get_demand_dates(loan.name), [])
-		offered = [getdate(row["payment_date"]) for row in get_open_installments(loan.name)]
+		offered = [getdate(row["payment_date"]) for row in get_upcoming_installments(loan.name)]
 		self.assertTrue(offered)
 		self.assertGreaterEqual(min(offered), getdate("2026-10-25"))
 
@@ -1524,7 +1540,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		self.assertEqual(get_row(new_schedule, "2026-09-25").demand_generated, 1)
 		self.assertEqual(getdate(next_row(new_schedule, "2026-09-25").payment_date), getdate("2026-10-25"))
 
-		# Entered directly, with an installment still unbilled before the date, it is refused
+		# Entered directly, with an installment still rows_without_demand before the date, it is refused
 		with self.assertRaises(frappe.ValidationError):
 			create_loan_restructure(
 				loan=loan.name,
@@ -1581,7 +1597,7 @@ class TestInstallmentSkip(LendingTestSuite):
 		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-05-07"))
 		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
 
-		# Neither skipped installment is billed
+		# Neither skipped installment gets a demand
 		process_daily_loan_demands(loan=loan.name, posting_date="2027-01-10")
 		self.assertNotIn(getdate("2026-12-07"), get_demand_dates(loan.name))
 		self.assertNotIn(getdate("2027-01-07"), get_demand_dates(loan.name))

@@ -6,7 +6,7 @@ from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_restructure.installment_skip import (
-	get_open_installments,
+	get_upcoming_installments,
 	skip_installments,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -250,7 +250,7 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 		self.assertEqual(sum(flt(d.outstanding_amount) for d in demands), 0)
 
 		# The skipped installment is not offered for a second skip
-		open_dates = [getdate(row["payment_date"]) for row in get_open_installments(loan.name)]
+		open_dates = [getdate(row["payment_date"]) for row in get_upcoming_installments(loan.name)]
 		self.assertNotIn(getdate("2026-11-07"), open_dates)
 		self.assertNotIn(getdate("2026-12-07"), open_dates)
 
@@ -301,7 +301,7 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 			}
 		).submit()
 
-		# The installment billed before the skip is billed and allocated again
+		# The installment demanded before the skip is demanded and allocated again
 		demands = frappe.get_all(
 			"Loan Demand",
 			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
@@ -369,7 +369,7 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 		)
 		demand_dates = [getdate(d.demand_date) for d in demands]
 
-		# The paid installments are billed and allocated again, the skipped ones are not billed
+		# The paid installments get demand and allocation again, the skipped ones get no demand
 		self.assertIn(getdate("2026-10-07"), demand_dates)
 		self.assertIn(getdate("2026-12-07"), demand_dates)
 		self.assertNotIn(getdate("2026-11-07"), demand_dates)

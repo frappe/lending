@@ -35,7 +35,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 )
 
 # Restructure types that rebuild the whole schedule from the restructure date
-NORMAL_RESTRUCTURE_TYPES = ("Normal Restructure", "Installment Skip")
+REBUILD_SCHEDULE_TYPES = ("Normal Restructure", "Installment Skip")
 
 
 # nosemgrep
@@ -351,7 +351,7 @@ class LoanRepaymentSchedule(Document):
 
 		self.broken_period_interest = 0
 		if self.is_installment_skip():
-			SkipScheduleRows(self).copy_history_rows()
+			SkipScheduleRows(self).copy_completed_rows()
 		(
 			previous_interest_amount,
 			balance_amount,
@@ -427,7 +427,7 @@ class LoanRepaymentSchedule(Document):
 		previous_payment_date = self.posting_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
-		skipped_interest = 0
+		deferred_interest = 0
 		is_first_emi = True
 		row = 0
 
@@ -544,14 +544,14 @@ class LoanRepaymentSchedule(Document):
 				row = row + 1
 
 			if self.is_skipped_installment(payment_date):
-				# Interest keeps accruing. It is billed with the next installment, not waived.
-				skipped_interest += interest_amount
+				# Interest keeps accruing. It is added to the next installment demand, not waived.
+				deferred_interest += interest_amount
 				principal_amount = interest_amount = total_payment = 0
 				balance_amount = prev_balance_amount
-			elif skipped_interest:
-				interest_amount += skipped_interest
-				total_payment += skipped_interest
-				skipped_interest = 0
+			elif deferred_interest:
+				interest_amount += deferred_interest
+				total_payment += deferred_interest
+				deferred_interest = 0
 
 			if (
 				self.moratorium_end_date and self.moratorium_tenure and self.repayment_frequency == "Monthly"
@@ -607,7 +607,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
 				or (self.restructure_type and self.repayment_method == "Repay Fixed Amount per Period")
-			) and self.is_last_billable_row(payment_date, len(self.get(schedule_field)), tenure):
+			) and self.is_last_payable_row(payment_date, len(self.get(schedule_field)), tenure):
 				self.get(schedule_field)[-1].principal_amount += balance_amount
 				self.get(schedule_field)[-1].balance_loan_amount = 0
 				self.get(schedule_field)[-1].total_payment = (
@@ -635,7 +635,7 @@ class LoanRepaymentSchedule(Document):
 		else:
 			self.repayment_periods = self.number_of_rows
 
-	def is_last_billable_row(self, payment_date, rows_done, tenure):
+	def is_last_payable_row(self, payment_date, rows_done, tenure):
 		"""The last row of the term that is not skipped. Skipped dates at the end of the term get no row."""
 		if self.is_skipped_installment(payment_date):
 			return False
@@ -743,7 +743,7 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 
 		if (
-			self.restructure_type not in (*NORMAL_RESTRUCTURE_TYPES, "Advance Payment")
+			self.restructure_type not in (*REBUILD_SCHEDULE_TYPES, "Advance Payment")
 			and self.repayment_frequency == "Monthly"
 			or (self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time")
 		):
@@ -1108,7 +1108,7 @@ class LoanRepaymentSchedule(Document):
 				if (
 					additional_days < 0
 					or (additional_days > 0 and self.moratorium_tenure and not self.restructure_type)
-					or (additional_days > 0 and self.restructure_type in NORMAL_RESTRUCTURE_TYPES)
+					or (additional_days > 0 and self.restructure_type in REBUILD_SCHEDULE_TYPES)
 				):
 					days = date_diff(payment_date, self.posting_date)
 					additional_days = 0
@@ -1161,7 +1161,7 @@ class LoanRepaymentSchedule(Document):
 
 	def is_first_emi_after_normal_restructure(self, payment_date):
 		return (
-			self.restructure_type in NORMAL_RESTRUCTURE_TYPES
+			self.restructure_type in REBUILD_SCHEDULE_TYPES
 			and self.loan_restructure
 			and getdate(payment_date) == getdate(self.repayment_start_date)
 			and getdate(self.posting_date) < getdate(payment_date)
@@ -1243,7 +1243,7 @@ class LoanRepaymentSchedule(Document):
 			and self.moratorium_end_date
 			and getdate(payment_date) <= getdate(self.moratorium_end_date)
 		) or self.is_skipped_installment(payment_date):
-			# nothing is payable on these rows, so no demand must be raised
+			# nothing is payable on these rows, so no demand must be generated
 			demand_generated = 1
 
 		if not repayment_schedule_field:
