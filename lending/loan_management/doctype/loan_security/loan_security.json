@@ -17,7 +17,14 @@
   "loan_security_type",
   "available_security_value",
   "loan_to_value_ratio",
-  "disabled"
+  "sell_ltv",
+  "disabled",
+  "mutual_fund_section",
+  "is_mutual_fund",
+  "amfi_scheme_code",
+  "rta",
+  "column_break_mutual_fund",
+  "lock_in_days"
  ],
  "fields": [
   {
@@ -29,6 +36,7 @@
   },
   {
    "fetch_from": "loan_security_type.haircut",
+   "fetch_if_empty": 1,
    "fieldname": "haircut",
    "fieldtype": "Percent",
    "label": "Haircut %"
@@ -86,11 +94,59 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "fetch_from": "loan_security_type.sell_ltv",
+   "fetch_if_empty": 1,
+   "fieldname": "sell_ltv",
+   "fieldtype": "Percent",
+   "label": "Sell LTV"
+  },
+  {
+   "depends_on": "is_mutual_fund",
+   "fieldname": "mutual_fund_section",
+   "fieldtype": "Section Break",
+   "label": "Mutual Fund"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_security_type.is_mutual_fund",
+   "fieldname": "is_mutual_fund",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Mutual Fund",
+   "read_only": 1
+  },
+  {
+   "description": "The code of this plan and option in the AMFI NAV file",
+   "fieldname": "amfi_scheme_code",
+   "fieldtype": "Data",
+   "label": "AMFI Scheme Code",
+   "mandatory_depends_on": "is_mutual_fund",
+   "unique": 1
+  },
+  {
+   "description": "Marks the lien on units held in a statement of account",
+   "fieldname": "rta",
+   "fieldtype": "Select",
+   "label": "RTA",
+   "options": "\nCAMS\nKFintech"
+  },
+  {
+   "fieldname": "column_break_mutual_fund",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Days from purchase before units can be pledged, e.g. 1095 for ELSS. Leave blank for no lock-in",
+   "fieldname": "lock_in_days",
+   "fieldtype": "Int",
+   "label": "Lock-in (Days)",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 11:21:09.533212",
+ "modified": "2026-10-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",

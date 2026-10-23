@@ -7,6 +7,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt, now_datetime
 
+from lending.collateral.mutual_fund.pledge import (
+	validate_direct_pledge,
+	validate_mutual_fund_lines,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
@@ -14,7 +18,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	update_sanctioned_loan_amount_for_applicant,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-	update_shortfall_status,
+	recheck_loan_shortfall,
 )
 
 
@@ -47,11 +51,18 @@ class LoanSecurityAssignment(Document):
 
 	def validate(self):
 		self.validate_securities()
+		validate_mutual_fund_lines(self)
 		self.set_loan_and_security_values()
+
+	def before_submit(self):
+		validate_direct_pledge(self)
+
+	def before_update_after_submit(self):
+		# Fund details of a Pledge Requested assignment are entered after submit
+		validate_mutual_fund_lines(self)
 
 	def on_submit(self):
 		if self.loan:
-			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
 
 		if not self.loan_application:
@@ -76,6 +87,10 @@ class LoanSecurityAssignment(Document):
 			else:
 				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
+		# Only once the status is Pledged does the new collateral count in the loan's value
+		if self.loan:
+			recheck_loan_shortfall(self.loan, cure_method="Additional Pledge")
+
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
 
@@ -90,10 +105,16 @@ class LoanSecurityAssignment(Document):
 		if not self.get("securities"):
 			frappe.throw(_("Atlest one security needs to be assigned"))
 
+		# A mutual fund scheme can repeat for another folio or purchase date, since lock-in runs per purchase
 		security_list = []
 		for security in self.get("securities"):
-			if security.loan_security not in security_list:
-				security_list.append(security.loan_security)
+			key = (
+				security.loan_security,
+				security.mutual_fund_holding or "",
+				str(security.purchase_date or ""),
+			)
+			if key not in security_list:
+				security_list.append(key)
 			else:
 				frappe.throw(
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
@@ -144,9 +165,10 @@ class LoanSecurityAssignment(Document):
 		total_security_value_needed = flt(loan_amount, precision)
 
 		total_available_security_value = 0
-		for d in self.get("securities"):
+		# A security can sit on more than one row, but its available value counts once
+		for loan_security in {d.loan_security for d in self.get("securities")}:
 			total_available_security_value += flt(
-				frappe.db.get_value("Loan Security", d.loan_security, "available_security_value"), precision
+				frappe.db.get_value("Loan Security", loan_security, "available_security_value"), precision
 			)
 
 		if total_security_value_needed > total_available_security_value:
@@ -212,6 +234,8 @@ def update_loan_securities_values(
 			ls.utilized_security_value,
 			ls.original_security_value,
 		)
+		# One row per security: a repeated one would replay its old balances over the update just made
+		.distinct()
 		.where(lsa.status == "Pledged")
 		.where(lsa.loan == loan)
 	).run(as_dict=True)
