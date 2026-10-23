@@ -607,7 +607,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
 				or (self.restructure_type and self.repayment_method == "Repay Fixed Amount per Period")
-			) and len(self.get(schedule_field)) >= tenure and not self.is_skipped_installment(payment_date):
+			) and self.is_last_billable_row(payment_date, len(self.get(schedule_field)), tenure):
 				self.get(schedule_field)[-1].principal_amount += balance_amount
 				self.get(schedule_field)[-1].balance_loan_amount = 0
 				self.get(schedule_field)[-1].total_payment = (
@@ -634,6 +634,19 @@ class LoanRepaymentSchedule(Document):
 				self.monthly_repayment_amount = monthly_repayment_amount
 		else:
 			self.repayment_periods = self.number_of_rows
+
+	def is_last_billable_row(self, payment_date, rows_done, tenure):
+		"""The last row of the term that is not skipped. Skipped dates at the end of the term get no row."""
+		if self.is_skipped_installment(payment_date):
+			return False
+
+		next_date = payment_date
+		for _i in range(tenure - rows_done):
+			next_date = self.get_next_payment_date(next_date)
+			if not self.is_skipped_installment(next_date):
+				return False
+
+		return True
 
 	def add_bpi_to_last_row(self, schedule_field, bpi_recovery_method):
 		if bpi_recovery_method == "Add to Last EMI":
