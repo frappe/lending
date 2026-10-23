@@ -19,6 +19,7 @@ from lending.loan_management.doctype.loan.loan import (
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.utils import get_frequency
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
@@ -64,6 +65,7 @@ class LoanApplication(Document):
 		proposed_pledges: DF.Table[ProposedPledge]
 		rate_of_interest: DF.Percent
 		repayment_amount: DF.Currency
+		repayment_frequency: DF.Literal["Monthly", "Weekly", "Bi-Weekly", "Quarterly"]
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
 		state: DF.Data | None
@@ -140,6 +142,10 @@ class LoanApplication(Document):
 			frappe.throw(_("Please enter Repayment Periods"))
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
+			if (self.repayment_frequency or "Monthly") != "Monthly":
+				frappe.throw(
+					_("Repayment Frequency other than Monthly is allowed only with Repay Over Number of Periods")
+				)
 			if not self.repayment_amount:
 				frappe.throw(_("Please enter repayment Amount"))
 			if self.repayment_amount > self.loan_amount:
@@ -233,8 +239,8 @@ class LoanApplication(Document):
 				self.repayment_amount = get_monthly_repayment_amount(
 					self.loan_amount,
 					self.rate_of_interest,
-					self.repayment_periods,
-					"Monthly",
+					get_instalment_count(self.repayment_periods, self.repayment_frequency),
+					self.repayment_frequency or "Monthly",
 					emi_rounding_method,
 				)
 
@@ -261,7 +267,9 @@ class LoanApplication(Document):
 		self.total_payable_interest = 0
 
 		while balance_amount > 0:
-			interest_amount = rounded(balance_amount * flt(self.rate_of_interest) / (12 * 100))
+			interest_amount = rounded(
+				balance_amount * flt(self.rate_of_interest) / (get_frequency(self.repayment_frequency or "Monthly") * 100)
+			)
 			balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
 
 			self.total_payable_interest += interest_amount
@@ -279,6 +287,12 @@ class LoanApplication(Document):
 
 		if not self.loan_amount and self.is_secured_loan and self.proposed_pledges:
 			self.loan_amount = self.maximum_loan_amount
+
+
+def get_instalment_count(repayment_months, repayment_frequency):
+	"""Convert the tenure in months on the application to the number of instalments."""
+	instalments = flt(repayment_months) * get_frequency(repayment_frequency or "Monthly") / 12
+	return max(1, math.floor(instalments + 0.5))
 
 
 @frappe.whitelist()
@@ -305,6 +319,11 @@ def create_loan(source_name: str, target_doc: str | None = None, submit: int = 0
 		target_doc.interest_income_account = account_details.interest_income_account
 		target_doc.penalty_income_account = account_details.penalty_income_account
 		target_doc.loan_application = source_name
+
+		if source_doc.is_term_loan and source_doc.repayment_method == "Repay Over Number of Periods":
+			target_doc.repayment_periods = get_instalment_count(
+				source_doc.repayment_periods, source_doc.repayment_frequency
+			)
 
 	doclist = get_mapped_doc(
 		"Loan Application",

@@ -41,6 +41,7 @@
   "maximum_loan_amount",
   "repayment_info",
   "repayment_method",
+  "repayment_frequency",
   "total_payable_amount",
   "column_break_11",
   "repayment_periods",
@@ -162,6 +163,14 @@
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
    "options": "Company:company:default_currency"
+  },
+  {
+   "default": "Monthly",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_method == \"Repay Over Number of Periods\"",
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nWeekly\nBi-Weekly\nQuarterly"
   },
   {
    "depends_on": "repayment_method",
@@ -338,7 +347,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-04-02 16:03:38.065821",
+=======
+ "modified": "2026-10-23 16:52:27.000000",
+>>>>>>> 20ffe8b (fix: add repayment frequency in loan application and convert tenure to instalments)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
