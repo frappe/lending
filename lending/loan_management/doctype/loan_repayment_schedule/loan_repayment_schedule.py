@@ -607,7 +607,7 @@ class LoanRepaymentSchedule(Document):
 			if (
 				self.repayment_method == "Repay Over Number of Periods"
 				or (self.restructure_type and self.repayment_method == "Repay Fixed Amount per Period")
-			) and len(self.get(schedule_field)) >= tenure:
+			) and len(self.get(schedule_field)) >= tenure and not self.is_skipped_installment(payment_date):
 				self.get(schedule_field)[-1].principal_amount += balance_amount
 				self.get(schedule_field)[-1].balance_loan_amount = 0
 				self.get(schedule_field)[-1].total_payment = (
