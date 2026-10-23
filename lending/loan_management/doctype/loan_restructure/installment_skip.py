@@ -62,11 +62,11 @@ class InstallmentSkip:
 
 	def validate_latest_installment_skip(self):
 		"""Cancelling an older skip would bring back a schedule that is no longer the latest"""
-		latest = frappe.db.get_value(
-			"Loan Repayment Schedule",
-			{"loan": self.doc.loan, "docstatus": 1, "status": "Active"},
-			"loan_restructure",
-		)
+		filters = {"loan": self.doc.loan, "docstatus": 1, "status": "Active"}
+		if self.doc.loan_disbursement:
+			filters["loan_disbursement"] = self.doc.loan_disbursement
+
+		latest = frappe.db.get_value("Loan Repayment Schedule", filters, "loan_restructure")
 		if latest != self.doc.name:
 			frappe.throw(_("Cancel the later restructure of this loan first"))
 
@@ -176,10 +176,7 @@ class InstallmentSkip:
 		doc = self.doc
 
 		# The Loan counts installments without the broken period row, so add only the rows gained
-		old_row_count = doc.new_repayment_period_in_months
-		if doc.new_repayment_method == "Repay Fixed Amount per Period":
-			old_row_count -= len(doc.get("skipped_installments"))
-		new_periods = cint(doc.old_tenure) + len(schedule.repayment_schedule) - old_row_count
+		new_periods = cint(doc.old_tenure) + len(schedule.repayment_schedule) - self.get_replaced_row_count(schedule)
 
 		frappe.db.set_value(
 			"Loan",
@@ -191,6 +188,21 @@ class InstallmentSkip:
 				"total_interest_payable": sum(flt(row.interest_amount) for row in schedule.repayment_schedule),
 			},
 		)
+
+	def get_replaced_row_count(self, schedule):
+		"""Rows of the schedule that this skip replaced"""
+		replaced = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{
+				"loan": self.doc.loan,
+				"docstatus": 1,
+				"status": "Rescheduled",
+				"creation": ("<", schedule.creation),
+			},
+			"name",
+			order_by="creation desc",
+		)
+		return frappe.db.count("Repayment Schedule", {"parent": replaced}) if replaced else 0
 
 	def emi_periods(self):
 		"""Installments that carry principal when the maturity is kept"""
@@ -254,38 +266,45 @@ def skip_installments(
 	Salary Slip does not pick it up.
 	"""
 	frappe.has_permission("Loan Restructure", "create", throw=True)
+	frappe.has_permission("Loan", "read", loan, throw=True)
 
 	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 		process_daily_loan_demands,
 	)
 
-	# Installments due before the skip date must have their demand generated before the schedule is rebuilt.
-	# A Loan Manager cannot submit Process Loan Demand, so permission is checked above instead.
-	process_daily_loan_demands(
-		loan=loan,
-		posting_date=add_days(getdate(restructure_date or nowdate()), -1),
-		ignore_permissions=True,
-	)
+	# Demands are generated first, so a failed request must not leave them behind
+	frappe.db.savepoint("installment_skip")
+	try:
+		# Installments due before the skip date must have their demand generated before the schedule is rebuilt.
+		# A Loan Manager cannot submit Process Loan Demand, so permission is checked above instead.
+		process_daily_loan_demands(
+			loan=loan,
+			posting_date=add_days(getdate(restructure_date or nowdate()), -1),
+			ignore_permissions=True,
+		)
 
-	restructure = frappe.new_doc("Loan Restructure")
-	restructure.update(
-		{
-			"loan": loan,
-			"restructure_date": get_skip_date(loan, restructure_date),
-			"restructure_type": "Installment Skip",
-			"new_repayment_method": new_repayment_method,
-			"reason_for_restructure": reason,
-		}
-	)
-	for date in frappe.parse_json(skipped_dates):
-		restructure.append("skipped_installments", {"payment_date": date})
+		restructure = frappe.new_doc("Loan Restructure")
+		restructure.update(
+			{
+				"loan": loan,
+				"restructure_date": get_skip_date(loan, restructure_date),
+				"restructure_type": "Installment Skip",
+				"new_repayment_method": new_repayment_method,
+				"reason_for_restructure": reason,
+			}
+		)
+		for date in frappe.parse_json(skipped_dates):
+			restructure.append("skipped_installments", {"payment_date": date})
 
-	restructure.submit()
+		restructure.submit()
 
-	if cint(approve):
-		frappe.has_permission("Loan Restructure", "write", restructure.name, throw=True)
-		restructure.status = "Approved"
-		restructure.save()
+		if cint(approve):
+			frappe.has_permission("Loan Restructure", "write", restructure.name, throw=True)
+			restructure.status = "Approved"
+			restructure.save()
+	except Exception:
+		frappe.db.rollback(save_point="installment_skip")
+		raise
 
 	return restructure.name
 

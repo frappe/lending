@@ -68,10 +68,10 @@ frappe.ui.form.on('Loan', {
 	},
 
 	skip_installment: function (frm) {
-		const methods = {
-			[__("Keep EMI, extend tenure")]: "Repay Fixed Amount per Period",
-			[__("Keep tenure, increase EMI")]: "Repay Over Number of Periods",
-		};
+		const methods = [
+			{ label: __("Keep EMI, extend tenure"), value: "Repay Fixed Amount per Period" },
+			{ label: __("Keep tenure, increase EMI"), value: "Repay Over Number of Periods" },
+		];
 		const installments_path = "lending.loan_management.doctype.loan_restructure.installment_skip";
 
 		frappe.call({
@@ -101,8 +101,8 @@ frappe.ui.form.on('Loan', {
 						fieldname: "method",
 						fieldtype: "Select",
 						label: __("After the skip"),
-						options: Object.keys(methods),
-						default: Object.keys(methods)[0],
+						options: methods,
+						default: methods[0].value,
 					},
 					{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason") },
 				],
@@ -118,7 +118,7 @@ frappe.ui.form.on('Loan', {
 						args: {
 							loan: frm.doc.name,
 							skipped_dates: values.dates,
-							new_repayment_method: methods[values.method],
+							new_repayment_method: values.method,
 							reason: values.reason,
 						},
 						freeze: true,
