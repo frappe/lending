@@ -35,7 +35,7 @@ class SkipScheduleRows:
 	def get_original_start_date(self):
 		return self.previous.repayment_start_date if self.previous else self.schedule.repayment_start_date
 
-	def copy_history_rows(self):
+	def copy_completed_rows(self):
 		if not self.previous:
 			return
 
@@ -63,16 +63,27 @@ class SkipScheduleRows:
 				"Loan Skipped Installment", {"parent": self.schedule.loan_restructure}, pluck="payment_date"
 			)
 		}
-		dates.update(self.get_carried_skipped_dates())
+		dates.update(self.get_earlier_skipped_dates())
 		return dates
 
-	def get_carried_skipped_dates(self):
-		if not self.previous:
-			return set()
-
+	def get_earlier_skipped_dates(self):
+		# Read from the approved skips, not the old rows: a skipped date at the end of the term has no row
 		resume_date = getdate(self.schedule.repayment_start_date)
-		return {
-			getdate(row.payment_date)
-			for row in self.previous.repayment_schedule
-			if row.demand_generated and not row.total_payment and getdate(row.payment_date) >= resume_date
-		}
+		Restructure = frappe.qb.DocType("Loan Restructure")
+		Skipped = frappe.qb.DocType("Loan Skipped Installment")
+
+		dates = (
+			frappe.qb.from_(Skipped)
+			.join(Restructure)
+			.on(Skipped.parent == Restructure.name)
+			.select(Skipped.payment_date)
+			.where(
+				(Restructure.loan == self.schedule.loan)
+				& (Restructure.docstatus == 1)
+				& (Restructure.status == "Approved")
+				& (Restructure.restructure_type == "Installment Skip")
+				& (Restructure.name != self.schedule.loan_restructure)
+			)
+		).run(pluck=True)
+
+		return {getdate(date) for date in dates if getdate(date) >= resume_date}
