@@ -112,3 +112,12 @@ class TestLoanApplication(LendingTestSuite):
 
 		loan = create_loan(loan_application.name)
 		self.assertEqual(loan.repayment_periods, 18)
+
+	def test_fixed_amount_method_resets_repayment_frequency(self):
+		loan_application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		loan_application.repayment_frequency = "Bi-Weekly"
+		loan_application.repayment_method = "Repay Fixed Amount per Period"
+		loan_application.repayment_amount = 15000
+		loan_application.save()
+
+		self.assertEqual(loan_application.repayment_frequency, "Monthly")

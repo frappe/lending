@@ -142,10 +142,7 @@ class LoanApplication(Document):
 			frappe.throw(_("Please enter Repayment Periods"))
 
 		if self.repayment_method == "Repay Fixed Amount per Period":
-			if (self.repayment_frequency or "Monthly") != "Monthly":
-				frappe.throw(
-					_("Repayment Frequency other than Monthly is allowed only with Repay Over Number of Periods")
-				)
+			self.repayment_frequency = "Monthly"
 			if not self.repayment_amount:
 				frappe.throw(_("Please enter repayment Amount"))
 			if self.repayment_amount > self.loan_amount:
