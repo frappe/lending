@@ -67,6 +67,71 @@ frappe.ui.form.on('Loan', {
 
 	},
 
+	skip_installment: function (frm) {
+		const methods = {
+			[__("Keep EMI, extend tenure")]: "Repay Fixed Amount per Period",
+			[__("Keep tenure, increase EMI")]: "Repay Over Number of Periods",
+		};
+		const installments_path = "lending.loan_management.doctype.loan_restructure.installment_skip";
+
+		frappe.call({
+			method: `${installments_path}.get_open_installments`,
+			args: { loan: frm.doc.name },
+		}).then((r) => {
+			if (!(r.message || []).length) {
+				frappe.msgprint(__("There are no open installments to skip."));
+				return;
+			}
+
+			let dialog = new frappe.ui.Dialog({
+				title: __("Skip Installment"),
+				fields: [
+					{
+						fieldname: "dates",
+						fieldtype: "MultiCheck",
+						label: __("Installments to Skip"),
+						columns: 2,
+						sort_options: false,
+						options: r.message.map((row) => ({
+							label: `${frappe.datetime.str_to_user(row.payment_date)} (${format_currency(row.total_payment)})`,
+							value: row.payment_date,
+						})),
+					},
+					{
+						fieldname: "method",
+						fieldtype: "Select",
+						label: __("After the skip"),
+						options: Object.keys(methods),
+						default: Object.keys(methods)[0],
+					},
+					{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason") },
+				],
+				primary_action_label: __("Skip"),
+				primary_action: (values) => {
+					if (!(values.dates || []).length) {
+						frappe.msgprint(__("Please select at least one installment to skip."));
+						return;
+					}
+
+					frappe.call({
+						method: `${installments_path}.skip_installments`,
+						args: {
+							loan: frm.doc.name,
+							skipped_dates: values.dates,
+							new_repayment_method: methods[values.method],
+							reason: values.reason,
+						},
+						freeze: true,
+					}).then((res) => {
+						dialog.hide();
+						frappe.set_route("Form", "Loan Restructure", res.message);
+					});
+				},
+			});
+			dialog.show();
+		});
+	},
+
 	refresh: function (frm) {
 		if (frm.doc.repayment_schedule_type == "Pro-rated calendar months") {
 			frm.set_df_property("repayment_start_date", "label", "Interest Calculation Start Date");
@@ -110,6 +175,12 @@ frappe.ui.form.on('Loan', {
 					frm.trigger("close_unsecured_term_loan");
 				},__('Status'));
 			}
+		}
+
+		if (frm.doc.docstatus == 1 && frm.doc.is_term_loan && ["Disbursed", "Partially Disbursed"].includes(frm.doc.status)) {
+			frm.add_custom_button(__('Skip Installment'), function() {
+				frm.trigger("skip_installment");
+			}, __('Create'));
 		}
 
 		if (frm.doc.docstatus == 1 && frm.doc.is_secured_loan) {

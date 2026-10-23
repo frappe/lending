@@ -11,6 +11,10 @@ from frappe.utils import add_days, date_diff, flt, getdate
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_restructure.installment_skip import (
+	get_open_installments,
+	skip_installments,
+)
 from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 	create_process_loan_classification,
 )
@@ -687,6 +691,888 @@ class TestLoanRestructure(LendingTestSuite):
 		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
 
+class TestInstallmentSkip(LendingTestSuite):
+	def setUp(self):
+		master_init()
+		init_loan_products()
+		init_customers()
+
+	def test_installment_skip_rebuilds_repayment_schedule(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+		pending_principal = old_schedule.repayment_schedule[2].balance_loan_amount + old_schedule.repayment_schedule[2].principal_amount
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+		)
+		self.assertEqual(loan_restructure.status, "Initiated")
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		new_schedule = get_active_schedule(loan.name)
+		first_row = get_row(new_schedule, "2026-11-07")
+
+		self.assertEqual(frappe.db.get_value("Loan Repayment Schedule", old_schedule.name, "status"), "Rescheduled")
+		self.assertEqual(getdate(first_row.payment_date), getdate("2026-11-07"))
+		self.assertEqual((first_row.principal_amount, first_row.interest_amount, first_row.total_payment), (0, 0, 0))
+		self.assertEqual(first_row.demand_generated, 1)
+
+		# Same EMI, so the maturity moves by one period
+		self.assertEqual(new_schedule.monthly_repayment_amount, old_schedule.monthly_repayment_amount)
+		self.assertEqual(len(new_schedule.repayment_schedule), len(old_schedule.repayment_schedule) + 1)
+		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-04-07"))
+
+		# Principal is fully repaid and the skipped interest is billed with the next installment
+		rebuilt_rows = [row for row in new_schedule.repayment_schedule if getdate(row.payment_date) >= getdate("2026-11-07")]
+		self.assertEqual(flt(sum(row.principal_amount for row in rebuilt_rows), 2), flt(pending_principal, 2))
+
+		# Like a Pre Payment schedule, it keeps every earlier row and the loan's own start date
+		self.assertEqual(new_schedule.repayment_start_date, old_schedule.repayment_start_date)
+		self.assertEqual(
+			[(row.payment_date, row.demand_generated) for row in new_schedule.repayment_schedule[:2]],
+			[(row.payment_date, row.demand_generated) for row in old_schedule.repayment_schedule[:2]],
+		)
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+		# Interest of Oct 7 to Dec 7 (daily accruals add a few paise of rounding)
+		self.assertAlmostEqual(
+			next_row(new_schedule, "2026-11-07").interest_amount,
+			first_row.balance_loan_amount * 12 * 61 / 36500,
+			delta=0.5,
+		)
+
+	def test_skipped_installment_is_not_demanded_or_overdue(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-20")
+
+		self.assertEqual(get_demand_dates(loan.name).count(getdate("2026-11-07")), 0)
+		self.assertEqual(calculate_amounts(loan.name, "2026-11-20")["payable_amount"], 0)
+
+		loan.load_from_db()
+		self.assertEqual(loan.days_past_due, 0)
+
+		# Next installment is billed once, with the skipped interest
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-12-07")
+		new_schedule = get_active_schedule(loan.name)
+
+		self.assertEqual(get_demand_dates(loan.name).count(getdate("2026-12-07")), 2)
+		self.assertEqual(
+			calculate_amounts(loan.name, "2026-12-07")["payable_amount"],
+			next_row(new_schedule, "2026-11-07").total_payment,
+		)
+
+	def test_installment_skip_with_multiple_installments(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07", "2027-01-07"],
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		new_schedule = get_active_schedule(loan.name)
+		skipped_rows = [row for row in new_schedule.repayment_schedule if not row.total_payment]
+
+		self.assertEqual(
+			[getdate(row.payment_date) for row in skipped_rows], [getdate("2026-11-07"), getdate("2027-01-07")]
+		)
+		self.assertTrue(all(row.demand_generated for row in skipped_rows))
+		self.assertEqual(len(new_schedule.repayment_schedule), len(old_schedule.repayment_schedule) + 2)
+		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-05-07"))
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+
+	def test_installment_skip_keeps_maturity_when_repaying_over_periods(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+			new_repayment_method="Repay Over Number of Periods",
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		new_schedule = get_active_schedule(loan.name)
+
+		self.assertEqual(new_schedule.repayment_schedule[-1].payment_date, old_schedule.repayment_schedule[-1].payment_date)
+		self.assertGreater(new_schedule.monthly_repayment_amount, old_schedule.monthly_repayment_amount)
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+
+	def test_skipping_last_installment_extends_maturity(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2027-03-07"],
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		new_schedule = get_active_schedule(loan.name)
+
+		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-04-07"))
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+
+	def test_rejected_installment_skip_keeps_original_schedule(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+		)
+		loan_restructure.status = "Rejected"
+		loan_restructure.save()
+
+		self.assertEqual(get_active_schedule(loan.name).name, old_schedule.name)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-10")
+		self.assertIn(getdate("2026-11-07"), get_demand_dates(loan.name))
+
+		# A new request is allowed after a rejection
+		create_repayment_entry(
+			loan.name, "2026-11-10", calculate_amounts(loan.name, "2026-11-10")["payable_amount"]
+		).submit()
+		create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-11-12",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-12-07"],
+		)
+
+	def test_cancelling_approved_installment_skip_restores_schedule(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+		)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		loan_restructure.reload()
+		loan_restructure.cancel()
+
+		restored_schedule = get_active_schedule(loan.name)
+		self.assertEqual(restored_schedule.name, old_schedule.name)
+		self.assertEqual(restored_schedule.repayment_schedule[2].demand_generated, 0)
+
+	def test_invalid_installment_skip_requests(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		invalid_requests = [
+			# not a schedule date
+			("2026-10-20", ["2026-11-08"], None),
+			# already billed installment
+			("2026-10-20", ["2026-10-07"], None),
+			# same installment twice
+			("2026-10-20", ["2026-11-07", "2026-11-07"], None),
+			# nothing selected
+			("2026-10-20", [], None),
+			# installment is before the restructure date
+			("2026-11-10", ["2026-11-07"], None),
+			# no installment left to repay
+			(
+				"2026-10-20",
+				["2026-11-07", "2026-12-07", "2027-01-07", "2027-02-07", "2027-03-07"],
+				"Repay Over Number of Periods",
+			),
+		]
+
+		for restructure_date, skipped_dates, new_repayment_method in invalid_requests:
+			with self.assertRaises(frappe.ValidationError):
+				create_loan_restructure(
+					loan=loan.name,
+					restructure_date=restructure_date,
+					restructure_type="Installment Skip",
+					skipped_dates=skipped_dates,
+					new_repayment_method=new_repayment_method,
+				)
+
+	def test_duplicate_installment_skip_requests(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-20",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-11-07"],
+		)
+
+		# Second request while the first is pending
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-10-21",
+				restructure_type="Installment Skip",
+				skipped_dates=["2026-12-07"],
+			)
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		# The same installment cannot be skipped twice
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-10-21",
+				restructure_type="Installment Skip",
+				skipped_dates=["2026-11-07"],
+			)
+
+		# Another installment can be skipped once the first request is done
+		second_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-21",
+			restructure_type="Installment Skip",
+			skipped_dates=["2026-12-07"],
+		)
+		second_restructure.status = "Approved"
+		second_restructure.save()
+
+		new_schedule = get_active_schedule(loan.name)
+		# The first skip stays in force when another one is added
+		skipped_dates = [getdate(row.payment_date) for row in new_schedule.repayment_schedule if not row.total_payment]
+		self.assertEqual(skipped_dates, [getdate("2026-11-07"), getdate("2026-12-07")])
+
+	def test_skip_installments_creates_and_approves_restructure(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		open_installments = get_open_installments(loan.name)
+		self.assertEqual(getdate(open_installments[0]["payment_date"]), getdate("2026-11-07"))
+
+		restructure = skip_installments(
+			loan.name, '["2026-11-07"]', reason="Employee request", approve=0, restructure_date="2026-10-20"
+		)
+		restructure = frappe.get_doc("Loan Restructure", restructure)
+		self.assertEqual((restructure.restructure_type, restructure.status), ("Installment Skip", "Initiated"))
+		self.assertEqual(restructure.reason_for_restructure, "Employee request")
+
+		restructure.status = "Rejected"
+		restructure.save()
+
+		restructure = frappe.get_doc("Loan Restructure", skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20"))
+		self.assertEqual(restructure.status, "Approved")
+		self.assertEqual(get_row(get_active_schedule(loan.name), "2026-11-07").demand_generated, 1)
+
+	def test_installment_skip_starts_after_last_accrual(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		# Interest is already accrued till Nov 8, e.g. by a payroll run for a later period
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
+		create_repayment_entry(
+			loan.name, "2026-11-07", calculate_amounts(loan.name, "2026-11-07")["payable_amount"]
+		).submit()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-11-08")
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(loan.name, '["2026-12-07"]', restructure_date="2026-10-20"),
+		)
+
+		self.assertEqual(restructure.status, "Approved")
+		self.assertGreaterEqual(getdate(restructure.restructure_date), getdate("2026-11-08"))
+
+	def test_installment_skip_does_not_bill_interest_twice(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		# Interest is accrued till Nov 6 and the Nov 7 installment is billed and paid
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-11-06")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
+		create_repayment_entry(
+			loan.name, "2026-11-07", calculate_amounts(loan.name, "2026-11-07")["payable_amount"]
+		).submit()
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(loan.name, '["2026-12-07"]', restructure_date="2026-10-20"),
+		)
+		new_schedule = get_active_schedule(loan.name)
+
+		# Starts at the billed installment, so nothing before it is added again
+		self.assertEqual(getdate(restructure.restructure_date), getdate("2026-11-07"))
+		self.assertEqual(restructure.unaccrued_interest, 0)
+
+		# Interest of Nov 7 to Jan 7 is billed once: skipped Dec 7 and the Jan 7 installment
+		self.assertAlmostEqual(
+			next_row(new_schedule, "2026-12-07").interest_amount,
+			restructure.new_loan_amount * 12 * 61 / 36500,
+			delta=0.5,
+		)
+
+		# Entered directly, an earlier date is refused
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-11-06",
+				restructure_type="Installment Skip",
+				skipped_dates=["2027-01-07"],
+			)
+
+	def test_installment_skip_bills_installments_already_due_first(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-25",
+			posting_date="2026-09-15",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-15", repayment_start_date="2026-10-25"
+		)
+
+		# Nothing is billed yet, so the broken period interest row of 25 Sep is still open
+		self.assertEqual(get_demand_dates(loan.name), [])
+		offered = [getdate(row["payment_date"]) for row in get_open_installments(loan.name)]
+		self.assertTrue(offered)
+		self.assertGreaterEqual(min(offered), getdate("2026-10-25"))
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(loan.name, '["2026-11-25"]', restructure_date="2026-10-23"),
+		)
+
+		self.assertEqual(restructure.status, "Approved")
+		self.assertIn(getdate("2026-09-25"), get_demand_dates(loan.name))
+		new_schedule = get_active_schedule(loan.name)
+		self.assertEqual(get_row(new_schedule, "2026-09-25").demand_generated, 1)
+		self.assertEqual(getdate(next_row(new_schedule, "2026-09-25").payment_date), getdate("2026-10-25"))
+
+		# Entered directly, with an installment still unbilled before the date, it is refused
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-11-30",
+				restructure_type="Installment Skip",
+				skipped_dates=["2026-12-25"],
+			)
+
+	def test_later_installment_skip_keeps_earlier_skip(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		skip_installments(loan.name, '["2027-01-07"]', restructure_date="2026-10-20")
+		skip_installments(loan.name, '["2026-12-07"]', restructure_date="2026-10-21")
+		new_schedule = get_active_schedule(loan.name)
+
+		# The schedule still starts on the loan's own repayment start date after two skips
+		self.assertEqual(new_schedule.repayment_start_date, getdate("2026-10-07"))
+
+		# Both skips are in force, and a third installment was added at the end for each
+		skipped_rows = [row for row in new_schedule.repayment_schedule if not row.total_payment]
+		self.assertEqual(
+			[getdate(row.payment_date) for row in skipped_rows], [getdate("2026-12-07"), getdate("2027-01-07")]
+		)
+		self.assertTrue(all(row.demand_generated for row in skipped_rows))
+		self.assertEqual(getdate(new_schedule.repayment_schedule[-1].payment_date), getdate("2027-05-07"))
+		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+
+		# Neither skipped installment is billed
+		process_daily_loan_demands(loan=loan.name, posting_date="2027-01-10")
+		self.assertNotIn(getdate("2026-12-07"), get_demand_dates(loan.name))
+		self.assertNotIn(getdate("2027-01-07"), get_demand_dates(loan.name))
+
+	def test_installment_skip_is_not_allowed_with_overdue(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
+
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-11-10",
+				restructure_type="Installment Skip",
+				skipped_dates=["2026-12-07"],
+			)
+
+	def test_repayment_without_installment_skip_is_unchanged(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		old_schedule = get_active_schedule(loan.name)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
+
+		self.assertEqual(get_active_schedule(loan.name).name, old_schedule.name)
+		self.assertEqual(
+			calculate_amounts(loan.name, "2026-11-07")["payable_amount"],
+			old_schedule.repayment_schedule[2].total_payment,
+		)
+
+
+
 def create_loan_restructure(
 	loan,
 	restructure_date,
@@ -704,6 +1590,9 @@ def create_loan_restructure(
 	new_repayment_method=None,
 	new_repayment_period_in_months=None,
 	waive_off_restructure_charges=0,
+	restructure_type="Normal Restructure",
+	skipped_dates=None,
+	submit=True,
 ):
 
 	doc = frappe.new_doc("Loan Restructure")
@@ -713,7 +1602,7 @@ def create_loan_restructure(
 	doc.interest_waiver_amount = interest_waiver_amount
 	doc.unaccrued_interest_waiver = unaccrued_interest_waiver
 	doc.penal_interest_waiver = penal_waiver_amount
-	doc.restructure_type = "Normal Restructure"
+	doc.restructure_type = restructure_type
 	doc.treatment_of_normal_interest = treatment_of_normal_interest
 	doc.unaccrued_interest_treatment = unaccrued_interest_treatment
 	doc.treatment_of_penal_interest = treatment_of_penal_interest
@@ -735,6 +1624,31 @@ def create_loan_restructure(
 				},
 			)
 
-	doc.submit()
+	for date in skipped_dates or []:
+		doc.append("skipped_installments", {"payment_date": date})
+
+	if submit:
+		doc.submit()
+	else:
+		doc.insert()
 
 	return doc
+
+
+def get_active_schedule(loan):
+	return frappe.get_doc("Loan Repayment Schedule", {"loan": loan, "docstatus": 1, "status": "Active"})
+
+
+def get_row(schedule, date):
+	return next(row for row in schedule.repayment_schedule if getdate(row.payment_date) == getdate(date))
+
+
+def next_row(schedule, date):
+	rows = schedule.repayment_schedule
+	return rows[rows.index(get_row(schedule, date)) + 1]
+
+
+def get_demand_dates(loan):
+	return [
+		getdate(date) for date in frappe.get_all("Loan Demand", {"loan": loan, "docstatus": 1}, pluck="demand_date")
+	]
