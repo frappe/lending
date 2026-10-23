@@ -1,0 +1,1 @@
+<p>{{ doc.applicant }} has no email address, so the margin call notice for {% if doc.loan %}loan {{ doc.loan }}{% else %}their loans{% endif %} was not sent and the cure period has not started. Add an email to the borrower, and the next daily run sends the notice.</p>

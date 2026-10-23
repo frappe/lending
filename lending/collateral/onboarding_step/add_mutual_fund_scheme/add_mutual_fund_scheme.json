@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add Mutual Fund",
+ "creation": "2026-10-20 00:00:01",
+ "description": "Each scheme you lend against, with its AMFI scheme code and lock-in days. For example, Parag Parikh Flexi Cap Direct Growth has scheme code 122639 and no lock-in; an ELSS scheme has 1095 days.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-22 00:00:00",
+ "modified_by": "Administrator",
+ "name": "Add Mutual Fund Scheme",
+ "owner": "Administrator",
+ "reference_document": "Loan Security",
+ "route_options": "{\"is_mutual_fund\": 1}",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Add your mutual funds",
+ "validate_action": 1
+}

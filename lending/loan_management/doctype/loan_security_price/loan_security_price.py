@@ -23,6 +23,7 @@ class LoanSecurityPrice(Document):
 		loan_security_name: DF.Data | None
 		loan_security_price: DF.Currency
 		loan_security_type: DF.Link | None
+		price_update: DF.Link | None
 		valid_from: DF.Datetime
 		valid_upto: DF.Datetime
 	# end: auto-generated types

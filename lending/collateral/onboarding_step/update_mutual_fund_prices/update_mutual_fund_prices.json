@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Update Prices",
+ "creation": "2026-10-20 00:00:02",
+ "description": "Pick your mutual fund type and add a row for each scheme. Get Securities adds only the schemes that are pledged, so before your first pledge, add the rows yourself. Then click Fill Prices from AMFI and attach the day's NAVAll.txt from amfiindia.com, or type each NAV. Submit to set the prices.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-22 00:00:00",
+ "modified_by": "Administrator",
+ "name": "Update Mutual Fund Prices",
+ "owner": "Administrator",
+ "reference_document": "Loan Security Price Update",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Get today's prices",
+ "validate_action": 1
+}
