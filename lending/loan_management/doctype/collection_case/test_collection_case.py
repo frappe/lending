@@ -21,11 +21,15 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestCollectionCase(LendingTestSuite):
-	def setUp(self):
-		super().setUp()
-		loan_classification_ranges()
+	repost_days_past_due = True
 
-	def create_overdue_loan(self):
+	@classmethod
+	def make_class_data(cls):
+		loan_classification_ranges()
+		cls.loan, cls.disbursement = cls.create_overdue_loan()
+
+	@staticmethod
+	def create_overdue_loan():
 		"""A disbursed loan whose first EMI (due 30 days after disbursement) is left unpaid past due date.
 
 		update_days_past_due_in_loans only writes a Days Past Due Log once at least
@@ -69,7 +73,7 @@ class TestCollectionCase(LendingTestSuite):
 		return loan, disbursement
 
 	def test_case_opens_on_dpd_bucket_escalation(self):
-		loan, _disbursement = self.create_overdue_loan()
+		loan = self.loan
 
 		create_process_loan_classification(posting_date=add_days(nowdate(), -5), loan=loan.name)
 
@@ -91,7 +95,7 @@ class TestCollectionCase(LendingTestSuite):
 		)
 
 	def test_case_resolves_when_dpd_returns_to_zero(self):
-		loan, disbursement = self.create_overdue_loan()
+		loan, disbursement = self.loan, self.disbursement
 
 		resolution_date = add_days(nowdate(), -5)
 		create_process_loan_classification(posting_date=resolution_date, loan=loan.name)
@@ -123,7 +127,7 @@ class TestCollectionCase(LendingTestSuite):
 		to today's real date, so any fixed-date repayment here would still land
 		deep in the same bucket instead of crossing one.
 		"""
-		loan, disbursement = self.create_overdue_loan()
+		loan, disbursement = self.loan, self.disbursement
 
 		last_log_date = frappe.db.get_value(
 			"Collection Case Log", {"loan": loan.name}, "posting_date", order_by="posting_date desc"
@@ -167,7 +171,7 @@ class TestCollectionCase(LendingTestSuite):
 		than what the fixture already produced (which the stale-history guard
 		would then reject as older than what's on file).
 		"""
-		loan, disbursement = self.create_overdue_loan()
+		loan, disbursement = self.loan, self.disbursement
 
 		last_log_date = frappe.db.get_value(
 			"Collection Case Log", {"loan": loan.name}, "posting_date", order_by="posting_date desc"

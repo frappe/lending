@@ -5,18 +5,12 @@ import frappe
 
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-from lending.tests.test_utils import (
-	create_loan_accounts,
-	create_loan_product,
-	set_loan_settings_in_company,
-)
+from lending.tests.test_utils import create_loan_product
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanApplication(LendingTestSuite):
 	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
 		create_loan_product(
 			"Home Loan",
 			"Home Loan",

@@ -8,54 +8,16 @@ from lending.loan_management.doctype.loan_disbursement.loan_disbursement import 
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanDisbursement(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
-	def test_sales_invoice_created_on_loan_disbursement_with_charges(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			2,
-			"Customer",
-			"2024-07-15",
-			"2024-06-25",
-			10,
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date="2024-06-25",
-			repayment_start_date="2024-07-15",
-			loan_disbursement_charges=[{"charge": "Processing Fee", "amount": 5000}],
-		)
-
-		invoices = frappe.get_all(
-			"Sales Invoice",
-			filters={
-				"docstatus": 1,
-				"customer": "_Test Customer 1",
-				"loan": loan.name,
-			},
-		)
-
-		self.assertTrue(
-			len(invoices) == 1, "Expected 1 Sales Invoice to be created for Loan Disbursement charge."
-		)
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_disbursal_uses_saved_maximum_loan_amount_without_security_assignment(self):
 		loan = create_loan(
@@ -88,7 +50,12 @@ class TestLoanDisbursement(LendingTestSuite):
 
 		self.assertRaises(frappe.ValidationError, loan.save)
 
-	def test_tranche_number_assignment_on_loan_disbursement(self):
+
+class TestSanctionedLoanDisbursement(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -101,6 +68,34 @@ class TestLoanDisbursement(LendingTestSuite):
 			10,
 		)
 		loan.submit()
+		cls.loan = loan.name
+
+	def test_sales_invoice_created_on_loan_disbursement_with_charges(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-06-25",
+			repayment_start_date="2024-07-15",
+			loan_disbursement_charges=[{"charge": "Processing Fee", "amount": 5000}],
+		)
+
+		invoices = frappe.get_all(
+			"Sales Invoice",
+			filters={
+				"docstatus": 1,
+				"customer": "_Test Customer 1",
+				"loan": loan.name,
+			},
+		)
+
+		self.assertTrue(
+			len(invoices) == 1, "Expected 1 Sales Invoice to be created for Loan Disbursement charge."
+		)
+
+	def test_tranche_number_assignment_on_loan_disbursement(self):
+		loan = frappe.get_doc("Loan", self.loan)
 
 		disbursement_1 = make_loan_disbursement_entry(
 			loan.name,
@@ -163,18 +158,7 @@ class TestLoanDisbursement(LendingTestSuite):
 		self.assertEqual(status_map_after.get(disbursement_2.name), "Active")
 
 	def test_cancel_on_loan_disbursement_with_missing_repayment_schedule(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			2,
-			"Customer",
-			"2024-07-15",
-			"2024-06-25",
-			10,
-		)
-		loan.submit()
+		loan = frappe.get_doc("Loan", self.loan)
 
 		disbursement = make_loan_disbursement_entry(
 			loan.name,

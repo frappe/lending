@@ -103,7 +103,7 @@ jobs:
           BRANCH_TO_CLONE: ${{ env.LENDING_BRANCH }}
 
       - name: Run Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-parallel-tests --app lending --total-builds ${{ strategy.job-total }} --build-number ${{ matrix.container }} --lightmode
+        run: cd ~/frappe-bench/sites && ~/frappe-bench/env/bin/python ../apps/lending/.github/helper/run_parallel_tests.py test_site ${{ matrix.container }} ${{ strategy.job-total }}
         env:
           TYPE: server
           CAPTURE_COVERAGE: True

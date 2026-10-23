@@ -12,25 +12,22 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestLoanAdjustment(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_loan_adjustment_submit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -72,6 +69,7 @@ class TestLoanAdjustment(LendingTestSuite):
 
 		self.assertTrue(doc.submit())
 
+	@with_days_past_due_repost
 	def test_auto_security_deposit_adjust_within_auto_write_off_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 100)
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)
