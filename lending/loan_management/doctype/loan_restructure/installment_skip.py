@@ -11,21 +11,21 @@ class InstallmentSkip:
 	"""Validates and prepares a Loan Restructure of type "Installment Skip".
 
 	The skipped installments are rebuilt by Loan Repayment Schedule as zero rows. Interest of
-	a skipped period keeps accruing and is billed with the next installment (never waived).
+	a skipped period keeps accruing and is added to the next installment demand (never waived).
 	"""
 
 	def __init__(self, restructure):
 		self.doc = restructure
 		self.schedule = self.get_active_schedule()
-		self.open_rows = self.get_open_rows()
+		self.upcoming_rows = self.get_upcoming_rows()
 
 	def prepare(self):
 		self.validate_loan_status()
 		self.validate_after_last_demand()
-		self.validate_nothing_due_is_unbilled()
+		self.validate_demand_generated_for_due_installments()
 		self.validate_no_overdue()
 		self.validate_skipped_installments()
-		self.validate_nothing_billed_ahead()
+		self.validate_no_demand_generated_ahead()
 		self.set_terms()
 
 	def validate_loan_status(self):
@@ -44,30 +44,30 @@ class InstallmentSkip:
 
 		return frappe.get_doc("Loan Repayment Schedule", schedule)
 
-	def get_open_rows(self):
-		"""Installments for which no demand is raised yet. Only these can be skipped."""
+	def get_upcoming_rows(self):
+		"""Installments for which no demand is generated yet. Only these can be skipped."""
 		rows = [row for row in self.schedule.repayment_schedule if not row.demand_generated]
 		return sorted(rows, key=lambda row: getdate(row.payment_date))
 
 	def validate_after_last_demand(self):
-		# Interest up to a billed installment is already in its demand. Starting earlier bills it twice.
-		processed_dates = get_last_processed_dates(self.doc.loan)
+		# Interest up to an installment with a demand is already in that demand. Starting earlier demands it twice.
+		processed_dates = get_last_accrual_and_demand_dates(self.doc.loan)
 		if processed_dates and getdate(self.doc.restructure_date) < max(processed_dates):
 			frappe.throw(
-				_("Restructure Date cannot be before {0}, the last date for which interest is billed").format(
+				_("Restructure Date cannot be before {0}, the last date for which a demand is generated").format(
 					max(processed_dates)
 				)
 			)
 
-	def validate_nothing_due_is_unbilled(self):
+	def validate_demand_generated_for_due_installments(self):
 		restructure_date = getdate(self.doc.restructure_date)
-		unbilled = [
-			row for row in self.open_rows if row.total_payment and getdate(row.payment_date) < restructure_date
+		rows_without_demand = [
+			row for row in self.upcoming_rows if row.total_payment and getdate(row.payment_date) < restructure_date
 		]
-		if unbilled:
+		if rows_without_demand:
 			frappe.throw(
-				_("Installment of {0} is already due but not billed. Run loan demand processing first.").format(
-					getdate(unbilled[0].payment_date)
+				_("Installment of {0} is already due but its demand is not generated. Run loan demand processing first.").format(
+					getdate(rows_without_demand[0].payment_date)
 				)
 			)
 
@@ -85,12 +85,12 @@ class InstallmentSkip:
 		if not skipped:
 			frappe.throw(_("Please select at least one installment to skip"))
 
-		open_rows = {getdate(row.payment_date): row for row in self.open_rows}
+		upcoming_rows = {getdate(row.payment_date): row for row in self.upcoming_rows}
 		seen = set()
 
 		for skip in skipped:
 			date = getdate(skip.payment_date)
-			row = open_rows.get(date)
+			row = upcoming_rows.get(date)
 
 			if date in seen:
 				frappe.throw(_("Row {0}: Installment of {1} is selected more than once").format(skip.idx, date))
@@ -108,36 +108,36 @@ class InstallmentSkip:
 			skip.interest_amount = row.interest_amount
 			skip.total_payment = row.total_payment
 
-	def validate_nothing_billed_ahead(self):
-		# Rows after the first open one are rebuilt, so none of them may be billed already
-		first_open = getdate(self.open_rows[0].payment_date)
+	def validate_no_demand_generated_ahead(self):
+		# Rows after the first upcoming one are rebuilt, so none of them may have a demand already
+		first_open = getdate(self.upcoming_rows[0].payment_date)
 		for row in self.schedule.repayment_schedule:
 			if getdate(row.payment_date) > first_open and row.demand_generated and row.total_payment:
 				frappe.throw(
-					_("Installment of {0} is already billed after the installments to skip.").format(
+					_("Installment of {0} already has a demand generated after the installments to skip.").format(
 						getdate(row.payment_date)
 					)
 				)
 
 	def get_row_counts(self):
-		"""(history, carried skips, open) rows of the schedule being replaced"""
-		first_open = getdate(self.open_rows[0].payment_date)
+		"""(completed, earlier skips, upcoming) rows of the schedule being replaced"""
+		first_open = getdate(self.upcoming_rows[0].payment_date)
 		rows = self.schedule.repayment_schedule
-		history = len([row for row in rows if getdate(row.payment_date) < first_open])
-		carried = len(
+		completed = len([row for row in rows if getdate(row.payment_date) < first_open])
+		earlier_skips = len(
 			[
 				row
 				for row in rows
 				if getdate(row.payment_date) > first_open and row.demand_generated and not row.total_payment
 			]
 		)
-		return history, carried, len(self.open_rows)
+		return completed, earlier_skips, len(self.upcoming_rows)
 
 	def repayment_frequency(self):
 		return self.schedule.repayment_frequency
 
 	def update_loan_terms(self, cancel=0):
-		"""Show the new terms on the Loan. Payment history on the Loan stays as it is."""
+		"""Show the new terms on the Loan. Repayment totals paid so far on the Loan stay as they are."""
 		schedule = self.get_active_schedule()
 		doc = self.doc
 
@@ -160,17 +160,17 @@ class InstallmentSkip:
 
 	def emi_periods(self):
 		"""Installments that carry principal when the maturity is kept"""
-		return len(self.open_rows) - len(self.doc.get("skipped_installments"))
+		return len(self.upcoming_rows) - len(self.doc.get("skipped_installments"))
 
 	def set_terms(self):
 		doc = self.doc
 		skip_count = len(doc.get("skipped_installments"))
-		history, carried, open_count = self.get_row_counts()
+		completed, earlier_skips, upcoming_count = self.get_row_counts()
 
-		# Interest is always billed later. Never capitalised or waived by a skip.
+		# Interest is always demanded later. Never capitalised or waived by a skip.
 		doc.treatment_of_normal_interest = "Add To First EMI"
 		doc.unaccrued_interest_treatment = "Add To First EMI"
-		doc.repayment_start_date = self.open_rows[0].payment_date
+		doc.repayment_start_date = self.upcoming_rows[0].payment_date
 		doc.old_tenure = doc.old_tenure or frappe.db.get_value("Loan", doc.loan, "repayment_periods")
 		doc.new_repayment_method = doc.new_repayment_method or "Repay Fixed Amount per Period"
 
@@ -178,16 +178,16 @@ class InstallmentSkip:
 		if doc.new_repayment_method == "Repay Fixed Amount per Period":
 			# Same EMI, so every skipped installment adds one period at the end
 			doc.new_monthly_repayment_amount = self.schedule.monthly_repayment_amount
-			doc.new_repayment_period_in_months = history + carried + open_count + skip_count
+			doc.new_repayment_period_in_months = completed + earlier_skips + upcoming_count + skip_count
 		else:
 			# Same maturity, so EMI is recalculated over the installments that remain
 			if self.emi_periods() < 1:
 				frappe.throw(_("At least one installment must remain after the skipped installments"))
-			doc.new_repayment_period_in_months = history + carried + open_count
+			doc.new_repayment_period_in_months = completed + earlier_skips + upcoming_count
 
 
 @frappe.whitelist()
-def get_open_installments(loan: str, loan_disbursement: str | None = None):
+def get_upcoming_installments(loan: str, loan_disbursement: str | None = None):
 	"""Installments of the active schedule that can still be skipped"""
 	frappe.has_permission("Loan", "read", loan, throw=True)
 
@@ -200,7 +200,7 @@ def get_open_installments(loan: str, loan_disbursement: str | None = None):
 			"interest_amount": row.interest_amount,
 			"total_payment": row.total_payment,
 		}
-		for row in skip.open_rows
+		for row in skip.upcoming_rows
 		if row.total_payment and getdate(row.payment_date) >= skip_date
 	]
 
@@ -225,7 +225,7 @@ def skip_installments(
 		process_daily_loan_demands,
 	)
 
-	# Installments due before the skip date must be billed before the schedule is rebuilt.
+	# Installments due before the skip date must have their demand generated before the schedule is rebuilt.
 	# A Loan Manager cannot submit Process Loan Demand, so permission is checked above instead.
 	process_daily_loan_demands(
 		loan=loan,
@@ -257,13 +257,13 @@ def skip_installments(
 
 
 def get_skip_date(loan, restructure_date=None):
-	"""A restructure cannot start before interest is accrued or before an installment is billed.
+	"""A restructure cannot start before interest is accrued or before a demand is generated for an installment.
 	Both can be ahead of today, e.g. a payroll run for a later period, so start after them."""
 	skip_date = getdate(restructure_date or nowdate())
-	return max([skip_date, *get_last_processed_dates(loan)])
+	return max([skip_date, *get_last_accrual_and_demand_dates(loan)])
 
 
-def get_last_processed_dates(loan):
+def get_last_accrual_and_demand_dates(loan):
 	LoanInterestAccrual = frappe.qb.DocType("Loan Interest Accrual")
 	LoanDemand = frappe.qb.DocType("Loan Demand")
 
