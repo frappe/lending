@@ -347,11 +347,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-04-02 16:03:38.065821",
-=======
  "modified": "2026-10-23 16:52:27.000000",
->>>>>>> 20ffe8b (fix: add repayment frequency in loan application and convert tenure to instalments)
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",
