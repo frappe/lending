@@ -395,6 +395,10 @@ def update_repayment_schedule_demand_generated(
 	if to_date:
 		query = query.where(RS.payment_date < to_date)
 
+	if not demand_generated:
+		# Rows with nothing payable (skipped installments) never get a demand. Keep them marked.
+		query = query.where(RS.total_payment > 0)
+
 	query.run()
 
 def create_charge_master(charge_type):
