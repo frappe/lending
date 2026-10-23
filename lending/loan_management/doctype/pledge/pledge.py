@@ -17,6 +17,7 @@ class Pledge(Document):
 
 		amount: DF.Currency
 		haircut: DF.Percent
+		lien_reference: DF.Data | None
 		loan_security: DF.Link
 		loan_security_code: DF.Data | None
 		loan_security_name: DF.Data | None
