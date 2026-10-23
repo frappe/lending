@@ -21,6 +21,9 @@ from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_accrual_frequency_breaks,
 )
+from lending.loan_management.doctype.loan_repayment_schedule.skip_schedule_rows import (
+	SkipScheduleRows,
+)
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
 	get_amounts,
@@ -30,6 +33,9 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_repayment_periods,
 	set_demand,
 )
+
+# Restructure types that rebuild the whole schedule from the restructure date
+NORMAL_RESTRUCTURE_TYPES = ("Normal Restructure", "Installment Skip")
 
 
 # nosemgrep
@@ -83,7 +89,7 @@ class LoanRepaymentSchedule(Document):
 		repayment_schedule: DF.Table[RepaymentSchedule]
 		repayment_schedule_type: DF.Data | None
 		repayment_start_date: DF.Date | None
-		restructure_type: DF.Literal["", "Normal Restructure", "Advance Payment", "Pre Payment"]
+		restructure_type: DF.Literal["", "Normal Restructure", "Advance Payment", "Pre Payment", "Installment Skip"]
 		status: DF.Literal["Initiated", "Rejected", "Active", "Restructured", "Rescheduled", "Outdated", "Draft", "Cancelled", "Closed"]
 		total_installments_overdue: DF.Int
 		total_installments_paid: DF.Int
@@ -96,13 +102,27 @@ class LoanRepaymentSchedule(Document):
 			self.status = "Initiated"
 
 		self.number_of_rows = 0
+		self.set_skip_resume_date()
 		self.set_repayment_period()
 		self.set_repayment_start_date()
 		self.validate_repayment_method()
 		self.make_customer_repayment_schedule()
 		self.make_co_lender_schedule()
+		self.restore_original_start_date()
 		self.reset_index()
 		self.set_maturity_date()
+
+	def is_installment_skip(self):
+		return self.restructure_type == "Installment Skip" and self.loan_restructure
+
+	def set_skip_resume_date(self):
+		# New rows are generated from here. The schedule keeps the loan's own start date afterwards.
+		if self.is_installment_skip():
+			self.repayment_start_date = SkipScheduleRows(self).get_resume_date()
+
+	def restore_original_start_date(self):
+		if self.is_installment_skip():
+			self.repayment_start_date = SkipScheduleRows(self).get_original_start_date()
 
 	def get_emi_rounding_method(self):
 		return (
@@ -330,6 +350,8 @@ class LoanRepaymentSchedule(Document):
 		self.set("repayment_schedule", [])
 
 		self.broken_period_interest = 0
+		if self.is_installment_skip():
+			SkipScheduleRows(self).copy_history_rows()
 		(
 			previous_interest_amount,
 			balance_amount,
@@ -405,6 +427,7 @@ class LoanRepaymentSchedule(Document):
 		previous_payment_date = self.posting_date
 		carry_forward_interest = self.adjusted_interest
 		moratorium_interest = 0
+		skipped_interest = 0
 		is_first_emi = True
 		row = 0
 
@@ -519,6 +542,16 @@ class LoanRepaymentSchedule(Document):
 				principal_amount = self.get("repayment_schedule")[row].principal_amount
 				balance_amount = prev_balance_amount - (principal_amount * principal_share_percentage / 100)
 				row = row + 1
+
+			if self.is_skipped_installment(payment_date):
+				# Interest keeps accruing. It is billed with the next installment, not waived.
+				skipped_interest += interest_amount
+				principal_amount = interest_amount = total_payment = 0
+				balance_amount = prev_balance_amount
+			elif skipped_interest:
+				interest_amount += skipped_interest
+				total_payment += skipped_interest
+				skipped_interest = 0
 
 			if (
 				self.moratorium_end_date and self.moratorium_tenure and self.repayment_frequency == "Monthly"
@@ -697,7 +730,7 @@ class LoanRepaymentSchedule(Document):
 			tenure = self.repayment_periods
 
 		if (
-			self.restructure_type not in ("Normal Restructure", "Advance Payment")
+			self.restructure_type not in (*NORMAL_RESTRUCTURE_TYPES, "Advance Payment")
 			and self.repayment_frequency == "Monthly"
 			or (self.restructure_type == "Pre Payment" and self.repayment_frequency != "One Time")
 		):
@@ -1062,7 +1095,7 @@ class LoanRepaymentSchedule(Document):
 				if (
 					additional_days < 0
 					or (additional_days > 0 and self.moratorium_tenure and not self.restructure_type)
-					or (additional_days > 0 and self.restructure_type == "Normal Restructure")
+					or (additional_days > 0 and self.restructure_type in NORMAL_RESTRUCTURE_TYPES)
 				):
 					days = date_diff(payment_date, self.posting_date)
 					additional_days = 0
@@ -1104,9 +1137,18 @@ class LoanRepaymentSchedule(Document):
 
 		return days, months
 
+	def is_skipped_installment(self, payment_date):
+		if not self.is_installment_skip():
+			return False
+
+		if self.flags.skipped_dates is None:
+			self.flags.skipped_dates = SkipScheduleRows(self).get_skipped_dates()
+
+		return getdate(payment_date) in self.flags.skipped_dates
+
 	def is_first_emi_after_normal_restructure(self, payment_date):
 		return (
-			self.restructure_type == "Normal Restructure"
+			self.restructure_type in NORMAL_RESTRUCTURE_TYPES
 			and self.loan_restructure
 			and getdate(payment_date) == getdate(self.repayment_start_date)
 			and getdate(self.posting_date) < getdate(payment_date)
@@ -1187,7 +1229,8 @@ class LoanRepaymentSchedule(Document):
 			self.moratorium_type == "EMI"
 			and self.moratorium_end_date
 			and getdate(payment_date) <= getdate(self.moratorium_end_date)
-		):
+		) or self.is_skipped_installment(payment_date):
+			# nothing is payable on these rows, so no demand must be raised
 			demand_generated = 1
 
 		if not repayment_schedule_field:

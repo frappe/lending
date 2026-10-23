@@ -5,6 +5,10 @@ import frappe
 from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_restructure.installment_skip import (
+	get_open_installments,
+	skip_installments,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -181,6 +185,196 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 		)
 
 		self.assertTrue(penal_interest, "Penal interest should exist after repost")
+
+	def test_repost_keeps_skipped_installment(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20")
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-12-06")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-12-07")
+		create_repayment_entry(
+			loan.name, "2026-12-07", calculate_amounts(loan.name, "2026-12-07")["payable_amount"]
+		).submit()
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"repost_date": "2026-10-10",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		skipped_row = next(r for r in schedule.repayment_schedule if getdate(r.payment_date) == getdate("2026-11-07"))
+		self.assertEqual(getdate(skipped_row.payment_date), getdate("2026-11-07"))
+		self.assertEqual(skipped_row.demand_generated, 1)
+
+		# No demand for the skipped installment, and the payment of the next one is allocated again
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
+			["demand_date", "outstanding_amount"],
+		)
+		self.assertNotIn(getdate("2026-11-07"), [getdate(d.demand_date) for d in demands])
+		self.assertEqual(sum(flt(d.outstanding_amount) for d in demands), 0)
+
+		# The skipped installment is not offered for a second skip
+		open_dates = [getdate(row["payment_date"]) for row in get_open_installments(loan.name)]
+		self.assertNotIn(getdate("2026-11-07"), open_dates)
+		self.assertNotIn(getdate("2026-12-07"), open_dates)
+
+	def test_repost_before_installment_skip_keeps_earlier_installments(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20")
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-12-06")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-12-07")
+		create_repayment_entry(
+			loan.name, "2026-12-07", calculate_amounts(loan.name, "2026-12-07")["payable_amount"]
+		).submit()
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"repost_date": "2026-10-07",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		# The installment billed before the skip is billed and allocated again
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
+			["demand_date", "outstanding_amount"],
+		)
+		demand_dates = [getdate(d.demand_date) for d in demands]
+		self.assertIn(getdate("2026-10-07"), demand_dates)
+		self.assertIn(getdate("2026-12-07"), demand_dates)
+		self.assertNotIn(getdate("2026-11-07"), demand_dates)
+		self.assertEqual(sum(flt(d.outstanding_amount) for d in demands), 0)
+
+	def test_repost_before_second_installment_skip_keeps_paid_installments(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			120000,
+			"Repay Over Number of Periods",
+			8,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=12,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-01", repayment_start_date="2026-10-07"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-10-06", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-10-07")
+		create_repayment_entry(
+			loan.name, "2026-10-07", calculate_amounts(loan.name, "2026-10-07")["payable_amount"]
+		).submit()
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-19")
+
+		skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20")
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-12-06")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-12-07")
+		create_repayment_entry(
+			loan.name, "2026-12-07", calculate_amounts(loan.name, "2026-12-07")["payable_amount"]
+		).submit()
+
+		skip_installments(loan.name, '["2027-02-07"]', restructure_date="2026-12-08")
+
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"repost_date": "2026-11-15",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		demands = frappe.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI"},
+			["demand_date", "outstanding_amount"],
+		)
+		demand_dates = [getdate(d.demand_date) for d in demands]
+
+		# The paid installments are billed and allocated again, the skipped ones are not billed
+		self.assertIn(getdate("2026-10-07"), demand_dates)
+		self.assertIn(getdate("2026-12-07"), demand_dates)
+		self.assertNotIn(getdate("2026-11-07"), demand_dates)
+		self.assertNotIn(getdate("2027-02-07"), demand_dates)
+		self.assertEqual(sum(flt(d.outstanding_amount) for d in demands), 0)
 
 	def test_gl_entries_after_loan_repayment_repost(self):
 		loan = create_loan(

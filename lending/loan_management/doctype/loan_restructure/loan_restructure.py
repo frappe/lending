@@ -17,6 +17,7 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
+from lending.loan_management.doctype.loan_restructure.installment_skip import InstallmentSkip
 
 
 class LoanRestructure(AccountsController):
@@ -30,6 +31,9 @@ class LoanRestructure(AccountsController):
 
 		from lending.loan_management.doctype.loan_restructure_charges.loan_restructure_charges import (
 			LoanRestructureCharges,
+		)
+		from lending.loan_management.doctype.loan_skipped_installment.loan_skipped_installment import (
+			LoanSkippedInstallment,
 		)
 
 		adjusted_interest_amount: DF.Currency
@@ -54,6 +58,7 @@ class LoanRestructure(AccountsController):
 		loan_product: DF.Link | None
 		loan_repayment: DF.Link | None
 		loan_restructure_charges: DF.Table[LoanRestructureCharges]
+		skipped_installments: DF.Table[LoanSkippedInstallment]
 		moratorium_end_date: DF.Date | None
 		new_loan_amount: DF.Currency
 		new_monthly_repayment_amount: DF.Currency
@@ -76,7 +81,7 @@ class LoanRestructure(AccountsController):
 		repayment_start_date: DF.Date | None
 		restructure_charges: DF.Currency
 		restructure_date: DF.Datetime
-		restructure_type: DF.Literal["Normal Restructure", "Pre Payment", "Advance Payment"]
+		restructure_type: DF.Literal["Normal Restructure", "Pre Payment", "Advance Payment", "Installment Skip"]
 		status: DF.Literal["", "Initiated", "Approved", "Rejected"]
 		total_amount_paid: DF.Currency
 		total_overdue_amount: DF.Currency
@@ -98,6 +103,7 @@ class LoanRestructure(AccountsController):
 		self.validate_waiver_amount()
 		self.fetch_charges_details()
 		self.calculate_balance_amounts()
+		self.prepare_installment_skip()
 		self.set_missing_values()
 		self.validate_repayment_start_date()
 		self.calculate_new_loan_amount()
@@ -111,8 +117,12 @@ class LoanRestructure(AccountsController):
 		):
 			frappe.throw(_("Another Loan Restructure is already initiated for this Loan"))
 
+	def prepare_installment_skip(self):
+		if self.restructure_type == "Installment Skip":
+			InstallmentSkip(self).prepare()
+
 	def validate_restructure_date(self):
-		if self.restructure_type == "Normal Restructure":
+		if self.restructure_type in ("Normal Restructure", "Installment Skip"):
 			LoanInterestAccrual = DocType("Loan Interest Accrual")
 
 			max_due_date = (
@@ -584,10 +594,16 @@ class LoanRestructure(AccountsController):
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
 				self.new_loan_amount,
 				self.new_rate_of_interest,
-				self.new_repayment_period_in_months,
+				self.get_periods_for_emi(),
 				"Monthly",
 				emi_rounding_method,
 			)
+
+	def get_periods_for_emi(self):
+		if self.restructure_type == "Installment Skip":
+			return InstallmentSkip(self).emi_periods()
+
+		return self.new_repayment_period_in_months
 
 	def restructure_loan(self):
 		if self.restructure_type == "Normal Restructure":
@@ -676,7 +692,9 @@ class LoanRestructure(AccountsController):
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
 			"repayment_frequency": self.get_new_repayment_frequency(),
-			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
+			"adjusted_interest": adjusted_interest
+			if self.restructure_type in ("Normal Restructure", "Installment Skip")
+			else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,
 		}
