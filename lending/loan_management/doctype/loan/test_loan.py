@@ -5,9 +5,7 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate, nowdate
-
-from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+from frappe.utils import add_days, add_months, date_diff, flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan.loan import request_loan_closure, unpledge_security
 from lending.loan_management.doctype.loan_application.loan_application import (
@@ -30,135 +28,27 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.tests.test_utils import (
-	add_or_update_loan_charges,
 	create_demand_loan,
 	create_loan,
-	create_loan_accounts,
 	create_loan_application,
 	create_loan_partner,
-	create_loan_product,
-	create_loan_security,
-	create_loan_security_price,
-	create_loan_security_type,
 	create_loan_with_security,
 	create_repayment_entry,
 	create_secured_demand_loan,
 	loan_classification_ranges,
 	make_loan_disbursement_entry,
-	set_loan_accrual_frequency,
-	set_loan_settings_in_company,
-	setup_loan_demand_offset_order,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoan(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
+	applicant1 = "_Test Loan Customer 2"
+	applicant2 = "_Test Loan Customer"
+	applicant3 = "_Test Loan Customer 1"
+
+	@classmethod
+	def make_class_data(cls):
 		loan_classification_ranges()
-
-		set_loan_accrual_frequency("Monthly")
-		simple_terms_loans = [
-			["Personal Loan", 500000, 8.4, "Monthly as per repayment start date"],
-			["Term Loan Product 1", 12000, 7.5, "Monthly as per repayment start date"],
-		]
-
-		pro_rated_term_loans = [
-			["Term Loan Product 2", 12000, 7.5, "Pro-rated calendar months", "Start of the next month"],
-			["Term Loan Product 3", 1200, 25, "Pro-rated calendar months", "End of the current month"],
-		]
-
-		cyclic_date_term_loans = [
-			["Term Loan Product 4", 3000000, 25, "Monthly as per cycle date"],
-		]
-
-		loc_loans = [
-			["Term Loan Product 5", 3000000, 25, "Line of Credit"],
-		]
-
-		flat_interest_rate_loans = [
-			["Flat Interest Rate Loan", 1000000, 12, "Flat Interest Rate"],
-		]
-
-		for loan_product in simple_terms_loans + flat_interest_rate_loans + loc_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-			)
-
-		for loan_product in cyclic_date_term_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-			)
-			add_or_update_loan_charges(loan_product[0])
-
-		for loan_product in pro_rated_term_loans:
-			create_loan_product(
-				loan_product[0],
-				loan_product[0],
-				loan_product[1],
-				loan_product[2],
-				repayment_schedule_type=loan_product[3],
-				repayment_date_on=loan_product[4],
-			)
-
-		create_loan_product(
-			"Stock Loan",
-			"Stock Loan",
-			2000000,
-			13.5,
-			25,
-			1,
-			5,
-			repayment_schedule_type="Monthly as per repayment start date",
-			collection_offset_sequence_for_standard_asset="Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		create_loan_product(
-			"Demand Loan",
-			"Demand Loan",
-			2000000,
-			13.5,
-			25,
-			0,
-			5,
-			collection_offset_sequence_for_standard_asset="Test Demand Loan Loan Demand Offset Order",
-			collection_offset_sequence_for_sub_standard_asset=None,
-			collection_offset_sequence_for_written_off_asset=None,
-			collection_offset_sequence_for_settlement_collection=None,
-		)
-
-		create_loan_security_type()
-		create_loan_security()
-
-		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
-		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
-
-		if not frappe.db.exists("Customer", "_Test Loan Customer"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer")).insert(ignore_permissions=True)
-
-		if not frappe.db.exists("Customer", "_Test Loan Customer 1"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer 1")).insert(ignore_permissions=True)
-
-		if not frappe.db.exists("Customer", "_Test Loan Customer 2"):
-			frappe.get_doc(get_customer_dict("_Test Loan Customer 2")).insert(ignore_permissions=True)
-
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
-		self.applicant3 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name")
-		self.applicant1 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer 2"}, "name")
-
-		frappe.db.set_value(
-			"Loan Product", "Demand Loan", "customer_refund_account", "Customer Refund Account - _TC"
-		)
 
 	def test_loan_with_repayment_periods(self):
 		posting_date = "2025-01-27"
@@ -377,62 +267,6 @@ class TestLoan(LendingTestSuite):
 
 		frappe.db.set_value("Loan Product", "Demand Loan", "sanctioned_amount_tolerance_percentage", 0)
 
-	def test_loan_closure(self):
-		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Demand Loan", pledge
-		)
-		create_loan_security_assignment(loan_application)
-		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
-		)
-		loan.submit()
-
-		self.assertEqual(loan.loan_amount, 1000000)
-
-		first_date = "2019-10-01"
-		last_date = "2019-10-30"
-
-		# Adding 5 since repayment is made 5 days late after due date
-		# and since payment type is loan closure so interest should be considered for those
-		# 5 days as well though in grace period
-
-		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * 34) / (36500)
-		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_loans(
-			posting_date=add_days(last_date, 4), loan=loan.name, company="_Test Company"
-		)
-		process_daily_loan_demands(posting_date=add_days(last_date, 5), loan=loan.name)
-		repayment_entry = create_repayment_entry(
-			loan.name,
-			add_days(last_date, 5),
-			flt(loan.loan_amount + accrued_interest_amount),
-		)
-
-		repayment_entry.submit()
-
-		LoanDemand = DocType("Loan Demand")
-
-		amounts = (
-			frappe.qb.from_(LoanDemand)
-			.select(
-				fn.Sum(LoanDemand.demand_amount).as_("payable_amount"),
-			)
-			.where(
-				(LoanDemand.loan == loan.name)
-				& (LoanDemand.demand_type == "Normal")
-				& (LoanDemand.demand_subtype == "Interest")
-			)
-		).run(as_dict=True)
-
-		self.assertEqual(flt(amounts[0].payable_amount, 0), flt(accrued_interest_amount, 0))
-		self.assertEqual(flt(repayment_entry.penalty_amount, 5), 0)
-
-		request_loan_closure(loan.name)
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Loan Closure Requested")
-
 	def test_foreclosure_loan_process(self):
 		loan = create_loan(
 			"_Test Customer 1",
@@ -564,64 +398,6 @@ class TestLoan(LendingTestSuite):
 		self.assertEqual(flt(amounts[0].paid_amount, 2), 11465.75)
 		self.assertEqual(flt(repayment_entry.principal_amount_paid, 2), 78303.00)
 
-	def test_loan_security_release(self):
-		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Demand Loan", pledge
-		)
-		create_loan_security_assignment(loan_application)
-
-		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
-		)
-		loan.submit()
-
-		self.assertEqual(loan.loan_amount, 1000000)
-
-		first_date = "2019-10-01"
-		last_date = "2019-10-30"
-
-		no_of_days = date_diff(last_date, first_date) + 1
-
-		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * no_of_days) / (
-			days_in_year(get_datetime(first_date).year) * 100
-		)
-
-		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_loans(
-			posting_date=last_date, loan=loan.name, company="_Test Company"
-		)
-		process_daily_loan_demands(posting_date=last_date, loan=loan.name)
-
-		repayment_entry = create_repayment_entry(
-			loan.name,
-			last_date,
-			flt(loan.loan_amount + accrued_interest_amount),
-		)
-		repayment_entry.submit()
-
-		request_loan_closure(loan.name)
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Loan Closure Requested")
-
-		unpledge_request = unpledge_security(loan=loan.name, save=1)
-		unpledge_request.submit()
-		unpledge_request.status = "Approved"
-		unpledge_request.save()
-		loan.load_from_db()
-
-		pledged_qty = get_pledged_security_qty(loan=loan.name)
-
-		self.assertEqual(loan.status, "Closed")
-		self.assertEqual(sum(pledged_qty.values()), 0)
-
-		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
-
-		self.assertEqual(amounts["pending_principal_amount"], 0)
-		self.assertEqual(amounts["payable_principal_amount"], 0.0)
-		self.assertEqual(amounts["interest_amount"], 0)
-
 	def test_partial_loan_security_release(self):
 		pledge = [
 			{"loan_security": "Test Security 1", "qty": 2000.00},
@@ -644,7 +420,7 @@ class TestLoan(LendingTestSuite):
 		last_date = "2019-10-30"
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_loans(posting_date=last_date, company="_Test Company")
+		process_loan_interest_accrual_for_loans(posting_date=last_date, loan=loan.name, company="_Test Company")
 
 		repayment_entry = create_repayment_entry(loan.name, add_days(last_date, 5), 600000)
 		repayment_entry.submit()
@@ -658,28 +434,6 @@ class TestLoan(LendingTestSuite):
 		unpledge_request.submit()
 		unpledge_request.load_from_db()
 		self.assertEqual(unpledge_request.docstatus, 1)
-
-	def test_sanctioned_loan_security_release(self):
-		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Demand Loan", pledge
-		)
-		create_loan_security_assignment(loan_application)
-
-		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
-		)
-		loan.submit()
-
-		self.assertEqual(loan.loan_amount, 1000000)
-
-		unpledge_map = {"Test Security 1": 4000}
-		unpledge_request = unpledge_security(loan=loan.name, security_map=unpledge_map, save=1)
-		unpledge_request.submit()
-		unpledge_request.status = "Approved"
-		unpledge_request.save()
-		unpledge_request.submit()
 
 	def test_disbursal_check_without_shortfall(self):
 		pledges = [
@@ -705,47 +459,6 @@ class TestLoan(LendingTestSuite):
 		make_loan_disbursement_entry(loan.name, 700000)
 
 		self.assertEqual(get_disbursal_amount(loan.name), (300000, 700000))
-
-	def test_pending_loan_amount_after_closure_request(self):
-		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
-
-		loan_application = create_loan_application(
-			"_Test Company", self.applicant2, "Demand Loan", pledge
-		)
-		create_loan_security_assignment(loan_application)
-
-		loan = create_demand_loan(
-			self.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01"
-		)
-		loan.submit()
-
-		self.assertEqual(loan.loan_amount, 1000000)
-
-		first_date = "2019-10-01"
-		last_date = "2019-10-30"
-
-		no_of_days = date_diff(last_date, first_date) + 1
-
-		no_of_days += 5
-
-		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
-		process_loan_interest_accrual_for_loans(
-			posting_date=last_date, loan=loan.name, company="_Test Company"
-		)
-		process_daily_loan_demands(posting_date=last_date, loan=loan.name)
-
-		amounts = calculate_amounts(loan.name, add_days(last_date, 5), payment_type="Loan Closure")
-
-		repayment_entry = create_repayment_entry(
-			loan.name, add_days(last_date, 5), amounts["payable_amount"]
-		)
-		repayment_entry.submit()
-		request_loan_closure(loan.name)
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Loan Closure Requested")
-
-		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
-		self.assertEqual(amounts["pending_principal_amount"], 0.0)
 
 	def test_penalty_and_auto_create_disbursement_with_charges(self):
 		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
@@ -959,122 +672,6 @@ class TestLoan(LendingTestSuite):
 
 		self.assertEqual(len(repayment_entry.get("repayment_details")), 2)
 
-	def test_multiple_advance_payment(self):
-		frappe.db.set_value(
-			"Company",
-			"_Test Company",
-			"collection_offset_sequence_for_standard_asset",
-			"Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			1200000,
-			"Repay Over Number of Periods",
-			36,
-			repayment_start_date="2024-06-05",
-			posting_date="2024-05-03",
-			rate_of_interest=29,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
-		)
-		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
-
-		# Make a scheduled loan repayment
-		repayment_entry = create_repayment_entry(loan.name, "2024-06-05", 50287)
-		repayment_entry.submit()
-
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-06-18", 50287, repayment_type="Advance Payment"
-		)
-		repayment_entry.submit()
-
-		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
-
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-05", 251435)
-		repayment_entry.submit()
-
-		repayment_entry1 = create_repayment_entry(
-			loan.name, "2024-12-21 00:00:00", 150287, repayment_type="Pre Payment"
-		)
-		repayment_entry1.submit()
-
-		repayment_entry2 = create_repayment_entry(
-			loan.name, "2024-12-21 00:00:20", 150287, repayment_type="Pre Payment"
-		)
-		repayment_entry2.submit()
-
-		# Cancel the entry to check if correct schedule becomes active
-		repayment_entry2.cancel()
-
-		# Check only the demands related to repayment_entry1 are only cancelled
-		loan_restructure = frappe.db.get_value(
-			"Loan Restructure", {"loan_repayment": repayment_entry2.name}
-		)
-		loan_repayment_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
-		)
-		loan_demands = frappe.db.get_all(
-			"Loan Demand",
-			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
-		)
-		self.assertFalse(loan_demands)
-
-		# Check only the demands related to repayment_entry1 are only cancelled
-		loan_restructure = frappe.db.get_value(
-			"Loan Restructure", {"loan_repayment": repayment_entry1.name}
-		)
-		loan_repayment_schedule = frappe.db.get_value(
-			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
-		)
-		loan_demands = frappe.db.get_all(
-			"Loan Demand",
-			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
-		)
-		self.assertTrue(loan_demands)
-
-	def test_future_demand_cancellation(self):
-		frappe.db.set_value(
-			"Company",
-			"_Test Company",
-			"collection_offset_sequence_for_standard_asset",
-			"Test EMI Based Standard Loan Demand Offset Order",
-		)
-
-		loan = create_loan(
-			self.applicant1,
-			"Term Loan Product 4",
-			1200000,
-			"Repay Over Number of Periods",
-			36,
-			repayment_start_date="2024-06-05",
-			posting_date="2024-05-03",
-			rate_of_interest=29,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
-		)
-		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
-
-		# Make a scheduled loan repayment
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-06-04", 50287, repayment_type="Advance Payment"
-		)
-		repayment_entry.submit()
-
-		demands = frappe.db.get_all(
-			"Loan Demand", {"loan": loan.name, "docstatus": 2, "demand_date": (">", "2024-06-04")}
-		)
-		self.assertTrue(demands)
-
 	def test_advance_payment_then_prepayment(self):
 		# Purpose: check that an EMI skipped by an Advance Payment stays skipped even
 		# after more Pre Payments are made later. Without this, the skipped EMI can
@@ -1277,3 +874,261 @@ class TestLoan(LendingTestSuite):
 			[],
 			"Partial Settlement should not create a new Principal demand for its overshoot",
 		)
+
+
+class TestDemandLoan(LendingTestSuite):
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		loan_classification_ranges()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 4000.00}]
+		loan_application = create_loan_application("_Test Company", cls.applicant2, "Demand Loan", pledge)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_demand_loan(cls.applicant2, "Demand Loan", loan_application, posting_date="2019-10-01")
+		loan.submit()
+		cls.loan = loan.name
+
+	def test_loan_closure(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		self.assertEqual(loan.loan_amount, 1000000)
+
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
+
+		# Adding 5 since repayment is made 5 days late after due date
+		# and since payment type is loan closure so interest should be considered for those
+		# 5 days as well though in grace period
+
+		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * 34) / (36500)
+		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
+		process_loan_interest_accrual_for_loans(
+			posting_date=add_days(last_date, 4), loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=add_days(last_date, 5), loan=loan.name)
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			add_days(last_date, 5),
+			flt(loan.loan_amount + accrued_interest_amount),
+		)
+
+		repayment_entry.submit()
+
+		LoanDemand = DocType("Loan Demand")
+
+		amounts = (
+			frappe.qb.from_(LoanDemand)
+			.select(
+				fn.Sum(LoanDemand.demand_amount).as_("payable_amount"),
+			)
+			.where(
+				(LoanDemand.loan == loan.name)
+				& (LoanDemand.demand_type == "Normal")
+				& (LoanDemand.demand_subtype == "Interest")
+			)
+		).run(as_dict=True)
+
+		self.assertEqual(flt(amounts[0].payable_amount, 0), flt(accrued_interest_amount, 0))
+		self.assertEqual(flt(repayment_entry.penalty_amount, 5), 0)
+
+		request_loan_closure(loan.name)
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Loan Closure Requested")
+
+	def test_loan_security_release(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		self.assertEqual(loan.loan_amount, 1000000)
+
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
+
+		no_of_days = date_diff(last_date, first_date) + 1
+
+		accrued_interest_amount = (loan.loan_amount * loan.rate_of_interest * no_of_days) / (
+			days_in_year(get_datetime(first_date).year) * 100
+		)
+
+		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
+		process_loan_interest_accrual_for_loans(
+			posting_date=last_date, loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=last_date, loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name,
+			last_date,
+			flt(loan.loan_amount + accrued_interest_amount),
+		)
+		repayment_entry.submit()
+
+		request_loan_closure(loan.name)
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Loan Closure Requested")
+
+		unpledge_request = unpledge_security(loan=loan.name, save=1)
+		unpledge_request.submit()
+		unpledge_request.status = "Approved"
+		unpledge_request.save()
+		loan.load_from_db()
+
+		pledged_qty = get_pledged_security_qty(loan=loan.name)
+
+		self.assertEqual(loan.status, "Closed")
+		self.assertEqual(sum(pledged_qty.values()), 0)
+
+		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
+
+		self.assertEqual(amounts["pending_principal_amount"], 0)
+		self.assertEqual(amounts["payable_principal_amount"], 0.0)
+		self.assertEqual(amounts["interest_amount"], 0)
+
+	def test_sanctioned_loan_security_release(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		self.assertEqual(loan.loan_amount, 1000000)
+
+		unpledge_map = {"Test Security 1": 4000}
+		unpledge_request = unpledge_security(loan=loan.name, security_map=unpledge_map, save=1)
+		unpledge_request.submit()
+		unpledge_request.status = "Approved"
+		unpledge_request.save()
+		unpledge_request.submit()
+
+	def test_pending_loan_amount_after_closure_request(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		self.assertEqual(loan.loan_amount, 1000000)
+
+		first_date = "2019-10-01"
+		last_date = "2019-10-30"
+
+		no_of_days = date_diff(last_date, first_date) + 1
+
+		no_of_days += 5
+
+		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=first_date)
+		process_loan_interest_accrual_for_loans(
+			posting_date=last_date, loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date=last_date, loan=loan.name)
+
+		amounts = calculate_amounts(loan.name, add_days(last_date, 5), payment_type="Loan Closure")
+
+		repayment_entry = create_repayment_entry(
+			loan.name, add_days(last_date, 5), amounts["payable_amount"]
+		)
+		repayment_entry.submit()
+		request_loan_closure(loan.name)
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Loan Closure Requested")
+
+		amounts = calculate_amounts(loan.name, add_days(last_date, 5))
+		self.assertEqual(amounts["pending_principal_amount"], 0.0)
+
+
+class TestAdvancePaymentDemands(LendingTestSuite):
+	applicant1 = "_Test Loan Customer 2"
+
+	@classmethod
+	def make_class_data(cls):
+		loan_classification_ranges()
+
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test EMI Based Standard Loan Demand Offset Order",
+		)
+
+		loan = create_loan(
+			cls.applicant1,
+			"Term Loan Product 4",
+			1200000,
+			"Repay Over Number of Periods",
+			36,
+			repayment_start_date="2024-06-05",
+			posting_date="2024-05-03",
+			rate_of_interest=29,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-03", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-06-05", loan=loan.name)
+		cls.loan = loan.name
+
+	def test_multiple_advance_payment(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		# Make a scheduled loan repayment
+		repayment_entry = create_repayment_entry(loan.name, "2024-06-05", 50287)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-06-18", 50287, repayment_type="Advance Payment"
+		)
+		repayment_entry.submit()
+
+		process_daily_loan_demands(posting_date="2024-12-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-05", 251435)
+		repayment_entry.submit()
+
+		repayment_entry1 = create_repayment_entry(
+			loan.name, "2024-12-21 00:00:00", 150287, repayment_type="Pre Payment"
+		)
+		repayment_entry1.submit()
+
+		repayment_entry2 = create_repayment_entry(
+			loan.name, "2024-12-21 00:00:20", 150287, repayment_type="Pre Payment"
+		)
+		repayment_entry2.submit()
+
+		# Cancel the entry to check if correct schedule becomes active
+		repayment_entry2.cancel()
+
+		# Check only the demands related to repayment_entry1 are only cancelled
+		loan_restructure = frappe.db.get_value(
+			"Loan Restructure", {"loan_repayment": repayment_entry2.name}
+		)
+		loan_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
+		)
+		loan_demands = frappe.db.get_all(
+			"Loan Demand",
+			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
+		)
+		self.assertFalse(loan_demands)
+
+		# Check only the demands related to repayment_entry1 are only cancelled
+		loan_restructure = frappe.db.get_value(
+			"Loan Restructure", {"loan_repayment": repayment_entry1.name}
+		)
+		loan_repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_restructure": loan_restructure}
+		)
+		loan_demands = frappe.db.get_all(
+			"Loan Demand",
+			{"loan_repayment_schedule": loan_repayment_schedule, "docstatus": 1},
+		)
+		self.assertTrue(loan_demands)
+
+	def test_future_demand_cancellation(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		# Make a scheduled loan repayment
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-06-04", 50287, repayment_type="Advance Payment"
+		)
+		repayment_entry.submit()
+
+		demands = frappe.db.get_all(
+			"Loan Demand", {"loan": loan.name, "docstatus": 2, "demand_date": (">", "2024-06-04")}
+		)
+		self.assertTrue(demands)

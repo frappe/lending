@@ -17,6 +17,8 @@ from lending.tests.test_utils import (
 	setup_loan_demand_offset_order,
 )
 
+CLASS_SAVEPOINT = "lending_test_class_data"
+
 
 class BootStrapTestData:
 	def __init__(self):
@@ -54,10 +56,55 @@ class BootStrapTestData:
 		)
 
 
-BootStrapTestData()
+bootstrap = BootStrapTestData()
 
 
 class LendingTestSuite(ERPNextTestSuite):
-	"""Class for creating Lending test records"""
+	"""Class for creating Lending test records
 
-	pass
+	Records built in `make_class_data` are created once per class and every test rolls back to them.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		try:
+			cls._set_up_class_data()
+		except Exception:
+			frappe.db.rollback()
+			raise
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		super().tearDownClass()
+
+	@classmethod
+	def make_class_data(cls):
+		pass
+
+	@classmethod
+	def reset_masters(cls):
+		bootstrap.make_master_data()
+
+	@classmethod
+	def _set_up_class_data(cls):
+		cls.make_class_data()
+		frappe.db.savepoint(CLASS_SAVEPOINT)
+
+	def tearDown(self):
+		try:
+			frappe.db.rollback(save_point=CLASS_SAVEPOINT)
+		except Exception:
+			# the test committed, so restore the masters and rebuild the class data
+			super().tearDown()
+			self.reset_masters()
+			self._set_up_class_data()
+			return
+
+		frappe.db.before_commit.reset()
+		frappe.db.after_commit.reset()
+		frappe.db.run_after_transaction_callbacks(frappe.db.after_rollback)
+		frappe.local.request_cache.clear()
+		if hasattr(frappe.local, "future_sle"):
+			frappe.local.future_sle.clear()

@@ -24,10 +24,7 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_partner,
 	create_loan_write_off,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
@@ -35,23 +32,25 @@ from lending.tests.utils import LendingTestSuite
 COMPANY = "_Test Company"
 
 
-class TestProcessLoanAccounting(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+class ProcessLoanAccountingTestCase(LendingTestSuite):
+	applicant = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
 		set_loan_accrual_frequency("Daily")
 
-	def tearDown(self):
+	@classmethod
+	def reset_masters(cls):
 		frappe.db.set_value(
 			"Company",
 			COMPANY,
 			{"loan_gl_consolidation": 0, "loan_gl_consolidation_start_date": None},
 			update_modified=False,
 		)
+		super().reset_masters()
 
-	def enable_consolidation(self, start_date):
+	@staticmethod
+	def enable_consolidation(start_date):
 		frappe.db.set_value(
 			"Company",
 			COMPANY,
@@ -98,6 +97,8 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		)
 		return loan.name
 
+
+class TestProcessLoanAccounting(ProcessLoanAccountingTestCase):
 	def test_daily_accruals_are_deferred_and_consolidated(self):
 		posting_date = "2024-04-05"
 		self.enable_consolidation(posting_date)
@@ -312,86 +313,6 @@ class TestProcessLoanAccounting(LendingTestSuite):
 		posted = sum(self.gl_count(a.name) for a in accruals)
 		self.assertTrue(posted > 0, "daily GL should be posted when consolidation is off")
 
-	def test_npa_suspense_je_consolidated(self):
-		"""NPA suspense JE is deferred per-accrual and consolidated to one JE per loan/month.
-
-		Invariant: each month's consolidated suspense JE equals the sum of that month's live NPA
-		accrual interest, with no duplicate JEs and a balanced ledger.
-		"""
-		from frappe.utils import get_first_day
-
-		start = "2024-04-01"
-		self.enable_consolidation(start)
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
-		)
-
-		loan = create_loan(
-			self.applicant,
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			applicant_type="Customer",
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-05",
-			rate_of_interest=8.5,
-		)
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
-		)
-		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
-			process_daily_loan_demands(posting_date=d, loan=loan.name)
-			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
-		create_process_loan_classification(
-			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
-		)
-		for d in ["2024-08-31", "2024-09-30"]:
-			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
-
-		self.assertEqual(
-			frappe.db.count(
-				"Loan Interest Accrual",
-				{"loan": loan.name, "docstatus": 1, "normal_interest_journal_entry": ["is", "set"]},
-			),
-			0,
-			"per-accrual suspense JE should be deferred under consolidation",
-		)
-
-		for me in ["2024-08-31", "2024-09-30"]:
-			run_consolidation_for_loan(loan.name, me, force=True)
-
-		tags = frappe.get_all(
-			"Journal Entry",
-			{"loan": loan.name, "process_loan_accounting_month_end": ["is", "set"], "docstatus": 1},
-			["name", "process_loan_accounting_month_end"],
-		)
-		self.assertTrue(tags, "consolidated suspense JEs should exist for NPA months")
-		seen = set()
-		for je in tags:
-			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month")
-			seen.add(je.process_loan_accounting_month_end)
-			month_end = je.process_loan_accounting_month_end
-			je_credit = frappe.db.sql(
-				"""select sum(credit) - sum(debit) from `tabGL Entry`
-				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
-				je.name,
-			)[0][0] or 0
-			live = frappe.db.sql(
-				"""select sum(interest_amount) from `tabLoan Interest Accrual`
-				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
-					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
-			self.assertAlmostEqual(je_credit, live, places=2)
-
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan.name,
-		)[0][0] or 0
-		self.assertAlmostEqual(net, 0, places=2)
-
 	def test_cancelling_older_voucher_does_not_touch_a_later_delta_voucher_suspense_je(self):
 		"""Cancelling an earlier voucher out of order must not cancel a later delta voucher's live
 		suspense JE for the same month.
@@ -586,210 +507,6 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			loan,
 		)[0][0] or 0
 		self.assertAlmostEqual(net, 0, places=2)
-
-	def test_npa_repost_mid_month_cancel_settles_correctly(self):
-		"""Reposting a loan that has already gone NPA, with a mid-month cancellation folded in,
-		still leaves the consolidated suspense JE equal to the live NPA interest for the month."""
-		from frappe.utils import get_first_day
-
-		start = "2024-04-01"
-		self.enable_consolidation(start)
-		frappe.db.set_value(
-			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
-		)
-
-		loan = create_loan(
-			self.applicant,
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			applicant_type="Customer",
-			repayment_start_date="2024-04-05",
-			posting_date="2024-03-05",
-			rate_of_interest=8.5,
-		)
-		loan.submit()
-		disbursement = make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
-		)
-		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
-			process_daily_loan_demands(posting_date=d, loan=loan.name)
-			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
-		create_process_loan_classification(
-			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
-		)
-		for d in ["2024-08-31", "2024-09-30"]:
-			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
-			run_consolidation_for_loan(loan.name, d, force=True)
-
-		# repost from mid-NPA-period; cancels and regenerates accruals/demands from that date
-		frappe.get_doc(
-			{
-				"doctype": "Loan Repayment Repost",
-				"loan": loan.name,
-				"loan_disbursement": disbursement.name,
-				"repost_date": "2024-08-15",
-				"cancel_future_emi_demands": 1,
-				"cancel_future_accruals_and_demands": 1,
-			}
-		).submit()
-
-		for me in ["2024-08-31", "2024-09-30"]:
-			run_consolidation_for_loan(loan.name, me, force=True)
-
-		tags = frappe.get_all(
-			"Journal Entry",
-			{"loan": loan.name, "process_loan_accounting_month_end": ["is", "set"], "docstatus": 1},
-			["name", "process_loan_accounting_month_end"],
-		)
-		self.assertTrue(tags, "consolidated suspense JEs should exist after repost")
-		seen = set()
-		for je in tags:
-			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month after repost")
-			seen.add(je.process_loan_accounting_month_end)
-			month_end = je.process_loan_accounting_month_end
-			je_credit = frappe.db.sql(
-				"""select sum(credit) - sum(debit) from `tabGL Entry`
-				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
-				je.name,
-			)[0][0] or 0
-			live = frappe.db.sql(
-				"""select sum(interest_amount) from `tabLoan Interest Accrual`
-				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
-					and posting_date between %s and %s""",
-				(loan.name, get_first_day(month_end), month_end),
-			)[0][0] or 0
-			self.assertAlmostEqual(je_credit, live, places=2)
-
-		net = frappe.db.sql(
-			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
-			loan.name,
-		)[0][0] or 0
-		self.assertAlmostEqual(net, 0, places=2)
-
-	def test_loc_loan_with_multiple_disbursements_consolidates_correctly(self):
-		"""LOC loans track accruals per disbursement. Consolidation should still post one loan-wise
-		GL (against_voucher = Loan, merged across disbursements), while the breakdown table keeps
-		each disbursement's contribution separately traceable via loan_disbursement."""
-		posting_date = "2024-04-05"
-		self.enable_consolidation(posting_date)
-
-		loan = create_loan(
-			self.applicant,
-			"Term Loan Product 5",
-			60000,
-			"Repay Over Number of Periods",
-			4,
-			applicant_type="Customer",
-			repayment_start_date="2024-04-10",
-			posting_date=posting_date,
-			rate_of_interest=20,
-			limit_applicable_start="2024-01-05",
-			limit_applicable_end="2025-12-05",
-		)
-		loan.submit()
-
-		disbursement_1 = make_loan_disbursement_entry(
-			loan.name, 36000, disbursement_date="2024-04-05", repayment_start_date="2024-04-10"
-		)
-		disbursement_2 = make_loan_disbursement_entry(
-			loan.name, 24000, disbursement_date="2024-04-06", repayment_start_date="2024-04-11"
-		)
-
-		process_loan_interest_accrual_for_loans(posting_date="2024-04-20", loan=loan.name, company=COMPANY)
-
-		accruals = frappe.get_all(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "docstatus": 1},
-			["name", "loan_disbursement", "process_loan_accounting_voucher"],
-		)
-		self.assertTrue(accruals, "expected daily accruals for the LOC loan")
-		disbursements_seen = {a.loan_disbursement for a in accruals}
-		self.assertEqual(
-			disbursements_seen, {disbursement_1.name, disbursement_2.name},
-			"expected accruals from both disbursements",
-		)
-		self.assertTrue(all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred")
-
-		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
-		self.assertTrue(voucher)
-
-		gl_rows = frappe.get_all(
-			"GL Entry",
-			{"voucher_no": voucher, "is_cancelled": 0},
-			["against_voucher_type", "against_voucher"],
-		)
-		self.assertTrue(gl_rows)
-		self.assertTrue(all(g.against_voucher_type == "Loan" for g in gl_rows))
-		self.assertTrue(all(g.against_voucher == loan.name for g in gl_rows))
-
-		details = frappe.get_all(
-			"Process Loan Accounting Detail",
-			{"parent": voucher},
-			["loan_disbursement", "debit", "credit", "source_doc_count"],
-		)
-		self.assertTrue(details)
-		detail_disbursements = {d.loan_disbursement for d in details}
-		self.assertEqual(
-			detail_disbursements, {disbursement_1.name, disbursement_2.name},
-			"breakdown should trace both disbursements separately",
-		)
-
-		detail_debit = sum(flt(d.debit) for d in details)
-		detail_credit = sum(flt(d.credit) for d in details)
-		gl_totals = frappe.db.sql(
-			"select sum(debit), sum(credit) from `tabGL Entry` where voucher_no=%s and is_cancelled=0",
-			voucher,
-		)[0]
-		self.assertAlmostEqual(detail_debit, flt(gl_totals[0]), places=2)
-		self.assertAlmostEqual(detail_credit, flt(gl_totals[1]), places=2)
-
-		accruals = frappe.get_all(
-			"Loan Interest Accrual",
-			{"loan": loan.name, "docstatus": 1},
-			["process_loan_accounting_voucher"],
-		)
-		self.assertTrue(all(a.process_loan_accounting_voucher == voucher for a in accruals))
-
-	def test_loc_loan_demand_consolidates_correctly(self):
-		"""Loan Demand (not just accrual) for LOC loans also defers and consolidates loan-wise."""
-		posting_date = "2024-04-05"
-		self.enable_consolidation(posting_date)
-
-		loan = create_loan(
-			self.applicant,
-			"Term Loan Product 5",
-			60000,
-			"Repay Over Number of Periods",
-			4,
-			applicant_type="Customer",
-			repayment_start_date="2024-04-10",
-			posting_date=posting_date,
-			rate_of_interest=20,
-			limit_applicable_start="2024-01-05",
-			limit_applicable_end="2025-12-05",
-		)
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, 36000, disbursement_date="2024-04-05", repayment_start_date="2024-04-10"
-		)
-
-		process_daily_loan_demands(posting_date="2024-04-10", loan=loan.name)
-
-		demands = frappe.get_all(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
-		)
-		self.assertTrue(demands, "expected loan demand for the LOC loan")
-		self.assertTrue(all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred")
-
-		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
-		self.assertTrue(voucher)
-
-		demands = frappe.get_all(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["process_loan_accounting_voucher"]
-		)
-		self.assertTrue(all(d.process_loan_accounting_voucher == voucher for d in demands))
 
 	def test_demand_deferral_gated_on_demand_date_not_posting_date(self):
 		"""Deferral must gate on demand_date, not posting_date (always today), matching the date field
@@ -1241,3 +958,270 @@ class TestProcessLoanAccounting(LendingTestSuite):
 			all(a.process_loan_accounting_voucher for a in accruals),
 			"April's accruals must be swept up even though nothing ran on April's own month-end",
 		)
+
+
+class TestNpaLoanAccounting(ProcessLoanAccountingTestCase):
+	@classmethod
+	def make_class_data(cls):
+		super().make_class_data()
+
+		start = "2024-04-01"
+		cls.enable_consolidation(start)
+		frappe.db.set_value(
+			"Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90
+		)
+
+		loan = create_loan(
+			cls.applicant,
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			applicant_type="Customer",
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+		)
+		loan.submit()
+		cls.loan = loan.name
+
+	def test_npa_suspense_je_consolidated(self):
+		"""NPA suspense JE is deferred per-accrual and consolidated to one JE per loan/month.
+
+		Invariant: each month's consolidated suspense JE equals the sum of that month's live NPA
+		accrual interest, with no duplicate JEs and a balanced ledger.
+		"""
+		loan = frappe.get_doc("Loan", self.loan)
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
+			process_daily_loan_demands(posting_date=d, loan=loan.name)
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+		for d in ["2024-08-31", "2024-09-30"]:
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+
+		self.assertEqual(
+			frappe.db.count(
+				"Loan Interest Accrual",
+				{"loan": loan.name, "docstatus": 1, "normal_interest_journal_entry": ["is", "set"]},
+			),
+			0,
+			"per-accrual suspense JE should be deferred under consolidation",
+		)
+
+		for me in ["2024-08-31", "2024-09-30"]:
+			run_consolidation_for_loan(loan.name, me, force=True)
+
+		tags = frappe.get_all(
+			"Journal Entry",
+			{"loan": loan.name, "process_loan_accounting_month_end": ["is", "set"], "docstatus": 1},
+			["name", "process_loan_accounting_month_end"],
+		)
+		self.assertTrue(tags, "consolidated suspense JEs should exist for NPA months")
+		seen = set()
+		for je in tags:
+			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month")
+			seen.add(je.process_loan_accounting_month_end)
+			month_end = je.process_loan_accounting_month_end
+			je_credit = frappe.db.sql(
+				"""select sum(credit) - sum(debit) from `tabGL Entry`
+				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
+				je.name,
+			)[0][0] or 0
+			live = frappe.db.sql(
+				"""select sum(interest_amount) from `tabLoan Interest Accrual`
+				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
+					and posting_date between %s and %s""",
+				(loan.name, get_first_day(month_end), month_end),
+			)[0][0] or 0
+			self.assertAlmostEqual(je_credit, live, places=2)
+
+		net = frappe.db.sql(
+			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+			loan.name,
+		)[0][0] or 0
+		self.assertAlmostEqual(net, 0, places=2)
+
+	def test_npa_repost_mid_month_cancel_settles_correctly(self):
+		"""Reposting a loan that has already gone NPA, with a mid-month cancellation folded in,
+		still leaves the consolidated suspense JE equal to the live NPA interest for the month."""
+		loan = frappe.get_doc("Loan", self.loan)
+		disbursement = make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+		for d in ["2024-04-30", "2024-05-31", "2024-06-30", "2024-07-31"]:
+			process_daily_loan_demands(posting_date=d, loan=loan.name)
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-08-05", loan=loan.name, force_update_dpd_in_loan=1
+		)
+		for d in ["2024-08-31", "2024-09-30"]:
+			process_loan_interest_accrual_for_loans(posting_date=d, loan=loan.name)
+			run_consolidation_for_loan(loan.name, d, force=True)
+
+		# repost from mid-NPA-period; cancels and regenerates accruals/demands from that date
+		frappe.get_doc(
+			{
+				"doctype": "Loan Repayment Repost",
+				"loan": loan.name,
+				"loan_disbursement": disbursement.name,
+				"repost_date": "2024-08-15",
+				"cancel_future_emi_demands": 1,
+				"cancel_future_accruals_and_demands": 1,
+			}
+		).submit()
+
+		for me in ["2024-08-31", "2024-09-30"]:
+			run_consolidation_for_loan(loan.name, me, force=True)
+
+		tags = frappe.get_all(
+			"Journal Entry",
+			{"loan": loan.name, "process_loan_accounting_month_end": ["is", "set"], "docstatus": 1},
+			["name", "process_loan_accounting_month_end"],
+		)
+		self.assertTrue(tags, "consolidated suspense JEs should exist after repost")
+		seen = set()
+		for je in tags:
+			self.assertNotIn(je.process_loan_accounting_month_end, seen, "no duplicate suspense JE per month after repost")
+			seen.add(je.process_loan_accounting_month_end)
+			month_end = je.process_loan_accounting_month_end
+			je_credit = frappe.db.sql(
+				"""select sum(credit) - sum(debit) from `tabGL Entry`
+				where voucher_no=%s and account like '%%uspense%%' and is_cancelled=0""",
+				je.name,
+			)[0][0] or 0
+			live = frappe.db.sql(
+				"""select sum(interest_amount) from `tabLoan Interest Accrual`
+				where loan=%s and docstatus=1 and is_npa=1 and unmark_npa=0
+					and posting_date between %s and %s""",
+				(loan.name, get_first_day(month_end), month_end),
+			)[0][0] or 0
+			self.assertAlmostEqual(je_credit, live, places=2)
+
+		net = frappe.db.sql(
+			"select sum(debit) - sum(credit) from `tabGL Entry` where against_voucher=%s and is_cancelled=0",
+			loan.name,
+		)[0][0] or 0
+		self.assertAlmostEqual(net, 0, places=2)
+
+
+class TestLocLoanAccounting(ProcessLoanAccountingTestCase):
+	@classmethod
+	def make_class_data(cls):
+		super().make_class_data()
+
+		posting_date = "2024-04-05"
+		cls.enable_consolidation(posting_date)
+
+		loan = create_loan(
+			cls.applicant,
+			"Term Loan Product 5",
+			60000,
+			"Repay Over Number of Periods",
+			4,
+			applicant_type="Customer",
+			repayment_start_date="2024-04-10",
+			posting_date=posting_date,
+			rate_of_interest=20,
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2025-12-05",
+		)
+		loan.submit()
+		cls.loan, cls.posting_date = loan.name, posting_date
+
+	def test_loc_loan_demand_consolidates_correctly(self):
+		"""Loan Demand (not just accrual) for LOC loans also defers and consolidates loan-wise."""
+		loan = frappe.get_doc("Loan", self.loan)
+		posting_date = self.posting_date
+		make_loan_disbursement_entry(
+			loan.name, 36000, disbursement_date="2024-04-05", repayment_start_date="2024-04-10"
+		)
+
+		process_daily_loan_demands(posting_date="2024-04-10", loan=loan.name)
+
+		demands = frappe.get_all(
+			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "process_loan_accounting_voucher"]
+		)
+		self.assertTrue(demands, "expected loan demand for the LOC loan")
+		self.assertTrue(all(not d.process_loan_accounting_voucher for d in demands), "demand GL deferred")
+
+		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
+		self.assertTrue(voucher)
+
+		demands = frappe.get_all(
+			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["process_loan_accounting_voucher"]
+		)
+		self.assertTrue(all(d.process_loan_accounting_voucher == voucher for d in demands))
+
+	def test_loc_loan_with_multiple_disbursements_consolidates_correctly(self):
+		"""LOC loans track accruals per disbursement. Consolidation should still post one loan-wise
+		GL (against_voucher = Loan, merged across disbursements), while the breakdown table keeps
+		each disbursement's contribution separately traceable via loan_disbursement."""
+		loan = frappe.get_doc("Loan", self.loan)
+		posting_date = self.posting_date
+
+		disbursement_1 = make_loan_disbursement_entry(
+			loan.name, 36000, disbursement_date="2024-04-05", repayment_start_date="2024-04-10"
+		)
+		disbursement_2 = make_loan_disbursement_entry(
+			loan.name, 24000, disbursement_date="2024-04-06", repayment_start_date="2024-04-11"
+		)
+
+		process_loan_interest_accrual_for_loans(posting_date="2024-04-20", loan=loan.name, company=COMPANY)
+
+		accruals = frappe.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			["name", "loan_disbursement", "process_loan_accounting_voucher"],
+		)
+		self.assertTrue(accruals, "expected daily accruals for the LOC loan")
+		disbursements_seen = {a.loan_disbursement for a in accruals}
+		self.assertEqual(
+			disbursements_seen, {disbursement_1.name, disbursement_2.name},
+			"expected accruals from both disbursements",
+		)
+		self.assertTrue(all(not a.process_loan_accounting_voucher for a in accruals), "all daily GL deferred")
+
+		voucher = run_consolidation_for_loan(loan.name, get_last_day(posting_date), force=True)
+		self.assertTrue(voucher)
+
+		gl_rows = frappe.get_all(
+			"GL Entry",
+			{"voucher_no": voucher, "is_cancelled": 0},
+			["against_voucher_type", "against_voucher"],
+		)
+		self.assertTrue(gl_rows)
+		self.assertTrue(all(g.against_voucher_type == "Loan" for g in gl_rows))
+		self.assertTrue(all(g.against_voucher == loan.name for g in gl_rows))
+
+		details = frappe.get_all(
+			"Process Loan Accounting Detail",
+			{"parent": voucher},
+			["loan_disbursement", "debit", "credit", "source_doc_count"],
+		)
+		self.assertTrue(details)
+		detail_disbursements = {d.loan_disbursement for d in details}
+		self.assertEqual(
+			detail_disbursements, {disbursement_1.name, disbursement_2.name},
+			"breakdown should trace both disbursements separately",
+		)
+
+		detail_debit = sum(flt(d.debit) for d in details)
+		detail_credit = sum(flt(d.credit) for d in details)
+		gl_totals = frappe.db.sql(
+			"select sum(debit), sum(credit) from `tabGL Entry` where voucher_no=%s and is_cancelled=0",
+			voucher,
+		)[0]
+		self.assertAlmostEqual(detail_debit, flt(gl_totals[0]), places=2)
+		self.assertAlmostEqual(detail_credit, flt(gl_totals[1]), places=2)
+
+		accruals = frappe.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1},
+			["process_loan_accounting_voucher"],
+		)
+		self.assertTrue(all(a.process_loan_accounting_voucher == voucher for a in accruals))

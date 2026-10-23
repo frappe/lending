@@ -12,21 +12,18 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanAdjustment(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_loan_adjustment_submit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "excess_amount_acceptance_limit", 100)

@@ -20,21 +20,18 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_write_off,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_write_off_recovery_cancel(self):
 		set_loan_accrual_frequency("Daily")
@@ -75,148 +72,6 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 
 		self.assertEqual(loan.total_principal_paid, 0)
 		self.assertEqual(loan.status, "Written Off")
-
-	def test_write_off_recovery_with_charges(self):
-		"""Charge raised after write-off stays as an ordinary outstanding invoice, paid off along with principal and interest."""
-		set_loan_accrual_frequency("Daily")
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			2,
-			"Customer",
-			repayment_start_date="2024-12-01",
-			posting_date="2024-12-01",
-			rate_of_interest=25,
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
-		)
-
-		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
-
-		# Charge raised after write-off is never part of the write-off
-		# waiver, so it stays as an ordinary outstanding sales invoice.
-		sales_invoice = frappe.get_doc(
-			{
-				"doctype": "Sales Invoice",
-				"customer": "_Test Customer 1",
-				"company": "_Test Company",
-				"loan": loan.name,
-				"posting_date": "2024-12-31",
-				"value_date": "2024-12-31",
-				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
-			}
-		)
-		sales_invoice.submit()
-
-		charge_amount = 750
-		waivers = get_write_off_waivers(loan.name, "2024-12-31")
-		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
-		pay_amount = (
-			flt(amounts.get("pending_principal_amount"))
-			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
-			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
-			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
-			+ flt(amounts.get("total_charges_payable"))
-		)
-
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
-		repayment_entry.submit()
-
-		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
-
-		payment_account_debit = frappe.get_all(
-			"GL Entry",
-			filters={
-				"voucher_type": "Loan Repayment",
-				"voucher_no": repayment_entry.name,
-				"account": repayment_entry.payment_account,
-				"is_cancelled": 0,
-			},
-			pluck="debit",
-		)
-		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
-
-	def test_write_off_recovery_with_waived_charges(self):
-		"""Charge raised before write-off is waived automatically, paid back with no invoice or repayment_details row."""
-		set_loan_accrual_frequency("Daily")
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			2,
-			"Customer",
-			repayment_start_date="2024-12-01",
-			posting_date="2024-12-01",
-			rate_of_interest=25,
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
-		)
-
-		sales_invoice = frappe.get_doc(
-			{
-				"doctype": "Sales Invoice",
-				"customer": "_Test Customer 1",
-				"company": "_Test Company",
-				"loan": loan.name,
-				"posting_date": "2024-12-31",
-				"value_date": "2024-12-31",
-				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
-			}
-		)
-		sales_invoice.submit()
-
-		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
-
-		charge_amount = 750
-		waivers = get_write_off_waivers(loan.name, "2024-12-31")
-		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
-		pay_amount = (
-			flt(amounts.get("pending_principal_amount"))
-			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
-			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
-			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
-		)
-
-		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
-		repayment_entry.submit()
-
-		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
-		self.assertFalse(
-			any(d.demand_type == "Charges" for d in repayment_entry.repayment_details)
-		)
-
-		payment_account_debit = frappe.get_all(
-			"GL Entry",
-			filters={
-				"voucher_type": "Loan Repayment",
-				"voucher_no": repayment_entry.name,
-				"account": repayment_entry.payment_account,
-				"is_cancelled": 0,
-			},
-			pluck="debit",
-		)
-		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
 
 	def test_pre_payment_with_partial_unbooked_interest(self):
 		set_loan_accrual_frequency("Daily")
@@ -286,101 +141,6 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 
 		final_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
 		self.assertGreaterEqual(final_unbooked, 0, "Unbooked interest should not be negative after full pre-payment")
-
-	def test_full_settlement(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry.submit()
-
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
-		repayment_entry.cancel()
-
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Disbursed")
-
-		create_repayment_entry(
-			loan.name, "2024-08-05", 200000, repayment_type="Partial Settlement"
-		).submit()
-
-		create_repayment_entry(
-			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
-		).submit()
-
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
-	def test_full_settlement_creates_waiver_and_write_off(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-09-05", company="_Test Company"
-		)
-
-		repayment_entry_1 = create_repayment_entry(
-			loan.name, "2024-09-05 17:24:18", 374378.00, repayment_type="Normal Repayment"
-		)
-		repayment_entry_1.submit()
-		repayment_entry_1.cancel()
-
-		repayment_entry_2 = create_repayment_entry(
-			loan.name, "2024-09-05 17:24:18", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry_2.submit()
-
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
-		loan_repayment = frappe.db.get_value(
-			"Loan Repayment",
-			{"repayment_type": "Interest Waiver", "against_loan": loan.name, "docstatus": 1},
-			"name",
-		)
-		self.assertTrue(loan_repayment, "Interest waiver entry not created")
-
-		loan_writer_off = frappe.db.get_value(
-			"Loan Write Off",
-			{"loan": loan.name, "docstatus": 1},
-			"name",
-		)
-		self.assertTrue(loan_writer_off, "Loan write off entry not created")
 
 	def test_loan_auto_closure_with_charge_under_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)
@@ -636,52 +396,6 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Closed")
 
-	def test_full_settlement_waivers_and_write_off(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			2000000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2024-08-05",
-			posting_date="2024-07-05",
-			rate_of_interest=22,
-			applicant_type="Customer",
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-08-04", company="_Test Company"
-		)
-
-		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2024-09-04", company="_Test Company"
-		)
-
-		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
-
-		repayment_entry = create_repayment_entry(
-			loan.name, "2024-09-05", 1000000, repayment_type="Full Settlement"
-		)
-		repayment_entry.submit()
-
-		loan.load_from_db()
-		self.assertEqual(loan.status, "Settled")
-
-		demands = frappe.db.get_all(
-			"Loan Demand",
-			{"loan": loan.name, "docstatus": 1},
-			["outstanding_amount"],
-		)
-		for demand in demands:
-			self.assertEqual(demand.outstanding_amount, 0)
-
 	def test_prepayment_charge_payment(self):
 		set_loan_accrual_frequency("Daily")
 		loan = create_loan(
@@ -802,64 +516,6 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 		self.assertEqual(payable_charge, 200)
 
 		frappe.db.set_value("Company", "_Test Company", "enable_loan_accounting", 0)
-
-	def test_full_settlement_cannot_be_backdated(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			6,
-			repayment_start_date="2025-08-05",
-			posting_date="2025-07-05",
-			rate_of_interest=10,
-			applicant_type="Customer",
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2025-07-05", repayment_start_date="2025-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2025-09-05", loan=loan.name)
-
-		create_repayment_entry(
-			loan.name, "2025-09-10", 34314.00, repayment_type="Normal Repayment"
-		).submit()
-
-		with self.assertRaises(frappe.ValidationError):
-			create_repayment_entry(
-				loan.name, "2025-09-06", 100000, repayment_type="Full Settlement"
-			)
-
-	def test_no_repayment_after_full_settlement_except_waivers(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			6,
-			repayment_start_date="2025-08-05",
-			posting_date="2025-07-05",
-			rate_of_interest=10,
-			applicant_type="Customer",
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2025-07-05", repayment_start_date="2025-08-05"
-		)
-
-		process_daily_loan_demands(posting_date="2025-09-05", loan=loan.name)
-
-		create_repayment_entry(
-			loan.name, "2025-09-05", 100000, repayment_type="Full Settlement"
-		).submit()
-
-		with self.assertRaises(frappe.ValidationError):
-			create_repayment_entry(
-				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
-			)
 
 	def test_get_bulk_due_details(self):
 		# get_bulk_due_details should return the same amounts as the per-loan
@@ -1206,3 +862,302 @@ def make_bank_transaction(bank_account, deposit=0, withdrawal=0, date=None, part
 			"party": party,
 		}
 	).submit()
+
+
+class TestDisbursedLoanFullSettlement(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			2000000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-08-05",
+			posting_date="2024-07-05",
+			rate_of_interest=22,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-07-05", repayment_start_date="2024-08-05"
+		)
+		cls.loan = loan.name
+
+	def test_full_settlement(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+		repayment_entry.cancel()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Disbursed")
+
+		create_repayment_entry(
+			loan.name, "2024-08-05", 200000, repayment_type="Partial Settlement"
+		).submit()
+
+		create_repayment_entry(
+			loan.name, "2024-08-05", 1000000, repayment_type="Full Settlement"
+		).submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+	def test_full_settlement_creates_waiver_and_write_off(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-09-05", company="_Test Company"
+		)
+
+		repayment_entry_1 = create_repayment_entry(
+			loan.name, "2024-09-05 17:24:18", 374378.00, repayment_type="Normal Repayment"
+		)
+		repayment_entry_1.submit()
+		repayment_entry_1.cancel()
+
+		repayment_entry_2 = create_repayment_entry(
+			loan.name, "2024-09-05 17:24:18", 1000000, repayment_type="Full Settlement"
+		)
+		repayment_entry_2.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+		loan_repayment = frappe.db.get_value(
+			"Loan Repayment",
+			{"repayment_type": "Interest Waiver", "against_loan": loan.name, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(loan_repayment, "Interest waiver entry not created")
+
+		loan_writer_off = frappe.db.get_value(
+			"Loan Write Off",
+			{"loan": loan.name, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(loan_writer_off, "Loan write off entry not created")
+
+	def test_full_settlement_waivers_and_write_off(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-08-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(posting_date="2024-08-05", loan=loan.name)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-09-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(posting_date="2024-09-05", loan=loan.name)
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-09-05", 1000000, repayment_type="Full Settlement"
+		)
+		repayment_entry.submit()
+
+		loan.load_from_db()
+		self.assertEqual(loan.status, "Settled")
+
+		demands = frappe.db.get_all(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1},
+			["outstanding_amount"],
+		)
+		for demand in demands:
+			self.assertEqual(demand.outstanding_amount, 0)
+
+
+class TestWriteOffRecoveryWithCharges(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
+		set_loan_accrual_frequency("Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			repayment_start_date="2024-12-01",
+			posting_date="2024-12-01",
+			rate_of_interest=25,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-12-01", repayment_start_date="2024-12-01"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-12-31", company="_Test Company"
+		)
+		cls.loan = loan.name
+
+	def test_write_off_recovery_with_charges(self):
+		"""Charge raised after write-off stays as an ordinary outstanding invoice, paid off along with principal and interest."""
+		loan = frappe.get_doc("Loan", self.loan)
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		# Charge raised after write-off is never part of the write-off
+		# waiver, so it stays as an ordinary outstanding sales invoice.
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-31",
+				"value_date": "2024-12-31",
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
+			}
+		)
+		sales_invoice.submit()
+
+		charge_amount = 750
+		waivers = get_write_off_waivers(loan.name, "2024-12-31")
+		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		pay_amount = (
+			flt(amounts.get("pending_principal_amount"))
+			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+			+ flt(amounts.get("total_charges_payable"))
+		)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		repayment_entry.submit()
+
+		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
+
+		payment_account_debit = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+				"account": repayment_entry.payment_account,
+				"is_cancelled": 0,
+			},
+			pluck="debit",
+		)
+		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
+
+	def test_write_off_recovery_with_waived_charges(self):
+		"""Charge raised before write-off is waived automatically, paid back with no invoice or repayment_details row."""
+		loan = frappe.get_doc("Loan", self.loan)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2024-12-31",
+				"value_date": "2024-12-31",
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 750}],
+			}
+		)
+		sales_invoice.submit()
+
+		create_loan_write_off(loan.name, "2024-12-31", write_off_amount=10000)
+
+		charge_amount = 750
+		waivers = get_write_off_waivers(loan.name, "2024-12-31")
+		recovery = get_write_off_recovery_details(loan.name, "2024-12-31")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-12-31", payment_type="Write Off Recovery")
+		pay_amount = (
+			flt(amounts.get("pending_principal_amount"))
+			+ flt(waivers.get("Interest Waiver")) - flt(recovery.get("total_interest"))
+			+ flt(waivers.get("Penalty Waiver")) - flt(recovery.get("total_penalty"))
+			+ flt(waivers.get("Charges Waiver")) - flt(recovery.get("total_charges"))
+		)
+
+		repayment_entry = create_repayment_entry(loan.name, "2024-12-31", pay_amount, repayment_type="Write Off Recovery")
+		repayment_entry.submit()
+
+		self.assertEqual(repayment_entry.total_charges_paid, charge_amount)
+		self.assertFalse(
+			any(d.demand_type == "Charges" for d in repayment_entry.repayment_details)
+		)
+
+		payment_account_debit = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": "Loan Repayment",
+				"voucher_no": repayment_entry.name,
+				"account": repayment_entry.payment_account,
+				"is_cancelled": 0,
+			},
+			pluck="debit",
+		)
+		self.assertEqual(flt(sum(payment_account_debit), 2), flt(repayment_entry.amount_paid, 2))
+
+
+class TestFullSettlementBackdating(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			6,
+			repayment_start_date="2025-08-05",
+			posting_date="2025-07-05",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-07-05", repayment_start_date="2025-08-05"
+		)
+
+		process_daily_loan_demands(posting_date="2025-09-05", loan=loan.name)
+		cls.loan = loan.name
+
+	def test_full_settlement_cannot_be_backdated(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		create_repayment_entry(
+			loan.name, "2025-09-10", 34314.00, repayment_type="Normal Repayment"
+		).submit()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(
+				loan.name, "2025-09-06", 100000, repayment_type="Full Settlement"
+			)
+
+	def test_no_repayment_after_full_settlement_except_waivers(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		create_repayment_entry(
+			loan.name, "2025-09-05", 100000, repayment_type="Full Settlement"
+		).submit()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(
+				loan.name, "2025-09-06", 5000, repayment_type="Normal Repayment"
+			)
