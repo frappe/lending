@@ -279,6 +279,9 @@ class LoanRestructure(AccountsController):
 
 	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).validate_demand_not_generated_since_request()
+
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				self.make_waiver_and_capitalization_for_interest()
 				self.make_waiver_and_capitalization_for_penalty()
@@ -359,6 +362,10 @@ class LoanRestructure(AccountsController):
 		self.set_status()
 		self.update_repayment_schedule_status(status="Initiated")
 		self.apply_workflow()
+
+	def before_cancel(self):
+		if self.restructure_type == "Installment Skip" and self.status == "Approved":
+			InstallmentSkip(self).validate_latest_installment_skip()
 
 	def on_cancel(self):
 		self.cancel_repayment_schedule()

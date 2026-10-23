@@ -6,6 +6,10 @@ from frappe import _
 from frappe.query_builder import functions as fn
 from frappe.utils import add_days, cint, flt, getdate, nowdate
 
+from lending.loan_management.doctype.loan_repayment_schedule.skip_schedule_rows import (
+	get_approved_skipped_dates,
+)
+
 
 class InstallmentSkip:
 	"""Validates and prepares a Loan Restructure of type "Installment Skip".
@@ -20,7 +24,7 @@ class InstallmentSkip:
 		self.upcoming_rows = self.get_upcoming_rows()
 
 	def prepare(self):
-		self.validate_loan_status()
+		self.validate_loan()
 		self.validate_after_last_demand()
 		self.validate_demand_generated_for_due_installments()
 		self.validate_no_overdue()
@@ -28,10 +32,43 @@ class InstallmentSkip:
 		self.validate_no_demand_generated_ahead()
 		self.set_terms()
 
-	def validate_loan_status(self):
+	def validate_loan(self):
+		loan = frappe.db.get_value(
+			"Loan",
+			self.doc.loan,
+			["status", "repayment_schedule_type", "loan_partner", "repayment_frequency"],
+			as_dict=True,
+		)
+
 		# The schedule of a Partially Disbursed loan is rebuilt on every disbursement
-		if frappe.db.get_value("Loan", self.doc.loan, "status") == "Partially Disbursed":
+		if loan.status == "Partially Disbursed":
 			frappe.throw(_("Installments cannot be skipped until the loan is fully disbursed"))
+
+		# These loans have more than one schedule to rebuild, which a skip does not handle
+		if loan.repayment_schedule_type == "Line of Credit" or loan.loan_partner:
+			frappe.throw(_("Installments cannot be skipped for a Line of Credit or a co-lender loan"))
+
+		if loan.repayment_frequency == "One Time":
+			frappe.throw(_("Installments cannot be skipped for a loan repaid in one payment"))
+
+	def validate_demand_not_generated_since_request(self):
+		"""The schedule is built when the request is made. Approval must not follow a demand
+		generated for a skipped date after that."""
+		dates = [getdate(row.payment_date) for row in self.doc.get("skipped_installments")]
+		if frappe.db.exists(
+			"Loan Demand", {"loan": self.doc.loan, "docstatus": 1, "demand_date": ("in", dates)}
+		):
+			frappe.throw(_("A demand is already generated for an installment to skip. Create a new request."))
+
+	def validate_latest_installment_skip(self):
+		"""Cancelling an older skip would bring back a schedule that is no longer the latest"""
+		latest = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			{"loan": self.doc.loan, "docstatus": 1, "status": "Active"},
+			"loan_restructure",
+		)
+		if latest != self.doc.name:
+			frappe.throw(_("Cancel the later restructure of this loan first"))
 
 	def get_active_schedule(self):
 		filters = {"loan": self.doc.loan, "docstatus": 1, "status": "Active"}
@@ -124,12 +161,9 @@ class InstallmentSkip:
 		first_open = getdate(self.upcoming_rows[0].payment_date)
 		rows = self.schedule.repayment_schedule
 		completed = len([row for row in rows if getdate(row.payment_date) < first_open])
+		# Earlier skips count even when they are at the end of the term and have no row
 		earlier_skips = len(
-			[
-				row
-				for row in rows
-				if getdate(row.payment_date) > first_open and row.demand_generated and not row.total_payment
-			]
+			[date for date in get_approved_skipped_dates(self.doc.loan, self.doc.name) if date > first_open]
 		)
 		return completed, earlier_skips, len(self.upcoming_rows)
 

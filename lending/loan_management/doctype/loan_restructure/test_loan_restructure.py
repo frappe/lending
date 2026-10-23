@@ -1360,7 +1360,11 @@ class TestInstallmentSkip(LendingTestSuite):
 		schedule = get_active_schedule(loan.name)
 		self.assertEqual(get_row(schedule, "2026-11-07").total_payment, 0)
 		self.assertFalse(any(getdate(row.payment_date) == getdate("2027-03-07") and row.total_payment for row in schedule.repayment_schedule))
-		self.assertEqual(flt(schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
+		last_row = schedule.repayment_schedule[-1]
+		self.assertEqual(flt(last_row.balance_loan_amount, 2), 0)
+		# Same EMI is kept, so the loan runs longer instead of the last payment growing
+		self.assertTrue(getdate(last_row.payment_date) > getdate("2027-03-07"))
+		self.assertEqual(get_row(schedule, "2027-02-07").total_payment, schedule.monthly_repayment_amount)
 
 	def test_installment_skip_updates_loan_and_cancel_restores_it(self):
 		loan = self.make_loan_with_first_emi_paid()
@@ -1390,6 +1394,37 @@ class TestInstallmentSkip(LendingTestSuite):
 			'["2026-11-07"]',
 			restructure_date="2026-10-20",
 		)
+
+	def test_older_installment_skip_cannot_be_cancelled_before_the_later_one(self):
+		loan = self.make_loan_with_first_emi_paid()
+
+		first = frappe.get_doc(
+			"Loan Restructure", skip_installments(loan.name, '["2026-11-07"]', restructure_date="2026-10-20")
+		)
+		second = frappe.get_doc(
+			"Loan Restructure", skip_installments(loan.name, '["2026-12-07"]', restructure_date="2026-10-21")
+		)
+
+		self.assertRaises(frappe.ValidationError, first.cancel)
+
+		second.cancel()
+		first.reload()
+		first.cancel()
+		self.assertEqual(get_row(get_active_schedule(loan.name), "2026-11-07").total_payment > 0, True)
+
+	def test_installment_skip_is_not_approved_after_demand_is_generated(self):
+		loan = self.make_loan_with_first_emi_paid()
+
+		restructure = frappe.get_doc(
+			"Loan Restructure",
+			skip_installments(loan.name, '["2026-11-07"]', approve=0, restructure_date="2026-10-20"),
+		)
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-11-07")
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-11-07")
+
+		restructure.status = "Approved"
+		self.assertRaises(frappe.ValidationError, restructure.save)
 
 	def test_installment_skip_starts_after_last_accrual(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")

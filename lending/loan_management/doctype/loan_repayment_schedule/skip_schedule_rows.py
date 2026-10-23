@@ -67,23 +67,30 @@ class SkipScheduleRows:
 		return dates
 
 	def get_earlier_skipped_dates(self):
-		# Read from the approved skips, not the old rows: a skipped date at the end of the term has no row
 		resume_date = getdate(self.schedule.repayment_start_date)
-		Restructure = frappe.qb.DocType("Loan Restructure")
-		Skipped = frappe.qb.DocType("Loan Skipped Installment")
+		dates = get_approved_skipped_dates(self.schedule.loan, self.schedule.loan_restructure)
+		return {date for date in dates if date >= resume_date}
 
-		dates = (
-			frappe.qb.from_(Skipped)
-			.join(Restructure)
-			.on(Skipped.parent == Restructure.name)
-			.select(Skipped.payment_date)
-			.where(
-				(Restructure.loan == self.schedule.loan)
-				& (Restructure.docstatus == 1)
-				& (Restructure.status == "Approved")
-				& (Restructure.restructure_type == "Installment Skip")
-				& (Restructure.name != self.schedule.loan_restructure)
-			)
-		).run(pluck=True)
 
-		return {getdate(date) for date in dates if getdate(date) >= resume_date}
+def get_approved_skipped_dates(loan, exclude_restructure=None):
+	"""Dates skipped by approved Installment Skips. Read from the skips, not the schedule rows:
+	a skipped date at the end of the term has no row."""
+	Restructure = frappe.qb.DocType("Loan Restructure")
+	Skipped = frappe.qb.DocType("Loan Skipped Installment")
+
+	query = (
+		frappe.qb.from_(Skipped)
+		.join(Restructure)
+		.on(Skipped.parent == Restructure.name)
+		.select(Skipped.payment_date)
+		.where(
+			(Restructure.loan == loan)
+			& (Restructure.docstatus == 1)
+			& (Restructure.status == "Approved")
+			& (Restructure.restructure_type == "Installment Skip")
+		)
+	)
+	if exclude_restructure:
+		query = query.where(Restructure.name != exclude_restructure)
+
+	return {getdate(date) for date in query.run(pluck=True)}
