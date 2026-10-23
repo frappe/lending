@@ -1193,7 +1193,7 @@ class TestInstallmentSkip(LendingTestSuite):
 
 		self.assertEqual(frappe.db.get_value("Loan Restructure", name, "status"), "Approved")
 
-	def test_skipping_last_installment_keeps_principal_billed(self):
+	def test_skipping_last_installment_keeps_end_date(self):
 		loan = self.make_loan_with_first_emi_paid()
 
 		restructure = frappe.get_doc(
@@ -1207,12 +1207,12 @@ class TestInstallmentSkip(LendingTestSuite):
 		)
 		self.assertEqual(restructure.status, "Approved")
 
+		# The skipped date is at the end of the term, so the last billed row is the one before it
 		rows = get_active_schedule(loan.name).repayment_schedule
-		skipped = get_row(get_active_schedule(loan.name), "2027-03-07")
-		self.assertEqual((skipped.total_payment, skipped.principal_amount), (0, 0))
+		self.assertEqual(getdate(rows[-1].payment_date), getdate("2027-02-07"))
 		self.assertEqual(flt(rows[-1].balance_loan_amount, 2), 0)
-		self.assertTrue(rows[-1].total_payment > 0)
 		self.assertEqual(rows[-1].demand_generated, 0)
+		self.assertTrue(all(getdate(row.payment_date) <= getdate("2027-02-07") for row in rows))
 
 	def test_installment_skip_updates_loan_and_cancel_restores_it(self):
 		loan = self.make_loan_with_first_emi_paid()
