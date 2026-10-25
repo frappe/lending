@@ -59,9 +59,12 @@ class LoanSecurityPriceUpdate(Document):
 
 	@frappe.whitelist()
 	def get_securities(self):
+		# A new form starts with one empty row
+		self.set("items", [row for row in self.items if row.loan_security])
 		listed = {row.loan_security for row in self.items}
-		for security in sorted(self.get_active_securities() - listed):
-			self.append("items", {"loan_security": security})
+		securities = self.get_active_securities()
+		for security in sorted(securities.keys() - listed):
+			self.append("items", {"loan_security": security, "loan_security_name": securities[security]})
 		self.set_missing_count()
 
 	def validate_items(self):
@@ -179,11 +182,12 @@ class LoanSecurityPriceUpdate(Document):
 		return add_days(add_working_days(self.price_date, validity_days, self.holiday_list), -1)
 
 	def get_active_securities(self):
-		return set(
+		return dict(
 			frappe.get_all(
 				"Loan Security",
 				filters={"loan_security_type": self.loan_security_type, "disabled": 0},
-				pluck="name",
+				fields=["name", "loan_security_name"],
+				as_list=True,
 			)
 		)
 

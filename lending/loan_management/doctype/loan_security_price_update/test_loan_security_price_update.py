@@ -138,12 +138,14 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 	def test_get_securities_lists_securities_nobody_pledged(self):
 		other_type = make_other_type_security()
 		update = make_price_update(FRIDAY, {"Test Security 1": 600}, submit=False)
+		update.append("items", {})
 
 		update.get_securities()
-		listed = [row.loan_security for row in update.items]
+		names = {row.loan_security: row.loan_security_name for row in update.items}
 
-		self.assertIn("Test Security 2", listed)
-		self.assertNotIn(other_type, listed)
+		self.assertEqual(names["Test Security 2"], "Test Security 2")
+		self.assertNotIn(other_type, names)
+		self.assertNotIn(None, names)
 
 
 def make_price_update(price_date, prices, submit=True):
