@@ -1,5 +1,4 @@
 {
- "allow_guest": 0,
  "blocks": [
   {
    "baseStyles": {
@@ -50,6 +49,7 @@
             "overflow": "hidden",
             "width": "28px"
            },
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container1-imageview1",
            "componentName": "ImageView",
            "componentProps": {
@@ -58,7 +58,6 @@
             "shape": "square",
             "size": "lg"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ overview.data.brand_logo }}"
           },
           {
@@ -73,6 +72,7 @@
             "justifyContent": "center",
             "width": "28px"
            },
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container1-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
@@ -80,7 +80,6 @@
             "tag": "p",
             "text": "{{ overview.data.brand_initial }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ overview.data.show_wordmark }}"
           },
           {
@@ -93,6 +92,7 @@
             "textOverflow": "ellipsis",
             "whiteSpace": "nowrap"
            },
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container1-textblock2",
            "componentName": "TextBlock",
            "componentProps": {
@@ -100,14 +100,11 @@
             "tag": "p",
             "text": "{{ overview.data.brand_name || '' }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
           }
          ],
          "componentId": "overview-0-sidebar1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -120,6 +117,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem1",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -127,10 +125,10 @@
             "icon": "lucide-layout-dashboard",
             "label": "Account overview",
             "to": "/overview"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem2",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -138,10 +136,10 @@
             "icon": "lucide-wallet",
             "label": "Loan account",
             "to": "/loans"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem3",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -149,10 +147,10 @@
             "icon": "lucide-file-text",
             "label": "Application",
             "to": "/applications"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem4",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -160,10 +158,10 @@
             "icon": "lucide-shield-check",
             "label": "Loan against securities",
             "to": "/secured-loan"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem5",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -171,10 +169,10 @@
             "icon": "lucide-receipt",
             "label": "Statement of account",
             "to": "/statement"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem6",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -182,10 +180,10 @@
             "icon": "lucide-award",
             "label": "Interest certificate",
             "to": "/certificate"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container2-sidebaritem7",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -193,14 +191,11 @@
             "icon": "lucide-user",
             "label": "Personal details",
             "to": "/profile"
-           },
-           "componentSlots": {}
+           }
           }
          ],
          "componentId": "overview-0-sidebar1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -209,6 +204,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "overview-0-sidebar1-container1-container3-dropdown1",
            "componentName": "Dropdown",
            "componentProps": {
@@ -236,9 +232,11 @@
                  "baseStyles": {
                   "flexShrink": "0"
                  },
+                 "children": [],
                  "classes": [
                   "portal-avatar"
                  ],
+                 "componentEvents": {},
                  "componentId": "overview-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
                  "componentName": "Avatar",
                  "componentProps": {
@@ -246,7 +244,9 @@
                   "shape": "circle",
                   "size": "md"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 },
                 {
                  "baseStyles": {
@@ -257,6 +257,8 @@
                   "textOverflow": "ellipsis",
                   "whiteSpace": "nowrap"
                  },
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "overview-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -265,17 +267,22 @@
                   "text": "{{ overview.data.holder_name || '' }}"
                  },
                  "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
                  "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
                 }
                ],
                "classes": [
                 "hover:bg-surface-gray-2"
                ],
+               "componentEvents": {},
                "componentId": "overview-0-sidebar1-container1-container3-dropdown1-trigger-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
-               "originalElement": "div"
+               "mobileStyles": {},
+               "originalElement": "div",
+               "tabletStyles": {}
               }
              ],
              "slotName": "trigger"
@@ -285,15 +292,11 @@
          ],
          "componentId": "overview-0-sidebar1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         }
        ],
        "componentId": "overview-0-sidebar1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
@@ -308,6 +311,7 @@
         "position": "absolute",
         "right": "-12px"
        },
+       "children": [],
        "classes": [
         "opacity-0",
         "group-hover:opacity-100",
@@ -328,8 +332,7 @@
         "label": "Toggle sidebar",
         "size": "xs",
         "variant": "ghost"
-       },
-       "componentSlots": {}
+       }
       }
      ],
      "classes": [
@@ -344,7 +347,6 @@
       },
       "width": "14rem"
      },
-     "componentSlots": {},
      "mobileStyles": {
       "display": "none"
      }
@@ -360,6 +362,7 @@
      },
      "children": [
       {
+       "children": [],
        "componentId": "overview-0-container1-borrower_header1",
        "componentName": "borrower_header",
        "componentProps": {
@@ -371,7 +374,6 @@
         "status": "{{ overview.data.account_status }}",
         "status_tone": "{{ overview.data.account_tone }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
@@ -420,12 +422,12 @@
               "justifyContent": "center",
               "width": "40px"
              },
+             "children": [],
              "componentId": "overview-0-container1-container1-container1-container1-html1",
              "componentName": "HTML",
              "componentProps": {
               "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
@@ -451,23 +453,22 @@
                   "letterSpacing": "0.06em",
                   "textTransform": "uppercase"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-xs",
                   "tag": "p",
                   "text": "{{ overview.data.label_application }}"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -477,19 +478,17 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg>"
                  },
-                 "componentSlots": {},
                  "visibilityCondition": "{{ overview.data.application_url }}"
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container1-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -498,6 +497,7 @@
                 "fontWeight": "600",
                 "padding": "2px 0 4px"
                },
+               "children": [],
                "componentId": "overview-0-container1-container1-container1-container1-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
@@ -505,7 +505,6 @@
                 "tag": "div",
                 "text": "{{ overview.data.application_headline }}"
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ overview.data.application_headline }}"
               },
               {
@@ -518,6 +517,7 @@
                },
                "children": [
                 {
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container2-badge1",
                  "componentName": "Badge",
                  "componentProps": {
@@ -525,8 +525,7 @@
                   "size": "md",
                   "theme": "{{ tone(overview.data.application_stage_tone) }}",
                   "variant": "subtle"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
@@ -543,53 +542,49 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
-                   },
-                   "componentSlots": {}
+                   }
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ overview.data.application_date_label }}"
-                   },
-                   "componentSlots": {}
+                   }
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-8)",
                     "fontWeight": "500"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ overview.data.application_date }}"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container2-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ overview.data.application_date }}"
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container1-container1-container2",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ overview.data.application_stage }}"
               },
@@ -621,17 +616,14 @@
                     "height": "8px",
                     "width": "8px"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ applicationDot === 'orange' }}"
                 },
@@ -654,17 +646,14 @@
                     "height": "8px",
                     "width": "8px"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container2-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container3-container2",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ applicationDot === 'green' }}"
                 },
@@ -672,20 +661,18 @@
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container1-container1-container3-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.application_note }}"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container1-container1-container3",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ overview.data.application_note }}"
               },
@@ -693,6 +680,7 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "overview-0-container1-container1-container1-container1-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
@@ -700,14 +688,11 @@
                 "tag": "p",
                 "text": "{{ overview.data.application_more }}"
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ overview.data.application_more }}"
               }
              ],
              "componentId": "overview-0-container1-container1-container1-container1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -724,8 +709,6 @@
            },
            "componentId": "overview-0-container1-container1-container1-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -756,12 +739,12 @@
               "justifyContent": "center",
               "width": "40px"
              },
+             "children": [],
              "componentId": "overview-0-container1-container1-container1-container2-html1",
              "componentName": "HTML",
              "componentProps": {
               "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
@@ -784,16 +767,17 @@
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.label_next }}"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container1-badge1",
                  "componentName": "Badge",
                  "componentProps": {
@@ -802,17 +786,15 @@
                   "theme": "orange",
                   "variant": "subtle"
                  },
-                 "componentSlots": {},
                  "visibilityCondition": "{{ overview.data.next_flag }}"
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -822,18 +804,16 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg>"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container2-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -848,6 +828,7 @@
                   "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container2-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -855,7 +836,6 @@
                   "tag": "div",
                   "text": "{{ overview.data.next_amount }}"
                  },
-                 "componentSlots": {},
                  "visibilityCondition": "{{ overview.data.next_amount }}"
                 },
                 {
@@ -873,45 +853,39 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container2-container1-container2-container1-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg>"
-                   },
-                   "componentSlots": {}
+                   }
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container1-container2-container1-container2-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ overview.data.next_note }}"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container1-container2-container1-container2-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container2-container1-container2",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               }
              ],
              "componentId": "overview-0-container1-container1-container1-container2-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -928,8 +902,6 @@
            },
            "componentId": "overview-0-container1-container1-container1-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -960,12 +932,12 @@
               "justifyContent": "center",
               "width": "40px"
              },
+             "children": [],
              "componentId": "overview-0-container1-container1-container1-container3-html1",
              "componentName": "HTML",
              "componentProps": {
               "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><ellipse cx=\"12\" cy=\"5\" rx=\"9\" ry=\"3\"/><path d=\"M3 5V19A9 3 0 0 0 21 19V5\"/><path d=\"M3 12A9 3 0 0 0 21 12\"/></svg>"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
@@ -988,23 +960,22 @@
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.label_outstanding }}"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -1014,18 +985,16 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg>"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container3-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -1040,6 +1009,7 @@
                   "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container2-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -1047,26 +1017,26 @@
                   "tag": "div",
                   "text": "{{ overview.data.outstanding }}"
                  },
-                 "componentSlots": {},
                  "visibilityCondition": "{{ overview.data.outstanding }}"
                 },
                 {
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container2-textblock2",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.outstanding_note }}"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container1-container3-container1-container2-textblock3",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -1074,21 +1044,16 @@
                   "tag": "p",
                   "text": "{{ overview.data.sanctioned_line }}"
                  },
-                 "componentSlots": {},
                  "visibilityCondition": "{{ overview.data.sanctioned_line }}"
                 }
                ],
                "componentId": "overview-0-container1-container1-container1-container3-container1-container2",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               }
              ],
              "componentId": "overview-0-container1-container1-container1-container3-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -1105,15 +1070,11 @@
            },
            "componentId": "overview-0-container1-container1-container1-container3",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "overview-0-container1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "mobileStyles": {
           "flexDirection": "column"
          },
@@ -1147,33 +1108,31 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
+             "children": [],
              "componentId": "overview-0-container1-container1-container2-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
               "text": "Waiting on you"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
+             "children": [],
              "componentId": "overview-0-container1-container1-container2-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ overview.data.tasks_note }}"
-             },
-             "componentSlots": {}
+             }
             }
            ],
            "componentId": "overview-0-container1-container1-container2-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -1196,46 +1155,44 @@
                },
                "children": [
                 {
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container2-repeater1-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-base",
                   "tag": "p",
                   "text": "{{ dataItem.product }}"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container2-repeater1-container1-container1-textblock2",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ dataItem.note }}"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container2-repeater1-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
                "baseStyles": {
                 "flex": "1 1 auto"
                },
+               "children": [],
                "componentId": "overview-0-container1-container1-container2-repeater1-container1-container2",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
+               "children": [],
                "componentId": "overview-0-container1-container1-container2-repeater1-container1-badge1",
                "componentName": "Badge",
                "componentProps": {
@@ -1243,8 +1200,7 @@
                 "size": "sm",
                 "theme": "{{ tone(dataItem.stage_tone) }}",
                 "variant": "subtle"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentEvents": {
@@ -1256,8 +1212,6 @@
              },
              "componentId": "overview-0-container1-container1-container2-repeater1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -1267,14 +1221,11 @@
             "data": "{{ overview.data.tasks }}",
             "dataKey": "name",
             "emptyStateMessage": ""
-           },
-           "componentSlots": {}
+           }
           }
          ],
          "componentId": "overview-0-container1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ overview.data.tasks && overview.data.tasks.length > 0 }}"
         },
@@ -1318,33 +1269,31 @@
                   "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container1-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-lg",
                   "tag": "h2",
                   "text": "Application status"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container1-container1-container1-textblock2",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.applications_note }}"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container3-container1-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -1367,20 +1316,18 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Application"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell1",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   },
                   {
                    "children": [
@@ -1388,20 +1335,18 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell2-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Stage"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell2",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   },
                   {
                    "children": [
@@ -1409,28 +1354,25 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell3-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Amount sought"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1-listheadercell3",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listheader1",
-                 "componentName": "ListHeader",
-                 "componentProps": {},
-                 "componentSlots": {}
+                 "componentName": "ListHeader"
                 },
                 {
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1",
                  "componentName": "ListRows",
                  "componentProps": {
@@ -1459,6 +1401,8 @@
                          "baseStyles": {
                           "fontWeight": "500"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell1-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1466,12 +1410,16 @@
                           "tag": "p",
                           "text": "{{ item.product }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         },
                         {
                          "baseStyles": {
                           "color": "var(--ink-gray-6)"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell1-textblock2",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1479,12 +1427,16 @@
                           "tag": "p",
                           "text": "{{ item.name }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         },
                         {
                          "baseStyles": {
                           "color": "var(--ink-gray-6)"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell1-textblock3",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1492,12 +1444,16 @@
                           "tag": "p",
                           "text": "{{ item.initiated }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         },
                         {
                          "baseStyles": {
                           "color": "var(--ink-gray-6)"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell1-textblock4",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1506,17 +1462,26 @@
                           "text": "{{ item.note }}"
                          },
                          "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {},
                          "visibilityCondition": "{{ item.note }}"
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell1",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       },
                       {
+                       "baseStyles": {},
                        "children": [
                         {
+                         "baseStyles": {},
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell2-badge1",
                          "componentName": "Badge",
                          "componentProps": {
@@ -1525,17 +1490,26 @@
                           "theme": "{{ tone(item.stage_tone) }}",
                           "variant": "subtle"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell2",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       },
                       {
+                       "baseStyles": {},
                        "children": [
                         {
+                         "baseStyles": {},
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell3-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1543,13 +1517,18 @@
                           "tag": "p",
                           "text": "{{ item.amount }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "overview-0-container1-container1-container3-container1-container1-list1-listrows1-default-listrow1-listcell3",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       }
                      ],
                      "componentEvents": {
@@ -1564,7 +1543,9 @@
                      "componentProps": {
                       "value": "{{ value }}"
                      },
-                     "componentSlots": {}
+                     "componentSlots": {},
+                     "mobileStyles": {},
+                     "tabletStyles": {}
                     }
                    ],
                    "slotName": "default"
@@ -1581,14 +1562,11 @@
                  "minmax(0, 1fr)"
                 ]
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ (overview.data.applications || []).length > 0 }}"
               }
              ],
              "componentId": "overview-0-container1-container1-container3-container1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div",
              "visibilityCondition": "{{ (overview.data.applications || []).length > 1 }}"
             },
@@ -1617,33 +1595,31 @@
                   "color": "var(--ink-gray-9)",
                   "fontWeight": "600"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container1-container2-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-lg",
                   "tag": "h2",
                   "text": "Activity timeline"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container1-container2-container1-textblock2",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "{{ overview.data.activity_note }}"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container3-container1-container2-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -1685,12 +1661,12 @@
                       "justifyContent": "center",
                       "width": "18px"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1-html1",
                      "componentName": "HTML",
                      "componentProps": {
                       "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
                      },
-                     "componentSlots": {},
                      "visibilityCondition": "{{ dataItem.tone === 'ok' }}"
                     },
                     {
@@ -1710,17 +1686,14 @@
                         "height": "10px",
                         "width": "10px"
                        },
+                       "children": [],
                        "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1-container1-container1",
                        "componentName": "container",
-                       "componentProps": {},
-                       "componentSlots": {},
                        "originalElement": "div"
                       }
                      ],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1-container1",
                      "componentName": "container",
-                     "componentProps": {},
-                     "componentSlots": {},
                      "originalElement": "div",
                      "visibilityCondition": "{{ dataItem.tone !== 'ok' }}"
                     },
@@ -1731,10 +1704,9 @@
                       "marginBottom": "4px",
                       "width": "1px"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1-container2",
                      "componentName": "container",
-                     "componentProps": {},
-                     "componentSlots": {},
                      "originalElement": "div",
                      "visibilityCondition": "{{ dataItem.stem === 'ok' }}"
                     },
@@ -1745,18 +1717,15 @@
                       "marginBottom": "4px",
                       "width": "1px"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1-container3",
                      "componentName": "container",
-                     "componentProps": {},
-                     "componentSlots": {},
                      "originalElement": "div",
                      "visibilityCondition": "{{ dataItem.stem === 'plain' }}"
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -1775,33 +1744,31 @@
                       "fontWeight": "500",
                       "paddingTop": "1px"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container2-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-base",
                       "tag": "p",
                       "text": "{{ dataItem.title }}"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-5)"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container2-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "{{ dataItem.note }}"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-container2",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -1810,14 +1777,14 @@
                     "paddingTop": "2px",
                     "whiteSpace": "nowrap"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-sm",
                     "tag": "p",
                     "text": "{{ dataItem.date }}"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentEvents": {
@@ -1829,8 +1796,6 @@
                  },
                  "componentId": "overview-0-container1-container1-container3-container1-container2-repeater1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
@@ -1840,22 +1805,17 @@
                 "data": "{{ overview.data.activity || [] }}",
                 "dataKey": "name",
                 "emptyStateMessage": ""
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "overview-0-container1-container1-container3-container1-container2",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div",
              "visibilityCondition": "{{ overview.data.activity && overview.data.activity.length > 0 }}"
             }
            ],
            "componentId": "overview-0-container1-container1-container3-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -1898,46 +1858,44 @@
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-container1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-lg",
                     "tag": "h2",
                     "text": "Scheduled repayments"
-                   },
-                   "componentSlots": {}
+                   }
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-container1-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ overview.data.schedule_note }}"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentId": "overview-0-container1-container1-container3-container2-container1-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
+                 "children": [],
                  "componentId": "overview-0-container1-container1-container3-container2-container1-container1-container2",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
+                 "children": [],
                  "componentEvents": {
                   "click": {
                    "action": "Run Script",
@@ -1951,14 +1909,11 @@
                   "label": "View all",
                   "size": "sm",
                   "variant": "outline"
-                 },
-                 "componentSlots": {}
+                 }
                 }
                ],
                "componentId": "overview-0-container1-container1-container3-container2-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -2001,48 +1956,46 @@
                       "fontWeight": "600",
                       "lineHeight": "1.2"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-lg",
                       "tag": "div",
                       "text": "{{ dataItem.day }}"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-5)",
                       "lineHeight": "1.2"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container1-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-xs",
                       "tag": "div",
                       "text": "{{ dataItem.month }}"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-5)",
                       "lineHeight": "1.2"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container1-textblock3",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-xs",
                       "tag": "div",
                       "text": "{{ dataItem.year }}"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -2059,6 +2012,7 @@
                       "color": "var(--ink-gray-8)",
                       "fontWeight": "500"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container2-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
@@ -2066,7 +2020,6 @@
                       "tag": "p",
                       "text": "{{ dataItem.product }}"
                      },
-                     "componentSlots": {},
                      "visibilityCondition": "{{ dataItem.sub }}"
                     },
                     {
@@ -2074,34 +2027,32 @@
                       "color": "var(--ink-gray-6)",
                       "fontVariantNumeric": "tabular-nums"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container2-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "{{ dataItem.principal }}"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-6)",
                       "fontVariantNumeric": "tabular-nums"
                      },
+                     "children": [],
                      "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container2-textblock3",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "{{ dataItem.interest }}"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-container2",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -2110,14 +2061,14 @@
                     "fontWeight": "500",
                     "whiteSpace": "nowrap"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.amount }}"
-                   },
-                   "componentSlots": {}
+                   }
                   },
                   {
                    "baseStyles": {
@@ -2126,12 +2077,12 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
+                   "children": [],
                    "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg>"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentEvents": {
@@ -2143,8 +2094,6 @@
                  },
                  "componentId": "overview-0-container1-container1-container3-container2-container1-repeater1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
@@ -2154,29 +2103,22 @@
                 "data": "{{ overview.data.schedule }}",
                 "dataKey": "name",
                 "emptyStateMessage": "Nothing due"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "overview-0-container1-container1-container3-container2-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div",
              "visibilityCondition": "{{ overview.data.schedule && overview.data.schedule.length > 0 }}"
             }
            ],
            "componentId": "overview-0-container1-container1-container3-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "overview-0-container1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div",
          "tabletStyles": {
           "gridTemplateColumns": "minmax(0, 1fr)"
@@ -2185,51 +2127,45 @@
        ],
        "componentId": "overview-0-container1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
+       "children": [],
        "componentId": "overview-0-container1-borrower_footer1",
        "componentName": "borrower_footer",
        "componentProps": {
         "links": "{{ overview.data.footer_links }}",
         "note": "{{ overview.data.copyright_note }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "overview-0-container1-borrower_alerts1",
        "componentName": "borrower_alerts",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "overview-0-container1-borrower_search1",
        "componentName": "borrower_search",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       }
      ],
      "componentId": "overview-0-container1",
      "componentName": "container",
-     "componentProps": {},
-     "componentSlots": {},
      "originalElement": "div"
     },
     {
      "baseStyles": {
       "display": "none"
      },
+     "children": [],
      "componentId": "overview-0-html1",
      "componentName": "HTML",
      "componentProps": {
       "html": "{{ overview.data.brand_style || '' }}"
-     },
-     "componentSlots": {}
+     }
     }
    ],
    "classes": [
@@ -2237,18 +2173,14 @@
    ],
    "componentId": "overview-0",
    "componentName": "div",
-   "componentProps": {},
-   "componentSlots": {},
    "originalElement": "body"
   }
  ],
  "creation": "2026-09-28 11:50:06.470551",
- "docstatus": 0,
  "doctype": "Studio Page",
  "frappe_app": "lending",
- "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 18:30:06.707741",
+ "modified": "2026-10-25 17:05:11.794254",
  "modified_by": "Administrator",
  "name": "account_overview",
  "owner": "Administrator",
@@ -2258,17 +2190,12 @@
  "resources": [
   {
    "auto": 1,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "resource_name": "overview",
    "resource_type": "API Resource",
    "url": "lending.portal.core.get_dashboard"
   },
   {
-   "auto": 0,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",
@@ -2276,5 +2203,6 @@
   }
  ],
  "route": "/overview",
- "studio_app": "borrower-portal"
+ "studio_app": "borrower-portal",
+ "variables": []
 }

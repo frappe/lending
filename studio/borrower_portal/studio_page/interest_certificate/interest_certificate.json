@@ -1,5 +1,4 @@
 {
- "allow_guest": 0,
  "blocks": [
   {
    "baseStyles": {
@@ -50,6 +49,7 @@
             "overflow": "hidden",
             "width": "28px"
            },
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container1-imageview1",
            "componentName": "ImageView",
            "componentProps": {
@@ -58,7 +58,6 @@
             "shape": "square",
             "size": "lg"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ certificate.data.brand_logo }}"
           },
           {
@@ -73,6 +72,7 @@
             "justifyContent": "center",
             "width": "28px"
            },
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container1-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
@@ -80,7 +80,6 @@
             "tag": "p",
             "text": "{{ certificate.data.brand_initial }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ certificate.data.show_wordmark }}"
           },
           {
@@ -93,6 +92,7 @@
             "textOverflow": "ellipsis",
             "whiteSpace": "nowrap"
            },
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container1-textblock2",
            "componentName": "TextBlock",
            "componentProps": {
@@ -100,14 +100,11 @@
             "tag": "p",
             "text": "{{ certificate.data.brand_name || '' }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
           }
          ],
          "componentId": "certificate-0-sidebar1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -120,6 +117,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem1",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -127,10 +125,10 @@
             "icon": "lucide-layout-dashboard",
             "label": "Account overview",
             "to": "/overview"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem2",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -138,10 +136,10 @@
             "icon": "lucide-wallet",
             "label": "Loan account",
             "to": "/loans"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem3",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -149,10 +147,10 @@
             "icon": "lucide-file-text",
             "label": "Application",
             "to": "/applications"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem4",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -160,10 +158,10 @@
             "icon": "lucide-shield-check",
             "label": "Loan against securities",
             "to": "/secured-loan"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem5",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -171,10 +169,10 @@
             "icon": "lucide-receipt",
             "label": "Statement of account",
             "to": "/statement"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem6",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -182,10 +180,10 @@
             "icon": "lucide-award",
             "label": "Interest certificate",
             "to": "/certificate"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem7",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -193,14 +191,11 @@
             "icon": "lucide-user",
             "label": "Personal details",
             "to": "/profile"
-           },
-           "componentSlots": {}
+           }
           }
          ],
          "componentId": "certificate-0-sidebar1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -209,6 +204,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "certificate-0-sidebar1-container1-container3-dropdown1",
            "componentName": "Dropdown",
            "componentProps": {
@@ -236,9 +232,11 @@
                  "baseStyles": {
                   "flexShrink": "0"
                  },
+                 "children": [],
                  "classes": [
                   "portal-avatar"
                  ],
+                 "componentEvents": {},
                  "componentId": "certificate-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
                  "componentName": "Avatar",
                  "componentProps": {
@@ -246,7 +244,9 @@
                   "shape": "circle",
                   "size": "md"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 },
                 {
                  "baseStyles": {
@@ -257,6 +257,8 @@
                   "textOverflow": "ellipsis",
                   "whiteSpace": "nowrap"
                  },
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "certificate-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -265,17 +267,22 @@
                   "text": "{{ certificate.data.holder_name || '' }}"
                  },
                  "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
                  "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
                 }
                ],
                "classes": [
                 "hover:bg-surface-gray-2"
                ],
+               "componentEvents": {},
                "componentId": "certificate-0-sidebar1-container1-container3-dropdown1-trigger-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
-               "originalElement": "div"
+               "mobileStyles": {},
+               "originalElement": "div",
+               "tabletStyles": {}
               }
              ],
              "slotName": "trigger"
@@ -285,15 +292,11 @@
          ],
          "componentId": "certificate-0-sidebar1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         }
        ],
        "componentId": "certificate-0-sidebar1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
@@ -308,6 +311,7 @@
         "position": "absolute",
         "right": "-12px"
        },
+       "children": [],
        "classes": [
         "opacity-0",
         "group-hover:opacity-100",
@@ -328,8 +332,7 @@
         "label": "Toggle sidebar",
         "size": "xs",
         "variant": "ghost"
-       },
-       "componentSlots": {}
+       }
       }
      ],
      "classes": [
@@ -344,7 +347,6 @@
       },
       "width": "14rem"
      },
-     "componentSlots": {},
      "mobileStyles": {
       "display": "none"
      }
@@ -360,6 +362,7 @@
      },
      "children": [
       {
+       "children": [],
        "componentId": "certificate-0-container1-borrower_header1",
        "componentName": "borrower_header",
        "componentProps": {
@@ -371,7 +374,6 @@
         "status": "{{ certificate.data.account_status }}",
         "status_tone": "{{ certificate.data.account_tone }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
@@ -414,16 +416,17 @@
                 "color": "var(--ink-gray-9)",
                 "fontWeight": "600"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container1-container1-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-lg",
                 "tag": "h2",
                 "text": "{{ certificate.data.year_label }}"
-               },
-               "componentSlots": {}
+               }
               },
               {
+               "children": [],
                "componentId": "certificate-0-container1-container1-container1-container1-container1-badge1",
                "componentName": "Badge",
                "componentProps": {
@@ -431,44 +434,38 @@
                 "size": "md",
                 "theme": "{{ certificate.data.kind_theme }}",
                 "variant": "subtle"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container1-container1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
+             "children": [],
              "componentId": "certificate-0-container1-container1-container1-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ certificate.data.rows_note }}"
-             },
-             "componentSlots": {}
+             }
             }
            ],
            "componentId": "certificate-0-container1-container1-container1-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
            "baseStyles": {
             "flex": "1 1 auto"
            },
+           "children": [],
            "componentId": "certificate-0-container1-container1-container1-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -484,6 +481,7 @@
              "baseStyles": {
               "width": "140px"
              },
+             "children": [],
              "componentId": "certificate-0-container1-container1-container1-container3-formcontrol1",
              "componentName": "FormControl",
              "componentProps": {
@@ -493,10 +491,10 @@
               },
               "options": "{{ certificate.data.years || [] }}",
               "type": "select"
-             },
-             "componentSlots": {}
+             }
             },
             {
+             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -510,21 +508,16 @@
               "label": "Download certificate",
               "size": "sm",
               "variant": "solid"
-             },
-             "componentSlots": {}
+             }
             }
            ],
            "componentId": "certificate-0-container1-container1-container1-container3",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "certificate-0-container1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -561,14 +554,14 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
                 "text": "Interest paid"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
@@ -576,33 +569,31 @@
                 "fontVariantNumeric": "tabular-nums",
                 "fontWeight": "600"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
                 "text": "{{ certificate.data.summary.interest }}"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container1-textblock3",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "On your loans this year"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container2-container1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -620,14 +611,14 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container2-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
                 "text": "Principal repaid"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
@@ -635,33 +626,31 @@
                 "fontVariantNumeric": "tabular-nums",
                 "fontWeight": "600"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container2-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
                 "text": "{{ certificate.data.summary.principal }}"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container2-textblock3",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "Towards the amount borrowed"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container2-container1-container2",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -679,14 +668,14 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container3-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
                 "text": "Penalty and charges"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
@@ -694,33 +683,31 @@
                 "fontVariantNumeric": "tabular-nums",
                 "fontWeight": "600"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container3-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
                 "text": "{{ certificate.data.summary.other }}"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container3-textblock3",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "Late fees and other charges"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container2-container1-container3",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div",
              "visibilityCondition": "{{ certificate.data.summary.other }}"
             },
@@ -739,14 +726,14 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container4-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-sm",
                 "tag": "p",
                 "text": "Total paid"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
@@ -754,47 +741,41 @@
                 "fontVariantNumeric": "tabular-nums",
                 "fontWeight": "600"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container4-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-2xl",
                 "tag": "div",
                 "text": "{{ certificate.data.summary.total }}"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container2-container1-container4-textblock3",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "Interest, principal and charges"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container2-container1-container4",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
            "componentId": "certificate-0-container1-container1-container2-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "certificate-0-container1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -822,33 +803,31 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
+             "children": [],
              "componentId": "certificate-0-container1-container1-container3-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
               "text": "Accounts covered"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
+             "children": [],
              "componentId": "certificate-0-container1-container1-container3-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ certificate.data.accounts_note }}"
-             },
-             "componentSlots": {}
+             }
             }
            ],
            "componentId": "certificate-0-container1-container1-container3-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -885,20 +864,18 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Loan"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell1",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   },
                   {
                    "children": [
@@ -906,20 +883,18 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell2-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Interest"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell2",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   },
                   {
                    "children": [
@@ -927,20 +902,18 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell3-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Principal"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell3",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   },
                   {
                    "children": [
@@ -948,28 +921,25 @@
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell4-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-sm",
                       "tag": "p",
                       "text": "Total"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1-listheadercell4",
-                   "componentName": "ListHeaderCell",
-                   "componentProps": {},
-                   "componentSlots": {}
+                   "componentName": "ListHeaderCell"
                   }
                  ],
                  "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listheader1",
-                 "componentName": "ListHeader",
-                 "componentProps": {},
-                 "componentSlots": {}
+                 "componentName": "ListHeader"
                 },
                 {
+                 "children": [],
                  "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1",
                  "componentName": "ListRows",
                  "componentProps": {
@@ -998,6 +968,8 @@
                          "baseStyles": {
                           "fontWeight": "500"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell1-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1005,12 +977,16 @@
                           "tag": "p",
                           "text": "{{ item.label }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         },
                         {
                          "baseStyles": {
                           "color": "var(--ink-gray-6)"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell1-textblock2",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1018,21 +994,29 @@
                           "tag": "p",
                           "text": "{{ item.value }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell1",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       },
                       {
+                       "baseStyles": {},
                        "children": [
                         {
                          "baseStyles": {
                           "fontVariantNumeric": "tabular-nums",
                           "whiteSpace": "nowrap"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1040,21 +1024,29 @@
                           "tag": "p",
                           "text": "{{ item.interest }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell2",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       },
                       {
+                       "baseStyles": {},
                        "children": [
                         {
                          "baseStyles": {
                           "fontVariantNumeric": "tabular-nums",
                           "whiteSpace": "nowrap"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell3-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1062,15 +1054,21 @@
                           "tag": "p",
                           "text": "{{ item.principal }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell3",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       },
                       {
+                       "baseStyles": {},
                        "children": [
                         {
                          "baseStyles": {
@@ -1078,6 +1076,8 @@
                           "fontWeight": "500",
                           "whiteSpace": "nowrap"
                          },
+                         "children": [],
+                         "componentEvents": {},
                          "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell4-textblock1",
                          "componentName": "TextBlock",
                          "componentProps": {
@@ -1085,21 +1085,29 @@
                           "tag": "p",
                           "text": "{{ item.total }}"
                          },
-                         "componentSlots": {}
+                         "componentSlots": {},
+                         "mobileStyles": {},
+                         "tabletStyles": {}
                         }
                        ],
+                       "componentEvents": {},
                        "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1-listcell4",
                        "componentName": "ListCell",
                        "componentProps": {},
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       }
                      ],
+                     "componentEvents": {},
                      "componentId": "certificate-0-container1-container1-container3-container2-container1-list1-listrows1-default-listrow1",
                      "componentName": "ListRow",
                      "componentProps": {
                       "value": "{{ value }}"
                      },
-                     "componentSlots": {}
+                     "componentSlots": {},
+                     "mobileStyles": {},
+                     "tabletStyles": {}
                     }
                    ],
                    "slotName": "default"
@@ -1117,14 +1125,11 @@
                  "minmax(0, 1fr)"
                 ]
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ (certificate.data.accounts || []).length > 0 }}"
               }
              ],
              "componentId": "certificate-0-container1-container1-container3-container2-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -1144,96 +1149,84 @@
                 "display": "flex",
                 "flex": "0 0 auto"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container3-container2-container2-html1",
                "componentName": "HTML",
                "componentProps": {
                 "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg>"
-               },
-               "componentSlots": {}
+               }
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
+               "children": [],
                "componentId": "certificate-0-container1-container1-container3-container2-container2-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "{{ certificate.data.disclaimer }}"
-               },
-               "componentSlots": {}
+               }
               }
              ],
              "componentId": "certificate-0-container1-container1-container3-container2-container2",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div",
              "visibilityCondition": "{{ certificate.data.disclaimer }}"
             }
            ],
            "componentId": "certificate-0-container1-container1-container3-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "certificate-0-container1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         }
        ],
        "componentId": "certificate-0-container1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
+       "children": [],
        "componentId": "certificate-0-container1-borrower_footer1",
        "componentName": "borrower_footer",
        "componentProps": {
         "links": "{{ certificate.data.footer_links }}",
         "note": "{{ certificate.data.copyright_note }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "certificate-0-container1-borrower_alerts1",
        "componentName": "borrower_alerts",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "certificate-0-container1-borrower_search1",
        "componentName": "borrower_search",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       }
      ],
      "componentId": "certificate-0-container1",
      "componentName": "container",
-     "componentProps": {},
-     "componentSlots": {},
      "originalElement": "div"
     },
     {
      "baseStyles": {
       "display": "none"
      },
+     "children": [],
      "componentId": "certificate-0-html1",
      "componentName": "HTML",
      "componentProps": {
       "html": "{{ certificate.data.brand_style || '' }}"
-     },
-     "componentSlots": {}
+     }
     }
    ],
    "classes": [
@@ -1241,18 +1234,14 @@
    ],
    "componentId": "certificate-0",
    "componentName": "div",
-   "componentProps": {},
-   "componentSlots": {},
    "originalElement": "body"
   }
  ],
  "creation": "2026-09-26 23:52:26.842172",
- "docstatus": 0,
  "doctype": "Studio Page",
  "frappe_app": "lending",
- "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 18:30:07.575017",
+ "modified": "2026-10-25 17:05:12.544853",
  "modified_by": "Administrator",
  "name": "interest_certificate",
  "owner": "Administrator",
@@ -1262,8 +1251,6 @@
  "resources": [
   {
    "auto": 1,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "params": "{\"year\": \"{{ year }}\"}",
    "resource_name": "certificate",
@@ -1271,9 +1258,6 @@
    "url": "lending.portal.statement.get_certificate_page"
   },
   {
-   "auto": 0,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",
@@ -1281,5 +1265,6 @@
   }
  ],
  "route": "/certificate",
- "studio_app": "borrower-portal"
+ "studio_app": "borrower-portal",
+ "variables": []
 }

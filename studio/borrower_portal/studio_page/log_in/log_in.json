@@ -63,6 +63,7 @@
               "overflow": "hidden",
               "width": "48px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container1-imageview1",
              "componentName": "ImageView",
              "componentProps": {
@@ -71,7 +72,6 @@
               "shape": "square",
               "size": "lg"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ login.data.brand_logo }}"
             },
             {
@@ -88,6 +88,7 @@
               "justifyContent": "center",
               "width": "48px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
@@ -95,14 +96,11 @@
               "tag": "p",
               "text": "{{ login.data.brand_initial }}"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ login.data.show_wordmark }}"
             }
            ],
            "componentId": "login-0-container1-container1-container1-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -119,6 +117,7 @@
               "letterSpacing": "-0.01em",
               "marginTop": "8px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container2-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
@@ -126,7 +125,6 @@
               "tag": "h1",
               "text": "{{ login.data.heading }}"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ !codeSent }}"
             },
             {
@@ -136,6 +134,7 @@
               "letterSpacing": "-0.01em",
               "marginTop": "8px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container2-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
@@ -143,7 +142,6 @@
               "tag": "h1",
               "text": "{{ login.data.code_heading }}"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ codeSent }}"
             },
             {
@@ -151,6 +149,7 @@
               "color": "var(--ink-gray-6)",
               "fontSize": "15px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container2-textblock3",
              "componentName": "TextBlock",
              "componentProps": {
@@ -158,7 +157,6 @@
               "tag": "p",
               "text": "{{ login.data.intro }}"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ !codeSent }}"
             },
             {
@@ -166,6 +164,7 @@
               "color": "var(--ink-gray-6)",
               "fontSize": "15px"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container1-container2-textblock4",
              "componentName": "TextBlock",
              "componentProps": {
@@ -173,21 +172,16 @@
               "tag": "p",
               "text": "{{ sentNote }}"
              },
-             "componentSlots": {},
              "visibilityCondition": "{{ codeSent }}"
             }
            ],
            "componentId": "login-0-container1-container1-container1-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "login-0-container1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -201,6 +195,7 @@
            "baseStyles": {
             "width": "100%"
            },
+           "children": [],
            "componentEvents": {
             "keydown.enter": {
              "action": "Run Script",
@@ -221,8 +216,7 @@
             "size": "md",
             "type": "email",
             "variant": "outline"
-           },
-           "componentSlots": {}
+           }
           },
           {
            "baseStyles": {
@@ -237,6 +231,7 @@
               "height": "34px",
               "width": "100%"
              },
+             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -256,6 +251,9 @@
               "default": {
                "slotContent": [
                 {
+                 "baseStyles": {},
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "login-0-container1-container1-container2-container1-button1-default-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -263,7 +261,9 @@
                   "tag": "span",
                   "text": "Send verification code"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 }
                ],
                "slotName": "default"
@@ -276,6 +276,7 @@
               "height": "34px",
               "width": "100%"
              },
+             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -295,6 +296,9 @@
               "default": {
                "slotContent": [
                 {
+                 "baseStyles": {},
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "login-0-container1-container1-container2-container1-button2-default-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -302,7 +306,9 @@
                   "tag": "span",
                   "text": "Continue with Google"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 }
                ],
                "slotName": "default"
@@ -313,12 +319,16 @@
                  "baseStyles": {
                   "display": "flex"
                  },
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "login-0-container1-container1-container2-container1-button2-prefix-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 48 48\"><path fill=\"#EA4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"/><path fill=\"#4285F4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"/><path fill=\"#FBBC05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"/><path fill=\"#34A853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"/></svg>"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 }
                ],
                "slotName": "prefix"
@@ -329,15 +339,11 @@
            ],
            "componentId": "login-0-container1-container1-container2-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "login-0-container1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ !codeSent }}"
         },
@@ -359,6 +365,7 @@
              "baseStyles": {
               "width": "100%"
              },
+             "children": [],
              "componentEvents": {
               "keydown.enter": {
                "action": "Run Script",
@@ -379,27 +386,24 @@
               "size": "md",
               "type": "text",
               "variant": "outline"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-5)"
              },
+             "children": [],
              "componentId": "login-0-container1-container1-container3-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ sentHint }}"
-             },
-             "componentSlots": {}
+             }
             }
            ],
            "componentId": "login-0-container1-container1-container3-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -408,6 +412,7 @@
             "height": "34px",
             "width": "100%"
            },
+           "children": [],
            "componentEvents": {
             "click": {
              "action": "Run Script",
@@ -427,6 +432,9 @@
             "default": {
              "slotContent": [
               {
+               "baseStyles": {},
+               "children": [],
+               "componentEvents": {},
                "componentId": "login-0-container1-container1-container3-button1-default-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
@@ -434,7 +442,9 @@
                 "tag": "span",
                 "text": "Verify and log in"
                },
-               "componentSlots": {}
+               "componentSlots": {},
+               "mobileStyles": {},
+               "tabletStyles": {}
               }
              ],
              "slotName": "default"
@@ -459,6 +469,7 @@
               "textDecoration": "underline",
               "textUnderlineOffset": "3px"
              },
+             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -472,8 +483,7 @@
               "fontSize": "text-p-sm",
               "tag": "span",
               "text": "Use a different email"
-             },
-             "componentSlots": {}
+             }
             },
             {
              "baseStyles": {
@@ -491,6 +501,7 @@
                 "textDecoration": "underline",
                 "textUnderlineOffset": "3px"
                },
+               "children": [],
                "componentEvents": {
                 "click": {
                  "action": "Run Script",
@@ -505,13 +516,13 @@
                 "tag": "span",
                 "text": "Resend code"
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ resendIn <= 0 }}"
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-5)"
                },
+               "children": [],
                "componentId": "login-0-container1-container1-container3-container2-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
@@ -519,28 +530,21 @@
                 "tag": "p",
                 "text": "{{ resendLabel(resendIn) }}"
                },
-               "componentSlots": {},
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
              ],
              "componentId": "login-0-container1-container1-container3-container2-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
            "componentId": "login-0-container1-container1-container3-container2",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "login-0-container1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ codeSent }}"
         },
@@ -559,14 +563,14 @@
             "color": "var(--ink-gray-6)",
             "fontSize": "15px"
            },
+           "children": [],
            "componentId": "login-0-container1-container1-container4-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
             "fontSize": "text-p-sm",
             "tag": "p",
             "text": "New borrower?"
-           },
-           "componentSlots": {}
+           }
           },
           {
            "baseStyles": {
@@ -576,6 +580,7 @@
             "textDecoration": "underline",
             "textUnderlineOffset": "3px"
            },
+           "children": [],
            "componentEvents": {
             "click": {
              "action": "Run Script",
@@ -589,22 +594,17 @@
             "fontSize": "text-base",
             "tag": "span",
             "text": "Apply for a loan."
-           },
-           "componentSlots": {}
+           }
           }
          ],
          "componentId": "login-0-container1-container1-container4",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ login.data.show_signup && !codeSent }}"
         }
        ],
        "componentId": "login-0-container1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "mobileStyles": {
         "padding": "32px 24px"
        },
@@ -613,20 +613,18 @@
      ],
      "componentId": "login-0-container1",
      "componentName": "container",
-     "componentProps": {},
-     "componentSlots": {},
      "originalElement": "div"
     },
     {
      "baseStyles": {
       "display": "none"
      },
+     "children": [],
      "componentId": "login-0-html1",
      "componentName": "HTML",
      "componentProps": {
       "html": "{{ login.data.brand_style || '' }}"
-     },
-     "componentSlots": {}
+     }
     }
    ],
    "classes": [
@@ -634,18 +632,14 @@
    ],
    "componentId": "login-0",
    "componentName": "div",
-   "componentProps": {},
-   "componentSlots": {},
    "originalElement": "body"
   }
  ],
  "creation": "2026-09-29 12:54:32.253450",
- "docstatus": 0,
  "doctype": "Studio Page",
  "frappe_app": "lending",
- "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 18:30:07.815203",
+ "modified": "2026-10-03 02:32:10.364367",
  "modified_by": "Administrator",
  "name": "log_in",
  "owner": "Administrator",
@@ -655,8 +649,6 @@
  "resources": [
   {
    "auto": 1,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "params": "{\"redirect_to\": \"{{ route.query['redirect-to'] || '' }}\"}",
    "resource_name": "login",
@@ -665,5 +657,6 @@
   }
  ],
  "route": "/login",
- "studio_app": "borrower-portal"
+ "studio_app": "borrower-portal",
+ "variables": []
 }

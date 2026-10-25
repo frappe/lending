@@ -18,6 +18,8 @@
     "baseStyles": {
      "color": "var(--ink-gray-6)"
     },
+    "children": [],
+    "componentEvents": {},
     "componentId": "borrower_footer-0-textblock1",
     "componentName": "TextBlock",
     "componentProps": {
@@ -25,17 +27,23 @@
      "tag": "p",
      "text": "{{ inputs.note }}"
     },
-    "componentSlots": {}
+    "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {}
    },
    {
     "baseStyles": {
      "flex": "1 1 auto"
     },
+    "children": [],
+    "componentEvents": {},
     "componentId": "borrower_footer-0-container1",
     "componentName": "container",
     "componentProps": {},
     "componentSlots": {},
-    "originalElement": "div"
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
    },
    {
     "baseStyles": {
@@ -47,6 +55,7 @@
       "baseStyles": {
        "color": "var(--ink-gray-6)"
       },
+      "children": [],
       "componentEvents": {
        "click": {
         "action": "Run Script",
@@ -61,9 +70,12 @@
        "size": "sm",
        "variant": "ghost"
       },
-      "componentSlots": {}
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
      }
     ],
+    "componentEvents": {},
     "componentId": "borrower_footer-0-repeater1",
     "componentName": "Repeater",
     "componentProps": {
@@ -72,17 +84,22 @@
      "emptyStateMessage": ""
     },
     "componentSlots": {},
+    "mobileStyles": {},
+    "tabletStyles": {},
     "visibilityCondition": "{{ (inputs.links || []).length > 0 }}"
    }
   ],
   "classes": [
    "portal-footer"
   ],
+  "componentEvents": {},
   "componentId": "borrower_footer-0",
   "componentName": "container",
   "componentProps": {},
   "componentSlots": {},
-  "originalElement": "div"
+  "mobileStyles": {},
+  "originalElement": "div",
+  "tabletStyles": {}
  },
  "component_id": "borrower_footer",
  "component_name": "Borrower Footer",
@@ -105,8 +122,7 @@
   }
  ],
  "is_disabled": 0,
- "is_standard": 1,
- "modified": "2026-10-25 17:05:11.780378",
+ "modified": "2026-10-01 16:32:39.373262",
  "modified_by": "Administrator",
  "name": "borrower_footer",
  "owner": "Administrator"

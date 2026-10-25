@@ -1,5 +1,4 @@
 {
- "allow_guest": 0,
  "blocks": [
   {
    "baseStyles": {
@@ -50,6 +49,7 @@
             "overflow": "hidden",
             "width": "28px"
            },
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container1-imageview1",
            "componentName": "ImageView",
            "componentProps": {
@@ -58,7 +58,6 @@
             "shape": "square",
             "size": "lg"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ profile.data.brand_logo }}"
           },
           {
@@ -73,6 +72,7 @@
             "justifyContent": "center",
             "width": "28px"
            },
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container1-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
@@ -80,7 +80,6 @@
             "tag": "p",
             "text": "{{ profile.data.brand_initial }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ profile.data.show_wordmark }}"
           },
           {
@@ -93,6 +92,7 @@
             "textOverflow": "ellipsis",
             "whiteSpace": "nowrap"
            },
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container1-textblock2",
            "componentName": "TextBlock",
            "componentProps": {
@@ -100,14 +100,11 @@
             "tag": "p",
             "text": "{{ profile.data.brand_name || '' }}"
            },
-           "componentSlots": {},
            "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
           }
          ],
          "componentId": "profile-0-sidebar1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -120,6 +117,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem1",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -127,10 +125,10 @@
             "icon": "lucide-layout-dashboard",
             "label": "Account overview",
             "to": "/overview"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem2",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -138,10 +136,10 @@
             "icon": "lucide-wallet",
             "label": "Loan account",
             "to": "/loans"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem3",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -149,10 +147,10 @@
             "icon": "lucide-file-text",
             "label": "Application",
             "to": "/applications"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem4",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -160,10 +158,10 @@
             "icon": "lucide-shield-check",
             "label": "Loan against securities",
             "to": "/secured-loan"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem5",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -171,10 +169,10 @@
             "icon": "lucide-receipt",
             "label": "Statement of account",
             "to": "/statement"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem6",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -182,10 +180,10 @@
             "icon": "lucide-award",
             "label": "Interest certificate",
             "to": "/certificate"
-           },
-           "componentSlots": {}
+           }
           },
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container2-sidebaritem7",
            "componentName": "SidebarItem",
            "componentProps": {
@@ -193,14 +191,11 @@
             "icon": "lucide-user",
             "label": "Personal details",
             "to": "/profile"
-           },
-           "componentSlots": {}
+           }
           }
          ],
          "componentId": "profile-0-sidebar1-container1-container2",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -209,6 +204,7 @@
          },
          "children": [
           {
+           "children": [],
            "componentId": "profile-0-sidebar1-container1-container3-dropdown1",
            "componentName": "Dropdown",
            "componentProps": {
@@ -236,9 +232,11 @@
                  "baseStyles": {
                   "flexShrink": "0"
                  },
+                 "children": [],
                  "classes": [
                   "portal-avatar"
                  ],
+                 "componentEvents": {},
                  "componentId": "profile-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
                  "componentName": "Avatar",
                  "componentProps": {
@@ -246,7 +244,9 @@
                   "shape": "circle",
                   "size": "md"
                  },
-                 "componentSlots": {}
+                 "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {}
                 },
                 {
                  "baseStyles": {
@@ -257,6 +257,8 @@
                   "textOverflow": "ellipsis",
                   "whiteSpace": "nowrap"
                  },
+                 "children": [],
+                 "componentEvents": {},
                  "componentId": "profile-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
@@ -265,17 +267,22 @@
                   "text": "{{ profile.data.holder_name || '' }}"
                  },
                  "componentSlots": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
                  "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
                 }
                ],
                "classes": [
                 "hover:bg-surface-gray-2"
                ],
+               "componentEvents": {},
                "componentId": "profile-0-sidebar1-container1-container3-dropdown1-trigger-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
-               "originalElement": "div"
+               "mobileStyles": {},
+               "originalElement": "div",
+               "tabletStyles": {}
               }
              ],
              "slotName": "trigger"
@@ -285,15 +292,11 @@
          ],
          "componentId": "profile-0-sidebar1-container1-container3",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "originalElement": "div"
         }
        ],
        "componentId": "profile-0-sidebar1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
@@ -308,6 +311,7 @@
         "position": "absolute",
         "right": "-12px"
        },
+       "children": [],
        "classes": [
         "opacity-0",
         "group-hover:opacity-100",
@@ -328,8 +332,7 @@
         "label": "Toggle sidebar",
         "size": "xs",
         "variant": "ghost"
-       },
-       "componentSlots": {}
+       }
       }
      ],
      "classes": [
@@ -344,7 +347,6 @@
       },
       "width": "14rem"
      },
-     "componentSlots": {},
      "mobileStyles": {
       "display": "none"
      }
@@ -360,6 +362,7 @@
      },
      "children": [
       {
+       "children": [],
        "componentId": "profile-0-container1-borrower_header1",
        "componentName": "borrower_header",
        "componentProps": {
@@ -371,7 +374,6 @@
         "status": "{{ profile.data.account_status }}",
         "status_tone": "{{ profile.data.account_tone }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
@@ -425,6 +427,7 @@
                  "baseStyles": {
                   "flex": "0 0 auto"
                  },
+                 "children": [],
                  "classes": [
                   "portal-profile-avatar"
                  ],
@@ -434,8 +437,7 @@
                   "label": "{{ identity.customer_name }}",
                   "shape": "circle",
                   "size": "2xl"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
@@ -451,20 +453,18 @@
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600"
                    },
+                   "children": [],
                    "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-lg",
                     "tag": "h2",
                     "text": "{{ identity.customer_name }}"
-                   },
-                   "componentSlots": {}
+                   }
                   }
                  ],
                  "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -480,6 +480,7 @@
                    "baseStyles": {
                     "width": "200px"
                    },
+                   "children": [],
                    "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container2-formcontrol1",
                    "componentName": "FormControl",
                    "componentProps": {
@@ -490,10 +491,10 @@
                     "options": "{{ profile.data.customer_options || [] }}",
                     "type": "select"
                    },
-                   "componentSlots": {},
                    "visibilityCondition": "{{ (profile.data?.customer_options || []).length > 1 }}"
                   },
                   {
+                   "children": [],
                    "componentEvents": {
                     "click": {
                      "action": "Run Script",
@@ -512,6 +513,9 @@
                     "default": {
                      "slotContent": [
                       {
+                       "baseStyles": {},
+                       "children": [],
+                       "componentEvents": {},
                        "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container2-button1-default-textblock1",
                        "componentName": "TextBlock",
                        "componentProps": {
@@ -519,7 +523,9 @@
                         "tag": "span",
                         "text": "Edit"
                        },
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       }
                      ],
                      "slotName": "default"
@@ -532,12 +538,16 @@
                         "display": "flex",
                         "flex": "0 0 auto"
                        },
+                       "children": [],
+                       "componentEvents": {},
                        "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container2-button1-prefix-html1",
                        "componentName": "HTML",
                        "componentProps": {
                         "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z\"/></svg>"
                        },
-                       "componentSlots": {}
+                       "componentSlots": {},
+                       "mobileStyles": {},
+                       "tabletStyles": {}
                       }
                      ],
                      "slotName": "prefix"
@@ -546,6 +556,7 @@
                    "visibilityCondition": "{{ !editing }}"
                   },
                   {
+                   "children": [],
                    "componentEvents": {
                     "click": {
                      "action": "Run Script",
@@ -560,10 +571,10 @@
                     "size": "sm",
                     "variant": "subtle"
                    },
-                   "componentSlots": {},
                    "visibilityCondition": "{{ editing }}"
                   },
                   {
+                   "children": [],
                    "componentEvents": {
                     "click": {
                      "action": "Run Script",
@@ -580,34 +591,26 @@
                     "size": "sm",
                     "variant": "solid"
                    },
-                   "componentSlots": {},
                    "visibilityCondition": "{{ editing }}"
                   }
                  ],
                  "componentId": "profile-0-container1-container1-container1-container1-container1-container1-container2",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "profile-0-container1-container1-container1-container1-container1-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "originalElement": "div"
               },
               {
+               "children": [],
                "componentId": "profile-0-container1-container1-container1-container1-container1-divider1",
-               "componentName": "Divider",
-               "componentProps": {},
-               "componentSlots": {}
+               "componentName": "Divider"
               }
              ],
              "componentId": "profile-0-container1-container1-container1-container1-container1",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -638,12 +641,12 @@
                   "justifyContent": "center",
                   "width": "32px"
                  },
+                 "children": [],
                  "componentId": "profile-0-container1-container1-container1-container1-container2-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M16 22a4 4 0 0 0-8 0\"/><circle cx=\"12\" cy=\"15\" r=\"3\"/></svg>"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
@@ -666,33 +669,31 @@
                       "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-base",
                       "tag": "h3",
                       "text": "Basic information"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container1-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-p-sm",
                       "tag": "p",
                       "text": "This information is fetched from your verified records."
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -704,6 +705,7 @@
                    },
                    "children": [
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container2-formcontrol1",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -716,10 +718,10 @@
                       "placeholder": "Not on record",
                       "size": "md",
                       "type": "text"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container2-formcontrol2",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -732,10 +734,10 @@
                       "placeholder": "Not on record",
                       "size": "md",
                       "type": "text"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container2-formcontrol3",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -748,44 +750,34 @@
                       "placeholder": "Not on record",
                       "size": "md",
                       "type": "text"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1-container2",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   }
                  ],
                  "componentId": "profile-0-container1-container1-container1-container1-container2-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "profile-0-container1-container1-container1-container1-container2-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "mobileStyles": {
                 "gap": "10px"
                },
                "originalElement": "div"
               },
               {
+               "children": [],
                "componentId": "profile-0-container1-container1-container1-container1-container2-divider1",
-               "componentName": "Divider",
-               "componentProps": {},
-               "componentSlots": {}
+               "componentName": "Divider"
               }
              ],
              "componentId": "profile-0-container1-container1-container1-container1-container2",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -816,12 +808,12 @@
                   "justifyContent": "center",
                   "width": "32px"
                  },
+                 "children": [],
                  "componentId": "profile-0-container1-container1-container1-container1-container3-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384\"/></svg>"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
@@ -844,33 +836,31 @@
                       "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-base",
                       "tag": "h3",
                       "text": "Contact information"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container1-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-p-sm",
                       "tag": "p",
                       "text": "Update your contact details."
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -882,6 +872,7 @@
                    },
                    "children": [
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container2-formcontrol1",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -895,10 +886,10 @@
                       "size": "md",
                       "type": "email",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container2-formcontrol2",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -912,10 +903,10 @@
                       "size": "md",
                       "type": "tel",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container2-formcontrol3",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -929,44 +920,34 @@
                       "size": "md",
                       "type": "tel",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1-container2",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   }
                  ],
                  "componentId": "profile-0-container1-container1-container1-container1-container3-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "profile-0-container1-container1-container1-container1-container3-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "mobileStyles": {
                 "gap": "10px"
                },
                "originalElement": "div"
               },
               {
+               "children": [],
                "componentId": "profile-0-container1-container1-container1-container1-container3-divider1",
-               "componentName": "Divider",
-               "componentProps": {},
-               "componentSlots": {}
+               "componentName": "Divider"
               }
              ],
              "componentId": "profile-0-container1-container1-container1-container1-container3",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -997,12 +978,12 @@
                   "justifyContent": "center",
                   "width": "32px"
                  },
+                 "children": [],
                  "componentId": "profile-0-container1-container1-container1-container1-container4-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/></svg>"
-                 },
-                 "componentSlots": {}
+                 }
                 },
                 {
                  "baseStyles": {
@@ -1025,33 +1006,31 @@
                       "color": "var(--ink-gray-9)",
                       "fontWeight": "600"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container1-textblock1",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-base",
                       "tag": "h3",
                       "text": "Address"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
                      "baseStyles": {
                       "color": "var(--ink-gray-6)"
                      },
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container1-textblock2",
                      "componentName": "TextBlock",
                      "componentProps": {
                       "fontSize": "text-p-sm",
                       "tag": "p",
                       "text": "Enter your current address."
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container1",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   },
                   {
@@ -1063,6 +1042,7 @@
                    },
                    "children": [
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol1",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1076,10 +1056,10 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol2",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1093,10 +1073,10 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol3",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1110,10 +1090,10 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol4",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1127,10 +1107,10 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol5",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1144,10 +1124,10 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     },
                     {
+                     "children": [],
                      "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2-formcontrol6",
                      "componentName": "FormControl",
                      "componentProps": {
@@ -1161,28 +1141,21 @@
                       "size": "md",
                       "type": "text",
                       "variant": "subtle"
-                     },
-                     "componentSlots": {}
+                     }
                     }
                    ],
                    "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1-container2",
                    "componentName": "container",
-                   "componentProps": {},
-                   "componentSlots": {},
                    "originalElement": "div"
                   }
                  ],
                  "componentId": "profile-0-container1-container1-container1-container1-container4-container1-container1",
                  "componentName": "container",
-                 "componentProps": {},
-                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "profile-0-container1-container1-container1-container1-container4-container1",
                "componentName": "container",
-               "componentProps": {},
-               "componentSlots": {},
                "mobileStyles": {
                 "gap": "10px"
                },
@@ -1191,22 +1164,16 @@
              ],
              "componentId": "profile-0-container1-container1-container1-container1-container4",
              "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
              "originalElement": "div"
             }
            ],
            "componentId": "profile-0-container1-container1-container1-container1",
            "componentName": "container",
-           "componentProps": {},
-           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "profile-0-container1-container1-container1",
          "componentName": "container",
-         "componentProps": {},
-         "componentSlots": {},
          "mobileStyles": {
           "padding": "12px 14px"
          },
@@ -1215,51 +1182,45 @@
        ],
        "componentId": "profile-0-container1-container1",
        "componentName": "container",
-       "componentProps": {},
-       "componentSlots": {},
        "originalElement": "div"
       },
       {
+       "children": [],
        "componentId": "profile-0-container1-borrower_footer1",
        "componentName": "borrower_footer",
        "componentProps": {
         "links": "{{ profile.data.footer_links }}",
         "note": "{{ profile.data.copyright_note }}"
        },
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "profile-0-container1-borrower_alerts1",
        "componentName": "borrower_alerts",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       },
       {
+       "children": [],
        "componentId": "profile-0-container1-borrower_search1",
        "componentName": "borrower_search",
-       "componentProps": {},
-       "componentSlots": {},
        "isStudioComponent": true
       }
      ],
      "componentId": "profile-0-container1",
      "componentName": "container",
-     "componentProps": {},
-     "componentSlots": {},
      "originalElement": "div"
     },
     {
      "baseStyles": {
       "display": "none"
      },
+     "children": [],
      "componentId": "profile-0-html1",
      "componentName": "HTML",
      "componentProps": {
       "html": "{{ profile.data.brand_style || '' }}"
-     },
-     "componentSlots": {}
+     }
     }
    ],
    "classes": [
@@ -1267,18 +1228,14 @@
    ],
    "componentId": "profile-0",
    "componentName": "div",
-   "componentProps": {},
-   "componentSlots": {},
    "originalElement": "body"
   }
  ],
  "creation": "2026-09-26 23:52:26.970588",
- "docstatus": 0,
  "doctype": "Studio Page",
  "frappe_app": "lending",
- "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 18:30:07.643126",
+ "modified": "2026-10-25 17:05:12.607491",
  "modified_by": "Administrator",
  "name": "personal_details",
  "owner": "Administrator",
@@ -1288,17 +1245,12 @@
  "resources": [
   {
    "auto": 1,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "resource_name": "profile",
    "resource_type": "API Resource",
    "url": "lending.portal.profile.get_profile_page"
   },
   {
-   "auto": 0,
-   "fetch_document_using_filters": 0,
-   "limit": 0,
    "method": "GET",
    "resource_name": "alerts",
    "resource_type": "API Resource",
@@ -1306,5 +1258,6 @@
   }
  ],
  "route": "/profile",
- "studio_app": "borrower-portal"
+ "studio_app": "borrower-portal",
+ "variables": []
 }

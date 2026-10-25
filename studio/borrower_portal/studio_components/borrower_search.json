@@ -1,5 +1,6 @@
 {
  "block": {
+  "baseStyles": {},
   "children": [
    {
     "baseStyles": {
@@ -12,12 +13,16 @@
       "baseStyles": {
        "display": "none"
       },
+      "children": [],
+      "componentEvents": {},
       "componentId": "borrower_search-0-container1-html1",
       "componentName": "HTML",
       "componentProps": {
        "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid var(--outline-gray-1);\n\tborder-radius: 12px;\n\tbox-shadow: var(--elevation-md);\n\tbackground-color: var(--surface-base);\n}\n</style></div>"
       },
-      "componentSlots": {}
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
      },
      {
       "baseStyles": {
@@ -37,18 +42,24 @@
          "flex": "0 0 auto",
          "padding": "0 2px 0 10px"
         },
+        "children": [],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container1-html1",
         "componentName": "HTML",
         "componentProps": {
          "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/></svg>"
         },
-        "componentSlots": {}
+        "componentSlots": {},
+        "mobileStyles": {},
+        "tabletStyles": {}
        },
        {
         "baseStyles": {
          "flex": "1",
          "minWidth": "0px"
         },
+        "children": [],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container1-textinput1",
         "componentName": "TextInput",
         "componentProps": {
@@ -60,25 +71,34 @@
          "size": "sm",
          "variant": "ghost"
         },
-        "componentSlots": {}
+        "componentSlots": {},
+        "mobileStyles": {},
+        "tabletStyles": {}
        }
       ],
+      "componentEvents": {},
       "componentId": "borrower_search-0-container1-container1",
       "componentName": "container",
       "componentProps": {},
       "componentSlots": {},
-      "originalElement": "div"
+      "mobileStyles": {},
+      "originalElement": "div",
+      "tabletStyles": {}
      },
      {
       "baseStyles": {
        "backgroundColor": "var(--outline-gray-1)",
        "height": "1px"
       },
+      "children": [],
+      "componentEvents": {},
       "componentId": "borrower_search-0-container1-container2",
       "componentName": "container",
       "componentProps": {},
       "componentSlots": {},
-      "originalElement": "div"
+      "mobileStyles": {},
+      "originalElement": "div",
+      "tabletStyles": {}
      },
      {
       "baseStyles": {
@@ -112,6 +132,8 @@
            "lineHeight": "19.5px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-repeater1-container1-textblock1",
           "componentName": "TextBlock",
           "componentProps": {
@@ -119,7 +141,9 @@
            "tag": "p",
            "text": "{{ dataItem.title }}"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -131,6 +155,8 @@
            "paddingLeft": "4px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-repeater1-container1-textblock2",
           "componentName": "TextBlock",
           "componentProps": {
@@ -138,17 +164,23 @@
            "tag": "p",
            "text": "{{ dataItem.kind }}"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
            "flex": "1 1 auto"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-repeater1-container1-container1",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "originalElement": "div"
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -162,6 +194,8 @@
            "textOverflow": "ellipsis",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-repeater1-container1-textblock3",
           "componentName": "TextBlock",
           "componentProps": {
@@ -169,7 +203,9 @@
            "tag": "p",
            "text": "{{ dataItem.note }}"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          }
         ],
         "componentEvents": {
@@ -188,9 +224,12 @@
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "originalElement": "div"
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
        }
       ],
+      "componentEvents": {},
       "componentId": "borrower_search-0-container1-repeater1",
       "componentName": "Repeater",
       "componentProps": {
@@ -198,7 +237,9 @@
        "dataKey": "url",
        "emptyStateMessage": "Nothing matches that"
       },
-      "componentSlots": {}
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
      },
      {
       "baseStyles": {
@@ -238,19 +279,26 @@
              "display": "flex",
              "flex": "0 0 auto"
             },
+            "children": [],
+            "componentEvents": {},
             "componentId": "borrower_search-0-container1-container3-container1-container1-html1",
             "componentName": "HTML",
             "componentProps": {
              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/></svg>"
             },
-            "componentSlots": {}
+            "componentSlots": {},
+            "mobileStyles": {},
+            "tabletStyles": {}
            }
           ],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container1-container1",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "originalElement": "div"
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -270,19 +318,26 @@
              "display": "flex",
              "flex": "0 0 auto"
             },
+            "children": [],
+            "componentEvents": {},
             "componentId": "borrower_search-0-container1-container3-container1-container2-html1",
             "componentName": "HTML",
             "componentProps": {
              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14\"/><path d=\"m19 12-7 7-7-7\"/></svg>"
             },
-            "componentSlots": {}
+            "componentSlots": {},
+            "mobileStyles": {},
+            "tabletStyles": {}
            }
           ],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container1-container2",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "originalElement": "div"
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -292,6 +347,8 @@
            "lineHeight": "18px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container1-textblock1",
           "componentName": "TextBlock",
           "componentProps": {
@@ -299,14 +356,19 @@
            "tag": "p",
            "text": "to navigate"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          }
         ],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container3-container1",
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "originalElement": "div"
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
        },
        {
         "baseStyles": {
@@ -335,19 +397,26 @@
              "display": "flex",
              "flex": "0 0 auto"
             },
+            "children": [],
+            "componentEvents": {},
             "componentId": "borrower_search-0-container1-container3-container2-container1-html1",
             "componentName": "HTML",
             "componentProps": {
              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 4v7a4 4 0 0 1-4 4H4\"/><path d=\"m9 10-5 5 5 5\"/></svg>"
             },
-            "componentSlots": {}
+            "componentSlots": {},
+            "mobileStyles": {},
+            "tabletStyles": {}
            }
           ],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container2-container1",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "originalElement": "div"
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -357,6 +426,8 @@
            "lineHeight": "18px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container2-textblock1",
           "componentName": "TextBlock",
           "componentProps": {
@@ -364,14 +435,19 @@
            "tag": "p",
            "text": "to select"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          }
         ],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container3-container2",
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "originalElement": "div"
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
        },
        {
         "baseStyles": {
@@ -394,6 +470,8 @@
            "padding": "2px 4px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container3-textblock1",
           "componentName": "TextBlock",
           "componentProps": {
@@ -401,7 +479,9 @@
            "tag": "p",
            "text": "Ctrl+K"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          },
          {
           "baseStyles": {
@@ -411,6 +491,8 @@
            "lineHeight": "18px",
            "whiteSpace": "nowrap"
           },
+          "children": [],
+          "componentEvents": {},
           "componentId": "borrower_search-0-container1-container3-container3-textblock2",
           "componentName": "TextBlock",
           "componentProps": {
@@ -418,24 +500,33 @@
            "tag": "p",
            "text": "to close"
           },
-          "componentSlots": {}
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
          }
         ],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container3-container3",
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "originalElement": "div"
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
        },
        {
         "baseStyles": {
          "flex": "1 1 auto"
         },
+        "children": [],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container3-container4",
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "originalElement": "div"
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
        },
        {
         "baseStyles": {
@@ -448,6 +539,8 @@
          "textOverflow": "ellipsis",
          "whiteSpace": "nowrap"
         },
+        "children": [],
+        "componentEvents": {},
         "componentId": "borrower_search-0-container1-container3-textblock1",
         "componentName": "TextBlock",
         "componentProps": {
@@ -455,23 +548,32 @@
          "tag": "p",
          "text": "{{ searchNote }}"
         },
-        "componentSlots": {}
+        "componentSlots": {},
+        "mobileStyles": {},
+        "tabletStyles": {}
        }
       ],
+      "componentEvents": {},
       "componentId": "borrower_search-0-container1-container3",
       "componentName": "container",
       "componentProps": {},
       "componentSlots": {},
-      "originalElement": "div"
+      "mobileStyles": {},
+      "originalElement": "div",
+      "tabletStyles": {}
      }
     ],
+    "componentEvents": {},
     "componentId": "borrower_search-0-container1",
     "componentName": "container",
     "componentProps": {},
     "componentSlots": {},
-    "originalElement": "div"
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
    }
   ],
+  "componentEvents": {},
   "componentId": "borrower_search-0",
   "componentName": "Dialog",
   "componentProps": {
@@ -484,7 +586,9 @@
    "position": "top",
    "title": "Borrower search"
   },
-  "componentSlots": {}
+  "componentSlots": {},
+  "mobileStyles": {},
+  "tabletStyles": {}
  },
  "component_id": "borrower_search",
  "component_name": "Borrower Search",
@@ -492,9 +596,9 @@
  "docstatus": 0,
  "doctype": "Studio Component",
  "idx": 0,
+ "inputs": [],
  "is_disabled": 0,
- "is_standard": 1,
- "modified": "2026-10-25 17:05:11.772173",
+ "modified": "2026-10-01 15:44:38.188710",
  "modified_by": "Administrator",
  "name": "borrower_search",
  "owner": "Administrator"
