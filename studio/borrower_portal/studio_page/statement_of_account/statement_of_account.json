@@ -154,6 +154,17 @@
            "componentId": "statement-0-sidebar1-container1-container2-sidebaritem4",
            "componentName": "SidebarItem",
            "componentProps": {
+            "active": "{{ isActive('/secured-loan') }}",
+            "icon": "lucide-shield-check",
+            "label": "Loan against securities",
+            "to": "/secured-loan"
+           }
+          },
+          {
+           "children": [],
+           "componentId": "statement-0-sidebar1-container1-container2-sidebaritem5",
+           "componentName": "SidebarItem",
+           "componentProps": {
             "active": "{{ isActive('/statement') }}",
             "icon": "lucide-receipt",
             "label": "Statement of account",
@@ -162,7 +173,7 @@
           },
           {
            "children": [],
-           "componentId": "statement-0-sidebar1-container1-container2-sidebaritem5",
+           "componentId": "statement-0-sidebar1-container1-container2-sidebaritem6",
            "componentName": "SidebarItem",
            "componentProps": {
             "active": "{{ isActive('/certificate') }}",
@@ -173,7 +184,7 @@
           },
           {
            "children": [],
-           "componentId": "statement-0-sidebar1-container1-container2-sidebaritem6",
+           "componentId": "statement-0-sidebar1-container1-container2-sidebaritem7",
            "componentName": "SidebarItem",
            "componentProps": {
             "active": "{{ isActive('/profile') }}",
@@ -1282,7 +1293,7 @@
  "doctype": "Studio Page",
  "frappe_app": "lending",
  "is_standard": 1,
- "modified": "2026-10-03 02:32:10.187932",
+ "modified": "2026-10-25 17:05:12.498590",
  "modified_by": "Administrator",
  "name": "statement_of_account",
  "owner": "Administrator",

@@ -50,12 +50,14 @@ class LoanApplication(Document):
 		applicant_name: DF.Data | None
 		applicant_phone_number: DF.Phone | None
 		applicant_type: DF.Literal["Employee", "Customer"]
+		bank_account: DF.Link | None
 		city: DF.Data | None
 		co_applicants: DF.Table[LoanCoApplicants]
 		company: DF.Link
 		decision: DF.Link | None
 		country: DF.Link | None
 		documents: DF.Table[LoanApplicationDocument]
+		esign_reference: DF.Data | None
 		is_secured_loan: DF.Check
 		is_term_loan: DF.Check
 		loan_amount: DF.Currency
@@ -63,12 +65,15 @@ class LoanApplication(Document):
 		loan_product: DF.Link
 		loan_purpose: DF.Link | None
 		maximum_loan_amount: DF.Currency
+		portal_collateral: DF.Literal["", "Mutual Funds", "Shares", "Gold", "Vehicle"]
 		posting_date: DF.Date
 		proposed_pledges: DF.Table[ProposedPledge]
 		rate_of_interest: DF.Percent
 		repayment_amount: DF.Currency
 		repayment_method: DF.Literal["", "Repay Fixed Amount per Period", "Repay Over Number of Periods"]
 		repayment_periods: DF.Int
+		sanction_letter: DF.Attach | None
+		signed_on: DF.Datetime | None
 		state: DF.Data | None
 		status: DF.Literal["Open", "Approved", "Rejected"]
 		total_payable_amount: DF.Currency
@@ -370,6 +375,8 @@ def create_loan_security_assignment(loan_application: str | None = None, loan: s
 				"qty": pledge.get("qty"),
 				"loan_security_price": pledge.get("loan_security_price"),
 				"haircut": pledge.get("haircut"),
+				"mutual_fund_holding": pledge.get("mutual_fund_holding"),
+				"purchase_date": pledge.get("purchase_date"),
 			},
 		)
 

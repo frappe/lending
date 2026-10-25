@@ -15,6 +15,10 @@ _BUILTIN_ADAPTERS = ()
 _SAMPLE_ADAPTERS = (
 	"lending.collateral.mutual_fund.sample.SampleRegistryAdapter",
 	"lending.collateral.mutual_fund.sample.SampleNavAdapter",
+	"lending.loan_integrations.sample_verification.SamplePanAdapter",
+	"lending.loan_integrations.sample_verification.SampleKycAdapter",
+	"lending.loan_integrations.sample_verification.SampleBankVerificationAdapter",
+	"lending.loan_integrations.sample_verification.SampleESignAdapter",
 )
 
 

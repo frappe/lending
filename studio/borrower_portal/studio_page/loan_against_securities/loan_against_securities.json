@@ -1,0 +1,3686 @@
+{
+ "allow_guest": 0,
+ "blocks": [
+  {
+   "baseStyles": {
+    "color": "var(--ink-gray-8)",
+    "display": "flex",
+    "flexDirection": "row",
+    "height": "100%",
+    "overflowX": "hidden",
+    "scrollbarColor": "var(--outline-gray-3) transparent",
+    "scrollbarWidth": "thin",
+    "width": "100%"
+   },
+   "blockName": "body",
+   "children": [
+    {
+     "baseStyles": {
+      "borderRight": "1px solid var(--outline-gray-1)",
+      "overflowX": "visible",
+      "position": "relative"
+     },
+     "children": [
+      {
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "height": "100%",
+        "padding": "0.5rem"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "flexShrink": "0",
+          "gap": "8px",
+          "height": "48px",
+          "justifyContent": "center",
+          "marginTop": "-8px",
+          "padding": "0 6px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "borderRadius": "6px",
+            "flexShrink": "0",
+            "height": "28px",
+            "overflow": "hidden",
+            "width": "28px"
+           },
+           "componentId": "secured_loan-0-sidebar1-container1-container1-imageview1",
+           "componentName": "ImageView",
+           "componentProps": {
+            "alt": "",
+            "image": "{{ securedLoan.data.brand_logo }}",
+            "shape": "square",
+            "size": "lg"
+           },
+           "componentSlots": {},
+           "visibilityCondition": "{{ securedLoan.data.brand_logo }}"
+          },
+          {
+           "baseStyles": {
+            "alignItems": "center",
+            "backgroundColor": "var(--portal-primary, var(--surface-gray-4))",
+            "borderRadius": "6px",
+            "color": "var(--portal-primary-ink, var(--ink-gray-8))",
+            "display": "flex",
+            "flexShrink": "0",
+            "height": "28px",
+            "justifyContent": "center",
+            "width": "28px"
+           },
+           "componentId": "secured_loan-0-sidebar1-container1-container1-textblock1",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-base",
+            "tag": "p",
+            "text": "{{ securedLoan.data.brand_initial }}"
+           },
+           "componentSlots": {},
+           "visibilityCondition": "{{ securedLoan.data.show_wordmark }}"
+          },
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-8)",
+            "flex": "1 1 0%",
+            "fontWeight": "500",
+            "minWidth": "0px",
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "whiteSpace": "nowrap"
+           },
+           "componentId": "secured_loan-0-sidebar1-container1-container1-textblock2",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-base",
+            "tag": "p",
+            "text": "{{ securedLoan.data.brand_name || '' }}"
+           },
+           "componentSlots": {},
+           "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
+          }
+         ],
+         "componentId": "secured_loan-0-sidebar1-container1-container1",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "flex": "1 1 0%",
+          "margin": "0 -4px",
+          "overflowX": "hidden",
+          "overflowY": "auto",
+          "padding": "2px 4px"
+         },
+         "children": [
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem1",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/overview') }}",
+            "icon": "lucide-layout-dashboard",
+            "label": "Account overview",
+            "to": "/overview"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem2",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/loans', '/loan/') }}",
+            "icon": "lucide-wallet",
+            "label": "Loan account",
+            "to": "/loans"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem3",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/applications', '/application/') }}",
+            "icon": "lucide-file-text",
+            "label": "Application",
+            "to": "/applications"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem4",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/secured-loan') }}",
+            "icon": "lucide-shield-check",
+            "label": "Loan against securities",
+            "to": "/secured-loan"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem5",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/statement') }}",
+            "icon": "lucide-receipt",
+            "label": "Statement of account",
+            "to": "/statement"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem6",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/certificate') }}",
+            "icon": "lucide-award",
+            "label": "Interest certificate",
+            "to": "/certificate"
+           },
+           "componentSlots": {}
+          },
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container2-sidebaritem7",
+           "componentName": "SidebarItem",
+           "componentProps": {
+            "active": "{{ isActive('/profile') }}",
+            "icon": "lucide-user",
+            "label": "Personal details",
+            "to": "/profile"
+           },
+           "componentSlots": {}
+          }
+         ],
+         "componentId": "secured_loan-0-sidebar1-container1-container2",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "marginTop": "auto"
+         },
+         "children": [
+          {
+           "componentId": "secured_loan-0-sidebar1-container1-container3-dropdown1",
+           "componentName": "Dropdown",
+           "componentProps": {
+            "align": "start",
+            "options": "{{ accountMenu(securedLoan.data.can_switch) || [] }}",
+            "side": "top"
+           },
+           "componentSlots": {
+            "trigger": {
+             "slotContent": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "borderRadius": "8px",
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px",
+                "height": "32px",
+                "justifyContent": "center",
+                "padding": "0 6px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flexShrink": "0"
+                 },
+                 "classes": [
+                  "portal-avatar"
+                 ],
+                 "componentId": "secured_loan-0-sidebar1-container1-container3-dropdown1-trigger-container1-avatar1",
+                 "componentName": "Avatar",
+                 "componentProps": {
+                  "label": "{{ securedLoan.data.holder_name || '' }}",
+                  "shape": "circle",
+                  "size": "md"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-8)",
+                  "flex": "1 1 0%",
+                  "minWidth": "0px",
+                  "overflow": "hidden",
+                  "textOverflow": "ellipsis",
+                  "whiteSpace": "nowrap"
+                 },
+                 "componentId": "secured_loan-0-sidebar1-container1-container3-dropdown1-trigger-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-sm",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.holder_name || '' }}"
+                 },
+                 "componentSlots": {},
+                 "visibilityCondition": "{{ typeof sidebarCollapsed === 'undefined' || !sidebarCollapsed }}"
+                }
+               ],
+               "classes": [
+                "hover:bg-surface-gray-2"
+               ],
+               "componentId": "secured_loan-0-sidebar1-container1-container3-dropdown1-trigger-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "slotName": "trigger"
+            }
+           }
+          }
+         ],
+         "componentId": "secured_loan-0-sidebar1-container1-container3",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        }
+       ],
+       "componentId": "secured_loan-0-sidebar1-container1",
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "originalElement": "div"
+      },
+      {
+       "baseStyles": {
+        "backgroundColor": "var(--surface-sidebar)",
+        "borderColor": "var(--outline-gray-1)",
+        "borderRadius": "9999px",
+        "borderStyle": "solid",
+        "borderWidth": "1px",
+        "bottom": "80px",
+        "boxShadow": "var(--elevation-sm)",
+        "position": "absolute",
+        "right": "-12px"
+       },
+       "classes": [
+        "opacity-0",
+        "group-hover:opacity-100",
+        "transition-opacity",
+        "hover:!bg-surface-gray-2"
+       ],
+       "componentEvents": {
+        "click": {
+         "action": "Run Script",
+         "event": "click",
+         "script": "sidebarCollapsed.value = !sidebarCollapsed.value"
+        }
+       },
+       "componentId": "secured_loan-0-sidebar1-button1",
+       "componentName": "Button",
+       "componentProps": {
+        "icon": "{{ typeof sidebarCollapsed !== 'undefined' && sidebarCollapsed ? 'lucide-chevron-right' : 'lucide-chevron-left' }}",
+        "label": "Toggle sidebar",
+        "size": "xs",
+        "variant": "ghost"
+       },
+       "componentSlots": {}
+      }
+     ],
+     "classes": [
+      "group"
+     ],
+     "componentId": "secured_loan-0-sidebar1",
+     "componentName": "Sidebar",
+     "componentProps": {
+      "collapsed": {
+       "$type": "variable",
+       "name": "sidebarCollapsed"
+      },
+      "width": "14rem"
+     },
+     "componentSlots": {},
+     "mobileStyles": {
+      "display": "none"
+     }
+    },
+    {
+     "baseStyles": {
+      "display": "flex",
+      "flex": "1",
+      "flexDirection": "column",
+      "height": "100%",
+      "minWidth": "0px",
+      "overflowY": "auto"
+     },
+     "children": [
+      {
+       "componentId": "secured_loan-0-container1-borrower_header1",
+       "componentName": "borrower_header",
+       "componentProps": {
+        "action_label": "",
+        "action_route": "",
+        "breadcrumbs": "{{ securedLoan.data.breadcrumbs }}",
+        "crumb": "{{ securedLoan.data.crumb }}",
+        "note": "{{ securedLoan.data.head_note }}",
+        "status": "{{ securedLoan.data.account_status }}",
+        "status_tone": "{{ securedLoan.data.account_tone }}"
+       },
+       "componentSlots": {},
+       "isStudioComponent": true
+      },
+      {
+       "baseStyles": {
+        "display": "flex",
+        "flex": "1",
+        "flexDirection": "column",
+        "gap": "16px",
+        "padding": "20px",
+        "width": "100%"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "padding": "20px 12px 16px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "row",
+            "overflowX": "auto",
+            "paddingBottom": "4px",
+            "width": "100%"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flex": "1 1 0%",
+              "flexDirection": "column",
+              "gap": "8px",
+              "minWidth": "76px",
+              "position": "relative"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+                "height": "2px",
+                "left": "50%",
+                "position": "absolute",
+                "top": "13.0px",
+                "width": "100%"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.key !== 'loan' && dataItem.state === 'done' }}"
+              },
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--outline-gray-2)",
+                "height": "2px",
+                "left": "50%",
+                "position": "absolute",
+                "top": "13.0px",
+                "width": "100%"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.key !== 'loan' && dataItem.state !== 'done' }}"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+                "borderRadius": "9999px",
+                "color": "var(--portal-primary-ink, var(--ink-base))",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexShrink": "0",
+                "gap": "8px",
+                "height": "28px",
+                "justifyContent": "center",
+                "position": "relative",
+                "width": "28px",
+                "zIndex": "1"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flex": "0 0 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.state === 'done' }}"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-base)",
+                "border": "2px solid var(--portal-primary, var(--surface-gray-9))",
+                "borderRadius": "9999px",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexShrink": "0",
+                "gap": "8px",
+                "height": "28px",
+                "justifyContent": "center",
+                "position": "relative",
+                "width": "28px",
+                "zIndex": "1"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+                  "borderRadius": "9999px",
+                  "height": "10px",
+                  "width": "10px"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.state === 'now' }}"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-base)",
+                "border": "2px solid var(--outline-gray-3)",
+                "borderRadius": "9999px",
+                "display": "flex",
+                "flexShrink": "0",
+                "height": "28px",
+                "justifyContent": "center",
+                "position": "relative",
+                "width": "28px",
+                "zIndex": "1"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.state === 'todo' }}"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-8)",
+                "fontWeight": "500",
+                "textAlign": "center"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-xs",
+                "tag": "p",
+                "text": "{{ dataItem.label }}"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ dataItem.state !== 'todo' }}"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-5)",
+                "textAlign": "center"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-xs",
+                "tag": "p",
+                "text": "{{ dataItem.label }}"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ dataItem.state === 'todo' }}"
+              }
+             ],
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "viewStep(dataItem)"
+              }
+             },
+             "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container1-repeater1",
+           "componentName": "Repeater",
+           "componentProps": {
+            "data": "{{ securedLoan.data.steps || [] }}",
+            "dataKey": "key",
+            "emptyStateMessage": ""
+           },
+           "componentSlots": {}
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container1",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container2-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Registration"
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container2-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container2-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container2-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "You are signed in as {{ securedLoan.data.customer_name }}."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container2-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container2-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container2",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'registration' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container3-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Verify your PAN"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container3-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "We check it against the Income Tax records. It must be in your own name."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container3-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container3-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container3-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "PAN {{ securedLoan.data.pan.pan }} is verified, in the name of {{ securedLoan.data.pan.name }}."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container3-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.pan?.verified }}"
+            },
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "14px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "display": "grid",
+                "gap": "12px",
+                "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+                "maxWidth": "560px"
+               },
+               "children": [
+                {
+                 "componentId": "secured_loan-0-container1-container1-container3-container2-container2-container1-formcontrol1",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "PAN",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "pan"
+                  },
+                  "placeholder": "ABCDE1234F",
+                  "size": "md",
+                  "type": "text",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container3-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "mobileStyles": {
+                "gridTemplateColumns": "minmax(0, 1fr)"
+               },
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flex": "1 1 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container3-container2-container2-container2-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "componentEvents": {
+                  "click": {
+                   "action": "Run Script",
+                   "event": "click",
+                   "script": "verifyPan()"
+                  }
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container3-container2-container2-container2-button1",
+                 "componentName": "Button",
+                 "componentProps": {
+                  "disabled": "{{ !(pan.length === 10) }}",
+                  "label": "Verify PAN",
+                  "loading": "{{ busy }}",
+                  "size": "md",
+                  "variant": "solid"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container3-container2-container2-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container3-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !securedLoan.data?.pan?.verified }}"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container3-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container3",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'pan' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container4-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Check what you can borrow"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container4-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "We fetch your mutual fund holdings from the registrars, CAMS and KFintech, with your consent."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container4-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "display": "grid",
+              "gap": "12px",
+              "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+              "maxWidth": "560px"
+             },
+             "children": [
+              {
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container1-formcontrol1",
+               "componentName": "FormControl",
+               "componentProps": {
+                "label": "What would you like to borrow against?",
+                "modelValue": {
+                 "$type": "variable",
+                 "name": "collateral"
+                },
+                "options": "{{ securedLoan.data.collaterals || [] }}",
+                "size": "md",
+                "type": "select",
+                "variant": "subtle"
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": "6px"
+               },
+               "children": [
+                {
+                 "componentId": "secured_loan-0-container1-container1-container4-container2-container1-container1-formcontrol1",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "OTP",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "holdingsOtp"
+                  },
+                  "placeholder": "6 digits",
+                  "size": "md",
+                  "type": "password",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container4-container2-container1-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Sent to the mobile number registered with your mutual funds."
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ holdingsRequest }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container4-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "mobileStyles": {
+              "gridTemplateColumns": "minmax(0, 1fr)"
+             },
+             "originalElement": "div"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendHoldingsOtp()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container2-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Send OTP",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !holdingsRequest }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendHoldingsOtp()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container2-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Resend OTP",
+                "size": "md",
+                "variant": "subtle"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ holdingsRequest }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "fetchHoldings()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container4-container2-container2-button3",
+               "componentName": "Button",
+               "componentProps": {
+                "disabled": "{{ !(holdingsOtp.length >= 4) }}",
+                "label": "Fetch my funds",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ holdingsRequest }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container4-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container4-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container4",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'eligibility' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container5-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Your vault"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container5-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "Choose the funds to pledge. You keep the units and their returns; we only mark a lien on them."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container5-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "stretch",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": "12px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--surface-base)",
+                "borderColor": "var(--outline-gray-2)",
+                "borderRadius": "var(--radius-4)",
+                "borderStyle": "solid",
+                "borderWidth": "1px",
+                "display": "flex",
+                "flex": "1 1 200px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "padding": "16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Portfolio value"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container1-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-2xl",
+                  "tag": "div",
+                  "text": "{{ securedLoan.data.totals.value }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--surface-base)",
+                "borderColor": "var(--outline-gray-2)",
+                "borderRadius": "var(--radius-4)",
+                "borderStyle": "solid",
+                "borderWidth": "1px",
+                "display": "flex",
+                "flex": "1 1 200px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "padding": "16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container2-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "You can borrow up to"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container2-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-2xl",
+                  "tag": "div",
+                  "text": "{{ securedLoan.data.totals.eligible }}"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container2-textblock3",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "After the haircut on each fund"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--surface-base)",
+                "borderColor": "var(--outline-gray-2)",
+                "borderRadius": "var(--radius-4)",
+                "borderStyle": "solid",
+                "borderWidth": "1px",
+                "display": "flex",
+                "flex": "1 1 200px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "padding": "16px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container3-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Rate of interest"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container3-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-2xl",
+                  "tag": "div",
+                  "text": "{{ securedLoan.data.product.rate }}"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container3-textblock3",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.product.label }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container1-container3",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container5-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            },
+            {
+             "componentId": "secured_loan-0-container1-container1-container5-container2-alert1",
+             "componentName": "Alert",
+             "componentProps": {
+              "theme": "orange",
+              "title": "{{ notApproved.length }} of your funds are not on our approved list, so they are not shown."
+             },
+             "componentSlots": {},
+             "visibilityCondition": "{{ notApproved.length }}"
+            },
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "backgroundColor": "var(--surface-base)",
+                "borderColor": "var(--outline-gray-2)",
+                "borderRadius": "var(--radius-4)",
+                "borderStyle": "solid",
+                "borderWidth": "1px",
+                "cursor": "pointer",
+                "flex": "1",
+                "padding": "16px",
+                "position": "relative",
+                "userSelect": "none"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "backgroundColor": "var(--surface-gray-1)",
+                  "border": "2px solid var(--outline-gray-9)",
+                  "borderRadius": "calc(var(--radius-4) + 1px)",
+                  "inset": "-1px",
+                  "pointerEvents": "none",
+                  "position": "absolute"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div",
+                 "visibilityCondition": "{{ chosen.includes(dataItem.holding) }}"
+                },
+                {
+                 "baseStyles": {
+                  "alignItems": "start",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": "12px",
+                  "position": "relative",
+                  "width": "100%"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "display": "flex",
+                    "flex": "1 1 auto",
+                    "flexDirection": "column",
+                    "gap": "2px",
+                    "minWidth": "0px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-9)",
+                      "fontWeight": "600"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container1-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-base",
+                      "tag": "p",
+                      "text": "{{ dataItem.scheme }}"
+                     },
+                     "componentSlots": {}
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container1-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "Folio {{ dataItem.folio }} \u00b7 {{ dataItem.units }} units at {{ dataItem.nav_label }}"
+                     },
+                     "componentSlots": {}
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-amber-7, var(--ink-gray-6))"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container1-textblock3",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "{{ dataItem.note }}"
+                     },
+                     "componentSlots": {},
+                     "visibilityCondition": "{{ dataItem.note }}"
+                    }
+                   ],
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container1",
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "alignItems": "flex-end",
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "gap": "2px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "fontWeight": "600",
+                      "textAlign": "right"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container2-textblock1",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-base",
+                      "tag": "p",
+                      "text": "{{ dataItem.eligible_label }}"
+                     },
+                     "componentSlots": {}
+                    },
+                    {
+                     "baseStyles": {
+                      "color": "var(--ink-gray-6)",
+                      "textAlign": "right"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container2-textblock2",
+                     "componentName": "TextBlock",
+                     "componentProps": {
+                      "fontSize": "text-p-sm",
+                      "tag": "p",
+                      "text": "of {{ dataItem.value_label }} \u00b7 {{ dataItem.haircut_label }}"
+                     },
+                     "componentSlots": {}
+                    }
+                   ],
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container2",
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "flex": "1 1 auto"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container3",
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "originalElement": "div"
+                  },
+                  {
+                   "baseStyles": {
+                    "border": "1.5px solid var(--outline-gray-3)",
+                    "borderRadius": "9999px",
+                    "flexShrink": "0",
+                    "height": "20px",
+                    "justifyContent": "center",
+                    "width": "20px"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container4",
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "originalElement": "div",
+                   "visibilityCondition": "{{ !(chosen.includes(dataItem.holding)) }}"
+                  },
+                  {
+                   "baseStyles": {
+                    "alignItems": "center",
+                    "backgroundColor": "var(--surface-gray-9)",
+                    "borderRadius": "9999px",
+                    "color": "var(--ink-base)",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexShrink": "0",
+                    "gap": "8px",
+                    "height": "20px",
+                    "justifyContent": "center",
+                    "width": "20px"
+                   },
+                   "children": [
+                    {
+                     "baseStyles": {
+                      "alignItems": "center",
+                      "display": "flex",
+                      "flex": "0 0 auto"
+                     },
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container5-html1",
+                     "componentName": "HTML",
+                     "componentProps": {
+                      "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+                     },
+                     "componentSlots": {}
+                    }
+                   ],
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-container5",
+                   "componentName": "container",
+                   "componentProps": {},
+                   "componentSlots": {},
+                   "originalElement": "div",
+                   "visibilityCondition": "{{ chosen.includes(dataItem.holding) }}"
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                }
+               ],
+               "classes": [
+                "transition",
+                "duration-150",
+                "hover:!border-outline-gray-4",
+                "hover:shadow-sm",
+                "active:scale-[0.98]"
+               ],
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "toggle(dataItem)"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1",
+             "componentName": "Repeater",
+             "componentProps": {
+              "data": "{{ securedLoan.data.holdings || [] }}",
+              "dataKey": "holding",
+              "emptyStateMessage": "No funds yet. Check your eligibility first."
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "refetch()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container2-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Fetch my funds again",
+                "size": "sm",
+                "variant": "ghost"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container5-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !sent }}"
+            },
+            {
+             "baseStyles": {
+              "display": "grid",
+              "gap": "12px",
+              "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+              "maxWidth": "560px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": "6px"
+               },
+               "children": [
+                {
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-formcontrol1",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "disabled": "{{ sent }}",
+                  "label": "Loan amount",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "loanAmount"
+                  },
+                  "placeholder": "{{ 'Up to ' + money(limit) }}",
+                  "size": "md",
+                  "type": "number",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": "6px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "{{ 'Selected funds let you borrow up to ' + money(limit) }}"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "cursor": "pointer",
+                    "fontWeight": "500",
+                    "whiteSpace": "nowrap"
+                   },
+                   "componentEvents": {
+                    "click": {
+                     "action": "Run Script",
+                     "event": "click",
+                     "script": "useLimit()"
+                    }
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Use this"
+                   },
+                   "componentSlots": {},
+                   "visibilityCondition": "{{ !sent && limit > 0 }}"
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container3-formcontrol1",
+               "componentName": "FormControl",
+               "componentProps": {
+                "disabled": "{{ sent }}",
+                "label": "Repay over",
+                "modelValue": {
+                 "$type": "variable",
+                 "name": "tenure"
+                },
+                "options": [
+                 {
+                  "label": "6 months",
+                  "value": "6"
+                 },
+                 {
+                  "label": "12 months",
+                  "value": "12"
+                 },
+                 {
+                  "label": "18 months",
+                  "value": "18"
+                 },
+                 {
+                  "label": "24 months",
+                  "value": "24"
+                 },
+                 {
+                  "label": "36 months",
+                  "value": "36"
+                 }
+                ],
+                "size": "md",
+                "type": "select",
+                "variant": "subtle"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ securedLoan.data?.product?.asks_tenure }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container5-container2-container3",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "mobileStyles": {
+              "gridTemplateColumns": "minmax(0, 1fr)"
+             },
+             "originalElement": "div"
+            },
+            {
+             "componentId": "secured_loan-0-container1-container1-container5-container2-alert2",
+             "componentName": "Alert",
+             "componentProps": {
+              "theme": "blue",
+              "title": "Your application {{ securedLoan.data.application.name }} is sent, so these units are fixed."
+             },
+             "componentSlots": {},
+             "visibilityCondition": "{{ sent }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container4-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "startApplication()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container5-container2-container4-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "disabled": "{{ !(canApply) }}",
+                "label": "Continue",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !sent }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container5-container2-container4",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container5-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container5",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'vault' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container6-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Complete your KYC"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container6-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "Share your Aadhaar and PAN from DigiLocker. It takes a minute, and no documents need uploading."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container6-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "KYC is complete, as {{ securedLoan.data.kyc.name }}."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container6-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.kyc?.verified }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "12px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-gray-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-gray-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "40px",
+                "justifyContent": "center",
+                "width": "40px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container2-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": "2px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container6-container2-container2-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "p",
+                  "text": "DigiLocker"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container6-container2-container2-container1-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "You will sign in to DigiLocker and allow us to read the two documents."
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container6-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !securedLoan.data?.kyc?.verified }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container3-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "completeKyc()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container3-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "I have finished",
+                "size": "md",
+                "variant": "subtle"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ securedLoan.data?.kyc?.status === 'Pending' }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "startKyc()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container6-container2-container3-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Verify with DigiLocker",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !securedLoan.data?.kyc?.verified }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container6-container2-container3",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container6-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container6",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'kyc' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container7-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Pledge your units"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container7-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "The registrar marks a lien on these units in our favour. Approve it with the OTP it sends you."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container7-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "The lien is marked on your units."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.pledge?.marked }}"
+            },
+            {
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "borderBottom": "1px solid var(--outline-gray-1)",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "12px",
+                "padding": "10px 0"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 auto",
+                  "flexDirection": "column",
+                  "gap": "2px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "fontWeight": "500"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-base",
+                    "tag": "p",
+                    "text": "{{ dataItem.scheme }}"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container1-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "{{ dataItem.units }} units"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Lien {{ dataItem.lien }}"
+                 },
+                 "componentSlots": {},
+                 "visibilityCondition": "{{ dataItem.lien }}"
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1",
+             "componentName": "Repeater",
+             "componentProps": {
+              "data": "{{ securedLoan.data.pledge.lines || [] }}",
+              "dataKey": "scheme",
+              "emptyStateMessage": ""
+             },
+             "componentSlots": {},
+             "visibilityCondition": "{{ securedLoan.data?.pledge?.marked }}"
+            },
+            {
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "borderBottom": "1px solid var(--outline-gray-1)",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "12px",
+                "padding": "10px 0"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "display": "flex",
+                  "flex": "1 1 auto",
+                  "flexDirection": "column",
+                  "gap": "2px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "fontWeight": "500"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-base",
+                    "tag": "p",
+                    "text": "{{ dataItem.scheme }}"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container1-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "{{ dataItem.units }} units"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "{{ dataItem.value }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2",
+             "componentName": "Repeater",
+             "componentProps": {
+              "data": "{{ securedLoan.data.application.pledges || [] }}",
+              "dataKey": "scheme",
+              "emptyStateMessage": ""
+             },
+             "componentSlots": {},
+             "visibilityCondition": "{{ !securedLoan.data?.pledge?.marked }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "Loan amount"
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "fontWeight": "600"
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "{{ securedLoan.data.application.loan_amount }}"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !securedLoan.data?.pledge?.marked }}"
+            },
+            {
+             "baseStyles": {
+              "display": "grid",
+              "gap": "12px",
+              "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+              "maxWidth": "560px"
+             },
+             "children": [
+              {
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container3-formcontrol1",
+               "componentName": "FormControl",
+               "componentProps": {
+                "label": "OTP",
+                "modelValue": {
+                 "$type": "variable",
+                 "name": "pledgeOtp"
+                },
+                "placeholder": "6 digits",
+                "size": "md",
+                "type": "password",
+                "variant": "subtle"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-container3",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "mobileStyles": {
+              "gridTemplateColumns": "minmax(0, 1fr)"
+             },
+             "originalElement": "div",
+             "visibilityCondition": "{{ pledgeSent && !securedLoan.data?.pledge?.marked }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container4-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendPledgeOtp()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container4-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Send OTP",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !pledgeSent && !securedLoan.data?.pledge?.marked }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendPledgeOtp()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container4-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Resend OTP",
+                "size": "md",
+                "variant": "subtle"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ pledgeSent && !securedLoan.data?.pledge?.marked }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "confirmPledge()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container4-button3",
+               "componentName": "Button",
+               "componentProps": {
+                "disabled": "{{ !(pledgeOtp.length >= 4) }}",
+                "label": "Pledge units",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ pledgeSent && !securedLoan.data?.pledge?.marked }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container7-container2-container4",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container7-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container7",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'pledge' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container8-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Where should we pay the loan?"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container8-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "We deposit \u20b91 to check the account is yours. It must be in your own name."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container8-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "{{ securedLoan.data.bank.bank }} account {{ securedLoan.data.bank.account }} is verified."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container8-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.bank?.account }}"
+            },
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "14px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "display": "grid",
+                "gap": "12px",
+                "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+                "maxWidth": "560px"
+               },
+               "children": [
+                {
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol1",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "Account number",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "accountNumber"
+                  },
+                  "placeholder": "Your savings account",
+                  "size": "md",
+                  "type": "text",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol2",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "IFSC",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "ifsc"
+                  },
+                  "placeholder": "HDFC0001234",
+                  "size": "md",
+                  "type": "text",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "mobileStyles": {
+                "gridTemplateColumns": "minmax(0, 1fr)"
+               },
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flex": "1 1 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "componentEvents": {
+                  "click": {
+                   "action": "Run Script",
+                   "event": "click",
+                   "script": "saveBank()"
+                  }
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-button1",
+                 "componentName": "Button",
+                 "componentProps": {
+                  "disabled": "{{ !(accountNumber.length >= 9 && ifsc.length === 11) }}",
+                  "label": "Verify account",
+                  "loading": "{{ busy }}",
+                  "size": "md",
+                  "variant": "solid"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container8-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !securedLoan.data?.bank?.account }}"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container8-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container8",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'bank' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container9-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Sign your sanction letter"
+             },
+             "componentSlots": {}
+            },
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-6)"
+             },
+             "componentId": "secured_loan-0-container1-container1-container9-container1-textblock2",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-p-sm",
+              "tag": "p",
+              "text": "It sets out the loan's terms and the units pledged. Sign it with an OTP sent to your Aadhaar-linked mobile."
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container9-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-green-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-green-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "28px",
+                "justifyContent": "center",
+                "width": "28px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "You signed the sanction letter on {{ securedLoan.data.esign.signed_on }}."
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container9-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.esign?.signed_on }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "12px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-gray-2)",
+                "borderRadius": "var(--radius-5)",
+                "color": "var(--ink-gray-8)",
+                "display": "flex",
+                "flex": "0 0 auto",
+                "height": "40px",
+                "justifyContent": "center",
+                "width": "40px"
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container2-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": "2px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container9-container2-container2-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "p",
+                  "text": "Sanction letter"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container9-container2-container2-container1-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.application.name }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container2-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "window.open(securedLoan.data?.esign?.letter, '_blank')"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container2-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Read the letter",
+                "size": "md",
+                "variant": "subtle"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container9-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.esign?.letter }}"
+            },
+            {
+             "baseStyles": {
+              "display": "grid",
+              "gap": "12px",
+              "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
+              "maxWidth": "560px"
+             },
+             "children": [
+              {
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container3-formcontrol1",
+               "componentName": "FormControl",
+               "componentProps": {
+                "label": "Aadhaar OTP",
+                "modelValue": {
+                 "$type": "variable",
+                 "name": "esignOtp"
+                },
+                "placeholder": "6 digits",
+                "size": "md",
+                "type": "password",
+                "variant": "subtle"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container9-container2-container3",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "mobileStyles": {
+              "gridTemplateColumns": "minmax(0, 1fr)"
+             },
+             "originalElement": "div",
+             "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
+            },
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "flex": "1 1 auto"
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "sendEsignOtp()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button1",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Get the letter and OTP",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !esignSent && !securedLoan.data?.esign?.signed_on }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "confirmEsign()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "disabled": "{{ !(esignOtp.length >= 4) }}",
+                "label": "Sign",
+                "loading": "{{ busy }}",
+                "size": "md",
+                "variant": "solid"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container9-container2-container4",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container9-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container9",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'esign' }}"
+        },
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "12px",
+          "padding": "20px 24px"
+         },
+         "children": [
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "2px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "color": "var(--ink-gray-9)",
+              "fontWeight": "600"
+             },
+             "componentId": "secured_loan-0-container1-container1-container10-container1-textblock1",
+             "componentName": "TextBlock",
+             "componentProps": {
+              "fontSize": "text-lg",
+              "tag": "h2",
+              "text": "Your loan"
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container10-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "14px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "14px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "10px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-green-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-green-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "28px",
+                  "justifyContent": "center",
+                  "width": "28px"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container1-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "p",
+                  "text": "Your loan {{ securedLoan.data.loan.name }} is open."
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexWrap": "wrap",
+                "gap": "12px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "backgroundColor": "var(--surface-base)",
+                  "borderColor": "var(--outline-gray-2)",
+                  "borderRadius": "var(--radius-4)",
+                  "borderStyle": "solid",
+                  "borderWidth": "1px",
+                  "display": "flex",
+                  "flex": "1 1 200px",
+                  "flexDirection": "column",
+                  "gap": "2px",
+                  "padding": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container1-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Sanctioned"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "fontWeight": "600"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container1-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-2xl",
+                    "tag": "div",
+                    "text": "{{ securedLoan.data.loan.amount }}"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "backgroundColor": "var(--surface-base)",
+                  "borderColor": "var(--outline-gray-2)",
+                  "borderRadius": "var(--radius-4)",
+                  "borderStyle": "solid",
+                  "borderWidth": "1px",
+                  "display": "flex",
+                  "flex": "1 1 200px",
+                  "flexDirection": "column",
+                  "gap": "2px",
+                  "padding": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container2-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Rate of interest"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "fontWeight": "600"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container2-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-2xl",
+                    "tag": "div",
+                    "text": "{{ securedLoan.data.loan.rate }}"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container2",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "baseStyles": {
+                  "backgroundColor": "var(--surface-base)",
+                  "borderColor": "var(--outline-gray-2)",
+                  "borderRadius": "var(--radius-4)",
+                  "borderStyle": "solid",
+                  "borderWidth": "1px",
+                  "display": "flex",
+                  "flex": "1 1 200px",
+                  "flexDirection": "column",
+                  "gap": "2px",
+                  "padding": "16px"
+                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container3-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "Status"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-9)",
+                    "fontWeight": "600"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container3-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-2xl",
+                    "tag": "div",
+                    "text": "{{ securedLoan.data.loan.status }}"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2-container3",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flex": "1 1 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container3-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "componentEvents": {
+                  "click": {
+                   "action": "Run Script",
+                   "event": "click",
+                   "script": "open(securedLoan.data.loan.url)"
+                  }
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container3-button1",
+                 "componentName": "Button",
+                 "componentProps": {
+                  "label": "Go to my loan",
+                  "loading": "{{ busy }}",
+                  "size": "md",
+                  "variant": "solid"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container1-container3",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container10-container2-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ securedLoan.data?.loan?.name }}"
+            },
+            {
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "10px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-9)",
+                "fontWeight": "600"
+               },
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container2-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-lg",
+                "tag": "h3",
+                "text": "Your application is with our team"
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container2-textblock2",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-p-sm",
+                "tag": "p",
+                "text": "Everything is signed. We will approve the loan and let you know, usually within a working day."
+               },
+               "componentSlots": {}
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "flex": "1 1 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container2-container1-container1",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
+                },
+                {
+                 "componentEvents": {
+                  "click": {
+                   "action": "Run Script",
+                   "event": "click",
+                   "script": "open(securedLoan.data.application.url)"
+                  }
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container10-container2-container2-container1-button1",
+                 "componentName": "Button",
+                 "componentProps": {
+                  "label": "Track my application",
+                  "size": "md",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container10-container2-container2-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container10-container2-container2",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div",
+             "visibilityCondition": "{{ !securedLoan.data?.loan?.name && securedLoan.data?.esign?.signed_on }}"
+            }
+           ],
+           "componentId": "secured_loan-0-container1-container1-container10-container2",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "secured_loan-0-container1-container1-container10",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div",
+         "visibilityCondition": "{{ shown === 'loan' }}"
+        }
+       ],
+       "componentId": "secured_loan-0-container1-container1",
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "originalElement": "div"
+      },
+      {
+       "componentId": "secured_loan-0-container1-borrower_footer1",
+       "componentName": "borrower_footer",
+       "componentProps": {
+        "links": "{{ securedLoan.data.footer_links }}",
+        "note": "{{ securedLoan.data.copyright_note }}"
+       },
+       "componentSlots": {},
+       "isStudioComponent": true
+      },
+      {
+       "componentId": "secured_loan-0-container1-borrower_alerts1",
+       "componentName": "borrower_alerts",
+       "componentProps": {},
+       "componentSlots": {},
+       "isStudioComponent": true
+      },
+      {
+       "componentId": "secured_loan-0-container1-borrower_search1",
+       "componentName": "borrower_search",
+       "componentProps": {},
+       "componentSlots": {},
+       "isStudioComponent": true
+      }
+     ],
+     "componentId": "secured_loan-0-container1",
+     "componentName": "container",
+     "componentProps": {},
+     "componentSlots": {},
+     "originalElement": "div"
+    },
+    {
+     "baseStyles": {
+      "display": "none"
+     },
+     "componentId": "secured_loan-0-html1",
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ securedLoan.data.brand_style || '' }}"
+     },
+     "componentSlots": {}
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "componentId": "secured_loan-0",
+   "componentName": "div",
+   "componentProps": {},
+   "componentSlots": {},
+   "originalElement": "body"
+  }
+ ],
+ "creation": "2026-10-25 16:37:33.520826",
+ "docstatus": 0,
+ "doctype": "Studio Page",
+ "frappe_app": "lending",
+ "idx": 0,
+ "is_standard": 1,
+ "modified": "2026-10-25 17:05:12.323160",
+ "modified_by": "Administrator",
+ "name": "loan_against_securities",
+ "owner": "Administrator",
+ "page_name": "page-274996a9",
+ "page_title": "Loan against securities",
+ "published": 1,
+ "resources": [
+  {
+   "auto": 1,
+   "fetch_document_using_filters": 0,
+   "limit": 0,
+   "method": "GET",
+   "resource_name": "securedLoan",
+   "resource_type": "API Resource",
+   "url": "lending.portal.secured.get_secured_loan"
+  },
+  {
+   "auto": 0,
+   "fetch_document_using_filters": 0,
+   "limit": 0,
+   "method": "GET",
+   "resource_name": "alerts",
+   "resource_type": "API Resource",
+   "url": "lending.portal.notifications.get_notifications"
+  }
+ ],
+ "route": "/secured-loan",
+ "studio_app": "borrower-portal"
+}

@@ -1,0 +1,579 @@
+{
+ "route": "/register",
+ "blocks": [
+  {
+   "componentName": "div",
+   "componentProps": {},
+   "componentSlots": {},
+   "componentEvents": {},
+   "baseStyles": {
+    "display": "flex",
+    "flexDirection": "column",
+    "width": "100%",
+    "height": "100%",
+    "color": "var(--ink-gray-8)",
+    "overflowX": "hidden",
+    "scrollbarWidth": "thin",
+    "scrollbarColor": "var(--outline-gray-3) transparent"
+   },
+   "mobileStyles": {},
+   "tabletStyles": {},
+   "children": [
+    {
+     "componentName": "container",
+     "componentProps": {},
+     "componentSlots": {},
+     "componentEvents": {},
+     "baseStyles": {
+      "display": "flex",
+      "flexDirection": "column",
+      "width": "100%",
+      "height": "100%",
+      "overflowY": "auto",
+      "backgroundColor": "var(--surface-gray-1)"
+     },
+     "mobileStyles": {},
+     "tabletStyles": {},
+     "children": [
+      {
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "componentEvents": {},
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "row",
+        "alignItems": "center",
+        "gap": "12px",
+        "height": "54px",
+        "padding": "0 44px 0 56px",
+        "flexShrink": "0",
+        "width": "100%",
+        "borderWidth": "0px 0px 1px 0px",
+        "borderStyle": "solid",
+        "borderColor": "var(--portal-primary-soft, var(--outline-gray-2))",
+        "backgroundColor": "var(--portal-primary-soft, var(--surface-base))"
+       },
+       "mobileStyles": {
+        "padding": "12px 16px",
+        "gap": "4px"
+       },
+       "tabletStyles": {},
+       "children": [
+        {
+         "componentName": "ImageView",
+         "componentProps": {
+          "image": "{{ register.data.brand_logo }}",
+          "alt": "",
+          "shape": "square",
+          "size": "lg"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "overflow": "hidden"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ register.data.brand_logo }}",
+         "componentId": "register-0-container1-container1-imageview1"
+        },
+        {
+         "componentName": "TextBlock",
+         "componentProps": {
+          "text": "{{ register.data.brand_initial }}",
+          "tag": "p",
+          "fontSize": "text-base"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "center",
+          "fontSize": "15px",
+          "fontWeight": "700",
+          "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+          "color": "var(--portal-primary-ink, var(--ink-base))"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ register.data.show_wordmark }}",
+         "componentId": "register-0-container1-container1-textblock1"
+        },
+        {
+         "componentName": "TextBlock",
+         "componentProps": {
+          "text": "{{ register.data.brand_name }}",
+          "tag": "span",
+          "fontSize": "text-base"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "fontSize": "17px",
+          "fontWeight": "600",
+          "letterSpacing": "0em",
+          "whiteSpace": "nowrap",
+          "color": "var(--ink-gray-9)",
+          "marginLeft": "2px"
+         },
+         "mobileStyles": {
+          "display": "none"
+         },
+         "tabletStyles": {},
+         "children": [],
+         "componentId": "register-0-container1-container1-textblock2"
+        },
+        {
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "flex": "1 1 auto"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "originalElement": "div",
+         "componentId": "register-0-container1-container1-container1"
+        },
+        {
+         "componentName": "Button",
+         "componentProps": {
+          "label": "Log in",
+          "variant": "{{ register.data.brand_style ? 'solid' : 'outline' }}",
+          "size": "md"
+         },
+         "componentSlots": {
+          "default": {
+           "slotName": "default",
+           "slotContent": [
+            {
+             "componentName": "TextBlock",
+             "componentProps": {
+              "text": "Log in",
+              "tag": "span",
+              "fontSize": "text-base"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "fontSize": "15px",
+              "lineHeight": "20px",
+              "letterSpacing": "0em"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container1-button1-default-textblock1"
+            }
+           ]
+          },
+          "prefix": {
+           "slotName": "prefix",
+           "slotContent": [
+            {
+             "componentName": "HTML",
+             "componentProps": {
+              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "display": "flex",
+              "alignItems": "center",
+              "flex": "0 0 auto"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container1-button1-prefix-html1"
+            }
+           ]
+          }
+         },
+         "componentEvents": {
+          "click": {
+           "event": "click",
+           "action": "Run Script",
+           "script": "open('/login')"
+          }
+         },
+         "baseStyles": {
+          "height": "35px",
+          "padding": "0 14px",
+          "borderRadius": "8px"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "componentId": "register-0-container1-container1-button1"
+        }
+       ],
+       "originalElement": "div",
+       "classes": [
+        "portal-header"
+       ],
+       "componentId": "register-0-container1-container1"
+      },
+      {
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "componentEvents": {},
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "16px",
+        "padding": "clamp(16px, 3.6vh, 40px) 20px",
+        "width": "100%",
+        "maxWidth": "560px",
+        "margin": "0 auto",
+        "flex": "1 0 auto"
+       },
+       "mobileStyles": {
+        "padding": "24px 16px"
+       },
+       "tabletStyles": {},
+       "children": [
+        {
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "16px",
+          "padding": "24px",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "backgroundColor": "var(--surface-base)"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [
+          {
+           "componentName": "TextBlock",
+           "componentProps": {
+            "text": "Open your account",
+            "tag": "h2",
+            "fontSize": "text-2xl"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "fontWeight": "600",
+            "color": "var(--ink-gray-9)"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "register-0-container1-container2-container1-textblock1"
+          },
+          {
+           "componentName": "TextBlock",
+           "componentProps": {
+            "text": "Borrow against your mutual funds, entirely online. Start with your mobile number.",
+            "tag": "p",
+            "fontSize": "text-p-sm"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "color": "var(--ink-gray-6)"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "register-0-container1-container2-container1-textblock2"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "12px"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "FormControl",
+             "componentProps": {
+              "type": "tel",
+              "label": "Mobile number",
+              "size": "md",
+              "variant": "subtle",
+              "placeholder": "98765 43210",
+              "modelValue": {
+               "$type": "variable",
+               "name": "mobileNumber"
+              }
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container2-container1-container1-formcontrol1"
+            },
+            {
+             "componentName": "FormControl",
+             "componentProps": {
+              "type": "password",
+              "label": "OTP",
+              "size": "md",
+              "variant": "subtle",
+              "placeholder": "6 digits",
+              "modelValue": {
+               "$type": "variable",
+               "name": "otp"
+              }
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "visibilityCondition": "{{ codeSent }}",
+             "componentId": "register-0-container1-container2-container1-container1-formcontrol2"
+            }
+           ],
+           "visibilityCondition": "{{ !token }}",
+           "originalElement": "div",
+           "componentId": "register-0-container1-container2-container1-container1"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "12px"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "Alert",
+             "componentProps": {
+              "title": "Mobile number verified.",
+              "theme": "green"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container2-container1-container2-alert1"
+            },
+            {
+             "componentName": "FormControl",
+             "componentProps": {
+              "type": "text",
+              "label": "Full name, as on your PAN",
+              "size": "md",
+              "variant": "subtle",
+              "placeholder": "Ananya Rao",
+              "modelValue": {
+               "$type": "variable",
+               "name": "fullName"
+              }
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container2-container1-container2-formcontrol1"
+            },
+            {
+             "componentName": "FormControl",
+             "componentProps": {
+              "type": "email",
+              "label": "Email",
+              "size": "md",
+              "variant": "subtle",
+              "placeholder": "you@example.com",
+              "modelValue": {
+               "$type": "variable",
+               "name": "email"
+              }
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "register-0-container1-container2-container1-container2-formcontrol2"
+            }
+           ],
+           "visibilityCondition": "{{ token }}",
+           "originalElement": "div",
+           "componentId": "register-0-container1-container2-container1-container2"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "row",
+            "alignItems": "center",
+            "gap": "8px"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "flex": "1 1 auto"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "originalElement": "div",
+             "componentId": "register-0-container1-container2-container1-container3-container1"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Send OTP",
+              "variant": "solid",
+              "size": "md",
+              "loading": "{{ busy }}"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "sendCode()"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "visibilityCondition": "{{ !codeSent && !token }}",
+             "componentId": "register-0-container1-container2-container1-container3-button1"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Verify",
+              "variant": "solid",
+              "size": "md",
+              "loading": "{{ busy }}"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "confirmCode()"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "visibilityCondition": "{{ codeSent && !token }}",
+             "componentId": "register-0-container1-container2-container1-container3-button2"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Open my account",
+              "variant": "solid",
+              "size": "md",
+              "loading": "{{ busy }}",
+              "disabled": "{{ !(fullName && email) }}"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "register()"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "visibilityCondition": "{{ token }}",
+             "componentId": "register-0-container1-container2-container1-container3-button3"
+            }
+           ],
+           "originalElement": "div",
+           "componentId": "register-0-container1-container2-container1-container3"
+          }
+         ],
+         "originalElement": "div",
+         "componentId": "register-0-container1-container2-container1"
+        }
+       ],
+       "originalElement": "div",
+       "componentId": "register-0-container1-container2"
+      }
+     ],
+     "originalElement": "div",
+     "componentId": "register-0-container1"
+    },
+    {
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ register.data.brand_style || '' }}"
+     },
+     "componentSlots": {},
+     "componentEvents": {},
+     "baseStyles": {
+      "display": "none"
+     },
+     "mobileStyles": {},
+     "tabletStyles": {},
+     "children": [],
+     "componentId": "register-0-html1"
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "originalElement": "body",
+   "blockName": "body",
+   "componentId": "register-0"
+  }
+ ],
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst mobileNumber = ref(\"\")\n\tconst otp = ref(\"\")\n\tconst fullName = ref(\"\")\n\tconst email = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\n\tconst busy = ref(false)\n\tconst token = ref(\"\")\n\tconst codeSent = ref(false)\n\tconst fail = (error: any) => toast.error(String(error?.messages?.[0] || error?.message || error))\n\tconst sendCode = () => {\n\t\tbusy.value = true\n\t\tcall(\"lending.portal.apply.send_mobile_code\", { mobile_number: mobileNumber.value })\n\t\t\t.then((result: any) => { codeSent.value = true; toast.success(result.message) })\n\t\t\t.catch(fail)\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\tconst confirmCode = () => {\n\t\tbusy.value = true\n\t\tcall(\"lending.portal.apply.confirm_mobile_code\", { mobile_number: mobileNumber.value, otp: otp.value })\n\t\t\t.then((result: any) => {\n\t\t\t\tif (!result.verified) { toast.error(result.message); return }\n\t\t\t\ttoken.value = result.token\n\t\t\t})\n\t\t\t.catch(fail)\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\tconst register = () => {\n\t\tbusy.value = true\n\t\tcall(\"lending.portal.secured.register\", { token: token.value, full_name: fullName.value, email: email.value })\n\t\t\t.then((result: any) => { window.location.href = router.resolve(result.redirect).href })\n\t\t\t.catch(fail)\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, mobileNumber, otp, fullName, email, busy, token, codeSent, sendCode, confirmCode, register }\n}\n"
+}

@@ -3,11 +3,11 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, now_datetime
 
 from lending.loan_integrations import log
 from lending.loan_integrations.adapters import get_adapter
-from lending.loan_integrations.base import BaseAdapter
+from lending.loan_integrations.base import BaseAdapter, Refused
 
 SETTINGS = "Lending Settings"
 REGISTRY = "Mutual Fund Registry"
@@ -63,11 +63,12 @@ def get_adapter_key(fieldname):
 	return frappe.db.get_single_value(SETTINGS, fieldname)
 
 
-def call(fieldname, operation, context, doc):
+def call(fieldname, operation, context, doc, refuse=False):
 	"""Log every call as an Integration Request, then return the adapter's answer.
 
 	Unlike run_integration, a second call asks again: an expired OTP is sent again, and a holdings
 	fetch shows the folios as they are now. The document's own state stops a repeated lien.
+	A failure is shown to staff and returns None; with `refuse`, the portal gets Refused instead.
 	"""
 	key = get_adapter_key(fieldname)
 	if not key:
@@ -87,6 +88,8 @@ def call(fieldname, operation, context, doc):
 		output = getattr(adapter, operation)(context)
 	except Exception as e:
 		log.fail(request, e)
+		if refuse:
+			raise Refused(str(e)) from e
 		# Shown rather than raised, so the request and its error stay logged
 		frappe.msgprint(str(e), title=_("{0} did not answer").format(key), indicator="red")
 		return None
@@ -211,6 +214,11 @@ def save_holding(applicant_type, applicant, line):
 			"units_held": flt(line.get("units")) or holding.units_held,
 		}
 	)
+	if line.get("lots"):
+		holding.lots = []
+		for lot in line["lots"]:
+			holding.append("lots", {"purchase_date": lot["purchase_date"], "units": flt(lot["units"])})
+		holding.fetched_on = now_datetime()
 	holding.save(ignore_permissions=True)
 	return holding.name
 
@@ -242,7 +250,10 @@ def fill_requested_lines(doc, lines):
 
 @frappe.whitelist(methods=["POST"])
 def request_lien(loan_security_assignment: str):
-	doc = get_doc_for("Loan Security Assignment", loan_security_assignment)
+	return send_lien_otp(get_doc_for("Loan Security Assignment", loan_security_assignment))
+
+
+def send_lien_otp(doc, refuse=False):
 	if doc.lien_status == "Marked":
 		frappe.throw(_("The lien on {0} is already marked").format(doc.name))
 	if doc.docstatus == 1 and doc.status != "Pledge Requested":
@@ -256,7 +267,7 @@ def request_lien(loan_security_assignment: str):
 			frappe.throw(_("Row {0}: Enter the Folio Number before you request the lien").format(line["idx"]))
 
 	context = {**get_applicant_contact(doc), "lines": lines}
-	output = call(REGISTRY_FIELD, "mark_lien", context, doc)
+	output = call(REGISTRY_FIELD, "mark_lien", context, doc, refuse=refuse)
 	if output is None:
 		return None
 
@@ -266,12 +277,15 @@ def request_lien(loan_security_assignment: str):
 
 @frappe.whitelist(methods=["POST"])
 def confirm_lien(loan_security_assignment: str, otp: str):
-	doc = get_doc_for("Loan Security Assignment", loan_security_assignment)
+	return apply_lien_otp(get_doc_for("Loan Security Assignment", loan_security_assignment), otp)
+
+
+def apply_lien_otp(doc, otp, refuse=False):
 	if doc.lien_status != "OTP Sent":
 		frappe.throw(_("Request the lien before you confirm it"))
 
 	context = {"request_id": doc.lien_request_id, "otp": otp, "lines": get_lien_lines(doc)}
-	output = call(REGISTRY_FIELD, "confirm_lien", context, doc)
+	output = call(REGISTRY_FIELD, "confirm_lien", context, doc, refuse=refuse)
 	if output is None:
 		return None
 

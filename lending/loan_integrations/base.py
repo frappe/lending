@@ -14,6 +14,11 @@ class IntegrationError(Exception):
 	pass
 
 
+class Refused(Exception):
+	"""The provider said no: a wrong OTP, a PAN that does not exist. Not a ValidationError, so a
+	portal endpoint can answer the borrower without rolling back the logged attempt."""
+
+
 class RateLimited(IntegrationError):
 	def __init__(self, message, retry_after=None):
 		super().__init__(message)

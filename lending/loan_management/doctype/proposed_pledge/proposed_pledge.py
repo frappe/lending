@@ -20,10 +20,12 @@ class ProposedPledge(Document):
 		loan_security: DF.Link | None
 		loan_security_name: DF.Data | None
 		loan_security_price: DF.Currency
+		mutual_fund_holding: DF.Link | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
 		post_haircut_amount: DF.Currency
+		purchase_date: DF.Date | None
 		qty: DF.Float
 	# end: auto-generated types
 

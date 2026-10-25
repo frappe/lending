@@ -142,7 +142,8 @@ class TestHoldings(LendingTestSuite):
 	def setUp(self):
 		setup_test_data()
 		use_registry()
-		_, self.lsa = make_requested_pledge()
+		# Fewer units than any sample folio holds, since a fetch records the folio's units
+		_, self.lsa = make_requested_pledge(qty=7)
 
 	def fetch(self, otp=OTP):
 		request_id = registry.send_holdings_otp(self.lsa.name, PAN, "9999999999")["request_id"]
@@ -167,7 +168,9 @@ class TestHoldings(LendingTestSuite):
 		self.lsa.reload()
 		self.assertEqual(self.lsa.securities[0].folio_number, holding["folio_number"])
 		# The application fixed the units
-		self.assertEqual(self.lsa.securities[0].qty, 4000)
+		self.assertEqual(self.lsa.securities[0].qty, 7)
+		holding = frappe.get_doc("Mutual Fund Holding", self.lsa.securities[0].mutual_fund_holding)
+		self.assertEqual(holding.units_held, sum(lot.units for lot in holding.lots))
 
 	def test_holdings_add_lines_to_a_draft(self):
 		draft = frappe.new_doc("Loan Security Assignment")

@@ -1,0 +1,379 @@
+{
+ "allow_guest": 0,
+ "blocks": [
+  {
+   "baseStyles": {
+    "color": "var(--ink-gray-8)",
+    "display": "flex",
+    "flexDirection": "column",
+    "height": "100%",
+    "overflowX": "hidden",
+    "scrollbarColor": "var(--outline-gray-3) transparent",
+    "scrollbarWidth": "thin",
+    "width": "100%"
+   },
+   "blockName": "body",
+   "children": [
+    {
+     "baseStyles": {
+      "backgroundColor": "var(--surface-gray-1)",
+      "display": "flex",
+      "flexDirection": "column",
+      "height": "100%",
+      "overflowY": "auto",
+      "width": "100%"
+     },
+     "children": [
+      {
+       "baseStyles": {
+        "alignItems": "center",
+        "backgroundColor": "var(--portal-primary-soft, var(--surface-base))",
+        "borderColor": "var(--portal-primary-soft, var(--outline-gray-2))",
+        "borderStyle": "solid",
+        "borderWidth": "0px 0px 1px 0px",
+        "display": "flex",
+        "flexDirection": "row",
+        "flexShrink": "0",
+        "gap": "12px",
+        "height": "54px",
+        "padding": "0 44px 0 56px",
+        "width": "100%"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "borderRadius": "6px",
+          "flexShrink": "0",
+          "height": "26px",
+          "overflow": "hidden",
+          "width": "26px"
+         },
+         "componentId": "kyc_consent-0-container1-container1-imageview1",
+         "componentName": "ImageView",
+         "componentProps": {
+          "alt": "",
+          "image": "{{ kycConsent.data.brand_logo }}",
+          "shape": "square",
+          "size": "lg"
+         },
+         "componentSlots": {},
+         "visibilityCondition": "{{ kycConsent.data.brand_logo }}"
+        },
+        {
+         "baseStyles": {
+          "alignItems": "center",
+          "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+          "borderRadius": "6px",
+          "color": "var(--portal-primary-ink, var(--ink-base))",
+          "display": "flex",
+          "flexShrink": "0",
+          "fontSize": "15px",
+          "fontWeight": "700",
+          "height": "26px",
+          "justifyContent": "center",
+          "width": "26px"
+         },
+         "componentId": "kyc_consent-0-container1-container1-textblock1",
+         "componentName": "TextBlock",
+         "componentProps": {
+          "fontSize": "text-base",
+          "tag": "p",
+          "text": "{{ kycConsent.data.brand_initial }}"
+         },
+         "componentSlots": {},
+         "visibilityCondition": "{{ kycConsent.data.show_wordmark }}"
+        },
+        {
+         "baseStyles": {
+          "color": "var(--ink-gray-9)",
+          "fontSize": "17px",
+          "fontWeight": "600",
+          "letterSpacing": "0em",
+          "marginLeft": "2px",
+          "whiteSpace": "nowrap"
+         },
+         "componentId": "kyc_consent-0-container1-container1-textblock2",
+         "componentName": "TextBlock",
+         "componentProps": {
+          "fontSize": "text-base",
+          "tag": "span",
+          "text": "{{ kycConsent.data.brand_name }}"
+         },
+         "componentSlots": {},
+         "mobileStyles": {
+          "display": "none"
+         }
+        },
+        {
+         "baseStyles": {
+          "flex": "1 1 auto"
+         },
+         "componentId": "kyc_consent-0-container1-container1-container1",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        }
+       ],
+       "classes": [
+        "portal-header"
+       ],
+       "componentId": "kyc_consent-0-container1-container1",
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "mobileStyles": {
+        "gap": "4px",
+        "padding": "12px 16px"
+       },
+       "originalElement": "div"
+      },
+      {
+       "baseStyles": {
+        "display": "flex",
+        "flex": "1 0 auto",
+        "flexDirection": "column",
+        "gap": "16px",
+        "margin": "0 auto",
+        "maxWidth": "560px",
+        "padding": "clamp(16px, 3.6vh, 40px) 20px",
+        "width": "100%"
+       },
+       "children": [
+        {
+         "baseStyles": {
+          "backgroundColor": "var(--surface-base)",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "borderStyle": "solid",
+          "borderWidth": "1px",
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "16px",
+          "padding": "24px"
+         },
+         "children": [
+          {
+           "componentId": "kyc_consent-0-container1-container2-container1-alert1",
+           "componentName": "Alert",
+           "componentProps": {
+            "theme": "orange",
+            "title": "Demo only: this page stands in for DigiLocker, so no real documents are read."
+           },
+           "componentSlots": {}
+          },
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-9)",
+            "fontWeight": "600"
+           },
+           "componentId": "kyc_consent-0-container1-container2-container1-textblock1",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-2xl",
+            "tag": "h2",
+            "text": "Share your documents"
+           },
+           "componentSlots": {}
+          },
+          {
+           "baseStyles": {
+            "color": "var(--ink-gray-6)"
+           },
+           "componentId": "kyc_consent-0-container1-container2-container1-textblock2",
+           "componentName": "TextBlock",
+           "componentProps": {
+            "fontSize": "text-p-sm",
+            "tag": "p",
+            "text": "{{ kycConsent.data.customer_name }}, the lender is asking to read these documents from your account:"
+           },
+           "componentSlots": {}
+          },
+          {
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "8px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": "8px"
+             },
+             "children": [
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "display": "flex",
+                "flex": "0 0 auto"
+               },
+               "componentId": "kyc_consent-0-container1-container2-container1-repeater1-container1-html1",
+               "componentName": "HTML",
+               "componentProps": {
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+               },
+               "componentSlots": {}
+              },
+              {
+               "componentId": "kyc_consent-0-container1-container2-container1-repeater1-container1-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-base",
+                "tag": "p",
+                "text": "{{ dataItem }}"
+               },
+               "componentSlots": {}
+              }
+             ],
+             "componentId": "kyc_consent-0-container1-container2-container1-repeater1-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            }
+           ],
+           "componentId": "kyc_consent-0-container1-container2-container1-repeater1",
+           "componentName": "Repeater",
+           "componentProps": {
+            "data": "{{ kycConsent.data.documents || [] }}",
+            "dataKey": "",
+            "emptyStateMessage": ""
+           },
+           "componentSlots": {}
+          },
+          {
+           "baseStyles": {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "gap": "8px"
+           },
+           "children": [
+            {
+             "baseStyles": {
+              "flex": "1 1 auto"
+             },
+             "componentId": "kyc_consent-0-container1-container2-container1-container1-container1",
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "originalElement": "div"
+            },
+            {
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "decline()"
+              }
+             },
+             "componentId": "kyc_consent-0-container1-container2-container1-container1-button1",
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Deny",
+              "size": "md",
+              "variant": "subtle"
+             },
+             "componentSlots": {}
+            },
+            {
+             "componentEvents": {
+              "click": {
+               "action": "Run Script",
+               "event": "click",
+               "script": "allow()"
+              }
+             },
+             "componentId": "kyc_consent-0-container1-container2-container1-container1-button2",
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Allow",
+              "loading": "{{ busy }}",
+              "size": "md",
+              "variant": "solid"
+             },
+             "componentSlots": {}
+            }
+           ],
+           "componentId": "kyc_consent-0-container1-container2-container1-container1",
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "originalElement": "div"
+          }
+         ],
+         "componentId": "kyc_consent-0-container1-container2-container1",
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "originalElement": "div"
+        }
+       ],
+       "componentId": "kyc_consent-0-container1-container2",
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "mobileStyles": {
+        "padding": "24px 16px"
+       },
+       "originalElement": "div"
+      }
+     ],
+     "componentId": "kyc_consent-0-container1",
+     "componentName": "container",
+     "componentProps": {},
+     "componentSlots": {},
+     "originalElement": "div"
+    },
+    {
+     "baseStyles": {
+      "display": "none"
+     },
+     "componentId": "kyc_consent-0-html1",
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ kycConsent.data.brand_style || '' }}"
+     },
+     "componentSlots": {}
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "componentId": "kyc_consent-0",
+   "componentName": "div",
+   "componentProps": {},
+   "componentSlots": {},
+   "originalElement": "body"
+  }
+ ],
+ "creation": "2026-10-25 16:37:33.579975",
+ "docstatus": 0,
+ "doctype": "Studio Page",
+ "frappe_app": "lending",
+ "idx": 0,
+ "is_standard": 1,
+ "modified": "2026-10-25 17:05:12.414117",
+ "modified_by": "Administrator",
+ "name": "share_your_documents",
+ "owner": "Administrator",
+ "page_name": "page-67b2c402",
+ "page_title": "Share your documents",
+ "published": 1,
+ "resources": [
+  {
+   "auto": 1,
+   "fetch_document_using_filters": 0,
+   "limit": 0,
+   "method": "GET",
+   "resource_name": "kycConsent",
+   "resource_type": "API Resource",
+   "url": "lending.portal.secured.get_kyc_consent"
+  }
+ ],
+ "route": "/kyc-consent",
+ "studio_app": "borrower-portal"
+}

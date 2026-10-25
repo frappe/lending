@@ -51,6 +51,13 @@
   "recommended_tenure",
   "repayment_amount",
   "total_payable_interest",
+  "portal_section",
+  "portal_collateral",
+  "bank_account",
+  "column_break_portal",
+  "sanction_letter",
+  "esign_reference",
+  "signed_on",
   "amended_from",
   "documents_tab",
   "documents",
@@ -380,12 +387,62 @@
    "fieldtype": "Link",
    "label": "Loan Purpose",
    "options": "Loan Purpose"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "portal_collateral",
+   "fieldname": "portal_section",
+   "fieldtype": "Section Break",
+   "label": "Borrower Portal"
+  },
+  {
+   "description": "Set when the borrower applied on the portal against this collateral",
+   "fieldname": "portal_collateral",
+   "fieldtype": "Select",
+   "label": "Portal Collateral",
+   "options": "\nMutual Funds\nShares\nGold\nVehicle",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "The verified account the loan is paid into",
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_portal",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "sanction_letter",
+   "fieldtype": "Attach",
+   "label": "Sanction Letter",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "The eSign provider's reference for the signed sanction letter",
+   "fieldname": "esign_reference",
+   "fieldtype": "Data",
+   "label": "eSign Reference",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "signed_on",
+   "fieldtype": "Datetime",
+   "label": "Signed On",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-02 10:00:00.000000",
+ "modified": "2026-10-25 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

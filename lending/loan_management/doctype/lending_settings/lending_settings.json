@@ -20,6 +20,9 @@
   "portal_footer_section",
   "portal_copyright",
   "portal_footer_links",
+  "portal_secured_loans_section",
+  "portal_secured_loans",
+  "portal_loan_approval",
   "collateral_section",
   "enable_margin_call",
   "margin_cure_days",
@@ -121,6 +124,28 @@
    "fieldtype": "Table",
    "label": "Portal Footer Links",
    "options": "Top Bar Item"
+  },
+  {
+   "depends_on": "enable_borrower_portal",
+   "description": "A logged-in borrower can apply online against the collateral listed here, from pledging it to an open loan. No credit bureau report is pulled: the collateral secures the loan.",
+   "fieldname": "portal_secured_loans_section",
+   "fieldtype": "Section Break",
+   "label": "Secured Loans on the Portal"
+  },
+  {
+   "description": "One row per collateral. A collateral with no row is shown to borrowers as coming soon",
+   "fieldname": "portal_secured_loans",
+   "fieldtype": "Table",
+   "label": "Loan Product per Collateral",
+   "options": "Portal Secured Loan"
+  },
+  {
+   "default": "Automatic",
+   "description": "Automatic: the loan opens as soon as the borrower signs the sanction letter. Staff Review: the application waits for staff to approve it and create the loan.",
+   "fieldname": "portal_loan_approval",
+   "fieldtype": "Select",
+   "label": "Approve Portal Loans",
+   "options": "Automatic\nStaff Review"
   },
   {
    "fieldname": "collateral_section",

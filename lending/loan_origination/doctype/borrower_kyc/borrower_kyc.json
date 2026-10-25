@@ -1,0 +1,181 @@
+{
+ "actions": [],
+ "autoname": "field:customer",
+ "creation": "2026-10-25 12:00:00.000000",
+ "description": "What a borrower proved about themselves on the portal, kept once per customer so a second loan skips the checks",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "customer_name",
+  "pan_section",
+  "pan",
+  "name_on_pan",
+  "column_break_pan",
+  "pan_verified_on",
+  "pan_reference",
+  "kyc_section",
+  "kyc_status",
+  "kyc_verified_on",
+  "kyc_reference",
+  "kyc_request_id",
+  "column_break_kyc",
+  "name_as_per_kyc",
+  "date_of_birth",
+  "kyc_address"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pan_section",
+   "fieldtype": "Section Break",
+   "label": "PAN"
+  },
+  {
+   "fieldname": "pan",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "PAN",
+   "length": 10,
+   "read_only": 1
+  },
+  {
+   "description": "As the Income Tax records give it",
+   "fieldname": "name_on_pan",
+   "fieldtype": "Data",
+   "label": "Name on PAN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pan",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pan_verified_on",
+   "fieldtype": "Datetime",
+   "label": "PAN Verified On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pan_reference",
+   "fieldtype": "Data",
+   "label": "PAN Verification Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kyc_section",
+   "fieldtype": "Section Break",
+   "label": "KYC"
+  },
+  {
+   "fieldname": "kyc_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "KYC Status",
+   "options": "\nPending\nVerified\nRejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kyc_verified_on",
+   "fieldtype": "Datetime",
+   "label": "KYC Verified On",
+   "read_only": 1
+  },
+  {
+   "description": "The KYC provider's reference for the documents it fetched, such as the DigiLocker request",
+   "fieldname": "kyc_reference",
+   "fieldtype": "Data",
+   "label": "KYC Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kyc_request_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "KYC Request ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_kyc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "name_as_per_kyc",
+   "fieldtype": "Data",
+   "label": "Name as per KYC",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kyc_address",
+   "fieldtype": "Small Text",
+   "label": "Address as per KYC",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Origination",
+ "name": "Borrower KYC",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Underwriter"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer_name",
+ "track_changes": 1
+}

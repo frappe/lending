@@ -25,7 +25,10 @@
   "statement",
   "column_break_units",
   "pledged_units",
-  "status"
+  "status",
+  "lots_section",
+  "lots",
+  "fetched_on"
  ],
  "fields": [
   {
@@ -167,11 +170,29 @@
    "label": "Status",
    "options": "Free\nPartly Pledged\nPledged",
    "read_only": 1
+  },
+  {
+   "fieldname": "lots_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Lots"
+  },
+  {
+   "description": "Units by purchase date, as the registry last reported them. A lock-in runs per lot",
+   "fieldname": "lots",
+   "fieldtype": "Table",
+   "label": "Lots",
+   "options": "Mutual Fund Holding Lot"
+  },
+  {
+   "fieldname": "fetched_on",
+   "fieldtype": "Datetime",
+   "label": "Fetched On",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-20 12:00:00.000000",
+ "modified": "2026-10-25 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Collateral",
  "name": "Mutual Fund Holding",

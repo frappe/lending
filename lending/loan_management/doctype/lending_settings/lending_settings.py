@@ -2,10 +2,13 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
 APPLY_ROUTE = "/apply"
+# Pages a visitor uses to become a borrower, published only with the public form.
+PUBLIC_APPLY_ROUTES = (APPLY_ROUTE, "/register")
 
 
 class LendingSettings(Document):
@@ -18,6 +21,10 @@ class LendingSettings(Document):
 		from frappe.types import DF
 		from frappe.website.doctype.top_bar_item.top_bar_item import TopBarItem
 
+		from lending.loan_management.doctype.portal_secured_loan.portal_secured_loan import (
+			PortalSecuredLoan,
+		)
+
 		auto_create_customer: DF.Check
 		enable_borrower_portal: DF.Check
 		enable_margin_call: DF.Check
@@ -28,15 +35,29 @@ class LendingSettings(Document):
 		portal_brand_name: DF.Data | None
 		portal_copyright: DF.Data | None
 		portal_footer_links: DF.Table[TopBarItem]
+		portal_loan_approval: DF.Literal["Automatic", "Staff Review"]
 		portal_logo: DF.AttachImage | None
 		portal_primary_color: DF.Color | None
 		portal_secondary_color: DF.Color | None
+		portal_secured_loans: DF.Table[PortalSecuredLoan]
 		portal_support_email: DF.Data | None
 		sale_charge: DF.Link | None
 	# end: auto-generated types
 
+	def validate(self):
+		self.validate_portal_secured_loans()
+
 	def on_update(self):
 		sync_portal_pages()
+
+	def validate_portal_secured_loans(self):
+		seen = set()
+		for row in self.portal_secured_loans:
+			if row.collateral in seen:
+				frappe.throw(
+					_("Row {0}: {1} already has a loan product").format(row.idx, frappe.bold(_(row.collateral)))
+				)
+			seen.add(row.collateral)
 
 
 def sync_portal_pages():
@@ -53,7 +74,7 @@ def sync_portal_pages():
 
 	changed = False
 	for page in pages:
-		wanted = apply_on if page.route == APPLY_ROUTE else portal_on
+		wanted = apply_on if page.route in PUBLIC_APPLY_ROUTES else portal_on
 		if cint(page.published) == cint(wanted):
 			continue
 

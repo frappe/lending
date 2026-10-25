@@ -16,7 +16,13 @@
   "bureau_section",
   "credit_bureau_adapter",
   "bureau_consent_version",
-  "bureau_consent_text"
+  "bureau_consent_text",
+  "verification_section",
+  "pan_verification_adapter",
+  "kyc_adapter",
+  "column_break_verification",
+  "bank_verification_adapter",
+  "esign_adapter"
  ],
  "fields": [
   {
@@ -93,13 +99,47 @@
    "fieldname": "bureau_consent_text",
    "fieldtype": "Small Text",
    "label": "Bureau Consent Wording"
+  },
+  {
+   "description": "The checks a borrower passes on the portal before a secured loan opens. Credentials are set in each adapter's own settings.",
+   "fieldname": "verification_section",
+   "fieldtype": "Section Break",
+   "label": "Borrower Verification"
+  },
+  {
+   "description": "Checks the PAN against the Income Tax records.",
+   "fieldname": "pan_verification_adapter",
+   "fieldtype": "Select",
+   "label": "PAN Verification Adapter"
+  },
+  {
+   "description": "Fetches Aadhaar and PAN from DigiLocker with the borrower's consent.",
+   "fieldname": "kyc_adapter",
+   "fieldtype": "Select",
+   "label": "KYC Adapter"
+  },
+  {
+   "fieldname": "column_break_verification",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Confirms the borrower holds the account the loan is paid into.",
+   "fieldname": "bank_verification_adapter",
+   "fieldtype": "Select",
+   "label": "Bank Account Verification Adapter"
+  },
+  {
+   "description": "Has the borrower sign the sanction letter with an Aadhaar OTP.",
+   "fieldname": "esign_adapter",
+   "fieldtype": "Select",
+   "label": "eSign Adapter"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-28 12:00:00.000000",
+ "modified": "2026-10-25 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Origination",
  "name": "Loan Origination Settings",

@@ -72,6 +72,7 @@ NAV_ITEMS = (
 	("Account overview", "/overview", "layout-dashboard", None),
 	("Loan account", "/loans", "wallet", "/loan/"),
 	("Application", "/applications", "file-text", "/application/"),
+	("Loan against securities", "/secured-loan", "shield-check", None),
 	("Statement of account", "/statement", "receipt", None),
 	("Interest certificate", "/certificate", "award", None),
 	("Personal details", "/profile", "user", None),

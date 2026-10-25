@@ -24,16 +24,22 @@ class MutualFundHolding(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from lending.collateral.doctype.mutual_fund_holding_lot.mutual_fund_holding_lot import (
+			MutualFundHoldingLot,
+		)
+
 		all_holders_signed: DF.Check
 		amfi_scheme_code: DF.Data | None
 		applicant: DF.DynamicLink
 		applicant_name: DF.Data | None
 		applicant_type: DF.Literal["Employee", "Member", "Customer"]
+		fetched_on: DF.Datetime | None
 		folio_number: DF.Data
 		holding_mode: DF.Literal["", "Demat", "Statement of Account"]
 		holding_type: DF.Literal["", "Single", "Joint", "Anyone or Survivor", "Minor"]
 		loan_security: DF.Link
 		lock_in_days: DF.Int
+		lots: DF.Table[MutualFundHoldingLot]
 		rta: DF.Data | None
 		statement: DF.Attach | None
 		title: DF.Data | None

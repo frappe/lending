@@ -216,6 +216,22 @@
           {
            "componentName": "SidebarItem",
            "componentProps": {
+            "label": "Loan against securities",
+            "icon": "lucide-shield-check",
+            "to": "/secured-loan",
+            "active": "{{ isActive('/secured-loan') }}"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {},
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem4"
+          },
+          {
+           "componentName": "SidebarItem",
+           "componentProps": {
             "label": "Statement of account",
             "icon": "lucide-receipt",
             "to": "/statement",
@@ -227,7 +243,7 @@
            "mobileStyles": {},
            "tabletStyles": {},
            "children": [],
-           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem4"
+           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem5"
           },
           {
            "componentName": "SidebarItem",
@@ -243,7 +259,7 @@
            "mobileStyles": {},
            "tabletStyles": {},
            "children": [],
-           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem5"
+           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem6"
           },
           {
            "componentName": "SidebarItem",
@@ -259,7 +275,7 @@
            "mobileStyles": {},
            "tabletStyles": {},
            "children": [],
-           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem6"
+           "componentId": "certificate-0-sidebar1-container1-container2-sidebaritem7"
           }
          ],
          "originalElement": "div",

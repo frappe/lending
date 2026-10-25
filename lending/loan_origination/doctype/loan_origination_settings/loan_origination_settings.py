@@ -23,13 +23,17 @@ class LoanOriginationSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		bank_verification_adapter: DF.Literal[None]
 		bureau_consent_text: DF.SmallText | None
 		bureau_consent_version: DF.Data | None
 		credit_bureau_adapter: DF.Literal[None]
 		employee_loans: DF.Check
+		esign_adapter: DF.Literal[None]
+		kyc_adapter: DF.Literal[None]
 		otp_for_email: DF.Check
 		otp_for_sms: DF.Check
 		otp_verification_mandatory: DF.Check
+		pan_verification_adapter: DF.Literal[None]
 		unique_customer: DF.Check
 	# end: auto-generated types
 

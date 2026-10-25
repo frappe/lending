@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2026-10-25 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "collateral",
+  "loan_product"
+ ],
+ "fields": [
+  {
+   "fieldname": "collateral",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Collateral",
+   "options": "Mutual Funds\nShares\nGold\nVehicle",
+   "reqd": 1
+  },
+  {
+   "description": "Applications for this collateral use it, as secured loans",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Loan Product",
+   "options": "Loan Product",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Portal Secured Loan",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

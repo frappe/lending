@@ -10,6 +10,7 @@ DOCTYPE = "Loan"
 
 STATEMENT_FORMAT = "Loan Statement of Account"
 CERTIFICATE_FORMAT = "Loan Interest Certificate"
+SANCTION_FORMAT = "Loan Sanction Letter"
 
 # Inlined: PDFs render without the site's stylesheets.
 STYLE = """
@@ -146,9 +147,63 @@ CERTIFICATE_HTML = (
 	+ "</div>"
 )
 
+SANCTION_HTML = (
+	STYLE
+	+ '<div class="portal-doc">'
+	+ HEAD
+	+ """
+<p>Dear {{ holder_name }},</p>
+<p>
+	We are pleased to sanction you a loan against the securities below, on these terms. The
+	loan opens once you sign this letter and the lien on the securities is marked in our favour.
+</p>
+
+<table class="rows">
+	<thead><tr><th>Term</th><th class="num">Value</th></tr></thead>
+	<tbody>
+		{% for row in terms %}
+		<tr><td>{{ row.label }}</td><td class="num">{{ row.value }}</td></tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<p style="margin-top: 18px"><strong>Securities pledged</strong></p>
+<table class="rows">
+	<thead>
+		<tr><th>Scheme</th><th>Folio</th><th class="num">Units</th><th class="num">Value</th><th>Lien</th></tr>
+	</thead>
+	<tbody>
+		{% for row in pledges %}
+		<tr>
+			<td>{{ row.scheme }}</td>
+			<td>{{ row.folio }}</td>
+			<td class="num">{{ row.units }}</td>
+			<td class="num">{{ row.value }}</td>
+			<td>{{ row.lien }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<div class="note">
+	The value of the pledged units is checked every business day. If it falls so far that the
+	loan is more than {{ ltv }} of it, we will ask you to repay part of the loan or pledge more
+	units, and may redeem pledged units if you do not. The lien is released when the loan is
+	repaid.
+</div>
+<p style="margin-top: 18px">
+	Signed electronically by {{ holder_name }} with an Aadhaar OTP. Bank account for payment:
+	{{ bank_account }}.
+</p>
+"""
+	+ FOOT
+	+ "</div>"
+)
+
 FORMATS = (
 	(STATEMENT_FORMAT, STATEMENT_HTML),
 	(CERTIFICATE_FORMAT, CERTIFICATE_HTML),
+	(SANCTION_FORMAT, SANCTION_HTML),
 )
 
 
