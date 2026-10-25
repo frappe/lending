@@ -756,7 +756,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "We check it against the Income Tax records. It must be in your own name."
+              "text": "Enter the PAN in your own name. We check it against the Income Tax records."
              },
              "componentSlots": {}
             }
@@ -957,7 +957,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Check what you can borrow"
+              "text": "Check your eligibility"
              },
              "componentSlots": {}
             },
@@ -970,7 +970,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "We fetch your mutual fund holdings from the registrars, CAMS and KFintech, with your consent."
+              "text": "Choose what to borrow against. We fetch your mutual funds from CAMS and KFintech with an OTP, so you need not upload a statement."
              },
              "componentSlots": {}
             }
@@ -1193,7 +1193,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Your vault"
+              "text": "Choose funds to pledge"
              },
              "componentSlots": {}
             },
@@ -1206,7 +1206,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "Choose the funds to pledge. You keep the units and their returns; we only mark a lien on them."
+              "text": "Pick the funds and the amount you need. The units stay yours and keep earning returns; we only mark a lien on them."
              },
              "componentSlots": {}
             }
@@ -1954,7 +1954,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "Share your Aadhaar and PAN from DigiLocker. It takes a minute, and no documents need uploading."
+              "text": "Share your Aadhaar and PAN from DigiLocker. It takes about a minute, and you need not upload any documents."
              },
              "componentSlots": {}
             }
@@ -2199,7 +2199,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Pledge your units"
+              "text": "Pledge your mutual funds"
              },
              "componentSlots": {}
             },
@@ -2212,7 +2212,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "The registrar marks a lien on these units in our favour. Approve it with the OTP it sends you."
+              "text": "Review the funds and the loan. The registrar marks a lien on these units in our favour once you approve it with an OTP."
              },
              "componentSlots": {}
             }
@@ -2276,27 +2276,62 @@
              "visibilityCondition": "{{ securedLoan.data?.pledge?.marked }}"
             },
             {
+             "baseStyles": {
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "borderStyle": "solid",
+              "borderWidth": "1px",
+              "display": "flex",
+              "flexDirection": "column",
+              "flexShrink": "0",
+              "marginBottom": "-1px",
+              "overflow": "hidden",
+              "width": "100%"
+             },
              "children": [
               {
                "baseStyles": {
                 "alignItems": "center",
+                "backgroundColor": "var(--surface-base)",
                 "borderBottom": "1px solid var(--outline-gray-1)",
                 "display": "flex",
                 "flexDirection": "row",
                 "gap": "12px",
-                "padding": "10px 0"
+                "padding": "14px 16px",
+                "width": "100%"
                },
                "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-gray-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "36px",
+                  "justifyContent": "center",
+                  "width": "36px"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 20v-4\"/><path d=\"M12 20V10\"/><path d=\"M18 20V4\"/></svg>"
+                 },
+                 "componentSlots": {}
+                },
                 {
                  "baseStyles": {
                   "display": "flex",
                   "flex": "1 1 auto",
                   "flexDirection": "column",
-                  "gap": "2px"
+                  "gap": "2px",
+                  "minWidth": "0px"
                  },
                  "children": [
                   {
                    "baseStyles": {
+                    "color": "var(--ink-gray-9)",
                     "fontWeight": "500"
                    },
                    "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container1-textblock1",
@@ -2317,7 +2352,7 @@
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
-                    "text": "{{ dataItem.units }} units"
+                    "text": "{{ (dataItem.folio ? 'Folio ' + dataItem.folio + ' \u00b7 ' : '') + dataItem.units + ' units' }}"
                    },
                    "componentSlots": {}
                   }
@@ -2330,23 +2365,54 @@
                 },
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-6)"
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "flexShrink": "0",
+                  "gap": "4px"
                  },
-                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-textblock1",
-                 "componentName": "TextBlock",
-                 "componentProps": {
-                  "fontSize": "text-p-sm",
-                  "tag": "p",
-                  "text": "Lien {{ dataItem.lien }}"
-                 },
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "fontWeight": "600",
+                    "textAlign": "right"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container2-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-base",
+                    "tag": "p",
+                    "text": "{{ dataItem.value }}"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container2-badge1",
+                   "componentName": "Badge",
+                   "componentProps": {
+                    "label": "{{ 'Lien ' + dataItem.lien }}",
+                    "size": "sm",
+                    "theme": "green",
+                    "variant": "subtle"
+                   },
+                   "componentSlots": {},
+                   "visibilityCondition": "{{ dataItem.lien }}"
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1-container2",
+                 "componentName": "container",
+                 "componentProps": {},
                  "componentSlots": {},
-                 "visibilityCondition": "{{ dataItem.lien }}"
+                 "originalElement": "div"
                 }
                ],
                "componentId": "secured_loan-0-container1-container1-container7-container2-repeater1-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
+               "mobileStyles": {
+                "flexWrap": "wrap"
+               },
                "originalElement": "div"
               }
              ],
@@ -2354,34 +2420,69 @@
              "componentName": "Repeater",
              "componentProps": {
               "data": "{{ securedLoan.data.pledge.lines || [] }}",
-              "dataKey": "scheme",
+              "dataKey": "key",
               "emptyStateMessage": ""
              },
              "componentSlots": {},
              "visibilityCondition": "{{ securedLoan.data?.pledge?.marked }}"
             },
             {
+             "baseStyles": {
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "borderStyle": "solid",
+              "borderWidth": "1px",
+              "display": "flex",
+              "flexDirection": "column",
+              "flexShrink": "0",
+              "marginBottom": "-1px",
+              "overflow": "hidden",
+              "width": "100%"
+             },
              "children": [
               {
                "baseStyles": {
                 "alignItems": "center",
+                "backgroundColor": "var(--surface-base)",
                 "borderBottom": "1px solid var(--outline-gray-1)",
                 "display": "flex",
                 "flexDirection": "row",
                 "gap": "12px",
-                "padding": "10px 0"
+                "padding": "14px 16px",
+                "width": "100%"
                },
                "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "backgroundColor": "var(--surface-gray-2)",
+                  "borderRadius": "var(--radius-5)",
+                  "color": "var(--ink-gray-8)",
+                  "display": "flex",
+                  "flex": "0 0 auto",
+                  "height": "36px",
+                  "justifyContent": "center",
+                  "width": "36px"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 20v-4\"/><path d=\"M12 20V10\"/><path d=\"M18 20V4\"/></svg>"
+                 },
+                 "componentSlots": {}
+                },
                 {
                  "baseStyles": {
                   "display": "flex",
                   "flex": "1 1 auto",
                   "flexDirection": "column",
-                  "gap": "2px"
+                  "gap": "2px",
+                  "minWidth": "0px"
                  },
                  "children": [
                   {
                    "baseStyles": {
+                    "color": "var(--ink-gray-9)",
                     "fontWeight": "500"
                    },
                    "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container1-textblock1",
@@ -2402,7 +2503,7 @@
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
-                    "text": "{{ dataItem.units }} units"
+                    "text": "{{ (dataItem.folio ? 'Folio ' + dataItem.folio + ' \u00b7 ' : '') + dataItem.units + ' units' }}"
                    },
                    "componentSlots": {}
                   }
@@ -2415,22 +2516,56 @@
                 },
                 {
                  "baseStyles": {
-                  "color": "var(--ink-gray-6)"
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "flexShrink": "0",
+                  "gap": "4px"
                  },
-                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-textblock1",
-                 "componentName": "TextBlock",
-                 "componentProps": {
-                  "fontSize": "text-p-sm",
-                  "tag": "p",
-                  "text": "{{ dataItem.value }}"
-                 },
-                 "componentSlots": {}
+                 "children": [
+                  {
+                   "baseStyles": {
+                    "fontWeight": "600",
+                    "textAlign": "right"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container2-textblock1",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-base",
+                    "tag": "p",
+                    "text": "{{ dataItem.value }}"
+                   },
+                   "componentSlots": {}
+                  },
+                  {
+                   "baseStyles": {
+                    "color": "var(--ink-gray-6)",
+                    "textAlign": "right"
+                   },
+                   "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container2-textblock2",
+                   "componentName": "TextBlock",
+                   "componentProps": {
+                    "fontSize": "text-p-sm",
+                    "tag": "p",
+                    "text": "{{ 'lends ' + dataItem.eligible }}"
+                   },
+                   "componentSlots": {}
+                  }
+                 ],
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1-container2",
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "originalElement": "div"
                 }
                ],
                "componentId": "secured_loan-0-container1-container1-container7-container2-repeater2-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
+               "mobileStyles": {
+                "flexWrap": "wrap"
+               },
                "originalElement": "div"
               }
              ],
@@ -2438,7 +2573,7 @@
              "componentName": "Repeater",
              "componentProps": {
               "data": "{{ securedLoan.data.application.pledges || [] }}",
-              "dataKey": "scheme",
+              "dataKey": "key",
               "emptyStateMessage": ""
              },
              "componentSlots": {},
@@ -2446,29 +2581,52 @@
             },
             {
              "baseStyles": {
-              "alignItems": "center",
+              "backgroundColor": "var(--surface-gray-1)",
+              "borderRadius": "var(--radius-4)",
               "display": "flex",
-              "flexDirection": "row",
-              "gap": "8px"
+              "flexShrink": "0",
+              "flexWrap": "wrap",
+              "gap": "16px",
+              "padding": "14px 16px"
              },
              "children": [
               {
                "baseStyles": {
-                "color": "var(--ink-gray-6)"
+                "display": "flex",
+                "flex": "1 1 140px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "minWidth": "0px"
                },
-               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-textblock1",
-               "componentName": "TextBlock",
-               "componentProps": {
-                "fontSize": "text-p-sm",
-                "tag": "p",
-                "text": "Loan amount"
-               },
-               "componentSlots": {}
-              },
-              {
-               "baseStyles": {
-                "flex": "1 1 auto"
-               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Pledged value"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container1-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-lg",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.application.value }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
                "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container1",
                "componentName": "container",
                "componentProps": {},
@@ -2477,24 +2635,141 @@
               },
               {
                "baseStyles": {
-                "fontWeight": "600"
+                "display": "flex",
+                "flex": "1 1 140px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "minWidth": "0px"
                },
-               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-textblock2",
-               "componentName": "TextBlock",
-               "componentProps": {
-                "fontSize": "text-base",
-                "tag": "p",
-                "text": "{{ securedLoan.data.application.loan_amount }}"
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container2-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Loan amount"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container2-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-lg",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.application.loan_amount }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flex": "1 1 140px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "minWidth": "0px"
                },
-               "componentSlots": {}
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container3-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Repay over"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container3-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-lg",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.application.tenure_label }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container3",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ securedLoan.data?.application?.tenure_label }}"
+              },
+              {
+               "baseStyles": {
+                "display": "flex",
+                "flex": "1 1 140px",
+                "flexDirection": "column",
+                "gap": "2px",
+                "minWidth": "0px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container4-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Monthly instalment"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container4-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-lg",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.application.emi }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container7-container2-container2-container4",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ securedLoan.data?.application?.emi }}"
               }
              ],
              "componentId": "secured_loan-0-container1-container1-container7-container2-container2",
              "componentName": "container",
              "componentProps": {},
              "componentSlots": {},
-             "originalElement": "div",
-             "visibilityCondition": "{{ !securedLoan.data?.pledge?.marked }}"
+             "originalElement": "div"
             },
             {
              "baseStyles": {
@@ -2658,7 +2933,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Where should we pay the loan?"
+              "text": "Add your bank details"
              },
              "componentSlots": {}
             },
@@ -2671,7 +2946,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "We deposit \u20b91 to check the account is yours. It must be in your own name."
+              "text": "Add the account the loan should be paid into. It must be in your own name."
              },
              "componentSlots": {}
             }
@@ -2692,37 +2967,87 @@
             {
              "baseStyles": {
               "alignItems": "center",
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "borderStyle": "solid",
+              "borderWidth": "1px",
               "display": "flex",
               "flexDirection": "row",
-              "gap": "10px"
+              "flexShrink": "0",
+              "gap": "12px",
+              "overflow": "hidden",
+              "padding": "14px 16px"
              },
              "children": [
               {
                "baseStyles": {
                 "alignItems": "center",
-                "backgroundColor": "var(--surface-green-2)",
+                "backgroundColor": "var(--surface-gray-2)",
                 "borderRadius": "var(--radius-5)",
-                "color": "var(--ink-green-8)",
+                "color": "var(--ink-gray-8)",
                 "display": "flex",
                 "flex": "0 0 auto",
-                "height": "28px",
+                "height": "40px",
                 "justifyContent": "center",
-                "width": "28px"
+                "width": "40px"
                },
                "componentId": "secured_loan-0-container1-container1-container8-container2-container1-html1",
                "componentName": "HTML",
                "componentProps": {
-                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+                "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\"/><path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\"/><path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\"/><path d=\"M10 6h4\"/><path d=\"M10 10h4\"/><path d=\"M10 14h4\"/><path d=\"M10 18h4\"/></svg>"
                },
                "componentSlots": {}
               },
               {
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container1-textblock1",
-               "componentName": "TextBlock",
+               "baseStyles": {
+                "display": "flex",
+                "flex": "1 1 auto",
+                "flexDirection": "column",
+                "gap": "2px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-9)",
+                  "fontWeight": "600"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container1-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-base",
+                  "tag": "p",
+                  "text": "{{ securedLoan.data.bank.bank }}"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container1-container1-textblock2",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "{{ 'Account ' + securedLoan.data.bank.account + ' \u00b7 IFSC ' + securedLoan.data.bank.ifsc }}"
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div"
+              },
+              {
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container1-badge1",
+               "componentName": "Badge",
                "componentProps": {
-                "fontSize": "text-base",
-                "tag": "p",
-                "text": "{{ securedLoan.data.bank.bank }} account {{ securedLoan.data.bank.account }} is verified."
+                "label": "Verified",
+                "size": "sm",
+                "theme": "green",
+                "variant": "subtle"
                },
                "componentSlots": {}
               }
@@ -2753,15 +3078,11 @@
                  "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol1",
                  "componentName": "FormControl",
                  "componentProps": {
-                  "label": "Account number",
-                  "modelValue": {
-                   "$type": "variable",
-                   "name": "accountNumber"
-                  },
-                  "placeholder": "Your savings account",
+                  "disabled": true,
+                  "label": "Account holder",
+                  "modelValue": "{{ securedLoan.data.customer_name || '' }}",
                   "size": "md",
-                  "type": "text",
-                  "variant": "subtle"
+                  "type": "text"
                  },
                  "componentSlots": {}
                 },
@@ -2780,6 +3101,38 @@
                   "variant": "subtle"
                  },
                  "componentSlots": {}
+                },
+                {
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol3",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "Account number",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "accountNumber"
+                  },
+                  "placeholder": "Savings or current account",
+                  "size": "md",
+                  "type": "password",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol4",
+                 "componentName": "FormControl",
+                 "componentProps": {
+                  "label": "Re-enter account number",
+                  "modelValue": {
+                   "$type": "variable",
+                   "name": "confirmAccount"
+                  },
+                  "placeholder": "Type it again",
+                  "size": "md",
+                  "type": "text",
+                  "variant": "subtle"
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1",
@@ -2789,6 +3142,65 @@
                "mobileStyles": {
                 "gridTemplateColumns": "minmax(0, 1fr)"
                },
+               "originalElement": "div"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-red-4, var(--ink-gray-7))"
+               },
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-textblock1",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-sm",
+                "tag": "p",
+                "text": "The account numbers do not match."
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ confirmAccount && confirmAccount !== accountNumber }}"
+              },
+              {
+               "baseStyles": {
+                "alignItems": "center",
+                "backgroundColor": "var(--surface-gray-1)",
+                "borderRadius": "var(--radius-4)",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": "8px",
+                "padding": "10px 12px"
+               },
+               "children": [
+                {
+                 "baseStyles": {
+                  "alignItems": "center",
+                  "color": "var(--ink-gray-5)",
+                  "display": "flex",
+                  "flex": "0 0 auto"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-html1",
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg>"
+                 },
+                 "componentSlots": {}
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "We send \u20b91 to this account to confirm it is yours. Your loan amount is paid into it."
+                 },
+                 "componentSlots": {}
+                }
+               ],
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -2803,7 +3215,7 @@
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
-                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-container1",
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container3-container1",
                  "componentName": "container",
                  "componentProps": {},
                  "componentSlots": {},
@@ -2817,11 +3229,11 @@
                    "script": "saveBank()"
                   }
                  },
-                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2-button1",
+                 "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container3-button1",
                  "componentName": "Button",
                  "componentProps": {
-                  "disabled": "{{ !(accountNumber.length >= 9 && ifsc.length === 11) }}",
-                  "label": "Verify account",
+                  "disabled": "{{ !(accountNumber.length >= 9 && accountNumber === confirmAccount && ifsc.length === 11) }}",
+                  "label": "Verify bank account",
                   "loading": "{{ busy }}",
                   "size": "md",
                   "variant": "solid"
@@ -2829,7 +3241,7 @@
                  "componentSlots": {}
                 }
                ],
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container2",
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container3",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -2888,7 +3300,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Sign your sanction letter"
+              "text": "E-sign your sanction letter"
              },
              "componentSlots": {}
             },
@@ -3210,7 +3622,7 @@
              "componentProps": {
               "fontSize": "text-lg",
               "tag": "h2",
-              "text": "Your loan"
+              "text": "Your loan is ready"
              },
              "componentSlots": {}
             }
@@ -3655,7 +4067,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 17:17:22.526458",
+ "modified": "2026-10-25 18:30:07.367995",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

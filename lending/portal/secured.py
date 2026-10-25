@@ -619,7 +619,9 @@ def application_payload(application: str | None) -> dict:
 	doc = frappe.get_doc("Loan Application", application)
 	pledges = [
 		{
+			"key": row.name,
 			"scheme": row.loan_security_name or row.loan_security,
+			"folio": frappe.db.get_value("Mutual Fund Holding", row.mutual_fund_holding, "folio_number") or "",
 			"units": number(row.qty),
 			"value": money(row.amount),
 			"eligible": money(row.post_haircut_amount),
@@ -633,7 +635,9 @@ def application_payload(application: str | None) -> dict:
 		"loan_amount": money(doc.loan_amount),
 		"amount": flt(doc.loan_amount),
 		"tenure": cint(doc.repayment_periods),
+		"tenure_label": _("{0} months").format(doc.repayment_periods) if doc.repayment_periods else "",
 		"maximum": money(doc.maximum_loan_amount),
+		"value": money(sum(flt(row.amount) for row in doc.proposed_pledges)),
 		"emi": money(doc.repayment_amount) if doc.repayment_amount else "",
 		"pledges": pledges,
 		"sent": doc.docstatus == 1,
@@ -819,9 +823,11 @@ def pledge_payload(application: str | None) -> dict:
 		"status": doc.lien_status or "",
 		"lines": [
 			{
+				"key": row.name,
 				"scheme": row.loan_security_name or row.loan_security,
 				"folio": row.folio_number or "",
 				"units": number(row.qty),
+				"value": money(row.amount),
 				"lien": row.lien_reference or "",
 			}
 			for row in doc.securities

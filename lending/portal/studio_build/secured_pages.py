@@ -8,6 +8,7 @@ from lending.portal.studio_build.apply_page import choice
 from lending.portal.studio_build.blocks import (
 	PANEL,
 	alert,
+	badge,
 	block,
 	button,
 	card,
@@ -146,6 +147,7 @@ STATE = [
 	("pledgeOtp", '""'),
 	("pledgeSent", "false"),
 	("accountNumber", '""'),
+	("confirmAccount", '""'),
 	("ifsc", '""'),
 	("esignOtp", '""'),
 	("esignSent", "false"),
@@ -374,7 +376,7 @@ def pan_panel():
 	return panel(
 		"pan",
 		"Verify your PAN",
-		"We check it against the Income Tax records. It must be in your own name.",
+		"Enter the PAN in your own name. We check it against the Income Tax records.",
 		[
 			done_line(
 				"PAN {{ %s.data.pan.pan }} is verified, in the name of {{ %s.data.pan.name }}." % (SOURCE, SOURCE),
@@ -408,8 +410,8 @@ def eligibility_panel():
 
 	return panel(
 		"eligibility",
-		"Check what you can borrow",
-		"We fetch your mutual fund holdings from the registrars, CAMS and KFintech, with your consent.",
+		"Check your eligibility",
+		"Choose what to borrow against. We fetch your mutual funds from CAMS and KFintech with an OTP, so you need not upload a statement.",
 		[
 			form_grid([picker, otp]),
 			actions(
@@ -529,8 +531,8 @@ def vault_panel():
 
 	return panel(
 		"vault",
-		"Your vault",
-		"Choose the funds to pledge. You keep the units and their returns; we only mark a lien on them.",
+		"Choose funds to pledge",
+		"Pick the funds and the amount you need. The units stay yours and keep earning returns; we only mark a lien on them.",
 		[
 			totals,
 			not_approved,
@@ -553,7 +555,7 @@ def kyc_panel():
 	return panel(
 		"kyc",
 		"Complete your KYC",
-		"Share your Aadhaar and PAN from DigiLocker. It takes a minute, and no documents need uploading.",
+		"Share your Aadhaar and PAN from DigiLocker. It takes about a minute, and you need not upload any documents.",
 		[
 			done_line("KYC is complete, as {{ %s.data.kyc.name }}." % SOURCE, "{{ %s }}" % verified),
 			row(
@@ -578,26 +580,80 @@ def kyc_panel():
 	)
 
 
-def pledge_lines(items, with_lien=False, visible=None):
-	cells = [
-		column(
-			[
-				text("{{ dataItem.scheme }}", size="text-base", styles={"fontWeight": "500"}),
-				muted("{{ dataItem.units }} units"),
-			],
-			gap="2px",
-			styles={"flex": "1 1 auto"},
-		),
-	]
-	if with_lien:
-		cells.append(muted("Lien {{ dataItem.lien }}", visible="{{ dataItem.lien }}"))
-	else:
-		cells.append(muted("{{ dataItem.value }}"))
+LIST_BOX = {
+	"borderWidth": "1px",
+	"borderStyle": "solid",
+	"borderColor": "var(--outline-gray-2)",
+	"borderRadius": "var(--radius-4)",
+	"overflow": "hidden",
+	"flexShrink": "0",
+}
+
+
+def security_list(items, with_lien=False, visible=None):
+	"""Full-width rows: the scheme and folio on the left, its value (and lien) on the right."""
+	detail = (
+		badge("{{ 'Lien ' + dataItem.lien }}", theme="green", visible="{{ dataItem.lien }}")
+		if with_lien
+		else muted("{{ 'lends ' + dataItem.eligible }}", styles={"textAlign": "right"})
+	)
+	line = row(
+		[
+			icon_tile("chart-no-axes", tile=36, glyph=18),
+			column(
+				[
+					text("{{ dataItem.scheme }}", size="text-base", styles={"fontWeight": "500", "color": "var(--ink-gray-9)"}),
+					muted("{{ (dataItem.folio ? 'Folio ' + dataItem.folio + ' · ' : '') + dataItem.units + ' units' }}"),
+				],
+				gap="2px",
+				styles={"flex": "1 1 auto", "minWidth": "0px"},
+			),
+			column(
+				[text("{{ dataItem.value }}", size="text-base", styles={"fontWeight": "600", "textAlign": "right"}), detail],
+				gap="4px",
+				styles={"alignItems": "flex-end", "flexShrink": "0"},
+			),
+		],
+		gap="12px",
+		styles={
+			"width": "100%",
+			"padding": "14px 16px",
+			"borderBottom": "1px solid var(--outline-gray-1)",
+			"backgroundColor": "var(--surface-base)",
+		},
+		mobile={"flexWrap": "wrap"},
+	)
 
 	return repeater(
 		fallback(items, "[]"),
-		row(cells, gap="12px", styles={"padding": "10px 0", "borderBottom": "1px solid var(--outline-gray-1)"}),
-		data_key="scheme",
+		line,
+		data_key="key",
+		styles=dict(LIST_BOX, display="flex", flexDirection="column", width="100%", marginBottom="-1px"),
+		visible=visible,
+	)
+
+
+def summary_strip(cells, visible=None):
+	"""A grey band of label-over-figure pairs, wrapping by width rather than by breakpoint."""
+	return container(
+		[
+			column(
+				[muted(label), text(value, size="text-lg", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"})],
+				gap="2px",
+				styles={"flex": "1 1 140px", "minWidth": "0px"},
+				**({"visible": "{{ %s }}" % shown} if shown else {}),
+			)
+			for label, value, shown in cells
+		],
+		styles={
+			"display": "flex",
+			"flexWrap": "wrap",
+			"gap": "16px",
+			"padding": "14px 16px",
+			"borderRadius": "var(--radius-4)",
+			"backgroundColor": "var(--surface-gray-1)",
+			"flexShrink": "0",
+		},
 		visible=visible,
 	)
 
@@ -607,15 +663,19 @@ def pledge_panel():
 
 	return panel(
 		"pledge",
-		"Pledge your units",
-		"The registrar marks a lien on these units in our favour. Approve it with the OTP it sends you.",
+		"Pledge your mutual funds",
+		"Review the funds and the loan. The registrar marks a lien on these units in our favour once you approve it with an OTP.",
 		[
 			done_line("The lien is marked on your units.", "{{ %s }}" % marked),
-			pledge_lines(read("pledge.lines"), with_lien=True, visible="{{ %s }}" % marked),
-			pledge_lines(read("application.pledges"), visible="{{ !%s }}" % marked),
-			row(
-				[muted("Loan amount"), spacer(), text(read("application.loan_amount"), size="text-base", styles={"fontWeight": "600"})],
-				visible="{{ !%s }}" % marked,
+			security_list(read("pledge.lines"), with_lien=True, visible="{{ %s }}" % marked),
+			security_list(read("application.pledges"), visible="{{ !%s }}" % marked),
+			summary_strip(
+				[
+					("Pledged value", read("application.value"), None),
+					("Loan amount", read("application.loan_amount"), None),
+					("Repay over", read("application.tenure_label"), "%s.data?.application?.tenure_label" % SOURCE),
+					("Monthly instalment", read("application.emi"), "%s.data?.application?.emi" % SOURCE),
+				]
 			),
 			form_grid(
 				[field("OTP", "pledgeOtp", kind="password", placeholder="6 digits")],
@@ -632,29 +692,76 @@ def pledge_panel():
 
 def bank_panel():
 	saved = "%s.data?.bank?.account" % SOURCE
+	mismatch = "confirmAccount && confirmAccount !== accountNumber"
+	holder = block(
+		"FormControl",
+		props={
+			"type": "text",
+			"label": "Account holder",
+			"size": "md",
+			"disabled": True,
+			"modelValue": fallback(read("customer_name"), "''"),
+		},
+	)
 	form = column(
 		[
 			form_grid(
 				[
-					field("Account number", "accountNumber", kind="text", placeholder="Your savings account"),
+					holder,
 					field("IFSC", "ifsc", kind="text", placeholder="HDFC0001234"),
+					field("Account number", "accountNumber", kind="password", placeholder="Savings or current account"),
+					field("Re-enter account number", "confirmAccount", kind="text", placeholder="Type it again"),
 				]
 			),
-			actions(action("Verify account", "saveBank()", enabled="accountNumber.length >= 9 && ifsc.length === 11")),
+			text(
+				"The account numbers do not match.",
+				size="text-sm",
+				styles={"color": "var(--ink-red-4, var(--ink-gray-7))"},
+				visible="{{ %s }}" % mismatch,
+			),
+			row(
+				[
+					icon("info", size=16, styles={"color": "var(--ink-gray-5)"}),
+					muted("We send ₹1 to this account to confirm it is yours. Your loan amount is paid into it."),
+				],
+				gap="8px",
+				styles={"padding": "10px 12px", "borderRadius": "var(--radius-4)", "backgroundColor": "var(--surface-gray-1)"},
+			),
+			actions(
+				action(
+					"Verify bank account",
+					"saveBank()",
+					enabled="accountNumber.length >= 9 && accountNumber === confirmAccount && ifsc.length === 11",
+				)
+			),
 		],
 		gap="14px",
 		visible="{{ !%s }}" % saved,
 	)
+	verified = row(
+		[
+			icon_tile("building-2", tile=40, glyph=20),
+			column(
+				[
+					text(read("bank.bank"), size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
+					muted("{{ 'Account ' + %s.data.bank.account + ' · IFSC ' + %s.data.bank.ifsc }}" % (SOURCE, SOURCE)),
+				],
+				gap="2px",
+				styles={"flex": "1 1 auto"},
+			),
+			badge("Verified", theme="green"),
+		],
+		gap="12px",
+		styles=dict(LIST_BOX, padding="14px 16px"),
+		visible="{{ %s }}" % saved,
+	)
 
 	return panel(
 		"bank",
-		"Where should we pay the loan?",
-		"We deposit ₹1 to check the account is yours. It must be in your own name.",
+		"Add your bank details",
+		"Add the account the loan should be paid into. It must be in your own name.",
 		[
-			done_line(
-				"{{ %s.data.bank.bank }} account {{ %s.data.bank.account }} is verified." % (SOURCE, SOURCE),
-				"{{ %s }}" % saved,
-			),
+			verified,
 			form,
 		],
 	)
@@ -666,7 +773,7 @@ def esign_panel():
 
 	return panel(
 		"esign",
-		"Sign your sanction letter",
+		"E-sign your sanction letter",
 		"It sets out the loan's terms and the units pledged. Sign it with an OTP sent to your Aadhaar-linked mobile.",
 		[
 			done_line("You signed the sanction letter on {{ %s.data.esign.signed_on }}." % SOURCE, "{{ %s }}" % signed),
@@ -701,7 +808,7 @@ def loan_panel():
 
 	return panel(
 		"loan",
-		"Your loan",
+		"Your loan is ready",
 		"",
 		[
 			column(

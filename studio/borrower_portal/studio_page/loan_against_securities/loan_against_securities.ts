@@ -18,6 +18,7 @@ export default function setup(context: any) {
 	const pledgeOtp = ref("")
 	const pledgeSent = ref(false)
 	const accountNumber = ref("")
+	const confirmAccount = ref("")
 	const ifsc = ref("")
 	const esignOtp = ref("")
 	const esignSent = ref(false)
@@ -122,5 +123,5 @@ export default function setup(context: any) {
 	})
 	const confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, ifsc, esignOtp, esignSent, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign }
 }

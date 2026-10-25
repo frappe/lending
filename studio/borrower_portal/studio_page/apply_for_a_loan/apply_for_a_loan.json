@@ -48,7 +48,6 @@
           "overflow": "hidden",
           "width": "26px"
          },
-         "children": [],
          "componentId": "apply-0-container1-container1-imageview1",
          "componentName": "ImageView",
          "componentProps": {
@@ -57,6 +56,7 @@
           "shape": "square",
           "size": "lg"
          },
+         "componentSlots": {},
          "visibilityCondition": "{{ apply.data.brand_logo }}"
         },
         {
@@ -73,7 +73,6 @@
           "justifyContent": "center",
           "width": "26px"
          },
-         "children": [],
          "componentId": "apply-0-container1-container1-textblock1",
          "componentName": "TextBlock",
          "componentProps": {
@@ -81,6 +80,7 @@
           "tag": "p",
           "text": "{{ apply.data.brand_initial }}"
          },
+         "componentSlots": {},
          "visibilityCondition": "{{ apply.data.show_wordmark }}"
         },
         {
@@ -92,7 +92,6 @@
           "marginLeft": "2px",
           "whiteSpace": "nowrap"
          },
-         "children": [],
          "componentId": "apply-0-container1-container1-textblock2",
          "componentName": "TextBlock",
          "componentProps": {
@@ -100,6 +99,7 @@
           "tag": "span",
           "text": "{{ apply.data.brand_name }}"
          },
+         "componentSlots": {},
          "mobileStyles": {
           "display": "none"
          }
@@ -108,9 +108,10 @@
          "baseStyles": {
           "flex": "1 1 auto"
          },
-         "children": [],
          "componentId": "apply-0-container1-container1-container1",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div"
         },
         {
@@ -119,7 +120,6 @@
           "height": "35px",
           "padding": "0 12px"
          },
-         "children": [],
          "componentEvents": {
           "click": {
            "action": "Run Script",
@@ -143,8 +143,6 @@
               "letterSpacing": "0em",
               "lineHeight": "20px"
              },
-             "children": [],
-             "componentEvents": {},
              "componentId": "apply-0-container1-container1-button1-default-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
@@ -152,9 +150,7 @@
               "tag": "span",
               "text": "Track an application"
              },
-             "componentSlots": {},
-             "mobileStyles": {},
-             "tabletStyles": {}
+             "componentSlots": {}
             }
            ],
            "slotName": "default"
@@ -167,7 +163,6 @@
           "height": "35px",
           "padding": "0 14px"
          },
-         "children": [],
          "componentEvents": {
           "click": {
            "action": "Run Script",
@@ -191,8 +186,6 @@
               "letterSpacing": "0em",
               "lineHeight": "20px"
              },
-             "children": [],
-             "componentEvents": {},
              "componentId": "apply-0-container1-container1-button2-default-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
@@ -200,9 +193,7 @@
               "tag": "span",
               "text": "Log in"
              },
-             "componentSlots": {},
-             "mobileStyles": {},
-             "tabletStyles": {}
+             "componentSlots": {}
             }
            ],
            "slotName": "default"
@@ -215,16 +206,12 @@
               "display": "flex",
               "flex": "0 0 auto"
              },
-             "children": [],
-             "componentEvents": {},
              "componentId": "apply-0-container1-container1-button2-prefix-html1",
              "componentName": "HTML",
              "componentProps": {
               "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>"
              },
-             "componentSlots": {},
-             "mobileStyles": {},
-             "tabletStyles": {}
+             "componentSlots": {}
             }
            ],
            "slotName": "prefix"
@@ -237,6 +224,8 @@
        ],
        "componentId": "apply-0-container1-container1",
        "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
        "mobileStyles": {
         "gap": "4px",
         "padding": "12px 16px"
@@ -266,30 +255,32 @@
          },
          "children": [
           {
-           "children": [],
            "componentId": "apply-0-container1-container2-container1-progress1",
            "componentName": "Progress",
            "componentProps": {
             "size": "sm",
             "value": "{{ stepProgress }}"
-           }
+           },
+           "componentSlots": {}
           },
           {
            "baseStyles": {
             "color": "var(--ink-gray-6)"
            },
-           "children": [],
            "componentId": "apply-0-container1-container2-container1-textblock1",
            "componentName": "TextBlock",
            "componentProps": {
             "fontSize": "text-sm",
             "tag": "p",
             "text": "{{ stepLabel }}"
-           }
+           },
+           "componentSlots": {}
           }
          ],
          "componentId": "apply-0-container1-container2-container1",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ step > 1 && step < 6 }}"
         },
@@ -331,14 +322,14 @@
                 "marginBottom": "calc(3 * var(--u, 1px))",
                 "padding": "0 calc(12 * var(--u, 1px))"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container1-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-base",
                 "tag": "span",
                 "text": "{{ apply.data.tagline }}"
-               }
+               },
+               "componentSlots": {}
               },
               {
                "baseStyles": {
@@ -349,7 +340,6 @@
                 "lineHeight": "calc(45 * var(--u, 1px))",
                 "whiteSpace": "pre-line"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container1-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
@@ -357,6 +347,7 @@
                 "tag": "h1",
                 "text": "{{ apply.data.heading }}"
                },
+               "componentSlots": {},
                "mobileStyles": {
                 "fontSize": "32px",
                 "lineHeight": "38px"
@@ -371,18 +362,20 @@
                 "lineHeight": "calc(22 * var(--u, 1px))",
                 "maxWidth": "calc(560 * var(--u, 1px))"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container1-container1-textblock3",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-base",
                 "tag": "p",
                 "text": "{{ apply.data.intro }}"
-               }
+               },
+               "componentSlots": {}
               }
              ],
              "componentId": "apply-0-container1-container2-container2-container1-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -421,12 +414,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 20v-4\"/><path d=\"M12 20V10\"/><path d=\"M18 20V4\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'chart-no-axes' }}"
                 },
                 {
@@ -442,12 +435,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-html2",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'shield' }}"
                 },
                 {
@@ -463,12 +456,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-html3",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z\"/><path d=\"M14 8H8\"/><path d=\"M16 12H8\"/><path d=\"M13 16H8\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'receipt-text' }}"
                 },
                 {
@@ -488,14 +481,14 @@
                     "letterSpacing": "-0.01em",
                     "lineHeight": "calc(20 * var(--u, 1px))"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.title }}"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
@@ -505,23 +498,27 @@
                     "letterSpacing": "0em",
                     "lineHeight": "calc(20 * var(--u, 1px))"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.note }}"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1-container1",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "apply-0-container1-container2-container2-container1-repeater1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               }
              ],
@@ -531,7 +528,8 @@
               "data": "{{ apply.data.trust_points }}",
               "dataKey": "title",
               "emptyStateMessage": ""
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
@@ -561,12 +559,12 @@
                 "padding": "calc(12 * var(--u, 1px))",
                 "width": "calc(50 * var(--u, 1px))"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container1-container2-html1",
                "componentName": "HTML",
                "componentProps": {
                 "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
-               }
+               },
+               "componentSlots": {}
               },
               {
                "baseStyles": {
@@ -584,14 +582,14 @@
                   "letterSpacing": "-0.015em",
                   "lineHeight": "calc(26 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container1-container2-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-base",
                   "tag": "p",
                   "text": "{{ apply.data.start_title }}"
-                 }
+                 },
+                 "componentSlots": {}
                 },
                 {
                  "baseStyles": {
@@ -601,18 +599,20 @@
                   "letterSpacing": "0.015em",
                   "lineHeight": "calc(20 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container1-container2-container1-textblock2",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-base",
                   "tag": "p",
                   "text": "{{ apply.data.start_note }}"
-                 }
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "apply-0-container1-container2-container2-container1-container2-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               },
               {
@@ -621,7 +621,6 @@
                 "height": "calc(45 * var(--u, 1px))",
                 "padding": "0 calc(15 * var(--u, 1px))"
                },
-               "children": [],
                "componentEvents": {
                 "click": {
                  "action": "Run Script",
@@ -647,8 +646,6 @@
                     "letterSpacing": "0em",
                     "lineHeight": "calc(20 * var(--u, 1px))"
                    },
-                   "children": [],
-                   "componentEvents": {},
                    "componentId": "apply-0-container1-container2-container2-container1-container2-button1-default-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
@@ -656,9 +653,7 @@
                     "tag": "span",
                     "text": "Apply now"
                    },
-                   "componentSlots": {},
-                   "mobileStyles": {},
-                   "tabletStyles": {}
+                   "componentSlots": {}
                   }
                  ],
                  "slotName": "default"
@@ -671,16 +666,12 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
-                   "children": [],
-                   "componentEvents": {},
                    "componentId": "apply-0-container1-container2-container2-container1-container2-button1-suffix-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg>"
                    },
-                   "componentSlots": {},
-                   "mobileStyles": {},
-                   "tabletStyles": {}
+                   "componentSlots": {}
                   }
                  ],
                  "slotName": "suffix"
@@ -693,6 +684,8 @@
              ],
              "componentId": "apply-0-container1-container2-container2-container1-container2",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "mobileStyles": {
               "gap": "16px",
               "padding": "16px"
@@ -702,15 +695,18 @@
            ],
            "componentId": "apply-0-container1-container2-container2-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
            "baseStyles": {
             "borderColor": "var(--outline-gray-1)"
            },
-           "children": [],
            "componentId": "apply-0-container1-container2-container2-divider1",
-           "componentName": "Divider"
+           "componentName": "Divider",
+           "componentProps": {},
+           "componentSlots": {}
           },
           {
            "baseStyles": {
@@ -735,14 +731,14 @@
                 "letterSpacing": "-0.025em",
                 "lineHeight": "calc(28 * var(--u, 1px))"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container2-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-base",
                 "tag": "p",
                 "text": "{{ apply.data.how_title }}"
-               }
+               },
+               "componentSlots": {}
               },
               {
                "baseStyles": {
@@ -752,18 +748,20 @@
                 "letterSpacing": "0.02em",
                 "lineHeight": "calc(20 * var(--u, 1px))"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container2-container2-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-base",
                 "tag": "p",
                 "text": "{{ apply.data.how_note }}"
-               }
+               },
+               "componentSlots": {}
               }
              ],
              "componentId": "apply-0-container1-container2-container2-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -802,12 +800,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'file-text' }}"
                 },
                 {
@@ -823,12 +821,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-html2",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'search' }}"
                 },
                 {
@@ -844,12 +842,12 @@
                   "padding": "calc(12 * var(--u, 1px))",
                   "width": "calc(50 * var(--u, 1px))"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-html3",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"19\" x2=\"5\" y1=\"5\" y2=\"19\"/><circle cx=\"6.5\" cy=\"6.5\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"17.5\" r=\"2.5\"/></svg>"
                  },
+                 "componentSlots": {},
                  "visibilityCondition": "{{ dataItem.icon === 'percent' }}"
                 },
                 {
@@ -869,14 +867,14 @@
                     "letterSpacing": "0em",
                     "lineHeight": "calc(18 * var(--u, 1px))"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.title }}"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
@@ -886,23 +884,27 @@
                     "letterSpacing": "0.02em",
                     "lineHeight": "calc(20 * var(--u, 1px))"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.note }}"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1-container1",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
                "componentId": "apply-0-container1-container2-container2-container2-repeater1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               }
              ],
@@ -913,6 +915,7 @@
               "dataKey": "icon",
               "emptyStateMessage": ""
              },
+             "componentSlots": {},
              "tabletStyles": {
               "flexDirection": "column",
               "gap": "12px"
@@ -921,11 +924,15 @@
            ],
            "componentId": "apply-0-container1-container2-container2-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "apply-0-container1-container2-container2",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "mobileStyles": {
           "--u": "1px"
          },
@@ -960,31 +967,33 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container3-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-2xl",
               "tag": "h2",
               "text": "Are you applying as a person or a company?"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container3-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.type_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container3-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -1018,9 +1027,10 @@
                 "pointerEvents": "none",
                 "position": "absolute"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container3-container2-container1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ applicantType === 'Individual' }}"
               },
@@ -1046,12 +1056,12 @@
                   "justifyContent": "center",
                   "width": "40px"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container1-container2-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>"
-                 }
+                 },
+                 "componentSlots": {}
                 },
                 {
                  "baseStyles": {
@@ -1065,40 +1075,43 @@
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "Person"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "I am borrowing in my own name"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container1",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container2",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -1110,9 +1123,10 @@
                   "justifyContent": "center",
                   "width": "20px"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container3",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ !(applicantType === 'Individual') }}"
                 },
@@ -1137,22 +1151,26 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container4-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container3-container2-container1-container2-container4",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ applicantType === 'Individual' }}"
                 }
                ],
                "componentId": "apply-0-container1-container2-container3-container2-container1-container2",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               }
              ],
@@ -1172,6 +1190,8 @@
              },
              "componentId": "apply-0-container1-container2-container3-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -1197,9 +1217,10 @@
                 "pointerEvents": "none",
                 "position": "absolute"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container3-container2-container2-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ applicantType === 'Business' }}"
               },
@@ -1225,12 +1246,12 @@
                   "justifyContent": "center",
                   "width": "40px"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container2-container2-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\"/><path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\"/><path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\"/><path d=\"M10 6h4\"/><path d=\"M10 10h4\"/><path d=\"M10 14h4\"/><path d=\"M10 18h4\"/></svg>"
-                 }
+                 },
+                 "componentSlots": {}
                 },
                 {
                  "baseStyles": {
@@ -1244,40 +1265,43 @@
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "Company"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "The business borrows, not me"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container1",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container2",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -1289,9 +1313,10 @@
                   "justifyContent": "center",
                   "width": "20px"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container3",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ !(applicantType === 'Business') }}"
                 },
@@ -1316,22 +1341,26 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container4-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container3-container2-container2-container2-container4",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ applicantType === 'Business' }}"
                 }
                ],
                "componentId": "apply-0-container1-container2-container3-container2-container2-container2",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               }
              ],
@@ -1351,11 +1380,15 @@
              },
              "componentId": "apply-0-container1-container2-container3-container2-container2",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             }
            ],
            "componentId": "apply-0-container1-container2-container3-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "mobileStyles": {
             "flexDirection": "column"
            },
@@ -1370,7 +1403,6 @@
            },
            "children": [
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1384,19 +1416,20 @@
               "label": "Back",
               "size": "md",
               "variant": "subtle"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "flex": "1 1 auto"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container3-container3-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1410,16 +1443,21 @@
               "label": "Continue",
               "size": "md",
               "variant": "solid"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container3-container3",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "apply-0-container1-container2-container3",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ step === 2 }}"
         },
@@ -1451,31 +1489,33 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container4-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-2xl",
               "tag": "h2",
               "text": "What are you looking for?"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container4-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.product_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container4-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -1509,9 +1549,10 @@
                 "pointerEvents": "none",
                 "position": "absolute"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container4-repeater1-container1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ loanProduct === dataItem.value }}"
               },
@@ -1537,53 +1578,56 @@
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container1-textblock1",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-base",
                     "tag": "p",
                     "text": "{{ dataItem.label }}"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container1-textblock2",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ dataItem.summary }}"
-                   }
+                   },
+                   "componentSlots": {}
                   },
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-6)"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container1-textblock3",
                    "componentName": "TextBlock",
                    "componentProps": {
                     "fontSize": "text-p-sm",
                     "tag": "p",
                     "text": "{{ dataItem.ceiling }}"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container1",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
                  "baseStyles": {
                   "flex": "1 1 auto"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container2",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div"
                 },
                 {
@@ -1595,9 +1639,10 @@
                   "justifyContent": "center",
                   "width": "20px"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container3",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ !(loanProduct === dataItem.value) }}"
                 },
@@ -1622,22 +1667,26 @@
                     "display": "flex",
                     "flex": "0 0 auto"
                    },
-                   "children": [],
                    "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container4-html1",
                    "componentName": "HTML",
                    "componentProps": {
                     "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
-                   }
+                   },
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2-container4",
                  "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
                  "originalElement": "div",
                  "visibilityCondition": "{{ loanProduct === dataItem.value }}"
                 }
                ],
                "componentId": "apply-0-container1-container2-container4-repeater1-container1-container2",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               }
              ],
@@ -1657,6 +1706,8 @@
              },
              "componentId": "apply-0-container1-container2-container4-repeater1-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -1667,6 +1718,7 @@
             "dataKey": "value",
             "emptyStateMessage": "Nothing is open to this kind of applicant yet"
            },
+           "componentSlots": {},
            "mobileStyles": {
             "gridTemplateColumns": "minmax(0, 1fr)"
            }
@@ -1680,7 +1732,6 @@
            },
            "children": [
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1694,19 +1745,20 @@
               "label": "Back",
               "size": "md",
               "variant": "subtle"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "flex": "1 1 auto"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container4-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1721,13 +1773,13 @@
               "size": "md",
               "variant": "solid"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ loanProduct }}"
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container4-container2-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
@@ -1735,16 +1787,21 @@
               "tag": "p",
               "text": "Pick a product to carry on"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ !loanProduct }}"
             }
            ],
            "componentId": "apply-0-container1-container2-container4-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "apply-0-container1-container2-container4",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ step === 3 }}"
         },
@@ -1776,35 +1833,36 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container5-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-2xl",
               "tag": "h2",
               "text": "What is your mobile number?"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container5-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.verify_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container5-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
-           "children": [],
            "componentId": "apply-0-container1-container2-container5-formcontrol1",
            "componentName": "FormControl",
            "componentProps": {
@@ -1815,7 +1873,8 @@
             },
             "placeholder": "98765 43210",
             "type": "tel"
-           }
+           },
+           "componentSlots": {}
           },
           {
            "baseStyles": {
@@ -1828,17 +1887,16 @@
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container5-container2-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.code_note }}"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container5-container2-formcontrol1",
              "componentName": "FormControl",
              "componentProps": {
@@ -1848,7 +1906,8 @@
                "name": "otp"
               },
               "type": "password"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
@@ -1872,14 +1931,14 @@
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container5-container2-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "Didn't receive the OTP?"
-                 }
+                 },
+                 "componentSlots": {}
                 },
                 {
                  "baseStyles": {
@@ -1887,7 +1946,6 @@
                   "cursor": "pointer",
                   "fontWeight": "500"
                  },
-                 "children": [],
                  "componentEvents": {
                   "click": {
                    "action": "Run Script",
@@ -1901,18 +1959,20 @@
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "Resend OTP"
-                 }
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "apply-0-container1-container2-container5-container2-container1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-5)"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container5-container2-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
@@ -1920,16 +1980,21 @@
                 "tag": "p",
                 "text": "{{ resendLabel(resendIn) }}"
                },
+               "componentSlots": {},
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
              ],
              "componentId": "apply-0-container1-container2-container5-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             }
            ],
            "componentId": "apply-0-container1-container2-container5-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div",
            "visibilityCondition": "{{ codeSent }}"
           },
@@ -1942,7 +2007,6 @@
            },
            "children": [
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1956,19 +2020,20 @@
               "label": "Back",
               "size": "md",
               "variant": "subtle"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "flex": "1 1 auto"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container5-container3-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -1984,10 +2049,10 @@
               "size": "md",
               "variant": "solid"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ !codeSent }}"
             },
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -2003,16 +2068,21 @@
               "size": "md",
               "variant": "solid"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ codeSent }}"
             }
            ],
            "componentId": "apply-0-container1-container2-container5-container3",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "apply-0-container1-container2-container5",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ step === 4 }}"
         },
@@ -2044,31 +2114,33 @@
               "color": "var(--ink-gray-9)",
               "fontWeight": "600"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-2xl",
               "tag": "h2",
               "text": "Applicant information"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.details_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container6-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -2080,28 +2152,30 @@
            },
            "children": [
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container2-badge1",
              "componentName": "Badge",
              "componentProps": {
               "label": "{{ applicantType }}",
               "size": "sm",
               "theme": "gray"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container2-badge2",
              "componentName": "Badge",
              "componentProps": {
               "label": "{{ loanProduct }}",
               "size": "sm",
               "theme": "gray"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container6-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -2113,7 +2187,6 @@
            },
            "children": [
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol1",
              "componentName": "FormControl",
              "componentProps": {
@@ -2125,10 +2198,10 @@
               "required": true,
               "type": "text"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ applicantType === 'Business' }}"
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol2",
              "componentName": "FormControl",
              "componentProps": {
@@ -2139,10 +2212,10 @@
               },
               "required": true,
               "type": "text"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol3",
              "componentName": "FormControl",
              "componentProps": {
@@ -2156,10 +2229,10 @@
               "required": false,
               "type": "date"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ applicantType === 'Individual' }}"
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol4",
              "componentName": "FormControl",
              "componentProps": {
@@ -2170,10 +2243,10 @@
               },
               "required": false,
               "type": "text"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol5",
              "componentName": "FormControl",
              "componentProps": {
@@ -2184,10 +2257,10 @@
               },
               "required": false,
               "type": "text"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol6",
              "componentName": "FormControl",
              "componentProps": {
@@ -2198,10 +2271,10 @@
               },
               "required": true,
               "type": "email"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol7",
              "componentName": "FormControl",
              "componentProps": {
@@ -2212,10 +2285,10 @@
               },
               "required": true,
               "type": "number"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol8",
              "componentName": "FormControl",
              "componentProps": {
@@ -2226,10 +2299,10 @@
               },
               "required": false,
               "type": "number"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol9",
              "componentName": "FormControl",
              "componentProps": {
@@ -2240,10 +2313,10 @@
               },
               "required": false,
               "type": "number"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container3-formcontrol10",
              "componentName": "FormControl",
              "componentProps": {
@@ -2264,11 +2337,14 @@
               ],
               "type": "select"
              },
+             "componentSlots": {},
              "visibilityCondition": "{{ applicantType === 'Individual' }}"
             }
            ],
            "componentId": "apply-0-container1-container2-container6-container3",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "mobileStyles": {
             "gridTemplateColumns": "minmax(0, 1fr)"
            },
@@ -2283,7 +2359,6 @@
            },
            "children": [
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -2297,19 +2372,20 @@
               "label": "Back",
               "size": "md",
               "variant": "subtle"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "flex": "1 1 auto"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container6-container4-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -2324,16 +2400,21 @@
               "loading": "{{ busy }}",
               "size": "md",
               "variant": "solid"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container6-container4",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           }
          ],
          "componentId": "apply-0-container1-container2-container6",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "originalElement": "div",
          "visibilityCondition": "{{ step === 5 }}"
         },
@@ -2367,14 +2448,14 @@
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-sm",
               "tag": "p",
               "text": "Step 5 of 6 \u00b7 Your offer"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
@@ -2384,32 +2465,34 @@
               "letterSpacing": "-0.02em",
               "marginTop": "4px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-3xl",
               "tag": "h2",
               "text": "Your indicative offer"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)",
               "fontSize": "15px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container1-textblock3",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "What our rules say about the details you gave us."
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container7-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -2448,16 +2531,18 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container7-container2-container1-container1-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
-                 }
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "apply-0-container1-container2-container7-container2-container1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ offer.tone !== 'danger' }}"
               },
@@ -2482,16 +2567,18 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container7-container2-container1-container2-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg>"
-                 }
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "apply-0-container1-container2-container7-container2-container1-container2",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div",
                "visibilityCondition": "{{ offer.tone === 'danger' }}"
               },
@@ -2500,18 +2587,20 @@
                 "color": "var(--ink-gray-9)",
                 "fontWeight": "600"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container7-container2-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-lg",
                 "tag": "h3",
                 "text": "{{ offer.headline }}"
-               }
+               },
+               "componentSlots": {}
               }
              ],
              "componentId": "apply-0-container1-container2-container7-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -2520,18 +2609,20 @@
               "fontSize": "14px",
               "marginLeft": "34px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container2-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ offer.message }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container7-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
@@ -2556,32 +2647,34 @@
                "baseStyles": {
                 "color": "var(--ink-gray-6)"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container7-repeater1-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-p-sm",
                 "tag": "p",
                 "text": "{{ dataItem.label }}"
-               }
+               },
+               "componentSlots": {}
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-9)",
                 "fontWeight": "600"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container7-repeater1-container1-textblock2",
                "componentName": "TextBlock",
                "componentProps": {
                 "fontSize": "text-lg",
                 "tag": "p",
                 "text": "{{ dataItem.value }}"
-               }
+               },
+               "componentSlots": {}
               }
              ],
              "componentId": "apply-0-container1-container2-container7-repeater1-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             }
            ],
@@ -2592,6 +2685,7 @@
             "dataKey": "label",
             "emptyStateMessage": ""
            },
+           "componentSlots": {},
            "mobileStyles": {
             "gridTemplateColumns": "minmax(0, 1fr)",
             "marginLeft": "0px"
@@ -2616,30 +2710,32 @@
               "display": "flex",
               "flex": "0 0 auto"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container3-html1",
              "componentName": "HTML",
              "componentProps": {
               "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg>"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-8)",
               "fontSize": "14px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container7-container3-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ offer.reference_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container7-container3",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div",
            "visibilityCondition": "{{ offer.reference_note }}"
           },
@@ -2649,7 +2745,6 @@
             "height": "38px",
             "width": "100%"
            },
-           "children": [],
            "componentEvents": {
             "click": {
              "action": "Run Script",
@@ -2664,11 +2759,14 @@
             "loading": "{{ busy }}",
             "size": "md",
             "variant": "solid"
-           }
+           },
+           "componentSlots": {}
           }
          ],
          "componentId": "apply-0-container1-container2-container7",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "mobileStyles": {
           "padding": "20px"
          },
@@ -2705,14 +2803,14 @@
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container8-container1-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-sm",
               "tag": "p",
               "text": "Step 6 of 6 \u00b7 Your account"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
@@ -2722,36 +2820,37 @@
               "letterSpacing": "-0.02em",
               "marginTop": "4px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container8-container1-textblock2",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-3xl",
               "tag": "h2",
               "text": "{{ apply.data.account_title }}"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
               "color": "var(--ink-gray-6)",
               "fontSize": "15px"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container8-container1-textblock3",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ apply.data.account_note }}"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container8-container1",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div"
           },
           {
-           "children": [],
            "componentId": "apply-0-container1-container2-container8-formcontrol1",
            "componentName": "FormControl",
            "componentProps": {
@@ -2763,7 +2862,8 @@
             },
             "required": true,
             "type": "email"
-           }
+           },
+           "componentSlots": {}
           },
           {
            "baseStyles": {
@@ -2776,17 +2876,16 @@
              "baseStyles": {
               "color": "var(--ink-gray-6)"
              },
-             "children": [],
              "componentId": "apply-0-container1-container2-container8-container2-textblock1",
              "componentName": "TextBlock",
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "{{ accountNote }}"
-             }
+             },
+             "componentSlots": {}
             },
             {
-             "children": [],
              "componentId": "apply-0-container1-container2-container8-container2-formcontrol1",
              "componentName": "FormControl",
              "componentProps": {
@@ -2797,7 +2896,8 @@
               },
               "required": true,
               "type": "text"
-             }
+             },
+             "componentSlots": {}
             },
             {
              "baseStyles": {
@@ -2821,14 +2921,14 @@
                  "baseStyles": {
                   "color": "var(--ink-gray-6)"
                  },
-                 "children": [],
                  "componentId": "apply-0-container1-container2-container8-container2-container1-container1-textblock1",
                  "componentName": "TextBlock",
                  "componentProps": {
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "Didn't receive the code?"
-                 }
+                 },
+                 "componentSlots": {}
                 },
                 {
                  "baseStyles": {
@@ -2836,7 +2936,6 @@
                   "cursor": "pointer",
                   "fontWeight": "500"
                  },
-                 "children": [],
                  "componentEvents": {
                   "click": {
                    "action": "Run Script",
@@ -2850,18 +2949,20 @@
                   "fontSize": "text-p-sm",
                   "tag": "p",
                   "text": "Resend code"
-                 }
+                 },
+                 "componentSlots": {}
                 }
                ],
                "componentId": "apply-0-container1-container2-container8-container2-container1-container1",
                "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
                "originalElement": "div"
               },
               {
                "baseStyles": {
                 "color": "var(--ink-gray-5)"
                },
-               "children": [],
                "componentId": "apply-0-container1-container2-container8-container2-container1-textblock1",
                "componentName": "TextBlock",
                "componentProps": {
@@ -2869,11 +2970,14 @@
                 "tag": "p",
                 "text": "{{ resendLabel(resendIn) }}"
                },
+               "componentSlots": {},
                "visibilityCondition": "{{ resendIn > 0 }}"
               }
              ],
              "componentId": "apply-0-container1-container2-container8-container2-container1",
              "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
              "originalElement": "div"
             },
             {
@@ -2882,7 +2986,6 @@
               "cursor": "pointer",
               "textDecoration": "underline"
              },
-             "children": [],
              "componentEvents": {
               "click": {
                "action": "Run Script",
@@ -2896,11 +2999,14 @@
               "fontSize": "text-p-sm",
               "tag": "p",
               "text": "Use a different email"
-             }
+             },
+             "componentSlots": {}
             }
            ],
            "componentId": "apply-0-container1-container2-container8-container2",
            "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
            "originalElement": "div",
            "visibilityCondition": "{{ accountCodeSent }}"
           },
@@ -2910,7 +3016,6 @@
             "height": "38px",
             "width": "100%"
            },
-           "children": [],
            "componentEvents": {
             "click": {
              "action": "Run Script",
@@ -2926,6 +3031,7 @@
             "size": "md",
             "variant": "solid"
            },
+           "componentSlots": {},
            "visibilityCondition": "{{ !accountCodeSent }}"
           },
           {
@@ -2934,7 +3040,6 @@
             "height": "38px",
             "width": "100%"
            },
-           "children": [],
            "componentEvents": {
             "click": {
              "action": "Run Script",
@@ -2950,11 +3055,14 @@
             "size": "md",
             "variant": "solid"
            },
+           "componentSlots": {},
            "visibilityCondition": "{{ accountCodeSent }}"
           }
          ],
          "componentId": "apply-0-container1-container2-container8",
          "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
          "mobileStyles": {
           "padding": "20px"
          },
@@ -2964,6 +3072,8 @@
        ],
        "componentId": "apply-0-container1-container2",
        "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
        "mobileStyles": {
         "padding": "24px 16px"
        },
@@ -2972,18 +3082,20 @@
      ],
      "componentId": "apply-0-container1",
      "componentName": "container",
+     "componentProps": {},
+     "componentSlots": {},
      "originalElement": "div"
     },
     {
      "baseStyles": {
       "display": "none"
      },
-     "children": [],
      "componentId": "apply-0-html1",
      "componentName": "HTML",
      "componentProps": {
       "html": "{{ apply.data.brand_style || '' }}"
-     }
+     },
+     "componentSlots": {}
     }
    ],
    "classes": [
@@ -2991,14 +3103,18 @@
    ],
    "componentId": "apply-0",
    "componentName": "div",
+   "componentProps": {},
+   "componentSlots": {},
    "originalElement": "body"
   }
  ],
  "creation": "2026-09-26 23:52:26.782795",
+ "docstatus": 0,
  "doctype": "Studio Page",
  "frappe_app": "lending",
+ "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-03 02:32:10.307275",
+ "modified": "2026-10-25 18:30:07.720327",
  "modified_by": "Administrator",
  "name": "apply_for_a_loan",
  "owner": "Administrator",
@@ -3008,6 +3124,8 @@
  "resources": [
   {
    "auto": 1,
+   "fetch_document_using_filters": 0,
+   "limit": 0,
    "method": "GET",
    "resource_name": "apply",
    "resource_type": "API Resource",
@@ -3015,6 +3133,5 @@
   }
  ],
  "route": "/apply",
- "studio_app": "borrower-portal",
- "variables": []
+ "studio_app": "borrower-portal"
 }

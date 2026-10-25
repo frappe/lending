@@ -1,6 +1,5 @@
 {
  "block": {
-  "baseStyles": {},
   "children": [
    {
     "baseStyles": {
@@ -10,9 +9,6 @@
     },
     "children": [
      {
-      "baseStyles": {},
-      "children": [],
-      "componentEvents": {},
       "componentId": "borrower_alerts-0-container1-tabbuttons1",
       "componentName": "TabButtons",
       "componentProps": {
@@ -32,16 +28,12 @@
        ],
        "size": "sm"
       },
-      "componentSlots": {},
-      "mobileStyles": {},
-      "tabletStyles": {}
+      "componentSlots": {}
      },
      {
       "baseStyles": {
        "color": "var(--ink-gray-6)"
       },
-      "children": [],
-      "componentEvents": {},
       "componentId": "borrower_alerts-0-container1-textblock1",
       "componentName": "TextBlock",
       "componentProps": {
@@ -49,12 +41,9 @@
        "tag": "p",
        "text": "{{ alertsTab === 'attention' ? alerts.data.attention_note : alerts.data.activity_note }}"
       },
-      "componentSlots": {},
-      "mobileStyles": {},
-      "tabletStyles": {}
+      "componentSlots": {}
      },
      {
-      "baseStyles": {},
       "children": [
        {
         "baseStyles": {
@@ -74,9 +63,6 @@
           },
           "children": [
            {
-            "baseStyles": {},
-            "children": [],
-            "componentEvents": {},
             "componentId": "borrower_alerts-0-container1-repeater1-container1-container1-textblock1",
             "componentName": "TextBlock",
             "componentProps": {
@@ -84,16 +70,12 @@
              "tag": "p",
              "text": "{{ dataItem.title }}"
             },
-            "componentSlots": {},
-            "mobileStyles": {},
-            "tabletStyles": {}
+            "componentSlots": {}
            },
            {
             "baseStyles": {
              "color": "var(--ink-gray-6)"
             },
-            "children": [],
-            "componentEvents": {},
             "componentId": "borrower_alerts-0-container1-repeater1-container1-container1-textblock2",
             "componentName": "TextBlock",
             "componentProps": {
@@ -101,40 +83,29 @@
              "tag": "p",
              "text": "{{ dataItem.note }}"
             },
-            "componentSlots": {},
-            "mobileStyles": {},
-            "tabletStyles": {}
+            "componentSlots": {}
            }
           ],
-          "componentEvents": {},
           "componentId": "borrower_alerts-0-container1-repeater1-container1-container1",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "mobileStyles": {},
-          "originalElement": "div",
-          "tabletStyles": {}
+          "originalElement": "div"
          },
          {
           "baseStyles": {
            "flex": "1 1 auto"
           },
-          "children": [],
-          "componentEvents": {},
           "componentId": "borrower_alerts-0-container1-repeater1-container1-container2",
           "componentName": "container",
           "componentProps": {},
           "componentSlots": {},
-          "mobileStyles": {},
-          "originalElement": "div",
-          "tabletStyles": {}
+          "originalElement": "div"
          },
          {
           "baseStyles": {
            "color": "var(--ink-gray-6)"
           },
-          "children": [],
-          "componentEvents": {},
           "componentId": "borrower_alerts-0-container1-repeater1-container1-textblock1",
           "componentName": "TextBlock",
           "componentProps": {
@@ -142,9 +113,7 @@
            "tag": "p",
            "text": "{{ dataItem.when }}"
           },
-          "componentSlots": {},
-          "mobileStyles": {},
-          "tabletStyles": {}
+          "componentSlots": {}
          }
         ],
         "componentEvents": {
@@ -158,12 +127,9 @@
         "componentName": "container",
         "componentProps": {},
         "componentSlots": {},
-        "mobileStyles": {},
-        "originalElement": "div",
-        "tabletStyles": {}
+        "originalElement": "div"
        }
       ],
-      "componentEvents": {},
       "componentId": "borrower_alerts-0-container1-repeater1",
       "componentName": "Repeater",
       "componentProps": {
@@ -171,13 +137,9 @@
        "dataKey": "name",
        "emptyStateMessage": "Nothing to read"
       },
-      "componentSlots": {},
-      "mobileStyles": {},
-      "tabletStyles": {}
+      "componentSlots": {}
      },
      {
-      "baseStyles": {},
-      "children": [],
       "componentEvents": {
        "click": {
         "action": "Run Script",
@@ -192,22 +154,16 @@
        "size": "sm",
        "variant": "subtle"
       },
-      "componentSlots": {},
-      "mobileStyles": {},
-      "tabletStyles": {}
+      "componentSlots": {}
      }
     ],
-    "componentEvents": {},
     "componentId": "borrower_alerts-0-container1",
     "componentName": "container",
     "componentProps": {},
     "componentSlots": {},
-    "mobileStyles": {},
-    "originalElement": "div",
-    "tabletStyles": {}
+    "originalElement": "div"
    }
   ],
-  "componentEvents": {},
   "componentId": "borrower_alerts-0",
   "componentName": "Dialog",
   "componentProps": {
@@ -218,9 +174,7 @@
    "size": "md",
    "title": "Notifications"
   },
-  "componentSlots": {},
-  "mobileStyles": {},
-  "tabletStyles": {}
+  "componentSlots": {}
  },
  "component_id": "borrower_alerts",
  "component_name": "Borrower Notifications",
@@ -228,9 +182,9 @@
  "docstatus": 0,
  "doctype": "Studio Component",
  "idx": 0,
- "inputs": [],
  "is_disabled": 0,
- "modified": "2026-10-01 16:32:39.362689",
+ "is_standard": 1,
+ "modified": "2026-10-25 17:05:11.762988",
  "modified_by": "Administrator",
  "name": "borrower_alerts",
  "owner": "Administrator"
