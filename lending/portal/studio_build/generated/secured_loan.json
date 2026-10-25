@@ -1754,8 +1754,8 @@
             {
              "componentName": "Alert",
              "componentProps": {
-              "title": "{{ notApproved.length }} of your funds are not on our approved list, so they are not shown.",
-              "theme": "orange"
+              "title": "{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}",
+              "theme": "yellow"
              },
              "componentSlots": {},
              "componentEvents": {},
@@ -2216,6 +2216,7 @@
                    "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock2"
                   }
                  ],
+                 "visibilityCondition": "{{ !sent }}",
                  "originalElement": "div",
                  "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1"
                 }

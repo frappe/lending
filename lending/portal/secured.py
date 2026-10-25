@@ -964,8 +964,9 @@ def sanction_context(application) -> dict:
 		frappe.db.get_value("Loan Security", application.proposed_pledges[0].loan_security, "loan_security_type"),
 		"loan_to_value_ratio",
 	)
+	product = frappe.db.get_value("Loan Product", application.loan_product, "product_name")
 	terms = [
-		{"label": _("Loan product"), "value": application.loan_product},
+		{"label": _("Loan product"), "value": product or application.loan_product},
 		{"label": _("Loan amount"), "value": money(application.loan_amount)},
 		{"label": _("Rate of interest"), "value": _("{0}% a year").format(flt(application.rate_of_interest))},
 	]
@@ -981,6 +982,7 @@ def sanction_context(application) -> dict:
 		"brand_logo": brand.get("brand_logo", ""),
 		"support_email": brand.get("support_email", ""),
 		"holder_name": application.applicant_name,
+		"period_label": _("Date"),
 		"period": long_date(application.posting_date),
 		"accounts": [],
 		"terms": terms,
@@ -994,7 +996,7 @@ def sanction_context(application) -> dict:
 			}
 			for line, row in zip(assignment["lines"], application.proposed_pledges)
 		],
-		"ltv": f"{flt(ltv)}%" if ltv else _("the agreed share"),
+		"ltv": f"{number(ltv)}%" if ltv else _("the agreed share"),
 		"bank_account": bank_payload(application.name).get("account", ""),
 		"generated_on": long_date(nowdate()),
 	}

@@ -1414,8 +1414,8 @@
              "componentId": "secured_loan-0-container1-container1-container5-container2-alert1",
              "componentName": "Alert",
              "componentProps": {
-              "theme": "orange",
-              "title": "{{ notApproved.length }} of your funds are not on our approved list, so they are not shown."
+              "theme": "yellow",
+              "title": "{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}"
              },
              "componentSlots": {},
              "visibilityCondition": "{{ notApproved.length }}"
@@ -1782,7 +1782,8 @@
                  "componentName": "container",
                  "componentProps": {},
                  "componentSlots": {},
-                 "originalElement": "div"
+                 "originalElement": "div",
+                 "visibilityCondition": "{{ !sent }}"
                 }
                ],
                "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1",
@@ -3654,7 +3655,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-25 17:05:12.323160",
+ "modified": "2026-10-25 17:17:22.526458",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

@@ -64,7 +64,7 @@ HEAD = """
 
 <table class="meta">
 	<tr><td class="muted">Borrower</td><td><strong>{{ holder_name }}</strong></td></tr>
-	<tr><td class="muted">Period</td><td>{{ period }}</td></tr>
+	<tr><td class="muted">{{ period_label or "Period" }}</td><td>{{ period }}</td></tr>
 	{% if accounts %}
 	<tr>
 		<td class="muted">Accounts</td>
