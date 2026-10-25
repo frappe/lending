@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Lending VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-18 13:25+0000\n"
-"PO-Revision-Date: 2026-10-18 13:25+0000\n"
+"POT-Creation-Date: 2026-10-25 13:49+0000\n"
+"PO-Revision-Date: 2026-10-25 13:49+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -618,7 +618,7 @@ msgstr ""
 #. Label of the applicant (Dynamic Link) field in DocType 'Loan Decision'
 #: lending/loan_management/doctype/collection_case/collection_case.json:56
 #: lending/loan_management/doctype/loan/loan.json:118
-#: lending/loan_management/doctype/loan_application/loan_application.json:74
+#: lending/loan_management/doctype/loan_application/loan_application.json:75
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:138
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:110
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:96
@@ -684,7 +684,7 @@ msgstr ""
 
 #. Label of the applicant_email_address (Data) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:287
+#: lending/loan_management/doctype/loan_application/loan_application.json:296
 msgid "Applicant Email Address"
 msgstr ""
 
@@ -710,7 +710,7 @@ msgstr ""
 
 #. Label of the applicant_phone_number (Phone) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:295
+#: lending/loan_management/doctype/loan_application/loan_application.json:304
 msgid "Applicant Phone Number"
 msgstr ""
 
@@ -744,7 +744,7 @@ msgstr ""
 #. Label of the applicant_type (Select) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/collection_case/collection_case.json:49
 #: lending/loan_management/doctype/loan/loan.json:109
-#: lending/loan_management/doctype/loan_application/loan_application.json:64
+#: lending/loan_management/doctype/loan_application/loan_application.json:65
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:43
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:130
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:149
@@ -802,7 +802,7 @@ msgid "Application Closed"
 msgstr ""
 
 #. Label of the posting_date (Date) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:86
+#: lending/loan_management/doctype/loan_application/loan_application.json:87
 msgid "Application Date"
 msgstr ""
 
@@ -826,7 +826,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Loan Application'
 #. Option for the 'Status' (Select) field in DocType 'Loan Restructure'
 #. Option for the 'Status' (Select) field in DocType 'Loan Security Release'
-#: lending/loan_management/doctype/loan_application/loan_application.json:103
+#: lending/loan_management/doctype/loan_application/loan_application.json:104
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json:286
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json:61
 msgid "Approved"
@@ -926,12 +926,12 @@ msgstr ""
 
 #. Label of the bpi_amount_difference (Currency) field in DocType 'Loan
 #. Disbursement'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:348
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:349
 msgid "BPI Amount Difference"
 msgstr ""
 
 #. Label of the bpi_difference_date (Date) field in DocType 'Loan Disbursement'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:342
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:343
 msgid "BPI Difference Date"
 msgstr ""
 
@@ -1035,13 +1035,16 @@ msgstr ""
 
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan'
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
+#. Application'
+#. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
 #. Disbursement'
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan Import
 #. Details'
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
 #. Repayment Schedule'
 #: lending/loan_management/doctype/loan/loan.json:522
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:264
+#: lending/loan_management/doctype/loan_application/loan_application.json:212
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:265
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:116
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:193
 msgid "Bi-Weekly"
@@ -1097,7 +1100,7 @@ msgstr ""
 #. Disbursement'
 #. Label of the broken_period_interest (Currency) field in DocType 'Loan
 #. Repayment Schedule'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:314
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:315
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:236
 msgid "Broken Period Interest"
 msgstr ""
@@ -1106,7 +1109,7 @@ msgstr ""
 #. Disbursement'
 #. Label of the broken_period_interest_days (Int) field in DocType 'Loan
 #. Repayment Schedule'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:376
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:377
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:255
 msgid "Broken Period Interest Days"
 msgstr ""
@@ -1244,7 +1247,7 @@ msgstr ""
 msgid "Cannot close this loan until full repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:76
+#: lending/loan_management/doctype/loan_application/loan_application.js:77
 msgid "Cannot create loan until application is approved"
 msgstr ""
 
@@ -1560,7 +1563,7 @@ msgstr ""
 
 #. Label of the co_applicants_section (Section Break) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:358
+#: lending/loan_management/doctype/loan_application/loan_application.json:367
 msgid "Co-Applicants"
 msgstr ""
 
@@ -1679,7 +1682,7 @@ msgstr ""
 #: lending/loan_management/doctype/collection_case/collection_case.json:71
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json:35
 #: lending/loan_management/doctype/loan/loan.json:164
-#: lending/loan_management/doctype/loan_application/loan_application.json:110
+#: lending/loan_management/doctype/loan_application/loan_application.json:111
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:66
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:158
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:100
@@ -1881,7 +1884,7 @@ msgstr ""
 
 #. Label of the current_disbursed_amount (Currency) field in DocType 'Loan
 #. Disbursement'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:307
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:308
 msgid "Current Disbursed Amount"
 msgstr ""
 
@@ -1928,7 +1931,7 @@ msgstr ""
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/collection_case/collection_case.json:50
 #: lending/loan_management/doctype/loan/loan.json:110
-#: lending/loan_management/doctype/loan_application/loan_application.json:65
+#: lending/loan_management/doctype/loan_application/loan_application.json:66
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:44
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:150
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:88
@@ -1994,7 +1997,7 @@ msgstr ""
 #: lending/loan_management/doctype/collection_case_log/collection_case_log.json:70
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json:37
 #: lending/loan_management/doctype/loan/loan.json:457
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:336
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:337
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:351
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:138
 msgid "Days Past Due"
@@ -2057,7 +2060,7 @@ msgstr ""
 
 #. Label of the decision (Link) field in DocType 'Loan Application'
 #. Label of the decision (Select) field in DocType 'Loan Decision'
-#: lending/loan_management/doctype/loan_application/loan_application.json:180
+#: lending/loan_management/doctype/loan_application/loan_application.json:181
 #: lending/loan_origination/doctype/loan_decision/loan_decision.js:140
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json:117
 msgid "Decision"
@@ -2224,7 +2227,7 @@ msgstr ""
 msgid "Disbursed Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:517
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:529
 #, python-brace-format
 msgid "Disbursed Amount cannot be more than {0} as per loan limit or assigned security value"
 msgstr ""
@@ -2234,7 +2237,7 @@ msgstr ""
 msgid "Disbursed Amount: {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:512
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:524
 msgid "Disbursed amount cannot be zero"
 msgstr ""
 
@@ -2299,11 +2302,11 @@ msgstr ""
 msgid "Disbursement References"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:786
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:798
 msgid "Disbursement against loan:"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:529
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:541
 msgid "Disbursement amount cannot be greater than available limit amount"
 msgstr ""
 
@@ -2312,7 +2315,7 @@ msgstr ""
 msgid "Disbursement and Repayment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:524
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:536
 msgid "Disbursement date is out of approved limit dates"
 msgstr ""
 
@@ -2378,7 +2381,7 @@ msgstr ""
 msgid "Effective Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:347
+#: lending/loan_management/doctype/loan_application/loan_application.py:363
 msgid "Either Loan Application, Loan or Applicant details are required to create Loan Security Assignment"
 msgstr ""
 
@@ -2429,8 +2432,8 @@ msgstr ""
 #: lending/loan_management/doctype/collection_case/collection_case.json:50
 #: lending/loan_management/doctype/loan/loan.json:110
 #: lending/loan_management/doctype/loan/loan.json:800
-#: lending/loan_management/doctype/loan_application/loan_application.json:65
-#: lending/loan_management/doctype/loan_application/loan_application.json:427
+#: lending/loan_management/doctype/loan_application/loan_application.json:66
+#: lending/loan_management/doctype/loan_application/loan_application.json:436
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:44
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:150
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:88
@@ -3099,7 +3102,7 @@ msgstr ""
 #. Label of the is_imported (Check) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan/loan.json:726
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:296
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:388
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:389
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:294
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:563
 msgid "Is Imported"
@@ -3132,7 +3135,7 @@ msgstr ""
 #. Label of the is_secured_loan (Check) field in DocType 'Loan'
 #. Label of the is_secured_loan (Check) field in DocType 'Loan Application'
 #: lending/loan_management/doctype/loan/loan.json:325
-#: lending/loan_management/doctype/loan_application/loan_application.json:239
+#: lending/loan_management/doctype/loan_application/loan_application.json:248
 msgid "Is Secured Loan"
 msgstr ""
 
@@ -3156,7 +3159,7 @@ msgstr ""
 #. Label of the is_term_loan (Check) field in DocType 'Loan Product'
 #. Label of the is_term_loan (Check) field in DocType 'Loan Repayment'
 #: lending/loan_management/doctype/loan/loan.json:332
-#: lending/loan_management/doctype/loan_application/loan_application.json:266
+#: lending/loan_management/doctype/loan_application/loan_application.json:275
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:210
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:221
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:120
@@ -3369,7 +3372,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan/loan.json:771
 #: lending/loan_management/doctype/loan_accrual_repost_detail/loan_accrual_repost_detail.json:16
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json:39
-#: lending/loan_management/doctype/loan_application/loan_application.js:65
+#: lending/loan_management/doctype/loan_application/loan_application.js:66
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:35
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:92
 #: lending/loan_management/doctype/loan_freeze_log/loan_freeze_log.json:19
@@ -3502,7 +3505,7 @@ msgstr ""
 #. Shortfall'
 #. Label of the loan_amount (Currency) field in DocType 'Loan Lead'
 #: lending/loan_management/doctype/loan/loan.json:189
-#: lending/loan_management/doctype/loan_application/loan_application.json:132
+#: lending/loan_management/doctype/loan_application/loan_application.json:133
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:103
 #: lending/loan_management/doctype/loan_security_shortfall/loan_security_shortfall.json:37
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:50
@@ -3522,17 +3525,17 @@ msgstr ""
 msgid "Loan Amount Percentage"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:174
+#: lending/loan_management/doctype/loan_application/loan_application.py:177
 #, python-brace-format
 msgid "Loan Amount cannot exceed Maximum Loan Amount of {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:179
+#: lending/loan_management/doctype/loan_application/loan_application.py:182
 #, python-brace-format
 msgid "Loan Amount exceeds maximum loan amount of {0} as per proposed securities"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:167
+#: lending/loan_management/doctype/loan_application/loan_application.py:170
 msgid "Loan Amount is mandatory"
 msgstr ""
 
@@ -3545,7 +3548,7 @@ msgstr ""
 #. Label of the loan_application (Link) field in DocType 'Loan Decision'
 #. Label of a Workspace Sidebar Item
 #: lending/loan_management/doctype/loan/loan.json:133
-#: lending/loan_management/doctype/loan_application/loan_application.json:391
+#: lending/loan_management/doctype/loan_application/loan_application.json:400
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json:168
 #: lending/loan_management/workspace/lending/lending.json:345
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json:38
@@ -3730,7 +3733,7 @@ msgstr ""
 #: lending/loan_management/doctype/loan/loan.js:87
 #: lending/loan_management/doctype/loan_adjustment/loan_adjustment.json:82
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:193
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:409
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:410
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:232
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:396
 #: lending/loan_management/doctype/loan_repayment_repost/loan_repayment_repost.json:64
@@ -3815,7 +3818,7 @@ msgstr ""
 
 #. Label of the section_break_4 (Section Break) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:117
+#: lending/loan_management/doctype/loan_application/loan_application.json:118
 msgid "Loan Info"
 msgstr ""
 
@@ -3832,13 +3835,13 @@ msgid "Loan Interest Accrual"
 msgstr ""
 
 #. Name of a role
-#: lending/loan_management/doctype/loan_application/loan_application.json:472
+#: lending/loan_management/doctype/loan_application/loan_application.json:481
 msgid "Loan LOS User"
 msgstr ""
 
 #. Label of the loan_lead (Link) field in DocType 'Loan Application'
 #. Name of a DocType
-#: lending/loan_management/doctype/loan_application/loan_application.json:92
+#: lending/loan_management/doctype/loan_application/loan_application.json:93
 #: lending/loan_origination/doctype/loan_lead/loan_lead.json:358
 msgid "Loan Lead"
 msgstr ""
@@ -3859,12 +3862,12 @@ msgstr ""
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json:85
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json:101
 #: lending/loan_management/doctype/loan/loan.json:785
-#: lending/loan_management/doctype/loan_application/loan_application.json:405
+#: lending/loan_management/doctype/loan_application/loan_application.json:414
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:196
 #: lending/loan_management/doctype/loan_category/loan_category.json:66
 #: lending/loan_management/doctype/loan_classification/loan_classification.json:60
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:355
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:438
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:439
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:350
 #: lending/loan_management/doctype/loan_partner/loan_partner.json:298
 #: lending/loan_management/doctype/loan_product/loan_product.json:602
@@ -3945,7 +3948,7 @@ msgstr ""
 #. Label of the loan_partner (Link) field in DocType 'Loan Repayment Schedule'
 #: lending/loan_management/doctype/loan/loan.json:643
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:218
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:323
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:324
 #: lending/loan_management/doctype/loan_partner/loan_partner.json:274
 #: lending/loan_management/doctype/loan_product_loan_partner/loan_product_loan_partner.json:16
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:486
@@ -4061,7 +4064,7 @@ msgstr ""
 #: lending/loan_management/doctype/collection_case/collection_case.json:84
 #: lending/loan_management/doctype/dunning_rule/dunning_rule.json:43
 #: lending/loan_management/doctype/loan/loan.json:143
-#: lending/loan_management/doctype/loan_application/loan_application.json:123
+#: lending/loan_management/doctype/loan_application/loan_application.json:124
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:123
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:242
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:158
@@ -4111,7 +4114,7 @@ msgstr ""
 #. Label of the loan_purpose_section (Section Break) field in DocType 'Loan
 #. Purpose'
 #. Label of the loan_purpose (Data) field in DocType 'Loan Purpose'
-#: lending/loan_management/doctype/loan_application/loan_application.json:381
+#: lending/loan_management/doctype/loan_application/loan_application.json:390
 #: lending/loan_origination/doctype/loan_purpose/loan_purpose.json:16
 #: lending/loan_origination/doctype/loan_purpose/loan_purpose.json:31
 msgid "Loan Purpose"
@@ -4223,12 +4226,12 @@ msgstr ""
 #. Name of a role
 #: lending/loan_management/doctype/days_past_due_log/days_past_due_log.json:95
 #: lending/loan_management/doctype/loan/loan.json:796
-#: lending/loan_management/doctype/loan_application/loan_application.json:416
+#: lending/loan_management/doctype/loan_application/loan_application.json:425
 #: lending/loan_management/doctype/loan_balance_adjustment/loan_balance_adjustment.json:207
 #: lending/loan_management/doctype/loan_category/loan_category.json:76
 #: lending/loan_management/doctype/loan_classification/loan_classification.json:70
 #: lending/loan_management/doctype/loan_demand/loan_demand.json:366
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:449
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:450
 #: lending/loan_management/doctype/loan_interest_accrual/loan_interest_accrual.json:361
 #: lending/loan_management/doctype/loan_partner/loan_partner.json:308
 #: lending/loan_management/doctype/loan_product/loan_product.json:612
@@ -4332,7 +4335,7 @@ msgstr ""
 #. Name of a DocType
 #. Label of a Link in the Lending Workspace
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan_application/loan_application.js:58
+#: lending/loan_management/doctype/loan_application/loan_application.js:59
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json:178
 #: lending/loan_management/report/loan_security_status/loan_security_status.py:18
 #: lending/loan_management/workspace/lending/lending.json:67
@@ -4340,12 +4343,12 @@ msgstr ""
 msgid "Loan Security Assignment"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:371
+#: lending/loan_management/doctype/loan_application/loan_application.py:387
 #, python-brace-format
 msgid "Loan Security Assignment Created : {0}"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:87
+#: lending/loan_management/doctype/loan_application/loan_application.js:88
 msgid "Loan Security Assignment can only be created for secured loans"
 msgstr ""
 
@@ -4373,7 +4376,7 @@ msgstr ""
 #. 'Loan Security Assignment'
 #. Label of the loan_security_details_section (Section Break) field in DocType
 #. 'Loan Security Release'
-#: lending/loan_management/doctype/loan_application/loan_application.json:245
+#: lending/loan_management/doctype/loan_application/loan_application.json:254
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.json:55
 #: lending/loan_management/doctype/loan_security_release/loan_security_release.json:73
 msgid "Loan Security Details"
@@ -4550,7 +4553,7 @@ msgid "Loan Transfers"
 msgstr ""
 
 #. Name of a role
-#: lending/loan_management/doctype/loan_application/loan_application.json:482
+#: lending/loan_management/doctype/loan_application/loan_application.json:491
 #: lending/loan_origination/doctype/adverse_action_reason/adverse_action_reason.json:69
 #: lending/loan_origination/doctype/credit_bureau_report/credit_bureau_report.json:180
 #: lending/loan_origination/doctype/decision_strategy/decision_strategy.json:112
@@ -4697,7 +4700,7 @@ msgstr ""
 #. Application'
 #. Label of the maximum_loan_amount (Currency) field in DocType 'Loan Product'
 #: lending/loan_management/doctype/loan/loan.json:363
-#: lending/loan_management/doctype/loan_application/loan_application.json:257
+#: lending/loan_management/doctype/loan_application/loan_application.json:266
 #: lending/loan_management/doctype/loan_product/loan_product.json:93
 msgid "Maximum Loan Amount"
 msgstr ""
@@ -4813,7 +4816,7 @@ msgstr ""
 
 #. Label of the mode_of_payment (Link) field in DocType 'Loan Disbursement'
 #. Label of the mode_of_payment (Link) field in DocType 'Loan Repayment'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:381
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:382
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:410
 msgid "Mode Of Payment"
 msgstr ""
@@ -4836,14 +4839,14 @@ msgstr ""
 #. Label of the monthly_repayment_amount (Currency) field in DocType 'Loan
 #. Repayment Schedule'
 #: lending/loan_management/doctype/loan/loan.json:237
-#: lending/loan_management/doctype/loan_application/loan_application.json:202
+#: lending/loan_management/doctype/loan_application/loan_application.json:203
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:233
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:119
 msgid "Monthly Repayment Amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:148
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:991
+#: lending/loan_management/doctype/loan_application/loan_application.py:151
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:1006
 msgid "Monthly Repayment Amount cannot be greater than Loan Amount"
 msgstr ""
 
@@ -5034,7 +5037,7 @@ msgstr ""
 msgid "No underwriting strategy applies to this loan product."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:218
+#: lending/loan_management/doctype/loan_application/loan_application.py:221
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:117
 #, python-brace-format
 msgid "No valid Loan Security Price found for {0}"
@@ -5213,7 +5216,7 @@ msgstr ""
 #. Option for the 'Repayment Frequency' (Select) field in DocType 'Loan
 #. Repayment Schedule'
 #: lending/loan_management/doctype/loan/loan.json:522
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:264
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:265
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:116
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:193
 msgid "One Time"
@@ -5734,16 +5737,16 @@ msgstr ""
 msgid "Please enable {0} in TP OTP Settings to use {1}."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:142
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:982
+#: lending/loan_management/doctype/loan_application/loan_application.py:144
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:997
 msgid "Please enter Repayment Periods"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:989
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:1004
 msgid "Please enter monthly repayment amount"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:146
+#: lending/loan_management/doctype/loan_application/loan_application.py:149
 msgid "Please enter repayment Amount"
 msgstr ""
 
@@ -5786,7 +5789,7 @@ msgid "Please select Loan Disbursement for Line of Credit repayment"
 msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:167
-#: lending/loan_management/doctype/loan_application/loan_application.py:153
+#: lending/loan_management/doctype/loan_application/loan_application.py:156
 #, python-brace-format
 msgid "Please select Loan Product for company {0}"
 msgstr ""
@@ -5822,7 +5825,7 @@ msgid "Please set Additional Interest Income Account in Loan Product {0}"
 msgstr ""
 
 #: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:217
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:822
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:834
 #, python-brace-format
 msgid "Please set Broken Period Interest Recovery Account for the Loan Product {0}"
 msgstr ""
@@ -6095,19 +6098,19 @@ msgstr ""
 
 #. Label of the applicant_address_details_section (Section Break) field in
 #. DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:301
+#: lending/loan_management/doctype/loan_application/loan_application.json:310
 msgid "Primary Applicant Address Details"
 msgstr ""
 
 #. Label of the applicant_contact_info_section (Section Break) field in DocType
 #. 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:277
+#: lending/loan_management/doctype/loan_application/loan_application.json:286
 msgid "Primary Applicant Contact Info"
 msgstr ""
 
 #. Label of the applicant_details_section (Section Break) field in DocType
 #. 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:272
+#: lending/loan_management/doctype/loan_application/loan_application.json:281
 msgid "Primary Applicant Details"
 msgstr ""
 
@@ -6149,7 +6152,7 @@ msgstr ""
 #. Disbursement'
 #. Label of the principal_amount_paid (Currency) field in DocType 'Loan
 #. Repayment'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:354
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:355
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:241
 msgid "Principal Amount Paid"
 msgstr ""
@@ -6331,11 +6334,11 @@ msgid "Proposed Pledge"
 msgstr ""
 
 #. Label of the proposed_pledges (Table) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:251
+#: lending/loan_management/doctype/loan_application/loan_application.json:260
 msgid "Proposed Pledges"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:275
+#: lending/loan_management/doctype/loan_application/loan_application.py:280
 msgid "Proposed Pledges are mandatory for secured Loans"
 msgstr ""
 
@@ -6350,12 +6353,12 @@ msgstr ""
 msgid "Provision Rate"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:209
+#: lending/loan_management/doctype/loan_application/loan_application.py:212
 #: lending/loan_management/doctype/loan_security_assignment/loan_security_assignment.py:108
 msgid "Qty is mandatory for loan security!"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:389
+#: lending/loan_management/doctype/loan_application/loan_application.py:405
 msgid "Qty or Amount is mandatroy for loan security"
 msgstr ""
 
@@ -6386,7 +6389,7 @@ msgid "Rate Of Interest"
 msgstr ""
 
 #. Label of the rate_of_interest (Percent) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:159
+#: lending/loan_management/doctype/loan_application/loan_application.json:160
 msgid "Rate of Interest"
 msgstr ""
 
@@ -6454,7 +6457,7 @@ msgstr ""
 #. Application'
 #. Label of the term_amount_cap (Currency) field in DocType 'Decision Rule'
 #. Label of the recommended_amount (Currency) field in DocType 'Loan Decision'
-#: lending/loan_management/doctype/loan_application/loan_application.json:165
+#: lending/loan_management/doctype/loan_application/loan_application.json:166
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json:97
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json:148
 msgid "Recommended Loan Amount"
@@ -6468,14 +6471,14 @@ msgid "Recommended Rate Of Interest"
 msgstr ""
 
 #. Label of the recommended_roi (Percent) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:173
+#: lending/loan_management/doctype/loan_application/loan_application.json:174
 msgid "Recommended Rate of Interest"
 msgstr ""
 
 #. Label of the recommended_tenure (Int) field in DocType 'Loan Application'
 #. Label of the term_tenure_cap (Int) field in DocType 'Decision Rule'
 #. Label of the recommended_tenure (Int) field in DocType 'Loan Decision'
-#: lending/loan_management/doctype/loan_application/loan_application.json:215
+#: lending/loan_management/doctype/loan_application/loan_application.json:224
 #: lending/loan_origination/doctype/decision_rule/decision_rule.json:106
 #: lending/loan_origination/doctype/loan_decision/loan_decision.json:159
 msgid "Recommended Tenure in Months"
@@ -6574,7 +6577,7 @@ msgstr ""
 
 #. Label of the refund_account (Link) field in DocType 'Loan Disbursement'
 #. Label of the refund_account (Link) field in DocType 'Loan Refund'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:330
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:331
 #: lending/loan_management/doctype/loan_refund/loan_refund.json:97
 msgid "Refund Account"
 msgstr ""
@@ -6671,8 +6674,8 @@ msgstr ""
 #. Option for the 'New Repayment Method' (Select) field in DocType 'Loan
 #. Restructure'
 #: lending/loan_management/doctype/loan/loan.json:223
-#: lending/loan_management/doctype/loan_application/loan_application.json:152
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:293
+#: lending/loan_management/doctype/loan_application/loan_application.json:153
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:294
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:107
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:112
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json:157
@@ -6691,8 +6694,8 @@ msgstr ""
 #. Option for the 'New Repayment Method' (Select) field in DocType 'Loan
 #. Restructure'
 #: lending/loan_management/doctype/loan/loan.json:223
-#: lending/loan_management/doctype/loan_application/loan_application.json:152
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:293
+#: lending/loan_management/doctype/loan_application/loan_application.json:153
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:294
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:107
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:112
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json:157
@@ -6718,7 +6721,7 @@ msgstr ""
 msgid "Repayment Account"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.py:248
+#: lending/loan_management/doctype/loan_application/loan_application.py:251
 msgid "Repayment Amount must be greater than "
 msgstr ""
 
@@ -6737,13 +6740,16 @@ msgstr ""
 
 #. Label of the repayment_frequency (Select) field in DocType 'Loan'
 #. Label of the repayment_frequency (Select) field in DocType 'Loan
+#. Application'
+#. Label of the repayment_frequency (Select) field in DocType 'Loan
 #. Disbursement'
 #. Label of the repayment_frequency (Select) field in DocType 'Loan Import
 #. Details'
 #. Label of the repayment_frequency (Select) field in DocType 'Loan Repayment
 #. Schedule'
 #: lending/loan_management/doctype/loan/loan.json:521
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:263
+#: lending/loan_management/doctype/loan_application/loan_application.json:211
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:264
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:114
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:192
 msgid "Repayment Frequency"
@@ -6751,7 +6757,7 @@ msgstr ""
 
 #. Label of the repayment_info (Section Break) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:143
+#: lending/loan_management/doctype/loan_application/loan_application.json:144
 msgid "Repayment Info"
 msgstr ""
 
@@ -6764,8 +6770,8 @@ msgstr ""
 #. Schedule'
 #. Label of the repayment_method (Data) field in DocType 'Loan Restructure'
 #: lending/loan_management/doctype/loan/loan.json:222
-#: lending/loan_management/doctype/loan_application/loan_application.json:151
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:292
+#: lending/loan_management/doctype/loan_application/loan_application.json:152
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:293
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:105
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:111
 #: lending/loan_management/doctype/loan_restructure/loan_restructure.json:278
@@ -6779,7 +6785,7 @@ msgid "Repayment Period In Months"
 msgstr ""
 
 #. Label of the repayment_periods (Int) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:209
+#: lending/loan_management/doctype/loan_application/loan_application.json:218
 msgid "Repayment Period in Months"
 msgstr ""
 
@@ -6815,7 +6821,7 @@ msgstr ""
 #. Label of the repayment_schedule_type (Data) field in DocType 'Loan Repayment
 #. Schedule'
 #: lending/loan_management/doctype/loan/loan.json:442
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:271
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:272
 #: lending/loan_management/doctype/loan_partner/loan_partner.json:65
 #: lending/loan_management/doctype/loan_product/loan_product.json:210
 #: lending/loan_management/doctype/loan_repayment/loan_repayment.json:390
@@ -6831,17 +6837,17 @@ msgstr ""
 #. Label of the repayment_start_date (Date) field in DocType 'Loan Repayment
 #. Schedule'
 #: lending/loan_management/doctype/loan/loan.json:212
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:277
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:278
 #: lending/loan_management/doctype/loan_import_details/loan_import_details.json:136
 #: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.json:133
 msgid "Repayment Start Date"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:979
+#: lending/loan_management/doctype/loan_repayment_schedule/loan_repayment_schedule.py:994
 msgid "Repayment Start Date is mandatory for term loans"
 msgstr ""
 
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:417
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.py:429
 #, python-brace-format
 msgid "Repayment Start Date {0} cannot be before Disbursement Date {1}"
 msgstr ""
@@ -7138,7 +7144,7 @@ msgid "Sanctioned Amount Tolerance (%)"
 msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:573
-#: lending/loan_management/doctype/loan_application/loan_application.py:200
+#: lending/loan_management/doctype/loan_application/loan_application.py:203
 #, python-brace-format
 msgid "Sanctioned Amount limit crossed for {0} {1}"
 msgstr ""
@@ -7147,7 +7153,7 @@ msgstr ""
 #. Disbursement'
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:299
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:300
 #: lending/loan_management/doctype/sanctioned_loan_amount/sanctioned_loan_amount.json:57
 #: lending/workspace_sidebar/lending.json:303
 msgid "Sanctioned Loan Amount"
@@ -7255,7 +7261,7 @@ msgid "Select {0}s By"
 msgstr ""
 
 #: lending/loan_management/doctype/loan/loan.py:174
-#: lending/loan_management/doctype/loan_application/loan_application.py:160
+#: lending/loan_management/doctype/loan_application/loan_application.py:163
 #, python-brace-format
 msgid "Selected employee belongs to {0}. Please select an employee from company {1}."
 msgstr ""
@@ -7447,7 +7453,7 @@ msgstr ""
 #. Label of the repayment_periods (Int) field in DocType 'Loan'
 #. Label of the tenure (Int) field in DocType 'Loan Disbursement'
 #: lending/loan_management/doctype/loan/loan.json:229
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:283
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:284
 #: lending/loan_management/report/loan_outstanding_report/loan_outstanding_report.py:132
 msgid "Tenure"
 msgstr ""
@@ -7545,7 +7551,7 @@ msgstr ""
 msgid "The source document, shown only when this line comes from a single accrual/demand (# Docs = 1). Blank when multiple documents are merged into the line; use # Docs and View Ledger to trace those."
 msgstr ""
 
-#: lending/loan_management/doctype/loan_application/loan_application.js:141
+#: lending/loan_management/doctype/loan_application/loan_application.js:142
 msgid "There already exists a borrower with the same contact details. Do you want to fetch the borrower here?"
 msgstr ""
 
@@ -7640,7 +7646,7 @@ msgstr ""
 
 #. Label of the total_emi_charges (Currency) field in DocType 'Loan
 #. Disbursement'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:394
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:395
 msgid "Total EMI Charges"
 msgstr ""
 
@@ -7697,13 +7703,13 @@ msgstr ""
 #. Label of the total_payable_amount (Currency) field in DocType 'Loan
 #. Application'
 #: lending/loan_management/doctype/loan/loan.json:284
-#: lending/loan_management/doctype/loan_application/loan_application.json:222
+#: lending/loan_management/doctype/loan_application/loan_application.json:231
 msgid "Total Payable Amount"
 msgstr ""
 
 #. Label of the total_payable_interest (Currency) field in DocType 'Loan
 #. Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:190
+#: lending/loan_management/doctype/loan_application/loan_application.json:191
 msgid "Total Payable Interest"
 msgstr ""
 
@@ -7755,7 +7761,7 @@ msgid "Total overdue amount for charge {0} is {1}, but table shows {2}. Please r
 msgstr ""
 
 #. Label of the tranche_number (Int) field in DocType 'Loan Disbursement'
-#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:399
+#: lending/loan_management/doctype/loan_disbursement/loan_disbursement.json:400
 #: lending/loan_management/report/disbursement_analysis_report/disbursement_analysis_report.py:46
 msgid "Tranche Number"
 msgstr ""
@@ -8180,7 +8186,7 @@ msgid "You do not have permission to send an OTP for {0}."
 msgstr ""
 
 #. Label of the zip_code (Int) field in DocType 'Loan Application'
-#: lending/loan_management/doctype/loan_application/loan_application.json:319
+#: lending/loan_management/doctype/loan_application/loan_application.json:328
 msgid "ZIP Code"
 msgstr ""
 
