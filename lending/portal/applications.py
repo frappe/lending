@@ -56,7 +56,6 @@ DETAIL_FIELDS = (
 
 @frappe.whitelist()
 def get_application_detail() -> dict:
-	"""One application's tracker and details; the borrower's newest when none is named."""
 	name = frappe.form_dict.get("name") or default_application()
 	if not name:
 		lead = open_lead()
@@ -501,7 +500,6 @@ def read_upload():
 
 @frappe.whitelist(methods=["POST"])
 def upload_document() -> dict:
-	"""Attach a private file to one of the borrower's own draft applications."""
 	# ignore_permissions below: Website Users hold no write on Loan Application; ownership is checked here.
 	application = editable_application()
 	document_type = clean(frappe.form_dict.get("document_type"))

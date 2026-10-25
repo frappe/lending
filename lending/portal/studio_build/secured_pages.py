@@ -1,8 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The secured loan journey: one page with a stepper, a sign-up page, and the sample KYC page."""
-
 from lending.portal.studio_build.app import api_resource, page_script, upsert_page
 from lending.portal.studio_build.apply_page import choice
 from lending.portal.studio_build.blocks import (
@@ -487,7 +485,6 @@ def holding_choice():
 
 
 def units_box(chosen):
-	"""Under a chosen fund: how many of its units to pledge, and what they lend."""
 	units = block(
 		"FormControl",
 		props={
@@ -676,7 +673,6 @@ LIST_BOX = {
 
 
 def security_list(items, with_lien=False, visible=None):
-	"""Full-width rows: the scheme and folio on the left, its value (and lien) on the right."""
 	detail = (
 		badge("{{ 'Lien ' + dataItem.lien }}", theme="green", visible="{{ dataItem.lien }}")
 		if with_lien
@@ -719,7 +715,6 @@ def security_list(items, with_lien=False, visible=None):
 
 
 def summary_strip(cells, visible=None):
-	"""A grey band of label-over-figure pairs, wrapping by width rather than by breakpoint."""
 	return container(
 		[
 			column(
@@ -888,7 +883,6 @@ def esign_panel():
 
 
 def withdraw_box():
-	"""Paying the loan out to the account the borrower verified."""
 	amount = block(
 		"FormControl",
 		props={

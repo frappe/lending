@@ -1,8 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""Guest frame for /apply and /track; the borrower sidebar's rows all need a login."""
-
 from lending.portal.studio_build.blocks import (
 	block,
 	brand_style,

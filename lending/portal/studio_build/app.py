@@ -181,7 +181,6 @@ FRAME_SCRIPT = '''\tconst search = useSearch(open)
 
 
 def page_script(state=(), body="", returns=(), framed=True, shared=()):
-	"""A page's setup() module; `state` is (name, initial) ref pairs, `shared` names from utils/portal.ts."""
 	declarations = "".join(f'\tconst {name} = ref({initial})\n' for name, initial in state)
 	names = [name for name, _initial in state] + list(shared) + list(returns)
 	imports = (["useSearch", "useMenus"] if framed else []) + list(shared)
@@ -235,7 +234,6 @@ def upsert_app():
 
 
 def write_shared_utils():
-	"""Write utils/portal.ts unless it was hand-edited since the last baseline."""
 	folder = frappe.get_app_source_path(FRAPPE_APP, "studio", APP_NAME, SHARED_UTILS_PATH[0])
 	frappe.create_folder(folder)
 	path = os.path.join(folder, SHARED_UTILS_PATH[1])
@@ -255,7 +253,6 @@ def write_shared_utils():
 
 
 def upsert_component(component_id, component_name, tree, inputs=()):
-	"""Create a frame component or merge onto it; unchanged ones are not saved, to spare open editors."""
 	tree = merge.identify([tree], component_id)[0]
 	key = f"component-{merge.baseline_key(component_id)}"
 	fields = {

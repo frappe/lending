@@ -117,7 +117,6 @@ def adapter_choices():
 
 @frappe.whitelist(methods=["GET"])
 def get_setup():
-	"""What the forms need to decide which buttons to show."""
 	return {"registry": uses_registry(), "nav": bool(get_adapter_key(NAV_FIELD))}
 
 
@@ -161,7 +160,6 @@ def fetch_holdings(loan_security_assignment: str, pan: str, request_id: str, otp
 
 
 def match_holdings(holdings):
-	"""Tie each holding to the Loan Security with its AMFI scheme code. Others cannot be pledged."""
 	codes = [str(holding.get("amfi_scheme_code")) for holding in holdings]
 	securities = {
 		row.amfi_scheme_code: row
@@ -180,7 +178,6 @@ def match_holdings(holdings):
 
 @frappe.whitelist(methods=["POST"])
 def add_holdings(loan_security_assignment: str, lines: str | list):
-	"""Add the selected lots to a draft, or fill the fund details of a Pledge Requested assignment."""
 	doc = get_doc_for("Loan Security Assignment", loan_security_assignment)
 	lines = frappe.parse_json(lines)
 
@@ -197,7 +194,6 @@ def add_holdings(loan_security_assignment: str, lines: str | list):
 
 
 def save_holding(applicant_type, applicant, line):
-	"""Create or refresh the borrower's Mutual Fund Holding for a fetched folio and scheme."""
 	key = {
 		"applicant_type": applicant_type,
 		"applicant": applicant,
@@ -312,7 +308,6 @@ def get_lien_lines(doc):
 
 
 def validate_lien_marked(doc, title=None):
-	"""A Statement of Account line can be pledged only once the registry has marked its lien."""
 	if not uses_registry() or doc.lien_status == "Marked":
 		return
 	if any(is_lien_line(row) for row in doc.securities):

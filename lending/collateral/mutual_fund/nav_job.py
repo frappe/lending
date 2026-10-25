@@ -12,7 +12,6 @@ from lending.collateral.mutual_fund.registry import NAV_FIELD, SETTINGS, call, g
 
 
 def update_navs():
-	"""Daily: price every mutual fund type from the NAV adapter's file, once per NAV date."""
 	if not get_adapter_key(NAV_FIELD):
 		return
 
@@ -58,7 +57,6 @@ def create_price_update(security_type, price_date, content):
 
 @frappe.whitelist(methods=["POST"])
 def fetch_latest_nav(doc: str | dict):
-	"""Fill the form's prices from the NAV adapter, as Read AMFI NAV File does from an upload."""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.check_permission("write")
 	validate_price_update(doc)

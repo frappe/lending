@@ -1,13 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""The checks a borrower passes on the portal: PAN, KYC, bank account and eSign.
-
-Each check is a provider type with its own adapter field in Loan Origination Settings. The real
-adapters (NSDL or Surepass for PAN, DigiLocker through Digio, a penny drop, Aadhaar eSign) belong
-in the app that holds the vendor's credentials, like the credit bureau adapters.
-"""
-
 import frappe
 from frappe import _
 
@@ -80,7 +73,6 @@ def adapter_key(provider_type: str) -> str | None:
 
 
 def call(provider_type: str, operation: str, context: dict, doc) -> dict:
-	"""Log the call as an Integration Request, then return the adapter's answer, or raise Refused."""
 	key = adapter_key(provider_type)
 	if not key:
 		frappe.throw(_("{0} is not set up yet. Please contact us.").format(_(provider_type)))

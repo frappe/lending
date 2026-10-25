@@ -67,7 +67,6 @@ def validate_price_update(doc):
 
 
 def get_securities_to_price(doc, rows):
-	"""The pledged securities of the type, as Get Securities lists them, and any row already on the form."""
 	names = doc.get_pledged_securities() | set(rows)
 	if not names:
 		return []

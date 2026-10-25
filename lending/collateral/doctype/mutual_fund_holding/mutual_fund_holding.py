@@ -212,7 +212,6 @@ def get_pledged_units(holding, exclude_assignment=None):
 
 
 def get_released_and_sold_qty(loan_security, loans, no_loan_applicant=None):
-	"""Units of the scheme released or sold, per loan, and per applicant for releases without a loan."""
 	taken_out = defaultdict(float)
 	if no_loan_applicant:
 		unpledge = frappe.qb.DocType("Unpledge")

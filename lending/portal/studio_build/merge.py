@@ -22,7 +22,6 @@ _RESET = False
 
 @contextmanager
 def reset(active=True):
-	"""Treat every baseline as missing, so the build inside replaces pages outright."""
 	global _RESET
 
 	_RESET, previous = active, _RESET
@@ -37,7 +36,6 @@ def resetting():
 
 
 def identify(blocks, route):
-	"""Stamp a deterministic componentId onto every block of a generated tree."""
 	for index, node in enumerate(blocks):
 		_identify(node, f"{baseline_key(route)}-{index}")
 
@@ -45,7 +43,6 @@ def identify(blocks, route):
 
 
 def merge_blocks(base, live, new):
-	"""The tree to save: `new` carried onto `live`, with the canvas's own work kept."""
 	return PageMerge().children(base, live, new)
 
 
@@ -65,15 +62,12 @@ def _settled(value):
 
 
 def merge_resources(live, new):
-	"""The generator's data sources, plus any the canvas added that it does not know about."""
 	generated = {row["resource_name"] for row in new}
 
 	return list(new) + [row for row in live if row.get("resource_name") not in generated]
 
 
 class PageMerge:
-	"""Take the generator's value only where live still equals base."""
-
 	SCALARS = ("componentName", "blockName", "visibilityCondition", "originalElement", "classes")
 	MAPS = (
 		"componentProps",
@@ -221,7 +215,6 @@ def write_baseline(key, record):
 
 
 def read_known(key):
-	"""This bench's baseline, else the committed snapshot of what produced the export."""
 	baseline = read_baseline(key)
 	if baseline is not None or _RESET:
 		return baseline

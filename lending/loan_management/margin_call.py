@@ -11,7 +11,6 @@ REMINDER_DAYS = 2
 
 
 def process_open_shortfalls():
-	"""Notify new shortfalls, escalate those past cure_by, and draft a sale where one is due."""
 	if not frappe.db.get_single_value("Lending Settings", "enable_margin_call"):
 		return
 	cure_days = cint(frappe.db.get_single_value("Lending Settings", "margin_cure_days"))
@@ -60,7 +59,6 @@ class MarginCall:
 		self.doc.run_method("remind_margin_call")
 
 	def notify(self):
-		"""Send the notice and start the cure period; without an email, flag it for staff instead."""
 		self.doc.applicant_email = get_applicant_email(self.doc.applicant_type, self.doc.applicant)
 		if not self.doc.applicant_email:
 			if not self.doc.email_missing:

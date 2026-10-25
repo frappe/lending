@@ -1,14 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-"""A secured loan the borrower takes end to end on the portal, from PAN to an open loan.
-
-No credit bureau report is pulled: the pledged units secure the loan, so the journey goes
-straight to a Loan Application and never through the Loan Lead rules. Each step is recorded on
-the borrower's Borrower KYC, their Mutual Fund Holdings, or the application, and the page works
-out where the borrower is from those records alone.
-"""
-
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
@@ -115,7 +107,6 @@ def secured_product(collateral: str) -> str | None:
 
 
 def journey_application(customer: str) -> str | None:
-	"""The application this journey works on: the borrower's latest one from the portal."""
 	return frappe.db.get_value(
 		"Loan Application",
 		{
@@ -131,7 +122,6 @@ def journey_application(customer: str) -> str | None:
 
 
 def open_application(customer: str) -> str | None:
-	"""The journey's application while it is still being filled in, before a loan exists."""
 	name = journey_application(customer)
 	if name and not loan_for(name):
 		return name
@@ -311,7 +301,6 @@ def holding_row(holding) -> dict:
 
 
 def unlocked_units(holding) -> float:
-	"""Units past their lock-in. Without lots, the whole holding counts as one old lot."""
 	lots = frappe.get_all(
 		"Mutual Fund Holding Lot",
 		filters={"parent": holding.name, "parenttype": "Mutual Fund Holding"},
@@ -337,7 +326,6 @@ def lock_note(holding, unlocked: float, free: float) -> str:
 
 
 def number(value) -> str:
-	"""Units and percentages without a trailing .0: 1885, 12.5."""
 	return f"{flt(value, 3):g}"
 
 
@@ -499,7 +487,6 @@ def product_payload(application: str | None) -> dict:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=20, seconds=60 * 60)
 def start_application() -> dict:
-	"""Create or update the draft application for the units the borrower chose."""
 	customer = borrower()
 	verified_kyc(customer)
 	collateral = read_collateral()
@@ -549,7 +536,6 @@ def start_application() -> dict:
 
 
 def proposed_pledges(customer: str, lines: list) -> list[dict]:
-	"""One pledge line per purchase lot, oldest unlocked lots first, as lock-in runs per lot."""
 	pledges = []
 	for line in lines:
 		units = flt(line.get("units"))
@@ -683,7 +669,6 @@ def start_kyc() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def complete_kyc() -> dict:
-	"""Read the result once the borrower is back from the provider's page."""
 	customer = borrower()
 	kyc = kyc_record(customer)
 	if kyc.kyc_status == "Verified":
@@ -721,7 +706,6 @@ def complete_kyc() -> dict:
 
 @frappe.whitelist()
 def get_kyc_consent() -> dict:
-	"""The sample provider's consent page; it stands in for DigiLocker."""
 	customer = borrower()
 	assert_sample_kyc(customer)
 
@@ -785,7 +769,6 @@ def send_pledge_otp() -> dict:
 
 
 def pledge_request(application):
-	"""Send the application and ask for its pledge, once; a resent OTP reuses both."""
 	if application.docstatus == 0:
 		application.status = "Open"
 		application.submit()
@@ -952,7 +935,6 @@ def send_esign_otp() -> dict:
 
 
 def sanction_letter(application) -> str:
-	"""Render the letter, attach it to the application, and return its file URL."""
 	html = render(SANCTION_FORMAT, sanction_context(application))
 	content = get_pdf(html)
 
@@ -1045,7 +1027,6 @@ def confirm_esign() -> dict:
 
 
 def open_loan(application: str) -> bool:
-	"""Approve the application and open its loan, or leave both for staff if that fails."""
 	save_point = f"portal_loan_{frappe.generate_hash(length=10)}"
 	frappe.db.savepoint(save_point)
 
@@ -1123,7 +1104,6 @@ def loan_payload(application: str | None) -> dict:
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=10, seconds=60 * 60)
 def withdraw() -> dict:
-	"""Pay the borrower from the open loan into the account they verified. Staff Review waits for staff."""
 	customer = borrower()
 	application = journey_application(customer)
 	loan = loan_for(application) if application else None

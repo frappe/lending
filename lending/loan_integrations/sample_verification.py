@@ -81,7 +81,6 @@ class SampleKycAdapter(KycAdapter):
 
 
 def give_consent(request_id: str):
-	"""What the borrower's Allow on DigiLocker does: the next fetch answers Verified."""
 	key = f"{CONSENT_KEY}:{request_id}"
 	request = frappe.cache.get_value(key)
 	if not request:
