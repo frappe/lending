@@ -116,7 +116,6 @@ class LoanSecurityPriceUpdate(Document):
 			).insert(ignore_permissions=True)
 
 	def end_running_price(self, row, valid_from):
-		"""End the price still valid at valid_from just before it, and remember its end for a cancel."""
 		running = frappe.db.get_value(
 			"Loan Security Price",
 			{
@@ -173,7 +172,6 @@ class LoanSecurityPriceUpdate(Document):
 				)
 
 	def get_last_valid_date(self):
-		"""The day before the price_validity_days-th working day after price_date."""
 		validity_days = max(
 			cint(frappe.db.get_value("Loan Security Type", self.loan_security_type, "price_validity_days")),
 			1,

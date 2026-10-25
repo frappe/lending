@@ -438,7 +438,6 @@ def set_moratorium(loan, end_date):
 
 
 def make_line_of_credit_loan(applicant):
-	"""A ₹5,00,000 credit line with two ₹1,00,000 drawdowns, secured by 4,000 units of security 2."""
 	loan = create_loan(
 		applicant,
 		"Term Loan Product 5",
