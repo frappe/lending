@@ -57,8 +57,6 @@ OUTSTANDING_FIELDS = [
 
 
 class CollateralValuation:
-	"""Values a loan's pledged collateral at current prices against each security's LTV and sell level."""
-
 	def __init__(self, price_map=None):
 		self.price_map = price_map if price_map is not None else get_current_price_map()
 		self.ltv_ratio_map = get_ltv_ratio_map()
@@ -302,9 +300,6 @@ def create_loan_security_shortfall(
 
 
 def get_ltv_ratio_map(loan_securities=None, field="loan_to_value_ratio"):
-	"""LTV of each Loan Security, or of its Loan Security Type when the security has none.
-
-	`field` can be sell_ltv to read the sell level the same way."""
 	security = frappe.qb.DocType("Loan Security")
 	security_type = frappe.qb.DocType("Loan Security Type")
 
@@ -344,7 +339,6 @@ def get_applicant_collateral(applicant, loan_security_price_map):
 
 
 def recheck_loan_shortfall(loan, cure_method=None):
-	"""Re-value the loan of an open shortfall after its collateral changed, at each security's LTV."""
 	shortfall = frappe.db.get_value(
 		"Loan Security Shortfall",
 		{"loan": loan, "status": ("in", OPEN_STATUSES)},
@@ -392,7 +386,6 @@ def update_pending_shortfall(shortfall, loan, cure_method=None):
 
 
 def discard_untouched_sales(shortfall):
-	"""Delete draft sales of a cured shortfall that staff have not started filling in."""
 	for sale in frappe.get_all(
 		"Loan Security Sale", filters={"loan_security_shortfall": shortfall, "docstatus": 0}, pluck="name"
 	):
@@ -401,7 +394,6 @@ def discard_untouched_sales(shortfall):
 
 
 def get_cure_method(shortfall, loan):
-	"""Best guess at what cured the shortfall, from what happened to the loan since it opened."""
 	if frappe.db.exists("Loan Security Sale", {"loan_security_shortfall": shortfall.name, "docstatus": 1}):
 		return "Sale"
 

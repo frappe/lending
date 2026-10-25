@@ -76,7 +76,6 @@ def get_shortfalls(filters):
 
 
 def filter_permitted(shortfalls):
-	"""Keep the shortfalls whose loan, or applicant when there is no loan, the reader may see."""
 	loans = {row.loan for row in shortfalls if row.loan}
 	permitted_loans = set(frappe.get_list("Loan", filters={"name": ("in", loans)}, pluck="name")) if loans else set()
 	return [

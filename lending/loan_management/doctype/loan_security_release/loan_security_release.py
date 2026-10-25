@@ -212,7 +212,6 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 
 
 def get_sold_qty_map(company=None, by_applicant=False):
-	"""Quantity sold by submitted Loan Security Sales, per security or per (applicant, security)."""
 	sale = frappe.qb.DocType("Loan Security Sale")
 	item = frappe.qb.DocType("Loan Security Sale Item")
 	keys = [sale.applicant, item.loan_security] if by_applicant else [item.loan_security]

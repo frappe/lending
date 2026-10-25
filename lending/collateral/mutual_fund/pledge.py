@@ -22,7 +22,6 @@ def validate_direct_pledge(doc):
 
 
 def validate_application_pledge(loan_security_assignment):
-	"""Units pledged through a Loan Application become Pledged when the loan is submitted."""
 	assignment = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
 	validate_lines(
 		assignment,
@@ -32,7 +31,6 @@ def validate_application_pledge(loan_security_assignment):
 
 
 def update_securities(doc):
-	"""Copy Is Mutual Fund to the type's securities, which only fetch it when they are saved."""
 	if not doc.has_value_changed("is_mutual_fund"):
 		return
 	security = frappe.qb.DocType("Loan Security")
@@ -75,7 +73,6 @@ def validate_details(row, lock_in_days, title):
 
 
 def validate_holding(doc, row, title):
-	"""The folio's own checks run when the holding is saved. Here the holding must match the line."""
 	holding = frappe.db.get_value(
 		"Mutual Fund Holding",
 		row.mutual_fund_holding,
@@ -135,7 +132,6 @@ def validate_lock_in(row, lock_in_days, pledge_date, title):
 
 
 def get_mutual_fund_lock_in(securities):
-	"""Map each mutual fund security to its lock-in days. Other securities are left out."""
 	if not securities:
 		return {}
 	security = frappe.qb.DocType("Loan Security")

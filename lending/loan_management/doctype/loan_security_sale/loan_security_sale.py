@@ -106,7 +106,6 @@ class LoanSecuritySale(Document):
 
 	@frappe.whitelist()
 	def prefill_items(self):
-		"""Pick the largest holdings first until their expected proceeds cover the amount to recover."""
 		self.set_amount_to_recover()
 		pledged_qty_map = get_pledged_security_qty(loan=self.loan)
 		price_map = get_loan_security_price_map(list(pledged_qty_map))
@@ -253,7 +252,6 @@ class LoanSecuritySale(Document):
 				)
 
 	def update_assignment_status(self):
-		"""An assignment is Repossessed once every security in it that this sale sold is gone from the loan."""
 		sold = {row.loan_security for row in self.items if flt(row.sold_qty) > 0}
 		pledged_qty_map = get_pledged_security_qty(loan=self.loan)
 		assignments = frappe.get_all(

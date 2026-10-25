@@ -492,7 +492,6 @@ def holding_dict(security, applicant="_Test Loan Customer", **details):
 
 
 def make_holding(security, applicant="_Test Loan Customer", **details):
-	"""Return the applicant's holding of the scheme, updated with the given details."""
 	values = holding_dict(security, applicant, **details)
 	name = frappe.db.get_value(
 		"Mutual Fund Holding",
@@ -533,7 +532,6 @@ def make_loan():
 
 
 def make_approved_release(loan, security, qty):
-	"""Record an approved release directly, since only its quantity matters here."""
 	release = frappe.get_doc(
 		{
 			"doctype": "Loan Security Release",
