@@ -127,7 +127,6 @@ def apca_y(rgb) -> float:
 
 
 def apca(text, background) -> float:
-	"""Unsigned APCA Lc, 0 to about 106."""
 	text_y, back_y = apca_y(text), apca_y(background)
 
 	if back_y > text_y:
@@ -149,8 +148,6 @@ def shade(rgb, amount: float) -> str:
 
 
 def relight(rgb, target: float):
-	"""Scaled on linear channels so the hue holds."""
-
 	def linear(part):
 		part /= 255
 		return part / 12.92 if part <= 0.04045 else ((part + 0.055) / 1.055) ** 2.4
@@ -170,7 +167,6 @@ def tint(rgb, weight: float) -> str:
 
 
 def deep(rgb, ground, bar=UI_CONTRAST) -> str:
-	"""The colour, darkened only as far as needed to reach `bar` contrast on `ground`."""
 	if contrast(rgb, ground) >= bar:
 		return to_hex(rgb)
 

@@ -50,7 +50,6 @@ def create_customer(customer_name: str, customer_type: str, email: str, mobile: 
 def customer_for_applicant(
 	customer_name: str, applicant_type: str, email: str, mobile: str
 ) -> str:
-	"""The Customer a self-signup joins; anything short of clear ownership gets a new one."""
 	return customer_owning_email(email) or create_customer(
 		customer_name, CUSTOMER_TYPES.get(applicant_type, "Individual"), email, mobile
 	)
@@ -88,7 +87,6 @@ def customer_owning_email(email: str) -> str | None:
 
 
 def link_portal_user(customer: str, user: str) -> bool:
-	"""Returns whether a row was added; a no-op when the User does not exist yet."""
 	if not customer or not user or not frappe.db.exists("User", user):
 		return False
 

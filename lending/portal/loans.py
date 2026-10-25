@@ -77,7 +77,6 @@ def get_loan_detail() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def request_disbursement() -> dict:
-	"""Raise a draft Loan Disbursement for staff to review; never submitted from here."""
 	name = frappe.form_dict.get("name")
 	assert_owns("Loan", name)
 

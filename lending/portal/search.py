@@ -40,7 +40,6 @@ def page_rows() -> list[dict]:
 
 @frappe.whitelist(methods=["GET"])
 def find() -> dict:
-	"""Ctrl+K palette results; no shell payload since it is called on every keystroke pause."""
 	results, note = results_for(clean(frappe.form_dict.get("q")), get_portal_customers())
 
 	return {"results": results, "note": note}

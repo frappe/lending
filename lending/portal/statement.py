@@ -199,7 +199,6 @@ def statement_summary(entries: list[dict], to_date: str, accounts_note: str) -> 
 
 @frappe.whitelist()
 def get_certificate_page() -> dict:
-	"""Amounts paid in a financial year; provisional (paid plus still scheduled) while the year runs."""
 	label, start, end = requested_year(frappe.form_dict.get("year"))
 	customers, loans = owned_loans(frappe.form_dict.get("loan"))
 	names = [row.name for row in loans]

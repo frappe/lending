@@ -14,8 +14,6 @@ def input_props(kind):
 
 
 def reader(source):
-	"""`reader("overview")("crumb")` is `{{ overview.data.crumb }}`; no key reads the whole payload."""
-
 	def read(key=""):
 		return "{{ %s.data%s }}" % (source, f".{key}" if key else "")
 
@@ -96,7 +94,6 @@ def root(children, direction="row"):
 
 
 def brand_style(expression):
-	"""Hidden HTML block carrying the per-request stylesheet from lending.portal.brand."""
 	return block("HTML", props={"html": fallback(expression, "''")}, styles={"display": "none"})
 
 
@@ -519,7 +516,6 @@ PANEL = {
 
 
 def pressable(script):
-	"""Returns (styles, block kwargs) that make a whole card clickable."""
 	if not script:
 		return {}, {}
 
@@ -550,7 +546,6 @@ def stat(
 	note_icon=None,
 	script=None,
 ):
-	"""Not NumberChart: figures arrive preformatted as strings; `icon_name` also shrinks the figure."""
 	head = [muted(title)]
 	if flag:
 		theme = "{{ %s }}" % TONE.format(flag_tone) if flag_tone else "orange"
@@ -579,7 +574,6 @@ def stat(
 
 
 def record_stat(icon_name, lines, script=None):
-	"""The chevron for `script` goes in `lines`: only the page knows which is the label row."""
 	cursor, opens = pressable(script)
 
 	return row(

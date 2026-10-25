@@ -32,8 +32,6 @@ TEST_PAN = "ABCDE1234F"
 
 
 class DecisioningTestSuite(LendingTestSuite):
-	"""For tests that let run_strategy pick a strategy from the site."""
-
 	def setUp(self):
 		super().setUp()
 		# A site strategy for the lead's product would outrank the product-agnostic ones these

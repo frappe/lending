@@ -79,7 +79,6 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertEqual(merged[0]["children"], [])
 
 	def test_a_page_studio_has_only_normalised_is_not_hand_edited(self):
-		"""Studio saves an untouched block with None for {} and its own `classes: []`."""
 		base = identify([self.with_slot(), self.generated()], "/overview")
 		live = frappe.parse_json(frappe.as_json(base))
 		for node in self.nodes(live):
@@ -154,7 +153,6 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertEqual(merged, reshaped)
 
 	def test_a_baseline_that_is_not_the_page_strands_the_rebuild(self):
-		"""The baseline must be what was written to the page, or the new tree never lands."""
 		live = identify([self.generated()], "/overview")
 		new = identify([block("container", children=[block("HTML", {"html": "<svg/>"})])], "/overview")
 
@@ -164,7 +162,6 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertNotIn("overview-0-html1", self.ids(merged))
 
 	def test_a_bench_without_a_baseline_keeps_the_canvas_edits_in_the_export(self):
-		"""upsert_page's case when baselines are missing: the generated tree stands in for one."""
 		new = identify([self.generated()], "/overview")
 		live = frappe.parse_json(frappe.as_json(new))
 		live[0]["children"][0]["componentProps"]["label"] = "Renamed on the canvas"
@@ -176,7 +173,6 @@ class TestStudioMerge(IntegrationTestCase):
 		self.assertIn("hand-added", self.ids(merged))
 
 	def test_a_bench_without_a_baseline_still_takes_a_generator_update(self):
-		"""The committed snapshot, not the new tree, is the baseline: old blocks are not canvas work."""
 		old = identify([self.generated(title="Old title")], "/overview")
 		live = frappe.parse_json(frappe.as_json(old))
 		live[0]["children"].append(block("Badge", {"label": "Mine"}, componentId="hand-added"))
