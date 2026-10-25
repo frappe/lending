@@ -135,6 +135,16 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 		self.assertIn("Test Security 2", [row.loan_security for row in update.items])
 		self.assertEqual(update.missing_count, 0)
 
+	def test_get_securities_lists_securities_nobody_pledged(self):
+		other_type = make_other_type_security()
+		update = make_price_update(FRIDAY, {"Test Security 1": 600}, submit=False)
+
+		update.get_securities()
+		listed = [row.loan_security for row in update.items]
+
+		self.assertIn("Test Security 2", listed)
+		self.assertNotIn(other_type, listed)
+
 
 def make_price_update(price_date, prices, submit=True):
 	update = frappe.new_doc("Loan Security Price Update")

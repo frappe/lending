@@ -60,7 +60,7 @@ class LoanSecurityPriceUpdate(Document):
 	@frappe.whitelist()
 	def get_securities(self):
 		listed = {row.loan_security for row in self.items}
-		for security in sorted(self.get_pledged_securities() - listed):
+		for security in sorted(self.get_active_securities() - listed):
 			self.append("items", {"loan_security": security})
 		self.set_missing_count()
 
@@ -177,6 +177,15 @@ class LoanSecurityPriceUpdate(Document):
 			1,
 		)
 		return add_days(add_working_days(self.price_date, validity_days, self.holiday_list), -1)
+
+	def get_active_securities(self):
+		return set(
+			frappe.get_all(
+				"Loan Security",
+				filters={"loan_security_type": self.loan_security_type, "disabled": 0},
+				pluck="name",
+			)
+		)
 
 	def get_pledged_securities(self):
 		pledge = frappe.qb.DocType("Pledge")
