@@ -12,14 +12,11 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 
 
 class SaleProceeds:
-	"""Charges the sale fee and repays the loan from what the seller paid out of a submitted sale."""
-
 	def __init__(self, sale, proceeds_date):
 		self.sale = sale
 		self.proceeds_date = proceeds_date
 
 	def apply(self):
-		"""Repay each open disbursement in turn and return the surplus left for the borrower."""
 		disbursements = self.get_disbursements()
 		if not disbursements and flt(self.sale.charges):
 			frappe.throw(

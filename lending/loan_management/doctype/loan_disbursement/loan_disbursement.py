@@ -1071,7 +1071,6 @@ def get_maximum_amount_as_per_pledged_security(loan):
 
 
 def get_sold_security_value(loan):
-	"""The post-haircut value the loan's sold units added when they were pledged."""
 	pledge = DocType("Pledge")
 	assignment = DocType("Loan Security Assignment")
 	pledged = (

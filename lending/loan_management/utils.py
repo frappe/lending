@@ -398,7 +398,6 @@ def update_repayment_schedule_demand_generated(
 	query.run()
 
 def add_working_days(start_date, days, holiday_list=None):
-	"""The date `days` working days after `start_date`; every day counts when there is no holiday list."""
 	holidays = set()
 	if holiday_list:
 		holidays = {

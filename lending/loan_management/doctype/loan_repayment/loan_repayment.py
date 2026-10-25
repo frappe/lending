@@ -2609,7 +2609,6 @@ class LoanRepayment(LoanController):
 
 
 def get_moratorium_end_date(loan, value_date):
-	"""The moratorium end date when the loan is still in moratorium on value_date."""
 	moratorium_end_date = frappe.db.get_value(
 		"Loan Repayment Schedule",
 		{"loan": loan, "docstatus": 1, "status": "Active"},

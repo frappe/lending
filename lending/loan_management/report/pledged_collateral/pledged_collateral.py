@@ -19,7 +19,6 @@ def execute(filters=None):
 
 
 def get_data(filters):
-	"""One row per security per loan, at the quantity still pledged after releases and sales."""
 	currency = frappe.get_cached_value("Company", filters.company, "default_currency")
 	security_map = get_security_map()
 	price_map = get_current_prices()
