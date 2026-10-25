@@ -219,7 +219,6 @@ def send_mobile_code() -> dict:
 @preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def confirm_mobile_code() -> dict:
-	"""Check the OTP and return the token submit_lead requires."""
 	assert_public_apply_enabled()
 
 	mobile = with_country_code(clean(frappe.form_dict.get("mobile_number")))
@@ -552,7 +551,6 @@ def refuse_existing_account():
 @preview.refused
 @rate_limit(limit=5, seconds=60 * 60, ip_based=True)
 def send_account_code() -> dict:
-	"""Email a code that proves the borrower owns the address their account will log in with."""
 	assert_public_apply_enabled()
 
 	lead_for_account(clean(frappe.form_dict.get("token")))
@@ -576,7 +574,6 @@ def send_account_code() -> dict:
 @preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def create_account() -> dict:
-	"""Create the login for the lead the account token names, and sign the borrower in."""
 	assert_public_apply_enabled()
 
 	# Read once: the writes below leave form_dict without it by the time it is spent.
@@ -656,7 +653,6 @@ def create_account() -> dict:
 @preview.refused
 @rate_limit(limit=5, seconds=60 * 60)
 def create_customer_lead() -> dict:
-	"""Like submit_lead for a logged-in borrower; identity comes from their Customer, not the request."""
 	customer = read_own_customer()
 	applicant = applicant_for(customer)
 	data = read_loan_request(applicant["applicant_type"], applicant["company_name"])
@@ -791,7 +787,6 @@ def last_answers(customer: str, applicant: dict) -> dict:
 @preview.refused
 @rate_limit(limit=10, seconds=60 * 60, ip_based=True)
 def track_application() -> dict:
-	"""Status by reference number and mobile number, both of which must match."""
 	assert_portal_enabled()
 
 	reference = clean(frappe.form_dict.get("reference"))

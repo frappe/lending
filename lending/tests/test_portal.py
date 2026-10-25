@@ -197,8 +197,6 @@ def set_branding(**values):
 
 
 def oklch_hue(colour):
-	"""Hue in degrees, or None for a grey, which has none."""
-
 	def linear(part):
 		part /= 255
 		return part / 12.92 if part <= 0.04045 else ((part + 0.055) / 1.055) ** 2.4
@@ -2516,7 +2514,6 @@ class TestPortalPreview(PortalPeople):
 	FRAME = f"http://lending.example.com/borrower-portal/overview?{PREVIEW_PARAM}=1"
 
 	def from_page(self, referer, host="lending.example.com"):
-		"""An API call made from `referer`, as the browser sends it."""
 		request = SimpleNamespace(headers={"Referer": referer} if referer else {}, host=host)
 		return patch.object(frappe.local, "request", request, create=True)
 

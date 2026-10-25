@@ -21,7 +21,6 @@ from lending.portal.studio_build import (
 
 
 def build(reset=False):
-	"""Rebuild the frame and every page, merging onto canvas edits; `reset` discards them all."""
 	with merge.reset(reset):
 		app.upsert_app()
 		shell.upsert_frame()

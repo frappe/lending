@@ -131,7 +131,6 @@ def loans() -> list[frappe._dict]:
 
 
 def instalments(loan: dict) -> list[frappe._dict]:
-	"""Monthly, interest on the balance; the home loan pays on its drawn share until the rest is out."""
 	amount = round(flt(loan.monthly_repayment_amount) * flt(loan.disbursed_amount) / flt(loan.loan_amount))
 	balance = flt(loan.disbursed_amount)
 	day = getdate(loan.posting_date)
@@ -431,7 +430,6 @@ def chosen_loans(name: str | None) -> list[frappe._dict]:
 
 
 def statement_entries(loan: dict) -> list[dict]:
-	"""The disbursal, then each instalment's interest charged and its payment, with a running balance."""
 	disbursed = add_days(loan.posting_date, DISBURSAL_DAYS)
 	entries = [{"posting_date": disbursed, "transaction_type": _("Disbursement"), "debit": loan.disbursed_amount}]
 
@@ -581,5 +579,4 @@ def profile_page() -> dict:
 
 
 def notification_sources() -> tuple[list[dict], list[dict], list[dict]]:
-	"""Applications, upcoming instalments and money events, as notifications.current_rows reads them."""
 	return applications(), schedule(), decorate_activity(latest(money_events(), 15))

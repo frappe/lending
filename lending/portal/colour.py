@@ -27,7 +27,6 @@ def ink_for(rgb) -> str:
 
 
 def deep(rgb, ground, bar) -> str:
-	"""The colour, darkened only as far as needed to reach `bar` contrast on `ground`."""
 	if contrast(rgb, ground) >= bar:
 		return to_hex(rgb)
 
@@ -41,7 +40,6 @@ def deep(rgb, ground, bar) -> str:
 
 
 def lift(rgb, ground, bar) -> str:
-	"""The colour, lightened only as far as needed to reach `bar` contrast on a dark `ground`."""
 	if contrast(rgb, ground) >= bar:
 		return to_hex(rgb)
 
@@ -56,7 +54,6 @@ def lift(rgb, ground, bar) -> str:
 
 
 def under(ink: str, rgb, bar) -> str:
-	"""The fill, moved only as far as needed for `ink` to reach `bar` on it."""
 	label = channels(ink)
 	move = lift if luminance(label) < 0.5 else deep
 
@@ -64,7 +61,6 @@ def under(ink: str, rgb, bar) -> str:
 
 
 def mix(rgb, ground, weight: float) -> str:
-	"""`weight` of the colour over the rest of `ground`."""
 	return to_hex(part * weight + base * (1 - weight) for part, base in zip(rgb, ground, strict=True))
 
 
@@ -73,8 +69,6 @@ def shade(rgb, amount: float) -> str:
 
 
 def relight(rgb, target: float):
-	"""Scaled on linear channels so the hue holds."""
-
 	def encode(part):
 		part = max(0.0, min(1.0, part))
 		return 255 * (part * 12.92 if part <= 0.0031308 else 1.055 * part ** (1 / 2.4) - 0.055)
@@ -98,7 +92,6 @@ def luminance(rgb) -> float:
 
 
 def apca(text, background) -> float:
-	"""Unsigned APCA Lc, 0 to about 106."""
 	text_y, back_y = apca_y(text), apca_y(background)
 
 	if back_y > text_y:

@@ -56,7 +56,6 @@ DETAIL_FIELDS = (
 
 @frappe.whitelist()
 def get_application_detail() -> dict:
-	"""One application's tracker and details; the borrower's newest when none is named."""
 	# Imported here: preview builds on this module.
 	from lending.portal import preview
 
@@ -507,7 +506,6 @@ def read_upload():
 
 @frappe.whitelist(methods=["POST"])
 def upload_document() -> dict:
-	"""Attach a private file to one of the borrower's own draft applications."""
 	from lending.portal import preview
 
 	preview.refuse_writes()

@@ -96,7 +96,6 @@ def site_default() -> str:
 
 
 def themed(html: str, choice: str) -> str:
-	"""`data-appearance` keeps the choice itself, so the account menu can tick "System"."""
 	head = SURFACES + (FOLLOW_DEVICE if choice == SYSTEM else "")
 	html = HEAD_TAG.sub(lambda tag: tag.group(0) + head, html, count=1)
 

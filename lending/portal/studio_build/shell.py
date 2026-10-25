@@ -132,7 +132,6 @@ def brand(data):
 
 
 def collapse_toggle():
-	"""Hover-revealed disc on the rail edge; Tailwind picks its classes up from the page JSON."""
 	return button(
 		"",
 		script="sidebarCollapsed.value = !sidebarCollapsed.value",
@@ -212,7 +211,6 @@ def account_menu(data):
 
 
 def sidebar(data):
-	"""Collapses to frappe-ui's icon rail, not away as on the desk: there is no dock to reopen from."""
 	nav_items = [
 		block(
 			"SidebarItem",
@@ -428,7 +426,6 @@ def alerts_tree():
 
 
 def search_tree():
-	"""The Ctrl+K palette; its state is useSearch in utils/portal.ts."""
 	# A style element because no block reaches frappe-ui's overlay and panel frame.
 	frame_css = block("HTML", props={"html": f"<div><style>{PALETTE_CSS}</style></div>"}, styles={"display": "none"})
 
@@ -569,7 +566,6 @@ def footer_tree():
 
 
 def upsert_frame():
-	"""Create or replace the shared frame components. Safe to re-run."""
 	upsert_component(
 		HEADER,
 		"Borrower Page Header",
@@ -598,7 +594,6 @@ def upsert_frame():
 
 
 def frame(source, content, action_label="", action_route=""):
-	"""`source` is the page's data source; every endpoint also returns the frame payload."""
 	data = f"{source}.data"
 	header = instance(
 		HEADER,

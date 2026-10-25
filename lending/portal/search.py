@@ -41,7 +41,6 @@ def page_rows() -> list[dict]:
 
 @frappe.whitelist(methods=["GET"])
 def find() -> dict:
-	"""Ctrl+K palette results; no shell payload since it is called on every keystroke pause."""
 	# The preview has no Ctrl+K; asked anyway, it must not answer with the editor's own records.
 	if preview.is_preview():
 		return {"results": [], "note": ""}

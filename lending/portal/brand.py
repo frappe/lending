@@ -107,7 +107,6 @@ class Mode(NamedTuple):
 		return mix(rgb, self.ground, weight)
 
 	def band(self, primary) -> str:
-		"""The header, rail and footer wash."""
 		return self.wash(primary, self.band_weight)
 
 	def apart(self, rgb, against, bar=UI_CONTRAST) -> str:
@@ -160,7 +159,6 @@ def brand_style(primary_color, secondary_color, dark_primary=None, dark_secondar
 
 
 def brand_tokens(primary_color, secondary_color, mode=LIGHT, ink=None) -> dict:
-	"""`ink` overrides the button label colour, for a preset whose APCA pick falls short."""
 	primary = channels(primary_color)
 	action = channels(secondary_color) or primary
 	tokens = {}
@@ -182,7 +180,6 @@ def brand_tokens(primary_color, secondary_color, mode=LIGHT, ink=None) -> dict:
 
 
 def dark_tokens(primary_color, secondary_color, dark_primary, dark_secondary, dark_ink) -> dict:
-	"""A preset brings its own dark pair; custom colours are lifted until they stand out on the dark ground."""
 	primary = dark_primary or lifted(primary_color, DARK_PRIMARY_CONTRAST)
 	secondary = dark_secondary or lifted(secondary_color, UI_CONTRAST)
 
@@ -190,7 +187,6 @@ def dark_tokens(primary_color, secondary_color, dark_primary, dark_secondary, da
 
 
 def swatch(primary_color, secondary_color, dark_primary=None, dark_secondary=None, dark_ink=None):
-	"""The band and button as the portal paints them, so Desk previews the final button, not the input."""
 	light = brand_tokens(primary_color, secondary_color)
 	if not light:
 		return None
@@ -240,7 +236,6 @@ def wash_tokens(action, mode) -> dict:
 
 
 def header_action(primary, action, mode, ink=None) -> tuple:
-	"""The header button's fill, and its label when the default pick cannot fit."""
 	# A secondary that can't clear 3:1 on the band (HDFC red on navy) takes the band's ink.
 	band = channels(mode.band(primary))
 	bar = DARK_HEADER_CONTRAST if mode.dark else UI_CONTRAST

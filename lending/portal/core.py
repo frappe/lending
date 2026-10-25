@@ -236,7 +236,6 @@ def account_switch() -> dict:
 
 @frappe.whitelist()
 def get_dashboard() -> dict:
-	"""Overview page payload, pre-formatted since blocks bind values straight into props."""
 	# Imported here: preview builds on this module.
 	from lending.portal import preview
 
@@ -315,7 +314,6 @@ REPAYMENTS_ROUTE = "/borrower-portal/repayments"
 
 
 def waiting_on_borrower(applications: list[dict]) -> list[dict]:
-	"""Unsent applications only; due instalments are already covered by the payment button."""
 	return [
 		{
 			"product": row["product"],
@@ -674,7 +672,6 @@ def one_loan_url(rows: list[dict]) -> str:
 
 
 def name_once(rows: list[dict]) -> list[dict]:
-	"""Drops the loan name from rows when all share it; keeps product/detail for notifications."""
 	one_loan = len({row["product"] for row in rows}) == 1
 
 	for row in rows:
@@ -810,7 +807,6 @@ def leads_for_login() -> list[dict]:
 
 
 def open_lead() -> dict | None:
-	"""The newest Loan Lead not yet converted to a Loan Application."""
 	leads = leads_for_login()
 	converted = set(
 		frappe.get_all(
@@ -1057,7 +1053,6 @@ def milestone_events(customers: list[str], loans: list[dict], limit: int) -> lis
 
 
 def get_timeline(customers: list[str], loans: list[dict], limit: int = 5) -> list[dict]:
-	"""Money plus milestones; the bell uses get_activity since its read state hashes row text."""
 	return decorate_timeline(
 		latest(money_events(loans, limit) + milestone_events(customers, loans, limit), limit)
 	)

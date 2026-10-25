@@ -38,5 +38,4 @@ PRESETS = {
 
 
 def resolve(theme, primary_color, secondary_color) -> Preset:
-	"""A named preset, or the two colour fields with no dark pair for Custom or no theme."""
 	return PRESETS.get(theme) or Preset(primary_color, secondary_color)

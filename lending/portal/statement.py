@@ -152,7 +152,6 @@ def get_statement_page() -> dict:
 
 
 def statement_body(entries: list[dict], from_date: str, to_date: str, accounts: int) -> dict:
-	"""Laid out as a bank statement: the opening balance, each entry with the balance after it, the closing."""
 	opening, shown = ledger(entries, from_date, to_date)
 	accounts_note = _("across 1 account") if accounts == 1 else _("across {0} accounts").format(accounts)
 	summary = statement_summary(shown, opening, to_date, accounts_note)
@@ -175,7 +174,6 @@ def statement_body(entries: list[dict], from_date: str, to_date: str, accounts: 
 
 
 def ledger(entries: list[dict], from_date: str, to_date: str) -> tuple[float, list[dict]]:
-	"""What was owed before `from_date`, and the entries within the dates with the balance after each."""
 	# The report's own running balance starts at zero on its first entry, and per report call.
 	entries = sorted(entries, key=lambda row: getdate(row.get("posting_date")))
 	start, end = getdate(from_date), getdate(to_date)
@@ -245,7 +243,6 @@ def statement_summary(entries: list[dict], opening: float, to_date: str, account
 
 @frappe.whitelist()
 def get_certificate_page() -> dict:
-	"""Amounts paid in a financial year; provisional (paid plus still scheduled) while the year runs."""
 	from lending.portal import preview
 
 	if preview.is_preview():

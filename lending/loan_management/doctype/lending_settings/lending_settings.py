@@ -53,7 +53,6 @@ class LendingSettings(Document):
 
 @frappe.whitelist()
 def get_theme_swatches(primary_color: str | None = None, secondary_color: str | None = None) -> dict:
-	"""Every preset, then Custom from the colours on the form, painted as the portal will paint them."""
 	frappe.has_permission("Lending Settings", "write", throw=True)
 
 	swatches = {name: swatch(*preset) for name, preset in PRESETS.items()}
@@ -66,7 +65,6 @@ def get_theme_swatches(primary_color: str | None = None, secondary_color: str | 
 def get_theme_preview(
 	theme: str | None = None, primary_color: str | None = None, secondary_color: str | None = None
 ) -> str:
-	"""The portal stylesheet for the form's unsaved theme, for Desk's live preview."""
 	frappe.has_permission("Lending Settings", "write", throw=True)
 
 	return brand_style(*resolve(theme, primary_color, secondary_color))
