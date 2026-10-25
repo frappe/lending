@@ -9,16 +9,12 @@
  "doctype": "Module Onboarding",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-10-22 00:00:00",
+ "modified": "2026-10-25 00:00:00",
  "modified_by": "Administrator",
  "module": "Collateral",
  "name": "Mutual Fund Onboarding",
  "owner": "Administrator",
  "steps": [
-  {
-   "is_optional": 0,
-   "step": "Create Mutual Fund Type"
-  },
   {
    "is_optional": 0,
    "step": "Add Mutual Fund Scheme"
