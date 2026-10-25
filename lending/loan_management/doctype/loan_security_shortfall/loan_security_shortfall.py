@@ -242,10 +242,6 @@ def create_loan_security_shortfall(
 
 
 def get_ltv_ratio_map(loan_securities=None, loan=None, applicant=None):
-	"""LTV of each Loan Security, or of its Loan Security Type when the security has none.
-
-	Given a loan or an applicant, gold and silver are also capped at its slab LTV.
-	"""
 	security = frappe.qb.DocType("Loan Security")
 	security_type = frappe.qb.DocType("Loan Security Type")
 

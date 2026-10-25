@@ -15,8 +15,6 @@ GOLD_LOAN_PURPOSES = ("Consumption", "Income Generating")
 
 
 class GoldLTVSlabs:
-	"""RBI LTV slabs for gold and silver consumption loans, chosen by the borrower's total."""
-
 	def __init__(self, rows):
 		self.rows = rows
 
@@ -34,7 +32,6 @@ class GoldLTVSlabs:
 		return cls(rows) if rows else None
 
 	def get_limit(self, value, other_total):
-		"""Largest new amount whose LTV fits the slab that the borrower's new total falls in."""
 		limit = lower_bound = 0.0
 		for row in self.rows:
 			candidate = flt(value) * flt(row.ltv) / 100
@@ -54,7 +51,6 @@ class GoldLTVSlabs:
 
 
 def apply_slab_haircut(doc, table):
-	"""Lend on the metal lines of a pledge no more than the slab allows."""
 	rows = doc.get(table)
 	lines = get_metal_lines(rows)
 	if not lines:
@@ -69,7 +65,6 @@ def apply_slab_haircut(doc, table):
 
 
 def set_gold_ltv_cap(doc):
-	"""Fix the slab LTV of a Loan Application or Loan, which the shortfall and release checks then use."""
 	doc.gold_ltv_cap = get_application_cap(doc) or get_slab_ltv(doc)
 
 
@@ -127,7 +122,6 @@ def validate_metal_pledge_has_loan(assignment):
 
 
 def validate_credit_assessment(doc):
-	"""Check a Loan Application, or a pledge against an existing Loan, which never passed one."""
 	threshold = flt(frappe.db.get_single_value("Lending Settings", "gold_credit_assessment_above"))
 	if not threshold:
 		return
@@ -232,7 +226,6 @@ def get_loan_product(doc):
 
 
 def get_borrower_total(doc, purposes=("Consumption",)):
-	"""Sanctioned amount of the applicant's other open gold loans at this company."""
 	loan = DocType("Loan")
 	loan_product = DocType("Loan Product")
 

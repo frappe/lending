@@ -20,7 +20,6 @@ SERVER_ROW_FIELDS = ("status", "article_before", "released_or_sold_in_type", "re
 
 
 def set_article_lines(assignment):
-	"""Value each article at its nearest published purity, and pledge one line per purity."""
 	if not assignment.get("articles"):
 		return
 
@@ -60,7 +59,6 @@ def validate_assay(assignment):
 
 
 def validate_lien_references(assignment):
-	"""Every line whose type tracks liens needs its lien reference, such as a gold packet number."""
 	for line in assignment.securities:
 		if not line.lien_reference and tracks_lien(line.loan_security_type):
 			frappe.throw(
@@ -71,7 +69,6 @@ def validate_lien_references(assignment):
 
 
 def pledge_articles(assignment):
-	"""Mark the articles Pledged on this assignment. Runs again when a packet number changes."""
 	if assignment.status not in OPEN_ASSIGNMENT_STATUSES:
 		return
 
@@ -127,7 +124,6 @@ def validate_release_references(release):
 
 
 def release_articles(release):
-	"""Return the articles once all the gold and silver of the loan is released."""
 	from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 		get_pledged_security_qty,
 	)
@@ -329,7 +325,6 @@ def get_weight_caps(assignment):
 
 
 def get_pledged_weights(assignment):
-	"""Gross weight of the applicant's articles on their other open assignments."""
 	article = DocType("Pledged Article")
 	lsa = DocType("Loan Security Assignment")
 
