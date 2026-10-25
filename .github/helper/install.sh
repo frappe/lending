@@ -59,6 +59,7 @@ sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
 
 bench get-app payments
 bench get-app https://github.com/frappe/erpnext --branch $ERPNEXT_BRANCH --resolve-deps
+bench get-app https://github.com/frappe/studio --branch develop
 bench setup requirements --dev
 
 bench start &> bench_run_logs.txt &

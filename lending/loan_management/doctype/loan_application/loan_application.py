@@ -22,6 +22,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_sche
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.portal.accounts import customer_for_email, link_portal_user
 
 
 class LoanApplication(Document):
@@ -92,11 +93,16 @@ class LoanApplication(Document):
 	def before_save(self):
 		if self.applicant_type == "Customer":
 			if not self.applicant:
+				existing = customer_for_email(self.applicant_email_address)
+				if existing:
+					self.applicant = existing
+					link_portal_user(existing, self.applicant_email_address)
+					return
+
 				customer = frappe.new_doc("Customer")
 				customer.customer_name = self.applicant_name
-				customer.type = "Company"
-				customer.mobile_number = self.applicant_phone_number
-				customer.email_address = self.applicant_email_address
+				customer.customer_type = "Company"
+				customer.mobile_no = self.applicant_phone_number
 				# need to save customer first to link back from contact and address
 				customer.save()
 
@@ -136,6 +142,8 @@ class LoanApplication(Document):
 				customer.save()
 
 				self.applicant = customer.name
+
+				link_portal_user(customer.name, self.applicant_email_address)
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:

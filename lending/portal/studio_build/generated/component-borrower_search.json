@@ -1,0 +1,594 @@
+{
+ "component_id": "borrower_search",
+ "block": {
+  "componentName": "Dialog",
+  "componentProps": {
+   "modelValue": {
+    "$type": "variable",
+    "name": "showSearch"
+   },
+   "title": "Borrower search",
+   "bare": true,
+   "position": "top",
+   "paddingTop": "0px"
+  },
+  "componentSlots": {},
+  "componentEvents": {},
+  "baseStyles": {},
+  "mobileStyles": {},
+  "tabletStyles": {},
+  "children": [
+   {
+    "componentName": "container",
+    "componentProps": {},
+    "componentSlots": {},
+    "componentEvents": {},
+    "baseStyles": {
+     "display": "flex",
+     "flexDirection": "column",
+     "gap": "0px"
+    },
+    "mobileStyles": {},
+    "tabletStyles": {},
+    "children": [
+     {
+      "componentName": "HTML",
+      "componentProps": {
+       "html": "<div><style>\n.dialog-overlay[data-dialog=\"Borrower search\"] .dialog-content {\n\tmax-width: 575px;\n\tmargin: 28px 0 0;\n\tborder: 1px solid var(--outline-gray-1);\n\tborder-radius: 12px;\n\tbox-shadow: var(--elevation-md);\n\tbackground-color: var(--surface-base);\n}\n</style></div>"
+      },
+      "componentSlots": {},
+      "componentEvents": {},
+      "baseStyles": {
+       "display": "none"
+      },
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "children": [],
+      "componentId": "borrower_search-0-container1-html1"
+     },
+     {
+      "componentName": "container",
+      "componentProps": {},
+      "componentSlots": {},
+      "componentEvents": {},
+      "baseStyles": {
+       "display": "flex",
+       "flexDirection": "row",
+       "alignItems": "center",
+       "gap": "0px",
+       "height": "28px",
+       "margin": "8px 8px 4px"
+      },
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "children": [
+       {
+        "componentName": "HTML",
+        "componentProps": {
+         "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/></svg>"
+        },
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "display": "flex",
+         "alignItems": "center",
+         "flex": "0 0 auto",
+         "color": "var(--ink-gray-6)",
+         "padding": "0 2px 0 10px"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [],
+        "componentId": "borrower_search-0-container1-container1-html1"
+       },
+       {
+        "componentName": "TextInput",
+        "componentProps": {
+         "placeholder": "Search your loans, applications and pages",
+         "variant": "ghost",
+         "size": "sm",
+         "modelValue": {
+          "$type": "variable",
+          "name": "searchText"
+         }
+        },
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "flex": "1",
+         "minWidth": "0px"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [],
+        "componentId": "borrower_search-0-container1-container1-textinput1"
+       }
+      ],
+      "originalElement": "div",
+      "componentId": "borrower_search-0-container1-container1"
+     },
+     {
+      "componentName": "container",
+      "componentProps": {},
+      "componentSlots": {},
+      "componentEvents": {},
+      "baseStyles": {
+       "height": "1px",
+       "backgroundColor": "var(--outline-gray-1)"
+      },
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "children": [],
+      "originalElement": "div",
+      "componentId": "borrower_search-0-container1-container2"
+     },
+     {
+      "componentName": "Repeater",
+      "componentProps": {
+       "data": "{{ searchResults }}",
+       "dataKey": "url",
+       "emptyStateMessage": "Nothing matches that"
+      },
+      "componentSlots": {},
+      "componentEvents": {},
+      "baseStyles": {
+       "display": "flex",
+       "flexDirection": "column",
+       "gap": "5px",
+       "padding": "12px 13px 13px"
+      },
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "children": [
+       {
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "componentEvents": {
+         "click": {
+          "event": "click",
+          "action": "Run Script",
+          "script": "chooseResult(dataItem)"
+         },
+         "mousemove": {
+          "event": "mousemove",
+          "action": "Run Script",
+          "script": "searchIndex.value = dataIndex"
+         }
+        },
+        "baseStyles": {
+         "display": "flex",
+         "flexDirection": "row",
+         "alignItems": "center",
+         "gap": "0px",
+         "width": "100%",
+         "minWidth": "0px",
+         "height": "33.5px",
+         "padding": "0px 7px",
+         "borderRadius": "8px",
+         "cursor": "pointer",
+         "backgroundColor": "{{ dataIndex === searchIndex ? 'var(--surface-gray-2)' : 'transparent' }}"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "{{ dataItem.title }}",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "13px",
+           "lineHeight": "19.5px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-8)",
+           "fontWeight": "700",
+           "whiteSpace": "nowrap"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-repeater1-container1-textblock1"
+         },
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "{{ dataItem.kind }}",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "13px",
+           "lineHeight": "19.5px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-8)",
+           "fontWeight": "400",
+           "whiteSpace": "nowrap",
+           "paddingLeft": "4px"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-repeater1-container1-textblock2"
+         },
+         {
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "flex": "1 1 auto"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "originalElement": "div",
+          "componentId": "borrower_search-0-container1-repeater1-container1-container1"
+         },
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "{{ dataItem.note }}",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "13px",
+           "lineHeight": "19.5px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-5)",
+           "minWidth": "0px",
+           "overflow": "hidden",
+           "textOverflow": "ellipsis",
+           "whiteSpace": "nowrap",
+           "paddingLeft": "12px"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-repeater1-container1-textblock3"
+         }
+        ],
+        "originalElement": "div",
+        "componentId": "borrower_search-0-container1-repeater1-container1"
+       }
+      ],
+      "componentId": "borrower_search-0-container1-repeater1"
+     },
+     {
+      "componentName": "container",
+      "componentProps": {},
+      "componentSlots": {},
+      "componentEvents": {},
+      "baseStyles": {
+       "display": "flex",
+       "flexDirection": "row",
+       "alignItems": "center",
+       "gap": "15px",
+       "height": "40px",
+       "padding": "10px",
+       "borderTop": "1px solid var(--outline-gray-1)"
+      },
+      "mobileStyles": {},
+      "tabletStyles": {},
+      "children": [
+       {
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "display": "flex",
+         "flexDirection": "row",
+         "alignItems": "center",
+         "gap": "5px",
+         "flexShrink": "0"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [
+         {
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "borderRadius": "4px",
+           "backgroundColor": "var(--surface-gray-3)",
+           "color": "var(--ink-gray-6)",
+           "flexShrink": "0",
+           "width": "18px",
+           "height": "18px",
+           "padding": "3px",
+           "justifyContent": "center"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [
+           {
+            "componentName": "HTML",
+            "componentProps": {
+             "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/></svg>"
+            },
+            "componentSlots": {},
+            "componentEvents": {},
+            "baseStyles": {
+             "display": "flex",
+             "alignItems": "center",
+             "flex": "0 0 auto"
+            },
+            "mobileStyles": {},
+            "tabletStyles": {},
+            "children": [],
+            "componentId": "borrower_search-0-container1-container3-container1-container1-html1"
+           }
+          ],
+          "originalElement": "div",
+          "componentId": "borrower_search-0-container1-container3-container1-container1"
+         },
+         {
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "borderRadius": "4px",
+           "backgroundColor": "var(--surface-gray-3)",
+           "color": "var(--ink-gray-6)",
+           "flexShrink": "0",
+           "width": "18px",
+           "height": "18px",
+           "padding": "3px",
+           "justifyContent": "center"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [
+           {
+            "componentName": "HTML",
+            "componentProps": {
+             "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14\"/><path d=\"m19 12-7 7-7-7\"/></svg>"
+            },
+            "componentSlots": {},
+            "componentEvents": {},
+            "baseStyles": {
+             "display": "flex",
+             "alignItems": "center",
+             "flex": "0 0 auto"
+            },
+            "mobileStyles": {},
+            "tabletStyles": {},
+            "children": [],
+            "componentId": "borrower_search-0-container1-container3-container1-container2-html1"
+           }
+          ],
+          "originalElement": "div",
+          "componentId": "borrower_search-0-container1-container3-container1-container2"
+         },
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "to navigate",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "12px",
+           "lineHeight": "18px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-6)",
+           "whiteSpace": "nowrap"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-container3-container1-textblock1"
+         }
+        ],
+        "originalElement": "div",
+        "componentId": "borrower_search-0-container1-container3-container1"
+       },
+       {
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "display": "flex",
+         "flexDirection": "row",
+         "alignItems": "center",
+         "gap": "5px",
+         "flexShrink": "0"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [
+         {
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "borderRadius": "4px",
+           "backgroundColor": "var(--surface-gray-3)",
+           "color": "var(--ink-gray-6)",
+           "flexShrink": "0",
+           "width": "18px",
+           "height": "18px",
+           "padding": "3px",
+           "justifyContent": "center"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [
+           {
+            "componentName": "HTML",
+            "componentProps": {
+             "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 4v7a4 4 0 0 1-4 4H4\"/><path d=\"m9 10-5 5 5 5\"/></svg>"
+            },
+            "componentSlots": {},
+            "componentEvents": {},
+            "baseStyles": {
+             "display": "flex",
+             "alignItems": "center",
+             "flex": "0 0 auto"
+            },
+            "mobileStyles": {},
+            "tabletStyles": {},
+            "children": [],
+            "componentId": "borrower_search-0-container1-container3-container2-container1-html1"
+           }
+          ],
+          "originalElement": "div",
+          "componentId": "borrower_search-0-container1-container3-container2-container1"
+         },
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "to select",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "12px",
+           "lineHeight": "18px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-6)",
+           "whiteSpace": "nowrap"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-container3-container2-textblock1"
+         }
+        ],
+        "originalElement": "div",
+        "componentId": "borrower_search-0-container1-container3-container2"
+       },
+       {
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "display": "flex",
+         "flexDirection": "row",
+         "alignItems": "center",
+         "gap": "5px",
+         "flexShrink": "0"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "Ctrl+K",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "borderRadius": "4px",
+           "backgroundColor": "var(--surface-gray-3)",
+           "color": "var(--ink-gray-6)",
+           "flexShrink": "0",
+           "padding": "2px 4px",
+           "fontSize": "10px",
+           "lineHeight": "15px",
+           "letterSpacing": "0.02em",
+           "whiteSpace": "nowrap"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-container3-container3-textblock1"
+         },
+         {
+          "componentName": "TextBlock",
+          "componentProps": {
+           "text": "to close",
+           "tag": "p",
+           "fontSize": "text-p-sm"
+          },
+          "componentSlots": {},
+          "componentEvents": {},
+          "baseStyles": {
+           "fontSize": "12px",
+           "lineHeight": "18px",
+           "letterSpacing": "0.02em",
+           "color": "var(--ink-gray-6)",
+           "whiteSpace": "nowrap"
+          },
+          "mobileStyles": {},
+          "tabletStyles": {},
+          "children": [],
+          "componentId": "borrower_search-0-container1-container3-container3-textblock2"
+         }
+        ],
+        "originalElement": "div",
+        "componentId": "borrower_search-0-container1-container3-container3"
+       },
+       {
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "flex": "1 1 auto"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [],
+        "originalElement": "div",
+        "componentId": "borrower_search-0-container1-container3-container4"
+       },
+       {
+        "componentName": "TextBlock",
+        "componentProps": {
+         "text": "{{ searchNote }}",
+         "tag": "p",
+         "fontSize": "text-p-sm"
+        },
+        "componentSlots": {},
+        "componentEvents": {},
+        "baseStyles": {
+         "fontSize": "12px",
+         "lineHeight": "18px",
+         "letterSpacing": "0.02em",
+         "color": "var(--ink-gray-6)",
+         "whiteSpace": "nowrap",
+         "minWidth": "0px",
+         "overflow": "hidden",
+         "textOverflow": "ellipsis"
+        },
+        "mobileStyles": {},
+        "tabletStyles": {},
+        "children": [],
+        "componentId": "borrower_search-0-container1-container3-textblock1"
+       }
+      ],
+      "originalElement": "div",
+      "componentId": "borrower_search-0-container1-container3"
+     }
+    ],
+    "originalElement": "div",
+    "componentId": "borrower_search-0-container1"
+   }
+  ],
+  "componentId": "borrower_search-0"
+ }
+}

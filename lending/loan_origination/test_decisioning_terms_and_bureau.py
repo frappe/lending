@@ -13,6 +13,7 @@ from lending.loan_origination.doctype.decision_strategy.test_decision_strategy i
 	make_strategy,
 	rule,
 )
+from lending.loan_origination.test_decisioning import DecisioningTestSuite, make_portal_lead
 from lending.tests.utils import LendingTestSuite
 
 TEST_LOAN_PRODUCT = "Personal Loan"
@@ -107,7 +108,7 @@ def comments_on(lead):
 	)
 
 
-class TestAStageThatRanNothingSaysSo(LendingTestSuite):
+class TestAStageThatRanNothingSaysSo(DecisioningTestSuite):
 	def test_no_strategy_is_recorded_on_the_lead(self):
 		lead = make_lead()
 
@@ -187,6 +188,14 @@ class TestAnApplicationReachesTheLeadsBureauReport(LendingTestSuite):
 		context = build_variable_context(make_application(loan_lead=lead.name))
 
 		self.assertEqual(context["bureau_score"], 780)
+
+	def test_an_application_from_a_portal_lead_finds_nothing_by_pan_alone(self):
+		make_bureau_report(score=655, applicant=None, pan=TEST_PAN)
+		lead = make_portal_lead()
+
+		context = build_variable_context(make_application(loan_lead=lead.name))
+
+		self.assertNotIn("bureau_score", context)
 
 	def test_an_application_with_no_lead_finds_nothing_by_pan(self):
 		make_bureau_report(score=655, applicant=None, pan=TEST_PAN)
