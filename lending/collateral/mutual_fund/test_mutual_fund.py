@@ -402,13 +402,15 @@ class TestNavFile(LendingTestSuite):
 			{row.loan_security: row.price for row in update.items}, {FLEXI_CAP: 90.8844, ELSS: 66.15}
 		)
 
-	def test_read_skips_securities_nobody_pledged(self):
+	def test_read_fills_securities_nobody_pledged(self):
 		update = make_draft_update(MF_TYPE)
 
 		read_nav_file(update.as_dict(), make_nav_file(update.name))
 		update.reload()
 
-		self.assertEqual([row.loan_security for row in update.items], [FLEXI_CAP])
+		self.assertEqual(
+			{row.loan_security: row.price for row in update.items}, {FLEXI_CAP: 90.8844, ELSS: 66.15}
+		)
 
 	def test_read_skips_disabled_securities(self):
 		make_pledge([fund_line(ELSS, purchase_date=add_days(nowdate(), -1095))])
@@ -429,7 +431,7 @@ class TestNavFile(LendingTestSuite):
 
 		result = read_nav_file(update.as_dict(), file_name)
 
-		self.assertEqual(len(frappe.get_doc("Loan Security Price Update", result["name"]).items), 1)
+		self.assertEqual(len(frappe.get_doc("Loan Security Price Update", result["name"]).items), 2)
 		self.assertEqual(frappe.db.get_value("File", file_name, "attached_to_name"), result["name"])
 
 	def test_read_refuses_a_file_with_no_nav_on_the_price_date(self):
