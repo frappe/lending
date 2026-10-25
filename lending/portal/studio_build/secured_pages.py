@@ -84,18 +84,31 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \tconst refetch = () => { viewing.value = "eligibility" }
 
 \tconst holdings = computed<any[]>(() => page.value.holdings || [])
+\t// One line per purchase lot, so a fund's units are the sum of its lines.
 \twatch(() => page.value.application?.lines, (lines) => {
-\t\tif (lines?.length) chosen.value = [...new Set<string>(lines.map((line: any) => line.holding))]
+\t\tif (!lines?.length) return
+\t\tconst saved: Record<string, number> = {}
+\t\tlines.forEach((line: any) => { saved[line.holding] = (saved[line.holding] || 0) + line.units })
+\t\tchosen.value = Object.keys(saved)
+\t\tunits.value = Object.fromEntries(Object.entries(saved).map(([holding, count]) => [holding, String(count)]))
 \t}, { immediate: true })
 \tconst toggle = (holding: any) => {
 \t\tif (sent.value || !holding.pledgeable_units) return
-\t\tchosen.value = chosen.value.includes(holding.holding)
-\t\t\t? chosen.value.filter((name) => name !== holding.holding)
-\t\t\t: [...chosen.value, holding.holding]
+\t\tif (chosen.value.includes(holding.holding)) {
+\t\t\tchosen.value = chosen.value.filter((name) => name !== holding.holding)
+\t\t\treturn
+\t\t}
+\t\tchosen.value = [...chosen.value, holding.holding]
+\t\tunits.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }
 \t}
+\tconst setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? "") } }
+\tconst unitsOf = (row: any) => Number(units.value[row.holding] || 0)
+\tconst unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units
+\t// The same sum the server makes: units × NAV, less the fund's haircut.
+\tconst lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)
 \tconst sent = computed(() => Boolean(page.value.application?.sent))
-\tconst chosenEligible = computed(() =>
-\t\tholdings.value.filter((row) => chosen.value.includes(row.holding)).reduce((sum, row) => sum + row.eligible, 0))
+\tconst chosenRows = computed(() => holdings.value.filter((row) => chosen.value.includes(row.holding)))
+\tconst chosenEligible = computed(() => chosenRows.value.reduce((sum, row) => sum + lends(row), 0))
 \tconst limit = computed(() => {
 \t\tconst ceiling = page.value.product?.maximum || 0
 \t\treturn Math.floor(ceiling ? Math.min(chosenEligible.value, ceiling) : chosenEligible.value)
@@ -103,11 +116,13 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \tconst useLimit = () => { loanAmount.value = String(limit.value) }
 \twatch(() => page.value.application?.amount, (amount) => { if (amount) loanAmount.value = String(amount) }, { immediate: true })
 \twatch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })
-\tconst canApply = computed(() => chosen.value.length > 0 && Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
+\tconst canApply = computed(() =>
+\t\tchosenRows.value.length > 0 && chosenRows.value.every(unitsValid)
+\t\t&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
 \tconst startApplication = () =>
 \t\trun("start_application", {
 \t\t\tcollateral: collateral.value,
-\t\t\tlines: JSON.stringify(holdings.value.filter((row) => chosen.value.includes(row.holding)).map((row) => ({ holding: row.holding, units: row.pledgeable_units }))),
+\t\t\tlines: JSON.stringify(chosenRows.value.map((row) => ({ holding: row.holding, units: unitsOf(row) }))),
 \t\t\tloan_amount: loanAmount.value,
 \t\t\ttenure: tenure.value,
 \t\t}, advance)
@@ -131,7 +146,10 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \t\tesignSent.value = true
 \t\tcontext.%(source)s.reload()
 \t})
-\tconst confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })''' % {
+\tconst confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })
+
+\twatch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
+\tconst withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)''' % {
 	"source": SOURCE
 }
 
@@ -142,6 +160,7 @@ STATE = [
 	("holdingsOtp", '""'),
 	("notApproved", "[]"),
 	("chosen", "[] as string[]"),
+	("units", "{} as Record<string, string>"),
 	("loanAmount", '""'),
 	("tenure", '"12"'),
 	("pledgeOtp", '""'),
@@ -151,6 +170,7 @@ STATE = [
 	("ifsc", '""'),
 	("esignOtp", '""'),
 	("esignSent", "false"),
+	("withdrawAmount", '""'),
 ]
 
 RETURNS = [
@@ -163,6 +183,9 @@ RETURNS = [
 	"fetchHoldings",
 	"refetch",
 	"toggle",
+	"setUnits",
+	"unitsValid",
+	"lends",
 	"sent",
 	"chosenEligible",
 	"limit",
@@ -176,6 +199,7 @@ RETURNS = [
 	"saveBank",
 	"sendEsignOtp",
 	"confirmEsign",
+	"withdraw",
 ]
 
 
@@ -454,7 +478,68 @@ def holding_choice():
 		styles={"alignItems": "flex-end"},
 	)
 
-	return choice([left, right], "toggle(dataItem)", "chosen.includes(dataItem.holding)")
+	chosen = "chosen.includes(dataItem.holding)"
+
+	return column(
+		[choice([left, right], "toggle(dataItem)", chosen), units_box(chosen)],
+		gap="0px",
+	)
+
+
+def units_box(chosen):
+	"""Under a chosen fund: how many of its units to pledge, and what they lend."""
+	units = block(
+		"FormControl",
+		props={
+			"type": "number",
+			"size": "sm",
+			"variant": "outline",
+			"modelValue": "{{ units[dataItem.holding] }}",
+			"disabled": "{{ sent }}",
+		},
+		events={
+			"update:modelValue": {
+				"event": "update:modelValue",
+				"action": "Run Script",
+				"script": "setUnits(dataItem.holding, eventArgs[0])",
+			}
+		},
+		styles={"width": "140px"},
+	)
+	invalid = "!unitsValid(dataItem)"
+
+	return row(
+		[
+			text("Units to pledge", size="text-sm", styles={"color": "var(--ink-gray-7)", "whiteSpace": "nowrap"}),
+			units,
+			muted("{{ 'of ' + dataItem.pledgeable_units + ' you can pledge' }}"),
+			spacer(),
+			text(
+				"{{ 'Lends ' + money(lends(dataItem)) }}",
+				size="text-sm",
+				styles={"fontWeight": "600", "color": "var(--ink-gray-9)", "whiteSpace": "nowrap"},
+				visible="{{ !(%s) }}" % invalid,
+			),
+			text(
+				"{{ 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
+				size="text-sm",
+				styles={"color": "var(--ink-red-4, var(--ink-gray-7))", "whiteSpace": "nowrap"},
+				visible="{{ %s }}" % invalid,
+			),
+		],
+		gap="10px",
+		styles={
+			"padding": "10px 16px",
+			"marginTop": "-6px",
+			"borderWidth": "0px 1px 1px 1px",
+			"borderStyle": "solid",
+			"borderColor": "var(--outline-gray-2)",
+			"borderRadius": "0 0 var(--radius-4) var(--radius-4)",
+			"backgroundColor": "var(--surface-gray-1)",
+		},
+		mobile={"flexWrap": "wrap"},
+		visible="{{ %s }}" % chosen,
+	)
 
 
 def vault_panel():
@@ -802,6 +887,57 @@ def esign_panel():
 	)
 
 
+def withdraw_box():
+	"""Paying the loan out to the account the borrower verified."""
+	amount = block(
+		"FormControl",
+		props={
+			"type": "number",
+			"label": "Amount",
+			"size": "md",
+			"variant": "subtle",
+			"modelValue": {"$type": "variable", "name": "withdrawAmount"},
+		},
+		styles={"width": "220px"},
+	)
+	destination = row(
+		[
+			icon_tile("building-2", tile=36, glyph=18),
+			column(
+				[
+					text(read("bank.bank"), size="text-base", styles={"fontWeight": "500", "color": "var(--ink-gray-9)"}),
+					muted("{{ 'Account ' + %s.data.bank.account }}" % SOURCE),
+				],
+				gap="2px",
+			),
+		],
+		gap="10px",
+	)
+
+	return column(
+		[
+			column(
+				[
+					heading("Get your money", tag="h3", size="text-base"),
+					muted("{{ 'You can withdraw up to ' + %s.data.loan.available_label + ' now.' }}" % SOURCE),
+				],
+				gap="2px",
+			),
+			row([amount, destination], gap="24px", align="end", styles={"flexWrap": "wrap"}),
+			actions(
+				action(
+					"Withdraw to my bank",
+					"withdraw()",
+					enabled="Number(withdrawAmount) > 0 && Number(withdrawAmount) <= %s.data.loan.available" % SOURCE,
+				)
+			),
+		],
+		gap="14px",
+		styles=dict(LIST_BOX, padding="16px", overflow="visible"),
+		visible="{{ %s.data?.loan?.available > 0 }}" % SOURCE,
+	)
+
+
 def loan_panel():
 	opened = "%s.data?.loan?.name" % SOURCE
 	waiting = "!%s && %s.data?.esign?.signed_on" % (opened, SOURCE)
@@ -814,17 +950,24 @@ def loan_panel():
 			column(
 				[
 					done_line("Your loan {{ %s.data.loan.name }} is open." % SOURCE, None),
-					row(
+					summary_strip(
 						[
-							figure("Sanctioned", read("loan.amount")),
-							figure("Rate of interest", read("loan.rate")),
-							figure("Status", read("loan.status")),
-						],
-						gap="12px",
-						align="stretch",
-						styles={"flexWrap": "wrap"},
+							("Sanctioned", read("loan.amount"), None),
+							("Paid to you", read("loan.disbursed"), None),
+							("Rate of interest", read("loan.rate"), None),
+							("Status", read("loan.status"), None),
+						]
 					),
-					actions(action("Go to my loan", "open(%s.data.loan.url)" % SOURCE)),
+					withdraw_box(),
+					alert(read("loan.pending_note"), theme="blue", visible=read("loan.pending_note")),
+					actions(
+						button(
+							"Go to my loan",
+							script="open(%s.data.loan.url)" % SOURCE,
+							variant="subtle",
+							props={"size": "md"},
+						)
+					),
 				],
 				gap="14px",
 				visible="{{ %s }}" % opened,

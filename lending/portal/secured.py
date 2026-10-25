@@ -12,13 +12,14 @@ out where the borrower is from those records alone.
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import add_days, cint, flt, getdate, now_datetime, nowdate
+from frappe.utils import add_days, add_months, cint, flt, getdate, now_datetime, nowdate
 from frappe.utils.file_manager import save_file
 from frappe.utils.pdf import get_pdf
 
 from lending.collateral.mutual_fund import registry
 from lending.loan_integrations import verification
 from lending.loan_integrations.base import Refused
+from lending.loan_management.doctype.loan.loan import new_loan_disbursement
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan,
 	create_loan_security_assignment,
@@ -30,6 +31,7 @@ from lending.portal import login
 from lending.portal.accounts import customer_for_applicant, link_portal_user
 from lending.portal.apply import mask, spend_token, verified_mobile, with_country_code
 from lending.portal.core import (
+	STATUS_LABELS,
 	application_url,
 	as_administrator,
 	assert_public_apply_enabled,
@@ -43,6 +45,12 @@ from lending.portal.core import (
 	shell_payload,
 )
 from lending.portal.downloads import render
+from lending.portal.loans import (
+	DRAWABLE_STATUSES,
+	drawable_amount,
+	next_due_date,
+	pending_disbursement,
+)
 from lending.portal.print_formats import SANCTION_FORMAT
 
 ROUTE = "/borrower-portal/secured-loan"
@@ -1082,17 +1090,92 @@ def loan_payload(application: str | None) -> dict:
 		return {}
 
 	loan = frappe.db.get_value(
-		"Loan", name, ["name", "loan_amount", "status", "rate_of_interest", "loan_product"], as_dict=True
+		"Loan",
+		name,
+		["name", "loan_amount", "disbursed_amount", "status", "rate_of_interest", "loan_product"],
+		as_dict=True,
 	)
+	available = drawable_amount(loan.name) if loan.status in DRAWABLE_STATUSES else 0
+	pending = pending_disbursement(loan.name)
 
 	return {
 		"name": loan.name,
 		"url": loan_url(loan.name),
 		"amount": money(loan.loan_amount),
-		"status": _(loan.status),
+		"status": _(STATUS_LABELS.get(loan.status, loan.status)),
 		"rate": _("{0}% a year").format(flt(loan.rate_of_interest)),
 		"product": frappe.db.get_value("Loan Product", loan.loan_product, "product_name") or loan.loan_product,
+		"disbursed": money(loan.disbursed_amount),
+		"has_disbursed": flt(loan.disbursed_amount) > 0,
+		"available": 0 if pending else flt(available, 2),
+		"available_label": money(available),
+		"pending_note": _("Your request for {0} is with our team. We will pay it out after review.").format(
+			money(pending)
+		)
+		if pending
+		else "",
 	}
+
+
+# After Loan Open: the money
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=60 * 60)
+def withdraw() -> dict:
+	"""Pay the borrower from the open loan into the account they verified. Staff Review waits for staff."""
+	customer = borrower()
+	application = journey_application(customer)
+	loan = loan_for(application) if application else None
+	if not loan:
+		frappe.throw(_("Your loan is not open yet."), frappe.ValidationError)
+
+	amount = flt(frappe.form_dict.get("amount"))
+	automatic = (frappe.db.get_single_value("Lending Settings", "portal_loan_approval") or AUTOMATIC) == AUTOMATIC
+	bank_account = frappe.db.get_value("Loan Application", application, "bank_account")
+
+	with as_administrator():
+		entry = disbursement(loan, amount, bank_account)
+		if automatic:
+			entry.submit()
+
+	if automatic:
+		return {
+			"ok": True,
+			"message": _("{0} is on its way to your {1} account.").format(
+				money(amount), bank_payload(application).get("bank") or _("bank")
+			),
+		}
+
+	return {"ok": True, "message": _("We have your request for {0}. We will pay it out after review.").format(money(amount))}
+
+
+def disbursement(loan: str, amount: float, bank_account: str):
+	# Locked so two requests cannot both find no draft waiting.
+	status = frappe.db.get_value("Loan", loan, "status", for_update=True)
+	if status not in DRAWABLE_STATUSES:
+		frappe.throw(_("This loan is not open for a withdrawal."), frappe.ValidationError)
+	if pending_disbursement(loan):
+		frappe.throw(_("A withdrawal from this loan is already being processed."), frappe.ValidationError)
+
+	available = drawable_amount(loan)
+	if amount <= 0 or amount > available:
+		frappe.throw(_("You can withdraw up to {0}.").format(money(available)), frappe.ValidationError)
+
+	entry = new_loan_disbursement(
+		loan, amount, repayment_start_date=first_due_date(loan), bank_account=bank_account
+	)
+	entry.insert(ignore_permissions=True)
+	entry.add_comment("Comment", _("Requested by {0} from the borrower portal.").format(frappe.session.user))
+
+	return entry
+
+
+def first_due_date(loan: str):
+	# A new loan has no schedule yet; a later withdrawal joins the running one.
+	return next_due_date(loan) or frappe.db.get_value("Loan", loan, "repayment_start_date") or add_months(
+		nowdate(), 1
+	)
 
 
 # Step 1: Registration, for a visitor who has no login yet

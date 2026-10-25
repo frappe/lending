@@ -13,6 +13,7 @@ export default function setup(context: any) {
 	const holdingsOtp = ref("")
 	const notApproved = ref([])
 	const chosen = ref([] as string[])
+	const units = ref({} as Record<string, string>)
 	const loanAmount = ref("")
 	const tenure = ref("12")
 	const pledgeOtp = ref("")
@@ -22,6 +23,7 @@ export default function setup(context: any) {
 	const ifsc = ref("")
 	const esignOtp = ref("")
 	const esignSent = ref(false)
+	const withdrawAmount = ref("")
 
 	const open = (url?: string) => {
 		const to = appRoute(url)
@@ -74,18 +76,31 @@ export default function setup(context: any) {
 	const refetch = () => { viewing.value = "eligibility" }
 
 	const holdings = computed<any[]>(() => page.value.holdings || [])
+	// One line per purchase lot, so a fund's units are the sum of its lines.
 	watch(() => page.value.application?.lines, (lines) => {
-		if (lines?.length) chosen.value = [...new Set<string>(lines.map((line: any) => line.holding))]
+		if (!lines?.length) return
+		const saved: Record<string, number> = {}
+		lines.forEach((line: any) => { saved[line.holding] = (saved[line.holding] || 0) + line.units })
+		chosen.value = Object.keys(saved)
+		units.value = Object.fromEntries(Object.entries(saved).map(([holding, count]) => [holding, String(count)]))
 	}, { immediate: true })
 	const toggle = (holding: any) => {
 		if (sent.value || !holding.pledgeable_units) return
-		chosen.value = chosen.value.includes(holding.holding)
-			? chosen.value.filter((name) => name !== holding.holding)
-			: [...chosen.value, holding.holding]
+		if (chosen.value.includes(holding.holding)) {
+			chosen.value = chosen.value.filter((name) => name !== holding.holding)
+			return
+		}
+		chosen.value = [...chosen.value, holding.holding]
+		units.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }
 	}
+	const setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? "") } }
+	const unitsOf = (row: any) => Number(units.value[row.holding] || 0)
+	const unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units
+	// The same sum the server makes: units × NAV, less the fund's haircut.
+	const lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)
 	const sent = computed(() => Boolean(page.value.application?.sent))
-	const chosenEligible = computed(() =>
-		holdings.value.filter((row) => chosen.value.includes(row.holding)).reduce((sum, row) => sum + row.eligible, 0))
+	const chosenRows = computed(() => holdings.value.filter((row) => chosen.value.includes(row.holding)))
+	const chosenEligible = computed(() => chosenRows.value.reduce((sum, row) => sum + lends(row), 0))
 	const limit = computed(() => {
 		const ceiling = page.value.product?.maximum || 0
 		return Math.floor(ceiling ? Math.min(chosenEligible.value, ceiling) : chosenEligible.value)
@@ -93,11 +108,13 @@ export default function setup(context: any) {
 	const useLimit = () => { loanAmount.value = String(limit.value) }
 	watch(() => page.value.application?.amount, (amount) => { if (amount) loanAmount.value = String(amount) }, { immediate: true })
 	watch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })
-	const canApply = computed(() => chosen.value.length > 0 && Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
+	const canApply = computed(() =>
+		chosenRows.value.length > 0 && chosenRows.value.every(unitsValid)
+		&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
 	const startApplication = () =>
 		run("start_application", {
 			collateral: collateral.value,
-			lines: JSON.stringify(holdings.value.filter((row) => chosen.value.includes(row.holding)).map((row) => ({ holding: row.holding, units: row.pledgeable_units }))),
+			lines: JSON.stringify(chosenRows.value.map((row) => ({ holding: row.holding, units: unitsOf(row) }))),
 			loan_amount: loanAmount.value,
 			tenure: tenure.value,
 		}, advance)
@@ -123,5 +140,8 @@ export default function setup(context: any) {
 	})
 	const confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign }
+	watch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
+	const withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)
+
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
 }

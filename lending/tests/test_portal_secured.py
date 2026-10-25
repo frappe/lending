@@ -173,6 +173,71 @@ class TestTheJourney(SecuredJourneyTestSuite):
 		self.assertEqual(frappe.db.get_value("Loan Application", journey["application"]["name"], "status"), "Open")
 
 
+class TestWithdrawal(SecuredJourneyTestSuite):
+	def open_loan(self):
+		self.walk_to_signing()
+		self.assertTrue(self.sign()["opened"])
+		return page()["loan"]
+
+	def test_a_withdrawal_is_paid_into_the_verified_account(self):
+		loan = self.open_loan()
+		self.assertTrue(post("withdraw", amount=6000)["ok"])
+
+		paid = frappe.get_doc("Loan Disbursement", {"against_loan": loan["name"]})
+		self.assertEqual(paid.docstatus, 1)
+		self.assertEqual(paid.disbursed_amount, 6000)
+		self.assertEqual(paid.bank_account, frappe.db.get_value("Loan Application", page()["application"]["name"], "bank_account"))
+		self.assertEqual(frappe.db.get_value("Loan", loan["name"], "disbursed_amount"), 6000)
+
+	def test_more_than_is_available_is_refused(self):
+		loan = self.open_loan()
+
+		with self.assertRaises(frappe.ValidationError):
+			post("withdraw", amount=loan["available"] + 1)
+
+	def test_staff_review_raises_a_draft_and_holds_the_next_request(self):
+		loan = self.open_loan()
+		frappe.set_user("Administrator")
+		frappe.db.set_single_value("Lending Settings", "portal_loan_approval", "Staff Review")
+		frappe.set_user(USER)
+
+		post("withdraw", amount=5000)
+
+		self.assertEqual(frappe.db.get_value("Loan Disbursement", {"against_loan": loan["name"]}, "docstatus"), 0)
+		self.assertTrue(page()["loan"]["pending_note"])
+		with self.assertRaises(frappe.ValidationError):
+			post("withdraw", amount=1000)
+
+
+class TestUnitsToPledge(SecuredJourneyTestSuite):
+	def setUp(self):
+		super().setUp()
+		self.verify_pan()
+		self.fetch_holdings()
+
+	def apply_for(self, units, security=FLEXI_CAP):
+		lines = frappe.as_json([{"holding": self.holding(security)["holding"], "units": units}])
+		return post("start_application", collateral="Mutual Funds", lines=lines, loan_amount=100, tenure=12)
+
+	def test_only_the_chosen_units_are_pledged(self):
+		self.apply_for(25)
+
+		application = frappe.get_doc("Loan Application", page()["application"]["name"])
+		self.assertEqual(sum(row.qty for row in application.proposed_pledges), 25)
+
+	def test_more_units_than_can_be_pledged_are_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.apply_for(self.holding(FLEXI_CAP)["pledgeable_units"] + 1)
+
+	def test_units_come_from_the_oldest_unlocked_lots(self):
+		elss = self.holding(ELSS)
+		self.apply_for(elss["pledgeable_units"], security=ELSS)
+
+		application = frappe.get_doc("Loan Application", page()["application"]["name"])
+		self.assertEqual(sum(row.qty for row in application.proposed_pledges), elss["pledgeable_units"])
+		self.assertTrue(all(row.purchase_date for row in application.proposed_pledges))
+
+
 class TestTheStepsAreChecked(SecuredJourneyTestSuite):
 	def test_holdings_need_a_verified_pan(self):
 		with self.assertRaises(frappe.ValidationError):
