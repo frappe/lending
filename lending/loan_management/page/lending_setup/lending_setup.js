@@ -40,7 +40,6 @@ function make_kind(kind) {
 
 	if (!ready) {
 		$kind.prop("disabled", true);
-		$kind.find(".lending-setup-status").text(__("Coming soon"));
 		return $kind;
 	}
 
