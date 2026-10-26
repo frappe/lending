@@ -17,7 +17,9 @@ def execute():
 		.select(LRS.loan)
 		.distinct()
 		.where(is_unlinked(LRS))
-		.where((LRS.repayment_schedule_type.isnull()) | (LRS.repayment_schedule_type != "Line of Credit"))
+		.where(
+			(LRS.repayment_schedule_type.isnull()) | (LRS.repayment_schedule_type != "Line of Credit")
+		)
 		.run(pluck=True)
 	)
 
@@ -26,9 +28,7 @@ def execute():
 		schedule = get_current_schedule(loan)
 
 		if disbursement and schedule:
-			frappe.qb.update(LRS).set(LRS.loan_disbursement, disbursement).where(
-				LRS.name == schedule
-			).run()
+			frappe.qb.update(LRS).set(LRS.loan_disbursement, disbursement).where(LRS.name == schedule).run()
 
 
 def is_unlinked(LRS):
