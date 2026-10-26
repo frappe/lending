@@ -7,17 +7,16 @@ from frappe.utils import get_datetime
 from lending.tests.test_utils import (
 	create_loan,
 	create_loan_write_off,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanWriteOff(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_loan_write_off_status_on_submit_and_cancel(self):
 		loan = create_loan(

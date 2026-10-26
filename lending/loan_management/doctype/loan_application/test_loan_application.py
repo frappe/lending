@@ -9,19 +9,13 @@ from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan,
 	get_instalment_count,
 )
-from lending.tests.test_utils import (
-	create_loan_accounts,
-	create_loan_product,
-	make_loan_disbursement_entry,
-	set_loan_settings_in_company,
-)
+from lending.tests.test_utils import create_loan_product, make_loan_disbursement_entry
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanApplication(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
+	@classmethod
+	def make_class_data(cls):
 		create_loan_product(
 			"Home Loan",
 			"Home Loan",
@@ -32,14 +26,15 @@ class TestLoanApplication(LendingTestSuite):
 			0,
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
-		self.applicant = make_employee("kate_loan@loan.com", "_Test Company")
-		self.create_loan_application()
+		cls.applicant = make_employee("kate_loan@loan.com", "_Test Company")
+		cls.create_loan_application()
 
-	def create_loan_application(self):
+	@classmethod
+	def create_loan_application(cls):
 		loan_application = frappe.new_doc("Loan Application")
 		loan_application.update(
 			{
-				"applicant": self.applicant,
+				"applicant": cls.applicant,
 				"loan_product": "Home Loan",
 				"rate_of_interest": 9.2,
 				"loan_amount": 250000,

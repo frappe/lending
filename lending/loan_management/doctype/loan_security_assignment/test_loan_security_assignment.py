@@ -12,26 +12,21 @@ from lending.tests.test_utils import (
 	create_loan_security,
 	create_loan_security_price,
 	create_loan_security_type,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanSecurityAssignment(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 		create_loan_security_type()
 		create_loan_security()
 
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
-
 
 	def test_loan_security_validations(self):
 		pledge = [
