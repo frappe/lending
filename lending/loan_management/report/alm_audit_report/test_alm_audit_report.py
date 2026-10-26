@@ -13,7 +13,7 @@ from lending.loan_management.report.alm_audit_report.alm_audit_report import (
 	get_overdue_details,
 )
 from lending.tests.test_utils import create_loan, make_loan_disbursement_entry
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestALMAuditReport(LendingTestSuite):
@@ -213,6 +213,7 @@ class TestALMAuditReport(LendingTestSuite):
 			self.assertEqual(row.get("loan_product"), "Term Loan Product 4")
 			self.assertGreaterEqual(flt(row.get("total")), 0)
 
+	@with_days_past_due_repost
 	def test_alm_audit_report_execute_includes_overdue_rows(self):
 		loan = create_loan(
 			"_Test Loan Customer",

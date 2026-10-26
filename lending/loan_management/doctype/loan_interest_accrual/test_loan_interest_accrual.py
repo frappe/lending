@@ -15,21 +15,18 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanInterestAccrual(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_accrual_in_batch_with_freeze_date(self):
 		set_loan_accrual_frequency("Daily")
@@ -171,137 +168,6 @@ class TestLoanInterestAccrual(LendingTestSuite):
 		self.assertEqual(
 			getdate(loan_interest_accrual_2[0].posting_date), getdate(disbursement_b.disbursement_date)
 		)
-
-	def test_loc_loan_no_interest_till_month_end(self):
-		set_loan_accrual_frequency("Daily")
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 6",
-			500000,
-			"Repay Over Number of Periods",
-			1,
-			posting_date="2024-10-17",
-			rate_of_interest=17,
-			applicant_type="Customer",
-			limit_applicable_start="2024-10-16",
-			limit_applicable_end="2026-10-16",
-		)
-		loan.submit()
-
-		# Disburse mid-month on Dec 15
-		disbursement_a = make_loan_disbursement_entry(
-			loan.name,
-			171000,
-			disbursement_date="2024-12-15",
-			repayment_start_date="2025-02-28",
-			repayment_frequency="One Time",
-		)
-		disbursement_a.submit()
-
-		# Run accrual through Dec 31 — should produce no interest accruals
-		process_loan_interest_accrual_for_loans(
-			posting_date="2024-12-31", loan=loan.name, company="_Test Company"
-		)
-
-		accruals_dec = frappe.get_all(
-			"Loan Interest Accrual",
-			filters={
-				"loan": loan.name,
-				"loan_disbursement": disbursement_a.name,
-				"docstatus": 1,
-				"interest_type": "Normal Interest",
-			},
-			fields=["name", "posting_date"],
-		)
-		self.assertEqual(len(accruals_dec), 0)
-
-		# Run accrual for Jan 5 — interest should accrue from Jan 1 to Jan 5 (5 days)
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-05", loan=loan.name, company="_Test Company"
-		)
-
-		accruals_jan = frappe.get_all(
-			"Loan Interest Accrual",
-			filters={
-				"loan": loan.name,
-				"loan_disbursement": disbursement_a.name,
-				"docstatus": 1,
-				"interest_type": "Normal Interest",
-			},
-			fields=["name", "posting_date"],
-			order_by="posting_date asc",
-		)
-		self.assertEqual(len(accruals_jan), date_diff("2025-01-05", "2024-12-31"))
-		self.assertEqual(getdate(accruals_jan[0].posting_date), getdate("2025-01-01"))
-
-	def test_loc_loan_no_interest_till_month_end_multiple_disbursements(self):
-		set_loan_accrual_frequency("Daily")
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 6",
-			500000,
-			"Repay Over Number of Periods",
-			1,
-			posting_date="2024-10-17",
-			rate_of_interest=17,
-			applicant_type="Customer",
-			limit_applicable_start="2024-10-16",
-			limit_applicable_end="2026-10-16",
-		)
-		loan.submit()
-
-		# First drawdown: Dec 15
-		disbursement_a = make_loan_disbursement_entry(
-			loan.name,
-			100000,
-			disbursement_date="2024-12-15",
-			repayment_start_date="2025-03-31",
-			repayment_frequency="One Time",
-		)
-		disbursement_a.submit()
-
-		# Second drawdown: Jan 10 (different month)
-		disbursement_b = make_loan_disbursement_entry(
-			loan.name,
-			100000,
-			disbursement_date="2025-01-10",
-			repayment_start_date="2025-03-31",
-			repayment_frequency="One Time",
-		)
-		disbursement_b.submit()
-
-		# Run accrual through Jan 15
-		process_loan_interest_accrual_for_loans(
-			posting_date="2025-01-15", loan=loan.name, company="_Test Company"
-		)
-
-		# Disbursement A: interest-free till Dec 31, accrual from Jan 1 to Jan 15 = 15 entries
-		accruals_a = frappe.get_all(
-			"Loan Interest Accrual",
-			filters={
-				"loan": loan.name,
-				"loan_disbursement": disbursement_a.name,
-				"docstatus": 1,
-				"interest_type": "Normal Interest",
-			},
-			fields=["name", "posting_date"],
-			order_by="posting_date asc",
-		)
-		self.assertEqual(len(accruals_a), date_diff("2025-01-15", "2024-12-31"))
-		self.assertEqual(getdate(accruals_a[0].posting_date), getdate("2025-01-01"))
-
-		# Disbursement B: interest-free till Jan 31, so no accruals yet
-		accruals_b = frappe.get_all(
-			"Loan Interest Accrual",
-			filters={
-				"loan": loan.name,
-				"loan_disbursement": disbursement_b.name,
-				"docstatus": 1,
-				"interest_type": "Normal Interest",
-			},
-			fields=["name", "posting_date"],
-		)
-		self.assertEqual(len(accruals_b), 0)
 
 	def test_loan_interest_accruals_after_maturity_date(self):
 		set_loan_accrual_frequency("Monthly")
@@ -468,3 +334,130 @@ def get_loan_object(loan_doc):
 			"freeze_date": loan_doc.freeze_date,
 		}
 	)
+
+
+class TestLocNoInterestTillMonthEnd(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
+		set_loan_accrual_frequency("Daily")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 6",
+			500000,
+			"Repay Over Number of Periods",
+			1,
+			posting_date="2024-10-17",
+			rate_of_interest=17,
+			applicant_type="Customer",
+			limit_applicable_start="2024-10-16",
+			limit_applicable_end="2026-10-16",
+		)
+		loan.submit()
+		cls.loan = loan.name
+
+	def test_loc_loan_no_interest_till_month_end(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		# Disburse mid-month on Dec 15
+		disbursement_a = make_loan_disbursement_entry(
+			loan.name,
+			171000,
+			disbursement_date="2024-12-15",
+			repayment_start_date="2025-02-28",
+			repayment_frequency="One Time",
+		)
+		disbursement_a.submit()
+
+		# Run accrual through Dec 31 — should produce no interest accruals
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-12-31", loan=loan.name, company="_Test Company"
+		)
+
+		accruals_dec = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_a.name,
+				"docstatus": 1,
+				"interest_type": "Normal Interest",
+			},
+			fields=["name", "posting_date"],
+		)
+		self.assertEqual(len(accruals_dec), 0)
+
+		# Run accrual for Jan 5 — interest should accrue from Jan 1 to Jan 5 (5 days)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-05", loan=loan.name, company="_Test Company"
+		)
+
+		accruals_jan = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_a.name,
+				"docstatus": 1,
+				"interest_type": "Normal Interest",
+			},
+			fields=["name", "posting_date"],
+			order_by="posting_date asc",
+		)
+		self.assertEqual(len(accruals_jan), date_diff("2025-01-05", "2024-12-31"))
+		self.assertEqual(getdate(accruals_jan[0].posting_date), getdate("2025-01-01"))
+
+	def test_loc_loan_no_interest_till_month_end_multiple_disbursements(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		# First drawdown: Dec 15
+		disbursement_a = make_loan_disbursement_entry(
+			loan.name,
+			100000,
+			disbursement_date="2024-12-15",
+			repayment_start_date="2025-03-31",
+			repayment_frequency="One Time",
+		)
+		disbursement_a.submit()
+
+		# Second drawdown: Jan 10 (different month)
+		disbursement_b = make_loan_disbursement_entry(
+			loan.name,
+			100000,
+			disbursement_date="2025-01-10",
+			repayment_start_date="2025-03-31",
+			repayment_frequency="One Time",
+		)
+		disbursement_b.submit()
+
+		# Run accrual through Jan 15
+		process_loan_interest_accrual_for_loans(
+			posting_date="2025-01-15", loan=loan.name, company="_Test Company"
+		)
+
+		# Disbursement A: interest-free till Dec 31, accrual from Jan 1 to Jan 15 = 15 entries
+		accruals_a = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_a.name,
+				"docstatus": 1,
+				"interest_type": "Normal Interest",
+			},
+			fields=["name", "posting_date"],
+			order_by="posting_date asc",
+		)
+		self.assertEqual(len(accruals_a), date_diff("2025-01-15", "2024-12-31"))
+		self.assertEqual(getdate(accruals_a[0].posting_date), getdate("2025-01-01"))
+
+		# Disbursement B: interest-free till Jan 31, so no accruals yet
+		accruals_b = frappe.get_all(
+			"Loan Interest Accrual",
+			filters={
+				"loan": loan.name,
+				"loan_disbursement": disbursement_b.name,
+				"docstatus": 1,
+				"interest_type": "Normal Interest",
+			},
+			fields=["name", "posting_date"],
+		)
+		self.assertEqual(len(accruals_b), 0)

@@ -72,7 +72,7 @@ def create_secured_demand_loan(applicant, disbursement_amount=None):
 	make_loan_disbursement_entry(
 		loan.name, disbursement_amount or loan.loan_amount, disbursement_date=first_date
 	)
-	process_loan_interest_accrual_for_loans(posting_date=last_date)
+	process_loan_interest_accrual_for_loans(posting_date=last_date, loan=loan.name)
 
 	return loan
 
