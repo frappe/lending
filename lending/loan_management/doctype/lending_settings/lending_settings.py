@@ -15,7 +15,10 @@ class LendingSettings(Document):
 		from frappe.types import DF
 
 		auto_create_customer: DF.Check
+		enable_margin_call: DF.Check
+		margin_cure_days: DF.Int
 		portal_logo: DF.AttachImage | None
+		sale_charge: DF.Link | None
 	# end: auto-generated types
 
 	pass

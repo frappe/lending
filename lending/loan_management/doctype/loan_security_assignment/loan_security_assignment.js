@@ -2,6 +2,19 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Assignment', {
+	setup: function(frm) {
+		frm.set_query("mutual_fund_holding", "securities", function(doc, cdt, cdn) {
+			let row = locals[cdt][cdn];
+			return {
+				filters: {
+					applicant_type: doc.applicant_type,
+					applicant: doc.applicant,
+					loan_security: row.loan_security,
+				}
+			};
+		});
+	},
+
 	refresh: function(frm) {
 		if (frm.doc.status === "Release Requested") {
 			frm.add_custom_button(__("Release"), function() {

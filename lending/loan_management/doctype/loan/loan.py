@@ -27,6 +27,7 @@ import erpnext
 from erpnext.accounts.doctype.journal_entry.mapper import get_payment_entry
 from erpnext.accounts.general_ledger import process_gl_map
 
+from lending.collateral.mutual_fund.pledge import validate_application_pledge
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -413,6 +414,13 @@ class Loan(LoanController):
 				is_imported=1,
 			)
 
+	def before_submit(self):
+		# The assignment link_loan_security_assignment will pledge must be complete before the loan is booked
+		if self.is_secured_loan and self.loan_application:
+			lsa_details = self.get_requested_assignment()
+			if lsa_details:
+				validate_application_pledge(lsa_details[0])
+
 	def on_submit(self):
 		self.link_loan_security_assignment()
 		# Interest accrual for backdated term loans
@@ -615,17 +623,20 @@ class Loan(LoanController):
 		if self.is_secured_loan and not self.maximum_loan_amount and not self.loan_application:
 			frappe.throw(_("Maximum Loan Amount is mandatory for secured Loans without a Loan Application"))
 
+	def get_requested_assignment(self):
+		return frappe.db.get_value(
+			"Loan Security Assignment",
+			{
+				"loan_application": self.loan_application,
+				"status": "Pledge Requested",
+				"docstatus": 1,
+			},
+			["name", "maximum_loan_value"],
+		)
+
 	def link_loan_security_assignment(self):
 		if self.is_secured_loan and self.loan_application:
-			lsa_details = frappe.db.get_value(
-				"Loan Security Assignment",
-				{
-					"loan_application": self.loan_application,
-					"status": "Pledge Requested",
-					"docstatus": 1,
-				},
-				["name", "maximum_loan_value"],
-			)
+			lsa_details = self.get_requested_assignment()
 
 			if lsa_details:
 				lsa, maximum_loan_value = lsa_details
@@ -1103,8 +1114,11 @@ def unpledge_security(
 
 		security_map = {}
 		pledge_doc = frappe.get_doc("Loan Security Assignment", loan_security_assignment)
+		# A mutual fund scheme can sit on more than one row, one per folio or purchase date
 		for security in pledge_doc.securities:
-			security_map.setdefault(security.loan_security, security.qty)
+			security_map[security.loan_security] = flt(security_map.get(security.loan_security)) + flt(
+				security.qty
+			)
 
 		unpledge_request = create_loan_security_release(
 			security_map,
@@ -1149,7 +1163,11 @@ def create_loan_security_release(unpledge_map, loan, company, applicant_type, ap
 
 @frappe.whitelist()
 def get_shortfall_applicants():
-	loans = frappe.get_list("Loan Security Shortfall", {"status": "Pending"}, pluck="loan")
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		OPEN_STATUSES,
+	)
+
+	loans = frappe.get_list("Loan Security Shortfall", {"status": ("in", OPEN_STATUSES)}, pluck="loan")
 	applicants = set(frappe.get_list("Loan", {"name": ("in", loans)}, pluck="name"))
 
 	return {"value": len(applicants), "fieldtype": "Int"}

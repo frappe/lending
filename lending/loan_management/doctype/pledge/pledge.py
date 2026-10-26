@@ -16,16 +16,21 @@ class Pledge(Document):
 		from frappe.types import DF
 
 		amount: DF.Currency
+		folio_number: DF.Data | None
 		haircut: DF.Percent
+		holding_mode: DF.Data | None
+		is_mutual_fund: DF.Check
 		loan_security: DF.Link
 		loan_security_code: DF.Data | None
 		loan_security_name: DF.Data | None
 		loan_security_price: DF.Currency
 		loan_security_type: DF.Link | None
+		mutual_fund_holding: DF.Link | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
 		post_haircut_amount: DF.Currency
+		purchase_date: DF.Date | None
 		qty: DF.Float
 	# end: auto-generated types
 
