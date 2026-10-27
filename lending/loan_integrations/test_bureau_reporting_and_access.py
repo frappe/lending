@@ -14,6 +14,7 @@ from lending.loan_integrations.test_bureau import (
 	use_adapter,
 )
 from lending.loan_origination.decisioning import build_variable_context
+from lending.loan_origination.doctype.loan_lead.loan_lead import PORTAL_LEAD_SOURCE
 from lending.loan_origination.test_decisioning import make_application, make_lead
 from lending.tests.utils import LendingTestSuite
 
@@ -58,6 +59,13 @@ class TestOnePullPerDocument(LendingTestSuite):
 		self.assertEqual(request.reference_doctype, "Loan Application")
 		self.assertEqual(request.reference_docname, application.name)
 
+	def test_a_pull_for_an_application_names_the_lead_it_came_from(self):
+		application = make_application(loan_lead=self.lead.name)
+		result = self.pull(application)
+
+		report = result["output"]["credit_bureau_report"]
+		self.assertEqual(frappe.db.get_value("Credit Bureau Report", report, "loan_lead"), self.lead.name)
+
 	def test_one_application_is_not_enquired_about_twice(self):
 		application = make_application(loan_lead=self.lead.name)
 
@@ -84,6 +92,18 @@ class TestTheLeadShowsWhatWasPulled(LendingTestSuite):
 
 		self.assertEqual(self.lead.bureau_score, 750)
 		self.assertEqual(self.lead.bureau_report, result["output"]["credit_bureau_report"])
+
+	def test_a_portal_lead_shows_the_report_pulled_for_it(self):
+		lead = make_consenting_lead(lead_source=PORTAL_LEAD_SOURCE)
+
+		with patch.object(StubBureauAdapter, "pull", return_value=RESPONSE):
+			result = bureau.pull_credit_bureau_report(lead)
+
+		lead.save(ignore_permissions=True)
+		lead.reload()
+
+		self.assertEqual(lead.bureau_score, 750)
+		self.assertEqual(lead.bureau_report, result["output"]["credit_bureau_report"])
 
 	def test_a_lead_with_no_report_shows_no_score(self):
 		self.lead.save(ignore_permissions=True)
