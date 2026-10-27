@@ -235,7 +235,7 @@ class InstallmentSkip:
 @frappe.whitelist()
 def get_upcoming_installments(loan: str, loan_disbursement: str | None = None):
 	"""Installments of the active schedule that can still be skipped"""
-	frappe.has_permission("Loan", "read", loan, throw=True)
+	validate_loan_access(loan)
 
 	skip = InstallmentSkip(frappe._dict(loan=loan, loan_disbursement=loan_disbursement))
 	skip_date = get_skip_date(loan)
@@ -251,7 +251,6 @@ def get_upcoming_installments(loan: str, loan_disbursement: str | None = None):
 	]
 
 
-@frappe.whitelist()
 def skip_installments(
 	loan: str,
 	skipped_dates: str,
@@ -259,15 +258,13 @@ def skip_installments(
 	reason: str | None = None,
 	approve: int = 1,
 	restructure_date: str | None = None,
+	request: str | None = None,
 ):
-	"""One step entry point. Creates the Loan Restructure and approves it when asked to.
+	"""Creates the Loan Restructure for an approved Loan Installment Skip Request and approves it.
 
-	Payroll needs nothing else: the skipped installment never gets a demand, so the
-	Salary Slip does not pick it up.
+	Not whitelisted: who may skip is decided by the request. Payroll needs nothing else, as the
+	skipped installment never gets a demand and the Salary Slip does not pick it up.
 	"""
-	frappe.has_permission("Loan Restructure", "create", throw=True)
-	frappe.has_permission("Loan", "read", loan, throw=True)
-
 	from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 		process_daily_loan_demands,
 	)
@@ -276,7 +273,7 @@ def skip_installments(
 	frappe.db.savepoint("installment_skip")
 	try:
 		# Installments due before the skip date must have their demand generated before the schedule is rebuilt.
-		# A Loan Manager cannot submit Process Loan Demand, so permission is checked above instead.
+		# A Loan Manager cannot submit Process Loan Demand, so it runs without a permission check.
 		process_daily_loan_demands(
 			loan=loan,
 			posting_date=add_days(getdate(restructure_date or nowdate()), -1),
@@ -291,6 +288,7 @@ def skip_installments(
 				"restructure_type": "Installment Skip",
 				"new_repayment_method": new_repayment_method,
 				"reason_for_restructure": reason,
+				"loan_installment_skip_request": request,
 			}
 		)
 		for date in frappe.parse_json(skipped_dates):
@@ -299,7 +297,6 @@ def skip_installments(
 		restructure.submit()
 
 		if cint(approve):
-			frappe.has_permission("Loan Restructure", "write", restructure.name, throw=True)
 			restructure.status = "Approved"
 			restructure.save()
 	except Exception:
@@ -307,6 +304,45 @@ def skip_installments(
 		raise
 
 	return restructure.name
+
+
+def has_loan_access(loan):
+	"""A Loan user, or the employee the loan is given to, can see the installments of the loan"""
+	if frappe.has_permission("Loan", "read", loan):
+		return True
+
+	applicant_type, applicant = frappe.db.get_value("Loan", loan, ["applicant_type", "applicant"])
+	return applicant_type == "Employee" and frappe.db.get_value("Employee", applicant, "user_id") == frappe.session.user
+
+
+def validate_loan_access(loan):
+	if not has_loan_access(loan):
+		frappe.throw(_("You do not have access to Loan {0}").format(loan), frappe.PermissionError)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def search_skippable_loans(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | None = None
+):
+	"""Loans an installment can be skipped for. An employee sees only their own loans."""
+	Loan = frappe.qb.DocType("Loan")
+
+	query = (
+		frappe.qb.from_(Loan)
+		.select(Loan.name, Loan.applicant_name)
+		.where((Loan.docstatus == 1) & (Loan.status == "Disbursed") & (Loan.is_term_loan == 1))
+		.where(Loan.name.like(f"%{txt}%") | Loan.applicant_name.like(f"%{txt}%"))
+		.limit(page_len)
+		.offset(start)
+	)
+
+	if not frappe.has_permission("Loan", "read"):
+		Employee = frappe.qb.DocType("Employee")
+		own_employees = frappe.qb.from_(Employee).select(Employee.name).where(Employee.user_id == frappe.session.user)
+		query = query.where((Loan.applicant_type == "Employee") & Loan.applicant.isin(own_employees))
+
+	return query.run()
 
 
 def get_skip_date(loan, restructure_date=None):

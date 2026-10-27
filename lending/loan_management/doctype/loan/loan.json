@@ -45,6 +45,7 @@
   "column_break_qsfx",
   "repayment_method",
   "repayment_periods",
+  "installment_skip_approver",
   "moratorium_details_section",
   "moratorium_type",
   "column_break_nzzj",
@@ -760,12 +761,20 @@
    "fieldname": "auto_create_disbursement_on_loan_booking",
    "fieldtype": "Check",
    "label": "Auto create disbursement on loan booking"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Approves requests to skip an installment of this loan. If empty, any Loan Manager can approve.",
+   "fieldname": "installment_skip_approver",
+   "fieldtype": "Link",
+   "label": "Installment Skip Approver",
+   "options": "User"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-23 15:52:02.225176",
+ "modified": "2026-10-27 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan",
