@@ -560,11 +560,6 @@ class TestLoanRestructure(LendingTestSuite):
 
 
 class TestInstallmentSkip(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
 	def test_installment_skip_rebuilds_repayment_schedule(self):
 		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
