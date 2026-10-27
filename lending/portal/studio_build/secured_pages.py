@@ -926,10 +926,11 @@ def bank_panel():
 					holder,
 					field("IFSC", "ifsc", kind="text", placeholder="HDFC0001234"),
 					field("Account number", "accountNumber", kind="password", placeholder="Savings or current account"),
+					# Masked like the first, or it shows the number the first one hides.
 					field(
 						"Re-enter account number",
 						"confirmAccount",
-						kind="text",
+						kind="password",
 						placeholder="Type it again",
 						error="{{ %s ? 'The account numbers do not match.' : '' }}" % mismatch,
 					),

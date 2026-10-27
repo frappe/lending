@@ -4653,7 +4653,7 @@
                 {
                  "componentName": "FormControl",
                  "componentProps": {
-                  "type": "text",
+                  "type": "password",
                   "label": "Re-enter account number",
                   "size": "md",
                   "variant": "subtle",
