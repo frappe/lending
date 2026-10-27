@@ -51,13 +51,13 @@ ROUTE = "/borrower-portal/secured-loan"
 STEPS = (
 	("registration", "Registration"),
 	("pan", "Verify PAN"),
-	("eligibility", "Eligibility Check"),
-	("vault", "View Vault"),
+	("eligibility", "Check eligibility"),
+	("vault", "Choose funds"),
 	("kyc", "KYC"),
-	("pledge", "Pledge Securities"),
-	("bank", "Bank Details"),
+	("pledge", "Pledge funds"),
+	("bank", "Bank details"),
 	("esign", "E-sign"),
-	("loan", "Loan Open"),
+	("loan", "Your loan"),
 )
 
 MUTUAL_FUNDS = "Mutual Funds"
@@ -1145,7 +1145,7 @@ def loan_payload(application: str | None) -> dict:
 	}
 
 
-# After Loan Open: the money
+# After the loan step: the money
 
 
 @frappe.whitelist(methods=["POST"])
