@@ -571,20 +571,35 @@ def holding_choice():
 		gap="2px",
 		styles={"flex": "1 1 auto", "minWidth": "0px"},
 	)
+	on_phone = {"textAlign": "left"}
 	right = column(
 		[
-			text("{{ dataItem.eligible_label }}", size="text-base", styles={"fontWeight": "600", "textAlign": "right"}),
-			muted("of {{ dataItem.value_label }} · {{ dataItem.haircut_label }}", styles={"textAlign": "right"}),
+			text(
+				"{{ dataItem.eligible_label }}",
+				size="text-base",
+				styles={"fontWeight": "600", "textAlign": "right"},
+				mobile=on_phone,
+			),
+			muted("of {{ dataItem.value_label }} · {{ dataItem.haircut_label }}", styles={"textAlign": "right"}, mobile=on_phone),
 		],
 		gap="2px",
 		# A fixed lane, so the amounts line up from fund to fund.
 		styles={"alignItems": "flex-end", "width": "220px", "flexShrink": "0"},
+		mobile={"alignItems": "flex-start", "width": "auto"},
+	)
+	# Side by side the two squeeze each other on a phone, so the amount goes under the details there.
+	details = row(
+		[left, right],
+		gap="12px",
+		align="start",
+		styles={"flex": "1 1 auto", "minWidth": "0px"},
+		mobile={"flexDirection": "column", "gap": "6px"},
 	)
 
 	chosen = "chosen.includes(dataItem.holding)"
 
 	return column(
-		[choice([left, right], "toggle(dataItem)", chosen, fills=True), units_box(chosen)],
+		[choice([details], "toggle(dataItem)", chosen, fills=True), units_box(chosen)],
 		gap="0px",
 	)
 
@@ -797,7 +812,8 @@ def security_list(items, with_lien=False, visible=None):
 	)
 	line = row(
 		[
-			icon_tile("chart-no-axes", tile=36, glyph=18),
+			# A phone has no room for the tile beside a long fund name and its amount.
+			icon_tile("chart-no-axes", tile=36, glyph=18, mobile={"display": "none"}),
 			column(
 				[
 					text("{{ dataItem.scheme }}", size="text-base", styles={"fontWeight": "500", "color": "var(--ink-gray-9)"}),
@@ -819,7 +835,7 @@ def security_list(items, with_lien=False, visible=None):
 			"borderBottom": "1px solid var(--outline-gray-1)",
 			"backgroundColor": "var(--surface-base)",
 		},
-		mobile={"flexWrap": "wrap"},
+		align="start",
 	)
 
 	return repeater(
