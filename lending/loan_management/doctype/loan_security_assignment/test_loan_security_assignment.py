@@ -7,10 +7,14 @@ from frappe.utils import add_days, nowdate
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_pledged_security_qty,
+)
 from lending.tests.test_utils import (
 	create_loan,
 	create_loan_security,
 	create_loan_security_price,
+	create_loan_security_release,
 	create_loan_security_type,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
@@ -68,3 +72,97 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		)
 
 		self.assertTrue(disbursement)
+
+	def make_submitted_loan(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 5",
+			1500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+			applicant_type="Customer",
+			limit_applicable_start="2024-01-05",
+			limit_applicable_end="2024-12-05",
+		)
+		loan.submit()
+		return loan
+
+	def test_cancel_pledge_after_release_is_refused(self):
+		loan = self.make_submitted_loan()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 100}]
+		first = create_loan_security_assignment(loan=loan.name, securities=pledge)
+		create_loan_security_assignment(loan=loan.name, securities=pledge)
+
+		release = create_loan_security_release("_Test Customer 1", "Customer", pledge, loan=loan.name)
+
+		first_doc = frappe.get_doc("Loan Security Assignment", first)
+		self.assertRaises(frappe.ValidationError, first_doc.cancel)
+		self.assertEqual(get_pledged_security_qty(loan=loan.name)["Test Security 1"], 100)
+
+		later = create_loan_security_assignment(loan=loan.name, securities=pledge)
+		frappe.get_doc("Loan Security Assignment", later).cancel()
+		self.assertEqual(get_pledged_security_qty(loan=loan.name)["Test Security 1"], 100)
+
+		release.cancel()
+		first_doc.reload()
+		first_doc.cancel()
+		self.assertEqual(get_pledged_security_qty(loan=loan.name)["Test Security 1"], 100)
+
+	def test_approve_release_after_pledge_cancel_is_refused(self):
+		loan = self.make_submitted_loan()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 100}]
+		first = create_loan_security_assignment(loan=loan.name, securities=pledge)
+
+		release = frappe.new_doc("Loan Security Release")
+		release.update(
+			{"applicant": "_Test Customer 1", "applicant_type": "Customer", "loan": loan.name}
+		)
+		release.company = "_Test Company"
+		release.append("securities", pledge[0])
+		release.insert()
+		release.submit()
+
+		frappe.get_doc("Loan Security Assignment", first).cancel()
+
+		release.status = "Approved"
+		self.assertRaises(frappe.ValidationError, release.save)
+
+	def test_amended_release_blocks_cancel_of_pledge_made_before_it(self):
+		loan = self.make_submitted_loan()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 100}]
+		create_loan_security_assignment(loan=loan.name, securities=pledge)
+		release = create_loan_security_release("_Test Customer 1", "Customer", pledge, loan=loan.name)
+		release.cancel()
+
+		middle = create_loan_security_assignment(loan=loan.name, securities=pledge)
+
+		amended = frappe.copy_doc(release)
+		amended.amended_from = release.name
+		amended.docstatus = 0
+		amended.status = "Requested"
+		amended.insert()
+		amended.submit()
+		amended.status = "Approved"
+		amended.save()
+
+		self.assertGreater(amended.unpledge_time, release.unpledge_time)
+		self.assertRaises(frappe.ValidationError, frappe.get_doc("Loan Security Assignment", middle).cancel)
+
+	def test_release_without_time_or_loan_blocks_cancel(self):
+		loan = self.make_submitted_loan()
+
+		pledge = [{"loan_security": "Test Security 1", "qty": 100}]
+		first = create_loan_security_assignment(loan=loan.name, securities=pledge)
+
+		release = create_loan_security_release("_Test Customer 1", "Customer", pledge)
+		self.assertRaises(frappe.ValidationError, frappe.get_doc("Loan Security Assignment", first).cancel)
+
+		release.db_set("unpledge_time", None)
+		later = create_loan_security_assignment(loan=loan.name, securities=pledge)
+		self.assertRaises(frappe.ValidationError, frappe.get_doc("Loan Security Assignment", later).cancel)
