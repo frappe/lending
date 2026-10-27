@@ -255,8 +255,26 @@ def stepper():
 		"flexShrink": "0",
 	}
 	not_last = "dataItem.key !== 'loan'"
+	viewed = "dataItem.key === shown"
+	halo = 10
 	step = column(
 		[
+			# The step whose panel is open; a past step otherwise looks like every other done step.
+			container(
+				styles={
+					"position": "absolute",
+					"top": f"-{halo // 2}px",
+					"left": f"calc(50% - {(CIRCLE + halo) // 2}px)",
+					"width": f"{CIRCLE + halo}px",
+					"height": f"{CIRCLE + halo}px",
+					"borderRadius": "9999px",
+					"border": f"2px solid {ACCENT}",
+					"backgroundColor": "var(--surface-base)",
+					"zIndex": "1",
+					"pointerEvents": "none",
+				},
+				visible="{{ %s && dataItem.state === 'done' }}" % viewed,
+			),
 			container(
 				styles=dict(connector, backgroundColor=ACCENT),
 				visible="{{ %s && dataItem.state === 'done' }}" % not_last,
@@ -282,14 +300,20 @@ def stepper():
 			text(
 				"{{ dataItem.label }}",
 				size="text-xs",
-				styles={"textAlign": "center", "color": "var(--ink-gray-8)", "fontWeight": "500"},
-				visible="{{ dataItem.state !== 'todo' }}",
+				styles={"textAlign": "center", "color": "var(--ink-gray-9)", "fontWeight": "600"},
+				visible="{{ %s }}" % viewed,
+			),
+			text(
+				"{{ dataItem.label }}",
+				size="text-xs",
+				styles={"textAlign": "center", "color": "var(--ink-gray-7)", "fontWeight": "500"},
+				visible="{{ !(%s) && dataItem.state !== 'todo' }}" % viewed,
 			),
 			text(
 				"{{ dataItem.label }}",
 				size="text-xs",
 				styles={"textAlign": "center", "color": "var(--ink-gray-5)"},
-				visible="{{ dataItem.state === 'todo' }}",
+				visible="{{ !(%s) && dataItem.state === 'todo' }}" % viewed,
 			),
 		],
 		gap="8px",
@@ -306,7 +330,15 @@ def stepper():
 		fallback(read("steps"), "[]"),
 		step,
 		data_key="key",
-		styles={"display": "flex", "flexDirection": "row", "width": "100%", "overflowX": "auto", "paddingBottom": "4px"},
+		# The top padding keeps the viewed step's ring inside the scroll box, which clips both axes.
+		styles={
+			"display": "flex",
+			"flexDirection": "row",
+			"width": "100%",
+			"overflowX": "auto",
+			"paddingTop": f"{halo // 2}px",
+			"paddingBottom": "4px",
+		},
 	)
 
 	return container([steps], styles=dict(PANEL, padding="20px 12px 16px"))

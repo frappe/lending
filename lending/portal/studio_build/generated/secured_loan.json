@@ -516,6 +516,7 @@
             "flexDirection": "row",
             "width": "100%",
             "overflowX": "auto",
+            "paddingTop": "5px",
             "paddingBottom": "4px"
            },
            "mobileStyles": {},
@@ -552,6 +553,30 @@
                "componentEvents": {},
                "baseStyles": {
                 "position": "absolute",
+                "top": "-5px",
+                "left": "calc(50% - 19px)",
+                "width": "38px",
+                "height": "38px",
+                "borderRadius": "9999px",
+                "border": "2px solid var(--portal-primary, var(--surface-gray-9))",
+                "backgroundColor": "var(--surface-base)",
+                "zIndex": "1",
+                "pointerEvents": "none"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "visibilityCondition": "{{ dataItem.key === shown && dataItem.state === 'done' }}",
+               "originalElement": "div",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container1"
+              },
+              {
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "position": "absolute",
                 "top": "13.0px",
                 "left": "50%",
                 "width": "100%",
@@ -563,7 +588,7 @@
                "children": [],
                "visibilityCondition": "{{ dataItem.key !== 'loan' && dataItem.state === 'done' }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container1"
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container2"
               },
               {
                "componentName": "container",
@@ -583,7 +608,7 @@
                "children": [],
                "visibilityCondition": "{{ dataItem.key !== 'loan' && dataItem.state !== 'done' }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container2"
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3"
               },
               {
                "componentName": "container",
@@ -623,12 +648,12 @@
                  "mobileStyles": {},
                  "tabletStyles": {},
                  "children": [],
-                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3-html1"
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4-html1"
                 }
                ],
                "visibilityCondition": "{{ dataItem.state === 'done' }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3"
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4"
               },
               {
                "componentName": "container",
@@ -668,12 +693,12 @@
                  "tabletStyles": {},
                  "children": [],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4-container1"
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5-container1"
                 }
                ],
                "visibilityCondition": "{{ dataItem.state === 'now' }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4"
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5"
               },
               {
                "componentName": "container",
@@ -698,7 +723,7 @@
                "children": [],
                "visibilityCondition": "{{ dataItem.state === 'todo' }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5"
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container6"
               },
               {
                "componentName": "TextBlock",
@@ -711,14 +736,34 @@
                "componentEvents": {},
                "baseStyles": {
                 "textAlign": "center",
-                "color": "var(--ink-gray-8)",
+                "color": "var(--ink-gray-9)",
+                "fontWeight": "600"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "visibilityCondition": "{{ dataItem.key === shown }}",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock1"
+              },
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "{{ dataItem.label }}",
+                "tag": "p",
+                "fontSize": "text-xs"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "textAlign": "center",
+                "color": "var(--ink-gray-7)",
                 "fontWeight": "500"
                },
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [],
-               "visibilityCondition": "{{ dataItem.state !== 'todo' }}",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock1"
+               "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state !== 'todo' }}",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock2"
               },
               {
                "componentName": "TextBlock",
@@ -736,8 +781,8 @@
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [],
-               "visibilityCondition": "{{ dataItem.state === 'todo' }}",
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock2"
+               "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state === 'todo' }}",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock3"
               }
              ],
              "originalElement": "div",

@@ -400,6 +400,7 @@
             "flexDirection": "row",
             "overflowX": "auto",
             "paddingBottom": "4px",
+            "paddingTop": "5px",
             "width": "100%"
            },
            "children": [
@@ -417,6 +418,26 @@
              "children": [
               {
                "baseStyles": {
+                "backgroundColor": "var(--surface-base)",
+                "border": "2px solid var(--portal-primary, var(--surface-gray-9))",
+                "borderRadius": "9999px",
+                "height": "38px",
+                "left": "calc(50% - 19px)",
+                "pointerEvents": "none",
+                "position": "absolute",
+                "top": "-5px",
+                "width": "38px",
+                "zIndex": "1"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container1",
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "originalElement": "div",
+               "visibilityCondition": "{{ dataItem.key === shown && dataItem.state === 'done' }}"
+              },
+              {
+               "baseStyles": {
                 "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
                 "height": "2px",
                 "left": "50%",
@@ -424,7 +445,7 @@
                 "top": "13.0px",
                 "width": "100%"
                },
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container1",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container2",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -440,7 +461,7 @@
                 "top": "13.0px",
                 "width": "100%"
                },
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container2",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -470,7 +491,7 @@
                   "display": "flex",
                   "flex": "0 0 auto"
                  },
-                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3-html1",
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4-html1",
                  "componentName": "HTML",
                  "componentProps": {
                   "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
@@ -478,7 +499,7 @@
                  "componentSlots": {}
                 }
                ],
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container3",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -509,14 +530,14 @@
                   "height": "10px",
                   "width": "10px"
                  },
-                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4-container1",
+                 "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5-container1",
                  "componentName": "container",
                  "componentProps": {},
                  "componentSlots": {},
                  "originalElement": "div"
                 }
                ],
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container4",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -537,7 +558,7 @@
                 "width": "28px",
                 "zIndex": "1"
                },
-               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container5",
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-container6",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -546,8 +567,8 @@
               },
               {
                "baseStyles": {
-                "color": "var(--ink-gray-8)",
-                "fontWeight": "500",
+                "color": "var(--ink-gray-9)",
+                "fontWeight": "600",
                 "textAlign": "center"
                },
                "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock1",
@@ -558,11 +579,12 @@
                 "text": "{{ dataItem.label }}"
                },
                "componentSlots": {},
-               "visibilityCondition": "{{ dataItem.state !== 'todo' }}"
+               "visibilityCondition": "{{ dataItem.key === shown }}"
               },
               {
                "baseStyles": {
-                "color": "var(--ink-gray-5)",
+                "color": "var(--ink-gray-7)",
+                "fontWeight": "500",
                 "textAlign": "center"
                },
                "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock2",
@@ -573,7 +595,22 @@
                 "text": "{{ dataItem.label }}"
                },
                "componentSlots": {},
-               "visibilityCondition": "{{ dataItem.state === 'todo' }}"
+               "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state !== 'todo' }}"
+              },
+              {
+               "baseStyles": {
+                "color": "var(--ink-gray-5)",
+                "textAlign": "center"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1-textblock3",
+               "componentName": "TextBlock",
+               "componentProps": {
+                "fontSize": "text-xs",
+                "tag": "p",
+                "text": "{{ dataItem.label }}"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state === 'todo' }}"
               }
              ],
              "componentEvents": {
@@ -4757,7 +4794,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:21:56.385121",
+ "modified": "2026-10-27 12:26:24.459631",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",
