@@ -18,6 +18,15 @@
   "column_break_8",
   "security_value",
   "shortfall_percentage",
+  "margin_call_section",
+  "notified_on",
+  "cure_by",
+  "reminded_on",
+  "column_break_margin_call",
+  "cure_method",
+  "missing_price",
+  "email_missing",
+  "applicant_email",
   "section_break_8",
   "process_loan_security_shortfall"
  ],
@@ -70,7 +79,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nPending\nCompleted",
+   "options": "\nPending\nNotified\nEscalated\nSale Triggered\nCompleted",
    "read_only": 1
   },
   {
@@ -93,10 +102,73 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Loan amount as a percentage of the security value",
    "fieldname": "shortfall_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Shortfall Percentage",
+   "label": "Current LTV",
+   "read_only": 1
+  },
+  {
+   "fieldname": "margin_call_section",
+   "fieldtype": "Section Break",
+   "label": "Margin Call"
+  },
+  {
+   "description": "When the margin call notice was sent. The cure period counts from here",
+   "fieldname": "notified_on",
+   "fieldtype": "Datetime",
+   "label": "Notified On",
+   "read_only": 1
+  },
+  {
+   "description": "Margin Cure Days from Lending Settings, counted in working days of the company's holiday list",
+   "fieldname": "cure_by",
+   "fieldtype": "Date",
+   "label": "Cure By",
+   "read_only": 1
+  },
+  {
+   "description": "When the Margin Call Reminder was sent, two days before Cure By",
+   "fieldname": "reminded_on",
+   "fieldtype": "Datetime",
+   "label": "Reminded On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_margin_call",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cure_method",
+   "fieldtype": "Select",
+   "label": "Cure Method",
+   "options": "\nRepayment\nAdditional Pledge\nPrice Recovery\nSale",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Some pledged securities have no current price, so they count at 0. The margin call waits, and no early sale starts, until their prices are loaded",
+   "fieldname": "missing_price",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Prices Missing",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "The borrower has no email address, so no margin call notice was sent and the cure period has not started. Add an email to the borrower and the next daily run sends the notice",
+   "fieldname": "email_missing",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Email Missing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "applicant_email",
+   "fieldtype": "Data",
+   "label": "Applicant Email",
+   "options": "Email",
    "read_only": 1
   },
   {
@@ -119,7 +191,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-19 11:46:49.678879",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Shortfall",

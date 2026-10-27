@@ -3,7 +3,7 @@ from pypika import CustomFunction
 import frappe
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Sum
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
 
 def get_payment_entries_for_bank_clearance(
@@ -396,6 +396,26 @@ def update_repayment_schedule_demand_generated(
 		query = query.where(RS.payment_date < to_date)
 
 	query.run()
+
+def add_working_days(start_date, days, holiday_list=None):
+	holidays = set()
+	if holiday_list:
+		holidays = {
+			getdate(holiday)
+			for holiday in frappe.get_all(
+				"Holiday",
+				filters={"parent": holiday_list, "holiday_date": (">", start_date)},
+				pluck="holiday_date",
+			)
+		}
+
+	next_day = getdate(start_date)
+	for _day in range(cint(days)):
+		next_day = add_days(next_day, 1)
+		while next_day in holidays:
+			next_day = add_days(next_day, 1)
+	return next_day
+
 
 def create_charge_master(charge_type):
 	if not frappe.db.exists("Item", charge_type):
