@@ -746,6 +746,63 @@ class TestLoan(LendingTestSuite):
 		)
 		self.assertFalse(live_demands)
 
+	def test_advance_payment_within_dues_does_not_reschedule(self):
+		for payment_date, paid_dates in (("2024-07-05", ["2024-05-05", "2024-06-05"]), ("2024-07-10", ["2024-05-05"])):
+			loan = create_loan(
+				self.applicant1,
+				"Term Loan Product 4",
+				100000,
+				"Repay Over Number of Periods",
+				6,
+				repayment_start_date="2024-05-05",
+				posting_date="2024-04-05",
+			)
+			loan.submit()
+
+			make_loan_disbursement_entry(
+				loan.name, loan.loan_amount, disbursement_date="2024-04-05", repayment_start_date="2024-05-05"
+			)
+			schedule = frappe.db.get_value(
+				"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
+			)
+
+			for demand_date in ("2024-05-05", "2024-06-05", "2024-07-05"):
+				process_daily_loan_demands(posting_date=demand_date, loan=loan.name)
+
+			for paid_date in paid_dates:
+				amounts = calculate_amounts(against_loan=loan.name, posting_date=paid_date)
+				create_repayment_entry(loan.name, paid_date, amounts["payable_amount"]).submit()
+
+			amounts = calculate_amounts(against_loan=loan.name, posting_date=payment_date)
+			create_repayment_entry(
+				loan.name, payment_date, amounts["payable_amount"], repayment_type="Advance Payment"
+			).submit()
+
+			self.assertFalse(frappe.db.exists("Loan Restructure", {"loan": loan.name, "docstatus": 1}))
+			self.assertEqual(
+				frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan": loan.name, "status": "Active", "docstatus": 1}, "name"
+				),
+				schedule,
+			)
+			self.assertFalse(
+				frappe.db.exists("Loan Demand", {"loan": loan.name, "docstatus": 2, "demand_type": "EMI"})
+			)
+
+			process_daily_loan_demands(posting_date="2024-10-05", loan=loan.name)
+
+			loan.load_from_db()
+			demanded_principal = sum(
+				frappe.get_all(
+					"Loan Demand",
+					{"loan": loan.name, "docstatus": 1, "demand_subtype": "Principal"},
+					pluck="outstanding_amount",
+				)
+			)
+			self.assertEqual(
+				flt(demanded_principal, 2), flt(loan.disbursed_amount - loan.total_principal_paid, 2)
+			)
+
 	def test_colender_loan_with_repayment_periods(self):
 		loan_partner = "Test Loan Partner 1"
 
