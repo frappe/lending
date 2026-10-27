@@ -1800,8 +1800,9 @@
             {
              "componentName": "Alert",
              "componentProps": {
-              "title": "{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}",
-              "theme": "amber"
+              "title": "Some funds are not shown",
+              "theme": "amber",
+              "description": "{{ 'Not on our approved list: ' + notApproved.map((row) => row.scheme).join(', ') }}"
              },
              "componentSlots": {},
              "componentEvents": {},
@@ -2481,8 +2482,9 @@
             {
              "componentName": "Alert",
              "componentProps": {
-              "title": "Your application {{ securedLoan.data.application.name }} is sent, so these units are fixed.",
-              "theme": "blue"
+              "title": "Application sent",
+              "theme": "blue",
+              "description": "Your application {{ securedLoan.data.application.name }} is sent, so these units are fixed."
              },
              "componentSlots": {},
              "componentEvents": {},
@@ -5706,8 +5708,9 @@
               {
                "componentName": "Alert",
                "componentProps": {
-                "title": "{{ securedLoan.data.loan.pending_note }}",
-                "theme": "blue"
+                "title": "Withdrawal under review",
+                "theme": "blue",
+                "description": "{{ securedLoan.data.loan.pending_note }}"
                },
                "componentSlots": {},
                "componentEvents": {},

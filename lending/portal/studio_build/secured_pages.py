@@ -636,13 +636,15 @@ def vault_panel():
 		gap="6px",
 	)
 	locked = alert(
-		"Your application {{ %s.data.application.name }} is sent, so these units are fixed." % SOURCE,
+		"Application sent",
+		description="Your application {{ %s.data.application.name }} is sent, so these units are fixed." % SOURCE,
 		visible="{{ sent }}",
 	)
 
 	not_approved = alert(
-		"{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}",
+		"Some funds are not shown",
 		theme="amber",
+		description="{{ 'Not on our approved list: ' + notApproved.map((row) => row.scheme).join(', ') }}",
 		visible="{{ notApproved.length }}",
 	)
 
@@ -1006,7 +1008,11 @@ def loan_panel():
 						]
 					),
 					withdraw_box(),
-					alert(read("loan.pending_note"), theme="blue", visible=read("loan.pending_note")),
+					alert(
+						"Withdrawal under review",
+						description=read("loan.pending_note"),
+						visible=read("loan.pending_note"),
+					),
 					actions(
 						button(
 							"Go to my loan",
@@ -1066,7 +1072,11 @@ def build_consent():
 	)
 	body = column(
 		[
-			alert("Demo only: this page stands in for DigiLocker, so no real documents are read.", theme="amber"),
+			alert(
+				"Demo only",
+				theme="amber",
+				description="This page stands in for DigiLocker, so no real documents are read.",
+			),
 			heading("Share your documents", size="text-2xl"),
 			muted("{{ %s.data.customer_name }}, the lender is asking to read these documents from your account:" % CONSENT_SOURCE),
 			documents,

@@ -297,8 +297,13 @@ def button(label, script=None, variant="subtle", **kwargs):
 	return block("Button", props=props, events=click(script) if script else None, **kwargs)
 
 
-def alert(message, theme="blue", **kwargs):
-	return block("Alert", props={"title": message, "theme": theme}, **kwargs)
+def alert(message, theme="blue", description=None, **kwargs):
+	# Alert truncates its title to one line, so longer text goes in the description.
+	props = {"title": message, "theme": theme}
+	if description:
+		props["description"] = description
+
+	return block("Alert", props=props, **kwargs)
 
 
 def divider(**kwargs):

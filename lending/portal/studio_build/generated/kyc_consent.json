@@ -198,8 +198,9 @@
           {
            "componentName": "Alert",
            "componentProps": {
-            "title": "Demo only: this page stands in for DigiLocker, so no real documents are read.",
-            "theme": "amber"
+            "title": "Demo only",
+            "theme": "amber",
+            "description": "This page stands in for DigiLocker, so no real documents are read."
            },
            "componentSlots": {},
            "componentEvents": {},
