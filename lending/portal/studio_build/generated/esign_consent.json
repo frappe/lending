@@ -1,0 +1,474 @@
+{
+ "route": "/esign-consent",
+ "blocks": [
+  {
+   "componentName": "div",
+   "componentProps": {},
+   "componentSlots": {},
+   "componentEvents": {},
+   "baseStyles": {
+    "display": "flex",
+    "flexDirection": "column",
+    "width": "100%",
+    "height": "100%",
+    "color": "var(--ink-gray-8)",
+    "overflowX": "hidden",
+    "scrollbarWidth": "thin",
+    "scrollbarColor": "var(--outline-gray-3) transparent"
+   },
+   "mobileStyles": {},
+   "tabletStyles": {},
+   "children": [
+    {
+     "componentName": "container",
+     "componentProps": {},
+     "componentSlots": {},
+     "componentEvents": {},
+     "baseStyles": {
+      "display": "flex",
+      "flexDirection": "column",
+      "width": "100%",
+      "height": "100%",
+      "overflowY": "auto",
+      "backgroundColor": "var(--surface-gray-1)"
+     },
+     "mobileStyles": {},
+     "tabletStyles": {},
+     "children": [
+      {
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "componentEvents": {},
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "row",
+        "alignItems": "center",
+        "gap": "12px",
+        "height": "54px",
+        "padding": "0 44px 0 56px",
+        "flexShrink": "0",
+        "width": "100%",
+        "borderWidth": "0px 0px 1px 0px",
+        "borderStyle": "solid",
+        "borderColor": "var(--portal-primary-soft, var(--outline-gray-2))",
+        "backgroundColor": "var(--portal-primary-soft, var(--surface-base))"
+       },
+       "mobileStyles": {
+        "padding": "12px 16px",
+        "gap": "4px"
+       },
+       "tabletStyles": {},
+       "children": [
+        {
+         "componentName": "ImageView",
+         "componentProps": {
+          "image": "{{ esignConsent.data.brand_logo }}",
+          "alt": "",
+          "shape": "square",
+          "size": "lg"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "overflow": "hidden"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ esignConsent.data.brand_logo }}",
+         "componentId": "esign_consent-0-container1-container1-imageview1"
+        },
+        {
+         "componentName": "TextBlock",
+         "componentProps": {
+          "text": "{{ esignConsent.data.brand_initial }}",
+          "tag": "p",
+          "fontSize": "text-base"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "width": "26px",
+          "height": "26px",
+          "flexShrink": "0",
+          "borderRadius": "6px",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "center",
+          "fontSize": "15px",
+          "fontWeight": "700",
+          "backgroundColor": "var(--portal-primary, var(--surface-gray-9))",
+          "color": "var(--portal-primary-ink, var(--ink-base))"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "visibilityCondition": "{{ esignConsent.data.show_wordmark }}",
+         "componentId": "esign_consent-0-container1-container1-textblock1"
+        },
+        {
+         "componentName": "TextBlock",
+         "componentProps": {
+          "text": "{{ esignConsent.data.brand_name }}",
+          "tag": "span",
+          "fontSize": "text-base"
+         },
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "fontSize": "17px",
+          "fontWeight": "600",
+          "letterSpacing": "0em",
+          "whiteSpace": "nowrap",
+          "color": "var(--ink-gray-9)",
+          "marginLeft": "2px"
+         },
+         "mobileStyles": {
+          "display": "none"
+         },
+         "tabletStyles": {},
+         "children": [],
+         "componentId": "esign_consent-0-container1-container1-textblock2"
+        },
+        {
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "flex": "1 1 auto"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [],
+         "originalElement": "div",
+         "componentId": "esign_consent-0-container1-container1-container1"
+        }
+       ],
+       "originalElement": "div",
+       "classes": [
+        "portal-header"
+       ],
+       "componentId": "esign_consent-0-container1-container1"
+      },
+      {
+       "componentName": "container",
+       "componentProps": {},
+       "componentSlots": {},
+       "componentEvents": {},
+       "baseStyles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "16px",
+        "padding": "clamp(16px, 3.6vh, 40px) 20px",
+        "width": "100%",
+        "maxWidth": "560px",
+        "margin": "0 auto",
+        "flex": "1 0 auto"
+       },
+       "mobileStyles": {
+        "padding": "24px 16px"
+       },
+       "tabletStyles": {},
+       "children": [
+        {
+         "componentName": "container",
+         "componentProps": {},
+         "componentSlots": {},
+         "componentEvents": {},
+         "baseStyles": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "16px",
+          "padding": "24px",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "var(--outline-gray-2)",
+          "borderRadius": "var(--radius-4)",
+          "backgroundColor": "var(--surface-base)"
+         },
+         "mobileStyles": {},
+         "tabletStyles": {},
+         "children": [
+          {
+           "componentName": "Alert",
+           "componentProps": {
+            "title": "Demo only",
+            "theme": "amber",
+            "description": "This page stands in for the eSign provider's, so nothing is signed. The OTP is 123456."
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {},
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "esign_consent-0-container1-container2-container1-alert1"
+          },
+          {
+           "componentName": "TextBlock",
+           "componentProps": {
+            "text": "Sign with Aadhaar",
+            "tag": "h2",
+            "fontSize": "text-2xl"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "fontWeight": "600",
+            "color": "var(--ink-gray-9)"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "esign_consent-0-container1-container2-container1-textblock1"
+          },
+          {
+           "componentName": "TextBlock",
+           "componentProps": {
+            "text": "{{ esignConsent.data.customer_name }}, enter the OTP sent to your Aadhaar-linked mobile to sign your sanction letter.",
+            "tag": "p",
+            "fontSize": "text-p-sm"
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "color": "var(--ink-gray-6)"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "esign_consent-0-container1-container2-container1-textblock2"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "row",
+            "alignItems": "center",
+            "gap": "12px"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "HTML",
+             "componentProps": {
+              "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M10 9H8\"/><path d=\"M16 13H8\"/><path d=\"M16 17H8\"/></svg>"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "display": "flex",
+              "alignItems": "center",
+              "flex": "0 0 auto",
+              "width": "40px",
+              "height": "40px",
+              "justifyContent": "center",
+              "borderRadius": "var(--radius-5)",
+              "backgroundColor": "var(--surface-gray-2)",
+              "color": "var(--ink-gray-8)"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "esign_consent-0-container1-container2-container1-container1-html1"
+            },
+            {
+             "componentName": "TextBlock",
+             "componentProps": {
+              "text": "Sanction letter",
+              "tag": "p",
+              "fontSize": "text-base"
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "fontWeight": "600"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "esign_consent-0-container1-container2-container1-container1-textblock1"
+            },
+            {
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "flex": "1 1 auto"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "originalElement": "div",
+             "componentId": "esign_consent-0-container1-container2-container1-container1-container1"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Read the letter",
+              "variant": "subtle",
+              "size": "md"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "window.open(esignConsent.data?.letter, '_blank')"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "esign_consent-0-container1-container2-container1-container1-button1"
+            }
+           ],
+           "originalElement": "div",
+           "componentId": "esign_consent-0-container1-container2-container1-container1"
+          },
+          {
+           "componentName": "FormControl",
+           "componentProps": {
+            "type": "password",
+            "label": "Aadhaar OTP",
+            "size": "md",
+            "variant": "subtle",
+            "placeholder": "6 digits",
+            "modelValue": {
+             "$type": "variable",
+             "name": "otp"
+            }
+           },
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {},
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [],
+           "componentId": "esign_consent-0-container1-container2-container1-formcontrol1"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "flex",
+            "flexDirection": "row",
+            "alignItems": "center",
+            "gap": "8px"
+           },
+           "mobileStyles": {},
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "flex": "1 1 auto"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "originalElement": "div",
+             "componentId": "esign_consent-0-container1-container2-container1-container2-container1"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Cancel",
+              "variant": "subtle",
+              "size": "md"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "decline()"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "esign_consent-0-container1-container2-container1-container2-button1"
+            },
+            {
+             "componentName": "Button",
+             "componentProps": {
+              "label": "Sign",
+              "variant": "solid",
+              "size": "md",
+              "loading": "{{ busy }}"
+             },
+             "componentSlots": {},
+             "componentEvents": {
+              "click": {
+               "event": "click",
+               "action": "Run Script",
+               "script": "sign()"
+              }
+             },
+             "baseStyles": {},
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [],
+             "componentId": "esign_consent-0-container1-container2-container1-container2-button2"
+            }
+           ],
+           "originalElement": "div",
+           "componentId": "esign_consent-0-container1-container2-container1-container2"
+          }
+         ],
+         "originalElement": "div",
+         "componentId": "esign_consent-0-container1-container2-container1"
+        }
+       ],
+       "originalElement": "div",
+       "componentId": "esign_consent-0-container1-container2"
+      }
+     ],
+     "originalElement": "div",
+     "componentId": "esign_consent-0-container1"
+    },
+    {
+     "componentName": "HTML",
+     "componentProps": {
+      "html": "{{ esignConsent.data.brand_style || '' }}"
+     },
+     "componentSlots": {},
+     "componentEvents": {},
+     "baseStyles": {
+      "display": "none"
+     },
+     "mobileStyles": {},
+     "tabletStyles": {},
+     "children": [],
+     "componentId": "esign_consent-0-html1"
+    }
+   ],
+   "classes": [
+    "borrower-portal"
+   ],
+   "originalElement": "body",
+   "blockName": "body",
+   "componentId": "esign_consent-0"
+  }
+ ],
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst otp = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\n\tconst busy = ref(false)\n\tconst sign = () => {\n\t\tbusy.value = true\n\t\tcall(\"lending.portal.secured.give_esign_consent\", { otp: otp.value })\n\t\t\t.then((result: any) => {\n\t\t\t\tif (result?.ok === false) { toast.error(result.message); return }\n\t\t\t\trouter.push(result.redirect)\n\t\t\t})\n\t\t\t.catch((error: any) => toast.error(String(error?.messages?.[0] || error)))\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\tconst decline = () => router.push(\"/secured-loan\")\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, otp, busy, sign, decline }\n}\n"
+}

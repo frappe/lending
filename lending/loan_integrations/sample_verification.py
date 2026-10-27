@@ -26,6 +26,9 @@ IFSC_FORMAT = re.compile(r"^[A-Z]{4}0[A-Z0-9]{6}$")
 # The page the sample KYC sends the borrower to, standing in for DigiLocker.
 CONSENT_ROUTE = "/borrower-portal/kyc-consent"
 CONSENT_KEY = "portal-apply-sample-kyc"
+# The page the sample eSign sends the borrower to, standing in for the eSign provider's.
+SIGN_ROUTE = "/borrower-portal/esign-consent"
+SIGN_KEY = "portal-apply-sample-esign"
 BANKS = {
 	"HDFC": "HDFC Bank",
 	"ICIC": "ICICI Bank",
@@ -110,9 +113,26 @@ class SampleBankVerificationAdapter(BankVerificationAdapter):
 class SampleESignAdapter(ESignAdapter):
 	key = "Sample eSign"
 
-	def send_otp(self, context):
-		return {"request_id": reference("ESIGN")}
+	def start(self, context):
+		request_id = reference("ESIGN")
+		frappe.cache.set_value(f"{SIGN_KEY}:{request_id}", {"signed": False}, expires_in_sec=3600)
 
-	def sign(self, context):
-		check_otp(context)
-		return {"reference": context.get("request_id")}
+		return {"request_id": request_id, "redirect_url": f"{SIGN_ROUTE}?request={request_id}"}
+
+	def fetch(self, context):
+		request = frappe.cache.get_value(f"{SIGN_KEY}:{context.get('request_id')}")
+		if not request:
+			return {"status": "Rejected"}
+		if not request.get("signed"):
+			return {"status": "Pending"}
+
+		return {"status": "Signed", "reference": context.get("request_id")}
+
+
+def sign(request_id: str, otp: str):
+	key = f"{SIGN_KEY}:{request_id}"
+	if not frappe.cache.get_value(key):
+		raise IntegrationError("This signing request has expired. Please start again")
+	check_otp({"otp": otp})
+
+	frappe.cache.set_value(key, {"signed": True}, expires_in_sec=3600)

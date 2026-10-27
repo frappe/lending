@@ -55,40 +55,50 @@ class BankVerificationAdapter(BaseAdapter):
 
 
 class ESignAdapter(BaseAdapter):
-	"""Aadhaar eSign: the borrower signs a document with an OTP sent to their Aadhaar mobile."""
+	"""Aadhaar eSign on the provider's own page: the eSign rules have the borrower enter the
+	Aadhaar OTP there, never on ours."""
 
 	provider_type = ESIGN
 
-	def send_otp(self, context: dict) -> dict:
-		"""`file_url` of the PDF and the `signer`'s name and mobile. Returns `request_id`."""
+	def start(self, context: dict) -> dict:
+		"""`file_url` of the PDF, `reference`, the `signer`'s name, mobile and email, and `return_url`.
+		Returns `request_id` and the `redirect_url` to send the borrower to."""
 		raise NotImplementedError
 
-	def sign(self, context: dict) -> dict:
-		"""`request_id` and `otp`. Returns `reference`."""
+	def fetch(self, context: dict) -> dict:
+		"""`request_id`. Returns `status` (Pending, Signed or Rejected) and `reference`."""
 		raise NotImplementedError
+
+	def download(self, context: dict) -> bytes | None:
+		"""`request_id`. Returns the signed PDF, or None to keep the letter as it was."""
+		return None
 
 
 def adapter_key(provider_type: str) -> str | None:
 	return frappe.db.get_single_value(SETTINGS, ADAPTER_FIELDS[provider_type])
 
 
-def call(provider_type: str, operation: str, context: dict, doc) -> dict:
+def adapter(provider_type: str):
 	key = adapter_key(provider_type)
 	if not key:
 		frappe.throw(_("{0} is not set up yet. Please contact us.").format(_(provider_type)))
 
-	adapter = get_adapter(key)
+	return get_adapter(key)
+
+
+def call(provider_type: str, operation: str, context: dict, doc) -> dict:
+	provider = adapter(provider_type)
 	request = log.start(
-		service=key,
+		service=provider.key,
 		operation=operation,
 		context=context,
 		reference_doctype=doc.doctype,
 		reference_docname=doc.name,
-		url=adapter.target_url(),
+		url=provider.target_url(),
 	)
 
 	try:
-		output = getattr(adapter, operation)(context)
+		output = getattr(provider, operation)(context)
 	except IntegrationError as e:
 		log.fail(request, e)
 		raise Refused(str(e)) from e

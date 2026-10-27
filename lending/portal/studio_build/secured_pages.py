@@ -32,6 +32,7 @@ read = reader(SOURCE)
 
 ROUTE = "/secured-loan"
 CONSENT_ROUTE = "/kyc-consent"
+SIGN_ROUTE = "/esign-consent"
 REGISTER_ROUTE = "/register"
 
 TENURES = (6, 12, 18, 24, 36)
@@ -152,11 +153,14 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 
 \tconst saveBank = () => run("save_bank_account", { account_number: accountNumber.value, ifsc: ifsc.value }, advance)
 
-\tconst sendEsignOtp = () => run("send_esign_otp", {}, () => {
-\t\tesignSent.value = true
-\t\tcontext.%(source)s.reload()
-\t})
-\tconst confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })
+\tconst startEsign = () => run("start_esign", {}, (result) => { window.location.href = result.redirect_url })
+\tconst completeEsign = () => run("complete_esign", {}, advance)
+\tlet askedEsign = false
+\twatch(() => page.value.esign?.pending, (pending) => {
+\t\tif (!pending || askedEsign || context.route.query.step !== "esign") return
+\t\taskedEsign = true
+\t\tcompleteEsign()
+\t}, { immediate: true })
 
 \twatch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
 \tconst withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)''' % {
@@ -178,8 +182,6 @@ STATE = [
 	("accountNumber", '""'),
 	("confirmAccount", '""'),
 	("ifsc", '""'),
-	("esignOtp", '""'),
-	("esignSent", "false"),
 	("withdrawAmount", '""'),
 ]
 
@@ -211,14 +213,14 @@ RETURNS = [
 	"sendPledgeOtp",
 	"confirmPledge",
 	"saveBank",
-	"sendEsignOtp",
-	"confirmEsign",
+	"startEsign",
+	"completeEsign",
 	"withdraw",
 ]
 
 
 def build():
-	return [build_journey(), build_consent(), build_register()]
+	return [build_journey(), build_consent(), build_esign_consent(), build_register()]
 
 
 def build_journey():
@@ -990,11 +992,12 @@ def bank_panel():
 def esign_panel():
 	signed = "%s.data?.esign?.signed_on" % SOURCE
 	letter = "%s.data?.esign?.letter" % SOURCE
+	pending = "%s.data?.esign?.pending" % SOURCE
 
 	return panel(
 		"esign",
 		"E-sign your sanction letter",
-		"It sets out the loan's terms and the units pledged. Sign it with an OTP sent to your Aadhaar-linked mobile.",
+		"It sets out the loan's terms and the units pledged. You sign it with Aadhaar on our eSign partner's page, using an OTP sent to your Aadhaar-linked mobile.",
 		[
 			done_line("You signed the sanction letter on {{ %s.data.esign.signed_on }}." % SOURCE, "{{ %s }}" % signed),
 			row(
@@ -1012,14 +1015,9 @@ def esign_panel():
 				styles=dict(LIST_BOX, padding="14px 16px"),
 				visible="{{ %s }}" % letter,
 			),
-			form_grid(
-				[field("Aadhaar OTP", "esignOtp", kind="password", placeholder="6 digits")],
-				visible="{{ esignSent && !%s }}" % signed,
-			),
 			actions(
-				action("Get the letter and OTP", "sendEsignOtp()", visible="{{ !esignSent && !%s }}" % signed),
-				button("Resend OTP", script="sendEsignOtp()", props={"size": "md"}, visible="{{ esignSent && !%s }}" % signed),
-				action("Sign", "confirmEsign()", enabled="esignOtp.length >= 4", visible="{{ esignSent && !%s }}" % signed),
+				button("I have signed", script="completeEsign()", props={"size": "md"}, visible="{{ %s }}" % pending),
+				action("Sign with Aadhaar", "startEsign()", visible="{{ !%s }}" % signed),
 			),
 		],
 	)
@@ -1202,6 +1200,68 @@ def build_consent():
 		public_page(read_consent, [], [body], width="560px"),
 		[api_resource(CONSENT_SOURCE, "lending.portal.secured.get_kyc_consent")],
 		script=page_script(body=CONSENT_SCRIPT, returns=["busy", "allow", "decline"], framed=False),
+	)
+
+
+# The sample eSign provider's page
+
+
+SIGN_SOURCE = "esignConsent"
+read_sign = reader(SIGN_SOURCE)
+
+SIGN_SCRIPT = '''\tconst busy = ref(false)
+\tconst sign = () => {
+\t\tbusy.value = true
+\t\tcall("lending.portal.secured.give_esign_consent", { otp: otp.value })
+\t\t\t.then((result: any) => {
+\t\t\t\tif (result?.ok === false) { toast.error(result.message); return }
+\t\t\t\trouter.push(result.redirect)
+\t\t\t})
+\t\t\t.catch((error: any) => toast.error(String(error?.messages?.[0] || error)))
+\t\t\t.finally(() => { busy.value = false })
+\t}
+\tconst decline = () => router.push("/secured-loan")'''
+
+
+def build_esign_consent():
+	body = column(
+		[
+			alert(
+				"Demo only",
+				theme="amber",
+				description="This page stands in for the eSign provider's, so nothing is signed. The OTP is 123456.",
+			),
+			heading("Sign with Aadhaar", size="text-2xl"),
+			muted("{{ %s.data.customer_name }}, enter the OTP sent to your Aadhaar-linked mobile to sign your sanction letter." % SIGN_SOURCE),
+			row(
+				[
+					icon_tile("file-text", tile=40, glyph=20),
+					text("Sanction letter", size="text-base", styles={"fontWeight": "600"}),
+					spacer(),
+					button("Read the letter", script="window.open(%s.data?.letter, '_blank')" % SIGN_SOURCE, props={"size": "md"}),
+				],
+				gap="12px",
+			),
+			field("Aadhaar OTP", "otp", kind="password", placeholder="6 digits"),
+			row(
+				[
+					spacer(),
+					button("Cancel", script="decline()", props={"size": "md"}),
+					button("Sign", script="sign()", variant="solid", props={"size": "md", "loading": "{{ busy }}"}),
+				],
+				gap="8px",
+			),
+		],
+		gap="16px",
+		styles=dict(PANEL, padding="24px"),
+	)
+
+	return upsert_page(
+		"Sign with Aadhaar",
+		SIGN_ROUTE,
+		public_page(read_sign, [], [body], width="560px"),
+		[api_resource(SIGN_SOURCE, "lending.portal.secured.get_esign_consent")],
+		script=page_script(state=[("otp", '""')], body=SIGN_SCRIPT, returns=["busy", "sign", "decline"], framed=False),
 	)
 
 

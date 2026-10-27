@@ -21,8 +21,6 @@ export default function setup(context: any) {
 	const accountNumber = ref("")
 	const confirmAccount = ref("")
 	const ifsc = ref("")
-	const esignOtp = ref("")
-	const esignSent = ref(false)
 	const withdrawAmount = ref("")
 
 	const open = (url?: string) => {
@@ -143,14 +141,17 @@ export default function setup(context: any) {
 
 	const saveBank = () => run("save_bank_account", { account_number: accountNumber.value, ifsc: ifsc.value }, advance)
 
-	const sendEsignOtp = () => run("send_esign_otp", {}, () => {
-		esignSent.value = true
-		context.securedLoan.reload()
-	})
-	const confirmEsign = () => run("confirm_esign", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })
+	const startEsign = () => run("start_esign", {}, (result) => { window.location.href = result.redirect_url })
+	const completeEsign = () => run("complete_esign", {}, advance)
+	let askedEsign = false
+	watch(() => page.value.esign?.pending, (pending) => {
+		if (!pending || askedEsign || context.route.query.step !== "esign") return
+		askedEsign = true
+		completeEsign()
+	}, { immediate: true })
 
 	watch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
 	const withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, amount, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, amount, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, startEsign, completeEsign, withdraw }
 }

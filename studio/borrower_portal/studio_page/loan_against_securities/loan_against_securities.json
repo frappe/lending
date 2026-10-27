@@ -3861,7 +3861,7 @@
              "componentProps": {
               "fontSize": "text-p-sm",
               "tag": "p",
-              "text": "It sets out the loan's terms and the units pledged. Sign it with an OTP sent to your Aadhaar-linked mobile."
+              "text": "It sets out the loan's terms and the units pledged. You sign it with Aadhaar on our eSign partner's page, using an OTP sent to your Aadhaar-linked mobile."
              },
              "componentSlots": {}
             }
@@ -4035,41 +4035,6 @@
             },
             {
              "baseStyles": {
-              "display": "grid",
-              "gap": "12px",
-              "gridTemplateColumns": "repeat(2, minmax(0, 1fr))",
-              "maxWidth": "560px"
-             },
-             "children": [
-              {
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container3-formcontrol1",
-               "componentName": "FormControl",
-               "componentProps": {
-                "label": "Aadhaar OTP",
-                "modelValue": {
-                 "$type": "variable",
-                 "name": "esignOtp"
-                },
-                "placeholder": "6 digits",
-                "size": "md",
-                "type": "password",
-                "variant": "subtle"
-               },
-               "componentSlots": {}
-              }
-             ],
-             "componentId": "secured_loan-0-container1-container1-container8-container2-container3",
-             "componentName": "container",
-             "componentProps": {},
-             "componentSlots": {},
-             "mobileStyles": {
-              "gridTemplateColumns": "minmax(0, 1fr)"
-             },
-             "originalElement": "div",
-             "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
-            },
-            {
-             "baseStyles": {
               "alignItems": "center",
               "display": "flex",
               "flexDirection": "row",
@@ -4080,7 +4045,7 @@
                "baseStyles": {
                 "flex": "1 1 auto"
                },
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container4-container1",
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container3-container1",
                "componentName": "container",
                "componentProps": {},
                "componentSlots": {},
@@ -4091,60 +4056,40 @@
                 "click": {
                  "action": "Run Script",
                  "event": "click",
-                 "script": "sendEsignOtp()"
+                 "script": "completeEsign()"
                 }
                },
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container4-button1",
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container3-button1",
                "componentName": "Button",
                "componentProps": {
-                "label": "Get the letter and OTP",
-                "loading": "{{ busy }}",
-                "size": "md",
-                "variant": "solid"
-               },
-               "componentSlots": {},
-               "visibilityCondition": "{{ !esignSent && !securedLoan.data?.esign?.signed_on }}"
-              },
-              {
-               "componentEvents": {
-                "click": {
-                 "action": "Run Script",
-                 "event": "click",
-                 "script": "sendEsignOtp()"
-                }
-               },
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container4-button2",
-               "componentName": "Button",
-               "componentProps": {
-                "label": "Resend OTP",
+                "label": "I have signed",
                 "size": "md",
                 "variant": "subtle"
                },
                "componentSlots": {},
-               "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
+               "visibilityCondition": "{{ securedLoan.data?.esign?.pending }}"
               },
               {
                "componentEvents": {
                 "click": {
                  "action": "Run Script",
                  "event": "click",
-                 "script": "confirmEsign()"
+                 "script": "startEsign()"
                 }
                },
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container4-button3",
+               "componentId": "secured_loan-0-container1-container1-container8-container2-container3-button2",
                "componentName": "Button",
                "componentProps": {
-                "disabled": "{{ !(esignOtp.length >= 4) }}",
-                "label": "Sign",
+                "label": "Sign with Aadhaar",
                 "loading": "{{ busy }}",
                 "size": "md",
                 "variant": "solid"
                },
                "componentSlots": {},
-               "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
+               "visibilityCondition": "{{ !securedLoan.data?.esign?.signed_on }}"
               }
              ],
-             "componentId": "secured_loan-0-container1-container1-container8-container2-container4",
+             "componentId": "secured_loan-0-container1-container1-container8-container2-container3",
              "componentName": "container",
              "componentProps": {},
              "componentSlots": {},
@@ -4973,7 +4918,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 14:27:40.754896",
+ "modified": "2026-10-27 14:28:33.104579",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

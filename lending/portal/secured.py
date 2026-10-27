@@ -10,7 +10,7 @@ from frappe.utils.pdf import get_pdf
 
 from lending.collateral.mutual_fund import registry
 from lending.loan_integrations import verification
-from lending.loan_integrations.base import Refused
+from lending.loan_integrations.base import IntegrationError, Refused
 from lending.loan_management.doctype.loan.loan import new_loan_disbursement
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan,
@@ -72,8 +72,6 @@ COLLATERALS = (
 
 AUTOMATIC = "Automatic"
 PAN_LENGTH = 10
-ESIGN_PREFIX = "portal-apply-esign"
-ESIGN_TTL = 15 * 60
 LETTER_URL = "/api/method/lending.portal.secured.download_sanction_letter"
 
 
@@ -216,6 +214,10 @@ def customer_mobile(customer: str) -> str:
 	mobile = record.mobile_no or frappe.db.get_value("User", frappe.session.user, "mobile_no") or ""
 
 	return with_country_code(mobile) if mobile else ""
+
+
+def borrower_email() -> str:
+	return frappe.db.get_value("User", frappe.session.user, "email") or ""
 
 
 def pan_payload(kyc) -> dict:
@@ -672,8 +674,10 @@ def start_kyc() -> dict:
 	own_application(customer)
 	kyc = verified_kyc(customer)
 	context = {
+		"reference": customer,
 		"name": frappe.db.get_value("Customer", customer, "customer_name"),
 		"mobile": customer_mobile(customer),
+		"email": borrower_email(),
 		"return_url": f"{ROUTE}?step=kyc",
 	}
 
@@ -879,8 +883,7 @@ def save_bank_account() -> dict:
 	with as_administrator():
 		account = bank_account(customer, name, account_number, ifsc, output.get("bank_name"))
 	# A letter already sent names the old account, so it must be sent again.
-	application.db_set({"bank_account": account, "sanction_letter": None})
-	frappe.cache.delete_value(f"{ESIGN_PREFIX}:{application.name}")
+	application.db_set({"bank_account": account, "sanction_letter": None, "esign_reference": None})
 
 	return {"ok": True}
 
@@ -940,30 +943,33 @@ def bank_payload(application: str | None) -> dict:
 
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=10, seconds=60 * 60)
-def send_esign_otp() -> dict:
+def start_esign() -> dict:
 	customer = borrower()
 	application = own_application(customer)
 	assert_not_signed(application)
 	if not application.bank_account:
 		frappe.throw(_("Please add your bank account first."), frappe.ValidationError)
 
-	letter = sanction_letter(application)
 	context = {
-		"file_url": letter,
-		"signer": {"name": application.applicant_name, "mobile": customer_mobile(customer)},
+		"file_url": sanction_letter(application),
+		"reference": application.name,
+		"signer": {
+			"name": application.applicant_name,
+			"mobile": customer_mobile(customer),
+			"email": borrower_email(),
+		},
+		"return_url": f"{ROUTE}?step=esign",
 	}
 
 	try:
-		output = verification.call(verification.ESIGN, "send_otp", context, application)
+		output = verification.call(verification.ESIGN, "start", context, application)
 	except Refused as e:
 		return refused(e)
 
-	frappe.cache.set_value(f"{ESIGN_PREFIX}:{application.name}", output.get("request_id"), expires_in_sec=ESIGN_TTL)
+	# Until signed_on is set, the reference is the request the borrower is signing.
+	application.db_set("esign_reference", output.get("request_id"))
 
-	return {
-		"ok": True,
-		"message": _("We sent an OTP to your Aadhaar-linked mobile number to sign the letter."),
-	}
+	return {"ok": True, "redirect_url": output.get("redirect_url")}
 
 
 def sanction_letter(application) -> str:
@@ -1024,31 +1030,51 @@ def sanction_context(application) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-@rate_limit(limit=10, seconds=60 * 60)
-def confirm_esign() -> dict:
+@rate_limit(limit=30, seconds=60 * 60)
+def complete_esign() -> dict:
 	customer = borrower()
 	application = own_application(customer)
-	request_id = frappe.cache.get_value(f"{ESIGN_PREFIX}:{application.name}")
-	if not request_id:
-		return {"ok": False, "message": _("The OTP has expired. Please ask for a new one.")}
+	if application.signed_on:
+		return {"ok": True, "opened": bool(loan_for(application.name))}
+	if not application.esign_reference:
+		frappe.throw(_("Please start signing your sanction letter first."), frappe.ValidationError)
 
+	request_id = application.esign_reference
 	try:
-		output = verification.call(
-			verification.ESIGN,
-			"sign",
-			{"request_id": request_id, "otp": clean(frappe.form_dict.get("otp"))},
-			application,
-		)
+		output = verification.call(verification.ESIGN, "fetch", {"request_id": request_id}, application)
 	except Refused as e:
 		return refused(e)
 
-	application.db_set({"esign_reference": output.get("reference"), "signed_on": now_datetime()})
-	frappe.cache.delete_value(f"{ESIGN_PREFIX}:{application.name}")
+	status = output.get("status")
+	if status == "Pending":
+		return {"ok": False, "message": _("You have not signed the letter yet. Please finish signing it.")}
+	if status != "Signed":
+		application.db_set("esign_reference", None)
+		return {"ok": False, "message": _("The letter was not signed. Please try again.")}
+
+	keep_signed_letter(application, request_id)
+	application.db_set({"esign_reference": output.get("reference") or request_id, "signed_on": now_datetime()})
 
 	if (frappe.db.get_single_value("Lending Settings", "portal_loan_approval") or AUTOMATIC) == AUTOMATIC:
 		return {"ok": True, "opened": open_loan(application.name)}
 
 	return {"ok": True, "opened": False}
+
+
+def keep_signed_letter(application, request_id: str):
+	content = verification.adapter(verification.ESIGN).download({"request_id": request_id})
+	if not content:
+		return
+
+	with as_administrator():
+		saved = save_file(
+			f"signed-sanction-letter-{application.name}.pdf",
+			content,
+			"Loan Application",
+			application.name,
+			is_private=1,
+		)
+	application.db_set("sanction_letter", saved.file_url)
 
 
 def open_loan(application: str) -> bool:
@@ -1079,11 +1105,14 @@ def esign_payload(application: str | None) -> dict:
 	if not application:
 		return {}
 
-	doc = frappe.db.get_value("Loan Application", application, ["sanction_letter", "signed_on"], as_dict=True)
+	doc = frappe.db.get_value(
+		"Loan Application", application, ["sanction_letter", "esign_reference", "signed_on"], as_dict=True
+	)
 
 	return {
 		# Not the file's own URL: the borrower cannot read the Loan Application it is attached to.
 		"letter": LETTER_URL if doc.sanction_letter else "",
+		"pending": bool(doc.esign_reference and not doc.signed_on),
 		"signed_on": long_date(doc.signed_on),
 	}
 
@@ -1106,6 +1135,40 @@ def download_sanction_letter():
 	frappe.local.response.filename = f"sanction-letter-{application}.pdf"
 	frappe.local.response.filecontent = file.get_content()
 	frappe.local.response.type = "pdf"
+
+
+@frappe.whitelist()
+def get_esign_consent() -> dict:
+	application = assert_sample_esign(borrower())
+
+	return {**brand_payload(), "customer_name": application.applicant_name, "letter": LETTER_URL}
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=60 * 60)
+def give_esign_consent() -> dict:
+	from lending.loan_integrations.sample_verification import sign
+
+	application = assert_sample_esign(borrower())
+	try:
+		sign(application.esign_reference, clean(frappe.form_dict.get("otp")))
+	except IntegrationError as e:
+		return {"ok": False, "message": str(e)}
+
+	return {"ok": True, "redirect": "/secured-loan?step=esign"}
+
+
+def assert_sample_esign(customer: str):
+	from lending.loan_integrations.sample_verification import SampleESignAdapter
+
+	if verification.adapter_key(verification.ESIGN) != SampleESignAdapter.key:
+		raise frappe.PermissionError(_("Not permitted"))
+
+	application = own_application(customer)
+	if not application.esign_reference or application.signed_on:
+		frappe.throw(_("Please start signing from the portal."), frappe.ValidationError)
+
+	return application
 
 
 # Step 8: Your loan

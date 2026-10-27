@@ -41,14 +41,15 @@ PAN = "BXRPR4821K"
 MOBILE = "+919845012345"
 
 
-def a_pdf() -> bytes:
+def a_pdf(pages=1) -> bytes:
 	"""A real, minimal PDF: Frappe reads an attachment to check it carries no JavaScript."""
 	from io import BytesIO
 
 	from pypdf import PdfWriter
 
 	writer = PdfWriter()
-	writer.add_blank_page(width=72, height=72)
+	for _page in range(pages):
+		writer.add_blank_page(width=72, height=72)
 	buffer = BytesIO()
 	writer.write(buffer)
 
@@ -123,11 +124,19 @@ class SecuredJourneyTestSuite(LendingTestSuite):
 		post("send_pledge_otp")
 		self.assertTrue(post("confirm_pledge", otp=OTP)["ok"])
 
-	def sign(self):
-		self.assertTrue(post("save_bank_account", account_number="50100234567812", ifsc="HDFC0001234")["ok"])
+	def add_bank_account(self, account_number="50100234567812"):
+		self.assertTrue(post("save_bank_account", account_number=account_number, ifsc="HDFC0001234")["ok"])
+
+	def start_esign(self):
 		with patch("lending.portal.secured.get_pdf", return_value=a_pdf()):
-			post("send_esign_otp")
-		return post("confirm_esign", otp=OTP)
+			answer = post("start_esign")
+		self.assertIn("request=", answer["redirect_url"])
+
+	def sign(self):
+		self.add_bank_account()
+		self.start_esign()
+		self.assertTrue(post("give_esign_consent", otp=OTP)["ok"])
+		return post("complete_esign")
 
 	def walk_to_signing(self):
 		self.verify_pan()
@@ -292,17 +301,70 @@ class TestTheStepsAreChecked(SecuredJourneyTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			post("save_bank_account", account_number="50100999999999", ifsc="HDFC0001234")
 		with self.assertRaises(frappe.ValidationError):
-			post("send_esign_otp")
+			post("start_esign")
 
 	def test_the_borrower_can_read_the_letter(self):
 		self.walk_to_signing()
-		self.assertTrue(post("save_bank_account", account_number="50100234567812", ifsc="HDFC0001234")["ok"])
-		with patch("lending.portal.secured.get_pdf", return_value=a_pdf()):
-			post("send_esign_otp")
+		self.add_bank_account()
+		self.start_esign()
 
 		self.assertEqual(page()["esign"]["letter"], secured.LETTER_URL)
 		secured.download_sanction_letter()
 		self.assertTrue(frappe.local.response.filecontent.startswith(b"%PDF"))
+
+
+class TestESign(SecuredJourneyTestSuite):
+	def setUp(self):
+		super().setUp()
+		self.walk_to_signing()
+		self.add_bank_account()
+
+	def application(self):
+		return frappe.get_doc("Loan Application", secured.journey_application(CUSTOMER))
+
+	def test_coming_back_unsigned_is_not_signing(self):
+		self.start_esign()
+
+		self.assertFalse(post("complete_esign")["ok"])
+		self.assertTrue(page()["esign"]["pending"])
+		self.assertFalse(self.application().signed_on)
+
+	def test_a_wrong_otp_on_the_providers_page_signs_nothing(self):
+		self.start_esign()
+
+		self.assertFalse(post("give_esign_consent", otp="000000")["ok"])
+		self.assertFalse(post("complete_esign")["ok"])
+
+	def test_a_signature_the_provider_refused_starts_over(self):
+		self.start_esign()
+
+		with patch.object(SampleESignAdapter, "fetch", return_value={"status": "Rejected"}):
+			self.assertFalse(post("complete_esign")["ok"])
+
+		self.assertFalse(page()["esign"]["pending"])
+		with self.assertRaises(frappe.ValidationError):
+			post("complete_esign")
+
+	def test_the_providers_signed_copy_replaces_the_letter(self):
+		# Not the letter's own bytes: Frappe hands back the existing file for identical content.
+		with patch.object(SampleESignAdapter, "download", return_value=a_pdf(pages=2)):
+			self.assertTrue(self.sign()["ok"])
+
+		self.assertIn("signed-sanction-letter", self.application().sanction_letter)
+
+	def test_a_new_bank_account_drops_the_unsigned_request(self):
+		self.start_esign()
+		self.add_bank_account("50100999999999")
+
+		self.assertFalse(page()["esign"]["pending"])
+		self.assertFalse(self.application().esign_reference)
+
+	def test_the_sample_page_is_closed_with_a_real_provider(self):
+		self.start_esign()
+		frappe.db.set_single_value("Loan Origination Settings", "esign_adapter", "Digio eSign")
+
+		with self.assertRaises(frappe.PermissionError):
+			post("give_esign_consent", otp=OTP)
 
 	def test_a_collateral_without_a_journey_cannot_be_applied_for(self):
 		self.verify_pan()
