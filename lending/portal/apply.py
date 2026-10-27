@@ -7,6 +7,7 @@ from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, flt, getdate, strip_html, today
 
+from lending.loan_origination.doctype.loan_lead.loan_lead import PORTAL_LEAD_SOURCE
 from lending.portal import login, preview
 from lending.portal.accounts import CUSTOMER_TYPES, customer_for_applicant, link_portal_user
 from lending.portal.core import (
@@ -22,8 +23,6 @@ from lending.portal.core import (
 	shell_payload,
 	tracker_stage,
 )
-
-LEAD_SOURCE = "Portal"
 
 LEAD_FIELDS = ("applicant_name", "email", "loan_product", "loan_amount")
 OPTIONAL_LEAD_FIELDS = (
@@ -401,7 +400,7 @@ def submit_lead() -> dict:
 	mobile = verified_mobile(token)
 
 	lead = frappe.new_doc("Loan Lead")
-	lead.update({**data, "mobile_number": mobile, "lead_source": LEAD_SOURCE})
+	lead.update({**data, "mobile_number": mobile, "lead_source": PORTAL_LEAD_SOURCE})
 	lead.insert(ignore_permissions=True)
 	spend_token(token)
 
@@ -608,7 +607,9 @@ def create_account() -> dict:
 	frappe.set_user("Administrator")  # nosemgrep
 	try:
 		# The confirmed address wins, so leads_for_login finds this lead from the new login.
-		frappe.db.set_value("Loan Lead", lead_name, "email", email)
+		frappe.db.set_value(
+			"Loan Lead", lead_name, {"email": email, "email_verification_status": "Verified"}
+		)
 
 		user = frappe.new_doc("User")
 		user.update(
@@ -659,7 +660,7 @@ def create_customer_lead() -> dict:
 
 	# Loan Lead grants create to System Manager only.
 	lead = frappe.new_doc("Loan Lead")
-	lead.update({**data, **applicant, "customer": customer, "lead_source": LEAD_SOURCE})
+	lead.update({**data, **applicant, "customer": customer, "lead_source": PORTAL_LEAD_SOURCE})
 	lead.insert(ignore_permissions=True)
 
 	settle_lead(lead.name, applicant["mobile_number"])
