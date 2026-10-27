@@ -2220,6 +2220,7 @@
               "display": "flex",
               "flexDirection": "column",
               "flexShrink": "0",
+              "gap": "0px",
               "marginBottom": "-1px",
               "overflow": "hidden",
               "width": "100%"
@@ -2946,6 +2947,7 @@
               "display": "flex",
               "flexDirection": "column",
               "flexShrink": "0",
+              "gap": "0px",
               "marginBottom": "-1px",
               "overflow": "hidden",
               "width": "100%"
@@ -3097,6 +3099,7 @@
               "display": "flex",
               "flexDirection": "column",
               "flexShrink": "0",
+              "gap": "0px",
               "marginBottom": "-1px",
               "overflow": "hidden",
               "width": "100%"
@@ -5054,7 +5057,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:45:16.205446",
+ "modified": "2026-10-27 12:45:56.840202",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

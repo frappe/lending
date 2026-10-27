@@ -845,7 +845,8 @@ def security_list(items, with_lien=False, visible=None):
 		fallback(items, "[]"),
 		line,
 		data_key="key",
-		styles=dict(LIST_BOX, display="flex", flexDirection="column", width="100%", marginBottom="-1px"),
+		# gap: the Repeater's own gap-5 class otherwise pads every row after the first.
+		styles=dict(LIST_BOX, display="flex", flexDirection="column", gap="0px", width="100%", marginBottom="-1px"),
 		visible=visible,
 	)
 

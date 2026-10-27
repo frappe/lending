@@ -2725,6 +2725,7 @@
               "flexShrink": "0",
               "display": "flex",
               "flexDirection": "column",
+              "gap": "0px",
               "width": "100%",
               "marginBottom": "-1px"
              },
@@ -3620,6 +3621,7 @@
               "flexShrink": "0",
               "display": "flex",
               "flexDirection": "column",
+              "gap": "0px",
               "width": "100%",
               "marginBottom": "-1px"
              },
@@ -3803,6 +3805,7 @@
               "flexShrink": "0",
               "display": "flex",
               "flexDirection": "column",
+              "gap": "0px",
               "width": "100%",
               "marginBottom": "-1px"
              },
