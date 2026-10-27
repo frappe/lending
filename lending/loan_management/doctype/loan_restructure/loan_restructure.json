@@ -70,6 +70,7 @@
   "loan_restructure_charges",
   "skip_section",
   "skipped_installments",
+  "loan_installment_skip_request",
   "loan_restructure_details_section",
   "new_rate_of_interest",
   "repayment_start_date",
@@ -534,12 +535,21 @@
    "fieldtype": "Table",
    "label": "Skipped Installments",
    "options": "Loan Skipped Installment"
+  },
+  {
+   "depends_on": "eval:doc.restructure_type == 'Installment Skip'",
+   "fieldname": "loan_installment_skip_request",
+   "fieldtype": "Link",
+   "label": "Installment Skip Request",
+   "no_copy": 1,
+   "options": "Loan Installment Skip Request",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-23 10:00:00.000000",
+ "modified": "2026-10-27 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

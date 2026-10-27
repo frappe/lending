@@ -68,68 +68,7 @@ frappe.ui.form.on('Loan', {
 	},
 
 	skip_installment: function (frm) {
-		const methods = [
-			{ label: __("Keep EMI, extend tenure"), value: "Repay Fixed Amount per Period" },
-			{ label: __("Keep tenure, increase EMI"), value: "Repay Over Number of Periods" },
-		];
-		const installments_path = "lending.loan_management.doctype.loan_restructure.installment_skip";
-
-		frappe.call({
-			method: `${installments_path}.get_upcoming_installments`,
-			args: { loan: frm.doc.name },
-		}).then((r) => {
-			if (!(r.message || []).length) {
-				frappe.msgprint(__("There are no upcoming installments to skip."));
-				return;
-			}
-
-			let dialog = new frappe.ui.Dialog({
-				title: __("Skip Installment"),
-				fields: [
-					{
-						fieldname: "dates",
-						fieldtype: "MultiCheck",
-						label: __("Installments to Skip"),
-						columns: 2,
-						sort_options: false,
-						options: r.message.map((row) => ({
-							label: `${frappe.datetime.str_to_user(row.payment_date)} (${format_currency(row.total_payment)})`,
-							value: row.payment_date,
-						})),
-					},
-					{
-						fieldname: "method",
-						fieldtype: "Select",
-						label: __("After the skip"),
-						options: methods,
-						default: methods[0].value,
-					},
-					{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason") },
-				],
-				primary_action_label: __("Skip"),
-				primary_action: (values) => {
-					if (!(values.dates || []).length) {
-						frappe.msgprint(__("Please select at least one installment to skip."));
-						return;
-					}
-
-					frappe.call({
-						method: `${installments_path}.skip_installments`,
-						args: {
-							loan: frm.doc.name,
-							skipped_dates: values.dates,
-							new_repayment_method: values.method,
-							reason: values.reason,
-						},
-						freeze: true,
-					}).then((res) => {
-						dialog.hide();
-						frappe.set_route("Form", "Loan Restructure", res.message);
-					});
-				},
-			});
-			dialog.show();
-		});
+		frappe.new_doc("Loan Installment Skip Request", { loan: frm.doc.name });
 	},
 
 	refresh: function (frm) {
@@ -178,7 +117,7 @@ frappe.ui.form.on('Loan', {
 		}
 
 		if (frm.doc.docstatus == 1 && frm.doc.is_term_loan && frm.doc.status == "Disbursed") {
-			frm.add_custom_button(__('Skip Installment'), function() {
+			frm.add_custom_button(__('Installment Skip Request'), function() {
 				frm.trigger("skip_installment");
 			}, __('Create'));
 		}
