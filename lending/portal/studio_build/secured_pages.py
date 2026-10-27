@@ -64,6 +64,9 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \tconst viewStep = (row: any) => {
 \t\tif (row.state !== "todo") viewing.value = row.key === page.value.current ? "" : row.key
 \t}
+\tconst stepAt = computed(() => Math.max(0, (page.value.steps || []).findIndex((row: any) => row.key === shown.value)))
+\tconst stepTotal = computed(() => (page.value.steps || []).length)
+\tconst stepName = computed(() => page.value.steps?.[stepAt.value]?.label || "")
 
 \tconst money = (amount: number) =>
 \t\tnew Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", maximumFractionDigits: 0 }).format(amount || 0)
@@ -175,6 +178,9 @@ RETURNS = [
 	"busy",
 	"shown",
 	"viewStep",
+	"stepAt",
+	"stepTotal",
+	"stepName",
 	"money",
 	"verifyPan",
 	"sendHoldingsOtp",
@@ -324,20 +330,7 @@ def stepper():
 			"minWidth": "76px",
 			"cursor": "pointer",
 		},
-		events={
-			**click("viewStep(dataItem)"),
-			"keydown": {
-				"event": "keydown",
-				"action": "Run Script",
-				"script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }",
-			},
-		},
-		# A step not reached yet opens nothing, so it takes no focus.
-		attributes={
-			"role": "button",
-			"tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}",
-			"aria-current": "{{ %s ? 'step' : undefined }}" % viewed,
-		},
+		**opens_step(viewed),
 	)
 	steps = repeater(
 		fallback(read("steps"), "[]"),
@@ -352,9 +345,75 @@ def stepper():
 			"paddingTop": f"{halo // 2}px",
 			"paddingBottom": "4px",
 		},
+		mobile={"display": "none"},
 	)
 
-	return container([steps], styles=dict(PANEL, padding="20px 12px 16px"))
+	return container(
+		[steps, compact_stepper(viewed)],
+		styles=dict(PANEL, padding="20px 12px 16px"),
+		mobile={"padding": "14px 16px"},
+	)
+
+
+def opens_step(viewed):
+	return {
+		"events": {
+			**click("viewStep(dataItem)"),
+			"keydown": {
+				"event": "keydown",
+				"action": "Run Script",
+				"script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }",
+			},
+		},
+		# A step not reached yet opens nothing, so it takes no focus.
+		"attributes": {
+			"role": "button",
+			"tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}",
+			"aria-current": "{{ %s ? 'step' : undefined }}" % viewed,
+		},
+	}
+
+
+def compact_stepper(viewed):
+	# Nine labelled steps cannot fit a phone, so it shows the open step and a bar of segments.
+	bar = {"width": "100%", "borderRadius": "9999px"}
+	segment = container(
+		[
+			container(styles=dict(bar, height="6px", backgroundColor=ACCENT), visible="{{ %s }}" % viewed),
+			container(
+				styles=dict(bar, height="4px", backgroundColor=ACCENT),
+				visible="{{ !(%s) && dataItem.state !== 'todo' }}" % viewed,
+			),
+			container(
+				styles=dict(bar, height="4px", backgroundColor="var(--outline-gray-2)"),
+				visible="{{ !(%s) && dataItem.state === 'todo' }}" % viewed,
+			),
+		],
+		# Taller than the bar, so each segment is a tap target.
+		styles={"display": "flex", "alignItems": "center", "flex": "1 1 0%", "height": "20px", "cursor": "pointer"},
+		**opens_step(viewed),
+	)
+
+	return column(
+		[
+			column(
+				[
+					muted("{{ 'Step ' + (stepAt + 1) + ' of ' + stepTotal }}"),
+					text("{{ stepName }}", size="text-base", styles={"fontWeight": "600", "color": "var(--ink-gray-9)"}),
+				],
+				gap="2px",
+			),
+			repeater(
+				fallback(read("steps"), "[]"),
+				segment,
+				data_key="key",
+				styles={"display": "flex", "flexDirection": "row", "flexWrap": "nowrap", "gap": "4px", "width": "100%"},
+			),
+		],
+		gap="8px",
+		styles={"display": "none"},
+		mobile={"display": "flex"},
+	)
 
 
 # Panels

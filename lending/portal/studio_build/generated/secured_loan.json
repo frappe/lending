@@ -499,7 +499,9 @@
           "borderRadius": "var(--radius-4)",
           "backgroundColor": "var(--surface-base)"
          },
-         "mobileStyles": {},
+         "mobileStyles": {
+          "padding": "14px 16px"
+         },
          "tabletStyles": {},
          "children": [
           {
@@ -519,7 +521,9 @@
             "paddingTop": "5px",
             "paddingBottom": "4px"
            },
-           "mobileStyles": {},
+           "mobileStyles": {
+            "display": "none"
+           },
            "tabletStyles": {},
            "children": [
             {
@@ -800,6 +804,188 @@
             }
            ],
            "componentId": "secured_loan-0-container1-container1-container1-repeater1"
+          },
+          {
+           "componentName": "container",
+           "componentProps": {},
+           "componentSlots": {},
+           "componentEvents": {},
+           "baseStyles": {
+            "display": "none",
+            "flexDirection": "column",
+            "gap": "8px"
+           },
+           "mobileStyles": {
+            "display": "flex"
+           },
+           "tabletStyles": {},
+           "children": [
+            {
+             "componentName": "container",
+             "componentProps": {},
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "2px"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "{{ 'Step ' + (stepAt + 1) + ' of ' + stepTotal }}",
+                "tag": "p",
+                "fontSize": "text-p-sm"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "color": "var(--ink-gray-6)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "componentId": "secured_loan-0-container1-container1-container1-container1-container1-textblock1"
+              },
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "{{ stepName }}",
+                "tag": "p",
+                "fontSize": "text-base"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "fontWeight": "600",
+                "color": "var(--ink-gray-9)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "componentId": "secured_loan-0-container1-container1-container1-container1-container1-textblock2"
+              }
+             ],
+             "originalElement": "div",
+             "componentId": "secured_loan-0-container1-container1-container1-container1-container1"
+            },
+            {
+             "componentName": "Repeater",
+             "componentProps": {
+              "data": "{{ securedLoan.data.steps || [] }}",
+              "dataKey": "key",
+              "emptyStateMessage": ""
+             },
+             "componentSlots": {},
+             "componentEvents": {},
+             "baseStyles": {
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "nowrap",
+              "gap": "4px",
+              "width": "100%"
+             },
+             "mobileStyles": {},
+             "tabletStyles": {},
+             "children": [
+              {
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "componentEvents": {
+                "click": {
+                 "event": "click",
+                 "action": "Run Script",
+                 "script": "viewStep(dataItem)"
+                },
+                "keydown": {
+                 "event": "keydown",
+                 "action": "Run Script",
+                 "script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }"
+                }
+               },
+               "baseStyles": {
+                "display": "flex",
+                "alignItems": "center",
+                "flex": "1 1 0%",
+                "height": "20px",
+                "cursor": "pointer"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [
+                {
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "width": "100%",
+                  "borderRadius": "9999px",
+                  "height": "6px",
+                  "backgroundColor": "var(--portal-primary, var(--surface-gray-9))"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ dataItem.key === shown }}",
+                 "originalElement": "div",
+                 "componentId": "secured_loan-0-container1-container1-container1-container1-repeater1-container1-container1"
+                },
+                {
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "width": "100%",
+                  "borderRadius": "9999px",
+                  "height": "4px",
+                  "backgroundColor": "var(--portal-primary, var(--surface-gray-9))"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state !== 'todo' }}",
+                 "originalElement": "div",
+                 "componentId": "secured_loan-0-container1-container1-container1-container1-repeater1-container1-container2"
+                },
+                {
+                 "componentName": "container",
+                 "componentProps": {},
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "width": "100%",
+                  "borderRadius": "9999px",
+                  "height": "4px",
+                  "backgroundColor": "var(--outline-gray-2)"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ !(dataItem.key === shown) && dataItem.state === 'todo' }}",
+                 "originalElement": "div",
+                 "componentId": "secured_loan-0-container1-container1-container1-container1-repeater1-container1-container3"
+                }
+               ],
+               "originalElement": "div",
+               "attributes": {
+                "role": "button",
+                "tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}",
+                "aria-current": "{{ dataItem.key === shown ? 'step' : undefined }}"
+               },
+               "componentId": "secured_loan-0-container1-container1-container1-container1-repeater1-container1"
+              }
+             ],
+             "componentId": "secured_loan-0-container1-container1-container1-container1-repeater1"
+            }
+           ],
+           "originalElement": "div",
+           "componentId": "secured_loan-0-container1-container1-container1-container1"
           }
          ],
          "originalElement": "div",
@@ -5956,5 +6142,5 @@
    "componentId": "secured_loan-0"
   }
  ],
- "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst pan = ref(\"\")\n\tconst collateral = ref(\"Mutual Funds\")\n\tconst holdingsRequest = ref(\"\")\n\tconst holdingsOtp = ref(\"\")\n\tconst notApproved = ref([])\n\tconst chosen = ref([] as string[])\n\tconst units = ref({} as Record<string, string>)\n\tconst loanAmount = ref(\"\")\n\tconst tenure = ref(\"12\")\n\tconst pledgeOtp = ref(\"\")\n\tconst pledgeSent = ref(false)\n\tconst accountNumber = ref(\"\")\n\tconst confirmAccount = ref(\"\")\n\tconst ifsc = ref(\"\")\n\tconst esignOtp = ref(\"\")\n\tconst esignSent = ref(false)\n\tconst withdrawAmount = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tconst page = computed<any>(() => context.securedLoan.data || {})\n\tconst busy = ref(false)\n\tconst viewing = ref(\"\")\n\tconst shown = computed(() => viewing.value || page.value.current || \"\")\n\n\tconst fail = (error: any) => toast.error(String(error?.messages?.[0] || error?.message || error))\n\t// Endpoints answer a provider's refusal with ok: false, so the logged attempt is kept.\n\tconst run = (method: string, args: Record<string, any>, then?: (result: any) => void) => {\n\t\tbusy.value = true\n\t\treturn call(`lending.portal.secured.${method}`, args)\n\t\t\t.then((result: any) => {\n\t\t\t\tif (result?.ok === false) { toast.error(result.message); return }\n\t\t\t\tif (result?.message) toast.success(result.message)\n\t\t\t\tthen?.(result)\n\t\t\t})\n\t\t\t.catch(fail)\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\tconst advance = () => {\n\t\tviewing.value = \"\"\n\t\tcontext.securedLoan.reload()\n\t}\n\tconst viewStep = (row: any) => {\n\t\tif (row.state !== \"todo\") viewing.value = row.key === page.value.current ? \"\" : row.key\n\t}\n\n\tconst money = (amount: number) =>\n\t\tnew Intl.NumberFormat(\"en-IN\", { style: \"currency\", currency: page.value.currency || \"INR\", maximumFractionDigits: 0 }).format(amount || 0)\n\n\tconst verifyPan = () => run(\"verify_pan\", { pan: pan.value }, advance)\n\n\tconst sendHoldingsOtp = () =>\n\t\trun(\"send_holdings_otp\", { collateral: collateral.value }, (result) => { holdingsRequest.value = result.request_id })\n\tconst fetchHoldings = () =>\n\t\trun(\"fetch_holdings\", { collateral: collateral.value, request_id: holdingsRequest.value, otp: holdingsOtp.value }, (result) => {\n\t\t\tnotApproved.value = result.not_approved || []\n\t\t\tholdingsRequest.value = \"\"\n\t\t\tholdingsOtp.value = \"\"\n\t\t\tadvance()\n\t\t})\n\tconst refetch = () => { viewing.value = \"eligibility\" }\n\n\tconst holdings = computed<any[]>(() => page.value.holdings || [])\n\t// One line per purchase lot, so a fund's units are the sum of its lines.\n\twatch(() => page.value.application?.lines, (lines) => {\n\t\tif (!lines?.length) return\n\t\tconst saved: Record<string, number> = {}\n\t\tlines.forEach((line: any) => { saved[line.holding] = (saved[line.holding] || 0) + line.units })\n\t\tchosen.value = Object.keys(saved)\n\t\tunits.value = Object.fromEntries(Object.entries(saved).map(([holding, count]) => [holding, String(count)]))\n\t}, { immediate: true })\n\tconst toggle = (holding: any) => {\n\t\tif (sent.value || !holding.pledgeable_units) return\n\t\tif (chosen.value.includes(holding.holding)) {\n\t\t\tchosen.value = chosen.value.filter((name) => name !== holding.holding)\n\t\t\treturn\n\t\t}\n\t\tchosen.value = [...chosen.value, holding.holding]\n\t\tunits.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }\n\t}\n\tconst setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? \"\") } }\n\tconst unitsOf = (row: any) => Number(units.value[row.holding] || 0)\n\tconst unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units\n\t// The same sum the server makes: units \u00d7 NAV, less the fund's haircut.\n\tconst lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)\n\tconst sent = computed(() => Boolean(page.value.application?.sent))\n\tconst chosenRows = computed(() => holdings.value.filter((row) => chosen.value.includes(row.holding)))\n\tconst chosenEligible = computed(() => chosenRows.value.reduce((sum, row) => sum + lends(row), 0))\n\tconst limit = computed(() => {\n\t\tconst ceiling = page.value.product?.maximum || 0\n\t\treturn Math.floor(ceiling ? Math.min(chosenEligible.value, ceiling) : chosenEligible.value)\n\t})\n\tconst useLimit = () => { loanAmount.value = String(limit.value) }\n\twatch(() => page.value.application?.amount, (amount) => { if (amount) loanAmount.value = String(amount) }, { immediate: true })\n\twatch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })\n\tconst canApply = computed(() =>\n\t\tchosenRows.value.length > 0 && chosenRows.value.every(unitsValid)\n\t\t&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)\n\tconst startApplication = () =>\n\t\trun(\"start_application\", {\n\t\t\tcollateral: collateral.value,\n\t\t\tlines: JSON.stringify(chosenRows.value.map((row) => ({ holding: row.holding, units: unitsOf(row) }))),\n\t\t\tloan_amount: loanAmount.value,\n\t\t\ttenure: tenure.value,\n\t\t}, advance)\n\n\t// A provider's page is another site, so this is a full load, not a router push.\n\tconst startKyc = () => run(\"start_kyc\", {}, (result) => { window.location.href = result.redirect_url })\n\tconst completeKyc = () => run(\"complete_kyc\", {}, advance)\n\tlet askedKyc = false\n\twatch(() => page.value.kyc?.status, (status) => {\n\t\tif (status !== \"Pending\" || askedKyc || context.route.query.step !== \"kyc\") return\n\t\taskedKyc = true\n\t\tcompleteKyc()\n\t}, { immediate: true })\n\n\tconst sendPledgeOtp = () => run(\"send_pledge_otp\", {}, () => { pledgeSent.value = true })\n\tconst confirmPledge = () => run(\"confirm_pledge\", { otp: pledgeOtp.value }, () => { pledgeSent.value = false; advance() })\n\n\tconst saveBank = () => run(\"save_bank_account\", { account_number: accountNumber.value, ifsc: ifsc.value }, advance)\n\n\tconst sendEsignOtp = () => run(\"send_esign_otp\", {}, () => {\n\t\tesignSent.value = true\n\t\tcontext.securedLoan.reload()\n\t})\n\tconst confirmEsign = () => run(\"confirm_esign\", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })\n\n\twatch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })\n\tconst withdraw = () => run(\"withdraw\", { amount: withdrawAmount.value }, advance)\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }\n}\n"
+ "script": "import { computed, ref, watch } from \"vue\"\nimport { call, toast } from \"frappe-ui\"\nimport { tone, appRoute, logout as endSession, useSearch, useMenus } from \"@app/utils/portal\"\n\nexport default function setup(context: any) {\n\tconst { router } = context\n\tconst showAlerts = ref(false)\n\tconst alertsTab = ref(\"attention\")\n\tconst sidebarCollapsed = ref<boolean | null>(null)\n\tconst pan = ref(\"\")\n\tconst collateral = ref(\"Mutual Funds\")\n\tconst holdingsRequest = ref(\"\")\n\tconst holdingsOtp = ref(\"\")\n\tconst notApproved = ref([])\n\tconst chosen = ref([] as string[])\n\tconst units = ref({} as Record<string, string>)\n\tconst loanAmount = ref(\"\")\n\tconst tenure = ref(\"12\")\n\tconst pledgeOtp = ref(\"\")\n\tconst pledgeSent = ref(false)\n\tconst accountNumber = ref(\"\")\n\tconst confirmAccount = ref(\"\")\n\tconst ifsc = ref(\"\")\n\tconst esignOtp = ref(\"\")\n\tconst esignSent = ref(false)\n\tconst withdrawAmount = ref(\"\")\n\n\tconst open = (url?: string) => {\n\t\tconst to = appRoute(url)\n\t\tif (to) router.push(to)\n\t}\n\tconst logout = () => endSession(router)\n\tconst search = useSearch(open)\n\tconst menus = useMenus(context.route, open, logout)\n\n\tconst page = computed<any>(() => context.securedLoan.data || {})\n\tconst busy = ref(false)\n\tconst viewing = ref(\"\")\n\tconst shown = computed(() => viewing.value || page.value.current || \"\")\n\n\tconst fail = (error: any) => toast.error(String(error?.messages?.[0] || error?.message || error))\n\t// Endpoints answer a provider's refusal with ok: false, so the logged attempt is kept.\n\tconst run = (method: string, args: Record<string, any>, then?: (result: any) => void) => {\n\t\tbusy.value = true\n\t\treturn call(`lending.portal.secured.${method}`, args)\n\t\t\t.then((result: any) => {\n\t\t\t\tif (result?.ok === false) { toast.error(result.message); return }\n\t\t\t\tif (result?.message) toast.success(result.message)\n\t\t\t\tthen?.(result)\n\t\t\t})\n\t\t\t.catch(fail)\n\t\t\t.finally(() => { busy.value = false })\n\t}\n\tconst advance = () => {\n\t\tviewing.value = \"\"\n\t\tcontext.securedLoan.reload()\n\t}\n\tconst viewStep = (row: any) => {\n\t\tif (row.state !== \"todo\") viewing.value = row.key === page.value.current ? \"\" : row.key\n\t}\n\tconst stepAt = computed(() => Math.max(0, (page.value.steps || []).findIndex((row: any) => row.key === shown.value)))\n\tconst stepTotal = computed(() => (page.value.steps || []).length)\n\tconst stepName = computed(() => page.value.steps?.[stepAt.value]?.label || \"\")\n\n\tconst money = (amount: number) =>\n\t\tnew Intl.NumberFormat(\"en-IN\", { style: \"currency\", currency: page.value.currency || \"INR\", maximumFractionDigits: 0 }).format(amount || 0)\n\n\tconst verifyPan = () => run(\"verify_pan\", { pan: pan.value }, advance)\n\n\tconst sendHoldingsOtp = () =>\n\t\trun(\"send_holdings_otp\", { collateral: collateral.value }, (result) => { holdingsRequest.value = result.request_id })\n\tconst fetchHoldings = () =>\n\t\trun(\"fetch_holdings\", { collateral: collateral.value, request_id: holdingsRequest.value, otp: holdingsOtp.value }, (result) => {\n\t\t\tnotApproved.value = result.not_approved || []\n\t\t\tholdingsRequest.value = \"\"\n\t\t\tholdingsOtp.value = \"\"\n\t\t\tadvance()\n\t\t})\n\tconst refetch = () => { viewing.value = \"eligibility\" }\n\n\tconst holdings = computed<any[]>(() => page.value.holdings || [])\n\t// One line per purchase lot, so a fund's units are the sum of its lines.\n\twatch(() => page.value.application?.lines, (lines) => {\n\t\tif (!lines?.length) return\n\t\tconst saved: Record<string, number> = {}\n\t\tlines.forEach((line: any) => { saved[line.holding] = (saved[line.holding] || 0) + line.units })\n\t\tchosen.value = Object.keys(saved)\n\t\tunits.value = Object.fromEntries(Object.entries(saved).map(([holding, count]) => [holding, String(count)]))\n\t}, { immediate: true })\n\tconst toggle = (holding: any) => {\n\t\tif (sent.value || !holding.pledgeable_units) return\n\t\tif (chosen.value.includes(holding.holding)) {\n\t\t\tchosen.value = chosen.value.filter((name) => name !== holding.holding)\n\t\t\treturn\n\t\t}\n\t\tchosen.value = [...chosen.value, holding.holding]\n\t\tunits.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }\n\t}\n\tconst setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? \"\") } }\n\tconst unitsOf = (row: any) => Number(units.value[row.holding] || 0)\n\tconst unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units\n\t// The same sum the server makes: units \u00d7 NAV, less the fund's haircut.\n\tconst lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)\n\tconst sent = computed(() => Boolean(page.value.application?.sent))\n\tconst chosenRows = computed(() => holdings.value.filter((row) => chosen.value.includes(row.holding)))\n\tconst chosenEligible = computed(() => chosenRows.value.reduce((sum, row) => sum + lends(row), 0))\n\tconst limit = computed(() => {\n\t\tconst ceiling = page.value.product?.maximum || 0\n\t\treturn Math.floor(ceiling ? Math.min(chosenEligible.value, ceiling) : chosenEligible.value)\n\t})\n\tconst useLimit = () => { loanAmount.value = String(limit.value) }\n\twatch(() => page.value.application?.amount, (amount) => { if (amount) loanAmount.value = String(amount) }, { immediate: true })\n\twatch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })\n\tconst canApply = computed(() =>\n\t\tchosenRows.value.length > 0 && chosenRows.value.every(unitsValid)\n\t\t&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)\n\tconst startApplication = () =>\n\t\trun(\"start_application\", {\n\t\t\tcollateral: collateral.value,\n\t\t\tlines: JSON.stringify(chosenRows.value.map((row) => ({ holding: row.holding, units: unitsOf(row) }))),\n\t\t\tloan_amount: loanAmount.value,\n\t\t\ttenure: tenure.value,\n\t\t}, advance)\n\n\t// A provider's page is another site, so this is a full load, not a router push.\n\tconst startKyc = () => run(\"start_kyc\", {}, (result) => { window.location.href = result.redirect_url })\n\tconst completeKyc = () => run(\"complete_kyc\", {}, advance)\n\tlet askedKyc = false\n\twatch(() => page.value.kyc?.status, (status) => {\n\t\tif (status !== \"Pending\" || askedKyc || context.route.query.step !== \"kyc\") return\n\t\taskedKyc = true\n\t\tcompleteKyc()\n\t}, { immediate: true })\n\n\tconst sendPledgeOtp = () => run(\"send_pledge_otp\", {}, () => { pledgeSent.value = true })\n\tconst confirmPledge = () => run(\"confirm_pledge\", { otp: pledgeOtp.value }, () => { pledgeSent.value = false; advance() })\n\n\tconst saveBank = () => run(\"save_bank_account\", { account_number: accountNumber.value, ifsc: ifsc.value }, advance)\n\n\tconst sendEsignOtp = () => run(\"send_esign_otp\", {}, () => {\n\t\tesignSent.value = true\n\t\tcontext.securedLoan.reload()\n\t})\n\tconst confirmEsign = () => run(\"confirm_esign\", { otp: esignOtp.value }, () => { esignSent.value = false; advance() })\n\n\twatch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })\n\tconst withdraw = () => run(\"withdraw\", { amount: withdrawAmount.value }, advance)\n\n\treturn { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }\n}\n"
 }

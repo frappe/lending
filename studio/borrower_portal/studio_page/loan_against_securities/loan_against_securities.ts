@@ -58,6 +58,9 @@ export default function setup(context: any) {
 	const viewStep = (row: any) => {
 		if (row.state !== "todo") viewing.value = row.key === page.value.current ? "" : row.key
 	}
+	const stepAt = computed(() => Math.max(0, (page.value.steps || []).findIndex((row: any) => row.key === shown.value)))
+	const stepTotal = computed(() => (page.value.steps || []).length)
+	const stepName = computed(() => page.value.steps?.[stepAt.value]?.label || "")
 
 	const money = (amount: number) =>
 		new Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", maximumFractionDigits: 0 }).format(amount || 0)
@@ -143,5 +146,5 @@ export default function setup(context: any) {
 	watch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
 	const withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
 }
