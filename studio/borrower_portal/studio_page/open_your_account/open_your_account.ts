@@ -39,7 +39,8 @@ export default function setup(context: any) {
 			.catch(fail)
 			.finally(() => { busy.value = false })
 	}
-	const register = () => {
+	// Not `register`: a setup() binding shadows the data source of the same name.
+	const openAccount = () => {
 		busy.value = true
 		call("lending.portal.secured.register", { token: token.value, full_name: fullName.value, email: email.value })
 			.then((result: any) => { window.location.href = router.resolve(result.redirect).href })
@@ -47,5 +48,5 @@ export default function setup(context: any) {
 			.finally(() => { busy.value = false })
 	}
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, mobileNumber, otp, fullName, email, busy, token, codeSent, sendCode, confirmCode, register }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, mobileNumber, otp, fullName, email, busy, token, codeSent, sendCode, confirmCode, openAccount }
 }

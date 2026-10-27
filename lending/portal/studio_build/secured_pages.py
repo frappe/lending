@@ -1073,7 +1073,8 @@ REGISTER_SCRIPT = '''\tconst busy = ref(false)
 \t\t\t.catch(fail)
 \t\t\t.finally(() => { busy.value = false })
 \t}
-\tconst register = () => {
+\t// Not `register`: a setup() binding shadows the data source of the same name.
+\tconst openAccount = () => {
 \t\tbusy.value = true
 \t\tcall("lending.portal.secured.register", { token: token.value, full_name: fullName.value, email: email.value })
 \t\t\t.then((result: any) => { window.location.href = router.resolve(result.redirect).href })
@@ -1111,7 +1112,7 @@ def build_register():
 					spacer(),
 					action("Send OTP", "sendCode()", visible="{{ !codeSent && !token }}"),
 					action("Verify", "confirmCode()", visible="{{ codeSent && !token }}"),
-					action("Open my account", "register()", enabled="fullName && email", visible="{{ token }}"),
+					action("Open my account", "openAccount()", enabled="fullName && email", visible="{{ token }}"),
 				],
 				gap="8px",
 			),
@@ -1128,7 +1129,7 @@ def build_register():
 		script=page_script(
 			state=[("mobileNumber", '""'), ("otp", '""'), ("fullName", '""'), ("email", '""')],
 			body=REGISTER_SCRIPT,
-			returns=["busy", "token", "codeSent", "sendCode", "confirmCode", "register"],
+			returns=["busy", "token", "codeSent", "sendCode", "confirmCode", "openAccount"],
 			framed=False,
 		),
 		allow_guest=True,
