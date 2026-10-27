@@ -5166,6 +5166,28 @@
               {
                "componentName": "Button",
                "componentProps": {
+                "label": "Resend OTP",
+                "variant": "subtle",
+                "size": "md"
+               },
+               "componentSlots": {},
+               "componentEvents": {
+                "click": {
+                 "event": "click",
+                 "action": "Run Script",
+                 "script": "sendEsignOtp()"
+                }
+               },
+               "baseStyles": {},
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}",
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button2"
+              },
+              {
+               "componentName": "Button",
+               "componentProps": {
                 "label": "Sign",
                 "variant": "solid",
                 "size": "md",
@@ -5185,7 +5207,7 @@
                "tabletStyles": {},
                "children": [],
                "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}",
-               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button2"
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button3"
               }
              ],
              "originalElement": "div",

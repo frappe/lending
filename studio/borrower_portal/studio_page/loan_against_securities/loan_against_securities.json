@@ -4204,10 +4204,28 @@
                 "click": {
                  "action": "Run Script",
                  "event": "click",
-                 "script": "confirmEsign()"
+                 "script": "sendEsignOtp()"
                 }
                },
                "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button2",
+               "componentName": "Button",
+               "componentProps": {
+                "label": "Resend OTP",
+                "size": "md",
+                "variant": "subtle"
+               },
+               "componentSlots": {},
+               "visibilityCondition": "{{ esignSent && !securedLoan.data?.esign?.signed_on }}"
+              },
+              {
+               "componentEvents": {
+                "click": {
+                 "action": "Run Script",
+                 "event": "click",
+                 "script": "confirmEsign()"
+                }
+               },
+               "componentId": "secured_loan-0-container1-container1-container9-container2-container4-button3",
                "componentName": "Button",
                "componentProps": {
                 "disabled": "{{ !(esignOtp.length >= 4) }}",
@@ -5034,7 +5052,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:43:20.179941",
+ "modified": "2026-10-27 12:44:00.084649",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

@@ -1013,6 +1013,7 @@ def esign_panel():
 			),
 			actions(
 				action("Get the letter and OTP", "sendEsignOtp()", visible="{{ !esignSent && !%s }}" % signed),
+				button("Resend OTP", script="sendEsignOtp()", props={"size": "md"}, visible="{{ esignSent && !%s }}" % signed),
 				action("Sign", "confirmEsign()", enabled="esignOtp.length >= 4", visible="{{ esignSent && !%s }}" % signed),
 			),
 		],
