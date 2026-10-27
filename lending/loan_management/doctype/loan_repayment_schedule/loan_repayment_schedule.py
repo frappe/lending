@@ -18,11 +18,11 @@ from frappe.utils import (
 
 from lending.loan_management.doctype.loan.loan import get_cyclic_date
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
+from lending.loan_management.doctype.loan_installment_skip_request.loan_installment_skip_request import (
+	SkipScheduleRows,
+)
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_accrual_frequency_breaks,
-)
-from lending.loan_management.doctype.loan_repayment_schedule.skip_schedule_rows import (
-	SkipScheduleRows,
 )
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	add_single_month,
