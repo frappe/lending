@@ -540,6 +540,7 @@ def units_box(chosen):
 
 
 def vault_panel():
+	# Once sent, the units are pledged to this application, so the holdings no longer offer them.
 	totals = row(
 		[
 			figure("Portfolio value", read("totals.value")),
@@ -549,6 +550,7 @@ def vault_panel():
 		gap="12px",
 		align="stretch",
 		styles={"flexWrap": "wrap"},
+		visible="{{ !sent }}",
 	)
 	funds = repeater(
 		fallback(read("holdings"), "[]"),
@@ -556,6 +558,7 @@ def vault_panel():
 		data_key="holding",
 		empty="No funds yet. Check your eligibility first.",
 		styles={"display": "flex", "flexDirection": "column", "gap": "10px"},
+		visible="{{ !sent }}",
 	)
 	tenure = block(
 		"FormControl",
@@ -623,8 +626,17 @@ def vault_panel():
 				[button("Fetch my funds again", script="refetch()", variant="ghost", props={"size": "sm"})],
 				visible="{{ !sent }}",
 			),
-			form_grid([amount, tenure]),
+			form_grid([amount, tenure], visible="{{ !sent }}"),
 			locked,
+			security_list(read("application.pledges"), visible="{{ sent }}"),
+			summary_strip(
+				[
+					("Pledged value", read("application.value"), None),
+					("Loan amount", read("application.loan_amount"), None),
+					("Repay over", read("application.tenure_label"), "%s.data?.application?.tenure_label" % SOURCE),
+				],
+				visible="{{ sent }}",
+			),
 			actions(action("Continue", "startApplication()", enabled="canApply", visible="{{ !sent }}")),
 		],
 	)
