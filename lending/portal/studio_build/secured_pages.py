@@ -979,6 +979,7 @@ def withdraw_box():
 def loan_panel():
 	opened = "%s.data?.loan?.name" % SOURCE
 	waiting = "!%s && %s.data?.esign?.signed_on" % (opened, SOURCE)
+	paid = "%s.data?.loan?.has_disbursed" % SOURCE
 
 	# No panel title: each state has its own heading.
 	return panel(
@@ -988,8 +989,14 @@ def loan_panel():
 		[
 			column(
 				[
-					heading("Your loan is ready"),
-					done_line("Your loan {{ %s.data.loan.name }} is open." % SOURCE, None),
+					# Sanctioned is not open: nothing is paid until the first withdrawal.
+					heading("Your loan is sanctioned", visible="{{ !%s }}" % paid),
+					done_line(
+						"Loan {{ %s.data.loan.name }} is sanctioned. Withdraw what you need into your bank account." % SOURCE,
+						"{{ !%s }}" % paid,
+					),
+					heading("Your loan is open", visible="{{ %s }}" % paid),
+					done_line("Loan {{ %s.data.loan.name }} is open." % SOURCE, "{{ %s }}" % paid),
 					summary_strip(
 						[
 							("Sanctioned", read("loan.amount"), None),

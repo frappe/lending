@@ -5051,7 +5051,7 @@
               {
                "componentName": "TextBlock",
                "componentProps": {
-                "text": "Your loan is ready",
+                "text": "Your loan is sanctioned",
                 "tag": "h2",
                 "fontSize": "text-lg"
                },
@@ -5064,6 +5064,7 @@
                "mobileStyles": {},
                "tabletStyles": {},
                "children": [],
+               "visibilityCondition": "{{ !securedLoan.data?.loan?.has_disbursed }}",
                "componentId": "secured_loan-0-container1-container1-container10-container1-container1-textblock1"
               },
               {
@@ -5106,7 +5107,7 @@
                 {
                  "componentName": "TextBlock",
                  "componentProps": {
-                  "text": "Your loan {{ securedLoan.data.loan.name }} is open.",
+                  "text": "Loan {{ securedLoan.data.loan.name }} is sanctioned. Withdraw what you need into your bank account.",
                   "tag": "p",
                   "fontSize": "text-base"
                  },
@@ -5119,8 +5120,85 @@
                  "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container1-textblock1"
                 }
                ],
+               "visibilityCondition": "{{ !securedLoan.data?.loan?.has_disbursed }}",
                "originalElement": "div",
                "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container1"
+              },
+              {
+               "componentName": "TextBlock",
+               "componentProps": {
+                "text": "Your loan is open",
+                "tag": "h2",
+                "fontSize": "text-lg"
+               },
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "fontWeight": "600",
+                "color": "var(--ink-gray-9)"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [],
+               "visibilityCondition": "{{ securedLoan.data?.loan?.has_disbursed }}",
+               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-textblock2"
+              },
+              {
+               "componentName": "container",
+               "componentProps": {},
+               "componentSlots": {},
+               "componentEvents": {},
+               "baseStyles": {
+                "display": "flex",
+                "flexDirection": "row",
+                "alignItems": "center",
+                "gap": "10px"
+               },
+               "mobileStyles": {},
+               "tabletStyles": {},
+               "children": [
+                {
+                 "componentName": "HTML",
+                 "componentProps": {
+                  "html": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>"
+                 },
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "display": "flex",
+                  "alignItems": "center",
+                  "flex": "0 0 auto",
+                  "width": "28px",
+                  "height": "28px",
+                  "justifyContent": "center",
+                  "borderRadius": "var(--radius-5)",
+                  "backgroundColor": "var(--surface-green-2)",
+                  "color": "var(--ink-green-8)"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-html1"
+                },
+                {
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "text": "Loan {{ securedLoan.data.loan.name }} is open.",
+                  "tag": "p",
+                  "fontSize": "text-base"
+                 },
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {},
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-textblock1"
+                }
+               ],
+               "visibilityCondition": "{{ securedLoan.data?.loan?.has_disbursed }}",
+               "originalElement": "div",
+               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2"
               },
               {
                "componentName": "container",
@@ -5169,7 +5247,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container1-textblock1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1-textblock1"
                   },
                   {
                    "componentName": "TextBlock",
@@ -5187,11 +5265,11 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container1-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1-textblock2"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container1"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1"
                 },
                 {
                  "componentName": "container",
@@ -5223,7 +5301,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container2-textblock1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-textblock1"
                   },
                   {
                    "componentName": "TextBlock",
@@ -5241,11 +5319,11 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container2-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-textblock2"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container2"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2"
                 },
                 {
                  "componentName": "container",
@@ -5277,7 +5355,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container3-textblock1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3-textblock1"
                   },
                   {
                    "componentName": "TextBlock",
@@ -5295,11 +5373,11 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container3-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3-textblock2"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container3"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3"
                 },
                 {
                  "componentName": "container",
@@ -5331,7 +5409,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container4-textblock1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container4-textblock1"
                   },
                   {
                    "componentName": "TextBlock",
@@ -5349,15 +5427,15 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container4-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container4-textblock2"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2-container4"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container4"
                 }
                ],
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container2"
+               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3"
               },
               {
                "componentName": "container",
@@ -5408,7 +5486,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1-textblock1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container1-textblock1"
                   },
                   {
                    "componentName": "TextBlock",
@@ -5425,11 +5503,11 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container1-textblock2"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container1"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container1"
                 },
                 {
                  "componentName": "container",
@@ -5466,7 +5544,7 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-formcontrol1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-formcontrol1"
                   },
                   {
                    "componentName": "container",
@@ -5503,7 +5581,7 @@
                      "mobileStyles": {},
                      "tabletStyles": {},
                      "children": [],
-                     "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-container1-html1"
+                     "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-container1-html1"
                     },
                     {
                      "componentName": "container",
@@ -5534,7 +5612,7 @@
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [],
-                       "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-container1-container1-textblock1"
+                       "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-container1-container1-textblock1"
                       },
                       {
                        "componentName": "TextBlock",
@@ -5551,19 +5629,19 @@
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [],
-                       "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-container1-container1-textblock2"
+                       "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-container1-container1-textblock2"
                       }
                      ],
                      "originalElement": "div",
-                     "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-container1-container1"
+                     "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-container1-container1"
                     }
                    ],
                    "originalElement": "div",
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2-container1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-container1"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container2"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2"
                 },
                 {
                  "componentName": "container",
@@ -5591,7 +5669,7 @@
                    "tabletStyles": {},
                    "children": [],
                    "originalElement": "div",
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3-container1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container3-container1"
                   },
                   {
                    "componentName": "Button",
@@ -5614,16 +5692,16 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3-button1"
+                   "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container3-button1"
                   }
                  ],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3-container3"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container3"
                 }
                ],
                "visibilityCondition": "{{ securedLoan.data?.loan?.available > 0 }}",
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container3"
+               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4"
               },
               {
                "componentName": "Alert",
@@ -5666,7 +5744,7 @@
                  "tabletStyles": {},
                  "children": [],
                  "originalElement": "div",
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container1"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container5-container1"
                 },
                 {
                  "componentName": "Button",
@@ -5687,11 +5765,11 @@
                  "mobileStyles": {},
                  "tabletStyles": {},
                  "children": [],
-                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-button1"
+                 "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container5-button1"
                 }
                ],
                "originalElement": "div",
-               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4"
+               "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container5"
               }
              ],
              "visibilityCondition": "{{ securedLoan.data?.loan?.name }}",
