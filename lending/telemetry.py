@@ -50,11 +50,8 @@ FIXED_VOCABULARIES = {
 	"status": {"Open", "Approved", "Rejected", "Initiated"},
 	"employment_type": {"Salaried", "Self-employed"},
 	"foreclosure_type": {"Manual Foreclosure", "Internal Foreclosure"},
-	"bureau": {"CIBIL", "Experian", "Equifax", "CRIF", "Manual"},
-	"decision": {"Approve", "Decline", "Refer"},
 	"closure": {"requested", "closed"},
 	"based_on": {"On Outstanding Principal", "On Total Payable Amount", "Flat"},
-	"prequalification_status": {"Pre-Qualified", "Not Pre-Qualified", "Referred"},
 }
 
 
@@ -202,9 +199,6 @@ def on_loan_lead_submit(doc, method=None):
 		{
 			"applicant_type": doc.applicant_type,
 			"employment_type": doc.employment_type,
-			"prequalification_status": doc.prequalification_status,
-			"has_bureau_consent": bool(doc.bureau_consent),
-			"has_bureau_report": bool(doc.bureau_report),
 		},
 	)
 	capture_first("first_loan_lead_created")
@@ -219,8 +213,6 @@ def on_loan_application_submit(doc, method=None):
 			"status": doc.status,
 			"is_term_loan": bool(doc.is_term_loan),
 			"is_secured_loan": bool(doc.is_secured_loan),
-			"from_lead": bool(doc.loan_lead),
-			"has_decision": bool(doc.decision),
 		},
 	)
 	capture_first("first_loan_application_created")
@@ -321,16 +313,6 @@ SUBMIT_EVENTS = {
 	"Loan Security Release": ("loan_security_released", None, {}),
 	"Loan Security Deposit": ("loan_security_deposit_submitted", None, {}),
 	"Bulk Repayment Log": ("bulk_repayment_submitted", None, {}),
-	"Credit Bureau Report": (
-		"credit_bureau_report_pulled",
-		"first_credit_bureau_report_pulled",
-		{"bureau": "bureau", "applicant_type": "applicant_type", "obligations_known": "obligations_known"},
-	),
-	"Loan Decision": (
-		"loan_decision_made",
-		"first_loan_decision_made",
-		{"decision": "decision", "applicant_type": "applicant_type"},
-	),
 }
 
 
@@ -419,8 +401,6 @@ CREATION_MILESTONES = {
 	"Loan Security Type": "loan_security_type_configured",
 	"Loan Partner": "loan_partner_configured",
 	"Dunning Rule": "dunning_rule_configured",
-	"Decision Strategy": "decision_strategy_configured",
-	"Scorecard": "scorecard_configured",
 	"Loan Category": "loan_category_configured",
 	"Loan Classification": "loan_classification_configured",
 	"Loan Document Type": "loan_document_type_configured",
