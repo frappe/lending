@@ -48,8 +48,8 @@ from lending.portal.print_formats import SANCTION_FORMAT
 
 ROUTE = "/borrower-portal/secured-loan"
 
+# No registration step: the borrower signed up or logged in before reaching the journey.
 STEPS = (
-	("registration", "Registration"),
 	("pan", "Verify PAN"),
 	("eligibility", "Check eligibility"),
 	("vault", "Choose funds"),
@@ -191,7 +191,6 @@ def get_secured_loan() -> dict:
 def step_rows(payload: dict) -> list[dict]:
 	application = payload["application"]
 	done = {
-		"registration": True,
 		"pan": payload["pan"]["verified"],
 		"eligibility": bool(payload["holdings"]),
 		"vault": bool(application.get("name")),
@@ -343,7 +342,7 @@ def holding_totals(holdings: list[dict]) -> dict:
 	return {"value": money(value), "eligible": money(eligible), "eligible_amount": eligible}
 
 
-# Step 2: PAN
+# Step 1: Verify PAN
 
 
 @frappe.whitelist(methods=["POST"])
@@ -387,7 +386,7 @@ def verify_pan() -> dict:
 	return {"ok": True}
 
 
-# Step 3: Eligibility check
+# Step 2: Check eligibility
 
 
 def verified_kyc(customer: str):
@@ -463,7 +462,7 @@ def read_collateral() -> str:
 	return collateral
 
 
-# Step 4: View vault
+# Step 3: Choose funds
 
 
 def product_payload(application: str | None) -> dict:
@@ -663,7 +662,7 @@ def application_payload(application: str | None) -> dict:
 	}
 
 
-# Step 5: KYC
+# Step 4: KYC
 
 
 @frappe.whitelist(methods=["POST"])
@@ -764,7 +763,7 @@ def assert_sample_kyc(customer: str):
 	return kyc
 
 
-# Step 6: Pledge securities
+# Step 5: Pledge funds
 
 
 @frappe.whitelist(methods=["POST"])
@@ -848,7 +847,7 @@ def pledge_payload(application: str | None) -> dict:
 	}
 
 
-# Step 7: Bank details
+# Step 6: Bank details
 
 
 @frappe.whitelist(methods=["POST"])
@@ -936,7 +935,7 @@ def bank_payload(application: str | None) -> dict:
 	}
 
 
-# Step 8: E-sign
+# Step 7: E-sign
 
 
 @frappe.whitelist(methods=["POST"])
@@ -1109,7 +1108,7 @@ def download_sanction_letter():
 	frappe.local.response.type = "pdf"
 
 
-# Step 9: Loan open
+# Step 8: Your loan
 
 
 def loan_payload(application: str | None) -> dict:
@@ -1196,7 +1195,7 @@ def first_due_date(loan: str):
 	)
 
 
-# Step 1: Registration, for a visitor who has no login yet
+# Sign-up, for a visitor who has no login yet; it comes before the journey, not inside it
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep

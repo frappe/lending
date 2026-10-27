@@ -229,7 +229,6 @@ def build_journey():
 			SOURCE,
 			[
 				stepper(),
-				registration_panel(),
 				pan_panel(),
 				eligibility_panel(),
 				vault_panel(),
@@ -491,15 +490,6 @@ def form_grid(fields, columns=2, **kwargs):
 		},
 		mobile={"gridTemplateColumns": "minmax(0, 1fr)"},
 		**kwargs,
-	)
-
-
-def registration_panel():
-	return panel(
-		"registration",
-		"Registration",
-		"",
-		[done_line("You are signed in as {{ %s.data.customer_name }}." % SOURCE, None)],
 	)
 
 
