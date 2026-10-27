@@ -1940,9 +1940,10 @@
                    "componentProps": {
                     "disabled": "{{ sent }}",
                     "error": "{{ unitsValid(dataItem) ? '' : 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
+                    "inputmode": "decimal",
                     "modelValue": "{{ units[dataItem.holding] }}",
                     "size": "sm",
-                    "type": "number",
+                    "type": "text",
                     "variant": "outline"
                    },
                    "componentSlots": {}
@@ -2070,7 +2071,9 @@
                  "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-formcontrol1",
                  "componentName": "FormControl",
                  "componentProps": {
+                  "description": "{{ amount(loanAmount) > 0 ? money(amount(loanAmount)) : '' }}",
                   "disabled": "{{ sent }}",
+                  "inputmode": "decimal",
                   "label": "Loan amount",
                   "modelValue": {
                    "$type": "variable",
@@ -2078,7 +2081,7 @@
                   },
                   "placeholder": "{{ limit > 0 ? 'Up to ' + money(limit) : 'Choose a fund first' }}",
                   "size": "md",
-                  "type": "number",
+                  "type": "text",
                   "variant": "subtle"
                  },
                  "componentSlots": {}
@@ -4672,13 +4675,15 @@
                    "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container2-formcontrol1",
                    "componentName": "FormControl",
                    "componentProps": {
+                    "description": "{{ amount(withdrawAmount) > 0 ? money(amount(withdrawAmount)) : '' }}",
+                    "inputmode": "decimal",
                     "label": "Amount",
                     "modelValue": {
                      "$type": "variable",
                      "name": "withdrawAmount"
                     },
                     "size": "md",
-                    "type": "number",
+                    "type": "text",
                     "variant": "subtle"
                    },
                    "componentSlots": {}
@@ -4794,7 +4799,7 @@
                    "componentId": "secured_loan-0-container1-container1-container10-container1-container1-container4-container3-button1",
                    "componentName": "Button",
                    "componentProps": {
-                    "disabled": "{{ !(Number(withdrawAmount) > 0 && Number(withdrawAmount) <= securedLoan.data.loan.available) }}",
+                    "disabled": "{{ !(amount(withdrawAmount) > 0 && amount(withdrawAmount) <= securedLoan.data.loan.available) }}",
                     "label": "Withdraw to my bank",
                     "loading": "{{ busy }}",
                     "size": "md",
@@ -5057,7 +5062,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:45:56.840202",
+ "modified": "2026-10-27 12:48:58.867215",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

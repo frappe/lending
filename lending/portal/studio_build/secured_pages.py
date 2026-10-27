@@ -35,6 +35,9 @@ CONSENT_ROUTE = "/kyc-consent"
 REGISTER_ROUTE = "/register"
 
 TENURES = (6, 12, 18, 24, 36)
+
+# Text with a numeric keypad, not type=number: that draws spinners and accepts "1e5".
+NUMERIC = {"type": "text", "inputmode": "decimal"}
 CIRCLE = 28
 ACCENT = "var(--portal-primary, var(--surface-gray-9))"
 ACCENT_INK = "var(--portal-primary-ink, var(--ink-base))"
@@ -107,7 +110,9 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \t\tunits.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }
 \t}
 \tconst setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? "") } }
-\tconst unitsOf = (row: any) => Number(units.value[row.holding] || 0)
+\t// The fields are text, so "1,00,000" must read as a number, as the server's flt reads it.
+\tconst amount = (value: any) => Number(String(value ?? "").replace(/,/g, "")) || 0
+\tconst unitsOf = (row: any) => amount(units.value[row.holding])
 \tconst unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units
 \t// The same sum the server makes: units × NAV, less the fund's haircut.
 \tconst lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)
@@ -123,7 +128,7 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \twatch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })
 \tconst canApply = computed(() =>
 \t\tchosenRows.value.length > 0 && chosenRows.value.every(unitsValid)
-\t\t&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
+\t\t&& amount(loanAmount.value) > 0 && amount(loanAmount.value) <= limit.value)
 \tconst startApplication = () =>
 \t\trun("start_application", {
 \t\t\tcollateral: collateral.value,
@@ -186,6 +191,7 @@ RETURNS = [
 	"stepTotal",
 	"stepName",
 	"money",
+	"amount",
 	"verifyPan",
 	"sendHoldingsOtp",
 	"fetchHoldings",
@@ -457,6 +463,11 @@ def field(label, ref_name, kind="text", placeholder="", error=None, **kwargs):
 	return block("FormControl", props=props, **kwargs)
 
 
+def typed_money(ref_name):
+	# The typed digits are ungrouped, so the field echoes them as money under the input.
+	return "{{ amount(%s) > 0 ? money(amount(%s)) : '' }}" % (ref_name, ref_name)
+
+
 def action(label, script, enabled=None, variant="solid", **kwargs):
 	props = {"size": "md", "loading": "{{ busy }}"}
 	if enabled:
@@ -616,7 +627,7 @@ def units_box(chosen):
 	units = block(
 		"FormControl",
 		props={
-			"type": "number",
+			**NUMERIC,
 			"size": "sm",
 			"variant": "outline",
 			"modelValue": "{{ units[dataItem.holding] }}",
@@ -703,8 +714,9 @@ def vault_panel():
 			block(
 				"FormControl",
 				props={
-					"type": "number",
+					**NUMERIC,
 					"label": "Loan amount",
+					"description": typed_money("loanAmount"),
 					"size": "md",
 					"variant": "subtle",
 					"placeholder": "{{ limit > 0 ? 'Up to ' + money(limit) : 'Choose a fund first' }}",
@@ -1027,8 +1039,9 @@ def withdraw_box():
 	amount = block(
 		"FormControl",
 		props={
-			"type": "number",
+			**NUMERIC,
 			"label": "Amount",
+			"description": typed_money("withdrawAmount"),
 			"size": "md",
 			"variant": "subtle",
 			"modelValue": {"$type": "variable", "name": "withdrawAmount"},
@@ -1063,7 +1076,7 @@ def withdraw_box():
 				action(
 					"Withdraw to my bank",
 					"withdraw()",
-					enabled="Number(withdrawAmount) > 0 && Number(withdrawAmount) <= %s.data.loan.available" % SOURCE,
+					enabled="amount(withdrawAmount) > 0 && amount(withdrawAmount) <= %s.data.loan.available" % SOURCE,
 				)
 			),
 		],

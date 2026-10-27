@@ -101,7 +101,9 @@ export default function setup(context: any) {
 		units.value = { ...units.value, [holding.holding]: String(holding.pledgeable_units) }
 	}
 	const setUnits = (holding: string, value: any) => { units.value = { ...units.value, [holding]: String(value ?? "") } }
-	const unitsOf = (row: any) => Number(units.value[row.holding] || 0)
+	// The fields are text, so "1,00,000" must read as a number, as the server's flt reads it.
+	const amount = (value: any) => Number(String(value ?? "").replace(/,/g, "")) || 0
+	const unitsOf = (row: any) => amount(units.value[row.holding])
 	const unitsValid = (row: any) => unitsOf(row) > 0 && unitsOf(row) <= row.pledgeable_units
 	// The same sum the server makes: units × NAV, less the fund's haircut.
 	const lends = (row: any) => (unitsValid(row) ? unitsOf(row) * row.nav * (1 - row.haircut / 100) : 0)
@@ -117,7 +119,7 @@ export default function setup(context: any) {
 	watch(() => page.value.application?.tenure, (months) => { if (months) tenure.value = String(months) }, { immediate: true })
 	const canApply = computed(() =>
 		chosenRows.value.length > 0 && chosenRows.value.every(unitsValid)
-		&& Number(loanAmount.value) > 0 && Number(loanAmount.value) <= limit.value)
+		&& amount(loanAmount.value) > 0 && amount(loanAmount.value) <= limit.value)
 	const startApplication = () =>
 		run("start_application", {
 			collateral: collateral.value,
@@ -150,5 +152,5 @@ export default function setup(context: any) {
 	watch(() => page.value.loan?.available, (available) => { if (available) withdrawAmount.value = String(Math.floor(available)) }, { immediate: true })
 	const withdraw = () => run("withdraw", { amount: withdrawAmount.value }, advance)
 
-	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
+	return { tone, open, logout, showAlerts, alertsTab, sidebarCollapsed, ...search, ...menus, pan, collateral, holdingsRequest, holdingsOtp, notApproved, chosen, units, loanAmount, tenure, pledgeOtp, pledgeSent, accountNumber, confirmAccount, ifsc, esignOtp, esignSent, withdrawAmount, busy, shown, viewStep, stepAt, stepTotal, stepName, money, amount, verifyPan, sendHoldingsOtp, fetchHoldings, refetch, toggle, setUnits, unitsValid, lends, sent, chosenEligible, limit, useLimit, canApply, startApplication, startKyc, completeKyc, sendPledgeOtp, confirmPledge, saveBank, sendEsignOtp, confirmEsign, withdraw }
 }
