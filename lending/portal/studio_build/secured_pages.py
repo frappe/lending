@@ -703,7 +703,7 @@ def vault_panel():
 					"label": "Loan amount",
 					"size": "md",
 					"variant": "subtle",
-					"placeholder": "{{ 'Up to ' + money(limit) }}",
+					"placeholder": "{{ limit > 0 ? 'Up to ' + money(limit) : 'Choose a fund first' }}",
 					"disabled": "{{ sent }}",
 					"modelValue": {"$type": "variable", "name": "loanAmount"},
 				},
@@ -711,17 +711,12 @@ def vault_panel():
 			row(
 				[
 					muted("{{ 'Selected funds let you borrow up to ' + money(limit) }}"),
-					button(
-						"Use this",
-						script="useLimit()",
-						variant="ghost",
-						props={"size": "sm"},
-						visible="{{ !sent && limit > 0 }}",
-					),
+					button("Use this", script="useLimit()", variant="ghost", props={"size": "sm"}),
 				],
 				gap="6px",
-				visible="{{ !sent }}",
+				visible="{{ !sent && limit > 0 }}",
 			),
+			muted("Choose one or more funds above to see how much you can borrow.", visible="{{ !sent && !limit }}"),
 		],
 		gap="6px",
 	)

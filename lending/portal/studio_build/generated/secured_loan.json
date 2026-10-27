@@ -2548,7 +2548,7 @@
                   "label": "Loan amount",
                   "size": "md",
                   "variant": "subtle",
-                  "placeholder": "{{ 'Up to ' + money(limit) }}",
+                  "placeholder": "{{ limit > 0 ? 'Up to ' + money(limit) : 'Choose a fund first' }}",
                   "disabled": "{{ sent }}",
                   "modelValue": {
                    "$type": "variable",
@@ -2613,13 +2613,30 @@
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "visibilityCondition": "{{ !sent && limit > 0 }}",
                    "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-button1"
                   }
                  ],
-                 "visibilityCondition": "{{ !sent }}",
+                 "visibilityCondition": "{{ !sent && limit > 0 }}",
                  "originalElement": "div",
                  "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1"
+                },
+                {
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "text": "Choose one or more funds above to see how much you can borrow.",
+                  "tag": "p",
+                  "fontSize": "text-p-sm"
+                 },
+                 "componentSlots": {},
+                 "componentEvents": {},
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "mobileStyles": {},
+                 "tabletStyles": {},
+                 "children": [],
+                 "visibilityCondition": "{{ !sent && !limit }}",
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-textblock1"
                 }
                ],
                "originalElement": "div",

@@ -2076,7 +2076,7 @@
                    "$type": "variable",
                    "name": "loanAmount"
                   },
-                  "placeholder": "{{ 'Up to ' + money(limit) }}",
+                  "placeholder": "{{ limit > 0 ? 'Up to ' + money(limit) : 'Choose a fund first' }}",
                   "size": "md",
                   "type": "number",
                   "variant": "subtle"
@@ -2119,8 +2119,7 @@
                     "size": "sm",
                     "variant": "ghost"
                    },
-                   "componentSlots": {},
-                   "visibilityCondition": "{{ !sent && limit > 0 }}"
+                   "componentSlots": {}
                   }
                  ],
                  "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1",
@@ -2128,7 +2127,21 @@
                  "componentProps": {},
                  "componentSlots": {},
                  "originalElement": "div",
-                 "visibilityCondition": "{{ !sent }}"
+                 "visibilityCondition": "{{ !sent && limit > 0 }}"
+                },
+                {
+                 "baseStyles": {
+                  "color": "var(--ink-gray-6)"
+                 },
+                 "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-textblock1",
+                 "componentName": "TextBlock",
+                 "componentProps": {
+                  "fontSize": "text-p-sm",
+                  "tag": "p",
+                  "text": "Choose one or more funds above to see how much you can borrow."
+                 },
+                 "componentSlots": {},
+                 "visibilityCondition": "{{ !sent && !limit }}"
                 }
                ],
                "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1",
@@ -5021,7 +5034,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:36:35.497699",
+ "modified": "2026-10-27 12:38:47.841260",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",
