@@ -980,13 +980,15 @@ def loan_panel():
 	opened = "%s.data?.loan?.name" % SOURCE
 	waiting = "!%s && %s.data?.esign?.signed_on" % (opened, SOURCE)
 
+	# No panel title: each state has its own heading.
 	return panel(
 		"loan",
-		"Your loan is ready",
+		"",
 		"",
 		[
 			column(
 				[
+					heading("Your loan is ready"),
 					done_line("Your loan {{ %s.data.loan.name }} is open." % SOURCE, None),
 					summary_strip(
 						[
@@ -1012,11 +1014,16 @@ def loan_panel():
 			),
 			column(
 				[
-					heading("Your application is with our team", tag="h3", size="text-lg"),
-					muted("Everything is signed. We will approve the loan and let you know, usually within a working day."),
+					column(
+						[
+							heading("Your application is with our team"),
+							muted("Everything is signed. We will approve the loan and let you know, usually within a working day."),
+						],
+						gap="2px",
+					),
 					actions(button("Track my application", script="open(%s.data.application.url)" % SOURCE, props={"size": "md"})),
 				],
-				gap="10px",
+				gap="14px",
 				visible="{{ %s }}" % waiting,
 			),
 		],
