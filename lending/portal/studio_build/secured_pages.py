@@ -603,7 +603,11 @@ def holding_choice():
 	chosen = "chosen.includes(dataItem.holding)"
 
 	return column(
-		[choice([details], "toggle(dataItem)", chosen, fills=True), units_box(chosen)],
+		[
+			# Several funds are often chosen at once; a dark ring on each outweighed the Continue button.
+			choice([details], "toggle(dataItem)", chosen, fills=True, ring="1px solid var(--outline-gray-5)"),
+			units_box(chosen),
+		],
 		gap="0px",
 	)
 

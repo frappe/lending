@@ -2074,7 +2074,7 @@
                     "position": "absolute",
                     "inset": "-1px",
                     "borderRadius": "calc(var(--radius-4) + 1px)",
-                    "border": "2px solid var(--outline-gray-9)",
+                    "border": "1px solid var(--outline-gray-5)",
                     "backgroundColor": "var(--surface-gray-1)",
                     "pointerEvents": "none"
                    },

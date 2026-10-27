@@ -308,7 +308,7 @@ def radio(chosen):
 	]
 
 
-def choice(content, script, chosen, fills=False, **kwargs):
+def choice(content, script, chosen, fills=False, ring="2px solid var(--outline-gray-9)", **kwargs):
 	# Block styles can't follow state, so "selected" is an overlay; `!` beats PANEL's inline border.
 	selected = container(
 		[],
@@ -316,7 +316,7 @@ def choice(content, script, chosen, fills=False, **kwargs):
 			"position": "absolute",
 			"inset": "-1px",
 			"borderRadius": "calc(var(--radius-4) + 1px)",
-			"border": "2px solid var(--outline-gray-9)",
+			"border": ring,
 			"backgroundColor": "var(--surface-gray-1)",
 			"pointerEvents": "none",
 		},
