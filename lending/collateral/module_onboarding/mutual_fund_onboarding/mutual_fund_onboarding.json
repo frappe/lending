@@ -9,7 +9,7 @@
  "doctype": "Module Onboarding",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-10-27 00:00:00",
+ "modified": "2026-10-27 00:00:01",
  "modified_by": "Administrator",
  "module": "Collateral",
  "name": "Mutual Fund Onboarding",
@@ -33,7 +33,11 @@
   },
   {
    "is_optional": 0,
-   "step": "Set Up Borrower Portal"
+   "step": "Add Mutual Fund Holding"
+  },
+  {
+   "is_optional": 0,
+   "step": "Pledge Mutual Fund Units"
   }
  ],
  "title": "Lend against mutual funds"
