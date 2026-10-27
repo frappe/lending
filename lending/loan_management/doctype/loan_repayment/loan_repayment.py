@@ -165,21 +165,25 @@ class LoanRepayment(LoanController):
 			create_update_loan_reschedule,
 		)
 
+		if self.needs_reschedule():
+			create_update_loan_reschedule(
+				self.against_loan,
+				self.value_date,
+				self.name,
+				self.repayment_type,
+				self.principal_amount_paid,
+				self.unbooked_interest_paid,
+				loan_disbursement=self.loan_disbursement,
+			)
+
+	def needs_reschedule(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		excess_amount = flt(self.principal_amount_paid, precision) - flt(self.pending_principal_amount, precision)
-
-		if self.repayment_type in ("Advance Payment", "Pre Payment") and excess_amount < 0:
-			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
-				create_update_loan_reschedule(
-					self.against_loan,
-					self.value_date,
-					self.name,
-					self.repayment_type,
-					self.principal_amount_paid,
-					self.unbooked_interest_paid,
-					loan_disbursement=self.loan_disbursement,
-				)
+		return (
+			self.repayment_type in ("Advance Payment", "Pre Payment")
+			and flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision)
+			and flt(self.amount_paid, precision) > flt(self.payable_amount, precision)
+		)
 
 	def on_submit(self):
 		if self.is_imported:
@@ -230,7 +234,11 @@ class LoanRepayment(LoanController):
 		if flt(self.principal_amount_paid, precision) > 0 and flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision):
 			on_settlement_or_closure = True
 
-		if self.repayment_type in ("Advance Payment", "Pre Payment"):
+		needs_reschedule = self.needs_reschedule()
+
+		if self.repayment_type in ("Advance Payment", "Pre Payment") and (
+			on_settlement_or_closure or needs_reschedule
+		):
 			reversed_accruals += self.reverse_future_accruals_and_demands(on_settlement_or_closure=on_settlement_or_closure)
 
 		if flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision):
@@ -249,7 +257,7 @@ class LoanRepayment(LoanController):
 				self.allocate_amounts(amounts, on_submit=True)
 				self.db_update_all()
 
-				if self.repayment_type in ("Advance Payment", "Pre Payment"):
+				if needs_reschedule:
 					create_update_loan_reschedule(
 						self.against_loan,
 						self.value_date,
