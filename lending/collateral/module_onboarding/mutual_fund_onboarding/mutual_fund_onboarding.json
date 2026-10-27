@@ -9,7 +9,7 @@
  "doctype": "Module Onboarding",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-10-25 00:00:00",
+ "modified": "2026-10-27 00:00:00",
  "modified_by": "Administrator",
  "module": "Collateral",
  "name": "Mutual Fund Onboarding",
@@ -17,15 +17,15 @@
  "steps": [
   {
    "is_optional": 0,
+   "step": "Create Securities Loan Product"
+  },
+  {
+   "is_optional": 0,
    "step": "Add Mutual Fund Scheme"
   },
   {
    "is_optional": 0,
    "step": "Update Mutual Fund Prices"
-  },
-  {
-   "is_optional": 0,
-   "step": "Create Securities Loan Product"
   },
   {
    "is_optional": 1,
