@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 const INSTALLMENTS_PATH =
-	"lending.loan_management.doctype.loan_restructure.installment_skip";
+	"lending.loan_management.doctype.loan_installment_skip_request.loan_installment_skip_request";
 
 frappe.ui.form.on("Loan Installment Skip Request", {
 	setup(frm) {

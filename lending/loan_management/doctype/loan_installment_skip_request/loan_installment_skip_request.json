@@ -87,7 +87,8 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Open\nApproved\nRejected\nCancelled"
+   "options": "Open\nApproved\nRejected\nCancelled",
+   "read_only": 1
   },
   {
    "fetch_from": "loan.installment_skip_approver",
@@ -95,7 +96,8 @@
    "fieldname": "approver",
    "fieldtype": "Link",
    "label": "Approver",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fetch_from": "approver.full_name",
@@ -170,7 +172,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-27 12:00:00.000000",
+ "modified": "2026-10-27 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Installment Skip Request",

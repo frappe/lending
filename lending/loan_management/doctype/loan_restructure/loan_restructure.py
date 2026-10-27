@@ -13,11 +13,13 @@ from lending.loan_management.doctype.loan.loan import (
 	update_all_linked_loan_customer_npa_status,
 	update_watch_period_date_for_all_loans,
 )
+from lending.loan_management.doctype.loan_installment_skip_request.loan_installment_skip_request import (
+	InstallmentSkip,
+)
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
 )
-from lending.loan_management.doctype.loan_restructure.installment_skip import InstallmentSkip
 
 
 class LoanRestructure(AccountsController):
@@ -350,6 +352,7 @@ class LoanRestructure(AccountsController):
 				"Loan Repayment Schedule", {"loan_restructure": self.name, "docstatus": 0}, "name"
 			)
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule.status = "Initiated"
 			schedule.save()
 			schedule.submit()
@@ -413,6 +416,7 @@ class LoanRestructure(AccountsController):
 		schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 
 		doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+		doc.flags.ignore_permissions = self.flags.ignore_permissions
 		doc.flags.ignore_links = True
 		doc.reverse_interest_accruals = 1
 		doc.cancel()
@@ -683,10 +687,12 @@ class LoanRestructure(AccountsController):
 		draft_schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 		if draft_schedule:
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule, for_update=True)
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule.update(self.get_schedule_details(adjusted_interest))
 			schedule.save()
 		else:
 			schedule = frappe.new_doc("Loan Repayment Schedule")
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule_details = self.get_schedule_details(adjusted_interest)
 			schedule.update(schedule_details)
 			schedule.insert()
