@@ -4951,7 +4951,14 @@
               "display": "flex",
               "flexDirection": "row",
               "alignItems": "center",
-              "gap": "12px"
+              "gap": "12px",
+              "borderWidth": "1px",
+              "borderStyle": "solid",
+              "borderColor": "var(--outline-gray-2)",
+              "borderRadius": "var(--radius-4)",
+              "overflow": "hidden",
+              "flexShrink": "0",
+              "padding": "14px 16px"
              },
              "mobileStyles": {},
              "tabletStyles": {},
@@ -5665,13 +5672,8 @@
                 "display": "flex",
                 "flexDirection": "column",
                 "gap": "14px",
-                "borderWidth": "1px",
-                "borderStyle": "solid",
-                "borderColor": "var(--outline-gray-2)",
-                "borderRadius": "var(--radius-4)",
-                "overflow": "visible",
-                "flexShrink": "0",
-                "padding": "16px"
+                "paddingTop": "16px",
+                "borderTop": "1px solid var(--outline-gray-2)"
                },
                "mobileStyles": {},
                "tabletStyles": {},

@@ -1005,6 +1005,8 @@ def esign_panel():
 					button("Read the letter", script="window.open(%s, '_blank')" % letter, props={"size": "md"}),
 				],
 				gap="12px",
+				# Boxed like the verified bank account: both are one record the step produced.
+				styles=dict(LIST_BOX, padding="14px 16px"),
 				visible="{{ %s }}" % letter,
 			),
 			form_grid(
@@ -1065,7 +1067,8 @@ def withdraw_box():
 			),
 		],
 		gap="14px",
-		styles=dict(LIST_BOX, padding="16px", overflow="visible"),
+		# A rule, not a box: it sits inside the panel's own card.
+		styles={"paddingTop": "16px", "borderTop": "1px solid var(--outline-gray-2)"},
 		visible="{{ %s.data?.loan?.available > 0 }}" % SOURCE,
 	)
 
