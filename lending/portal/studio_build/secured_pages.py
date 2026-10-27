@@ -68,8 +68,12 @@ SCRIPT = '''\tconst page = computed<any>(() => context.%(source)s.data || {})
 \tconst stepTotal = computed(() => (page.value.steps || []).length)
 \tconst stepName = computed(() => page.value.steps?.[stepAt.value]?.label || "")
 
+\t// As the server's fmt_money writes it ("₹ 1,85,408.60"), since both appear side by side.
 \tconst money = (amount: number) =>
-\t\tnew Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", maximumFractionDigits: 0 }).format(amount || 0)
+\t\tnew Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", minimumFractionDigits: 2 })
+\t\t\t.formatToParts(amount || 0)
+\t\t\t.map((part) => (part.type === "currency" ? part.value + " " : part.value))
+\t\t\t.join("")
 
 \tconst verifyPan = () => run("verify_pan", { pan: pan.value }, advance)
 

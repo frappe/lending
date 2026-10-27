@@ -62,8 +62,12 @@ export default function setup(context: any) {
 	const stepTotal = computed(() => (page.value.steps || []).length)
 	const stepName = computed(() => page.value.steps?.[stepAt.value]?.label || "")
 
+	// As the server's fmt_money writes it ("₹ 1,85,408.60"), since both appear side by side.
 	const money = (amount: number) =>
-		new Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", maximumFractionDigits: 0 }).format(amount || 0)
+		new Intl.NumberFormat("en-IN", { style: "currency", currency: page.value.currency || "INR", minimumFractionDigits: 2 })
+			.formatToParts(amount || 0)
+			.map((part) => (part.type === "currency" ? part.value + " " : part.value))
+			.join("")
 
 	const verifyPan = () => run("verify_pan", { pan: pan.value }, advance)
 
