@@ -1801,7 +1801,7 @@
              "componentName": "Alert",
              "componentProps": {
               "title": "{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}",
-              "theme": "yellow"
+              "theme": "amber"
              },
              "componentSlots": {},
              "componentEvents": {},

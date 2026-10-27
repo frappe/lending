@@ -1452,7 +1452,7 @@
              "componentId": "secured_loan-0-container1-container1-container5-container2-alert1",
              "componentName": "Alert",
              "componentProps": {
-              "theme": "yellow",
+              "theme": "amber",
               "title": "{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}"
              },
              "componentSlots": {},
@@ -4856,7 +4856,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:28:14.154665",
+ "modified": "2026-10-27 12:28:52.575394",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

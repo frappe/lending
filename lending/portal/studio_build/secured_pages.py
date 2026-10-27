@@ -642,7 +642,7 @@ def vault_panel():
 
 	not_approved = alert(
 		"{{ 'Not on our approved list, so not shown: ' + notApproved.map((row) => row.scheme).join(', ') }}",
-		theme="yellow",
+		theme="amber",
 		visible="{{ notApproved.length }}",
 	)
 
@@ -1066,7 +1066,7 @@ def build_consent():
 	)
 	body = column(
 		[
-			alert("Demo only: this page stands in for DigiLocker, so no real documents are read.", theme="yellow"),
+			alert("Demo only: this page stands in for DigiLocker, so no real documents are read.", theme="amber"),
 			heading("Share your documents", size="text-2xl"),
 			muted("{{ %s.data.customer_name }}, the lender is asking to read these documents from your account:" % CONSENT_SOURCE),
 			documents,
