@@ -577,13 +577,14 @@ def holding_choice():
 			muted("of {{ dataItem.value_label }} · {{ dataItem.haircut_label }}", styles={"textAlign": "right"}),
 		],
 		gap="2px",
-		styles={"alignItems": "flex-end"},
+		# A fixed lane, so the amounts line up from fund to fund.
+		styles={"alignItems": "flex-end", "width": "220px", "flexShrink": "0"},
 	)
 
 	chosen = "chosen.includes(dataItem.holding)"
 
 	return column(
-		[choice([left, right], "toggle(dataItem)", chosen), units_box(chosen)],
+		[choice([left, right], "toggle(dataItem)", chosen, fills=True), units_box(chosen)],
 		gap="0px",
 	)
 

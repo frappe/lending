@@ -308,7 +308,7 @@ def radio(chosen):
 	]
 
 
-def choice(content, script, chosen, **kwargs):
+def choice(content, script, chosen, fills=False, **kwargs):
 	# Block styles can't follow state, so "selected" is an overlay; `!` beats PANEL's inline border.
 	selected = container(
 		[],
@@ -322,8 +322,9 @@ def choice(content, script, chosen, **kwargs):
 		},
 		visible="{{ %s }}" % chosen,
 	)
+	# Content that `fills` takes the free width itself; a spacer would split it and shift columns per row.
 	body = row(
-		[*content, spacer(), *radio(chosen)],
+		[*content, *([] if fills else [spacer()]), *radio(chosen)],
 		gap="12px",
 		align="start",
 		styles={"position": "relative", "width": "100%"},

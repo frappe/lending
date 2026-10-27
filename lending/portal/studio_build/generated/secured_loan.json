@@ -2182,7 +2182,9 @@
                       "display": "flex",
                       "flexDirection": "column",
                       "gap": "2px",
-                      "alignItems": "flex-end"
+                      "alignItems": "flex-end",
+                      "width": "220px",
+                      "flexShrink": "0"
                      },
                      "mobileStyles": {},
                      "tabletStyles": {},
@@ -2233,20 +2235,6 @@
                      "componentSlots": {},
                      "componentEvents": {},
                      "baseStyles": {
-                      "flex": "1 1 auto"
-                     },
-                     "mobileStyles": {},
-                     "tabletStyles": {},
-                     "children": [],
-                     "originalElement": "div",
-                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container3"
-                    },
-                    {
-                     "componentName": "container",
-                     "componentProps": {},
-                     "componentSlots": {},
-                     "componentEvents": {},
-                     "baseStyles": {
                       "width": "20px",
                       "height": "20px",
                       "flexShrink": "0",
@@ -2259,7 +2247,7 @@
                      "children": [],
                      "visibilityCondition": "{{ !(chosen.includes(dataItem.holding)) }}",
                      "originalElement": "div",
-                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container4"
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container3"
                     },
                     {
                      "componentName": "container",
@@ -2297,12 +2285,12 @@
                        "mobileStyles": {},
                        "tabletStyles": {},
                        "children": [],
-                       "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container5-html1"
+                       "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container4-html1"
                       }
                      ],
                      "visibilityCondition": "{{ chosen.includes(dataItem.holding) }}",
                      "originalElement": "div",
-                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container5"
+                     "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container1-container2-container4"
                     }
                    ],
                    "originalElement": "div",
