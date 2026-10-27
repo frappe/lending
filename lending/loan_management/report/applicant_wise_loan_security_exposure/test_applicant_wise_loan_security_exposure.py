@@ -5,19 +5,13 @@ from lending.loan_management.report.applicant_wise_loan_security_exposure.applic
 	get_applicant_wise_total_loan_security_qty,
 	get_columns,
 )
-from lending.tests.test_utils import (
-	create_loan_security,
-	create_loan_security_price,
-	create_loan_security_type,
-	create_secured_demand_loan,
-)
+from lending.tests.test_utils import create_loan_security_price, create_secured_demand_loan
 from lending.tests.utils import LendingTestSuite
 
 
 class TestApplicantWiseLoanSecurityExposure(LendingTestSuite):
-	def setUp(self):
-		create_loan_security_type()
-		create_loan_security()
+	@classmethod
+	def make_class_data(cls):
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 5), True)
 		create_secured_demand_loan("_Test Loan Customer", disbursement_amount=30000)
 

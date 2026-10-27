@@ -14,10 +14,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
@@ -29,11 +26,11 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 	Use this class for testing interactions between multiple components.
 	"""
 
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_security_deposit_adjustment(self):
 		loan = create_loan(
@@ -43,7 +40,7 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			"Repay Over Number of Periods",
 			4,
 			"Customer",
-			posting_date="2024-03-25",
+			posting_date="2026-08-24",
 			rate_of_interest=10,
 		)
 		loan.submit()
@@ -51,20 +48,20 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
-			disbursement_date="2024-03-25",
-			repayment_start_date="2024-04-01",
+			disbursement_date="2026-08-24",
+			repayment_start_date="2026-08-31",
 			withhold_security_deposit=1,
 		)
 
-		process_daily_loan_demands(posting_date="2024-05-01", loan=loan.name)
+		process_daily_loan_demands(posting_date="2026-09-30", loan=loan.name)
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-05-01")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2026-09-30")
 		payable_amount = round(float(amounts["payable_amount"] or 0.0), 2)
 
-		repayment_entry_1 = create_repayment_entry(loan.name, "2024-05-01", payable_amount)
+		repayment_entry_1 = create_repayment_entry(loan.name, "2026-09-30", payable_amount)
 		repayment_entry_1.submit()
 
-		amounts = calculate_amounts(against_loan=loan.name, posting_date="2024-05-05")
+		amounts = calculate_amounts(against_loan=loan.name, posting_date="2026-10-04")
 		total_net_payable = round(
 			float(amounts["unaccrued_interest"] or 0.0)
 			+ float(amounts["interest_amount"] or 0.0)
@@ -81,7 +78,7 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 			{
 				"doctype": "Loan Adjustment",
 				"loan": loan.name,
-				"posting_date": "2024-05-05",
+				"posting_date": "2026-10-04",
 				"foreclosure_type": "Internal Foreclosure",
 				"adjustments": [{"loan_repayment_type": "Normal Repayment", "amount": total_net_payable}],
 			}
@@ -123,9 +120,10 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 		self.assertEqual(flt(security_deposit.allocated_amount, 2), 0)
 		self.assertEqual(flt(security_deposit.available_amount, 2), flt(repayment_doc.amount_paid, 2))
 
-	def test_security_deposit_adjustment_with_unbooked_interest(self):
-		# Accrued interest not yet billed (unbooked_interest) should still count
-		# as payable for a Security Deposit Adjustment.
+
+class TestLoanSecurityDepositWithAccruedInterest(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
 		set_loan_accrual_frequency("Daily")
 
 		loan = create_loan(
@@ -152,6 +150,12 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date="2025-01-20", company="_Test Company"
 		)
+		cls.loan = loan.name
+
+	def test_security_deposit_adjustment_with_unbooked_interest(self):
+		# Accrued interest not yet billed (unbooked_interest) should still count
+		# as payable for a Security Deposit Adjustment.
+		loan = frappe.get_doc("Loan", self.loan)
 
 		amounts = calculate_amounts(loan.name, "2025-01-21", for_update=True)
 		payable_amount = flt(amounts.get("payable_amount", 0), 2)
@@ -182,32 +186,7 @@ class TestLoanSecurityDeposit(LendingTestSuite):
 	def test_security_deposit_adjustment_books_unaccrued_interest_as_interest(self):
 		# An adjustment amount that only fits within payable_amount + unbooked_interest
 		# + unaccrued_interest must still be booked as interest, not principal or excess.
-		set_loan_accrual_frequency("Daily")
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			1000000,
-			"Repay Over Number of Periods",
-			24,
-			"Customer",
-			repayment_start_date="2025-02-05",
-			posting_date="2025-01-06",
-			rate_of_interest=28,
-		)
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date="2025-01-06",
-			repayment_start_date="2025-02-05",
-			withhold_security_deposit=1,
-		)
-
-		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2025-01-20", company="_Test Company"
-		)
+		loan = frappe.get_doc("Loan", self.loan)
 
 		# posting_date is after the latest accrual, so unaccrued_interest applies.
 		posting_date = "2025-01-25"

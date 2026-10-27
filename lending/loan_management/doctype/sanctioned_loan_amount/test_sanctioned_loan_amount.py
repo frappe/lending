@@ -13,21 +13,17 @@ from lending.tests.test_utils import (
 	create_loan_security_price,
 	create_loan_security_release,
 	create_loan_security_type,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 	update_loan_security_price,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestSanctionedLoanAmount(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 		create_loan_security_type()
 		create_loan_security()
 

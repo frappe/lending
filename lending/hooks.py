@@ -200,6 +200,48 @@ doc_events = {
 	"Journal Entry": {
 		"on_cancel": "lending.overrides.journal_entry.add_ignore_linked_doctypes_for_jv",
 	},
+	"Days Past Due Log": {
+		"after_insert": "lending.loan_management.collections.on_dpd_log_upsert",
+		"on_update": "lending.loan_management.collections.on_dpd_log_upsert",
+	},
+	# ---- Usage telemetry: recurring feature usage (see lending/telemetry.py) ----
+	"Loan Lead": {"on_submit": "lending.telemetry.on_loan_lead_submit"},
+	"Loan Application": {"on_submit": "lending.telemetry.on_loan_application_submit"},
+	"Loan": {"on_submit": "lending.telemetry.on_loan_submit"},
+	"Loan Disbursement": {"on_submit": "lending.telemetry.on_loan_disbursement_submit"},
+	"Loan Repayment": {"on_submit": "lending.telemetry.on_loan_repayment_submit"},
+	"Loan Restructure": {"on_submit": "lending.telemetry.on_loan_restructure_submit"},
+	"Loan Write Off": {"on_submit": "lending.telemetry.on_loan_write_off_submit"},
+	"Loan Adjustment": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Refund": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Balance Adjustment": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Transfer": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Security Assignment": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Security Release": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Security Deposit": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Bulk Repayment Log": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Credit Bureau Report": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Loan Decision": {"on_submit": "lending.telemetry.on_submit_event"},
+	"Process Loan Interest Accrual": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Process Loan Demand": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Process Loan Classification": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Process Collection Dunning": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Process Loan Accounting": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Process Loan Security Shortfall": {"on_submit": "lending.telemetry.on_process_submit"},
+	"Loan NPA Log": {"after_insert": "lending.telemetry.on_loan_npa_log_insert"},
+	"Loan Freeze Log": {"after_insert": "lending.telemetry.on_loan_freeze_log_insert"},
+	"Collection Case": {"after_insert": "lending.telemetry.on_collection_case_insert"},
+	# ---- Activation telemetry: post-install setup funnel (first-time milestones) ----
+	"Loan Product": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Security Type": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Partner": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Dunning Rule": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Decision Strategy": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Scorecard": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Category": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Classification": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Document Type": {"after_insert": "lending.telemetry.on_milestone_insert"},
+	"Loan Purpose": {"after_insert": "lending.telemetry.on_milestone_insert"},
 }
 
 accounting_dimension_doctypes = [
@@ -221,11 +263,13 @@ repost_allowed_doctypes = [
 # ---------------
 
 scheduler_events = {
+	"daily": ["lending.telemetry.capture_daily_portfolio_pulse"],
 	"daily_long": [
 		"lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual.schedule_accrual",
 		"lending.loan_management.doctype.process_loan_demand.process_loan_demand.process_daily_loan_demands",
 		"lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall",
 		"lending.loan_management.doctype.process_loan_classification.process_loan_classification.create_process_loan_classification",
+		"lending.loan_management.doctype.process_collection_dunning.process_collection_dunning.create_process_collection_dunning",
 		"lending.loan_management.doctype.loan.loan.auto_close_loc_loans",
 		"lending.loan_management.doctype.process_loan_accounting.process_loan_accounting.process_loan_accounting",
 		"lending.loan_management.doctype.process_loan_statement_of_accounts.process_loan_statement_of_accounts.send_auto_email",

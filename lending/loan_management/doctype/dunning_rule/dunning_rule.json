@@ -1,0 +1,118 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:rule_name",
+ "creation": "2026-09-17 10:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "rule_name",
+  "company",
+  "loan_product",
+  "classification_code",
+  "column_break_1",
+  "min_dpd",
+  "max_dpd",
+  "cadence_days",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "rule_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Rule Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Loan Product",
+   "options": "Loan Product"
+  },
+  {
+   "fieldname": "classification_code",
+   "fieldtype": "Link",
+   "label": "Classification Code",
+   "options": "Loan Classification"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "min_dpd",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Min DPD",
+   "reqd": 1
+  },
+  {
+   "fieldname": "max_dpd",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max DPD",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "cadence_days",
+   "fieldtype": "Int",
+   "label": "Cadence Days",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-07 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Dunning Rule",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Officer"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

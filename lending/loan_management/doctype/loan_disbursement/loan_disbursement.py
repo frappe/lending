@@ -369,6 +369,18 @@ class LoanDisbursement(LoanController):
 				"default_account",
 			)
 
+		loan_schedule_type, loan_frequency, loan_start_date = frappe.db.get_value(
+			"Loan", self.against_loan, ["repayment_schedule_type", "repayment_frequency", "repayment_start_date"]
+		)
+		if loan_schedule_type != "Line of Credit":
+			self.repayment_frequency = loan_frequency
+			if (
+				not self.repayment_start_date
+				and loan_start_date
+				and getdate(loan_start_date) >= getdate(self.disbursement_date)
+			):
+				self.repayment_start_date = loan_start_date
+
 		if self.repayment_method == "Repay Fixed Amount per Period":
 			self.monthly_repayment_amount = frappe.db.get_value(
 				"Loan", self.against_loan, "monthly_repayment_amount"
@@ -951,9 +963,11 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 	)
 
 	if on_shortfall_check:
-		detail_map = frappe._dict(
-			frappe.get_all("Loan Security", fields=["name", "loan_to_value_ratio"], as_list=1)
+		from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+			get_ltv_ratio_map,
 		)
+
+		detail_map = get_ltv_ratio_map()
 	else:
 		detail_map = frappe._dict(
 			frappe.get_all("Loan Security", fields=["name", "haircut"], as_list=1)

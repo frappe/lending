@@ -1,21 +1,15 @@
 from frappe.utils import add_days, nowdate
 
 from lending.loan_management.report.loan_security_status.loan_security_status import execute
-from lending.tests.test_utils import (
-	create_loan_security,
-	create_loan_security_price,
-	create_loan_security_type,
-	create_secured_demand_loan,
-)
+from lending.tests.test_utils import create_loan_security_price, create_secured_demand_loan
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanSecurityStatus(LendingTestSuite):
-	def setUp(self):
-		create_loan_security_type()
-		create_loan_security()
+	@classmethod
+	def make_class_data(cls):
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 5), True)
-		self.loan = create_secured_demand_loan("_Test Loan Customer", disbursement_amount=50000)
+		cls.loan = create_secured_demand_loan("_Test Loan Customer", disbursement_amount=50000)
 
 	def test_loan_security_status_filters_by_applicant_and_status(self):
 		report = execute(

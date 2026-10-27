@@ -136,6 +136,8 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		)
 	)
 
+	ltv_ratio_map = get_ltv_ratio_map()
+
 	# Loan-wise shortfall processing
 	for loan in loans:
 		if loan.status == "Disbursed":
@@ -148,17 +150,17 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			)
 
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
-		ltv_ratio = 0.0
 		security_value = 0.0
+		allowed_amount = 0.0
 
 		for security, qty in pledged_securities.items():
-			if not ltv_ratio:
-				ltv_ratio = get_ltv_ratio(security)
-			security_value += flt(loan_security_price_map.get(security)) * flt(qty)
+			value = flt(loan_security_price_map.get(security)) * flt(qty)
+			security_value += value
+			allowed_amount += value * flt(ltv_ratio_map.get(security)) / 100
 
-		current_ratio = (outstanding_amount / security_value) * 100 if security_value else 0
-		if flt(current_ratio, 6) > flt(ltv_ratio, 6):
-			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
+		shortfall_amount = outstanding_amount - allowed_amount
+		if security_value and flt(shortfall_amount, 6) > 0:
+			current_ratio = (outstanding_amount / security_value) * 100
 			create_loan_security_shortfall(
 				outstanding_amount,
 				security_value,
@@ -167,11 +169,8 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 				process_loan_security_shortfall,
 				loan=loan.name,
 			)
-		elif loan_shortfall_map.get(loan.name):
-			shortfall_amount = outstanding_amount - ((security_value * ltv_ratio) / 100)
-			if flt(shortfall_amount, 6) <= 0:
-				shortfall = loan_shortfall_map.get(loan.name)
-				update_pending_shortfall(shortfall)
+		elif loan_shortfall_map.get(loan.name) and flt(shortfall_amount, 6) <= 0:
+			update_pending_shortfall(loan_shortfall_map.get(loan.name))
 
 	# Applicant-wise shortfall processing
 	for applicant in applicants:
@@ -238,10 +237,28 @@ def create_loan_security_shortfall(
 	ltv_shortfall.save()
 
 
-def get_ltv_ratio(loan_security):
-	loan_security_type = frappe.db.get_value("Loan Security", loan_security, "loan_security_type")
-	ltv_ratio = frappe.db.get_value("Loan Security Type", loan_security_type, "loan_to_value_ratio")
-	return ltv_ratio
+def get_ltv_ratio_map(loan_securities=None):
+	"""LTV of each Loan Security, or of its Loan Security Type when the security has none."""
+	security = frappe.qb.DocType("Loan Security")
+	security_type = frappe.qb.DocType("Loan Security Type")
+
+	query = (
+		frappe.qb.from_(security)
+		.left_join(security_type)
+		.on(security.loan_security_type == security_type.name)
+		.select(
+			security.name,
+			security.loan_to_value_ratio,
+			security_type.loan_to_value_ratio.as_("type_ltv_ratio"),
+		)
+	)
+	if loan_securities:
+		query = query.where(security.name.isin(loan_securities))
+
+	return {
+		row.name: flt(row.loan_to_value_ratio) or flt(row.type_ltv_ratio)
+		for row in query.run(as_dict=True)
+	}
 
 
 def update_pending_shortfall(shortfall):

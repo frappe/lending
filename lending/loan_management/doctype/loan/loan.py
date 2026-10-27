@@ -42,6 +42,7 @@ from lending.loan_management.utils import (
 	loan_accounting_enabled,
 	update_repayment_schedule_demand_generated,
 )
+from lending.telemetry import capture_loan_closure
 from lending.utils import daterange
 
 
@@ -919,6 +920,7 @@ def request_loan_closure(loan: str, posting_date: str | date | datetime | None =
 		values["closure_date"] = posting_date
 
 	frappe.db.set_value("Loan", loan, values)
+	capture_loan_closure(requested=status != "Closed")
 
 	return {
 		"message": response,
@@ -948,6 +950,7 @@ def close_unsecured_term_loan(loan: str):
 		and not loan_details.is_secured_loan
 	):
 		frappe.db.set_value("Loan", loan, "status", "Closed")
+		capture_loan_closure(requested=False)
 	else:
 		frappe.throw(_("Cannot close this loan until full repayment"))
 
