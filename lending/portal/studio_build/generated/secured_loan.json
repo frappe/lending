@@ -531,6 +531,11 @@
                "event": "click",
                "action": "Run Script",
                "script": "viewStep(dataItem)"
+              },
+              "keydown": {
+               "event": "keydown",
+               "action": "Run Script",
+               "script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }"
               }
              },
              "baseStyles": {
@@ -786,6 +791,11 @@
               }
              ],
              "originalElement": "div",
+             "attributes": {
+              "role": "button",
+              "tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}",
+              "aria-current": "{{ dataItem.key === shown ? 'step' : undefined }}"
+             },
              "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1"
             }
            ],
@@ -2381,11 +2391,11 @@
                    "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock1"
                   },
                   {
-                   "componentName": "TextBlock",
+                   "componentName": "Button",
                    "componentProps": {
-                    "text": "Use this",
-                    "tag": "p",
-                    "fontSize": "text-p-sm"
+                    "label": "Use this",
+                    "variant": "ghost",
+                    "size": "sm"
                    },
                    "componentSlots": {},
                    "componentEvents": {
@@ -2395,17 +2405,12 @@
                      "script": "useLimit()"
                     }
                    },
-                   "baseStyles": {
-                    "color": "var(--ink-gray-9)",
-                    "fontWeight": "500",
-                    "cursor": "pointer",
-                    "whiteSpace": "nowrap"
-                   },
+                   "baseStyles": {},
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
                    "visibilityCondition": "{{ !sent && limit > 0 }}",
-                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock2"
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-button1"
                   }
                  ],
                  "visibilityCondition": "{{ !sent }}",

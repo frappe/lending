@@ -324,7 +324,20 @@ def stepper():
 			"minWidth": "76px",
 			"cursor": "pointer",
 		},
-		events=click("viewStep(dataItem)"),
+		events={
+			**click("viewStep(dataItem)"),
+			"keydown": {
+				"event": "keydown",
+				"action": "Run Script",
+				"script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }",
+			},
+		},
+		# A step not reached yet opens nothing, so it takes no focus.
+		attributes={
+			"role": "button",
+			"tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}",
+			"aria-current": "{{ %s ? 'step' : undefined }}" % viewed,
+		},
 	)
 	steps = repeater(
 		fallback(read("steps"), "[]"),
@@ -619,10 +632,11 @@ def vault_panel():
 			row(
 				[
 					muted("{{ 'Selected funds let you borrow up to ' + money(limit) }}"),
-					text(
+					button(
 						"Use this",
-						styles={"color": "var(--ink-gray-9)", "fontWeight": "500", "cursor": "pointer", "whiteSpace": "nowrap"},
-						events=click("useLimit()"),
+						script="useLimit()",
+						variant="ghost",
+						props={"size": "sm"},
 						visible="{{ !sent && limit > 0 }}",
 					),
 				],

@@ -405,6 +405,11 @@
            },
            "children": [
             {
+             "attributes": {
+              "aria-current": "{{ dataItem.key === shown ? 'step' : undefined }}",
+              "role": "button",
+              "tabindex": "{{ dataItem.state === 'todo' ? -1 : 0 }}"
+             },
              "baseStyles": {
               "alignItems": "center",
               "cursor": "pointer",
@@ -618,6 +623,11 @@
                "action": "Run Script",
                "event": "click",
                "script": "viewStep(dataItem)"
+              },
+              "keydown": {
+               "action": "Run Script",
+               "event": "keydown",
+               "script": "if (['Enter', ' '].includes(eventArgs[0].key)) { eventArgs[0].preventDefault(); viewStep(dataItem) }"
               }
              },
              "componentId": "secured_loan-0-container1-container1-container1-repeater1-container1",
@@ -1914,12 +1924,6 @@
                    "componentSlots": {}
                   },
                   {
-                   "baseStyles": {
-                    "color": "var(--ink-gray-9)",
-                    "cursor": "pointer",
-                    "fontWeight": "500",
-                    "whiteSpace": "nowrap"
-                   },
                    "componentEvents": {
                     "click": {
                      "action": "Run Script",
@@ -1927,12 +1931,12 @@
                      "script": "useLimit()"
                     }
                    },
-                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-textblock2",
-                   "componentName": "TextBlock",
+                   "componentId": "secured_loan-0-container1-container1-container5-container2-container3-container1-container1-button1",
+                   "componentName": "Button",
                    "componentProps": {
-                    "fontSize": "text-p-sm",
-                    "tag": "p",
-                    "text": "Use this"
+                    "label": "Use this",
+                    "size": "sm",
+                    "variant": "ghost"
                    },
                    "componentSlots": {},
                    "visibilityCondition": "{{ !sent && limit > 0 }}"
@@ -4836,7 +4840,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:31:00.779637",
+ "modified": "2026-10-27 12:32:09.199596",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",
