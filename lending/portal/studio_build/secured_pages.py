@@ -1035,6 +1035,10 @@ def esign_panel():
 	)
 
 
+def go_to_loan():
+	return button("Go to my loan", script="open(%s.data.loan.url)" % SOURCE, props={"size": "md"})
+
+
 def withdraw_box():
 	amount = block(
 		"FormControl",
@@ -1048,18 +1052,23 @@ def withdraw_box():
 		},
 		styles={"width": "220px"},
 	)
-	destination = row(
+	# Labelled and one input tall like the Amount field, so the two share a label row and an input row.
+	destination = column(
 		[
-			icon_tile("building-2", tile=36, glyph=18),
-			column(
+			text("Paid into", size="text-sm", styles={"color": "var(--ink-gray-6)"}),
+			row(
 				[
-					text(read("bank.bank"), size="text-base", styles={"fontWeight": "500", "color": "var(--ink-gray-9)"}),
-					muted("{{ 'Account ' + %s.data.bank.account }}" % SOURCE),
+					icon_tile("building-2", tile=32, glyph=16),
+					text(
+						"{{ %s.data.bank.bank + ' · Account ' + %s.data.bank.account }}" % (SOURCE, SOURCE),
+						size="text-base",
+						styles={"color": "var(--ink-gray-9)", "whiteSpace": "nowrap"},
+					),
 				],
-				gap="2px",
+				gap="10px",
 			),
 		],
-		gap="10px",
+		gap="6px",
 	)
 
 	return column(
@@ -1071,8 +1080,9 @@ def withdraw_box():
 				],
 				gap="2px",
 			),
-			row([amount, destination], gap="24px", align="end", styles={"flexWrap": "wrap"}),
+			row([amount, destination], gap="24px", align="start", styles={"flexWrap": "wrap"}),
 			actions(
+				go_to_loan(),
 				action(
 					"Withdraw to my bank",
 					"withdraw()",
@@ -1122,14 +1132,8 @@ def loan_panel():
 						description=read("loan.pending_note"),
 						visible=read("loan.pending_note"),
 					),
-					actions(
-						button(
-							"Go to my loan",
-							script="open(%s.data.loan.url)" % SOURCE,
-							variant="subtle",
-							props={"size": "md"},
-						)
-					),
+					# While money can be withdrawn, this sits in the withdraw form's own action row.
+					actions(go_to_loan(), visible="{{ !(%s.data?.loan?.available > 0) }}" % SOURCE),
 				],
 				gap="14px",
 				visible="{{ %s }}" % opened,
