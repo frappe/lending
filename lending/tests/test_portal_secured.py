@@ -14,6 +14,7 @@ from lending.collateral.mutual_fund.test_mutual_fund import (
 )
 from lending.loan_integrations.adapters import register
 from lending.loan_integrations.sample_verification import (
+	CONSENT_KEY,
 	SampleBankVerificationAdapter,
 	SampleESignAdapter,
 	SampleKycAdapter,
@@ -266,6 +267,20 @@ class TestTheStepsAreChecked(SecuredJourneyTestSuite):
 		self.fetch_holdings()
 		self.start_application()
 
+		with self.assertRaises(frappe.ValidationError):
+			post("send_pledge_otp")
+
+	def test_a_kyc_for_another_pan_is_refused(self):
+		self.verify_pan()
+		self.fetch_holdings()
+		self.start_application()
+		request = post("start_kyc")["redirect_url"].split("request=")[1]
+		post("give_kyc_consent")
+		key = f"{CONSENT_KEY}:{request}"
+		frappe.cache.set_value(key, {**frappe.cache.get_value(key), "pan": "AAAAA1111A"})
+
+		self.assertFalse(post("complete_kyc")["ok"])
+		self.assertEqual(frappe.db.get_value("Borrower KYC", CUSTOMER, "kyc_status"), "Rejected")
 		with self.assertRaises(frappe.ValidationError):
 			post("send_pledge_otp")
 

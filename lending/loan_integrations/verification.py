@@ -37,12 +37,13 @@ class KycAdapter(BaseAdapter):
 	provider_type = KYC
 
 	def start(self, context: dict) -> dict:
-		"""`name`, `mobile` and `return_url`. Returns `request_id` and the `redirect_url` to send the borrower to."""
+		"""`name`, `mobile`, the verified `pan` and `return_url`. Returns `request_id` and the
+		`redirect_url` to send the borrower to."""
 		raise NotImplementedError
 
 	def fetch(self, context: dict) -> dict:
 		"""`request_id`. Returns `status` (Pending, Verified or Rejected), `reference`, `name`,
-		`date_of_birth` and `address`."""
+		`date_of_birth`, `address` and the `pan` the KYC found, which must match the verified one."""
 		raise NotImplementedError
 
 

@@ -678,6 +678,7 @@ def start_kyc() -> dict:
 		"name": frappe.db.get_value("Customer", customer, "customer_name"),
 		"mobile": customer_mobile(customer),
 		"email": borrower_email(),
+		"pan": kyc.pan,
 		"return_url": f"{ROUTE}?step=kyc",
 	}
 
@@ -709,6 +710,15 @@ def complete_kyc() -> dict:
 	status = output.get("status")
 	if status == "Pending":
 		return {"ok": False, "message": _("Your KYC is not finished yet. Please complete it on DigiLocker.")}
+
+	# Without this, a borrower could verify one person's PAN and finish KYC as another.
+	if status == "Verified" and (output.get("pan") or "").upper() != kyc.pan:
+		kyc.update({"kyc_status": "Rejected", "kyc_request_id": None})
+		kyc.save(ignore_permissions=True)
+		return {
+			"ok": False,
+			"message": _("The PAN in your DigiLocker does not match the PAN you verified. Please contact us."),
+		}
 
 	kyc.kyc_status = status
 	if status == "Verified":

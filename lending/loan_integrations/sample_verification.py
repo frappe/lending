@@ -63,7 +63,11 @@ class SampleKycAdapter(KycAdapter):
 
 	def start(self, context):
 		request_id = reference("KYC")
-		frappe.cache.set_value(f"{CONSENT_KEY}:{request_id}", {"name": context.get("name")}, expires_in_sec=3600)
+		frappe.cache.set_value(
+			f"{CONSENT_KEY}:{request_id}",
+			{"name": context.get("name"), "pan": context.get("pan")},
+			expires_in_sec=3600,
+		)
 
 		return {"request_id": request_id, "redirect_url": f"{CONSENT_ROUTE}?request={request_id}"}
 
@@ -80,6 +84,7 @@ class SampleKycAdapter(KycAdapter):
 			"name": request.get("name"),
 			"date_of_birth": str(add_years(getdate(), -35)),
 			"address": "12 MG Road, Bengaluru, Karnataka 560001",
+			"pan": request.get("pan"),
 		}
 
 
