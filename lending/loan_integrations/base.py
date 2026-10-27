@@ -114,7 +114,7 @@ class BaseAdapter:
 			"Authorization": "Basic " + base64.b64encode(f"{client_id}:{secret}".encode()).decode(),
 		}
 
-	def request(self, method: str, path: str, headers: dict | None = None, **kwargs):
+	def request(self, method: str, path: str, headers: dict | None = None, raw: bool = False, **kwargs):
 		session = get_request_session(max_retries=0)
 		url = f"{self.get_base_url()}{path}"
 
@@ -133,5 +133,9 @@ class BaseAdapter:
 			)
 
 		response.raise_for_status()
+
+		# A file, such as a signed PDF, comes back as the response itself.
+		if raw:
+			return response
 
 		return response.json() if response.content else {}
