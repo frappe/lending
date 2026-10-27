@@ -2131,7 +2131,7 @@
                  "baseStyles": {
                   "display": "flex",
                   "flexDirection": "row",
-                  "alignItems": "center",
+                  "alignItems": "start",
                   "gap": "10px",
                   "padding": "10px 16px",
                   "marginTop": "-6px",
@@ -2156,8 +2156,9 @@
                    "componentSlots": {},
                    "componentEvents": {},
                    "baseStyles": {
-                    "color": "var(--ink-gray-7)",
-                    "whiteSpace": "nowrap"
+                    "paddingTop": "4px",
+                    "whiteSpace": "nowrap",
+                    "color": "var(--ink-gray-7)"
                    },
                    "mobileStyles": {},
                    "tabletStyles": {},
@@ -2171,7 +2172,8 @@
                     "size": "sm",
                     "variant": "outline",
                     "modelValue": "{{ units[dataItem.holding] }}",
-                    "disabled": "{{ sent }}"
+                    "disabled": "{{ sent }}",
+                    "error": "{{ unitsValid(dataItem) ? '' : 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}"
                    },
                    "componentSlots": {},
                    "componentEvents": {
@@ -2199,7 +2201,9 @@
                    "componentSlots": {},
                    "componentEvents": {},
                    "baseStyles": {
-                    "color": "var(--ink-gray-6)"
+                    "color": "var(--ink-gray-6)",
+                    "paddingTop": "4px",
+                    "whiteSpace": "nowrap"
                    },
                    "mobileStyles": {},
                    "tabletStyles": {},
@@ -2230,34 +2234,16 @@
                    "componentSlots": {},
                    "componentEvents": {},
                    "baseStyles": {
+                    "paddingTop": "4px",
+                    "whiteSpace": "nowrap",
                     "fontWeight": "600",
-                    "color": "var(--ink-gray-9)",
-                    "whiteSpace": "nowrap"
+                    "color": "var(--ink-gray-9)"
                    },
                    "mobileStyles": {},
                    "tabletStyles": {},
                    "children": [],
-                   "visibilityCondition": "{{ !(!unitsValid(dataItem)) }}",
+                   "visibilityCondition": "{{ unitsValid(dataItem) }}",
                    "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock3"
-                  },
-                  {
-                   "componentName": "TextBlock",
-                   "componentProps": {
-                    "text": "{{ 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
-                    "tag": "p",
-                    "fontSize": "text-sm"
-                   },
-                   "componentSlots": {},
-                   "componentEvents": {},
-                   "baseStyles": {
-                    "color": "var(--ink-red-4, var(--ink-gray-7))",
-                    "whiteSpace": "nowrap"
-                   },
-                   "mobileStyles": {},
-                   "tabletStyles": {},
-                   "children": [],
-                   "visibilityCondition": "{{ !unitsValid(dataItem) }}",
-                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock4"
                   }
                  ],
                  "visibilityCondition": "{{ chosen.includes(dataItem.holding) }}",
@@ -4449,7 +4435,8 @@
                   "modelValue": {
                    "$type": "variable",
                    "name": "confirmAccount"
-                  }
+                  },
+                  "error": "{{ confirmAccount && confirmAccount !== accountNumber ? 'The account numbers do not match.' : '' }}"
                  },
                  "componentSlots": {},
                  "componentEvents": {},
@@ -4462,24 +4449,6 @@
                ],
                "originalElement": "div",
                "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1"
-              },
-              {
-               "componentName": "TextBlock",
-               "componentProps": {
-                "text": "The account numbers do not match.",
-                "tag": "p",
-                "fontSize": "text-sm"
-               },
-               "componentSlots": {},
-               "componentEvents": {},
-               "baseStyles": {
-                "color": "var(--ink-red-4, var(--ink-gray-7))"
-               },
-               "mobileStyles": {},
-               "tabletStyles": {},
-               "children": [],
-               "visibilityCondition": "{{ confirmAccount && confirmAccount !== accountNumber }}",
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-textblock1"
               },
               {
                "componentName": "container",

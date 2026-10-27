@@ -1705,7 +1705,7 @@
                 },
                 {
                  "baseStyles": {
-                  "alignItems": "center",
+                  "alignItems": "start",
                   "backgroundColor": "var(--surface-gray-1)",
                   "borderColor": "var(--outline-gray-2)",
                   "borderRadius": "0 0 var(--radius-4) var(--radius-4)",
@@ -1721,6 +1721,7 @@
                   {
                    "baseStyles": {
                     "color": "var(--ink-gray-7)",
+                    "paddingTop": "4px",
                     "whiteSpace": "nowrap"
                    },
                    "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock1",
@@ -1747,6 +1748,7 @@
                    "componentName": "FormControl",
                    "componentProps": {
                     "disabled": "{{ sent }}",
+                    "error": "{{ unitsValid(dataItem) ? '' : 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
                     "modelValue": "{{ units[dataItem.holding] }}",
                     "size": "sm",
                     "type": "number",
@@ -1756,7 +1758,9 @@
                   },
                   {
                    "baseStyles": {
-                    "color": "var(--ink-gray-6)"
+                    "color": "var(--ink-gray-6)",
+                    "paddingTop": "4px",
+                    "whiteSpace": "nowrap"
                    },
                    "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock2",
                    "componentName": "TextBlock",
@@ -1781,6 +1785,7 @@
                    "baseStyles": {
                     "color": "var(--ink-gray-9)",
                     "fontWeight": "600",
+                    "paddingTop": "4px",
                     "whiteSpace": "nowrap"
                    },
                    "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock3",
@@ -1791,22 +1796,7 @@
                     "text": "{{ 'Lends ' + money(lends(dataItem)) }}"
                    },
                    "componentSlots": {},
-                   "visibilityCondition": "{{ !(!unitsValid(dataItem)) }}"
-                  },
-                  {
-                   "baseStyles": {
-                    "color": "var(--ink-red-4, var(--ink-gray-7))",
-                    "whiteSpace": "nowrap"
-                   },
-                   "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2-textblock4",
-                   "componentName": "TextBlock",
-                   "componentProps": {
-                    "fontSize": "text-sm",
-                    "tag": "p",
-                    "text": "{{ 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}"
-                   },
-                   "componentSlots": {},
-                   "visibilityCondition": "{{ !unitsValid(dataItem) }}"
+                   "visibilityCondition": "{{ unitsValid(dataItem) }}"
                   }
                  ],
                  "componentId": "secured_loan-0-container1-container1-container5-container2-repeater1-container1-container2",
@@ -3596,6 +3586,7 @@
                  "componentId": "secured_loan-0-container1-container1-container8-container2-container2-container1-formcontrol4",
                  "componentName": "FormControl",
                  "componentProps": {
+                  "error": "{{ confirmAccount && confirmAccount !== accountNumber ? 'The account numbers do not match.' : '' }}",
                   "label": "Re-enter account number",
                   "modelValue": {
                    "$type": "variable",
@@ -3617,20 +3608,6 @@
                 "gridTemplateColumns": "minmax(0, 1fr)"
                },
                "originalElement": "div"
-              },
-              {
-               "baseStyles": {
-                "color": "var(--ink-red-4, var(--ink-gray-7))"
-               },
-               "componentId": "secured_loan-0-container1-container1-container8-container2-container2-textblock1",
-               "componentName": "TextBlock",
-               "componentProps": {
-                "fontSize": "text-sm",
-                "tag": "p",
-                "text": "The account numbers do not match."
-               },
-               "componentSlots": {},
-               "visibilityCondition": "{{ confirmAccount && confirmAccount !== accountNumber }}"
               },
               {
                "baseStyles": {
@@ -4859,7 +4836,7 @@
  "frappe_app": "lending",
  "idx": 0,
  "is_standard": 1,
- "modified": "2026-10-27 12:29:38.096530",
+ "modified": "2026-10-27 12:31:00.779637",
  "modified_by": "Administrator",
  "name": "loan_against_securities",
  "owner": "Administrator",

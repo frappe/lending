@@ -366,19 +366,19 @@ def done_line(message, visible):
 	)
 
 
-def field(label, ref_name, kind="text", placeholder="", **kwargs):
-	return block(
-		"FormControl",
-		props={
-			"type": kind,
-			"label": label,
-			"size": "md",
-			"variant": "subtle",
-			"placeholder": placeholder,
-			"modelValue": {"$type": "variable", "name": ref_name},
-		},
-		**kwargs,
-	)
+def field(label, ref_name, kind="text", placeholder="", error=None, **kwargs):
+	props = {
+		"type": kind,
+		"label": label,
+		"size": "md",
+		"variant": "subtle",
+		"placeholder": placeholder,
+		"modelValue": {"$type": "variable", "name": ref_name},
+	}
+	if error:
+		props["error"] = error
+
+	return block("FormControl", props=props, **kwargs)
 
 
 def action(label, script, enabled=None, variant="solid", **kwargs):
@@ -525,6 +525,7 @@ def units_box(chosen):
 			"variant": "outline",
 			"modelValue": "{{ units[dataItem.holding] }}",
 			"disabled": "{{ sent }}",
+			"error": "{{ unitsValid(dataItem) ? '' : 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
 		},
 		events={
 			"update:modelValue": {
@@ -535,28 +536,24 @@ def units_box(chosen):
 		},
 		styles={"width": "140px"},
 	)
-	invalid = "!unitsValid(dataItem)"
+	# Top-aligned with a nudge, so the error under the input does not drag the labels down.
+	beside_input = {"paddingTop": "4px", "whiteSpace": "nowrap"}
 
 	return row(
 		[
-			text("Units to pledge", size="text-sm", styles={"color": "var(--ink-gray-7)", "whiteSpace": "nowrap"}),
+			text("Units to pledge", size="text-sm", styles=dict(beside_input, color="var(--ink-gray-7)")),
 			units,
-			muted("{{ 'of ' + dataItem.pledgeable_units + ' you can pledge' }}"),
+			muted("{{ 'of ' + dataItem.pledgeable_units + ' you can pledge' }}", styles=beside_input),
 			spacer(),
 			text(
 				"{{ 'Lends ' + money(lends(dataItem)) }}",
 				size="text-sm",
-				styles={"fontWeight": "600", "color": "var(--ink-gray-9)", "whiteSpace": "nowrap"},
-				visible="{{ !(%s) }}" % invalid,
-			),
-			text(
-				"{{ 'Enter 1 to ' + dataItem.pledgeable_units + ' units' }}",
-				size="text-sm",
-				styles={"color": "var(--ink-red-4, var(--ink-gray-7))", "whiteSpace": "nowrap"},
-				visible="{{ %s }}" % invalid,
+				styles=dict(beside_input, fontWeight="600", color="var(--ink-gray-9)"),
+				visible="{{ unitsValid(dataItem) }}",
 			),
 		],
 		gap="10px",
+		align="start",
 		styles={
 			"padding": "10px 16px",
 			"marginTop": "-6px",
@@ -836,14 +833,14 @@ def bank_panel():
 					holder,
 					field("IFSC", "ifsc", kind="text", placeholder="HDFC0001234"),
 					field("Account number", "accountNumber", kind="password", placeholder="Savings or current account"),
-					field("Re-enter account number", "confirmAccount", kind="text", placeholder="Type it again"),
+					field(
+						"Re-enter account number",
+						"confirmAccount",
+						kind="text",
+						placeholder="Type it again",
+						error="{{ %s ? 'The account numbers do not match.' : '' }}" % mismatch,
+					),
 				]
-			),
-			text(
-				"The account numbers do not match.",
-				size="text-sm",
-				styles={"color": "var(--ink-red-4, var(--ink-gray-7))"},
-				visible="{{ %s }}" % mismatch,
 			),
 			row(
 				[
