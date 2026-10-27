@@ -20,6 +20,7 @@ from lending.loan_integrations.sample_verification import (
 	SamplePanAdapter,
 )
 from lending.portal import secured
+from lending.portal.apply import VERIFICATION_PREFIX
 from lending.tests.test_portal import make_portal_customer, make_website_user, set_portal_switches
 from lending.tests.utils import LendingTestSuite
 
@@ -229,6 +230,14 @@ class TestUnitsToPledge(SecuredJourneyTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			self.apply_for(self.holding(FLEXI_CAP)["pledgeable_units"] + 1)
 
+	def test_one_holding_split_over_lines_cannot_pass_its_limit(self):
+		row = self.holding(FLEXI_CAP)
+		half = row["pledgeable_units"] / 2 + 1
+		lines = frappe.as_json([{"holding": row["holding"], "units": half}] * 2)
+
+		with self.assertRaises(frappe.ValidationError):
+			post("start_application", collateral="Mutual Funds", lines=lines, loan_amount=100, tenure=12)
+
 	def test_units_come_from_the_oldest_unlocked_lots(self):
 		elss = self.holding(ELSS)
 		self.apply_for(elss["pledgeable_units"], security=ELSS)
@@ -267,6 +276,34 @@ class TestTheStepsAreChecked(SecuredJourneyTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			self.start_application(amount=10**9)
 
+	def test_a_pan_unlike_the_customers_is_refused(self):
+		frappe.db.set_value("Customer", CUSTOMER, "tax_id", "AAAAA1111A")
+
+		with self.assertRaises(frappe.ValidationError):
+			post("verify_pan", pan=PAN)
+
+	def test_the_signed_terms_cannot_change(self):
+		frappe.set_user("Administrator")
+		use_sample_providers(approval="Staff Review")
+		frappe.set_user(USER)
+		self.walk_to_signing()
+		self.sign()
+
+		with self.assertRaises(frappe.ValidationError):
+			post("save_bank_account", account_number="50100999999999", ifsc="HDFC0001234")
+		with self.assertRaises(frappe.ValidationError):
+			post("send_esign_otp")
+
+	def test_the_borrower_can_read_the_letter(self):
+		self.walk_to_signing()
+		self.assertTrue(post("save_bank_account", account_number="50100234567812", ifsc="HDFC0001234")["ok"])
+		with patch("lending.portal.secured.get_pdf", return_value=a_pdf()):
+			post("send_esign_otp")
+
+		self.assertEqual(page()["esign"]["letter"], secured.LETTER_URL)
+		secured.download_sanction_letter()
+		self.assertTrue(frappe.local.response.filecontent.startswith(b"%PDF"))
+
 	def test_a_collateral_without_a_journey_cannot_be_applied_for(self):
 		self.verify_pan()
 
@@ -287,6 +324,15 @@ class TestHoldings(SecuredJourneyTestSuite):
 		self.assertLess(elss["pledgeable_units"], float(elss["units"]))
 		self.assertTrue(elss["note"])
 
+	def test_pledged_unlocked_units_do_not_free_the_locked_ones(self):
+		self.verify_pan()
+		self.fetch_holdings()
+		self.start_application(security=ELSS, amount=100)
+		self.complete_kyc()
+		self.pledge()
+
+		self.assertEqual(self.holding(ELSS)["pledgeable_units"], 0)
+
 	def test_another_borrowers_holding_cannot_be_pledged(self):
 		self.verify_pan()
 		self.fetch_holdings()
@@ -302,6 +348,22 @@ class TestHoldings(SecuredJourneyTestSuite):
 				loan_amount=10,
 				tenure=12,
 			)
+
+
+class TestRegistration(SecuredJourneyTestSuite):
+	def test_an_unverified_email_cannot_claim_a_customer(self):
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Customer", OTHER_CUSTOMER, "email_id", "victim@example.com")
+		token = frappe.generate_hash(length=32)
+		frappe.cache.set_value(f"{VERIFICATION_PREFIX}:{token}", MOBILE, expires_in_sec=60)
+		frappe.set_user("Guest")
+
+		post("register", token=token, full_name="Mallory", email="victim@example.com")
+
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.get_doc("Customer", OTHER_CUSTOMER).portal_users)
+		self.assertNotEqual(frappe.db.get_value("Customer", OTHER_CUSTOMER, "mobile_no"), MOBILE)
+		self.assertTrue(frappe.db.exists("Portal User", {"parenttype": "Customer", "user": "victim@example.com"}))
 
 
 class TestSettings(LendingTestSuite):

@@ -20,7 +20,7 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 	get_loan_security_price,
 )
 from lending.portal import login
-from lending.portal.accounts import customer_for_applicant, link_portal_user
+from lending.portal.accounts import create_customer, link_portal_user
 from lending.portal.apply import mask, spend_token, verified_mobile, with_country_code
 from lending.portal.core import (
 	STATUS_LABELS,
@@ -39,6 +39,7 @@ from lending.portal.core import (
 from lending.portal.downloads import render
 from lending.portal.loans import (
 	DRAWABLE_STATUSES,
+	check_drawdown,
 	drawable_amount,
 	next_due_date,
 	pending_disbursement,
@@ -73,6 +74,7 @@ AUTOMATIC = "Automatic"
 PAN_LENGTH = 10
 ESIGN_PREFIX = "portal-apply-esign"
 ESIGN_TTL = 15 * 60
+LETTER_URL = "/api/method/lending.portal.secured.download_sanction_letter"
 
 
 # Who and where
@@ -277,9 +279,10 @@ def holding_row(holding) -> dict:
 	nav = flt(get_loan_security_price(holding.loan_security))
 	pledged = flt(get_pledged_units(holding.name))
 	free = max(flt(holding.units_held) - pledged, 0)
-	unlocked = min(unlocked_units(holding), free)
+	# Earlier pledges took unlocked units too, oldest first, as lot_lines does.
+	pledgeable = max(unlocked_units(holding) - pledged, 0)
 	value = flt(holding.units_held) * nav
-	eligible = eligible_amount(unlocked, nav, security.haircut)
+	eligible = eligible_amount(pledgeable, nav, security.haircut)
 
 	return {
 		"holding": holding.name,
@@ -287,7 +290,7 @@ def holding_row(holding) -> dict:
 		"folio": holding.folio_number,
 		"units": number(holding.units_held),
 		"pledged_units": flt(pledged, 3),
-		"pledgeable_units": flt(unlocked, 3),
+		"pledgeable_units": flt(pledgeable, 3),
 		"nav": nav,
 		"nav_label": money(nav),
 		"value": value,
@@ -296,7 +299,7 @@ def holding_row(holding) -> dict:
 		"haircut_label": _("{0}% haircut").format(number(security.haircut)),
 		"eligible": eligible,
 		"eligible_label": money(eligible),
-		"note": lock_note(holding, unlocked, free),
+		"note": lock_note(holding, pledgeable, free),
 	}
 
 
@@ -316,11 +319,11 @@ def unlocks_on(purchase_date, lock_in_days):
 	return getdate(add_days(purchase_date, cint(lock_in_days)))
 
 
-def lock_note(holding, unlocked: float, free: float) -> str:
+def lock_note(holding, pledgeable: float, free: float) -> str:
 	if not free:
 		return _("All units are pledged")
-	if unlocked < free:
-		return _("{0} units are still in lock-in").format(number(free - unlocked))
+	if pledgeable < free:
+		return _("{0} units are still in lock-in").format(number(free - pledgeable))
 
 	return ""
 
@@ -355,7 +358,11 @@ def verify_pan() -> dict:
 	if kyc.pan_verified_on and kyc.pan != pan:
 		frappe.throw(_("Your PAN is already verified. Please contact us to change it."), frappe.ValidationError)
 
-	name = frappe.db.get_value("Customer", customer, "customer_name")
+	# The registry and the bureau read the PAN from the Customer, so the two must agree.
+	name, tax_id = frappe.db.get_value("Customer", customer, ["customer_name", "tax_id"])
+	if tax_id and tax_id.upper() != pan:
+		frappe.throw(_("This PAN does not match our records. Please contact us."), frappe.ValidationError)
+
 	try:
 		output = verification.call(verification.PAN, "verify_pan", {"pan": pan, "name": name}, kyc)
 	except Refused as e:
@@ -374,8 +381,7 @@ def verify_pan() -> dict:
 	)
 	kyc.save(ignore_permissions=True)
 
-	# The registry and the bureau read the PAN from the Customer.
-	if not frappe.db.get_value("Customer", customer, "tax_id"):
+	if not tax_id:
 		frappe.db.set_value("Customer", customer, "tax_id", pan)
 
 	return {"ok": True}
@@ -536,15 +542,18 @@ def start_application() -> dict:
 
 
 def proposed_pledges(customer: str, lines: list) -> list[dict]:
-	pledges = []
+	# Summed per holding, so splitting one holding over lines cannot pass the limit twice.
+	wanted = {}
 	for line in lines:
 		units = flt(line.get("units"))
-		if units <= 0:
-			continue
+		if units > 0:
+			wanted[line.get("holding")] = wanted.get(line.get("holding"), 0) + units
 
+	pledges = []
+	for name, units in wanted.items():
 		holding = frappe.db.get_value(
 			"Mutual Fund Holding",
-			line.get("holding"),
+			name,
 			["name", "applicant_type", "applicant", "loan_security", "lock_in_days"],
 			as_dict=True,
 		)
@@ -558,7 +567,7 @@ def proposed_pledges(customer: str, lines: list) -> list[dict]:
 				frappe.ValidationError,
 			)
 
-		pledges.extend(lot_lines(holding, units))
+		pledges.extend(lot_lines(holding, units, row["pledged_units"]))
 
 	if not pledges:
 		frappe.throw(_("Please choose the units to pledge."), frappe.ValidationError)
@@ -572,7 +581,7 @@ def holding_fields(holding: str) -> dict:
 	)
 
 
-def lot_lines(holding, units: float) -> list[dict]:
+def lot_lines(holding, units: float, pledged: float) -> list[dict]:
 	lots = frappe.get_all(
 		"Mutual Fund Holding Lot",
 		filters={"parent": holding.name, "parenttype": "Mutual Fund Holding"},
@@ -589,9 +598,22 @@ def lot_lines(holding, units: float) -> list[dict]:
 		if holding.lock_in_days and unlocks_on(lot.purchase_date, holding.lock_in_days) > getdate():
 			continue
 
-		take = min(flt(lot.units), units)
-		lines.append(line_for(holding, take, lot.purchase_date))
-		units -= take
+		# Skip what earlier pledges already took from the oldest lots.
+		skipped = min(flt(lot.units), pledged)
+		pledged -= skipped
+		take = min(flt(lot.units) - skipped, units)
+		if take > 0:
+			lines.append(line_for(holding, take, lot.purchase_date))
+			units -= take
+
+	if units > 0.0001:
+		# Units the registry sent no lot for; their lock-in is unknown, so only a fund without one takes them.
+		if holding.lock_in_days:
+			frappe.throw(
+				_("Some units of {0} cannot be pledged yet. Please choose fewer.").format(holding.loan_security),
+				frappe.ValidationError,
+			)
+		lines.append(line_for(holding, units))
 
 	return lines
 
@@ -834,6 +856,7 @@ def pledge_payload(application: str | None) -> dict:
 def save_bank_account() -> dict:
 	customer = borrower()
 	application = own_application(customer)
+	assert_not_signed(application)
 	if not pledge_payload(application.name)["marked"]:
 		frappe.throw(_("Please pledge your units first."), frappe.ValidationError)
 
@@ -856,9 +879,18 @@ def save_bank_account() -> dict:
 
 	with as_administrator():
 		account = bank_account(customer, name, account_number, ifsc, output.get("bank_name"))
-	application.db_set("bank_account", account)
+	# A letter already sent names the old account, so it must be sent again.
+	application.db_set({"bank_account": account, "sanction_letter": None})
+	frappe.cache.delete_value(f"{ESIGN_PREFIX}:{application.name}")
 
 	return {"ok": True}
+
+
+def assert_not_signed(application):
+	if application.signed_on:
+		frappe.throw(
+			_("You have signed your sanction letter, so its terms cannot change."), frappe.ValidationError
+		)
 
 
 def bank_account(customer: str, holder: str, account_number: str, ifsc: str, bank_name: str) -> str:
@@ -912,6 +944,7 @@ def bank_payload(application: str | None) -> dict:
 def send_esign_otp() -> dict:
 	customer = borrower()
 	application = own_application(customer)
+	assert_not_signed(application)
 	if not application.bank_account:
 		frappe.throw(_("Please add your bank account first."), frappe.ValidationError)
 
@@ -954,7 +987,6 @@ def sanction_letter(application) -> str:
 def sanction_context(application) -> dict:
 	brand = brand_payload()
 	assignment = pledge_payload(application.name)
-	values = {row.loan_security: money(row.amount) for row in application.proposed_pledges}
 	ltv = frappe.db.get_value(
 		"Loan Security Type",
 		frappe.db.get_value("Loan Security", application.proposed_pledges[0].loan_security, "loan_security_type"),
@@ -983,14 +1015,8 @@ def sanction_context(application) -> dict:
 		"accounts": [],
 		"terms": terms,
 		"pledges": [
-			{
-				"scheme": line["scheme"],
-				"folio": line["folio"],
-				"units": line["units"],
-				"value": values.get(row.loan_security, ""),
-				"lien": line["lien"],
-			}
-			for line, row in zip(assignment["lines"], application.proposed_pledges)
+			{key: line[key] for key in ("scheme", "folio", "units", "value", "lien")}
+			for line in assignment["lines"]
 		],
 		"ltv": f"{number(ltv)}%" if ltv else _("the agreed share"),
 		"bank_account": bank_payload(application.name).get("account", ""),
@@ -1057,9 +1083,30 @@ def esign_payload(application: str | None) -> dict:
 	doc = frappe.db.get_value("Loan Application", application, ["sanction_letter", "signed_on"], as_dict=True)
 
 	return {
-		"letter": doc.sanction_letter or "",
+		# Not the file's own URL: the borrower cannot read the Loan Application it is attached to.
+		"letter": LETTER_URL if doc.sanction_letter else "",
 		"signed_on": long_date(doc.signed_on),
 	}
+
+
+@frappe.whitelist()
+def download_sanction_letter():
+	application = journey_application(borrower())
+	file_url = frappe.db.get_value("Loan Application", application, "sanction_letter") if application else None
+	if not file_url:
+		frappe.throw(_("Your sanction letter is not ready yet."), frappe.ValidationError)
+
+	file = frappe.get_last_doc(
+		"File",
+		filters={
+			"file_url": file_url,
+			"attached_to_doctype": "Loan Application",
+			"attached_to_name": application,
+		},
+	)
+	frappe.local.response.filename = f"sanction-letter-{application}.pdf"
+	frappe.local.response.filecontent = file.get_content()
+	frappe.local.response.type = "pdf"
 
 
 # Step 9: Loan open
@@ -1131,16 +1178,7 @@ def withdraw() -> dict:
 
 
 def disbursement(loan: str, amount: float, bank_account: str):
-	# Locked so two requests cannot both find no draft waiting.
-	status = frappe.db.get_value("Loan", loan, "status", for_update=True)
-	if status not in DRAWABLE_STATUSES:
-		frappe.throw(_("This loan is not open for a withdrawal."), frappe.ValidationError)
-	if pending_disbursement(loan):
-		frappe.throw(_("A withdrawal from this loan is already being processed."), frappe.ValidationError)
-
-	available = drawable_amount(loan)
-	if amount <= 0 or amount > available:
-		frappe.throw(_("You can withdraw up to {0}.").format(money(available)), frappe.ValidationError)
+	check_drawdown(loan, amount)
 
 	entry = new_loan_disbursement(
 		loan, amount, repayment_start_date=first_due_date(loan), bank_account=bank_account
@@ -1190,7 +1228,9 @@ def register() -> dict:
 		user.insert(ignore_permissions=True)
 		user.add_roles("Customer")
 
-		customer = customer_for_applicant(full_name, "Individual", email, mobile)
+		# Always a new Customer: the email is not verified, so it cannot claim an existing one
+		# and its loans. Staff link a borrower who already has one.
+		customer = create_customer(full_name, "Individual", email, mobile)
 		frappe.db.set_value("Customer", customer, "mobile_no", mobile)
 		link_portal_user(customer, user.name)
 		spend_token(token)

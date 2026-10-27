@@ -80,26 +80,8 @@ def request_disbursement() -> dict:
 	name = frappe.form_dict.get("name")
 	assert_owns("Loan", name)
 
-	# Locked so two concurrent requests cannot both find no draft waiting.
-	status = frappe.db.get_value("Loan", name, "status", for_update=True)
-	if status not in DRAWABLE_STATUSES:
-		frappe.throw(_("This loan is not open for a disbursement."), frappe.ValidationError)
-
-	if pending_disbursement(name):
-		frappe.throw(
-			_("We already have a disbursement request on this loan. We will be in touch about it."),
-			frappe.ValidationError,
-		)
-
 	amount = flt(frappe.form_dict.get("amount"))
-	available = drawable_amount(name)
-	if amount <= 0:
-		frappe.throw(_("Please give the amount you need."), frappe.ValidationError)
-
-	if amount > available:
-		frappe.throw(
-			_("You can ask for up to {0} on this loan.").format(money(available)), frappe.ValidationError
-		)
+	check_drawdown(name, amount)
 
 	disbursement = new_loan_disbursement(name, amount, repayment_start_date=next_due_date(name))
 	disbursement.insert(ignore_permissions=True)
@@ -111,6 +93,29 @@ def request_disbursement() -> dict:
 			money(amount)
 		),
 	}
+
+
+def check_drawdown(loan: str, amount: float):
+	# Locking reads, so a second request that waited on the lock sees the first one's draft;
+	# a plain read keeps the snapshot taken before the wait.
+	status = frappe.db.get_value("Loan", loan, "status", for_update=True)
+	if status not in DRAWABLE_STATUSES:
+		frappe.throw(_("This loan is not open for a disbursement."), frappe.ValidationError)
+
+	if pending_disbursement(loan, for_update=True):
+		frappe.throw(
+			_("We already have a disbursement request on this loan. We will be in touch about it."),
+			frappe.ValidationError,
+		)
+
+	if amount <= 0:
+		frappe.throw(_("Please give the amount you need."), frappe.ValidationError)
+
+	available = drawable_amount(loan)
+	if amount > available:
+		frappe.throw(
+			_("You can ask for up to {0} on this loan.").format(money(available)), frappe.ValidationError
+		)
 
 
 def next_due_date(loan: str):
@@ -138,9 +143,14 @@ def drawdown(loan: dict) -> dict:
 	}
 
 
-def pending_disbursement(loan: str) -> float:
+def pending_disbursement(loan: str, for_update: bool = False) -> float:
 	return flt(
-		frappe.db.get_value("Loan Disbursement", {"against_loan": loan, "docstatus": 0}, "disbursed_amount")
+		frappe.db.get_value(
+			"Loan Disbursement",
+			{"against_loan": loan, "docstatus": 0},
+			"disbursed_amount",
+			for_update=for_update,
+		)
 	)
 
 
