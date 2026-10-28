@@ -83,19 +83,7 @@
    "reqd": 1
   },
   {
-<<<<<<< HEAD
-=======
-   "fieldname": "loan_lead",
-   "fieldtype": "Link",
-   "label": "Loan Lead",
-   "no_copy": 1,
-   "options": "Loan Lead",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "allow_on_submit": 1,
->>>>>>> c47212c (fix: allow approval of submitted loan applications)
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",

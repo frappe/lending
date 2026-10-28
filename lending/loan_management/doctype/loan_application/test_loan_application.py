@@ -10,16 +10,11 @@ from lending.loan_management.doctype.loan_application.loan_application import (
 	get_instalment_count,
 )
 from lending.tests.test_utils import (
-<<<<<<< HEAD
 	create_loan_accounts,
-	create_loan_product,
-	make_loan_disbursement_entry,
-	set_loan_settings_in_company,
-=======
 	create_loan_product,
 	make_customer,
 	make_loan_disbursement_entry,
->>>>>>> 418e09c (fix: block status change on loan application once a loan is created)
+	set_loan_settings_in_company,
 )
 from lending.tests.utils import LendingTestSuite
 
