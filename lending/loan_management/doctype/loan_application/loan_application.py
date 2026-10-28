@@ -85,10 +85,12 @@ class LoanApplication(Document):
 
 		self.validate_loan_product()
 		self.validate_employee()
-		self.validate_status_change()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
+
+	def before_update_after_submit(self):
+		self.validate_status_change()
 
 	def before_save(self):
 		if self.applicant_type == "Customer":
@@ -140,8 +142,7 @@ class LoanApplication(Document):
 
 	def validate_status_change(self):
 		# status is editable after submit, but not once a loan exists
-		before_save = self.get_doc_before_save()
-		if self.docstatus != 1 or not before_save or before_save.status == self.status:
+		if not self.has_value_changed("status"):
 			return
 
 		loan = frappe.db.get_value(
