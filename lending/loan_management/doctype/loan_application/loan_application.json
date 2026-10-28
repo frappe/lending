@@ -377,7 +377,8 @@
    "fieldname": "applicant_name",
    "fieldtype": "Data",
    "in_global_search": 1,
-   "label": "First Name"
+   "label": "First Name",
+   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\" && !doc.applicant"
   },
   {
    "fieldname": "connections_tab",
