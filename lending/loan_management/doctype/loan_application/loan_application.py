@@ -87,6 +87,7 @@ class LoanApplication(Document):
 
 		self.validate_loan_product()
 		self.validate_employee()
+		self.validate_status_change()
 
 		self.get_repayment_details()
 		self.check_sanctioned_amount_limit()
@@ -138,6 +139,22 @@ class LoanApplication(Document):
 				customer.save()
 
 				self.applicant = customer.name
+
+	def validate_status_change(self):
+		# status is editable after submit, but not once a loan exists
+		before_save = self.get_doc_before_save()
+		if self.docstatus != 1 or not before_save or before_save.status == self.status:
+			return
+
+		loan = frappe.db.get_value(
+			"Loan", {"loan_application": self.name, "docstatus": ("!=", 2)}, "name"
+		)
+		if loan:
+			frappe.throw(
+				_("Cannot change status as Loan {0} is already created from this application").format(
+					frappe.bold(loan)
+				)
+			)
 
 	def validate_repayment_method(self):
 		if self.repayment_method == "Repay Over Number of Periods" and not self.repayment_periods:
