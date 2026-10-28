@@ -92,7 +92,8 @@ class TestLoanApplication(LendingTestSuite):
 		loan.save()
 
 		application.status = "Rejected"
-		self.assertRaises(frappe.ValidationError, application.save)
+		with self.assertRaisesRegex(frappe.ValidationError, "already created"):
+			application.save()
 
 	def test_instalment_count_for_repayment_frequency(self):
 		for months, frequency, expected in (
