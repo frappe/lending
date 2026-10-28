@@ -397,3 +397,7 @@ workflow_methods = [
 # Overrides core's 90 days: a pull is the evidence we had consent before marking somebody's
 # credit file, and that has to outlive the loan. Only a default; a Log Settings row wins.
 default_log_clearing_doctypes = {"Integration Request": [3650]}
+
+# Expose method source code through the API discovery endpoints. Safe for open
+# source apps and helps API clients understand what a method does.
+expose_discovery_source = True
