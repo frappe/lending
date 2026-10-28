@@ -63,6 +63,18 @@ class TestLoanApplication(LendingTestSuite):
 		self.assertEqual(loan_application.total_payable_amount, 274657)
 		self.assertEqual(loan_application.repayment_amount, 11445)
 
+	def test_approve_submitted_loan_application(self):
+		application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		application.status = "Open"
+		application.submit()
+
+		application.status = "Approved"
+		application.save()
+		application.reload()
+
+		self.assertEqual(application.docstatus, 1)
+		self.assertEqual(application.status, "Approved")
+
 	def test_instalment_count_for_repayment_frequency(self):
 		for months, frequency, expected in (
 			(12, "Monthly", 12),
