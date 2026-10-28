@@ -40,6 +40,7 @@ frappe.ui.form.on('Loan Application', {
 	},
 	repayment_method: function (frm) {
 		frm.doc.repayment_amount = frm.doc.repayment_periods = "";
+		frm.set_value("repayment_frequency", "Monthly");
 		frm.trigger("toggle_fields");
 		frm.trigger("toggle_required");
 	},

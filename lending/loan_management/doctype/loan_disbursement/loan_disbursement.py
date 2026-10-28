@@ -367,6 +367,18 @@ class LoanDisbursement(LoanController):
 				"default_account",
 			)
 
+		loan_schedule_type, loan_frequency, loan_start_date = frappe.db.get_value(
+			"Loan", self.against_loan, ["repayment_schedule_type", "repayment_frequency", "repayment_start_date"]
+		)
+		if loan_schedule_type != "Line of Credit":
+			self.repayment_frequency = loan_frequency
+			if (
+				not self.repayment_start_date
+				and loan_start_date
+				and getdate(loan_start_date) >= getdate(self.disbursement_date)
+			):
+				self.repayment_start_date = loan_start_date
+
 		if self.repayment_method == "Repay Fixed Amount per Period":
 			self.monthly_repayment_amount = frappe.db.get_value(
 				"Loan", self.against_loan, "monthly_repayment_amount"
