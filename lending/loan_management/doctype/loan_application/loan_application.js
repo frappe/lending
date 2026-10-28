@@ -18,16 +18,9 @@ frappe.ui.form.on('Loan Application', {
 				return frm.doc.status === "Approved" && frm.doc.docstatus === 1;
 			}
 		};
-		frappe.db.get_single_value("Loan Origination Settings", "employee_loans")
-			.then(value => {
-				if (value) {
-					frm.set_df_property("applicant_type", "hidden", 0);
-				} else {
-					frm.set_df_property("applicant_type", "hidden", 1);
-				}
-			});
 	},
 	refresh: function (frm) {
+		frm.trigger("toggle_applicant_type");
 		frm.trigger("toggle_fields");
 		frm.trigger("add_toolbar_buttons");
 		frm.set_query('loan_product', () => {
@@ -43,6 +36,14 @@ frappe.ui.form.on('Loan Application', {
 		frm.set_value("repayment_frequency", "Monthly");
 		frm.trigger("toggle_fields");
 		frm.trigger("toggle_required");
+	},
+	toggle_applicant_type: function (frm) {
+		// Read on every refresh: setup runs once per session, so a changed setting would be missed.
+		frappe.db.get_single_value("Loan Origination Settings", "employee_loans").then((value) => {
+			// An Employee application keeps the field visible even if the setting is switched off later.
+			const show = cint(value) || frm.doc.applicant_type === "Employee";
+			frm.set_df_property("applicant_type", "hidden", show ? 0 : 1);
+		});
 	},
 	toggle_fields: function (frm) {
 		frm.toggle_enable("repayment_amount", frm.doc.repayment_method == "Repay Fixed Amount per Period")
