@@ -95,6 +95,9 @@ class LoanApplication(Document):
 	def before_save(self):
 		if self.applicant_type == "Customer":
 			if not self.applicant:
+				if not (self.applicant_name or "").strip():
+					frappe.throw(_("First Name is required to create a new Customer."))
+
 				customer = frappe.new_doc("Customer")
 				customer.customer_name = self.applicant_name
 				customer.type = "Company"
