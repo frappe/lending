@@ -15,6 +15,14 @@ frappe.ui.form.on("Loan Installment Skip Request", {
 		if (!frm.is_new() && frm.doc.status === "Open") {
 			frm.add_custom_button(__("Select Installments"), () => frm.trigger("select_installments"));
 			frm.trigger("add_decision_buttons");
+
+			if (!frm.is_dirty()) frm.page.clear_primary_action();
+		}
+	},
+
+	dirty(frm) {
+		if (!frm.is_new() && frm.doc.docstatus === 0 && frm.doc.status === "Open") {
+			frm.page.set_primary_action(__("Save"), () => frm.save());
 		}
 	},
 
