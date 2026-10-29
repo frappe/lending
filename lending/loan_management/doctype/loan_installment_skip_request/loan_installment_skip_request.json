@@ -1,0 +1,223 @@
+{
+ "actions": [],
+ "autoname": "LOAN-SKIP-.YYYY.-.#####",
+ "creation": "2026-10-27 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "loan",
+  "applicant_type",
+  "applicant",
+  "applicant_name",
+  "column_break_main",
+  "company",
+  "loan_product",
+  "status",
+  "approver",
+  "approver_name",
+  "installments_section",
+  "skipped_installments",
+  "after_skip_section",
+  "new_repayment_method",
+  "column_break_after",
+  "reason",
+  "result_section",
+  "loan_restructure",
+  "approver_remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loan",
+   "options": "Loan",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "loan.applicant_type",
+   "fieldname": "applicant_type",
+   "fieldtype": "Data",
+   "label": "Applicant Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan.applicant",
+   "fieldname": "applicant",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Applicant",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan.applicant_name",
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "label": "Applicant Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "loan.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan.loan_product",
+   "fieldname": "loan_product",
+   "fieldtype": "Link",
+   "label": "Loan Product",
+   "options": "Loan Product",
+   "read_only": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "Open\nApproved\nRejected\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan.installment_skip_approver",
+   "fetch_if_empty": 1,
+   "fieldname": "approver",
+   "fieldtype": "Link",
+   "label": "Approver",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "approver.full_name",
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "label": "Approver Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "installments_section",
+   "fieldtype": "Section Break",
+   "label": "Installments to Skip"
+  },
+  {
+   "fieldname": "skipped_installments",
+   "fieldtype": "Table",
+   "label": "Installments to Skip",
+   "options": "Loan Skipped Installment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "after_skip_section",
+   "fieldtype": "Section Break",
+   "label": "After the Skip"
+  },
+  {
+   "default": "Repay Fixed Amount per Period",
+   "description": "Keep the EMI and extend the tenure, or keep the tenure and increase the EMI.",
+   "fieldname": "new_repayment_method",
+   "fieldtype": "Select",
+   "label": "After the Skip",
+   "options": "Repay Fixed Amount per Period\nRepay Over Number of Periods"
+  },
+  {
+   "fieldname": "column_break_after",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason"
+  },
+  {
+   "fieldname": "result_section",
+   "fieldtype": "Section Break",
+   "label": "Decision"
+  },
+  {
+   "fieldname": "loan_restructure",
+   "fieldtype": "Link",
+   "label": "Loan Restructure",
+   "no_copy": 1,
+   "options": "Loan Restructure",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approver_remarks",
+   "fieldtype": "Small Text",
+   "label": "Approver Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Installment Skip Request",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-27 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Installment Skip Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Employee",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

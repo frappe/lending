@@ -572,6 +572,9 @@ def create_loan_restructure(
 	new_repayment_method=None,
 	new_repayment_period_in_months=None,
 	waive_off_restructure_charges=0,
+	restructure_type="Normal Restructure",
+	skipped_dates=None,
+	submit=True,
 ):
 
 	doc = frappe.new_doc("Loan Restructure")
@@ -581,7 +584,7 @@ def create_loan_restructure(
 	doc.interest_waiver_amount = interest_waiver_amount
 	doc.unaccrued_interest_waiver = unaccrued_interest_waiver
 	doc.penal_interest_waiver = penal_waiver_amount
-	doc.restructure_type = "Normal Restructure"
+	doc.restructure_type = restructure_type
 	doc.treatment_of_normal_interest = treatment_of_normal_interest
 	doc.unaccrued_interest_treatment = unaccrued_interest_treatment
 	doc.treatment_of_penal_interest = treatment_of_penal_interest
@@ -603,7 +606,13 @@ def create_loan_restructure(
 				},
 			)
 
-	doc.submit()
+	for date in skipped_dates or []:
+		doc.append("skipped_installments", {"payment_date": date})
+
+	if submit:
+		doc.submit()
+	else:
+		doc.insert()
 
 	return doc
 
