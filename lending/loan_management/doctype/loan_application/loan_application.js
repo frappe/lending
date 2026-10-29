@@ -38,9 +38,7 @@ frappe.ui.form.on('Loan Application', {
 		frm.trigger("toggle_required");
 	},
 	toggle_applicant_type: function (frm) {
-		// Read on every refresh: setup runs once per session, so a changed setting would be missed.
 		frappe.db.get_single_value("Loan Origination Settings", "employee_loans").then((value) => {
-			// An Employee application keeps the field visible even if the setting is switched off later.
 			const show = cint(value) || frm.doc.applicant_type === "Employee";
 			frm.set_df_property("applicant_type", "hidden", show ? 0 : 1);
 		});
