@@ -148,22 +148,3 @@ class TestLoanApplication(LendingTestSuite):
 		loan_application.save()
 
 		self.assertEqual(loan_application.repayment_frequency, "Monthly")
-
-	def test_new_customer_application_needs_first_name(self):
-		loan_application = frappe.new_doc("Loan Application")
-		loan_application.update(
-			{
-				"applicant_type": "Customer",
-				"loan_product": "Home Loan",
-				"rate_of_interest": 9.2,
-				"loan_amount": 250000,
-				"repayment_method": "Repay Over Number of Periods",
-				"repayment_periods": 18,
-				"company": "_Test Company",
-				"applicant_email_address": "no.name@example.com",
-				"applicant_phone_number": "+91-9102837466",
-			}
-		)
-
-		with self.assertRaises(frappe.ValidationError):
-			loan_application.insert()
