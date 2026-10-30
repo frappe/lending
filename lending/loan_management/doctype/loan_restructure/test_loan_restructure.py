@@ -478,6 +478,73 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.reload()
 		self.assertEqual(loan.repayment_frequency, "One Time")
 
+	def test_cancel_restructure_after_its_repayment_schedule_is_gone(self):
+		for approve, delete_schedule in ((True, False), (True, True), (False, False), (False, True)):
+			with self.subTest(approve=approve, delete_schedule=delete_schedule):
+				loan = create_loan(
+					"_Test Customer 1",
+					"Term Loan Product 4",
+					1000,
+					"Repay Over Number of Periods",
+					12,
+					repayment_start_date="2026-10-24",
+					posting_date="2026-09-24",
+					rate_of_interest=20,
+					applicant_type="Customer",
+					repayment_frequency="One Time",
+				)
+				loan.submit()
+				make_loan_disbursement_entry(
+					loan.name,
+					loan.loan_amount,
+					disbursement_date="2026-09-24",
+					repayment_start_date="2026-10-24",
+					repayment_frequency="One Time",
+				)
+				loan_restructure = create_loan_restructure(
+					loan=loan.name,
+					restructure_date="2026-09-28",
+					repayment_start_date="2026-09-30",
+					treatment_of_normal_interest="Add To First EMI",
+					unaccrued_interest_treatment="Add To First EMI",
+					new_rate_of_interest=20,
+					new_repayment_method="Repay Over Number of Periods",
+					new_repayment_period_in_months=12,
+					waive_off_restructure_charges=1,
+				)
+				if approve:
+					loan_restructure.status = "Approved"
+					loan_restructure.save()
+					process_loan_interest_accrual_for_loans(
+						posting_date="2026-10-15", loan=loan.name, company="_Test Company"
+					)
+
+				schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan_restructure": loan_restructure.name, "docstatus": 1}
+				)
+				previous_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "name": ("!=", schedule)}
+				)
+				schedule_doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+				self.assertRaises(frappe.ValidationError, schedule_doc.cancel)
+
+				frappe.db.set_value("Loan Repayment Schedule", schedule, "docstatus", 2)
+				if delete_schedule:
+					frappe.db.delete("Loan Repayment Schedule", schedule)
+
+				loan_restructure.reload()
+				loan_restructure.cancel()
+
+				self.assertEqual(loan_restructure.docstatus, 2)
+				if not delete_schedule:
+					accrual = {"loan_repayment_schedule": schedule, "docstatus": 1}
+					self.assertFalse(frappe.db.exists("Loan Interest Accrual", accrual))
+				if approve:
+					self.assertEqual(frappe.db.get_value("Loan", loan.name, "repayment_frequency"), "One Time")
+					self.assertEqual(
+						frappe.db.get_value("Loan Repayment Schedule", previous_schedule, "status"), "Active"
+					)
+
 	@with_days_past_due_repost
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
