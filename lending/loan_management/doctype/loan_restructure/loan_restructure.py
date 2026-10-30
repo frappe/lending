@@ -382,14 +382,33 @@ class LoanRestructure(AccountsController):
 		self.fetch_charges_details(amounts.get("unpaid_demands", []))
 
 	def cancel_repayment_schedule(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			reverse_loan_interest_accruals,
+		)
 
-		filters = {"loan_restructure": self.name, "docstatus": 1}
+		filters = {"loan_restructure": self.name, "docstatus": ("!=", 0)}
 		if self.loan_disbursement:
 			filters["loan_disbursement"] = self.loan_disbursement
 
-		schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule",
+			filters,
+			["name", "docstatus", "posting_date"],
+			as_dict=1,
+			order_by="docstatus asc",
+		)
+		if not schedule:
+			return
 
-		doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+		if schedule.docstatus == 2:
+			reverse_loan_interest_accruals(
+				self.loan, schedule.posting_date, loan_repayment_schedule=schedule.name
+			)
+			reverse_demands(self.loan, schedule.posting_date, loan_repayment_schedule=schedule.name)
+			return
+
+		doc = frappe.get_doc("Loan Repayment Schedule", schedule.name)
 		doc.flags.ignore_links = True
 		doc.reverse_interest_accruals = 1
 		doc.cancel()

@@ -245,6 +245,9 @@ class LoanRepaymentSchedule(Document):
 				current_last_accrual_date = add_days(posting_date, 1)
 		self.repayment_periods = self.number_of_rows - self.moratorium_tenure
 
+	def before_cancel(self):
+		self.validate_loan_restructure_status()
+
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -316,6 +319,17 @@ class LoanRepaymentSchedule(Document):
 				_(
 					"Cannot cancel Loan Repayment Schedule {0} while Loan Disbursement {1} is submitted. Cancel the Loan Disbursement first."
 				).format(frappe.bold(self.name), frappe.bold(self.loan_disbursement))
+			)
+
+	def validate_loan_restructure_status(self):
+		if self.flags.ignore_links or not self.loan_restructure:
+			return
+
+		if frappe.db.get_value("Loan Restructure", self.loan_restructure, "docstatus") == 1:
+			frappe.throw(
+				_(
+					"Cannot cancel Loan Repayment Schedule {0} while Loan Restructure {1} is submitted. Cancel the Loan Restructure first."
+				).format(frappe.bold(self.name), frappe.bold(self.loan_restructure))
 			)
 
 	def set_repayment_period(self):
