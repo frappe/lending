@@ -1690,6 +1690,12 @@ class LoanRepayment(LoanController):
 				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
+			elif self.repayment_type == "Partial Settlement" and flt(amount_paid, precision) > 0:
+				frappe.throw(
+					_(
+						"{0} of this Partial Settlement could not be allocated to any pending demand. Reduce the amount paid or add the remaining demand types to the settlement collection offset order."
+					).format(frappe.bold(flt(amount_paid, precision)))
+				)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
 				self.total_penalty_paid += amount_paid
 				amount_paid = 0
