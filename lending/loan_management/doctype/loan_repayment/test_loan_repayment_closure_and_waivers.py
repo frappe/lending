@@ -4,6 +4,7 @@
 import frappe
 from frappe.utils import add_days, add_months, flt, get_datetime, nowdate
 
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_write_off.loan_write_off import (
 	get_write_off_recovery_details,
@@ -778,6 +779,42 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 
 		allocated = sum(d.paid_amount for d in repayment.get("repayment_details"))
 		self.assertEqual(flt(allocated, 2), flt(repayment.amount_paid, 2))
+
+	def test_partial_settlement_rejects_amount_it_cannot_allocate(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			200000,
+			"Repay Over Number of Periods",
+			6,
+			"Customer",
+			posting_date="2026-09-03",
+			repayment_start_date="2026-10-04",
+			rate_of_interest=22,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-09-03", repayment_start_date="2026-10-04"
+		)
+		process_daily_loan_demands(posting_date="2026-10-04", loan=loan.name)
+		create_loan_demand(loan.name, "2026-10-04", "Charges", "Documentation Charge", 500)
+
+		repayment = create_repayment_entry(loan.name, "2026-10-04", 1, repayment_type="Partial Settlement")
+		repayment.amount_paid = flt(repayment.payable_amount - 200, 2)
+		self.assertRaises(frappe.ValidationError, repayment.save)
+
+		repayment.reload()
+		repayment.amount_paid = flt(repayment.payable_amount - 500, 2)
+		repayment.save()
+		repayment.submit()
+
+		credit = sum(
+			frappe.get_all("GL Entry", {"voucher_no": repayment.name, "is_cancelled": 0}, pluck="credit")
+		)
+		self.assertEqual(flt(credit, 2), flt(repayment.amount_paid, 2))
+		total_paid = frappe.db.get_value("Loan", loan.name, "total_amount_paid")
+		self.assertEqual(flt(total_paid, 2), flt(repayment.amount_paid, 2))
 
 	def test_partial_settlement_interest_first_order_does_not_double_pay(self):
 		"""With an Interest-before-Principal offset order, the Interest step must not
