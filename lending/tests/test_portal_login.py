@@ -117,5 +117,7 @@ class TestPortalLogin(LendingTestSuite):
 		self.assertEqual(login_response("/login?redirect-to=/desk").status_code, 200)
 
 	def test_google_shows_only_when_configured(self):
-		self.assertFalse(frappe.db.exists("Social Login Key", "google"))
+		# A site may have Google set up; the per-test rollback turns it back on.
+		frappe.db.set_value("Social Login Key", "google", "enable_social_login", 0)
+
 		self.assertEqual(get_login_page()["google_url"], "")
