@@ -83,8 +83,7 @@ def loan_groups(loans: list) -> dict:
 	# The report takes one company and one applicant at a time.
 	groups = {}
 	for row in loans:
-		company = frappe.db.get_value("Loan", row.name, "company")
-		groups.setdefault((company, row.applicant), []).append(row.name)
+		groups.setdefault((row.company, row.applicant), []).append(row.name)
 
 	return groups
 

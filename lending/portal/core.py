@@ -507,6 +507,7 @@ def get_loans(customers: list[str]) -> list[dict]:
 		fields=[
 			"name",
 			"applicant",
+			"company",
 			"loan_product",
 			"status",
 			"posting_date",
