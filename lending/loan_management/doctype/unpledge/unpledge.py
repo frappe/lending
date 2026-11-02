@@ -24,6 +24,7 @@ class Unpledge(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		qty: DF.Float
+		release_reference: DF.Data | None
 	# end: auto-generated types
 
 	pass

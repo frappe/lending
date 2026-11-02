@@ -10,7 +10,11 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
-  "disabled"
+  "disabled",
+  "limits_section",
+  "max_single_security_pct",
+  "column_break_lmts",
+  "max_exposure_per_security"
  ],
  "fields": [
   {
@@ -43,10 +47,33 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "description": "The most one security of this type may make up of a single pledge's value. Leave blank for collateral that is always pledged alone, such as a property.",
+   "fieldname": "max_single_security_pct",
+   "fieldtype": "Percent",
+   "label": "Max Share of One Security in a Pledge"
+  },
+  {
+   "fieldname": "column_break_lmts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The most value of any one security of this type that may be pledged across all borrowers. Leave blank for no limit.",
+   "fieldname": "max_exposure_per_security",
+   "fieldtype": "Currency",
+   "label": "Max Exposure per Security",
+   "non_negative": 1
   }
  ],
  "links": [],
- "modified": "2025-03-19 11:46:50.950227",
+ "modified": "2026-10-09 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

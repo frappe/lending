@@ -15,6 +15,7 @@
   "company",
   "pledge_time",
   "release_time",
+  "release_reference",
   "status",
   "loan_security_details_section",
   "securities",
@@ -156,6 +157,15 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
+   "depends_on": "release_reference",
+   "description": "Proof that the lock was removed, such as the depository unpledge number, the gold handover receipt or the mortgage release deed number.",
+   "fieldname": "release_reference",
+   "fieldtype": "Data",
+   "label": "Release Reference",
+   "read_only": 1
+  },
+  {
    "fieldname": "loan",
    "fieldtype": "Link",
    "label": "Loan",
@@ -172,7 +182,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-21 14:38:33.593531",
+ "modified": "2026-10-12 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",
