@@ -21,6 +21,8 @@ from lending.portal.studio_build import (
 
 
 def build(reset=False):
+	from lending.loan_management.doctype.lending_settings.lending_settings import sync_portal_pages
+
 	with merge.reset(reset):
 		app.upsert_app()
 		shell.upsert_frame()
@@ -38,6 +40,8 @@ def build(reset=False):
 			login_page.build(),
 		]
 
+	# Pages are written published, like the export; the switches decide what is live.
+	sync_portal_pages()
 	print(f"built {len(pages)} Studio pages under /{app.APP_NAME}")
 
 	return pages

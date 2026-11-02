@@ -7,6 +7,7 @@ import json
 import math
 import random
 import re
+from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -26,6 +27,7 @@ from lending.loan_management.doctype.lending_settings.lending_settings import (
 )
 from lending.loan_origination.doctype.loan_lead.loan_lead import convert_to_loan_application
 from lending.loan_origination.doctype.loan_lead.test_loan_lead import activate_loan_lead_workflow
+from lending.portal import studio_build
 from lending.portal.accounts import create_customer, customer_for_email, link_portal_user
 from lending.portal.applications import (
 	default_application,
@@ -1498,6 +1500,32 @@ class TestPortalSwitches(LendingTestSuite):
 		self.assertNotIn(APPLY_ROUTE, routes)
 		self.assertIn("/track", routes)
 		self.assertIn("/overview", routes)
+
+	def test_a_rebuild_leaves_a_switched_off_portal_off(self):
+		set_portal_switches(0, 0)
+		# What upsert_page leaves behind: every page saved as published.
+		for name in frappe.get_all("Studio Page", filters={"studio_app": portal_app()}, pluck="name"):
+			frappe.db.set_value("Studio Page", name, "published", 1)
+
+		with ExitStack() as stack:
+			stack.enter_context(patch.object(studio_build.app, "upsert_app"))
+			stack.enter_context(patch.object(studio_build.shell, "upsert_frame"))
+			for module in (
+				"overview_page",
+				"accounts_page",
+				"loan_pages",
+				"application_pages",
+				"new_application_page",
+				"statement_pages",
+				"profile_page",
+				"apply_page",
+				"track_page",
+				"login_page",
+			):
+				stack.enter_context(patch.object(getattr(studio_build, module), "build", return_value=[]))
+			studio_build.build()
+
+		self.assertEqual(published_portal_routes(), set())
 
 	def test_switching_the_portal_back_on_restores_every_page(self):
 		before = published_portal_routes()
