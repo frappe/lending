@@ -812,6 +812,41 @@ class TestPortalProfileWrite(PortalPeople):
 
 		self.assertEqual(frappe.get_all("Contact", filters=linked, pluck="name"), after_first)
 
+	def test_an_address_shared_with_another_borrower_is_copied_once(self):
+		shared = frappe.get_doc(
+			{
+				"doctype": "Address",
+				"address_type": "Billing",
+				"address_title": "_Test Shared Address",
+				"address_line1": "1 Shared Lane",
+				"city": "Pune",
+				"state": "Maharashtra",
+				"pincode": "411001",
+				"country": "India",
+				"links": [
+					{"link_doctype": "Customer", "link_name": SHARED_CUSTOMER},
+					{"link_doctype": "Customer", "link_name": BETA_CUSTOMER},
+				],
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Customer", SHARED_CUSTOMER, "customer_primary_address", shared.name)
+		linked = [["Dynamic Link", "link_doctype", "=", "Customer"], ["Dynamic Link", "link_name", "=", SHARED_CUSTOMER]]
+		address = {"address_line1": "5 Carter Road", "state": "Maharashtra", "pincode": "400050", "country": "India"}
+
+		self.as_alpha()
+		self.post(customer=SHARED_CUSTOMER, email="alpha.private@example.com", city="Mumbai", **address)
+		save_profile()
+		after_first = frappe.get_all("Address", filters=linked, pluck="name")
+
+		self.assertEqual(frappe.db.get_value("Address", shared.name, "city"), "Pune")
+		frappe.local.form_dict = frappe._dict({"customer": SHARED_CUSTOMER})
+		self.assertEqual(get_profile_page()["forms"][SHARED_CUSTOMER]["city"], "Mumbai")
+
+		self.post(customer=SHARED_CUSTOMER, email="alpha.private@example.com", city="Thane", **address)
+		save_profile()
+
+		self.assertEqual(frappe.get_all("Address", filters=linked, pluck="name"), after_first)
+
 	def test_an_address_with_no_country_still_saves(self):
 		self.as_alpha()
 		self.post(
