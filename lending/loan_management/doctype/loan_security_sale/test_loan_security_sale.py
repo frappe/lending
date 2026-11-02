@@ -392,6 +392,22 @@ class TestLoanSecuritySale(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			sale.save()
 
+	def test_sale_cannot_be_submitted_after_a_release_took_its_collateral(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		# At ₹500, 5,000 units left still allow ₹12,50,000 against ₹10,00,000 drawn
+		set_price(500)
+		sale = make_sale(self.loan, reason="Loan Default")
+		sale.append("items", {"loan_security": "Test Security 2", "qty": 8000})
+		sale.save()
+
+		unpledge_security(
+			loan=self.loan, security_map={"Test Security 2": 3000}, save=1, submit=1, approve=1
+		)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Only 5000"):
+			sell(sale, {"Test Security 2": (8000, 500)})
+
 	def test_release_cannot_be_approved_after_a_sale_consumed_its_collateral(self):
 		from lending.loan_management.doctype.loan.loan import unpledge_security
 

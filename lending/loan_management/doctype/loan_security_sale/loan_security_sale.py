@@ -14,7 +14,9 @@ from lending.loan_management.doctype.loan_security_price.loan_security_price imp
 	get_loan_security_price_map,
 )
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_current_pledges,
 	get_pledged_security_qty,
+	lock_applicant,
 	update_sanctioned_loan_amount_for_applicant,
 )
 from lending.loan_management.doctype.loan_security_sale.proceeds import SaleProceeds
@@ -179,9 +181,14 @@ class LoanSecuritySale(Document):
 
 	def validate_items(self):
 		if self.docstatus == 1:
+			# Same lock order as a release approval: Loan, then applicant
 			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
-
-		pledged_qty_map = get_pledged_security_qty(loan=self.loan)
+			lock_applicant(self.applicant_type, self.applicant)
+			# A plain read would see this transaction's snapshot, from before a release or
+			# sale that committed while this submit waited for the lock
+			pledged_qty_map = get_current_pledges(loan=self.loan, for_update=True)
+		else:
+			pledged_qty_map = get_pledged_security_qty(loan=self.loan)
 		price_map = get_loan_security_price_map([row.loan_security for row in self.items])
 		listed = set()
 		for row in self.items:
