@@ -28,6 +28,7 @@ def customer_for_email(email: str) -> str | None:
 
 def create_customer(customer_name: str, customer_type: str, email: str, mobile: str) -> str:
 	"""Creates a primary Contact too, else customer_for_email cannot find it later."""
+	# ignore_permissions below: sign-up makes the Customer for a borrower who has no rights yet; the caller has verified the email.
 	customer = frappe.new_doc("Customer")
 	customer.update({"customer_name": customer_name, "customer_type": customer_type})
 	customer.insert(ignore_permissions=True)
@@ -95,6 +96,7 @@ def link_portal_user(customer: str, user: str) -> bool:
 		return False
 
 	record.append("portal_users", {"user": user})
+	# Callers decide who joins: a verified sign-up, or staff saving a Loan Application without Customer write.
 	record.save(ignore_permissions=True)
 
 	return True
