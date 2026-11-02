@@ -257,7 +257,8 @@ def create_loan_accounts():
 
 
 def create_account(account_name, parent_account, root_type, account_type, report_type, is_group=0):
-	if not frappe.db.exists("Account", {"account_name": account_name}):
+	filters = {"account_name": account_name, "company": "_Test Company"}
+	if not frappe.db.exists("Account", filters):
 		frappe.get_doc(
 			{
 				"doctype": "Account",
@@ -272,7 +273,7 @@ def create_account(account_name, parent_account, root_type, account_type, report
 			}
 		).insert(ignore_permissions=True)
 	else:
-		account = frappe.get_doc("Account", {"account_name": account_name})
+		account = frappe.get_doc("Account", filters)
 		account.company = "_Test Company"
 		account.root_type = root_type
 		account.report_type = report_type
