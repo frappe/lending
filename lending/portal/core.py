@@ -620,7 +620,6 @@ def upcoming_rows(schedule_names: list[str], limit: int = 4) -> list[dict]:
 		fields=["parent", "payment_date", "total_payment", "principal_amount", "interest_amount"],
 		order_by="payment_date asc",
 		limit=limit,
-		ignore_permissions=True,
 	)
 
 
@@ -814,7 +813,6 @@ def open_lead() -> dict | None:
 			"Loan Application",
 			filters={"loan_lead": ["in", [lead.name for lead in leads]]},
 			pluck="loan_lead",
-			ignore_permissions=True,
 		)
 		if leads
 		else []

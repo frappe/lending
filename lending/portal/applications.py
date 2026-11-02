@@ -390,7 +390,6 @@ def co_applicant_rows(application: str) -> list[dict]:
 		"Loan Co-Applicants",
 		filters={"parent": application, "parenttype": "Loan Application"},
 		fields=["applicant_name", "applicant_email", "applicant_mobile"],
-		ignore_permissions=True,
 	)
 
 	return [
@@ -417,7 +416,6 @@ def document_rows(application: str) -> list[dict]:
 		"Loan Application Document",
 		filters={"parent": application, "parenttype": "Loan Application"},
 		fields=["document_type", "file"],
-		ignore_permissions=True,
 	)
 
 	return [

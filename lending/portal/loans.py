@@ -231,7 +231,6 @@ def charge_rows(loan: str) -> list[dict]:
 		"Loan Disbursement Charge",
 		filters={"parent": loan, "parenttype": "Loan"},
 		fields=["charge", "amount", "treatment_of_charge"],
-		ignore_permissions=True,
 	)
 
 	return [

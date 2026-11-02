@@ -101,7 +101,6 @@ def document_rows(applications: list[dict]) -> list[dict]:
 			"Loan Application Document",
 			filters={"parent": ["in", names], "parenttype": "Loan Application"},
 			fields=["parent", "document_type"],
-			ignore_permissions=True,
 		)
 	]
 

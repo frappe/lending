@@ -377,7 +377,6 @@ def scheduled_in_period(loans: list[str], start: str, end: str):
 			"payment_date": ["between", [start, end]],
 		},
 		fields=["parent", "principal_amount", "interest_amount"],
-		ignore_permissions=True,
 	)
 
 	for row in rows:
