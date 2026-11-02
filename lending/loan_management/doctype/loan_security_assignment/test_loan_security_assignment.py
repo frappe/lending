@@ -453,14 +453,13 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			[{"loan_security": "Test Security 1", "qty": 100}], applicant="_Test Loan Customer 1"
 		).submit()
 
-		# This applicant releases 100 units, then the assignment is cancelled as well.
+		# This applicant releases 100 units, then the assignment is released as well.
 		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
 		lsa.submit()
 		release = make_release([{"loan_security": "Test Security 1", "qty": 100}])
 		release.status = "Approved"
 		release.save()
-		lsa.reload()
-		lsa.cancel()
+		release_loan_security_assignment(lsa.name)
 
 		self.assertEqual(
 			get_current_pledges(securities=["Test Security 1"]).get("Test Security 1", 0), before + 100
