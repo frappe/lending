@@ -85,7 +85,7 @@ def application_row(application: dict) -> dict:
 
 def document_rows(applications: list[dict]) -> list[dict]:
 	# One query for all applications, not applications.document_rows per application.
-	# ignore_permissions: child table with no rules; parents are already scoped to this borrower.
+	# get_all skips permissions: child table with no rules; parents are already scoped to this borrower.
 	names = [application["name"] for application in applications]
 	if not names:
 		return []
