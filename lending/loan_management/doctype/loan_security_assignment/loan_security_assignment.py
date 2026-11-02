@@ -176,8 +176,9 @@ class LoanSecurityAssignment(Document):
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
 
+		securities = list({key[0] for key in security_list})
 		disabled = frappe.get_all(
-			"Loan Security", filters={"name": ("in", security_list), "disabled": 1}, pluck="name"
+			"Loan Security", filters={"name": ("in", securities), "disabled": 1}, pluck="name"
 		)
 		if disabled:
 			frappe.throw(
@@ -225,6 +226,11 @@ class LoanSecurityAssignment(Document):
 			# A row from a loan application keeps the price from when it was applied for.
 			current_prices = get_loan_security_price_map(capped)
 
+		# A mutual fund scheme can sit on several lines, one per folio or purchase date.
+		pledge_qty = {}
+		for row in self.securities:
+			pledge_qty[row.loan_security] = pledge_qty.get(row.loan_security, 0) + flt(row.qty)
+
 		shares = {}
 		if any(flt(limit.max_single_security_pct) for limit in limits.values()):
 			shares = self.get_security_shares(locking)
@@ -261,7 +267,7 @@ class LoanSecurityAssignment(Document):
 
 			if flt(limit.max_exposure_per_security):
 				price = flt(current_prices.get(row.loan_security)) or flt(row.loan_security_price)
-				exposure = (flt(pledged_qty.get(row.loan_security)) + flt(row.qty)) * price
+				exposure = (flt(pledged_qty.get(row.loan_security)) + pledge_qty[row.loan_security]) * price
 				if exposure > flt(limit.max_exposure_per_security):
 					frappe.throw(
 						_(

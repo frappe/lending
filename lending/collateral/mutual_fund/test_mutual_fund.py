@@ -107,6 +107,23 @@ class TestMutualFundPledge(LendingTestSuite):
 		release = unpledge_security(loan_security_assignment=lsa.name)
 		self.assertEqual([(row.loan_security, row.qty) for row in release.securities], [(ELSS, 500)])
 
+	def test_exposure_cap_counts_every_line_of_a_scheme(self):
+		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+			get_current_pledges,
+		)
+
+		already_pledged = get_current_pledges(securities=[ELSS]).get(ELSS, 0)
+		# Room for 400 more units at 66 each: each line fits alone, the two together do not.
+		frappe.db.set_value("Loan Security Type", MF_TYPE, "max_exposure_per_security", (already_pledged + 400) * 66)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "allows at most"):
+			make_pledge(
+				[
+					fund_line(ELSS, qty=300, purchase_date="2021-01-15"),
+					fund_line(ELSS, qty=200, purchase_date="2022-06-15"),
+				]
+			)
+
 	def test_repeated_scheme_is_used_up_once_by_a_drawdown(self):
 		from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
 			update_loan_securities_values,
