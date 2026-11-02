@@ -309,8 +309,9 @@ def write_shared_utils():
 	path = os.path.join(folder, SHARED_UTILS_PATH[1])
 	key = f"file-{merge.baseline_key(SHARED_UTILS_PATH[1])}"
 
-	baseline = merge.read_baseline(key)
-	if baseline is not None and os.path.exists(path):
+	# Without a baseline, the committed file still matches SHARED_UTILS unless someone edited it.
+	if os.path.exists(path) and not merge.resetting():
+		baseline = merge.read_baseline(key) or {}
 		current = frappe.read_file(path)
 		if current not in (SHARED_UTILS, baseline.get("source")):
 			print(f"kept the hand-edited {SHARED_UTILS_PATH[1]}")

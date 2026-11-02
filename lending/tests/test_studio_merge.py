@@ -10,6 +10,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from lending.portal.studio_build import merge
+from lending.portal.studio_build.app import SHARED_UTILS, SHARED_UTILS_PATH, write_shared_utils
 from lending.portal.studio_build.blocks import block
 from lending.portal.studio_build.merge import identify, merge_blocks, merge_resources
 
@@ -204,6 +205,21 @@ class TestStudioMerge(IntegrationTestCase):
 			merge.write_generated("overview", {"blocks": "snapshot"})
 
 			self.assertEqual(os.listdir(snapshots), [])
+
+	def test_a_hand_edited_util_survives_a_bench_without_baselines(self):
+		with self.folders(), tempfile.TemporaryDirectory() as source:
+			utils = os.path.join(source, *SHARED_UTILS_PATH)
+			os.makedirs(os.path.dirname(utils))
+			with open(utils, "w") as target:
+				target.write("// edited by hand\n")
+
+			with patch.object(frappe, "get_app_source_path", lambda app, *parts: os.path.join(source, parts[-1])):
+				write_shared_utils()
+				self.assertEqual(frappe.read_file(utils), "// edited by hand\n")
+
+				with merge.reset():
+					write_shared_utils()
+				self.assertEqual(frappe.read_file(utils), SHARED_UTILS)
 
 	@contextmanager
 	def folders(self):
