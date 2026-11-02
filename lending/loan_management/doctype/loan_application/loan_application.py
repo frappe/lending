@@ -23,7 +23,7 @@ from lending.loan_management.doctype.loan_repayment_schedule.utils import get_fr
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
-from lending.portal.accounts import customer_for_email, link_portal_user
+from lending.portal.accounts import customer_for_email, customer_owning_email, link_portal_user
 
 
 class LoanApplication(Document):
@@ -101,7 +101,8 @@ class LoanApplication(Document):
 				existing = customer_for_email(self.applicant_email_address)
 				if existing:
 					self.applicant = existing
-					link_portal_user(existing, self.applicant_email_address)
+					if customer_owning_email(self.applicant_email_address) == existing:
+						link_portal_user(existing, self.applicant_email_address)
 					return
 
 				if not (self.applicant_name or "").strip():

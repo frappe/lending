@@ -1367,6 +1367,28 @@ class TestPortalSignUp(LendingTestSuite):
 
 		frappe.set_user("Administrator")
 		before = frappe.db.count("Customer")
+		application = self.desk_application(PERSON_EMAIL)
+
+		self.assertEqual(application.applicant, customer)
+		self.assertEqual(frappe.db.count("Customer"), before)
+
+	def test_a_desk_application_does_not_hand_a_secondary_contact_the_customer(self):
+		frappe.set_user("Administrator")
+		owner = create_customer("_Test Portal Owned", "Company", "_test-portal-owner@example.com", "")
+		contact = frappe.new_doc("Contact")
+		contact.first_name = "Accountant"
+		contact.append("email_ids", {"email_id": PERSON_EMAIL, "is_primary": 1})
+		contact.append("links", {"link_doctype": "Customer", "link_name": owner})
+		contact.insert(ignore_permissions=True)
+		make_website_user(PERSON_EMAIL)
+
+		self.desk_application(PERSON_EMAIL)
+
+		self.assertFalse(
+			frappe.db.exists("Portal User", {"parenttype": "Customer", "parent": owner, "user": PERSON_EMAIL})
+		)
+
+	def desk_application(self, email):
 		application = frappe.get_doc(
 			{
 				"doctype": "Loan Application",
@@ -1377,14 +1399,12 @@ class TestPortalSignUp(LendingTestSuite):
 				"repayment_method": "Repay Over Number of Periods",
 				"repayment_periods": 12,
 				"applicant_name": "Test Applicant",
-				"applicant_email_address": PERSON_EMAIL,
+				"applicant_email_address": email,
 				"applicant_phone_number": "+919812340111",
 			}
 		)
-		application.insert(ignore_permissions=True)
 
-		self.assertEqual(application.applicant, customer)
-		self.assertEqual(frappe.db.count("Customer"), before)
+		return application.insert(ignore_permissions=True)
 
 
 class TestPortalSwitches(LendingTestSuite):
