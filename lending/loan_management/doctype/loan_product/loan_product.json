@@ -571,11 +571,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-10-01 00:00:00.000000",
-=======
- "modified": "2026-10-27 10:00:00.000000",
->>>>>>> 554da54 (feat: add Loan Installment Skip Request in front of the skip)
+ "modified": "2026-11-02 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Product",

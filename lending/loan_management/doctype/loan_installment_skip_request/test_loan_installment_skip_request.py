@@ -28,12 +28,11 @@ from lending.tests.utils import LendingTestSuite
 
 
 class InstallmentSkipTestCase(LendingTestSuite):
-	"""Every test starts from the same loan: first EMI paid, interest accrued till 19 Oct.
-	It is built once per class and each test rolls back to it."""
+	"""Every test starts from the same loan: first EMI paid, interest accrued till 19 Oct."""
 
-	@classmethod
-	def make_class_data(cls):
-		cls.loan = make_loan_with_first_emi_paid().name
+	def setUp(self):
+		super().setUp()
+		self.loan = make_loan_with_first_emi_paid().name
 
 
 class TestLoanInstallmentSkipRequest(InstallmentSkipTestCase):
