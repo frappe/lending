@@ -1663,7 +1663,7 @@ class TestPortalBranding(LendingTestSuite):
 			frappe.set_user("Administrator")
 
 	def test_the_style_reads_only_tokens_the_portal_stylesheet_defines(self):
-		sheets = glob.glob(frappe.get_app_path("studio", "public", "frontend", "assets", "*.css"))
+		sheets = glob.glob(frappe.get_app_path("frappe", "public", "studio", "assets", "*.css"))
 		if not sheets:
 			self.skipTest("Studio's frontend is not built")
 

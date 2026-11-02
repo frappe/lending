@@ -4,7 +4,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Open Source Lending software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
-required_apps = ["erpnext", "frappe/studio"]
+required_apps = ["erpnext"]
 app_logo_url = "/assets/lending/images/frappe-lending-logo.svg"
 
 add_to_apps_screen = [
