@@ -128,7 +128,7 @@ BETA_CUSTOMER = "_Test Portal Beta"
 SINGLE_USER = "portal-single@example.com"
 SINGLE_CUSTOMER = "_Test Portal Single"
 
-# Its own customer: the shared-record test pins a Contact to it and the DB is not rolled back.
+# Its own customer: the shared-record test pins a Contact to it.
 SHARED_CUSTOMER = "_Test Portal Alpha Shared"
 
 PRODUCT = "Personal Loan"
@@ -2077,7 +2077,6 @@ class TestPortalRail(LendingTestSuite):
 		self.assertNotIn("/notifications", published_portal_routes())
 
 	def test_a_product_finds_loans_and_nothing_that_is_not_one(self):
-		# Asserts on the answer, not the fixture: the DB is not rolled back, so loans pile up.
 		results = self.search(PRODUCT)["results"]
 
 		self.assertTrue(results)
@@ -2747,12 +2746,10 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		self.assertNotEqual(default_loan(), self.beta_loan)
 
 	def test_a_borrower_with_one_loan_is_never_asked(self):
-		# Its own borrower: every setUp here gives Beta another loan and nothing rolls them back.
 		frappe.set_user("Administrator")
 		make_website_user(SINGLE_USER)
 		make_portal_customer(SINGLE_CUSTOMER, SINGLE_USER)
-		loan = frappe.db.get_value("Loan", {"applicant": SINGLE_CUSTOMER, "docstatus": 1}, "name")
-		loan = loan or make_submitted_loan(SINGLE_CUSTOMER).name
+		loan = make_submitted_loan(SINGLE_CUSTOMER).name
 
 		frappe.set_user(SINGLE_USER)
 		dashboard = get_dashboard()
