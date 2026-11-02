@@ -9,7 +9,11 @@ from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan,
 	get_instalment_count,
 )
-from lending.tests.test_utils import create_loan_product, make_loan_disbursement_entry
+from lending.tests.test_utils import (
+	create_loan_product,
+	make_customer,
+	make_loan_disbursement_entry,
+)
 from lending.tests.utils import LendingTestSuite
 
 
@@ -62,6 +66,34 @@ class TestLoanApplication(LendingTestSuite):
 		self.assertEqual(loan_application.total_payable_interest, 24657)
 		self.assertEqual(loan_application.total_payable_amount, 274657)
 		self.assertEqual(loan_application.repayment_amount, 11445)
+
+	def test_approve_submitted_loan_application(self):
+		application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		application.status = "Open"
+		application.submit()
+
+		application.status = "Approved"
+		application.save()
+		application.reload()
+
+		self.assertEqual(application.docstatus, 1)
+		self.assertEqual(application.status, "Approved")
+
+	def test_status_cannot_change_after_loan_is_created(self):
+		make_customer("_Test Loan Customer")
+		application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		application.applicant_type = "Customer"
+		application.applicant = "_Test Loan Customer"
+		application.status = "Approved"
+		application.save()
+		application.submit()
+
+		loan = create_loan(application.name)
+		loan.save()
+
+		application.status = "Rejected"
+		with self.assertRaisesRegex(frappe.ValidationError, "already created"):
+			application.save()
 
 	def test_instalment_count_for_repayment_frequency(self):
 		for months, frequency, expected in (
