@@ -769,7 +769,7 @@ class TestPortalProfileWrite(PortalPeople):
 		with self.assertRaises(frappe.ValidationError):
 			save_profile()
 
-	def test_a_record_shared_with_another_borrower_is_left_alone(self):
+	def share_a_contact(self) -> str:
 		shared = frappe.get_doc(
 			{
 				"doctype": "Contact",
@@ -784,13 +784,33 @@ class TestPortalProfileWrite(PortalPeople):
 		shared.insert(ignore_permissions=True)
 		frappe.db.set_value("Customer", SHARED_CUSTOMER, "customer_primary_contact", shared.name)
 
+		return shared.name
+
+	def test_a_record_shared_with_another_borrower_is_left_alone(self):
+		shared = self.share_a_contact()
+
 		self.as_alpha()
 		self.post(customer=SHARED_CUSTOMER, email="alpha.private@example.com", mobile="9812340003")
 		save_profile()
 
-		self.assertEqual(
-			frappe.db.get_value("Contact", shared.name, "email_id"), "shared@example.com"
-		)
+		self.assertEqual(frappe.db.get_value("Contact", shared, "email_id"), "shared@example.com")
+
+		frappe.local.form_dict = frappe._dict({"customer": SHARED_CUSTOMER})
+		self.assertEqual(get_profile_page()["forms"][SHARED_CUSTOMER]["email"], "alpha.private@example.com")
+
+	def test_saving_twice_past_a_shared_record_makes_one_copy(self):
+		self.share_a_contact()
+		linked = [["Dynamic Link", "link_doctype", "=", "Customer"], ["Dynamic Link", "link_name", "=", SHARED_CUSTOMER]]
+
+		self.as_alpha()
+		self.post(customer=SHARED_CUSTOMER, email="alpha.private@example.com")
+		save_profile()
+		after_first = frappe.get_all("Contact", filters=linked, pluck="name")
+
+		self.post(customer=SHARED_CUSTOMER, email="alpha.again@example.com")
+		save_profile()
+
+		self.assertEqual(frappe.get_all("Contact", filters=linked, pluck="name"), after_first)
 
 	def test_an_address_with_no_country_still_saves(self):
 		self.as_alpha()
