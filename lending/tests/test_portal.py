@@ -114,14 +114,7 @@ from lending.portal.switcher import choose_account, get_accounts_page
 from lending.portal.theme import CHOICE_KEY as APPEARANCE_CHOICE_KEY
 from lending.portal.theme import after_request as theme_after_request
 from lending.portal.theme import set_appearance
-from lending.tests.test_utils import (
-	create_loan,
-	create_loan_accounts,
-	create_loan_product,
-	set_loan_accrual_frequency,
-	set_loan_settings_in_company,
-	setup_loan_demand_offset_order,
-)
+from lending.tests.test_utils import create_loan, create_loan_product
 from lending.tests.utils import LendingTestSuite
 
 ALPHA_USER = "portal-alpha@example.com"
@@ -269,6 +262,16 @@ def make_portal_customer(name: str, user: str) -> str:
 	return name
 
 
+def make_portal_product():
+	create_loan_product(
+		PRODUCT,
+		PRODUCT,
+		500000,
+		8.4,
+		repayment_schedule_type="Monthly as per repayment start date",
+	)
+
+
 def make_submitted_loan(applicant: str):
 	loan = create_loan(applicant, PRODUCT, 100000, "Repay Over Number of Periods", repayment_periods=12)
 	loan.submit()
@@ -297,18 +300,9 @@ def make_application(applicant: str) -> str:
 
 
 class TestPortalOwnership(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		set_loan_accrual_frequency("Monthly")
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 		show_product_on_portal(PRODUCT, 1)
 
 		make_website_user(ALPHA_USER)
@@ -317,10 +311,10 @@ class TestPortalOwnership(LendingTestSuite):
 		make_portal_customer(ALPHA_OTHER_CUSTOMER, ALPHA_USER)
 		make_portal_customer(BETA_CUSTOMER, BETA_USER)
 
-		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
-		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
-		self.alpha_application = make_application(ALPHA_CUSTOMER)
-		self.beta_application = make_application(BETA_CUSTOMER)
+		cls.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
+		cls.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
+		cls.alpha_application = make_application(ALPHA_CUSTOMER)
+		cls.beta_application = make_application(BETA_CUSTOMER)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -452,18 +446,12 @@ class TestPortalOwnership(LendingTestSuite):
 class TestPortalGuestEndpoints(LendingTestSuite):
 	# Rate limits are inert here: frappe's decorator returns early without an HTTP request.
 
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 		show_product_on_portal(PRODUCT, 1)
+
+	def setUp(self):
 		frappe.set_user("Guest")
 		frappe.local.form_dict = frappe._dict()
 
@@ -702,17 +690,9 @@ class TestPortalGuestEndpoints(LendingTestSuite):
 
 
 class PortalPeople(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 		show_product_on_portal(PRODUCT, 1)
 		# The setup wizard sets this on a real site; CI's site skips the wizard.
 		frappe.db.set_single_value("System Settings", "country", "India")
@@ -849,10 +829,11 @@ class TestPortalProfileWrite(PortalPeople):
 		self.assertIn("city", str(refusal.exception).lower())
 
 class TestPortalDocumentUpload(PortalPeople):
-	def setUp(self):
-		super().setUp()
-		self.alpha_draft = make_application(ALPHA_CUSTOMER)
-		self.beta_draft = make_application(BETA_CUSTOMER)
+	@classmethod
+	def make_class_data(cls):
+		super().make_class_data()
+		cls.alpha_draft = make_application(ALPHA_CUSTOMER)
+		cls.beta_draft = make_application(BETA_CUSTOMER)
 		if not frappe.db.exists("Loan Document Type", "_Test Payslip"):
 			frappe.get_doc(
 				{"doctype": "Loan Document Type", "loan_document_type": "_Test Payslip"}
@@ -916,8 +897,9 @@ class TestPortalDocumentUpload(PortalPeople):
 
 
 class TestPortalCustomerLead(PortalPeople):
-	def setUp(self):
-		super().setUp()
+	@classmethod
+	def make_class_data(cls):
+		super().make_class_data()
 		frappe.db.set_value("User", BETA_USER, "mobile_no", MOBILE)
 
 	def ask(self, user, **overrides):
@@ -1023,22 +1005,15 @@ class TestPortalCustomerLead(PortalPeople):
 
 
 class TestPortalSignUp(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 		show_product_on_portal(PRODUCT, 1)
 		for email in (PERSON_EMAIL, COMPANY_EMAIL):
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
 
+	def setUp(self):
 		frappe.set_user("Guest")
 		frappe.local.form_dict = frappe._dict()
 
@@ -1349,18 +1324,12 @@ class TestPortalSignUp(LendingTestSuite):
 class TestPortalSwitches(LendingTestSuite):
 	# PageDoesNotExistError, not PermissionError: only the first renders as a 404.
 
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 		show_product_on_portal(PRODUCT, 1)
+
+	def setUp(self):
 		frappe.local.form_dict = frappe._dict()
 
 	def tearDown(self):
@@ -2077,27 +2046,18 @@ class TestPortalMenu(LendingTestSuite):
 		self.assertNotIn("page", marks.values())
 
 class TestPortalRail(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		set_loan_accrual_frequency("Monthly")
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 
 		make_website_user(ALPHA_USER)
 		make_website_user(BETA_USER)
 		make_portal_customer(ALPHA_CUSTOMER, ALPHA_USER)
 		make_portal_customer(BETA_CUSTOMER, BETA_USER)
 
-		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
-		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
-		self.alpha_application = make_application(ALPHA_CUSTOMER)
+		cls.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
+		cls.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
+		cls.alpha_application = make_application(ALPHA_CUSTOMER)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -2635,27 +2595,19 @@ class TestPortalPreview(PortalPeople):
 
 
 class TestPortalDisbursementRequest(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		set_loan_accrual_frequency("Monthly")
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 
 		make_website_user(ALPHA_USER)
 		make_website_user(BETA_USER)
 		make_portal_customer(ALPHA_CUSTOMER, ALPHA_USER)
 		make_portal_customer(BETA_CUSTOMER, BETA_USER)
 
-		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
-		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
+		cls.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
+		cls.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
 
+	def setUp(self):
 		frappe.set_user(ALPHA_USER)
 
 	def tearDown(self):
@@ -2726,18 +2678,9 @@ class TestPortalDisbursementRequest(LendingTestSuite):
 
 
 class TestPortalAccountSwitch(LendingTestSuite):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
-		setup_loan_demand_offset_order()
-		set_loan_accrual_frequency("Monthly")
-		create_loan_product(
-			PRODUCT,
-			PRODUCT,
-			500000,
-			8.4,
-			repayment_schedule_type="Monthly as per repayment start date",
-		)
+	@classmethod
+	def make_class_data(cls):
+		make_portal_product()
 
 		make_website_user(ALPHA_USER)
 		make_website_user(BETA_USER)
@@ -2745,10 +2688,11 @@ class TestPortalAccountSwitch(LendingTestSuite):
 		make_portal_customer(ALPHA_OTHER_CUSTOMER, ALPHA_USER)
 		make_portal_customer(BETA_CUSTOMER, BETA_USER)
 
-		self.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
-		self.alpha_other_loan = make_submitted_loan(ALPHA_OTHER_CUSTOMER).name
-		self.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
+		cls.alpha_loan = make_submitted_loan(ALPHA_CUSTOMER).name
+		cls.alpha_other_loan = make_submitted_loan(ALPHA_OTHER_CUSTOMER).name
+		cls.beta_loan = make_submitted_loan(BETA_CUSTOMER).name
 
+	def setUp(self):
 		frappe.set_user(ALPHA_USER)
 
 	def tearDown(self):
