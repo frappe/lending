@@ -19,6 +19,18 @@ class TestLoanSecurityLedger(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			get_data({})
 
+	def test_ledger_with_a_sale_sorts_and_balances(self):
+		sale = frappe.new_doc("Loan Security Sale")
+		sale.loan = self.loan.name
+		sale.reason = "Borrower Request"
+		sale.append("items", {"loan_security": "Test Security 1", "sold_qty": 1000, "sale_price": 500})
+		sale.insert()
+		sale.submit()
+
+		_columns, data = execute({"loan": self.loan.name, "loan_security": "Test Security 1"})
+		self.assertEqual(data[-1]["doctype"], "Loan Security Sale")
+		self.assertEqual(data[-1]["balance_qty"], 3000)
+
 	def test_loan_security_ledger_returns_expected_assignment_row(self):
 		report = execute({"loan": self.loan.name, "applicant": "_Test Loan Customer"})
 		columns, data = report

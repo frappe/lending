@@ -10,6 +10,8 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
+  "sell_ltv",
+  "price_validity_days",
   "disabled",
   "limits_section",
   "max_single_security_pct",
@@ -49,6 +51,21 @@
    "label": "Loan To Value Ratio"
   },
   {
+   "description": "Above this loan-to-value ratio the shortfall goes straight to Sale Triggered, without waiting for the cure period. Leave blank for no early sale",
+   "fieldname": "sell_ltv",
+   "fieldtype": "Percent",
+   "label": "Sell LTV"
+  },
+  {
+   "default": "1",
+   "description": "Working days a new price from a Loan Security Price Update stays valid, e.g. 1 for shares and 365 for property",
+   "fieldname": "price_validity_days",
+   "fieldtype": "Int",
+   "label": "Price Validity (Working Days)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
    "collapsible": 1,
    "fieldname": "limits_section",
    "fieldtype": "Section Break",
@@ -73,7 +90,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-09 15:00:00.000000",
+ "modified": "2026-11-02 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

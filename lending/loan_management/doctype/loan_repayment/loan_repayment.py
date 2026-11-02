@@ -2607,18 +2607,23 @@ class LoanRepayment(LoanController):
 
 	def no_repayments_during_moratorium(self):
 		if self.repayment_type in ("Pre Payment", "Advance Payment"):
-			moratorium_end_date = frappe.db.get_value(
-				"Loan Repayment Schedule",
-				{"loan": self.against_loan, "docstatus": 1, "status": "Active"},
-				"moratorium_end_date",
-			)
+			moratorium_end_date = get_moratorium_end_date(self.against_loan, self.value_date)
 			if moratorium_end_date:
-				if get_datetime(moratorium_end_date) >= get_datetime(self.value_date):
-					frappe.throw(
-						_(
-							"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
-						).format(moratorium_end_date, self.value_date)
-					)
+				frappe.throw(
+					_(
+						"Cannot make Advance or Pre Payments during moratorium period. (Moratorium End Date: {}, Posting Date: {})"
+					).format(moratorium_end_date, self.value_date)
+				)
+
+
+def get_moratorium_end_date(loan, value_date):
+	moratorium_end_date = frappe.db.get_value(
+		"Loan Repayment Schedule",
+		{"loan": loan, "docstatus": 1, "status": "Active"},
+		"moratorium_end_date",
+	)
+	if moratorium_end_date and get_datetime(moratorium_end_date) >= get_datetime(value_date):
+		return moratorium_end_date
 
 
 def create_repayment_entry(

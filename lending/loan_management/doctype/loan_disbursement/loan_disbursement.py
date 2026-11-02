@@ -507,6 +507,14 @@ class LoanDisbursement(LoanController):
 			next_tranche += 1
 
 	def validate_disbursal_amount(self):
+		shortfall = get_open_shortfall(self.against_loan)
+		if shortfall:
+			frappe.throw(
+				_("Loan {0} has an open Loan Security Shortfall {1}. Cure it before a new drawdown").format(
+					frappe.bold(self.against_loan), frappe.bold(shortfall)
+				)
+			)
+
 		possible_disbursal_amount, pending_principal_amount = get_disbursal_amount(self.against_loan)
 		limit_details = frappe.db.get_value(
 			"Loan",
@@ -988,6 +996,16 @@ def get_total_pledged_security_value(loan=None, applicant=None, on_shortfall_che
 	return security_value
 
 
+def get_open_shortfall(loan):
+	from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+		OPEN_STATUSES,
+	)
+
+	return frappe.db.get_value(
+		"Loan Security Shortfall", {"loan": loan, "status": ("in", OPEN_STATUSES)}, "name"
+	)
+
+
 @frappe.whitelist()
 def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 	frappe.has_permission("Loan", "read", doc=loan, throw=True)
@@ -1016,9 +1034,7 @@ def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 		for_update=True,
 	)
 
-	if loan_details.is_secured_loan and frappe.get_all(
-		"Loan Security Shortfall", filters={"loan": loan, "status": "Pending"}
-	):
+	if loan_details.is_secured_loan and get_open_shortfall(loan):
 		return 0
 
 	if loan_details.get("repayment_schedule_type") == "Line of Credit":
@@ -1034,6 +1050,7 @@ def get_disbursal_amount(loan: str, on_current_security_price: int = 0):
 		security_value = get_maximum_amount_as_per_pledged_security(loan) or flt(
 			loan_details.maximum_loan_amount
 		)
+		security_value = max(security_value - get_sold_security_value(loan), 0)
 
 	if not security_value and not loan_details.is_secured_loan:
 		security_value = flt(loan_details.loan_amount)
@@ -1063,3 +1080,32 @@ def get_maximum_amount_as_per_pledged_security(loan):
 	).run()[0][0] or 0
 
 	return flt(maximum_amount)
+
+
+def get_sold_security_value(loan):
+	pledge = DocType("Pledge")
+	assignment = DocType("Loan Security Assignment")
+	pledged = (
+		frappe.qb.from_(pledge)
+		.inner_join(assignment)
+		.on(pledge.parent == assignment.name)
+		.select(pledge.loan_security, fn.Sum(pledge.post_haircut_amount), fn.Sum(pledge.qty))
+		.where(assignment.loan == loan)
+		.where(assignment.docstatus == 1)
+		.where(assignment.status.isin(["Pledged", "Repossessed"]))
+		.groupby(pledge.loan_security)
+	).run()
+	value_per_unit = {security: flt(value) / flt(qty) for security, value, qty in pledged if flt(qty)}
+
+	sale = DocType("Loan Security Sale")
+	sale_item = DocType("Loan Security Sale Item")
+	sold = (
+		frappe.qb.from_(sale_item)
+		.inner_join(sale)
+		.on(sale_item.parent == sale.name)
+		.select(sale_item.loan_security, fn.Sum(sale_item.sold_qty))
+		.where(sale.loan == loan)
+		.where(sale.docstatus == 1)
+		.groupby(sale_item.loan_security)
+	).run()
+	return sum(flt(qty) * value_per_unit.get(security, 0) for security, qty in sold)

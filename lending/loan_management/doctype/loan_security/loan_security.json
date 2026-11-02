@@ -17,6 +17,7 @@
   "loan_security_type",
   "available_security_value",
   "loan_to_value_ratio",
+  "sell_ltv",
   "disabled"
  ],
  "fields": [
@@ -86,11 +87,18 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "fetch_from": "loan_security_type.sell_ltv",
+   "fetch_if_empty": 1,
+   "fieldname": "sell_ltv",
+   "fieldtype": "Percent",
+   "label": "Sell LTV"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 11:21:09.533212",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security",

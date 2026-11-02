@@ -37,10 +37,14 @@ class ProcessLoanSecurityShortfall(Document):
 
 
 def create_process_loan_security_shortfall():
+	from lending.loan_management.margin_call import process_open_shortfalls
+
 	if check_for_secured_loans():
 		process = frappe.new_doc("Process Loan Security Shortfall")
 		process.update_time = get_datetime()
 		process.submit()
+		# Chained rather than scheduled, so that notices go out on shortfalls this run found
+		process_open_shortfalls()
 
 
 def check_for_secured_loans():
