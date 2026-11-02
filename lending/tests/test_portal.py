@@ -35,6 +35,7 @@ from lending.portal.applications import (
 	upload_document,
 )
 from lending.portal.apply import (
+	applicant_option,
 	confirm_mobile_code,
 	create_account,
 	create_customer_lead,
@@ -750,6 +751,16 @@ class TestPortalProfileWrite(PortalPeople):
 		self.assertEqual(form["form_mobile"], "9812340001")
 		self.assertEqual(form["form_city"], "Mumbai")
 		self.assertEqual(form["forms"][ALPHA_CUSTOMER]["city"], "Mumbai")
+
+	def test_a_mobile_added_in_the_profile_lets_the_borrower_apply(self):
+		self.as_alpha()
+		self.assertIs(applicant_option(ALPHA_CUSTOMER)["has_mobile"], False)
+
+		self.post(email="alpha.saved@example.com", mobile="9812340004")
+		save_profile()
+
+		self.assertIs(applicant_option(ALPHA_CUSTOMER)["has_mobile"], True)
+		self.assertEqual(frappe.db.get_value("Customer", ALPHA_CUSTOMER, "mobile_no"), "9812340004")
 
 	def test_a_landline_does_not_overwrite_the_mobile(self):
 		self.as_alpha()

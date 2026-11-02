@@ -240,7 +240,16 @@ def save_contact(customer: str, customers: list[str], data: dict):
 	set_primary_row(contact, "phone_nos", "phone", data["phone"], "is_primary_phone")
 
 	contact.save(ignore_permissions=True)
-	frappe.db.set_value("Customer", customer, "customer_primary_contact", contact.name, update_modified=False)
+	frappe.db.set_value(
+		"Customer",
+		customer,
+		{
+			"customer_primary_contact": contact.name,
+			"mobile_no": contact.mobile_no,
+			"email_id": contact.email_id,
+		},
+		update_modified=False,
+	)
 
 	return contact.name
 
