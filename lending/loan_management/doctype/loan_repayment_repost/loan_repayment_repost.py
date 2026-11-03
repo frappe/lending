@@ -416,7 +416,9 @@ class LoanRepaymentRepost(Document):
 
 			repayment_doc.allocate_amounts(amounts)
 
-			if repayment_doc.needs_reschedule():
+			if repayment_doc.repayment_type in ("Advance Payment", "Pre Payment") and (
+				not repayment_doc.principal_amount_paid >= repayment_doc.pending_principal_amount
+			):
 				create_update_loan_reschedule(
 					repayment_doc.against_loan,
 					repayment_doc.value_date,
