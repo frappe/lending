@@ -395,6 +395,17 @@ def update_repayment_schedule_demand_generated(
 	if to_date:
 		query = query.where(RS.payment_date < to_date)
 
+	if not demand_generated:
+		# Skipped installments of an Installment Skip schedule have nothing payable and never get
+		# a demand. Keep them marked.
+		skip_schedules = (
+			frappe.qb.from_(LRS)
+			.select(LRS.name)
+			.where(LRS.loan == loan)
+			.where(LRS.restructure_type == "Installment Skip")
+		)
+		query = query.where((RS.total_payment > 0) | RS.parent.notin(skip_schedules))
+
 	query.run()
 
 def create_charge_master(charge_type):

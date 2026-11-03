@@ -13,6 +13,9 @@ from lending.loan_management.doctype.loan.loan import (
 	update_all_linked_loan_customer_npa_status,
 	update_watch_period_date_for_all_loans,
 )
+from lending.loan_management.doctype.loan_installment_skip_request.loan_installment_skip_request import (
+	InstallmentSkip,
+)
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	get_monthly_repayment_amount,
@@ -30,6 +33,9 @@ class LoanRestructure(AccountsController):
 
 		from lending.loan_management.doctype.loan_restructure_charges.loan_restructure_charges import (
 			LoanRestructureCharges,
+		)
+		from lending.loan_management.doctype.loan_skipped_installment.loan_skipped_installment import (
+			LoanSkippedInstallment,
 		)
 
 		adjusted_interest_amount: DF.Currency
@@ -54,6 +60,7 @@ class LoanRestructure(AccountsController):
 		loan_product: DF.Link | None
 		loan_repayment: DF.Link | None
 		loan_restructure_charges: DF.Table[LoanRestructureCharges]
+		skipped_installments: DF.Table[LoanSkippedInstallment]
 		moratorium_end_date: DF.Date | None
 		new_loan_amount: DF.Currency
 		new_monthly_repayment_amount: DF.Currency
@@ -76,7 +83,7 @@ class LoanRestructure(AccountsController):
 		repayment_start_date: DF.Date | None
 		restructure_charges: DF.Currency
 		restructure_date: DF.Datetime
-		restructure_type: DF.Literal["Normal Restructure", "Pre Payment", "Advance Payment"]
+		restructure_type: DF.Literal["Normal Restructure", "Pre Payment", "Advance Payment", "Installment Skip"]
 		status: DF.Literal["", "Initiated", "Approved", "Rejected"]
 		total_amount_paid: DF.Currency
 		total_overdue_amount: DF.Currency
@@ -98,6 +105,7 @@ class LoanRestructure(AccountsController):
 		self.validate_waiver_amount()
 		self.fetch_charges_details()
 		self.calculate_balance_amounts()
+		self.prepare_installment_skip()
 		self.set_missing_values()
 		self.validate_repayment_start_date()
 		self.calculate_new_loan_amount()
@@ -111,8 +119,12 @@ class LoanRestructure(AccountsController):
 		):
 			frappe.throw(_("Another Loan Restructure is already initiated for this Loan"))
 
+	def prepare_installment_skip(self):
+		if self.restructure_type == "Installment Skip":
+			InstallmentSkip(self).prepare()
+
 	def validate_restructure_date(self):
-		if self.restructure_type == "Normal Restructure":
+		if self.restructure_type in ("Normal Restructure", "Installment Skip"):
 			LoanInterestAccrual = DocType("Loan Interest Accrual")
 
 			max_due_date = (
@@ -269,6 +281,9 @@ class LoanRestructure(AccountsController):
 
 	def apply_workflow(self):
 		if self.status == "Approved" and self.docstatus.is_submitted():
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).validate_demand_not_generated_since_request()
+
 			if self.unaccrued_interest and self.restructure_type == "Normal Restructure":
 				self.make_waiver_and_capitalization_for_interest()
 				self.make_waiver_and_capitalization_for_penalty()
@@ -285,6 +300,9 @@ class LoanRestructure(AccountsController):
 				self.update_restructure_count()
 
 			self.update_repayment_schedule_status(status="Active")
+
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).update_loan_terms()
 		elif self.status == "Rejected":
 			self.update_repayment_schedule_status(status="Rejected")
 
@@ -334,6 +352,7 @@ class LoanRestructure(AccountsController):
 				"Loan Repayment Schedule", {"loan_restructure": self.name, "docstatus": 0}, "name"
 			)
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule)
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule.status = "Initiated"
 			schedule.save()
 			schedule.submit()
@@ -347,6 +366,10 @@ class LoanRestructure(AccountsController):
 		self.update_repayment_schedule_status(status="Initiated")
 		self.apply_workflow()
 
+	def before_cancel(self):
+		if self.restructure_type == "Installment Skip" and self.status == "Approved":
+			InstallmentSkip(self).validate_latest_installment_skip()
+
 	def on_cancel(self):
 		self.cancel_repayment_schedule()
 		if self.status == "Approved":
@@ -356,6 +379,9 @@ class LoanRestructure(AccountsController):
 
 			if self.restructure_type == "Normal Restructure":
 				self.update_security_deposit_amount(cancel=1)
+
+			if self.restructure_type == "Installment Skip":
+				InstallmentSkip(self).update_loan_terms(cancel=1)
 
 	def update_overdue_amounts(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
@@ -390,6 +416,7 @@ class LoanRestructure(AccountsController):
 		schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 
 		doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+		doc.flags.ignore_permissions = self.flags.ignore_permissions
 		doc.flags.ignore_links = True
 		doc.reverse_interest_accruals = 1
 		doc.cancel()
@@ -584,10 +611,22 @@ class LoanRestructure(AccountsController):
 			self.new_monthly_repayment_amount = get_monthly_repayment_amount(
 				self.new_loan_amount,
 				self.new_rate_of_interest,
-				self.new_repayment_period_in_months,
-				"Monthly",
+				self.get_periods_for_emi(),
+				self.get_frequency_for_emi(),
 				emi_rounding_method,
 			)
+
+	def get_frequency_for_emi(self):
+		if self.restructure_type == "Installment Skip":
+			return InstallmentSkip(self).repayment_frequency()
+
+		return "Monthly"
+
+	def get_periods_for_emi(self):
+		if self.restructure_type == "Installment Skip":
+			return InstallmentSkip(self).emi_periods()
+
+		return self.new_repayment_period_in_months
 
 	def restructure_loan(self):
 		if self.restructure_type == "Normal Restructure":
@@ -648,10 +687,12 @@ class LoanRestructure(AccountsController):
 		draft_schedule = frappe.db.get_value("Loan Repayment Schedule", filters, "name")
 		if draft_schedule:
 			schedule = frappe.get_doc("Loan Repayment Schedule", draft_schedule, for_update=True)
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule.update(self.get_schedule_details(adjusted_interest))
 			schedule.save()
 		else:
 			schedule = frappe.new_doc("Loan Repayment Schedule")
+			schedule.flags.ignore_permissions = self.flags.ignore_permissions
 			schedule_details = self.get_schedule_details(adjusted_interest)
 			schedule.update(schedule_details)
 			schedule.insert()
@@ -676,7 +717,9 @@ class LoanRestructure(AccountsController):
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
 			"repayment_frequency": self.get_new_repayment_frequency(),
-			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
+			"adjusted_interest": adjusted_interest
+			if self.restructure_type in ("Normal Restructure", "Installment Skip")
+			else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,
 		}
