@@ -10,9 +10,11 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
-  "sell_ltv",
-  "price_validity_days",
   "disabled",
+  "section_break_sale",
+  "sell_ltv",
+  "column_break_sale",
+  "price_validity_days",
   "limits_section",
   "max_single_security_pct",
   "column_break_lmts",
@@ -51,10 +53,18 @@
    "label": "Loan To Value Ratio"
   },
   {
+   "fieldname": "section_break_sale",
+   "fieldtype": "Section Break"
+  },
+  {
    "description": "Above this loan-to-value ratio the shortfall goes straight to Sale Triggered, without waiting for the cure period. Leave blank for no early sale",
    "fieldname": "sell_ltv",
    "fieldtype": "Percent",
    "label": "Sell LTV"
+  },
+  {
+   "fieldname": "column_break_sale",
+   "fieldtype": "Column Break"
   },
   {
    "default": "1",
@@ -90,7 +100,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-02 12:00:00.000000",
+ "modified": "2026-11-04 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",
