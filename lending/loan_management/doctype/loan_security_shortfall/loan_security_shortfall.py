@@ -228,6 +228,11 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 		elif loan_shortfall_map.get(loan.name) and flt(shortfall_amount, 6) <= 0:
 			update_pending_shortfall(loan_shortfall_map.get(loan.name), loan.name)
 
+	# Before the loop below, which reuses the name applicant
+	for shortfall_applicant, shortfall in applicant_shortfall_map.items():
+		if shortfall_applicant not in applicants and (not applicant or shortfall_applicant == applicant):
+			close_shortfall_without_cover(shortfall)
+
 	# Applicant-wise shortfall processing
 	for applicant in applicants:
 		security_value = get_total_pledged_security_value(applicant=applicant, on_shortfall_check=True)
@@ -255,10 +260,6 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			frappe.db.set_value(
 				"Sanctioned Loan Amount", sanctioned_limit, "sanctioned_amount_limit", security_value
 			)
-
-	for shortfall_applicant, shortfall in applicant_shortfall_map.items():
-		if shortfall_applicant not in applicants and (not applicant or shortfall_applicant == applicant):
-			close_shortfall_without_cover(shortfall)
 
 
 def close_shortfall_without_cover(shortfall):

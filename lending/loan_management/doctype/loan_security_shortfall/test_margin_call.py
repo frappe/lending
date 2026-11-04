@@ -65,6 +65,17 @@ class TestMarginCall(LendingTestSuite):
 		make_loan_disbursement_entry(loan.name, 280000)
 		# The check only runs on a site with secured lending
 		make_secured_loan(self.applicant)
+		# Another customer who pledged without a loan, so the applicant-wise loop runs too
+		if not frappe.db.exists("Sanctioned Loan Amount", {"applicant": self.applicant}):
+			frappe.get_doc(
+				{
+					"doctype": "Sanctioned Loan Amount",
+					"applicant_type": "Customer",
+					"applicant": self.applicant,
+					"company": "_Test Company",
+					"sanctioned_amount_limit": 1,
+				}
+			).insert(ignore_permissions=True)
 
 		create_process_loan_security_shortfall()
 
