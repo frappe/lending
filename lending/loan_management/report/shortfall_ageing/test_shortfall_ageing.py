@@ -32,6 +32,36 @@ class TestShortfallAgeing(LendingTestSuite):
 		frappe.db.set_single_value("Lending Settings", "enable_margin_call", 0)
 		set_price(250)
 
+	def test_applicant_shortfall_shows_under_its_customers_company(self):
+		in_company, elsewhere = "_Test Loan Customer", "_Test Loan Customer 1"
+		frappe.db.delete("Sanctioned Loan Amount", {"applicant": ("in", [in_company, elsewhere])})
+		frappe.get_doc(
+			{
+				"doctype": "Sanctioned Loan Amount",
+				"applicant_type": "Customer",
+				"applicant": in_company,
+				"company": "_Test Company",
+				"sanctioned_amount_limit": 1,
+			}
+		).insert()
+		for applicant in (in_company, elsewhere):
+			shortfall = frappe.get_doc(
+				{
+					"doctype": "Loan Security Shortfall",
+					"applicant_type": "Customer",
+					"applicant": applicant,
+					"status": "Pending",
+					"shortfall_amount": 1000,
+				}
+			)
+			shortfall.flags.ignore_mandatory = True
+			shortfall.insert(ignore_permissions=True)
+
+		_columns, data = execute({"company": "_Test Company"})
+		applicants = {row["applicant"] for row in data if not row.get("loan")}
+		self.assertIn(in_company, applicants)
+		self.assertNotIn(elsewhere, applicants)
+
 	def test_open_shortfall_with_its_age(self):
 		applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		loan = make_secured_loan(applicant)

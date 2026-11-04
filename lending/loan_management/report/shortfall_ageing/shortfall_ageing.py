@@ -45,6 +45,13 @@ def get_data(filters):
 def get_shortfalls(filters):
 	shortfall = frappe.qb.DocType("Loan Security Shortfall")
 	loan = frappe.qb.DocType("Loan")
+	sanctioned = frappe.qb.DocType("Sanctioned Loan Amount")
+	# An applicant-wise shortfall has no loan; it belongs to the company of the customer's sanctioned limit
+	company_applicants = (
+		frappe.qb.from_(sanctioned)
+		.select(sanctioned.applicant)
+		.where(sanctioned.company == filters.company)
+	)
 
 	query = (
 		frappe.qb.from_(shortfall)
@@ -65,8 +72,10 @@ def get_shortfalls(filters):
 			shortfall.email_missing,
 		)
 		.where(shortfall.status.isin([filters.status] if filters.status else list(OPEN_STATUSES)))
-		# An applicant-wise shortfall has no loan, and so no company
-		.where((loan.company == filters.company) | shortfall.loan.isnull())
+		.where(
+			(loan.company == filters.company)
+			| (shortfall.loan.isnull() & shortfall.applicant.isin(company_applicants))
+		)
 		.orderby(shortfall.creation)
 	)
 	if filters.applicant:
