@@ -17,10 +17,12 @@
   "applicant_email",
   "status",
   "securities_section",
-  "shortfall_amount",
-  "overdue_dues",
-  "column_break_recover",
   "amount_to_recover",
+  "column_break_recover",
+  "shortfall_amount",
+  "column_break_dues",
+  "overdue_dues",
+  "section_break_items",
   "items",
   "proceeds_section",
   "gross_proceeds",
@@ -122,7 +124,20 @@
    "label": "Securities"
   },
   {
+   "description": "Prefill Items sells enough to cover this. On a margin call: the two amounts beside it plus this sale's Deductions and Charges",
+   "fieldname": "amount_to_recover",
+   "fieldtype": "Currency",
+   "label": "Amount to Recover",
+   "options": "Company:company:default_currency",
+   "read_only_depends_on": "loan_security_shortfall"
+  },
+  {
+   "fieldname": "column_break_recover",
+   "fieldtype": "Column Break"
+  },
+  {
    "depends_on": "loan_security_shortfall",
+   "description": "From the Loan Security Shortfall",
    "fieldname": "shortfall_amount",
    "fieldtype": "Currency",
    "label": "Shortfall Amount",
@@ -130,8 +145,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "column_break_dues",
+   "fieldtype": "Column Break"
+  },
+  {
    "depends_on": "loan_security_shortfall",
-   "description": "Paid from the proceeds before the principal, so the sale covers it too",
+   "description": "Paid from the proceeds before the principal",
    "fieldname": "overdue_dues",
    "fieldtype": "Currency",
    "label": "Overdue Interest, Penalty and Charges",
@@ -139,16 +158,8 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_recover",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "On a margin call: the Shortfall Amount, plus the Overdue Interest, Penalty and Charges, plus this sale's Deductions and Charges. On a default: the loan's outstanding amount. Prefill Items picks securities to cover it",
-   "fieldname": "amount_to_recover",
-   "fieldtype": "Currency",
-   "label": "Amount to Recover",
-   "options": "Company:company:default_currency",
-   "read_only_depends_on": "loan_security_shortfall"
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "items",
@@ -260,7 +271,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-04 12:00:00.000000",
+ "modified": "2026-11-04 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",
