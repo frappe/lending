@@ -45,15 +45,21 @@ class LoanSecurityPriceUpdate(Document):
 		self.set_missing_count()
 
 	def before_submit(self):
-		self.validate_no_later_price()
+		self.set_previous_prices()
 
 	def on_submit(self):
 		self.create_prices()
+		# Also recomputes every Sanctioned Loan Amount, which the new prices skipped
 		run_shortfall_check()
 
 	def on_cancel(self):
 		for price in frappe.get_all("Loan Security Price", {"price_update": self.name}, pluck="name"):
-			frappe.delete_doc("Loan Security Price", price, ignore_permissions=True)
+			frappe.delete_doc(
+				"Loan Security Price",
+				price,
+				ignore_permissions=True,
+				flags=frappe._dict(skip_sanctioned_limit_update=True),
+			)
 		self.restore_previous_prices()
 		run_shortfall_check()
 
@@ -102,9 +108,18 @@ class LoanSecurityPriceUpdate(Document):
 	def create_prices(self):
 		valid_from = get_datetime(self.price_date)
 		valid_upto = get_datetime(f"{self.get_last_valid_date()} 23:59:59")
+
+		running = [row.previous_price for row in self.items if row.previous_price]
+		if running:
+			frappe.db.set_value(
+				"Loan Security Price",
+				{"name": ("in", running)},
+				"valid_upto",
+				add_to_date(valid_from, seconds=-1),
+			)
+
 		for row in self.items:
-			self.end_running_price(row, valid_from)
-			frappe.get_doc(
+			price = frappe.get_doc(
 				{
 					"doctype": "Loan Security Price",
 					"loan_security": row.loan_security,
@@ -113,26 +128,9 @@ class LoanSecurityPriceUpdate(Document):
 					"valid_upto": valid_upto,
 					"price_update": self.name,
 				}
-			).insert(ignore_permissions=True)
-
-	def end_running_price(self, row, valid_from):
-		running = frappe.db.get_value(
-			"Loan Security Price",
-			{
-				"loan_security": row.loan_security,
-				"valid_from": ("<", valid_from),
-				"valid_upto": (">=", valid_from),
-			},
-			["name", "valid_upto"],
-			as_dict=1,
-		)
-		if not running:
-			return
-
-		row.db_set({"previous_price": running.name, "previous_valid_upto": running.valid_upto})
-		frappe.db.set_value(
-			"Loan Security Price", running.name, "valid_upto", add_to_date(valid_from, seconds=-1)
-		)
+			)
+			price.flags.skip_sanctioned_limit_update = True
+			price.insert(ignore_permissions=True)
 
 	def restore_previous_prices(self):
 		for row in self.items:
@@ -150,16 +148,27 @@ class LoanSecurityPriceUpdate(Document):
 				valid_upto = min(valid_upto, add_to_date(next_price_from, seconds=-1))
 			frappe.db.set_value("Loan Security Price", row.previous_price, "valid_upto", valid_upto)
 
-	def validate_no_later_price(self):
+	def set_previous_prices(self):
+		# One query for every row: a price from the update date on is refused, and the price
+		# still running on it is ended at submit and restored on cancel
 		valid_from = get_datetime(self.price_date)
+		later, running = {}, {}
+		for price in frappe.get_all(
+			"Loan Security Price",
+			filters={
+				"loan_security": ("in", [row.loan_security for row in self.items]),
+				"valid_upto": (">=", valid_from),
+			},
+			fields=["name", "loan_security", "valid_from", "valid_upto"],
+			order_by="valid_from asc",
+		):
+			if price.valid_from >= valid_from:
+				later.setdefault(price.loan_security, price)
+			else:
+				running[price.loan_security] = price
+
 		for row in self.items:
-			later_price = frappe.db.get_value(
-				"Loan Security Price",
-				{"loan_security": row.loan_security, "valid_from": (">=", valid_from)},
-				["name", "valid_from"],
-				as_dict=1,
-			)
-			if later_price:
+			if later_price := later.get(row.loan_security):
 				frappe.throw(
 					_(
 						"Row {0}: Loan Security {1} already has price {2} from {3}. Cancel or delete it before you submit this update"
@@ -170,6 +179,10 @@ class LoanSecurityPriceUpdate(Document):
 						later_price.valid_from,
 					)
 				)
+
+			previous = running.get(row.loan_security)
+			row.previous_price = previous.name if previous else None
+			row.previous_valid_upto = previous.valid_upto if previous else None
 
 	def get_last_valid_date(self):
 		validity_days = max(

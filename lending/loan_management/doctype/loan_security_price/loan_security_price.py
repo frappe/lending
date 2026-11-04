@@ -42,6 +42,10 @@ class LoanSecurityPrice(Document):
 			update_sanctioned_loan_amount_for_applicant,
 		)
 
+		# A Loan Security Price Update recomputes every holder once, in the shortfall check it queues
+		if self.flags.skip_sanctioned_limit_update:
+			return
+
 		pledge = frappe.qb.DocType("Pledge")
 		loan_security_assignment = frappe.qb.DocType("Loan Security Assignment")
 

@@ -1,11 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, get_datetime, nowdate
 
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
+)
+from lending.loan_management.doctype.loan_security_price_update.loan_security_price_update import (
+	SHORTFALL_JOB,
 )
 from lending.tests.test_utils import (
 	create_loan_security,
@@ -120,6 +125,32 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 		update.append("items", {"loan_security": "Test Security 1", "price": 610})
 		with self.assertRaises(frappe.ValidationError):
 			update.save()
+
+	def test_limits_are_left_to_the_shortfall_check_it_queues(self):
+		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
+
+		customer = frappe.get_doc(get_customer_dict("Price Update Holder")).insert().name
+		create_loan_security_price(
+			"Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True
+		)
+		create_loan_security_assignment(
+			applicant=customer,
+			applicant_type="Customer",
+			securities=[{"loan_security": "Test Security 1", "qty": 10}],
+			company="_Test Company",
+		)
+
+		recompute = "lending.loan_management.doctype.loan_security_release.loan_security_release.update_sanctioned_loan_amount_for_applicant"
+		with patch(recompute) as update_limit, patch.object(frappe, "enqueue") as enqueue:
+			make_price_update(FRIDAY, {"Test Security 1": 600})
+			update_limit.assert_not_called()
+			enqueue.assert_called_once_with(SHORTFALL_JOB, queue="long", enqueue_after_commit=True)
+
+			# A price entered on its own still updates its holders right away
+			create_loan_security_price(
+				"Test Security 1", 700, "Nos", "2031-01-01", "2031-01-02 23:59:59", update_if_existing=True
+			)
+			update_limit.assert_called()
 
 	def test_get_securities_lists_pledged_securities(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
