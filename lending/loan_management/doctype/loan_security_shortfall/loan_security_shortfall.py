@@ -176,11 +176,13 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 	loans = frappe.get_all("Loan", fields=OUTSTANDING_FIELDS, filters=filters)
 
-	applicant_filters = {}
+	# Only a customer who pledged without a loan has collateral that covers all their loans.
+	# Every other pledge belongs to one loan and is checked with it above.
+	applicant_filters = {"applicant_type": "Customer"}
 	if applicant:
-		applicant_filters["name"] = applicant
+		applicant_filters["applicant"] = applicant
 
-	applicants= frappe.db.get_all("Customer", filters=applicant_filters, pluck="name")
+	applicants = set(frappe.get_all("Sanctioned Loan Amount", filters=applicant_filters, pluck="applicant"))
 
 	loan_shortfall_map = frappe._dict(
 		frappe.get_all(
@@ -253,6 +255,19 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			frappe.db.set_value(
 				"Sanctioned Loan Amount", sanctioned_limit, "sanctioned_amount_limit", security_value
 			)
+
+	for shortfall_applicant, shortfall in applicant_shortfall_map.items():
+		if shortfall_applicant not in applicants and (not applicant or shortfall_applicant == applicant):
+			close_shortfall_without_cover(shortfall)
+
+
+def close_shortfall_without_cover(shortfall):
+	# Raised against a customer who never pledged without a loan, so there was nothing to cure
+	frappe.db.set_value(
+		"Loan Security Shortfall",
+		shortfall,
+		{"status": "Completed", "shortfall_amount": 0, "shortfall_percentage": 0},
+	)
 
 
 def create_loan_security_shortfall(

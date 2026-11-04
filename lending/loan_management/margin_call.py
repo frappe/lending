@@ -4,6 +4,9 @@ from frappe.utils import cint, date_diff, get_datetime, nowdate
 import erpnext
 
 from lending.loan_management.collections import get_applicant_email
+from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
+	OPEN_STATUSES,
+)
 from lending.loan_management.utils import add_working_days
 
 PROCESSED_STATUSES = ("Pending", "Notified", "Sale Triggered")
@@ -42,6 +45,10 @@ class MarginCall:
 		if self.doc.status not in PROCESSED_STATUSES or self.doc.missing_price:
 			return
 
+		# The applicant's loan-wise shortfall already gives notice of the same deficit
+		if not self.doc.loan and self.has_open_loan_shortfall():
+			return
+
 		if not self.doc.notified_on and not self.notify():
 			return
 
@@ -52,6 +59,17 @@ class MarginCall:
 			self.remind()
 		elif self.doc.status == "Sale Triggered":
 			self.draft_sale()
+
+	def has_open_loan_shortfall(self):
+		return frappe.db.exists(
+			"Loan Security Shortfall",
+			{
+				"applicant_type": self.doc.applicant_type,
+				"applicant": self.doc.applicant,
+				"loan": ("is", "set"),
+				"status": ("in", OPEN_STATUSES),
+			},
+		)
 
 	def remind(self):
 		self.doc.db_set("reminded_on", get_datetime())

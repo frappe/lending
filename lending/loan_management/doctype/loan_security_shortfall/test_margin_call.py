@@ -15,6 +15,7 @@ from lending.loan_management.doctype.process_loan_security_shortfall.process_loa
 from lending.loan_management.margin_call import process_open_shortfalls
 from lending.loan_management.utils import add_working_days
 from lending.tests.test_utils import (
+	create_loan,
 	create_loan_application,
 	create_loan_security,
 	create_loan_security_price,
@@ -42,6 +43,79 @@ class TestMarginCall(LendingTestSuite):
 		set_price(250)
 		self.applicant = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 		frappe.db.set_value("Customer", self.applicant, "email_id", "borrower@example.com")
+
+	def test_customer_who_never_pledged_gets_no_shortfall_and_an_old_one_closes(self):
+		applicant = "_Test Loan Customer 1"
+		frappe.db.delete("Sanctioned Loan Amount", {"applicant": applicant})
+		frappe.db.set_value("Customer", applicant, "email_id", "unsecured@example.com")
+		stale = frappe.get_doc(
+			{
+				"doctype": "Loan Security Shortfall",
+				"applicant_type": "Customer",
+				"applicant": applicant,
+				"status": "Pending",
+				"shortfall_amount": 280000,
+			}
+		)
+		stale.flags.ignore_mandatory = True
+		stale.insert(ignore_permissions=True)
+
+		loan = create_loan(applicant, "Personal Loan", 280000, "Repay Over Number of Periods", 20, "Customer")
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, 280000)
+		# The check only runs on a site with secured lending
+		make_secured_loan(self.applicant)
+
+		create_process_loan_security_shortfall()
+
+		stale.reload()
+		self.assertEqual(stale.status, "Completed")
+		self.assertFalse(stale.cure_method)
+		self.assertFalse(stale.notified_on)
+		self.assertFalse(
+			frappe.db.exists("Loan Security Shortfall", {"applicant": applicant, "status": ("!=", "Completed")})
+		)
+
+	def test_loan_with_its_own_pledge_gets_only_a_loan_shortfall(self):
+		frappe.db.delete("Sanctioned Loan Amount", {"applicant": self.applicant})
+		loan = make_secured_loan(self.applicant)
+
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "status"), "Notified")
+		self.assertFalse(
+			frappe.db.exists("Loan Security Shortfall", {"applicant": self.applicant, "loan": ("is", "not set")})
+		)
+
+	def test_applicant_shortfall_sends_no_second_notice(self):
+		loan = make_secured_loan(self.applicant)
+		# A top-up or a pledge without a loan gives the customer a Sanctioned Loan Amount
+		if not frappe.db.exists("Sanctioned Loan Amount", {"applicant": self.applicant}):
+			frappe.get_doc(
+				{
+					"doctype": "Sanctioned Loan Amount",
+					"applicant_type": "Customer",
+					"applicant": self.applicant,
+					"company": "_Test Company",
+					# The shortfall check sets the limit from the pledges
+					"sanctioned_amount_limit": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		# At ₹200 the loan and the applicant are both short by the same ₹2,00,000
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "status"), "Notified")
+		applicant_shortfall = frappe.db.get_value(
+			"Loan Security Shortfall",
+			{"applicant": self.applicant, "loan": ("is", "not set")},
+			["status", "notified_on"],
+			as_dict=1,
+		)
+		self.assertEqual(applicant_shortfall.status, "Pending")
+		self.assertFalse(applicant_shortfall.notified_on)
 
 	def test_shortfall_is_notified_then_escalated_to_a_draft_sale(self):
 		# 8,000 units at ₹250 with haircut 50 lend ₹10,00,000
