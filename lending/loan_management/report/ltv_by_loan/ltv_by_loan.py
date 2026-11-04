@@ -5,6 +5,9 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_current_pledges_by_loan,
+)
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	DRAWN_SECURED_LOANS,
 	OPEN_STATUSES,
@@ -25,10 +28,13 @@ def get_data(filters):
 	shortfall_map = get_open_shortfall_map()
 	valuation = CollateralValuation()
 
+	loans = get_loans(filters)
+	pledges_by_loan = get_current_pledges_by_loan([loan.name for loan in loans])
+
 	data = []
-	for loan in get_loans(filters):
+	for loan in loans:
 		outstanding_amount = get_outstanding_amount(loan)
-		collateral = valuation.value_loan(loan.name)
+		collateral = valuation.value_loan(loan.name, pledges_by_loan.get(loan.name, {}))
 		value = collateral.security_value
 		shortfall = shortfall_map.get(loan.name, {})
 

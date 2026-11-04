@@ -4,6 +4,10 @@
 import frappe
 from frappe.utils import flt
 
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_current_pledges,
+	get_current_pledges_by_loan,
+)
 from lending.loan_management.doctype.loan_security_shortfall.test_margin_call import (
 	make_secured_loan,
 	set_price,
@@ -44,3 +48,25 @@ class TestPledgedCollateral(LendingTestSuite):
 		self.assertEqual(flt(data[0]["qty"]), 5000)
 		self.assertEqual(flt(data[0]["value"]), 1250000)
 		self.assertEqual(flt(data[0]["allowed_amount"]), 625000)
+
+	def test_counting_many_loans_at_once_matches_counting_each(self):
+		from lending.loan_management.doctype.loan.loan import unpledge_security
+
+		first = make_secured_loan(frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name"))
+		second = make_secured_loan(frappe.db.get_value("Customer", {"name": "_Test Loan Customer 1"}, "name"))
+
+		# A sale on one loan and a release on the other
+		sale = frappe.new_doc("Loan Security Sale")
+		sale.loan = first
+		sale.reason = "Borrower Request"
+		sale.append("items", {"loan_security": "Test Security 2", "sold_qty": 3000, "sale_price": 250})
+		sale.insert()
+		sale.submit()
+		set_price(500)
+		unpledge_security(loan=second, security_map={"Test Security 2": 1000}, save=1, submit=1, approve=1)
+
+		by_loan = get_current_pledges_by_loan([first, second])
+		self.assertEqual(by_loan[first], get_current_pledges(loan=first))
+		self.assertEqual(by_loan[second], get_current_pledges(loan=second))
+		self.assertEqual(flt(by_loan[first]["Test Security 2"]), 5000)
+		self.assertEqual(flt(by_loan[second]["Test Security 2"]), 7000)

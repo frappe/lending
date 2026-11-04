@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import flt, get_datetime
 
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
-	get_pledged_security_qty,
+	get_current_pledges_by_loan,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	get_ltv_ratio_map,
@@ -24,9 +24,12 @@ def get_data(filters):
 	price_map = get_current_prices()
 	ltv_ratio_map = get_ltv_ratio_map()
 
+	loans = get_loans(filters)
+	pledges_by_loan = get_current_pledges_by_loan([loan.name for loan in loans])
+
 	data = []
-	for loan in get_loans(filters):
-		for security, qty in get_pledged_security_qty(loan=loan.name).items():
+	for loan in loans:
+		for security, qty in pledges_by_loan.get(loan.name, {}).items():
 			details = security_map.get(security, {})
 			if flt(qty) <= 0 or (
 				filters.loan_security_type and details.get("loan_security_type") != filters.loan_security_type

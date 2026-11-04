@@ -62,9 +62,9 @@ class CollateralValuation:
 		self.ltv_ratio_map = get_ltv_ratio_map()
 		self.sell_ltv_map = get_ltv_ratio_map(field="sell_ltv")
 
-	def value_loan(self, loan):
+	def value_loan(self, loan, pledged_qty=None):
 		collateral = frappe._dict(
-			pledged_qty=get_pledged_security_qty(loan=loan),
+			pledged_qty=get_pledged_security_qty(loan=loan) if pledged_qty is None else pledged_qty,
 			security_value=0.0,
 			allowed_amount=0.0,
 			sell_amount=0.0,
