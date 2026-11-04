@@ -182,7 +182,11 @@ class LoanSecurityAssignment(Document):
 		):
 			return
 
-		if self.loan:
+		# A draft pledges nothing, so it is checked without locks. Only a submit, or the loan
+		# that marks a requested pledge Pledged, must count what others commit at the same time.
+		locking = self.docstatus == 1
+
+		if self.loan and locking:
 			# Locks are taken Loan, then Loan Security, then pledge and release rows. A Loan Security
 			# Release locks its Loan before its own row (see LoanSecurityRelease.save), so the two
 			# cannot deadlock.
@@ -197,14 +201,15 @@ class LoanSecurityAssignment(Document):
 		)
 		pledged_qty, current_prices = {}, {}
 		if capped:
-			lock_loan_securities(capped)
-			pledged_qty = get_current_pledges(securities=capped, for_update=True)
+			if locking:
+				lock_loan_securities(capped)
+			pledged_qty = get_current_pledges(securities=capped, for_update=locking)
 			# A row from a loan application keeps the price from when it was applied for.
 			current_prices = get_loan_security_price_map(capped)
 
 		shares = {}
 		if any(flt(limit.max_single_security_pct) for limit in limits.values()):
-			shares = self.get_security_shares()
+			shares = self.get_security_shares(locking)
 
 		for row in self.securities:
 			limit = limits.get(row.loan_security_type)
@@ -253,7 +258,7 @@ class LoanSecurityAssignment(Document):
 						title=_("Exposure Limit Reached"),
 					)
 
-	def get_security_shares(self):
+	def get_security_shares(self, locking):
 		# A top-up adds to the collateral already on the loan, so the share is measured across both,
 		# all at the current price.
 		quantities = {}
@@ -261,8 +266,8 @@ class LoanSecurityAssignment(Document):
 			quantities[row.loan_security] = quantities.get(row.loan_security, 0) + flt(row.qty)
 
 		if self.loan:
-			# The Loan is locked in validate_security_limits, so concurrent top-ups are checked in turn.
-			for security, qty in get_current_pledges(loan=self.loan, for_update=True).items():
+			# On submit the Loan is locked in validate_security_limits, so concurrent top-ups are checked in turn.
+			for security, qty in get_current_pledges(loan=self.loan, for_update=locking).items():
 				quantities[security] = quantities.get(security, 0) + flt(qty)
 
 		current_prices = get_loan_security_price_map(list(quantities))

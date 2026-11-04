@@ -1,6 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, nowdate
 
@@ -309,6 +311,22 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 			frappe.ValidationError, make_pledge, [{"loan_security": "Test Security 1", "qty": 600}]
 		)
 		self.assertTrue(make_pledge([{"loan_security": "Test Security 1", "qty": 500}]))
+
+	def test_cap_takes_locks_only_on_submit(self):
+		frappe.db.set_value("Loan Security Type", "Stock", "max_exposure_per_security", 10**9)
+		module = "lending.loan_management.doctype.loan_security_assignment.loan_security_assignment"
+
+		with (
+			patch(f"{module}.lock_loan_securities") as lock,
+			patch(f"{module}.get_current_pledges", wraps=get_current_pledges) as count,
+		):
+			lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
+			lock.assert_not_called()
+			self.assertFalse(count.call_args.kwargs["for_update"])
+
+			lsa.submit()
+			lock.assert_called_once_with(["Test Security 1"])
+			self.assertTrue(count.call_args.kwargs["for_update"])
 
 	def test_release_reference_is_optional(self):
 		make_pledge([{"loan_security": "Test Security 1", "qty": 200}]).submit()
