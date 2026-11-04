@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, nowdate
+from frappe.utils import add_days, getdate, nowdate
 
 from lending.loan_management.report.loan_security_ledger.loan_security_ledger import (
 	execute,
@@ -18,6 +18,20 @@ class TestLoanSecurityLedger(LendingTestSuite):
 	def test_loan_security_ledger_requires_loan_or_applicant_filter(self):
 		with self.assertRaises(frappe.ValidationError):
 			get_data({})
+
+	def test_sale_is_dated_by_its_posting_date(self):
+		sale = frappe.new_doc("Loan Security Sale")
+		sale.loan = self.loan.name
+		sale.reason = "Borrower Request"
+		# A posting date other than today, so it differs from the date the sale was created
+		sale.posting_date = add_days(nowdate(), 3)
+		sale.append("items", {"loan_security": "Test Security 1", "sold_qty": 1000, "sale_price": 500})
+		sale.insert()
+		sale.submit()
+
+		_columns, data = execute({"loan": self.loan.name})
+		sale_row = next(row for row in data if row["doctype"] == "Loan Security Sale")
+		self.assertEqual(getdate(sale_row["date"]), getdate(add_days(nowdate(), 3)))
 
 	def test_ledger_with_a_sale_sorts_and_balances(self):
 		sale = frappe.new_doc("Loan Security Sale")

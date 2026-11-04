@@ -1,11 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.query_builder import functions as fn
 from frappe.query_builder.custom import ConstantColumn
-from frappe.utils import get_datetime
+from frappe.utils import get_datetime, getdate
 
 
 def execute(filters: dict | None = None):
@@ -104,8 +106,8 @@ def get_data(filters) -> list[list]:
 	).inner_join(security_doctype).on(
 		sale_item_doctype.loan_security == security_doctype.name
 	).select(
-		sale_doctype.loan, ConstantColumn("Loan Security Sale").as_("doctype"), sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty"), sale_doctype.creation.as_("date"), security_doctype.loan_security_type
-	).where(sale_doctype.docstatus == 1)
+		sale_doctype.loan, ConstantColumn("Loan Security Sale").as_("doctype"), sale_item_doctype.loan_security, fn.Sum(sale_item_doctype.sold_qty).as_("qty"), sale_doctype.posting_date.as_("date"), sale_doctype.creation.as_("created"), security_doctype.loan_security_type
+	).where(sale_doctype.docstatus == 1).where(sale_item_doctype.sold_qty > 0)
 
 	if loan:
 		unpledge_query = unpledge_query.where(loan_security_release_doctype.loan == loan)
@@ -132,6 +134,9 @@ def get_data(filters) -> list[list]:
 	)
 	pledges = pledge_query.groupby(pledge_doctype.parent, pledge_doctype.loan_security).run(as_dict=True)
 	sales = sale_query.groupby(sale_item_doctype.parent, sale_item_doctype.loan_security).run(as_dict=True)
+	for sale in sales:
+		# A sale happens on its posting date; the time of day keeps its order against same-day pledges
+		sale.date = datetime.combine(getdate(sale.date), get_datetime(sale.pop("created")).time())
 
 	# A row with no time recorded would otherwise break the sort on a None
 	result = sorted(pledges + unpledges + sales, key=lambda row: get_datetime(row.date))
