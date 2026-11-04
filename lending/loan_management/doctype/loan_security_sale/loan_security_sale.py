@@ -102,7 +102,22 @@ class LoanSecuritySale(Document):
 		self.cancel_linked(self.charge_voucher_type, self.charge_voucher)
 		self.update_assignment_status()
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
+		self.reopen_cured_shortfall()
 		recheck_loan_shortfall(self.loan)
+
+	def reopen_cured_shortfall(self):
+		# Undoing the sale undoes its cure; the recheck closes it again if the loan is still covered
+		if not self.loan_security_shortfall:
+			return
+		status, cure_method = frappe.db.get_value(
+			"Loan Security Shortfall", self.loan_security_shortfall, ["status", "cure_method"]
+		)
+		if status == "Completed" and cure_method == "Sale":
+			frappe.db.set_value(
+				"Loan Security Shortfall",
+				self.loan_security_shortfall,
+				{"status": "Sale Triggered", "cure_method": None},
+			)
 
 	def cancel_linked(self, doctype, name):
 		if name and frappe.db.get_value(doctype, name, "docstatus") == 1:

@@ -74,6 +74,28 @@ class TestLoanSecuritySale(LendingTestSuite):
 		create_process_loan_security_shortfall()
 		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall.name, "status"), "Completed")
 
+	def test_cancelling_the_sale_reopens_the_shortfall_it_cured(self):
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": self.loan, "status": "Pending"}, "name")
+
+		sale = make_sale(self.loan, loan_security_shortfall=shortfall)
+		sale.prefill_items()
+		sell(sale, {"Test Security 2": (2000, 200)})
+		sale.apply_proceeds()
+		create_process_loan_security_shortfall()
+		self.assertEqual(
+			frappe.db.get_value("Loan Security Shortfall", shortfall, ["status", "cure_method"]),
+			("Completed", "Sale"),
+		)
+
+		frappe.get_doc("Loan Security Sale", sale.name).cancel()
+		status, shortfall_amount = frappe.db.get_value(
+			"Loan Security Shortfall", shortfall, ["status", "shortfall_amount"]
+		)
+		self.assertEqual(status, "Sale Triggered")
+		self.assertEqual(flt(shortfall_amount), 200000)
+
 	def test_proceeds_that_do_not_cover_the_lost_cover_leave_the_shortfall_open(self):
 		set_price(200)
 		create_process_loan_security_shortfall()
