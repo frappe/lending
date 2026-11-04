@@ -9,7 +9,7 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 )
 from lending.loan_management.utils import add_working_days
 
-PROCESSED_STATUSES = ("Pending", "Notified", "Sale Triggered")
+PROCESSED_STATUSES = ("Pending", "Notified", "Escalated", "Sale Triggered")
 REMINDER_DAYS = 2
 
 
@@ -60,7 +60,8 @@ class MarginCall:
 			self.escalate()
 		elif self.doc.status == "Notified" and days_left <= REMINDER_DAYS and not self.doc.reminded_on:
 			self.remind()
-		elif self.doc.status == "Sale Triggered":
+		elif self.doc.status in ("Escalated", "Sale Triggered"):
+			# Drafts again if staff deleted the draft; draft_sale skips while one is open
 			self.draft_sale()
 
 	def has_open_loan_shortfall(self):

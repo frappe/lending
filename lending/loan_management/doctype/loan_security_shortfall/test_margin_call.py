@@ -216,6 +216,21 @@ class TestMarginCall(LendingTestSuite):
 		follow_up = frappe.get_doc("Loan Security Sale", {"loan_security_shortfall": shortfall, "docstatus": 0})
 		self.assertEqual(follow_up.items[0].qty, 1000)
 
+	def test_escalated_shortfall_is_drafted_again_after_its_draft_is_deleted(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+		frappe.db.set_value("Loan Security Shortfall", shortfall, "cure_by", add_days(nowdate(), -1))
+		process_open_shortfalls()
+		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall, "status"), "Escalated")
+
+		frappe.delete_doc("Loan Security Sale", frappe.db.get_value("Loan Security Sale", {"loan_security_shortfall": shortfall}))
+		process_open_shortfalls()
+		self.assertTrue(
+			frappe.db.exists("Loan Security Sale", {"loan_security_shortfall": shortfall, "docstatus": 0})
+		)
+
 	def test_cure_discards_the_untouched_draft_and_blocks_a_filled_one(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
