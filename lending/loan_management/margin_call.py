@@ -50,6 +50,9 @@ class MarginCall:
 			return
 
 		if not self.doc.notified_on and not self.notify():
+			# Above the Sell LTV the sale cannot wait for contact details; staff still submit it
+			if self.doc.status == "Sale Triggered":
+				self.draft_sale()
 			return
 
 		days_left = date_diff(self.doc.cure_by, nowdate()) if self.doc.cure_by else None

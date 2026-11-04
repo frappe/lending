@@ -252,6 +252,22 @@ class TestMarginCall(LendingTestSuite):
 		self.assertEqual(shortfall.status, "Notified")
 		self.assertTrue(shortfall.cure_by)
 
+	def test_sale_above_sell_ltv_is_drafted_without_an_email(self):
+		frappe.db.set_value("Customer", self.applicant, "email_id", None)
+		frappe.db.set_value("Loan Security", "Test Security 2", "sell_ltv", 60)
+		loan = make_secured_loan(self.applicant)
+
+		# 62.5% is above the sell level of 60%
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan})
+		self.assertEqual(shortfall.status, "Sale Triggered")
+		self.assertTrue(shortfall.email_missing)
+		self.assertFalse(shortfall.notified_on)
+		sale = frappe.get_doc("Loan Security Sale", {"loan_security_shortfall": shortfall.name})
+		self.assertEqual(sale.docstatus, 0)
+
 	def test_reminder_waits_for_prices_and_goes_once(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
