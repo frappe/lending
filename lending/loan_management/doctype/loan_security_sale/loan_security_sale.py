@@ -57,10 +57,12 @@ class LoanSecuritySale(Document):
 		loan: DF.Link
 		loan_security_shortfall: DF.Link | None
 		net_proceeds: DF.Currency
+		overdue_dues: DF.Currency
 		posting_date: DF.Date
 		proceeds_date: DF.Date | None
 		reason: DF.Literal["Margin Call Not Cured", "Loan Default", "Borrower Request"]
 		repayments: DF.Table[LoanSecuritySaleRepayment]
+		shortfall_amount: DF.Currency
 		status: DF.Literal["Draft", "Sold", "Proceeds Applied", "Cancelled"]
 		surplus_amount: DF.Currency
 	# end: auto-generated types
@@ -158,13 +160,23 @@ class LoanSecuritySale(Document):
 		)
 
 	def set_amount_to_recover(self):
-		if flt(self.amount_to_recover) or not self.loan:
+		if not self.loan:
 			return
 		if self.loan_security_shortfall:
-			self.amount_to_recover = frappe.db.get_value(
+			self.shortfall_amount = frappe.db.get_value(
 				"Loan Security Shortfall", self.loan_security_shortfall, "shortfall_amount"
 			)
-		else:
+			# Repaid from the proceeds before the principal, so they do not cure the shortfall
+			amounts = calculate_amounts(self.loan, self.posting_date or nowdate())
+			self.overdue_dues = (
+				flt(amounts["interest_amount"])
+				+ flt(amounts["penalty_amount"])
+				+ flt(amounts["total_charges_payable"])
+			)
+			self.amount_to_recover = (
+				flt(self.shortfall_amount) + self.overdue_dues + flt(self.deductions) + flt(self.charges)
+			)
+		elif not flt(self.amount_to_recover):
 			self.amount_to_recover = calculate_amounts(
 				self.loan, self.posting_date or nowdate(), payment_type="Loan Closure"
 			)["payable_amount"]

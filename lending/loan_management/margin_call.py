@@ -103,8 +103,15 @@ class MarginCall:
 		self.draft_sale()
 
 	def draft_sale(self):
+		# A sale whose proceeds are not applied yet has taken units off without repaying, so the
+		# shortfall looks larger than it is; wait for it before drafting one for what is left.
 		if not self.doc.loan or frappe.db.exists(
-			"Loan Security Sale", {"loan_security_shortfall": self.doc.name, "docstatus": ("<", 2)}
+			"Loan Security Sale",
+			{
+				"loan_security_shortfall": self.doc.name,
+				"docstatus": ("<", 2),
+				"status": ("!=", "Proceeds Applied"),
+			},
 		):
 			return
 

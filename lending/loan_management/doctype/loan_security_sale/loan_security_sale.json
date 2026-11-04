@@ -17,6 +17,9 @@
   "applicant_email",
   "status",
   "securities_section",
+  "shortfall_amount",
+  "overdue_dues",
+  "column_break_recover",
   "amount_to_recover",
   "items",
   "proceeds_section",
@@ -119,11 +122,33 @@
    "label": "Securities"
   },
   {
-   "description": "The shortfall amount, or the loan's outstanding amount on a default. Prefill Items picks securities to cover it",
+   "depends_on": "loan_security_shortfall",
+   "fieldname": "shortfall_amount",
+   "fieldtype": "Currency",
+   "label": "Shortfall Amount",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "depends_on": "loan_security_shortfall",
+   "description": "Paid from the proceeds before the principal, so the sale covers it too",
+   "fieldname": "overdue_dues",
+   "fieldtype": "Currency",
+   "label": "Overdue Interest, Penalty and Charges",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_recover",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "On a margin call: the Shortfall Amount, plus the Overdue Interest, Penalty and Charges, plus this sale's Deductions and Charges. On a default: the loan's outstanding amount. Prefill Items picks securities to cover it",
    "fieldname": "amount_to_recover",
    "fieldtype": "Currency",
    "label": "Amount to Recover",
-   "options": "Company:company:default_currency"
+   "options": "Company:company:default_currency",
+   "read_only_depends_on": "loan_security_shortfall"
   },
   {
    "fieldname": "items",
@@ -235,7 +260,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-18 12:00:00.000000",
+ "modified": "2026-11-04 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Sale",

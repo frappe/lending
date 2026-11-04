@@ -155,6 +155,56 @@ class TestMarginCall(LendingTestSuite):
 			frappe.db.get_value("Loan Security Shortfall", shortfall.name, "status"), "Sale Triggered"
 		)
 
+	def test_draft_covers_what_the_proceeds_pay_before_principal(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+
+		sale = frappe.new_doc("Loan Security Sale")
+		sale.loan = loan
+		sale.reason = "Margin Call Not Cured"
+		sale.loan_security_shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+		sale.charges = 2000
+		sale.deductions = 1000
+		dues = {"interest_amount": 15000, "penalty_amount": 5000, "total_charges_payable": 0}
+		with patch(
+			"lending.loan_management.doctype.loan_security_sale.loan_security_sale.calculate_amounts",
+			return_value=dues,
+		):
+			sale.prefill_items()
+
+		self.assertEqual(flt(sale.shortfall_amount), 200000)
+		self.assertEqual(flt(sale.overdue_dues), 20000)
+		self.assertEqual(flt(sale.amount_to_recover), 223000)
+		# Each unit at ₹200 with LTV 50 cures ₹100
+		self.assertEqual(sale.items[0].qty, 2230)
+
+	def test_follow_up_sale_is_drafted_once_the_proceeds_are_applied(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+		frappe.db.set_value("Loan Security Shortfall", shortfall, "cure_by", add_days(nowdate(), -1))
+		process_open_shortfalls()
+
+		# Staff sell only half of the 2,000 units drafted
+		sale = frappe.get_doc("Loan Security Sale", {"loan_security_shortfall": shortfall})
+		sale.items[0].sold_qty = 1000
+		sale.items[0].sale_price = 200
+		sale.submit()
+
+		# Until the proceeds reach the loan, the shortfall looks larger than it is
+		process_open_shortfalls()
+		self.assertFalse(
+			frappe.db.exists("Loan Security Sale", {"loan_security_shortfall": shortfall, "docstatus": 0})
+		)
+
+		sale.apply_proceeds()
+		self.assertNotEqual(frappe.db.get_value("Loan Security Shortfall", shortfall, "status"), "Completed")
+		process_open_shortfalls()
+		follow_up = frappe.get_doc("Loan Security Sale", {"loan_security_shortfall": shortfall, "docstatus": 0})
+		self.assertEqual(follow_up.items[0].qty, 1000)
+
 	def test_cure_discards_the_untouched_draft_and_blocks_a_filled_one(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
