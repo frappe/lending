@@ -8,6 +8,9 @@ from frappe.utils import add_days, add_to_date, cint, flt, get_datetime
 
 import erpnext
 
+from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+	lock_loan_securities,
+)
 from lending.loan_management.utils import add_working_days
 
 SHORTFALL_JOB = "lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall"
@@ -152,16 +155,27 @@ class LoanSecurityPriceUpdate(Document):
 		# One query for every row: a price from the update date on is refused, and the price
 		# still running on it is ended at submit and restored on cancel
 		valid_from = get_datetime(self.price_date)
+		securities = sorted({row.loan_security for row in self.items})
+		# A second update of the same securities waits here, then its locking read sees this one's prices
+		lock_loan_securities(securities)
+		price_doctype = frappe.qb.DocType("Loan Security Price")
+		prices = (
+			frappe.qb.from_(price_doctype)
+			.select(
+				price_doctype.name,
+				price_doctype.loan_security,
+				price_doctype.valid_from,
+				price_doctype.valid_upto,
+			)
+			.where(price_doctype.loan_security.isin(securities))
+			.where(price_doctype.valid_upto >= valid_from)
+			.orderby(price_doctype.valid_from)
+			.for_update()
+			.run(as_dict=True)
+		)
+
 		later, running = {}, {}
-		for price in frappe.get_all(
-			"Loan Security Price",
-			filters={
-				"loan_security": ("in", [row.loan_security for row in self.items]),
-				"valid_upto": (">=", valid_from),
-			},
-			fields=["name", "loan_security", "valid_from", "valid_upto"],
-			order_by="valid_from asc",
-		):
+		for price in prices:
 			if price.valid_from >= valid_from:
 				later.setdefault(price.loan_security, price)
 			else:

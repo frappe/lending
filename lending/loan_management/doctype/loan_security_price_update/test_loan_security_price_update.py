@@ -126,6 +126,12 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 		with self.assertRaises(frappe.ValidationError):
 			update.save()
 
+	def test_submit_locks_its_securities_so_parallel_updates_wait(self):
+		module = "lending.loan_management.doctype.loan_security_price_update.loan_security_price_update"
+		with patch(f"{module}.lock_loan_securities") as lock:
+			make_price_update(FRIDAY, {"Test Security 2": 300, "Test Security 1": 600})
+		lock.assert_called_once_with(["Test Security 1", "Test Security 2"])
+
 	def test_limits_are_left_to_the_shortfall_check_it_queues(self):
 		from erpnext.selling.doctype.customer.test_customer import get_customer_dict
 
