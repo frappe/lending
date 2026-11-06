@@ -24,6 +24,9 @@ class ProcessLoanRestructureLimit(Document):
 
 
 def calculate_monthly_restructure_limit(branch=None, posting_date=None):
+	if not frappe.get_meta("Loan").has_field("branch"):
+		return
+
 	if not posting_date:
 		posting_date = getdate()
 
@@ -34,19 +37,8 @@ def calculate_monthly_restructure_limit(branch=None, posting_date=None):
 
 	for company in frappe.get_all("Company", pluck="name"):
 		for branch in branches:
-			limit_details = frappe.db.get_value(
-				"Branch", branch, ["loan_restructure_limit", "delinquent_limit"], as_dict=1
-			)
-
-			if not limit_details.loan_restructure_limit:
-				loan_restructure_limit = frappe.db.get_value("Company", company, "loan_restructure_limit")
-			else:
-				loan_restructure_limit = limit_details.loan_restructure_limit
-
-			if not limit_details.delinquent_limit:
-				delinquent_limit = frappe.db.get_value("Company", company, "delinquent_limit")
-			else:
-				delinquent_limit = limit_details.delinquent_limit
+			loan_restructure_limit = get_limit_percent("loan_restructure_limit", branch, company)
+			delinquent_limit = get_limit_percent("delinquent_limit", branch, company)
 
 			outstanding_pos = get_outstanding_pos(branch, company)
 			delinquent_pos = get_outstanding_pos(branch, company, delinquent=1)
@@ -91,6 +83,14 @@ def calculate_monthly_restructure_limit(branch=None, posting_date=None):
 			)
 
 
+def get_limit_percent(fieldname, branch, company):
+	for doctype, name in (("Branch", branch), ("Company", company)):
+		if frappe.get_meta(doctype).has_field(fieldname):
+			limit = frappe.db.get_value(doctype, name, fieldname)
+			if limit:
+				return limit
+
+
 def update_or_create_limit_log(
 	company, branch, posting_date, limit_details, delinquent_limit_details
 ):
@@ -118,10 +118,10 @@ def update_or_create_limit_log(
 				"limit_percent": limit_details.limit_percent,
 				"limit_amount": limit_details.limit_amount,
 				"utilized_limit": limit_details.utilized_limit,
-				"in_process_limit": limit_details.in_process_amount,
+				"in_process_limit": limit_details.in_process_limit,
 				"available_limit": flt(limit_details.limit_amount)
 				- flt(limit_details.utilized_limit)
-				- flt(limit_details.in_process_amount),
+				- flt(limit_details.in_process_limit),
 				"delinquent_principal_outstanding": delinquent_limit_details.delinquent_principal_outstanding,
 				"delinquent_utilized_limit": delinquent_limit_details.delinquent_utilized_limit,
 				"delinquent_limit_percent": delinquent_limit_details.delinquent_limit_percent,
@@ -144,9 +144,9 @@ def get_outstanding_pos(branch, company, delinquent=0):
 		"Loan",
 		filters,
 		[
-			"sum(total_payment) as total_payment",
-			"sum(total_principal_paid) as total_principal_paid",
-			"sum(total_interest_payable) as total_interest_payable",
+			{"SUM": "total_payment", "as": "total_payment"},
+			{"SUM": "total_principal_paid", "as": "total_principal_paid"},
+			{"SUM": "total_interest_payable", "as": "total_interest_payable"},
 		],
 		as_dict=1,
 	)
@@ -155,7 +155,7 @@ def get_outstanding_pos(branch, company, delinquent=0):
 
 
 def get_utilized_limit(branch, company, delinquent=0):
-	filters = {"branch": branch, "docstatus": 1, "company": company, "status": "Approved"}
+	filters = {"loan.branch": branch, "docstatus": 1, "company": company, "status": "Approved"}
 
 	if delinquent:
 		filters.update({"pre_restructure_dpd": (">=", 1)})
@@ -163,20 +163,20 @@ def get_utilized_limit(branch, company, delinquent=0):
 	utilized_limit = frappe.db.get_value(
 		"Loan Restructure",
 		filters,
-		["sum(pending_principal_amount)"],
+		[{"SUM": "pending_principal_amount"}],
 	)
 
 	return flt(utilized_limit)
 
 
 def get_in_process_limit(branch, company, delinquent=0):
-	filters = {"branch": branch, "docstatus": 1, "company": company, "status": "Initiated"}
+	filters = {"loan.branch": branch, "docstatus": 1, "company": company, "status": "Initiated"}
 
 	if delinquent:
 		filters.update({"pre_restructure_dpd": (">=", 1)})
 
 	in_process_limit = frappe.db.get_value(
-		"Loan Restructure", filters, ["sum(pending_principal_amount)"]
+		"Loan Restructure", filters, [{"SUM": "pending_principal_amount"}]
 	)
 
 	return flt(in_process_limit)
