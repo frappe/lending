@@ -10,6 +10,7 @@ from frappe.utils import add_days, cint, getdate, now_datetime
 
 TELEPHONY_APP = "telephony"
 REJECTED_WORKFLOW_STATE = "Rejected"
+PORTAL_LEAD_SOURCE = "Portal"
 PAN_COUNTRY = "India"
 PAN_IDENTITY_FIELDS = ("pan",)
 CONTACT_IDENTITY_FIELDS = ("email", "mobile_number")
@@ -62,6 +63,7 @@ class LoanLead(Document):
 		bureau_score: DF.Int
 		company_name: DF.Data | None
 		contact: DF.Link | None
+		customer: DF.Link | None
 		date_of_birth: DF.Date | None
 		email: DF.Data
 		email_verification_status: DF.Literal["Pending", "Initiated", "Verified"]
@@ -138,9 +140,9 @@ class LoanLead(Document):
 	def set_bureau_snapshot(self):
 		# Read on every save rather than written once when the pull lands, so the lead shows
 		# the report that is current rather than the one it happened to be saved beside.
-		from lending.loan_origination.decisioning import latest_bureau_report_for_pan
+		from lending.loan_origination.decisioning import latest_bureau_report_for_lead
 
-		report = latest_bureau_report_for_pan(self.pan)
+		report = latest_bureau_report_for_lead(self)
 
 		self.bureau_score = report.score if report else 0
 		self.bureau_report = report.name if report else None
@@ -494,5 +496,9 @@ def convert_to_loan_application(loan_lead: Document):
 	loan_application.loan_product = loan_lead.loan_product
 	loan_application.loan_amount = loan_lead.loan_amount
 	loan_application.repayment_periods = loan_lead.proposed_tenure
+
+	if loan_lead.customer:
+		loan_application.applicant_type = "Customer"
+		loan_application.applicant = loan_lead.customer
 
 	loan_application.save()

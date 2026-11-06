@@ -1,0 +1,237 @@
+{
+ "block": {
+  "baseStyles": {},
+  "children": [
+   {
+    "baseStyles": {
+     "display": "flex",
+     "flexDirection": "column",
+     "gap": "10px"
+    },
+    "children": [
+     {
+      "baseStyles": {},
+      "children": [],
+      "componentEvents": {},
+      "componentId": "borrower_alerts-0-container1-tabbuttons1",
+      "componentName": "TabButtons",
+      "componentProps": {
+       "modelValue": {
+        "$type": "variable",
+        "name": "alertsTab"
+       },
+       "options": [
+        {
+         "label": "Notifications",
+         "value": "attention"
+        },
+        {
+         "label": "Activity",
+         "value": "activity"
+        }
+       ],
+       "size": "sm"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
+     },
+     {
+      "baseStyles": {
+       "color": "var(--ink-gray-6)"
+      },
+      "children": [],
+      "componentEvents": {},
+      "componentId": "borrower_alerts-0-container1-textblock1",
+      "componentName": "TextBlock",
+      "componentProps": {
+       "fontSize": "text-p-sm",
+       "tag": "p",
+       "text": "{{ alertsTab === 'attention' ? alerts.data.attention_note : alerts.data.activity_note }}"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
+     },
+     {
+      "baseStyles": {},
+      "children": [
+       {
+        "baseStyles": {
+         "alignItems": "center",
+         "cursor": "pointer",
+         "display": "flex",
+         "flexDirection": "row",
+         "gap": "10px",
+         "padding": "10px 0"
+        },
+        "children": [
+         {
+          "baseStyles": {
+           "display": "flex",
+           "flexDirection": "column",
+           "gap": "2px"
+          },
+          "children": [
+           {
+            "baseStyles": {},
+            "children": [],
+            "componentEvents": {},
+            "componentId": "borrower_alerts-0-container1-repeater1-container1-container1-textblock1",
+            "componentName": "TextBlock",
+            "componentProps": {
+             "fontSize": "text-base",
+             "tag": "p",
+             "text": "{{ dataItem.title }}"
+            },
+            "componentSlots": {},
+            "mobileStyles": {},
+            "tabletStyles": {}
+           },
+           {
+            "baseStyles": {
+             "color": "var(--ink-gray-6)"
+            },
+            "children": [],
+            "componentEvents": {},
+            "componentId": "borrower_alerts-0-container1-repeater1-container1-container1-textblock2",
+            "componentName": "TextBlock",
+            "componentProps": {
+             "fontSize": "text-p-sm",
+             "tag": "p",
+             "text": "{{ dataItem.note }}"
+            },
+            "componentSlots": {},
+            "mobileStyles": {},
+            "tabletStyles": {}
+           }
+          ],
+          "componentEvents": {},
+          "componentId": "borrower_alerts-0-container1-repeater1-container1-container1",
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
+         },
+         {
+          "baseStyles": {
+           "flex": "1 1 auto"
+          },
+          "children": [],
+          "componentEvents": {},
+          "componentId": "borrower_alerts-0-container1-repeater1-container1-container2",
+          "componentName": "container",
+          "componentProps": {},
+          "componentSlots": {},
+          "mobileStyles": {},
+          "originalElement": "div",
+          "tabletStyles": {}
+         },
+         {
+          "baseStyles": {
+           "color": "var(--ink-gray-6)"
+          },
+          "children": [],
+          "componentEvents": {},
+          "componentId": "borrower_alerts-0-container1-repeater1-container1-textblock1",
+          "componentName": "TextBlock",
+          "componentProps": {
+           "fontSize": "text-p-sm",
+           "tag": "p",
+           "text": "{{ dataItem.when }}"
+          },
+          "componentSlots": {},
+          "mobileStyles": {},
+          "tabletStyles": {}
+         }
+        ],
+        "componentEvents": {
+         "click": {
+          "action": "Run Script",
+          "event": "click",
+          "script": "open(dataItem.url); showAlerts.value = false"
+         }
+        },
+        "componentId": "borrower_alerts-0-container1-repeater1-container1",
+        "componentName": "container",
+        "componentProps": {},
+        "componentSlots": {},
+        "mobileStyles": {},
+        "originalElement": "div",
+        "tabletStyles": {}
+       }
+      ],
+      "componentEvents": {},
+      "componentId": "borrower_alerts-0-container1-repeater1",
+      "componentName": "Repeater",
+      "componentProps": {
+       "data": "{{ alertsTab === 'attention' ? alerts.data.attention : alerts.data.activity }}",
+       "dataKey": "name",
+       "emptyStateMessage": "Nothing to read"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
+     },
+     {
+      "baseStyles": {},
+      "children": [],
+      "componentEvents": {
+       "click": {
+        "action": "Run Script",
+        "event": "click",
+        "script": "call('lending.portal.notifications.mark_all_as_read').then(() => alerts.reload())"
+       }
+      },
+      "componentId": "borrower_alerts-0-container1-button1",
+      "componentName": "Button",
+      "componentProps": {
+       "label": "Mark all as read",
+       "size": "sm",
+       "variant": "subtle"
+      },
+      "componentSlots": {},
+      "mobileStyles": {},
+      "tabletStyles": {}
+     }
+    ],
+    "componentEvents": {},
+    "componentId": "borrower_alerts-0-container1",
+    "componentName": "container",
+    "componentProps": {},
+    "componentSlots": {},
+    "mobileStyles": {},
+    "originalElement": "div",
+    "tabletStyles": {}
+   }
+  ],
+  "componentEvents": {},
+  "componentId": "borrower_alerts-0",
+  "componentName": "Dialog",
+  "componentProps": {
+   "modelValue": {
+    "$type": "variable",
+    "name": "showAlerts"
+   },
+   "size": "md",
+   "title": "Notifications"
+  },
+  "componentSlots": {},
+  "mobileStyles": {},
+  "tabletStyles": {}
+ },
+ "component_id": "borrower_alerts",
+ "component_name": "Borrower Notifications",
+ "creation": "2026-09-26 23:52:27.127293",
+ "docstatus": 0,
+ "doctype": "Studio Component",
+ "idx": 0,
+ "inputs": [],
+ "is_disabled": 0,
+ "modified": "2026-10-01 16:32:39.362689",
+ "modified_by": "Administrator",
+ "name": "borrower_alerts",
+ "owner": "Administrator"
+}
