@@ -23,6 +23,7 @@ class LoanSecurityPrice(Document):
 		loan_security_name: DF.Data | None
 		loan_security_price: DF.Currency
 		loan_security_type: DF.Link | None
+		price_update: DF.Link | None
 		valid_from: DF.Datetime
 		valid_upto: DF.Datetime
 	# end: auto-generated types
@@ -40,6 +41,10 @@ class LoanSecurityPrice(Document):
 		from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 			update_sanctioned_loan_amount_for_applicant,
 		)
+
+		# A Loan Security Price Update recomputes every holder once, in the shortfall check it queues
+		if self.flags.skip_sanctioned_limit_update:
+			return
 
 		pledge = frappe.qb.DocType("Pledge")
 		loan_security_assignment = frappe.qb.DocType("Loan Security Assignment")

@@ -6,6 +6,9 @@ import frappe
 from frappe.query_builder.functions import Sum
 from frappe.utils.dashboard import cache_source
 
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_sold_qty_map,
+)
 from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
 	get_loan_security_details,
 )
@@ -64,17 +67,18 @@ def get_data(
 		.inner_join(pledge)
 		.on(pledge.parent == lsa.name)
 		.select(pledge.loan_security, Sum(pledge.qty).as_("qty"))
-		.where(lsa.status == "Pledged")
+		.where(lsa.status.isin(["Pledged", "Repossessed"]))
 		.groupby(pledge.loan_security)
 	)
 	if company:
 		pledge_query = pledge_query.where(lsa.company == company)
 
 	pledges = frappe._dict(pledge_query.run(as_list=1))
+	sold = get_sold_qty_map(company)
 
 	for security, qty in pledges.items():
 		current_pledges.setdefault(security, qty)
-		current_pledges[security] -= unpledges.get(security, 0.0)
+		current_pledges[security] -= unpledges.get(security, 0.0) + sold.get(security, 0.0)
 
 	sorted_pledges = dict(sorted(current_pledges.items(), key=lambda item: item[1], reverse=True))
 

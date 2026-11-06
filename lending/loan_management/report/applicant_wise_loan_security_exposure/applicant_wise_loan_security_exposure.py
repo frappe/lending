@@ -9,6 +9,10 @@ from frappe.utils import flt
 
 import erpnext
 
+from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_sold_qty_map,
+)
+
 
 def execute(filters=None):
 	columns = get_columns(filters)
@@ -211,13 +215,16 @@ def get_applicant_wise_total_loan_security_qty(filters, loan_security_details):
 		.inner_join(pledge)
 		.on(pledge.parent == lsa.name)
 		.select(lsa.applicant_type, lsa.applicant, pledge.loan_security, Sum(pledge.qty).as_("qty"))
-		.where(lsa.status == "Pledged")
+		.where(lsa.status.isin(["Pledged", "Repossessed"]))
 		.groupby(lsa.applicant, pledge.loan_security)
 	)
 	if company:
 		pledge_query = pledge_query.where(lsa.company == company)
 
 	pledges = pledge_query.run(as_dict=1)
+
+	for key, qty in get_sold_qty_map(company, by_applicant=True).items():
+		applicant_wise_unpledges[key] = applicant_wise_unpledges.get(key, 0.0) + qty
 
 	for security in pledges:
 		current_pledges.setdefault((security.applicant, security.loan_security), security.qty)
