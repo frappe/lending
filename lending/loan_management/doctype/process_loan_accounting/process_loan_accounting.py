@@ -8,7 +8,11 @@ from frappe import _
 from frappe.utils import add_days, cint, flt, get_first_day, get_last_day, getdate, nowdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
-from lending.loan_management.utils import gl_consolidation_enabled, loan_accounting_enabled
+from lending.loan_management.utils import (
+	get_loan_cost_center,
+	gl_consolidation_enabled,
+	loan_accounting_enabled,
+)
 
 CONSOLIDATED_SOURCES = ("Loan Interest Accrual", "Loan Demand")
 
@@ -295,10 +299,8 @@ class ProcessLoanAccounting(LoanController):
 		if not buckets:
 			return
 
-		import erpnext
-
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		cost_center = erpnext.get_default_cost_center(self.company)
+		cost_center = get_loan_cost_center(self.loan, self.company)
 		remark = _("Consolidated NPA suspense for {0} ({1} to {2})").format(
 			self.loan, self.period_start_date, self.period_end_date
 		)

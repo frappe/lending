@@ -968,6 +968,44 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 
 		self.assertEqual(getdate(last_accrual_date), getdate("2024-07-06"))
 
+	@with_days_past_due_repost
+	def test_suspense_jv_uses_loan_cost_center_for_npa_loan(self):
+		set_loan_accrual_frequency("Daily")
+		frappe.db.set_value("Loan Product", "Term Loan Product 4", "days_past_due_threshold_for_npa", 90)
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-05",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		frappe.db.set_value("Loan", loan.name, "cost_center", "_Test Cost Center - _TC")
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-05", repayment_start_date="2024-04-05"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-07-05", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-07-05", loan=loan.name)
+		create_process_loan_classification(
+			posting_date="2024-07-06", loan=loan.name, force_update_dpd_in_loan=1
+		)
+
+		cost_centers = frappe.get_all(
+			"Journal Entry Account",
+			{"reference_name": loan.name, "docstatus": 1},
+			pluck="cost_center",
+		)
+		self.assertEqual(set(cost_centers), {"_Test Cost Center - _TC"})
+
 	def test_flat_rate_interest_method(self):
 		loan = create_loan(
 			"_Test Customer 1",
