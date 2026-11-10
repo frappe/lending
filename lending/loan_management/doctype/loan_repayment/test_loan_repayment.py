@@ -19,6 +19,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 	process_loan_interest_accrual_for_loans,
 )
 from lending.tests.test_utils import (
+	create_demand_offset_order,
 	create_loan,
 	create_repayment_entry,
 	make_loan_disbursement_entry,
@@ -1345,6 +1346,42 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 
 		self.assertEqual(len(demands), len(allocated_demands))
+
+	def test_an_offset_order_that_reaches_a_demand_twice_pays_it_only_its_outstanding(self):
+		create_demand_offset_order("Test EMI Then Principal Offset Order", ["EMI (Principal + Interest)", "Principal"])
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test EMI Then Principal Offset Order",
+		)
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
+		demanded = dict(
+			frappe.get_all(
+				"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "demand_amount"], as_list=True
+			)
+		)
+
+		repayment = create_repayment_entry(loan.name, "2024-04-05", sum(demanded.values()) + 10000)
+
+		paid = {}
+		for row in repayment.get("repayment_details"):
+			paid[row.loan_demand] = flt(paid.get(row.loan_demand)) + row.paid_amount
+		self.assertEqual(paid, demanded)
 
 	def test_create_loan_repayment_from_bank_transaction(self):
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
