@@ -2050,9 +2050,14 @@ class LoanRepayment(LoanController):
 
 			if demand.demand_type == demand_type:
 				if not demand_subtype or demand.demand_subtype == demand_subtype:
-					if amount_to_adjust >= demand.outstanding_amount:
-						paid_amount = flt(demand.outstanding_amount)
-						amount_to_adjust -= flt(demand.outstanding_amount)
+					# an offset order can reach the same demand twice, so leave out what this entry already paid
+					already_paid = sum(
+						flt(d.paid_amount) for d in self.get("repayment_details") if d.loan_demand == demand.name
+					)
+					outstanding_amount = flt(flt(demand.outstanding_amount) - already_paid, precision)
+					if amount_to_adjust >= outstanding_amount:
+						paid_amount = flt(outstanding_amount)
+						amount_to_adjust -= flt(outstanding_amount)
 
 						if demand_type == "EMI" and self.get("loan_partner"):
 							partner_share_paid = self.get_loan_partner_share_paid(0, paid_amount, demand) or 0
