@@ -1227,6 +1227,36 @@ class TestLoanRepayment(LendingTestSuite):
 
 		self.assertEqual(repayment_entry1.is_backdated, 1)
 
+	def test_cancelling_a_normal_repayment_cancels_the_paid_demands_it_booked(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2024-04-03", company="_Test Company"
+		)
+
+		repayment = create_repayment_entry(loan.name, "2024-04-04", 40000)
+		repayment.submit()
+		booked = {"loan_repayment": repayment.name, "docstatus": 1}
+		self.assertEqual(
+			sorted(frappe.get_all("Loan Demand", booked, pluck="demand_subtype")), ["Interest", "Principal"]
+		)
+
+		repayment.cancel()
+
+		self.assertFalse(frappe.get_all("Loan Demand", booked))
+
 	def test_bulk_payments_for_multiple_disbursements(self):
 		posting_date = get_datetime("2024-04-18")
 		repayment_start_date = get_datetime("2024-05-05")
