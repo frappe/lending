@@ -39,6 +39,7 @@ from lending.loan_management.doctype.loan_security_release.loan_security_release
 	get_pledged_security_qty,
 )
 from lending.loan_management.utils import (
+	get_loan_cost_center,
 	loan_accounting_enabled,
 	update_repayment_schedule_demand_generated,
 )
@@ -2076,6 +2077,8 @@ def make_journal_entry(
 	if is_reverse:
 		debit_account, credit_account = credit_account, debit_account
 
+	cost_center = get_loan_cost_center(loan, company)
+
 	jv = frappe.get_doc(
 		{
 			"doctype": "Journal Entry",
@@ -2090,7 +2093,7 @@ def make_journal_entry(
 					"debit": amount,
 					"reference_type": "Loan",
 					"reference_name": loan,
-					"cost_center": erpnext.get_default_cost_center(company),
+					"cost_center": cost_center,
 				},
 				{
 					"account": credit_account,
@@ -2098,7 +2101,7 @@ def make_journal_entry(
 					"credit": amount,
 					"reference_type": "Loan",
 					"reference_name": loan,
-					"cost_center": erpnext.get_default_cost_center(company),
+					"cost_center": cost_center,
 				},
 			],
 			"remarks": remark,

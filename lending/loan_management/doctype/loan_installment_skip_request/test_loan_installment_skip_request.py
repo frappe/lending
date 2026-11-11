@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from frappe.tests.classes.context_managers import freeze_time
 from frappe.utils import flt, getdate
 
 from lending.loan_management.doctype.loan_installment_skip_request.loan_installment_skip_request import (
@@ -29,6 +30,12 @@ from lending.tests.utils import LendingTestSuite
 
 class InstallmentSkipTestCase(LendingTestSuite):
 	"""Every test starts from the same loan: first EMI paid, interest accrued till 19 Oct."""
+
+	@classmethod
+	def setUpClass(cls):
+		# Test dates are fixed, so keep today on 20 Oct or the skip date moves past 7 Nov
+		cls.enterClassContext(freeze_time("2026-10-20", tick=True))
+		super().setUpClass()
 
 	def setUp(self):
 		super().setUp()
