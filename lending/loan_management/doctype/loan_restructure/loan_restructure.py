@@ -988,6 +988,7 @@ def create_update_loan_reschedule(
 	principal_adjusted,
 	allocated_interest,
 	loan_disbursement=None,
+	overdue_principal_paid=0,
 ):
 	if frappe.db.get_value("Loan Restructure", {"loan_repayment": loan_repayment, "docstatus": 0}):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": loan_repayment})
@@ -1003,6 +1004,7 @@ def create_update_loan_reschedule(
 			principal_adjusted,
 			allocated_interest,
 			loan_disbursement=loan_disbursement,
+			overdue_principal_paid=overdue_principal_paid,
 		)
 	)
 
@@ -1010,7 +1012,13 @@ def create_update_loan_reschedule(
 
 
 def get_restructure_details(
-	loan, posting_date, repayment_type, principal_adjusted, allocated_interest, loan_disbursement=None
+	loan,
+	posting_date,
+	repayment_type,
+	principal_adjusted,
+	allocated_interest,
+	loan_disbursement=None,
+	overdue_principal_paid=0,
 ):
 	(
 		pending_tenure,
@@ -1032,7 +1040,15 @@ def get_restructure_details(
 		"loan_disbursement": loan_disbursement,
 	}
 
-	amount_paid = flt(principal_adjusted) + flt(allocated_interest)
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+	amount_paid = flt(
+		flt(principal_adjusted) - flt(overdue_principal_paid) + flt(allocated_interest), precision
+	)
+
+	# less than one EMI cannot pay the next instalment, so it only reduces the principal
+	emi = flt(monthly_repayment_amount, precision)
+	if repayment_type == "Advance Payment" and amount_paid < emi:
+		loan_restructure["restructure_type"] = "Pre Payment"
 
 	if (
 		repayment_type == "Advance Payment"
