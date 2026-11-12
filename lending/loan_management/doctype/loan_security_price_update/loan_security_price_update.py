@@ -13,7 +13,7 @@ from lending.loan_management.doctype.loan_security_assignment.loan_security_assi
 )
 from lending.loan_management.utils import add_working_days
 
-SHORTFALL_JOB = "lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.create_process_loan_security_shortfall"
+SHORTFALL_JOB = "lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall.run_shortfall_check_job"
 
 
 class LoanSecurityPriceUpdate(Document):
