@@ -108,6 +108,34 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 			get_datetime("2030-01-07 23:59:59"),
 		)
 
+	def test_cancelling_updates_in_submit_order_restores_the_first_price(self):
+		month_price = frappe.get_doc(
+			{
+				"doctype": "Loan Security Price",
+				"loan_security": "Test Security 1",
+				"loan_security_price": 500,
+				"valid_from": "2030-01-01 00:00:00",
+				"valid_upto": "2030-01-31 23:59:59",
+			}
+		).insert()
+		monday = make_price_update("2030-01-07", {"Test Security 1": 600})
+		tuesday = make_price_update("2030-01-08", {"Test Security 1": 610})
+
+		monday.cancel()
+		self.assertEqual(
+			frappe.db.get_value("Loan Security Price", month_price.name, "valid_upto"),
+			get_datetime("2030-01-07 23:59:59"),
+		)
+
+		# Tuesday's own previous price was Monday's, which is gone, so it restores the month price.
+		# Reloaded as a cancel request would, since Monday's cancel changed its rows
+		tuesday.reload()
+		tuesday.cancel()
+		self.assertEqual(
+			frappe.db.get_value("Loan Security Price", month_price.name, "valid_upto"),
+			get_datetime("2030-01-31 23:59:59"),
+		)
+
 	def test_rejects_a_price_date_before_an_existing_price(self):
 		make_price_update("2030-01-08", {"Test Security 1": 600})
 		with self.assertRaises(frappe.ValidationError):

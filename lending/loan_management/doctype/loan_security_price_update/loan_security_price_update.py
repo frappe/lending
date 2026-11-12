@@ -140,16 +140,30 @@ class LoanSecurityPriceUpdate(Document):
 			if not (row.previous_price and frappe.db.exists("Loan Security Price", row.previous_price)):
 				continue
 			# A price entered after this update must stay the only one valid from its start
-			next_price_from = frappe.db.get_value(
+			next_price = frappe.db.get_value(
 				"Loan Security Price",
 				{"loan_security": row.loan_security, "valid_from": (">=", get_datetime(self.price_date))},
-				"valid_from",
+				["valid_from", "price_update"],
 				order_by="valid_from asc",
+				as_dict=True,
 			)
 			valid_upto = get_datetime(row.previous_valid_upto)
-			if next_price_from:
-				valid_upto = min(valid_upto, add_to_date(next_price_from, seconds=-1))
+			if next_price:
+				valid_upto = min(valid_upto, add_to_date(next_price.valid_from, seconds=-1))
+				if next_price.price_update:
+					# That update now ends the restored price, so its own cancel must restore it in full
+					self.hand_over_previous_price(next_price.price_update, row)
 			frappe.db.set_value("Loan Security Price", row.previous_price, "valid_upto", valid_upto)
+
+	def hand_over_previous_price(self, price_update, row):
+		item = frappe.qb.DocType("Loan Security Price Update Item")
+		(
+			frappe.qb.update(item)
+			.set(item.previous_price, row.previous_price)
+			.set(item.previous_valid_upto, row.previous_valid_upto)
+			.where(item.parent == price_update)
+			.where(item.loan_security == row.loan_security)
+		).run()
 
 	def set_previous_prices(self):
 		# One query for every row: a price from the update date on is refused, and the price
