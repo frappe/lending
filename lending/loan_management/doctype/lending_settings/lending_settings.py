@@ -1,8 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class LendingSettings(Document):
@@ -21,4 +23,10 @@ class LendingSettings(Document):
 		sale_charge: DF.Link | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		# Sites from before this field read it as 0, which would escalate a margin call on the day after its notice
+		if self.enable_margin_call and cint(self.margin_cure_days) < 1:
+			frappe.throw(
+				_("Set Margin Cure Days to at least 1 before you enable margin calls"),
+				title=_("Margin Cure Days Missing"),
+			)

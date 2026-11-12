@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import cint, date_diff, get_datetime, nowdate
+from frappe.utils import cint, date_diff, get_datetime, getdate, nowdate
 
 import erpnext
 
@@ -49,13 +49,22 @@ class MarginCall:
 		if not self.doc.loan and self.has_open_loan_shortfall():
 			return
 
-		if not self.doc.notified_on and not self.notify():
-			# Above the Sell LTV the sale cannot wait for contact details; staff still submit it
+		if not self.doc.notified_on:
+			# The reminder waits for a later run, so a short cure period does not send both at once.
+			# Above the Sell LTV the sale cannot wait, even for contact details; staff still submit it
+			self.notify()
 			if self.doc.status == "Sale Triggered":
 				self.draft_sale()
 			return
 
-		days_left = date_diff(self.doc.cure_by, nowdate()) if self.doc.cure_by else None
+		if not self.doc.cure_by:
+			# A notice with no cure date, such as one set by hand, is given one from its notice date
+			self.doc.db_set(
+				"cure_by",
+				add_working_days(getdate(self.doc.notified_on), self.cure_days, self.get_holiday_list()),
+			)
+
+		days_left = date_diff(self.doc.cure_by, nowdate())
 		if self.doc.status == "Notified" and days_left < 0:
 			self.escalate()
 		elif self.doc.status == "Notified" and days_left <= REMINDER_DAYS and not self.doc.reminded_on:

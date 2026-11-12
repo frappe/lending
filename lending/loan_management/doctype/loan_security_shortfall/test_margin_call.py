@@ -364,6 +364,41 @@ class TestMarginCall(LendingTestSuite):
 		process_open_shortfalls()
 		self.assertEqual(frappe.db.get_value("Loan Security Shortfall", shortfall, "reminded_on"), reminded_on)
 
+	def test_short_cure_period_sends_the_reminder_on_a_later_run(self):
+		frappe.db.set_single_value("Lending Settings", "margin_cure_days", 1)
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value(
+			"Loan Security Shortfall", {"loan": loan}, ["name", "notified_on", "reminded_on"], as_dict=True
+		)
+		self.assertTrue(shortfall.notified_on)
+		self.assertFalse(shortfall.reminded_on)
+
+		process_open_shortfalls()
+		self.assertTrue(frappe.db.get_value("Loan Security Shortfall", shortfall.name, "reminded_on"))
+
+	def test_notice_without_a_cure_date_is_given_one(self):
+		loan = make_secured_loan(self.applicant)
+		set_price(200)
+		create_process_loan_security_shortfall()
+		shortfall = frappe.db.get_value("Loan Security Shortfall", {"loan": loan}, "name")
+		frappe.db.set_value("Loan Security Shortfall", shortfall, "cure_by", None)
+
+		process_open_shortfalls()
+		holiday_list = frappe.get_cached_value("Company", "_Test Company", "default_holiday_list")
+		self.assertEqual(
+			getdate(frappe.db.get_value("Loan Security Shortfall", shortfall, "cure_by")),
+			add_working_days(nowdate(), 7, holiday_list),
+		)
+
+	def test_margin_call_cannot_be_enabled_without_cure_days(self):
+		settings = frappe.get_single("Lending Settings")
+		settings.enable_margin_call = 1
+		settings.margin_cure_days = 0
+		with self.assertRaisesRegex(frappe.ValidationError, "Margin Cure Days"):
+			settings.save()
+
 	def test_cure_by_repayment(self):
 		loan = make_secured_loan(self.applicant)
 		set_price(200)
