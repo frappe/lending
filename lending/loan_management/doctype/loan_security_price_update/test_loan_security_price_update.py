@@ -127,9 +127,8 @@ class TestLoanSecurityPriceUpdate(LendingTestSuite):
 			get_datetime("2030-01-07 23:59:59"),
 		)
 
-		# Tuesday's own previous price was Monday's, which is gone, so it restores the month price.
-		# Reloaded as a cancel request would, since Monday's cancel changed its rows
-		tuesday.reload()
+		# Tuesday never ended the month price itself, but Monday's cancel handed it over.
+		# Cancelled from the copy loaded before that, as a script cancelling both in turn would
 		tuesday.cancel()
 		self.assertEqual(
 			frappe.db.get_value("Loan Security Price", month_price.name, "valid_upto"),

@@ -55,6 +55,22 @@ class LoanSecurityPriceUpdate(Document):
 		# Also recomputes every Sanctioned Loan Amount, which the new prices skipped
 		run_shortfall_check()
 
+	def before_cancel(self):
+		# An earlier cancel may have handed this update another price to restore. Cancelling saves the
+		# rows before on_cancel runs, so a copy loaded before that cancel would write the old price back
+		stored = {
+			row.name: row
+			for row in frappe.get_all(
+				"Loan Security Price Update Item",
+				filters={"parent": self.name, "parenttype": self.doctype},
+				fields=["name", "previous_price", "previous_valid_upto"],
+			)
+		}
+		for row in self.items:
+			if stored_row := stored.get(row.name):
+				row.previous_price = stored_row.previous_price
+				row.previous_valid_upto = stored_row.previous_valid_upto
+
 	def on_cancel(self):
 		for price in frappe.get_all("Loan Security Price", {"price_update": self.name}, pluck="name"):
 			frappe.delete_doc(
