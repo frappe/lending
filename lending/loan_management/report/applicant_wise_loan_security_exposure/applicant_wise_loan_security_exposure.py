@@ -4,13 +4,12 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Sum
 from frappe.utils import flt
 
 import erpnext
 
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
-	get_sold_qty_map,
+	get_current_pledges,
 )
 
 
@@ -186,57 +185,13 @@ def get_applicant_wise_total_loan_security_qty(filters, loan_security_details):
 	current_pledges = {}
 	total_value_map = {}
 	applicant_type_map = {}
-	applicant_wise_unpledges = {}
 
-	company = filters.get("company")
-
-	lsr = frappe.qb.DocType("Loan Security Release")
-	unpledge = frappe.qb.DocType("Unpledge")
-	unpledge_query = (
-		frappe.qb.from_(lsr)
-		.inner_join(unpledge)
-		.on(unpledge.parent == lsr.name)
-		.select(lsr.applicant, unpledge.loan_security, Sum(unpledge.qty).as_("qty"))
-		.where(lsr.status == "Approved")
-		.groupby(lsr.applicant, unpledge.loan_security)
-	)
-	if company:
-		unpledge_query = unpledge_query.where(lsr.company == company)
-
-	unpledges = unpledge_query.run(as_dict=1)
-
-	for row in unpledges:
-		applicant_wise_unpledges.setdefault((row.applicant, row.loan_security), row.qty)
-
-	lsa = frappe.qb.DocType("Loan Security Assignment")
-	pledge = frappe.qb.DocType("Pledge")
-	pledge_query = (
-		frappe.qb.from_(lsa)
-		.inner_join(pledge)
-		.on(pledge.parent == lsa.name)
-		.select(lsa.applicant_type, lsa.applicant, pledge.loan_security, Sum(pledge.qty).as_("qty"))
-		.where(lsa.status.isin(["Pledged", "Repossessed"]))
-		.groupby(lsa.applicant, pledge.loan_security)
-	)
-	if company:
-		pledge_query = pledge_query.where(lsa.company == company)
-
-	pledges = pledge_query.run(as_dict=1)
-
-	for key, qty in get_sold_qty_map(company, by_applicant=True).items():
-		applicant_wise_unpledges[key] = applicant_wise_unpledges.get(key, 0.0) + qty
-
-	for security in pledges:
-		current_pledges.setdefault((security.applicant, security.loan_security), security.qty)
-		total_value_map.setdefault(security.applicant, 0.0)
-		applicant_type_map.setdefault(security.applicant, security.applicant_type)
-
-		current_pledges[(security.applicant, security.loan_security)] -= applicant_wise_unpledges.get(
-			(security.applicant, security.loan_security), 0.0
-		)
-
-		total_value_map[security.applicant] += current_pledges.get(
-			(security.applicant, security.loan_security)
-		) * loan_security_details.get(security.loan_security, {}).get("latest_price", 0)
+	pledges = get_current_pledges(company=filters.get("company"), by_applicant=True)
+	for (applicant_type, applicant, security), qty in pledges.items():
+		current_pledges[(applicant, security)] = qty
+		applicant_type_map.setdefault(applicant, applicant_type)
+		total_value_map[applicant] = total_value_map.get(applicant, 0.0) + qty * loan_security_details.get(
+			security, {}
+		).get("latest_price", 0)
 
 	return current_pledges, total_value_map, applicant_type_map

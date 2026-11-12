@@ -245,25 +245,6 @@ def update_sanctioned_loan_amount_for_applicant(applicant, applicant_type):
 	)
 
 
-def get_sold_qty_map(company=None, by_applicant=False):
-	sale = frappe.qb.DocType("Loan Security Sale")
-	item = frappe.qb.DocType("Loan Security Sale Item")
-	keys = [sale.applicant, item.loan_security] if by_applicant else [item.loan_security]
-
-	query = (
-		frappe.qb.from_(item)
-		.inner_join(sale)
-		.on(item.parent == sale.name)
-		.select(*keys, fn.Sum(item.sold_qty))
-		.where(sale.docstatus == 1)
-		.groupby(*keys)
-	)
-	if company:
-		query = query.where(sale.company == company)
-
-	return {(tuple(row[:-1]) if by_applicant else row[0]): flt(row[-1]) for row in query.run()}
-
-
 @frappe.whitelist()
 def get_pledged_security_qty(loan: str | None = None, applicant: str | None = None):
 	if loan:
@@ -283,7 +264,15 @@ def get_current_pledges_by_loan(loans):
 	return get_current_pledges(loan=loans, by_loan=True) if loans else {}
 
 
-def get_current_pledges(loan=None, applicant=None, securities=None, for_update=False, by_loan=False):
+def get_current_pledges(
+	loan=None,
+	applicant=None,
+	securities=None,
+	for_update=False,
+	by_loan=False,
+	company=None,
+	by_applicant=False,
+):
 	current_pledges = {}
 
 	unpldge_doctype = frappe.qb.DocType("Unpledge")
@@ -350,6 +339,11 @@ def get_current_pledges(loan=None, applicant=None, securities=None, for_update=F
 		pledge_query = pledge_query.where(pledge_doctype.loan_security.isin(securities))
 		sale_query = sale_query.where(sale_item_doctype.loan_security.isin(securities))
 
+	if company:
+		unpledge_query = unpledge_query.where(loan_security_release_doctype.company == company)
+		pledge_query = pledge_query.where(loan_security_assignment_doctype.company == company)
+		sale_query = sale_query.where(sale_doctype.company == company)
+
 	if for_update:
 		# A locking read sees the latest committed pledges, not this transaction's snapshot.
 		unpledge_query = unpledge_query.for_update()
@@ -384,6 +378,10 @@ def get_current_pledges(loan=None, applicant=None, securities=None, for_update=F
 
 	for *key, qty in pledges:
 		remaining = max(flt(qty) - taken_out.get(tuple(key), 0.0), 0.0)
+		if by_applicant:
+			# Keyed (applicant_type, applicant, security)
+			current_pledges[tuple(key[-3:])] = current_pledges.get(tuple(key[-3:]), 0.0) + remaining
+			continue
 		security = key[-1]
 		pledged = current_pledges.setdefault(key[0], {}) if by_loan else current_pledges
 		pledged[security] = pledged.get(security, 0.0) + remaining

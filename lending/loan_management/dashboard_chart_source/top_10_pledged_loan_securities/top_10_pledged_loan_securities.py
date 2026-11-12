@@ -3,11 +3,10 @@
 
 
 import frappe
-from frappe.query_builder.functions import Sum
 from frappe.utils.dashboard import cache_source
 
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
-	get_sold_qty_map,
+	get_current_pledges,
 )
 from lending.loan_management.report.applicant_wise_loan_security_exposure.applicant_wise_loan_security_exposure import (
 	get_loan_security_details,
@@ -33,7 +32,6 @@ def get_data(
 		chart = frappe._dict(frappe.parse_json(chart))
 
 	filters = {}
-	current_pledges = {}
 
 	if filters:
 		filters = frappe.parse_json(filters)[0]
@@ -41,44 +39,8 @@ def get_data(
 	labels = []
 	values = []
 
-	company = filters.get("company")
-
 	loan_security_details = get_loan_security_details()
-
-	lsr = frappe.qb.DocType("Loan Security Release")
-	unpledge = frappe.qb.DocType("Unpledge")
-	unpledge_query = (
-		frappe.qb.from_(lsr)
-		.inner_join(unpledge)
-		.on(unpledge.parent == lsr.name)
-		.select(unpledge.loan_security, Sum(unpledge.qty).as_("qty"))
-		.where(lsr.status == "Approved")
-		.groupby(unpledge.loan_security)
-	)
-	if company:
-		unpledge_query = unpledge_query.where(lsr.company == company)
-
-	unpledges = frappe._dict(unpledge_query.run(as_list=1))
-
-	lsa = frappe.qb.DocType("Loan Security Assignment")
-	pledge = frappe.qb.DocType("Pledge")
-	pledge_query = (
-		frappe.qb.from_(lsa)
-		.inner_join(pledge)
-		.on(pledge.parent == lsa.name)
-		.select(pledge.loan_security, Sum(pledge.qty).as_("qty"))
-		.where(lsa.status.isin(["Pledged", "Repossessed"]))
-		.groupby(pledge.loan_security)
-	)
-	if company:
-		pledge_query = pledge_query.where(lsa.company == company)
-
-	pledges = frappe._dict(pledge_query.run(as_list=1))
-	sold = get_sold_qty_map(company)
-
-	for security, qty in pledges.items():
-		current_pledges.setdefault(security, qty)
-		current_pledges[security] -= unpledges.get(security, 0.0) + sold.get(security, 0.0)
+	current_pledges = get_current_pledges(company=filters.get("company"))
 
 	sorted_pledges = dict(sorted(current_pledges.items(), key=lambda item: item[1], reverse=True))
 

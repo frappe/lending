@@ -116,3 +116,15 @@ def get_loan_security_price_map(loan_security_list, valid_time=None):
 	))
 
 	return loan_security_prices
+
+
+def get_current_prices():
+	now = get_datetime()
+	return {
+		row.loan_security: row
+		for row in frappe.get_all(
+			"Loan Security Price",
+			filters={"valid_from": ("<=", now), "valid_upto": (">=", now)},
+			fields=["loan_security", "loan_security_price", "valid_upto"],
+		)
+	}

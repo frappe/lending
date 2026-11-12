@@ -3,8 +3,11 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, get_datetime
+from frappe.utils import flt
 
+from lending.loan_management.doctype.loan_security_price.loan_security_price import (
+	get_current_prices,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_current_pledges_by_loan,
 )
@@ -75,18 +78,6 @@ def get_security_map():
 		row.name: row
 		for row in frappe.get_all(
 			"Loan Security", fields=["name", "loan_security_name", "loan_security_type"]
-		)
-	}
-
-
-def get_current_prices():
-	now = get_datetime()
-	return {
-		row.loan_security: row
-		for row in frappe.get_all(
-			"Loan Security Price",
-			filters={"valid_from": ("<=", now), "valid_upto": (">=", now)},
-			fields=["loan_security", "loan_security_price", "valid_upto"],
 		)
 	}
 

@@ -7,6 +7,9 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime
 
+from lending.loan_management.doctype.loan_security_price.loan_security_price import (
+	get_current_prices,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
 	get_pledged_security_qty,
 )
@@ -87,14 +90,8 @@ class CollateralValuation:
 
 
 def get_current_price_map():
-	update_time = get_datetime()
 	return frappe._dict(
-		frappe.get_all(
-			"Loan Security Price",
-			fields=["loan_security", "loan_security_price"],
-			filters={"valid_from": ("<=", update_time), "valid_upto": (">=", update_time)},
-			as_list=1,
-		)
+		{security: price.loan_security_price for security, price in get_current_prices().items()}
 	)
 
 
