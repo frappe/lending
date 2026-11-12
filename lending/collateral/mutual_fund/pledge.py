@@ -104,7 +104,7 @@ def validate_units_held(doc, holding, units, title):
 	units_held = flt(frappe.db.get_value("Mutual Fund Holding", holding, "units_held", for_update=True))
 	if not units_held:
 		return
-	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name)
+	pledged_elsewhere = get_pledged_units(holding, exclude_assignment=doc.name, for_update=True)
 	# While a draft is being submitted, its saved copy is still a draft and counts nowhere yet
 	if not doc.is_new() and frappe.db.get_value(doc.doctype, doc.name, "docstatus") == 1:
 		units = get_remaining_units(doc, holding, units, pledged_elsewhere)
@@ -150,7 +150,7 @@ def get_remaining_units(doc, holding, units, pledged_elsewhere):
 			.where(pledge.mutual_fund_holding == holding)
 		).run()[0][0]
 	)
-	remaining = get_pledged_units(holding) - pledged_elsewhere
+	remaining = get_pledged_units(holding, for_update=True) - pledged_elsewhere
 	return remaining + max(units - saved_units, 0)
 
 

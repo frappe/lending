@@ -55,10 +55,11 @@ class MutualFundHolding(Document):
 
 	def validate(self):
 		self.folio_number = (self.folio_number or "").strip()
+		pledged_units = 0
 		if not self.is_new():
 			# The same lock a pledge takes, so a pledge cannot land between this read and the save
 			frappe.db.get_value("Mutual Fund Holding", self.name, "name", for_update=True)
-		pledged_units = self.pledged_units
+			pledged_units = get_pledged_units(self.name, for_update=True)
 		self.validate_fixed_once_pledged(pledged_units)
 		self.validate_scheme()
 		self.validate_holding_type()
@@ -134,7 +135,7 @@ def on_doctype_update():
 	)
 
 
-def get_pledged_units(holding, exclude_assignment=None):
+def get_pledged_units(holding, exclude_assignment=None, for_update=False):
 	"""Units of the holding on submitted pledges that are still open, less what was released or sold.
 
 	Releases and sales name the loan (or, without a loan, the applicant) and the scheme, not the folio.
@@ -151,7 +152,7 @@ def get_pledged_units(holding, exclude_assignment=None):
 
 	pledge = frappe.qb.DocType("Pledge")
 	assignment = frappe.qb.DocType("Loan Security Assignment")
-	lines = (
+	query = (
 		frappe.qb.from_(pledge)
 		.inner_join(assignment)
 		.on(pledge.parent == assignment.name)
@@ -174,7 +175,9 @@ def get_pledged_units(holding, exclude_assignment=None):
 			assignment.applicant,
 			pledge.mutual_fund_holding,
 		)
-	).run()
+	)
+	# Only the pledges need the locking read: a stale count of releases and sales overstates the units
+	lines = (query.for_update() if for_update else query).run()
 
 	holding_qty, scheme_qty, excluded_qty = defaultdict(float), defaultdict(float), defaultdict(float)
 	applicant_scheme_qty = applicant_holding_qty = 0

@@ -89,7 +89,7 @@ class LoanSecurityRelease(Document):
 					)
 				)
 
-	def validate_unpledge_qty(self):
+	def validate_unpledge_qty(self, for_update=False):
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 			get_pending_principal_amount,
 		)
@@ -97,7 +97,10 @@ class LoanSecurityRelease(Document):
 			get_ltv_ratio_map,
 		)
 
-		pledge_qty_map = get_pledged_security_qty(loan=self.loan, applicant=self.applicant)
+		if for_update:
+			pledge_qty_map = get_current_pledges(loan=self.loan, applicant=self.applicant, for_update=True)
+		else:
+			pledge_qty_map = get_pledged_security_qty(loan=self.loan, applicant=self.applicant)
 		securities = list(pledge_qty_map)
 		loan_security_price_map = get_loan_security_price_map(securities)
 		ltv_ratio_map = get_ltv_ratio_map(securities)
@@ -176,7 +179,7 @@ class LoanSecurityRelease(Document):
 		if self.status == "Approved" and self.has_value_changed("status"):
 			if self.loan:
 				frappe.db.get_value("Loan", self.loan, "name", for_update=True)
-			self.validate_unpledge_qty()
+			self.validate_unpledge_qty(for_update=bool(self.loan))
 
 		self.validate_qty_still_pledged()
 
