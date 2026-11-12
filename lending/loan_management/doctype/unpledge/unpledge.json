@@ -12,7 +12,9 @@
   "haircut",
   "column_break_5",
   "qty",
-  "release_reference"
+  "release_reference",
+  "is_mutual_fund",
+  "mutual_fund_holding"
  ],
  "fields": [
   {
@@ -71,12 +73,30 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Release Reference"
+  },
+  {
+   "default": "0",
+   "fetch_from": "loan_security.is_mutual_fund",
+   "fieldname": "is_mutual_fund",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Mutual Fund",
+   "read_only": 1
+  },
+  {
+   "depends_on": "is_mutual_fund",
+   "description": "The folio these units are released from. Left empty, it is filled from the folios pledged, oldest pledge first",
+   "fieldname": "mutual_fund_holding",
+   "fieldtype": "Link",
+   "label": "Mutual Fund Holding",
+   "options": "Mutual Fund Holding",
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-04 12:00:00.000000",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Unpledge",

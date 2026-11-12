@@ -8,6 +8,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, nowdate
 
+from lending.collateral.mutual_fund.folio import (
+	get_folio_balances,
+	get_mutual_fund_securities,
+	split_by_folio,
+	validate_folio_units,
+)
 from lending.loan_management.collections import get_applicant_email
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
@@ -24,6 +30,8 @@ from lending.loan_management.doctype.loan_security_shortfall.loan_security_short
 	get_ltv_ratio_map,
 	recheck_loan_shortfall,
 )
+
+SALE_QTY_FIELDS = ("qty", "sold_qty")
 
 
 class LoanSecuritySale(Document):
@@ -152,6 +160,10 @@ class LoanSecuritySale(Document):
 			)
 			remaining -= sell_qty * cover_map[security]
 
+		folio_balances = self.get_folio_balances()
+		split_by_folio(self, "items", SALE_QTY_FIELDS, folio_balances)
+		self.set_pledged_qty(pledged_qty_map, folio_balances)
+
 	@frappe.whitelist()
 	def apply_proceeds(self, proceeds_date: str | None = None):
 		# A locking read sees a parallel click's commit, and the reload drops any values the client sent
@@ -206,8 +218,24 @@ class LoanSecuritySale(Document):
 			for security, price in price_map.items()
 		}
 
+	def get_folio_balances(self, for_update=False):
+		return get_folio_balances(
+			list(get_mutual_fund_securities({row.loan_security for row in self.items})),
+			loan=self.loan,
+			exclude=self.name,
+			for_update=for_update,
+		)
+
+	def set_pledged_qty(self, pledged_qty_map, folio_balances):
+		for row in self.items:
+			if row.mutual_fund_holding:
+				row.pledged_qty = flt(folio_balances.get((row.loan_security, row.mutual_fund_holding)))
+			else:
+				row.pledged_qty = flt(pledged_qty_map.get(row.loan_security))
+
 	def validate_items(self):
-		if self.docstatus == 1:
+		submitting = self.docstatus == 1
+		if submitting:
 			# Same lock order as a release approval: Loan, then applicant
 			frappe.db.get_value("Loan", self.loan, "name", for_update=True)
 			lock_applicant(self.applicant_type, self.applicant)
@@ -216,25 +244,38 @@ class LoanSecuritySale(Document):
 			pledged_qty_map = get_current_pledges(loan=self.loan, for_update=True)
 		else:
 			pledged_qty_map = get_pledged_security_qty(loan=self.loan)
+
+		folio_balances = self.get_folio_balances(for_update=submitting)
+		split_by_folio(self, "items", SALE_QTY_FIELDS, folio_balances)
+		self.set_pledged_qty(pledged_qty_map, folio_balances)
+
 		price_map = get_loan_security_price_map([row.loan_security for row in self.items])
 		listed = set()
+		sell_qty = {}
 		for row in self.items:
-			if row.loan_security in listed:
+			# A mutual fund scheme can repeat, once for each folio
+			key = (row.loan_security, row.mutual_fund_holding or "")
+			if key in listed:
 				frappe.throw(
 					_("Row {0}: Loan Security {1} is added more than once").format(
 						row.idx, frappe.bold(row.loan_security)
 					)
 				)
-			listed.add(row.loan_security)
+			listed.add(key)
 
-			row.pledged_qty = flt(pledged_qty_map.get(row.loan_security))
 			row.expected_price = flt(price_map.get(row.loan_security))
-			if max(flt(row.qty), flt(row.sold_qty)) > row.pledged_qty:
+			sell_qty[row.loan_security] = sell_qty.get(row.loan_security, 0) + max(
+				flt(row.qty), flt(row.sold_qty)
+			)
+			pledged_qty = flt(pledged_qty_map.get(row.loan_security))
+			if sell_qty[row.loan_security] > pledged_qty:
 				frappe.throw(
 					_("Row {0}: Only {1} of Loan Security {2} is pledged against Loan {3}").format(
-						row.idx, row.pledged_qty, frappe.bold(row.loan_security), frappe.bold(self.loan)
+						row.idx, pledged_qty, frappe.bold(row.loan_security), frappe.bold(self.loan)
 					)
 				)
+
+		validate_folio_units(self, "items", SALE_QTY_FIELDS, folio_balances, _("Loan Security Sale Error"))
 
 	def set_proceeds(self):
 		for row in self.items:

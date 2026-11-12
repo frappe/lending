@@ -9,6 +9,13 @@ frappe.ui.form.on("Loan Security Sale", {
 		frm.set_query("loan_security_shortfall", () => ({
 			filters: { loan: frm.doc.loan },
 		}));
+		frm.set_query("mutual_fund_holding", "items", (doc, cdt, cdn) => ({
+			filters: {
+				applicant_type: doc.applicant_type,
+				applicant: doc.applicant,
+				loan_security: locals[cdt][cdn].loan_security,
+			},
+		}));
 	},
 
 	refresh(frm) {

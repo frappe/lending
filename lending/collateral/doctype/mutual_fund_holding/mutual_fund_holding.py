@@ -136,20 +136,6 @@ def on_doctype_update():
 
 
 def get_pledged_units(holding, exclude_assignment=None, for_update=False):
-	"""Units of the holding on submitted pledges that are still open, less what was released or sold.
-
-	Releases and sales name the loan (or, without a loan, the applicant) and the scheme, not the folio.
-	They are netted where this holding is the only folio of its scheme. Elsewhere the units stay
-	counted in full. The lines of an excluded assignment are left out before netting.
-	"""
-	holding_doc = frappe.db.get_value(
-		"Mutual Fund Holding", holding, ["loan_security", "applicant_type", "applicant"], as_dict=True
-	)
-	if not holding_doc:
-		return 0
-	loan_security = holding_doc.loan_security
-	no_loan = (holding_doc.applicant_type, holding_doc.applicant)
-
 	pledge = frappe.qb.DocType("Pledge")
 	assignment = frappe.qb.DocType("Loan Security Assignment")
 	query = (
@@ -161,88 +147,41 @@ def get_pledged_units(holding, exclude_assignment=None, for_update=False):
 			assignment.loan,
 			assignment.applicant_type,
 			assignment.applicant,
-			pledge.mutual_fund_holding,
 			fn.Sum(pledge.qty),
 		)
 		.where(pledge.parenttype == "Loan Security Assignment")
-		.where(pledge.loan_security == loan_security)
+		.where(pledge.mutual_fund_holding == holding)
 		.where(assignment.docstatus == 1)
 		.where(assignment.status.isin(OPEN_ASSIGNMENT_STATUSES))
-		.groupby(
-			assignment.name,
-			assignment.loan,
-			assignment.applicant_type,
-			assignment.applicant,
-			pledge.mutual_fund_holding,
-		)
+		.groupby(assignment.name, assignment.loan, assignment.applicant_type, assignment.applicant)
 	)
 	# Only the pledges need the locking read: a stale count of releases and sales overstates the units
 	lines = (query.for_update() if for_update else query).run()
 
-	holding_qty, scheme_qty, excluded_qty = defaultdict(float), defaultdict(float), defaultdict(float)
-	applicant_scheme_qty = applicant_holding_qty = 0
-	for assignment_name, loan, applicant_type, applicant, line_holding, qty in lines:
+	pledged, excluded = defaultdict(float), defaultdict(float)
+	for assignment_name, loan, applicant_type, applicant, qty in lines:
 		# Pledges without a loan are released per applicant
 		bucket = loan or (applicant_type, applicant)
-		scheme_qty[bucket] += flt(qty)
-		if (applicant_type, applicant) == no_loan:
-			applicant_scheme_qty += flt(qty)
-		if line_holding == holding:
-			holding_qty[bucket] += flt(qty)
-			applicant_holding_qty += flt(qty)
-			if assignment_name == exclude_assignment:
-				excluded_qty[bucket] += flt(qty)
+		pledged[bucket] += flt(qty)
+		if assignment_name == exclude_assignment:
+			excluded[bucket] += flt(qty)
 
-	sole_folio = [bucket for bucket, qty in holding_qty.items() if qty == scheme_qty[bucket]]
-	# A release without a loan is checked against all the applicant's pledges, loan or not, so its
-	# units belong to this folio only when no other folio of the scheme is pledged by the applicant
-	no_loan_sole_folio = no_loan in holding_qty and applicant_holding_qty == applicant_scheme_qty
-	taken_out = get_released_and_sold_qty(
-		loan_security,
-		[bucket for bucket in sole_folio if bucket != no_loan],
-		no_loan if no_loan_sole_folio else None,
-	)
-
-	return sum(
-		max(qty - excluded_qty[bucket] - taken_out.get(bucket, 0), 0) for bucket, qty in holding_qty.items()
-	)
+	taken_out = get_released_and_sold_units(holding)
+	return sum(max(qty - excluded[bucket] - taken_out[bucket], 0) for bucket, qty in pledged.items())
 
 
-def get_released_and_sold_qty(loan_security, loans, no_loan_applicant=None):
-	taken_out = defaultdict(float)
-	if no_loan_applicant:
-		unpledge = frappe.qb.DocType("Unpledge")
-		release = frappe.qb.DocType("Loan Security Release")
-		applicant_type, applicant = no_loan_applicant
-		released = (
-			frappe.qb.from_(unpledge)
-			.inner_join(release)
-			.on(unpledge.parent == release.name)
-			.select(fn.Sum(unpledge.qty))
-			.where(unpledge.loan_security == loan_security)
-			.where(release.docstatus == 1)
-			.where(release.status == "Approved")
-			.where(release.applicant_type == applicant_type)
-			.where(release.applicant == applicant)
-			.where(release.loan.isnull() | (release.loan == ""))
-		).run()
-		taken_out[no_loan_applicant] += flt(released[0][0])
-
-	if not loans:
-		return taken_out
-
+def get_released_and_sold_units(holding):
 	unpledge = frappe.qb.DocType("Unpledge")
 	release = frappe.qb.DocType("Loan Security Release")
 	released = (
 		frappe.qb.from_(unpledge)
 		.inner_join(release)
 		.on(unpledge.parent == release.name)
-		.select(release.loan, fn.Sum(unpledge.qty))
-		.where(unpledge.loan_security == loan_security)
+		.select(release.loan, release.applicant_type, release.applicant, fn.Sum(unpledge.qty))
+		.where(unpledge.mutual_fund_holding == holding)
 		.where(release.docstatus == 1)
 		.where(release.status == "Approved")
-		.where(release.loan.isin(loans))
-		.groupby(release.loan)
+		.groupby(release.loan, release.applicant_type, release.applicant)
 	).run()
 
 	item = frappe.qb.DocType("Loan Security Sale Item")
@@ -251,13 +190,13 @@ def get_released_and_sold_qty(loan_security, loans, no_loan_applicant=None):
 		frappe.qb.from_(item)
 		.inner_join(sale)
 		.on(item.parent == sale.name)
-		.select(sale.loan, fn.Sum(item.sold_qty))
-		.where(item.loan_security == loan_security)
+		.select(sale.loan, sale.applicant_type, sale.applicant, fn.Sum(item.sold_qty))
+		.where(item.mutual_fund_holding == holding)
 		.where(sale.docstatus == 1)
-		.where(sale.loan.isin(loans))
-		.groupby(sale.loan)
+		.groupby(sale.loan, sale.applicant_type, sale.applicant)
 	).run()
 
-	for loan, qty in (*released, *sold):
-		taken_out[loan] += flt(qty)
+	taken_out = defaultdict(float)
+	for loan, applicant_type, applicant, qty in (*released, *sold):
+		taken_out[loan or (applicant_type, applicant)] += flt(qty)
 	return taken_out

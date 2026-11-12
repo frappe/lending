@@ -16,10 +16,12 @@ class Unpledge(Document):
 		from frappe.types import DF
 
 		haircut: DF.Percent
+		is_mutual_fund: DF.Check
 		loan_security: DF.Link
 		loan_security_code: DF.Data | None
 		loan_security_name: DF.Data | None
 		loan_security_type: DF.Link | None
+		mutual_fund_holding: DF.Link | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

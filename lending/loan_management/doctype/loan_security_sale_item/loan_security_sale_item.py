@@ -14,8 +14,10 @@ class LoanSecuritySaleItem(Document):
 		from frappe.types import DF
 
 		expected_price: DF.Currency
+		is_mutual_fund: DF.Check
 		loan_security: DF.Link
 		loan_security_name: DF.Data | None
+		mutual_fund_holding: DF.Link | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

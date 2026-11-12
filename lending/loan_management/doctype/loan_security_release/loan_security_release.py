@@ -8,6 +8,12 @@ from frappe.model.document import Document
 from frappe.query_builder import functions as fn
 from frappe.utils import flt, get_datetime, getdate
 
+from lending.collateral.mutual_fund.folio import (
+	get_folio_balances,
+	get_mutual_fund_securities,
+	split_by_folio,
+	validate_folio_units,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price_map,
 )
@@ -46,8 +52,23 @@ class LoanSecurityRelease(Document):
 		return super().save(*args, **kwargs)
 
 	def validate(self):
+		folio_balances = self.get_folio_balances()
+		split_by_folio(self, "securities", ("qty",), folio_balances)
 		self.validate_duplicate_securities()
 		self.validate_unpledge_qty()
+		validate_folio_units(
+			self, "securities", ("qty",), folio_balances, _("Loan Security Release Error")
+		)
+
+	def get_folio_balances(self, for_update=False):
+		return get_folio_balances(
+			list(get_mutual_fund_securities({row.loan_security for row in self.securities})),
+			loan=self.loan,
+			applicant_type=self.applicant_type,
+			applicant=self.applicant,
+			exclude=self.name,
+			for_update=for_update,
+		)
 
 	def before_submit(self):
 		# An amendment copies the cancelled release's time, which would skip approve().
@@ -64,7 +85,7 @@ class LoanSecurityRelease(Document):
 
 		for security in self.securities:
 			pledged_qty = flt(pledge_qty_map.get(security.loan_security))
-			if security.qty > pledged_qty:
+			if self.get_release_qty(security.loan_security) > pledged_qty:
 				frappe.throw(
 					_("Row {0}: Only {1} of {2} is still pledged.").format(
 						security.idx, pledged_qty, frappe.bold(security.loan_security)
@@ -72,16 +93,29 @@ class LoanSecurityRelease(Document):
 					title=_("Loan Security Release Error"),
 				)
 
+		validate_folio_units(
+			self,
+			"securities",
+			("qty",),
+			self.get_folio_balances(for_update=True),
+			_("Loan Security Release Error"),
+		)
+
+	def get_release_qty(self, loan_security):
+		return sum(flt(row.qty) for row in self.securities if row.loan_security == loan_security)
+
 	def on_cancel(self):
 		self.update_loan_status(cancel=1)
 		self.db_set("status", "Requested")
 		update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
 	def validate_duplicate_securities(self):
+		# A mutual fund scheme can repeat, once for each folio
 		security_list = []
 		for d in self.securities:
-			if d.loan_security not in security_list:
-				security_list.append(d.loan_security)
+			key = (d.loan_security, d.mutual_fund_holding or "")
+			if key not in security_list:
+				security_list.append(key)
 			else:
 				frappe.throw(
 					_("Row {0}: Loan Security {1} added multiple times").format(
@@ -108,7 +142,7 @@ class LoanSecurityRelease(Document):
 		unpledge_qty_map = {}
 		for security in self.securities:
 			pledged_qty = pledge_qty_map.get(security.loan_security, 0)
-			if security.qty > pledged_qty:
+			if self.get_release_qty(security.loan_security) > pledged_qty:
 				if self.loan:
 					msg = _("Row {0}: {1} of {2} is pledged against Loan {3}.").format(
 						security.idx,
