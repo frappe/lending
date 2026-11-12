@@ -7,6 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, comma_and, flt, now_datetime
 
+from lending.collateral.mutual_fund.folio import get_mutual_fund_securities
 from lending.collateral.mutual_fund.pledge import (
 	validate_direct_pledge,
 	validate_mutual_fund_lines,
@@ -161,14 +162,17 @@ class LoanSecurityAssignment(Document):
 		if not self.get("securities"):
 			frappe.throw(_("Atlest one security needs to be assigned"))
 
-		# A mutual fund scheme can repeat for another folio or purchase date, since lock-in runs per purchase
+		# Only a mutual fund scheme can repeat, for another folio or purchase date, since lock-in runs per purchase
+		mutual_funds = get_mutual_fund_securities({row.loan_security for row in self.get("securities")})
 		security_list = []
 		for security in self.get("securities"):
-			key = (
-				security.loan_security,
-				security.mutual_fund_holding or "",
-				str(security.purchase_date or ""),
-			)
+			key = (security.loan_security, "", "")
+			if security.loan_security in mutual_funds:
+				key = (
+					security.loan_security,
+					security.mutual_fund_holding or "",
+					str(security.purchase_date or ""),
+				)
 			if key not in security_list:
 				security_list.append(key)
 			else:

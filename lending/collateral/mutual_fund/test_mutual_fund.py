@@ -184,6 +184,15 @@ class TestMutualFundPledge(LendingTestSuite):
 				]
 			)
 
+		# A purchase date tells lots of a mutual fund apart, not lots of a share
+		with self.assertRaisesRegex(frappe.ValidationError, "added multiple times"):
+			make_pledge(
+				[
+					{"loan_security": "Test Security 1", "qty": 100, "purchase_date": "2021-01-15"},
+					{"loan_security": "Test Security 1", "qty": 50, "purchase_date": "2022-06-15"},
+				]
+			)
+
 	def test_shares_line_needs_no_folio(self):
 		lsa = make_pledge(
 			[{"loan_security": "Test Security 1", "qty": 100}, fund_line(FLEXI_CAP, qty=100)]
