@@ -25,7 +25,7 @@ from frappe.utils.caching import redis_cache
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
-from erpnext.accounts.general_ledger import process_gl_map
+from erpnext.accounts.general_ledger import make_reverse_gl_entries
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
@@ -297,6 +297,7 @@ class Loan(LoanController):
 				to_date=migration_date,
 				demand_generated=1,
 			)
+			self.validate_opening_principal(disb_name, flt(d.opening_principal_outstanding, precision))
 
 			self.create_migrated_interest_accruals(
 				disb_name,
@@ -677,41 +678,112 @@ class Loan(LoanController):
 		if not loan_accounting_enabled(self.company):
 			return
 
-		loan_account, payment_account = self.get_opening_accounts_from_loan_product()
-
-		outstanding = self.get_outstanding_principal_amount()
-		if outstanding <= 0:
+		# The schedule is already deleted on cancel, so reverse what was posted instead of rebuilding it.
+		if cancel:
+			make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name, adv_adj=adv_adj)
 			return
 
+		loan_account, payment_account = self.get_opening_accounts_from_loan_product()
 		posting_date = self.get_opening_posting_date()
-
-		gle_map = []
 		remarks = _("Opening entry for imported loan {0}").format(self.name)
 
-		self.add_opening_gl_entry(
-			gle_map=gle_map,
-			account=payment_account,
-			against_account=loan_account,
-			amount=outstanding,
-			remarks=remarks,
-			posting_date=posting_date,
-		)
+		gle_map = []
+		for account, amount in self.get_opening_balances(loan_account):
+			self.add_opening_gl_entry(
+				gle_map=gle_map,
+				account=account,
+				against_account=payment_account,
+				amount=amount,
+				remarks=remarks,
+				posting_date=posting_date,
+			)
 
 		if gle_map:
-			if cancel:
-				gle_map = process_gl_map(gle_map)
+			super().make_gl_entries(gle_map, adv_adj=adv_adj)
 
-			super().make_gl_entries(gle_map, cancel=cancel, adv_adj=adv_adj)
+	def get_opening_balances(self, loan_account):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		accounts = frappe.get_cached_value(
+			"Loan Product",
+			self.loan_product,
+			["interest_receivable_account", "penalty_receivable_account", "additional_interest_receivable"],
+			as_dict=True,
+		)
+
+		balances = [
+			(loan_account, self.get_outstanding_principal_amount()),
+			(accounts.interest_receivable_account, self.get_opening_amount("opening_interest_outstanding")),
+			(accounts.penalty_receivable_account, self.get_opening_amount("opening_penalty_outstanding")),
+			(accounts.additional_interest_receivable, self.get_opening_amount("opening_additional_outstanding")),
+		]
+
+		opening_balances = []
+		for account, amount in balances:
+			if flt(amount, precision) <= 0:
+				continue
+
+			if not account:
+				frappe.throw(
+					_("Please set the receivable accounts in Loan Product {0}").format(
+						frappe.bold(self.loan_product)
+					)
+				)
+
+			opening_balances.append((account, flt(amount, precision)))
+
+		return opening_balances
 
 	def get_outstanding_principal_amount(self) -> float:
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
-
-		total_outstanding = sum(
-			flt(row.opening_principal_outstanding)
-			for row in self.get("loan_import_details") or []
+		outstanding = self.get_opening_amount("opening_principal_outstanding") + self.get_schedule_principal(
+			demand_generated=0
 		)
 
-		return flt(total_outstanding, precision)
+		return flt(outstanding, precision)
+
+	def get_opening_amount(self, fieldname) -> float:
+		return sum(flt(row.get(fieldname)) for row in self.get("loan_import_details") or [])
+
+	def get_schedule_principal(self, demand_generated, loan_disbursement=None) -> float:
+		loan_repayment_schedule = frappe.qb.DocType("Loan Repayment Schedule")
+		repayment_schedule = frappe.qb.DocType("Repayment Schedule")
+
+		query = (
+			frappe.qb.from_(repayment_schedule)
+			.join(loan_repayment_schedule)
+			.on(repayment_schedule.parent == loan_repayment_schedule.name)
+			.select(Sum(repayment_schedule.principal_amount))
+			.where(loan_repayment_schedule.loan == self.name)
+			.where(loan_repayment_schedule.docstatus == 1)
+			.where(loan_repayment_schedule.status == "Active")
+			.where(repayment_schedule.demand_generated == demand_generated)
+		)
+
+		if loan_disbursement:
+			query = query.where(loan_repayment_schedule.loan_disbursement == loan_disbursement)
+
+		return flt(query.run()[0][0])
+
+	def validate_opening_principal(self, loan_disbursement, opening_principal):
+		has_schedule = frappe.db.exists(
+			"Loan Repayment Schedule",
+			{"loan": self.name, "loan_disbursement": loan_disbursement, "status": "Active", "docstatus": 1},
+		)
+		if not has_schedule:
+			return
+
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		due_principal = flt(
+			self.get_schedule_principal(demand_generated=1, loan_disbursement=loan_disbursement), precision
+		)
+
+		# Opening Principal is the overdue part only. Principal not yet due comes from the schedule.
+		if opening_principal > due_principal:
+			frappe.throw(
+				_(
+					"Opening Principal Outstanding {0} cannot be more than the principal due before the Migration Date ({1}). Enter only the overdue principal."
+				).format(frappe.bold(opening_principal), frappe.bold(due_principal))
+			)
 
 	def get_opening_posting_date(self):
 		if self.get("migration_date"):
@@ -761,6 +833,8 @@ class Loan(LoanController):
 					"credit_in_account_currency": 0,
 					"voucher_type": "Loan",
 					"voucher_no": self.name,
+					"against_voucher_type": "Loan",
+					"against_voucher": self.name,
 					"remarks": remarks,
 					"cost_center": self.get("cost_center"),
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
@@ -784,6 +858,8 @@ class Loan(LoanController):
 					"credit_in_account_currency": 0,
 					"voucher_type": "Loan",
 					"voucher_no": self.name,
+					"against_voucher_type": "Loan",
+					"against_voucher": self.name,
 					"remarks": remarks,
 					"cost_center": self.get("cost_center"),
 					"party_type": self.applicant_type if account_type in ("Receivable", "Payable") else None,
