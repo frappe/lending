@@ -5,13 +5,9 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-<<<<<<< HEAD
-from frappe.utils import add_days, add_months, flt, get_datetime, nowdate, random_string
+from frappe.utils import add_days, add_months, flt, get_datetime, getdate, nowdate, random_string
 
 from erpnext.selling.doctype.customer.test_customer import get_customer_dict
-=======
-from frappe.utils import add_days, add_months, flt, get_datetime, getdate, random_string
->>>>>>> e43a83c (fix: start interest accrual after migration date for imported loans)
 
 from lending.loan_management.doctype.loan.loan import move_unpaid_interest_to_suspense_ledger
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
