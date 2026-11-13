@@ -5,11 +5,12 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, flt, get_datetime, random_string
+from frappe.utils import add_days, add_months, flt, get_datetime, getdate, random_string
 
 from lending.loan_management.doctype.loan.loan import move_unpaid_interest_to_suspense_ledger
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
+	get_unbooked_interest_for_bulk_loans,
 	process_pending_credit_notes,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -826,8 +827,26 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 			loan.name,
 		)[0][0]
 		self.assertEqual(flt(suspense, 2), 120)
+		self.assertFalse(get_unbooked_interest_for_bulk_loans([loan.name], "2024-06-20").get(loan.name))
 
-	def make_imported_loan(self, opening_principal=1000, opening_penalty=30, opening_additional=20):
+	def test_migrated_loan_accrual_starts_after_migration_date(self):
+		accruals = {}
+		for opening_interest in (120, 0):
+			loan = self.make_imported_loan(opening_interest=opening_interest)
+			process_loan_interest_accrual_for_loans(posting_date="2024-06-30", loan=loan.name, company="_Test Company")
+			accruals[opening_interest] = frappe.get_all(
+				"Loan Interest Accrual",
+				filters={"loan": loan.name, "docstatus": 1, "is_imported": 0, "interest_type": "Normal Interest"},
+				fields=["start_date", "posting_date", "interest_amount"],
+				order_by="start_date",
+			)
+
+		self.assertEqual(getdate(accruals[0][0].start_date), getdate("2024-06-16"))
+		self.assertEqual(accruals[0], accruals[120])
+
+	def make_imported_loan(
+		self, opening_principal=1000, opening_interest=120, opening_penalty=30, opening_additional=20
+	):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -846,7 +865,7 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 				"disbursement_date": "2024-01-15",
 				"loan_disbursement_id": f"DISB-OPEN-{random_string(5).upper()}",
 				"opening_principal_outstanding": opening_principal,
-				"opening_interest_outstanding": 120,
+				"opening_interest_outstanding": opening_interest,
 				"opening_penalty_outstanding": opening_penalty,
 				"opening_additional_outstanding": opening_additional,
 			}],

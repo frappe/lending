@@ -1004,6 +1004,10 @@ def get_last_accrual_date(
 	posting_dates = [row[0] for row in query.run()]
 	last_interest_accrual_date = max(posting_dates) if posting_dates else None
 
+	# Imported loans with no opening interest have no imported accrual, so use the migration date.
+	if not last_interest_accrual_date and interest_type == "Normal Interest" and not (demand or repayment_schedule_detail):
+		last_interest_accrual_date = get_migration_date(loan, loan_disbursement=loan_disbursement)
+
 	if loan_repayment_schedule:
 		if last_interest_accrual_date:
 			return add_days(last_interest_accrual_date, 1)
@@ -1061,6 +1065,17 @@ def get_last_accrual_date(
 			last_interest_accrual_date = add_days(last_disbursement_date, -1)
 
 		return last_interest_accrual_date
+
+
+def get_migration_date(loan, loan_disbursement=None):
+	if not frappe.db.get_value("Loan", loan, "is_imported", cache=True):
+		return None
+
+	if loan_disbursement and not frappe.db.get_value("Loan Disbursement", loan_disbursement, "is_imported"):
+		return None
+
+	migration_date = frappe.db.get_value("Loan", loan, "migration_date", cache=True)
+	return getdate(migration_date) if migration_date else None
 
 
 def get_last_disbursement_date(loan, posting_date, loan_disbursement=None):
