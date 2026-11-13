@@ -151,6 +151,7 @@ class Loan(LoanController):
 		self.validate_accounts()
 		self.check_sanctioned_amount_limit()
 		self.set_cyclic_date()
+		self.validate_imported_repayment_start_date()
 		self.set_default_charge_account()
 		self.set_available_limit_amount()
 		self.validate_repayment_terms()
@@ -247,6 +248,26 @@ class Loan(LoanController):
 				frappe.throw(
 					_("Flat Interest Rate loans can only have monthly and yearly repayment frequency")
 				)
+
+	def validate_imported_repayment_start_date(self):
+		# A blank date would be filled from today, which is not the real first EMI date.
+		# Pro-rated schedules always set their own start date.
+		if (
+			not self.get("is_imported")
+			or not self.is_term_loan
+			or self.get("status") == "Closed"
+			or self.repayment_schedule_type == "Pro-rated calendar months"
+		):
+			return
+
+		if self.is_line_of_credit_loan():
+			for row in self.get("loan_import_details"):
+				if not row.repayment_start_date:
+					frappe.throw(
+						_("Row {0}: Repayment Start Date is mandatory for imported loans").format(row.idx)
+					)
+		elif not self.repayment_start_date:
+			frappe.throw(_("Repayment Start Date is mandatory for imported loans"))
 
 	def get_migration_date_for_import(self):
 		if not self.get("is_imported"):
