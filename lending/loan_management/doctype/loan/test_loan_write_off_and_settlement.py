@@ -1318,12 +1318,23 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 		self.assertEqual(getdate(accruals[0][0].start_date), getdate("2024-06-16"))
 		self.assertEqual(accruals[0], accruals[120])
 
+	def test_migrated_loan_needs_repayment_start_date(self):
+		loan = self.make_imported_loan(submit=False, loan_product="Term Loan Product 1")
+		loan.repayment_start_date = None
+		self.assertRaises(frappe.ValidationError, loan.save)
+
 	def make_imported_loan(
-		self, opening_principal=1000, opening_interest=120, opening_penalty=30, opening_additional=20
+		self,
+		opening_principal=1000,
+		opening_interest=120,
+		opening_penalty=30,
+		opening_additional=20,
+		submit=True,
+		loan_product="Term Loan Product 4",
 	):
 		loan = create_loan(
 			"_Test Customer 1",
-			"Term Loan Product 4",
+			loan_product,
 			12000,
 			"Repay Over Number of Periods",
 			12,
@@ -1344,7 +1355,8 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 				"opening_additional_outstanding": opening_additional,
 			}],
 		)
-		loan.submit()
+		if submit:
+			loan.submit()
 		return loan
 
 
