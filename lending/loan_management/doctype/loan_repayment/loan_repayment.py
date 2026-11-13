@@ -178,6 +178,7 @@ class LoanRepayment(LoanController):
 					self.principal_amount_paid,
 					self.unbooked_interest_paid,
 					loan_disbursement=self.loan_disbursement,
+					overdue_principal_paid=self.get_overdue_principal_paid(),
 				)
 
 	def on_submit(self):
@@ -257,6 +258,7 @@ class LoanRepayment(LoanController):
 						self.principal_amount_paid,
 						self.unbooked_interest_paid,
 						loan_disbursement=self.loan_disbursement,
+						overdue_principal_paid=self.get_overdue_principal_paid(),
 					)
 
 					self.process_reschedule()
@@ -562,6 +564,13 @@ class LoanRepayment(LoanController):
 				loan_disbursement=self.loan_disbursement,
 				loan_repayment=self.name,
 			)
+
+	def get_overdue_principal_paid(self):
+		return sum(
+			flt(d.paid_amount)
+			for d in self.get("repayment_details")
+			if d.demand_subtype == "Principal"
+		)
 
 	def process_reschedule(self):
 		loan_restructure = frappe.get_doc("Loan Restructure", {"loan_repayment": self.name})

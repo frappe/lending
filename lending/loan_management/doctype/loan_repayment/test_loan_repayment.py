@@ -1563,7 +1563,7 @@ class TestEmiAdvancePayment(LendingTestSuite):
 		)
 
 		# A partial advance payment neither changes the tenure nor the EMI
-		self.assertEqual(lrs.repayment_periods, 12)
+		self.assertEqual(getdate(lrs.repayment_schedule[-1].payment_date), getdate("2025-04-05"))
 		self.assertEqual(lrs.monthly_repayment_amount, 47523)
 
 		# The paid amount is adjusted against the upcoming demand as a principal demand
@@ -1579,3 +1579,45 @@ class TestEmiAdvancePayment(LendingTestSuite):
 			"demand_amount",
 		)
 		self.assertEqual(adjusted_principal, 20000)
+
+	def test_partial_emi_advance_payment_keeps_the_next_emi_due(self):
+		repayment = create_repayment_entry(
+			self.loan, "2024-05-29", 20000, repayment_type="Advance Payment"
+		)
+		repayment.submit()
+		self.assert_next_emi_due("2024-05-29", "2024-06-05")
+
+	def test_overdue_emi_with_partial_advance_keeps_the_next_emi_due(self):
+		process_daily_loan_demands(posting_date="2024-06-05", loan=self.loan)
+		repayment = create_repayment_entry(
+			self.loan, "2024-06-10", 67523, repayment_type="Advance Payment"
+		)
+		repayment.submit()
+		self.assert_next_emi_due("2024-06-10", "2024-07-05")
+
+	def assert_next_emi_due(self, paid_on, next_emi_date):
+		lrs = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": self.loan, "docstatus": 1, "status": "Active"}
+		)
+		disbursed, principal_paid = frappe.db.get_value(
+			"Loan", self.loan, ["disbursed_amount", "total_principal_paid"]
+		)
+		scheduled_principal = sum(
+			row.principal_amount
+			for row in lrs.repayment_schedule
+			if getdate(row.payment_date) > getdate(paid_on)
+		)
+		self.assertEqual(flt(scheduled_principal, 2), flt(disbursed - principal_paid, 2))
+
+		process_daily_loan_demands(posting_date=next_emi_date, loan=self.loan)
+		self.assertTrue(
+			frappe.db.exists(
+				"Loan Demand",
+				{
+					"loan": self.loan,
+					"demand_type": "EMI",
+					"demand_date": next_emi_date,
+					"docstatus": 1,
+				},
+			)
+		)
