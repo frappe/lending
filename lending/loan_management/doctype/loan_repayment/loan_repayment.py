@@ -3346,6 +3346,8 @@ def get_accrued_interest(
 			& (LoanInterestAccrual.docstatus == 1)
 			& (LoanInterestAccrual.posting_date < posting_date)
 			& (LoanInterestAccrual.interest_type == interest_type)
+			# Imported accruals already have a matching imported demand.
+			& (LoanInterestAccrual.is_imported == 0)
 		)
 	)
 
