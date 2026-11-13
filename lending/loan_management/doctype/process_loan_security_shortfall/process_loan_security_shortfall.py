@@ -5,10 +5,14 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime
+from frappe.utils.synchronization import filelock
 
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
 	check_for_ltv_shortfall,
 )
+
+# Just under the long queue's job timeout, since a run over a large book takes minutes
+LOCK_TIMEOUT = 20 * 60
 
 
 class ProcessLoanSecurityShortfall(Document):
@@ -36,11 +40,26 @@ class ProcessLoanSecurityShortfall(Document):
 		self.ignore_linked_doctypes = ["Loan Security Shortfall"]
 
 
+def run_shortfall_check_job():
+	# A Price Update starts this while another run may still be going. Two runs that overlap both
+	# miss each other's new shortfalls and create a second one for the same loan, so runs take
+	# turns, and each commits before the next starts.
+	with filelock("process_loan_security_shortfall", timeout=LOCK_TIMEOUT):
+		# Anything read before the lock came from a snapshot older than the last run's commit
+		frappe.db.rollback()
+		create_process_loan_security_shortfall()
+		frappe.db.commit()  # nosemgrep
+
+
 def create_process_loan_security_shortfall():
+	from lending.loan_management.margin_call import process_open_shortfalls
+
 	if check_for_secured_loans():
 		process = frappe.new_doc("Process Loan Security Shortfall")
 		process.update_time = get_datetime()
 		process.submit()
+		# Chained rather than scheduled, so that notices go out on shortfalls this run found
+		process_open_shortfalls()
 
 
 def check_for_secured_loans():

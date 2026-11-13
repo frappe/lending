@@ -1,0 +1,31 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "condition": "",
+ "condition_type": "",
+ "creation": "2026-10-14 12:00:00.000000",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Loan Security Shortfall",
+ "enabled": 1,
+ "event": "Method",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear Customer,</p>\n\n<p>The value of the collateral pledged against your {% if doc.loan %}loan <strong>{{ doc.loan }}</strong>{% else %}loans{% endif %} has fallen. You owe {{ doc.get_formatted(\"loan_amount\") }} against collateral now worth {{ doc.get_formatted(\"security_value\") }}.</p>\n\n{% if doc.status == \"Sale Triggered\" %}\n<p>The fall is large enough that the lender will now sell part of the collateral to bring the loan back within its limit.</p>\n{% else %}\n<p>To restore the margin, repay <strong>{{ doc.get_formatted(\"shortfall_amount\") }}</strong> or pledge more collateral by <strong>{{ frappe.utils.formatdate(doc.cure_by) }}</strong>. If the margin is not restored by then, the lender may sell the collateral.</p>\n{% endif %}\n\n<p>Thank you.</p>",
+ "method": "notify_margin_call",
+ "minutes_offset": 0,
+ "modified": "2026-10-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Margin Call Notice",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "applicant_email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Margin call on your {% if doc.loan %}loan {{ doc.loan }}{% else %}loans{% endif %}"
+}

@@ -5,17 +5,24 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, now_datetime
+from frappe.utils import cint, comma_and, flt, now_datetime
 
+from lending.collateral.mutual_fund.folio import get_mutual_fund_securities
+from lending.collateral.mutual_fund.pledge import (
+	validate_direct_pledge,
+	validate_mutual_fund_lines,
+)
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
+	get_loan_security_price_map,
 )
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_current_pledges,
 	lock_applicant,
 	update_sanctioned_loan_amount_for_applicant,
 )
 from lending.loan_management.doctype.loan_security_shortfall.loan_security_shortfall import (
-	update_shortfall_status,
+	recheck_loan_shortfall,
 )
 
 
@@ -40,6 +47,7 @@ class LoanSecurityAssignment(Document):
 		maximum_loan_value: DF.Currency
 		pledge_time: DF.Datetime | None
 		reference_no: DF.Data | None
+		release_reference: DF.Data | None
 		release_time: DF.Datetime | None
 		securities: DF.Table[Pledge]
 		status: DF.Literal["Pledge Requested", "Unpledged", "Pledged", "Release Requested", "Released", "Repossessed", "Cancelled"]
@@ -48,11 +56,19 @@ class LoanSecurityAssignment(Document):
 
 	def validate(self):
 		self.validate_securities()
+		validate_mutual_fund_lines(self)
 		self.set_loan_and_security_values()
+		self.validate_security_limits()
+
+	def before_submit(self):
+		validate_direct_pledge(self)
+
+	def before_update_after_submit(self):
+		# Fund details of a Pledge Requested assignment are entered after submit
+		validate_mutual_fund_lines(self)
 
 	def on_submit(self):
 		if self.loan:
-			update_shortfall_status(self.loan, self.total_security_value)
 			update_loan(self.loan, self.maximum_loan_value)
 
 		if not self.loan_application:
@@ -77,6 +93,10 @@ class LoanSecurityAssignment(Document):
 			else:
 				update_sanctioned_loan_amount_for_applicant(self.applicant, self.applicant_type)
 
+		# Only once the status is Pledged does the new collateral count in the loan's value
+		if self.loan:
+			recheck_loan_shortfall(self.loan, cure_method="Additional Pledge")
+
 	def on_update_after_submit(self):
 		self.check_loan_securities_capability_to_book_additional_loans()
 
@@ -96,7 +116,10 @@ class LoanSecurityAssignment(Document):
 		if self.status != "Pledged":
 			return
 
-		# Approving a release takes the same lock, and the locking read below sees its commit.
+		# Approving a release takes the same locks, and the locking read below sees its commit.
+		# Loan before applicant, in the same order as a release save, so the two cannot deadlock.
+		if self.loan:
+			lock_loan(self.loan)
 		lock_applicant(self.applicant_type, self.applicant)
 
 		release = frappe.qb.DocType("Loan Security Release")
@@ -139,14 +162,173 @@ class LoanSecurityAssignment(Document):
 		if not self.get("securities"):
 			frappe.throw(_("Atlest one security needs to be assigned"))
 
+		# Only a mutual fund scheme can repeat, for another folio or purchase date, since lock-in runs per purchase
+		mutual_funds = get_mutual_fund_securities({row.loan_security for row in self.get("securities")})
 		security_list = []
 		for security in self.get("securities"):
-			if security.loan_security not in security_list:
-				security_list.append(security.loan_security)
+			key = (security.loan_security, "", "")
+			if security.loan_security in mutual_funds:
+				key = (
+					security.loan_security,
+					security.mutual_fund_holding or "",
+					str(security.purchase_date or ""),
+				)
+			if key not in security_list:
+				security_list.append(key)
 			else:
 				frappe.throw(
 					_("Loan Security {0} added multiple times").format(frappe.bold(security.loan_security))
 				)
+
+		securities = list({key[0] for key in security_list})
+		disabled = frappe.get_all(
+			"Loan Security", filters={"name": ("in", securities), "disabled": 1}, pluck="name"
+		)
+		if disabled:
+			frappe.throw(
+				_("Loan Security {0} is disabled.").format(comma_and(disabled)),
+				title=_("Loan Security Disabled"),
+			)
+
+	def validate_security_limits(self):
+		limits = {
+			d.name: d
+			for d in frappe.get_all(
+				"Loan Security Type",
+				filters={"name": ("in", {row.loan_security_type for row in self.securities})},
+				fields=["name", "max_single_security_pct", "max_exposure_per_security"],
+			)
+		}
+
+		if not any(
+			flt(limit.max_single_security_pct) or flt(limit.max_exposure_per_security) for limit in limits.values()
+		):
+			return
+
+		# A draft pledges nothing, so it is checked without locks. Only a submit, or the loan
+		# that marks a requested pledge Pledged, must count what others commit at the same time.
+		locking = self.docstatus == 1
+
+		if self.loan and locking:
+			# Locks are taken Loan, then Loan Security, then pledge and release rows. A Loan Security
+			# Release locks its Loan before its own row (see LoanSecurityRelease.save), so the two
+			# cannot deadlock.
+			lock_loan(self.loan)
+
+		capped = sorted(
+			{
+				row.loan_security
+				for row in self.securities
+				if flt(limits.get(row.loan_security_type, {}).get("max_exposure_per_security"))
+			}
+		)
+		pledged_qty, current_prices = {}, {}
+		if capped:
+			if locking:
+				lock_loan_securities(capped)
+			pledged_qty = get_current_pledges(securities=capped, for_update=locking)
+			# A row from a loan application keeps the price from when it was applied for.
+			current_prices = get_loan_security_price_map(capped)
+
+		# A mutual fund scheme can sit on several lines, one per folio or purchase date.
+		pledge_qty = {}
+		for row in self.securities:
+			pledge_qty[row.loan_security] = pledge_qty.get(row.loan_security, 0) + flt(row.qty)
+
+		shares = {}
+		if any(flt(limit.max_single_security_pct) for limit in limits.values()):
+			shares = self.get_security_shares(locking)
+
+		for row in self.securities:
+			limit = limits.get(row.loan_security_type)
+			if not limit:
+				continue
+
+			share = flt(shares.get(row.loan_security), 2)
+			if flt(limit.max_single_security_pct) and share > flt(limit.max_single_security_pct):
+				if self.loan:
+					msg = _(
+						"Row {0}: {1} would be {2}% of the collateral on Loan {3}. Loan Security Type {4} allows at most {5}%."
+					).format(
+						row.idx,
+						frappe.bold(row.loan_security),
+						share,
+						frappe.bold(self.loan),
+						frappe.bold(row.loan_security_type),
+						flt(limit.max_single_security_pct),
+					)
+				else:
+					msg = _(
+						"Row {0}: {1} is {2}% of this pledge. Loan Security Type {3} allows at most {4}%."
+					).format(
+						row.idx,
+						frappe.bold(row.loan_security),
+						share,
+						frappe.bold(row.loan_security_type),
+						flt(limit.max_single_security_pct),
+					)
+				frappe.throw(msg, title=_("Pledge Too Concentrated"))
+
+			if flt(limit.max_exposure_per_security):
+				price = flt(current_prices.get(row.loan_security)) or flt(row.loan_security_price)
+				exposure = (flt(pledged_qty.get(row.loan_security)) + pledge_qty[row.loan_security]) * price
+				if exposure > flt(limit.max_exposure_per_security):
+					frappe.throw(
+						_(
+							"Row {0}: {1} pledged across all borrowers would be worth {2}. Loan Security Type {3} allows at most {4}."
+						).format(
+							row.idx,
+							frappe.bold(row.loan_security),
+							frappe.format_value(exposure, {"fieldtype": "Currency"}),
+							frappe.bold(row.loan_security_type),
+							frappe.format_value(limit.max_exposure_per_security, {"fieldtype": "Currency"}),
+						),
+						title=_("Exposure Limit Reached"),
+					)
+
+	def get_security_shares(self, locking):
+		# A top-up adds to the collateral already on the loan, so the share is measured across both,
+		# all at the current price.
+		quantities = {}
+		for row in self.securities:
+			quantities[row.loan_security] = quantities.get(row.loan_security, 0) + flt(row.qty)
+
+		if self.loan:
+			# On submit the Loan is locked in validate_security_limits, so concurrent top-ups are checked in turn.
+			for security, qty in get_current_pledges(loan=self.loan, for_update=locking).items():
+				quantities[security] = quantities.get(security, 0) + flt(qty)
+
+		current_prices = get_loan_security_price_map(list(quantities))
+		saved_prices = {row.loan_security: flt(row.loan_security_price) for row in self.securities}
+		if self.loan:
+			# A security already on the loan whose price has expired keeps the price it was pledged at,
+			# so it still counts toward the total.
+			for security, price in self.get_loan_pledge_prices().items():
+				saved_prices.setdefault(security, price)
+
+		values = {
+			security: qty * (flt(current_prices.get(security)) or saved_prices.get(security, 0))
+			for security, qty in quantities.items()
+		}
+
+		total = sum(values.values())
+		return {security: value / total * 100 for security, value in values.items()} if total else {}
+
+	def get_loan_pledge_prices(self):
+		pledge = frappe.qb.DocType("Pledge")
+		lsa = frappe.qb.DocType("Loan Security Assignment")
+		rows = (
+			frappe.qb.from_(pledge)
+			.inner_join(lsa)
+			.on(pledge.parent == lsa.name)
+			.select(pledge.loan_security, pledge.loan_security_price)
+			.where(lsa.loan == self.loan)
+			.where(lsa.docstatus == 1)
+			.where(lsa.status == "Pledged")
+			.orderby(lsa.pledge_time)
+		).run()
+		# The latest pledge of each security wins.
+		return {security: flt(price) for security, price in rows}
 
 	def set_loan_and_security_values(self):
 		total_security_value = 0
@@ -193,9 +375,10 @@ class LoanSecurityAssignment(Document):
 		total_security_value_needed = flt(loan_amount, precision)
 
 		total_available_security_value = 0
-		for d in self.get("securities"):
+		# A security can sit on more than one row, but its available value counts once
+		for loan_security in {d.loan_security for d in self.get("securities")}:
 			total_available_security_value += flt(
-				frappe.db.get_value("Loan Security", d.loan_security, "available_security_value"), precision
+				frappe.db.get_value("Loan Security", loan_security, "available_security_value"), precision
 			)
 
 		if total_security_value_needed > total_available_security_value:
@@ -206,6 +389,16 @@ class LoanSecurityAssignment(Document):
 			)
 
 		update_loan(self.loan, total_available_security_value)
+
+
+def lock_loan(loan):
+	frappe.db.get_value("Loan", loan, "name", for_update=True)
+
+
+def lock_loan_securities(securities):
+	# Serialises concurrent pledges of the same security, so two cannot both pass the exposure cap.
+	ls = frappe.qb.DocType("Loan Security")
+	frappe.qb.from_(ls).select(ls.name).where(ls.name.isin(securities)).orderby(ls.name).for_update().run()
 
 
 def update_loan(loan, maximum_value_against_pledge, cancel=0):
@@ -261,6 +454,8 @@ def update_loan_securities_values(
 			ls.utilized_security_value,
 			ls.original_security_value,
 		)
+		# One row per security: a repeated one would replay its old balances over the update just made
+		.distinct()
 		.where(lsa.status == "Pledged")
 		.where(lsa.loan == loan)
 	).run(as_dict=True)
@@ -303,11 +498,15 @@ def update_loan_securities_values(
 
 
 @frappe.whitelist()
-def release_loan_security_assignment(loan_security_assignment: str):
+def release_loan_security_assignment(loan_security_assignment: str, release_reference: str | None = None):
 	frappe.has_permission("Loan Security Assignment", "write", doc=loan_security_assignment, throw=True)
 
 	frappe.db.set_value(
 		"Loan Security Assignment",
 		loan_security_assignment,
-		{"status": "Released", "release_time": now_datetime()},
+		{
+			"status": "Released",
+			"release_time": now_datetime(),
+			"release_reference": (release_reference or "").strip() or None,
+		},
 	)
