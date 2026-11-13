@@ -3398,6 +3398,8 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 		)
 		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
 		.where(loan_interest_accrual_doc.docstatus == 1)
+		# Imported accruals already have a matching imported demand.
+		.where(loan_interest_accrual_doc.is_imported == 0)
 		.where(loan_interest_accrual_doc.posting_date < posting_date)
 		.groupby(loan_interest_accrual_doc.loan)
 		.select(
