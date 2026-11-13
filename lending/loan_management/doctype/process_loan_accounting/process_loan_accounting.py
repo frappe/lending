@@ -203,6 +203,8 @@ class ProcessLoanAccounting(LoanController):
 				(src.loan == self.loan)
 				& (src.docstatus == 1)
 				& src.process_loan_accounting_voucher.isnull()
+				# Imported docs are covered by the loan's opening entry.
+				& (src.is_imported == 0)
 				& in_period
 			)
 			.run(pluck=True)
