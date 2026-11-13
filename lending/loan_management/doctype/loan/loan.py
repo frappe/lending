@@ -24,13 +24,8 @@ from frappe.utils import (
 from frappe.utils.caching import redis_cache
 
 import erpnext
-<<<<<<< HEAD
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_payment_entry
-from erpnext.accounts.general_ledger import process_gl_map
-=======
-from erpnext.accounts.doctype.journal_entry.mapper import get_payment_entry
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
->>>>>>> 7d5167e (fix: correct opening gl entry for imported loans)
 
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
