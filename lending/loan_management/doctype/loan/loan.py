@@ -239,6 +239,14 @@ class Loan(LoanController):
 			if not self.repayment_periods:
 				frappe.throw(_("Repayment periods is mandatory for term loans"))
 
+		if (
+			self.is_term_loan
+			and self.repayment_schedule_type != "Line of Credit"
+			and self.repayment_method == "Repay Fixed Amount per Period"
+			and not flt(self.monthly_repayment_amount)
+		):
+			frappe.throw(_("Monthly Repayment Amount is mandatory for term loans"))
+
 		if self.is_term_loan and self.repayment_schedule_type == "Flat Interest Rate":
 			if self.repayment_method == "Repay Fixed Amount per Period":
 				frappe.throw(
