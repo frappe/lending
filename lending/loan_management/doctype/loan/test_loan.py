@@ -97,11 +97,10 @@ class TestLoan(LendingTestSuite):
 			"Personal Loan",
 			280000,
 			"Repay Fixed Amount per Period",
+			monthly_repayment_amount=14000,
 			repayment_start_date=add_months(disbursement_date, 1),
 		)
 
-		loan.repayment_method = "Repay Fixed Amount per Period"
-		loan.monthly_repayment_amount = 14000
 		loan.submit()
 
 		make_loan_disbursement_entry(
