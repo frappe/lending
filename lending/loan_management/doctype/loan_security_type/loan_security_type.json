@@ -10,7 +10,16 @@
   "haircut",
   "column_break_5",
   "loan_to_value_ratio",
-  "disabled"
+  "disabled",
+  "is_mutual_fund",
+  "section_break_sale",
+  "sell_ltv",
+  "column_break_sale",
+  "price_validity_days",
+  "limits_section",
+  "max_single_security_pct",
+  "column_break_lmts",
+  "max_exposure_per_security"
  ],
  "fields": [
   {
@@ -43,10 +52,63 @@
    "fieldname": "loan_to_value_ratio",
    "fieldtype": "Percent",
    "label": "Loan To Value Ratio"
+  },
+  {
+   "fieldname": "section_break_sale",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Above this loan-to-value ratio the shortfall goes straight to Sale Triggered, without waiting for the cure period. Leave blank for no early sale",
+   "fieldname": "sell_ltv",
+   "fieldtype": "Percent",
+   "label": "Sell LTV"
+  },
+  {
+   "fieldname": "column_break_sale",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Working days a new price from a Loan Security Price Update stays valid, e.g. 1 for shares and 365 for property",
+   "fieldname": "price_validity_days",
+   "fieldtype": "Int",
+   "label": "Price Validity (Working Days)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Pledges of this type record the folio, holding and lock-in, and its price updates can fill prices from AMFI",
+   "fieldname": "is_mutual_fund",
+   "fieldtype": "Check",
+   "label": "Is Mutual Fund"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "description": "The most one security of this type may make up of a single pledge's value. Leave blank for collateral that is always pledged alone, such as a property.",
+   "fieldname": "max_single_security_pct",
+   "fieldtype": "Percent",
+   "label": "Max Share of One Security in a Pledge"
+  },
+  {
+   "fieldname": "column_break_lmts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The most value of any one security of this type that may be pledged across all borrowers. Leave blank for no limit.",
+   "fieldname": "max_exposure_per_security",
+   "fieldtype": "Currency",
+   "label": "Max Exposure per Security",
+   "non_negative": 1
   }
  ],
  "links": [],
- "modified": "2025-03-19 11:46:50.950227",
+ "modified": "2026-11-04 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Type",

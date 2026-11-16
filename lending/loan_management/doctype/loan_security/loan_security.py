@@ -9,6 +9,7 @@ from frappe.utils import flt
 from lending.loan_management.doctype.loan_security_price.loan_security_price import (
 	get_loan_security_price,
 )
+from lending.loan_management.doctype.loan_security_type.loan_security_type import validate_sell_ltv
 
 
 class LoanSecurity(Document):
@@ -20,19 +21,25 @@ class LoanSecurity(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		amfi_scheme_code: DF.Data | None
 		available_security_value: DF.Currency
 		disabled: DF.Check
 		haircut: DF.Percent
+		is_mutual_fund: DF.Check
 		loan_security_code: DF.Data
 		loan_security_name: DF.Data
 		loan_security_type: DF.Link
 		loan_to_value_ratio: DF.Percent
+		lock_in_days: DF.Int
 		original_security_value: DF.Currency
+		rta: DF.Literal["", "CAMS", "KFintech"]
+		sell_ltv: DF.Percent
 		utilized_security_value: DF.Currency
 	# end: auto-generated types
 
 	def validate(self):
 		self.update_available_security_value()
+		validate_sell_ltv(self)
 
 	def update_available_security_value(self):
 		self.available_security_value = flt(self.original_security_value) - flt(
