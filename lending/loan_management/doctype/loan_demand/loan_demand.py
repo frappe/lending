@@ -568,6 +568,7 @@ def create_loan_demand(
 
 		demand.save()
 		demand.submit()
+		return demand
 
 
 def reverse_demands(

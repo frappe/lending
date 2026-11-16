@@ -9,7 +9,12 @@
   "auto_create_customer",
   "column_break_hwkk",
   "borrower_portal_section",
-  "portal_logo"
+  "portal_logo",
+  "collateral_section",
+  "enable_margin_call",
+  "margin_cure_days",
+  "column_break_collateral",
+  "sale_charge"
  ],
  "fields": [
   {
@@ -37,13 +42,45 @@
    "fieldname": "portal_logo",
    "fieldtype": "Attach Image",
    "label": "Portal Logo"
+  },
+  {
+   "fieldname": "collateral_section",
+   "fieldtype": "Section Break",
+   "label": "Collateral"
+  },
+  {
+   "default": "0",
+   "description": "Every day, send a margin call notice for each new Loan Security Shortfall, escalate it when its cure period ends and draft a Loan Security Sale",
+   "fieldname": "enable_margin_call",
+   "fieldtype": "Check",
+   "label": "Enable Margin Call"
+  },
+  {
+   "default": "7",
+   "depends_on": "enable_margin_call",
+   "description": "Working days the borrower has to cure a margin call, counted from the notice",
+   "fieldname": "margin_cure_days",
+   "fieldtype": "Int",
+   "label": "Margin Cure Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_collateral",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The charge item for the fee a Loan Security Sale charges the borrower",
+   "fieldname": "sale_charge",
+   "fieldtype": "Link",
+   "label": "Sale Charge",
+   "options": "Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-18 16:26:49.539993",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Lending Settings",
