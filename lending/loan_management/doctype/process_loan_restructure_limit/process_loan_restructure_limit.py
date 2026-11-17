@@ -135,7 +135,12 @@ def update_or_create_limit_log(
 
 
 def get_outstanding_pos(branch, company, delinquent=0):
-	filters = {"branch": branch, "docstatus": 1, "status": "Disbursed", "company": company}
+	filters = {
+		"branch": branch,
+		"docstatus": 1,
+		"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+		"company": company,
+	}
 
 	if delinquent:
 		filters.update({"days_past_due": (">=", 1)})
