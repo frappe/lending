@@ -612,13 +612,13 @@ def reverse_demands(
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	emi_demand_reversed = False
+	disbursements_to_refresh = set()
 
 	for demand in frappe.get_all(
 		"Loan Demand",
 		filters=filters,
 		or_filters=or_filters,
-		fields=["name", "demand_type", "repayment_schedule_detail"],
+		fields=["name", "demand_type", "repayment_schedule_detail", "loan_disbursement"],
 	):
 		doc = frappe.get_doc("Loan Demand", demand.name, for_update=True)
 		doc.flags.ignore_links = True
@@ -627,10 +627,10 @@ def reverse_demands(
 		doc.cancel()
 
 		if demand.demand_type == "EMI" and demand.repayment_schedule_detail:
-			emi_demand_reversed = True
+			disbursements_to_refresh.add(demand.loan_disbursement)
 
-	if emi_demand_reversed:
-		update_installment_counts(loan, loan_disbursement=loan_disbursement)
+	for disbursement in disbursements_to_refresh:
+		update_installment_counts(loan, loan_disbursement=disbursement)
 
 
 def make_credit_note(
