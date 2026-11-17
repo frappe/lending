@@ -3233,6 +3233,9 @@ def update_installment_counts(against_loan, loan_disbursement=None):
 
 	schedule = frappe.db.get_value("Loan Repayment Schedule", schedule_filters, "name")
 
+	if not schedule:
+		return
+
 	frappe.db.set_value(
 		"Loan Repayment Schedule",
 		schedule,
