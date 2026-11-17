@@ -104,34 +104,13 @@ def update_or_create_limit_log(
 
 	if existing_log:
 		doc = frappe.get_doc("Loan Restructure Limit Log", existing_log[0].name)
-		doc.update(limit_details)
-		doc.update(delinquent_limit_details)
-		doc.save()
 	else:
-		frappe.get_doc(
-			{
-				"doctype": "Loan Restructure Limit Log",
-				"company": company,
-				"branch": branch,
-				"date": posting_date,
-				"principal_outstanding": limit_details.principal_outstanding,
-				"limit_percent": limit_details.limit_percent,
-				"limit_amount": limit_details.limit_amount,
-				"utilized_limit": limit_details.utilized_limit,
-				"in_process_limit": limit_details.in_process_limit,
-				"available_limit": flt(limit_details.limit_amount)
-				- flt(limit_details.utilized_limit)
-				- flt(limit_details.in_process_limit),
-				"delinquent_principal_outstanding": delinquent_limit_details.delinquent_principal_outstanding,
-				"delinquent_utilized_limit": delinquent_limit_details.delinquent_utilized_limit,
-				"delinquent_limit_percent": delinquent_limit_details.delinquent_limit_percent,
-				"delinquent_in_process_limit": delinquent_limit_details.delinquent_in_process_limit,
-				"delinquent_limit_amount": delinquent_limit_details.delinquent_limit_amount,
-				"delinquent_available_limit": flt(delinquent_limit_details.delinquent_limit_amount)
-				- flt(delinquent_limit_details.delinquent_utilized_limit)
-				- flt(delinquent_limit_details.delinquent_in_process_limit),
-			}
-		).insert()
+		doc = frappe.new_doc("Loan Restructure Limit Log")
+		doc.update({"company": company, "branch": branch, "date": posting_date})
+
+	doc.update(limit_details)
+	doc.update(delinquent_limit_details)
+	doc.save()
 
 
 def get_outstanding_pos(branch, company, delinquent=0):

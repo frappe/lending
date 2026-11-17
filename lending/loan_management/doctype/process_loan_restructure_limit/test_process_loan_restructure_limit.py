@@ -67,6 +67,45 @@ class TestProcessLoanRestructureLimit(LendingTestSuite):
 		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-08-31")
 		self.assert_limit_log(utilized_limit=20000, in_process_limit=0, available_limit=5000)
 
+	def test_delinquent_available_limit_without_delinquent_loans(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			20000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2026-09-28",
+			posting_date="2026-08-14",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+		)
+		loan.branch = self.branch
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, 20000, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
+		)
+
+		frappe.db.set_value("Loan", loan.name, "days_past_due", 5)
+		loan_restructure = create_loan_restructure(loan=loan.name, restructure_date="2026-08-20")
+		self.assertEqual(loan_restructure.pre_restructure_dpd, 5)
+		frappe.db.set_value("Loan", loan.name, "days_past_due", 0)
+
+		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-08-31")
+
+		log = frappe.get_all(
+			"Loan Restructure Limit Log",
+			{"branch": self.branch, "company": "_Test Company"},
+			[
+				"delinquent_principal_outstanding",
+				"delinquent_in_process_limit",
+				"delinquent_available_limit",
+			],
+		)
+		self.assertEqual(len(log), 1)
+		self.assertEqual(log[0].delinquent_principal_outstanding, 0)
+		self.assertEqual(log[0].delinquent_in_process_limit, 20000)
+		self.assertEqual(log[0].delinquent_available_limit, 0)
+
 	def assert_limit_log(self, utilized_limit, in_process_limit, available_limit):
 		log = frappe.get_all(
 			"Loan Restructure Limit Log",
