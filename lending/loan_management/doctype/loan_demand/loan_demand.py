@@ -629,8 +629,14 @@ def reverse_demands(
 		if demand.demand_type == "EMI" and demand.repayment_schedule_detail:
 			disbursements_to_refresh.add(demand.loan_disbursement)
 
-	for disbursement in disbursements_to_refresh:
-		update_installment_counts(loan, loan_disbursement=disbursement)
+	if not disbursements_to_refresh:
+		return
+
+	if frappe.db.get_value("Loan", loan, "repayment_schedule_type") == "Line of Credit":
+		for disbursement in disbursements_to_refresh:
+			update_installment_counts(loan, loan_disbursement=disbursement)
+	else:
+		update_installment_counts(loan)
 
 
 def make_credit_note(
