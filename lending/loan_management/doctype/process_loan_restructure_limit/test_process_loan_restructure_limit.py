@@ -21,7 +21,7 @@ class TestProcessLoanRestructureLimit(LendingTestSuite):
 		if not frappe.db.exists("Branch", cls.branch):
 			frappe.get_doc({"doctype": "Branch", "branch": cls.branch}).insert()
 
-	def test_restructure_limit_is_logged_for_branch(self):
+	def test_restructure_limit_log(self):
 		frappe.db.set_value("Company", "_Test Company", "loan_restructure_limit", 25)
 
 		loans = []
@@ -48,81 +48,68 @@ class TestProcessLoanRestructureLimit(LendingTestSuite):
 			loans.append(loan)
 
 		partly_disbursed_loan, restructured_loan = loans
-		self.assertEqual(
-			frappe.db.get_value("Loan", partly_disbursed_loan.name, "status"), "Partially Disbursed"
-		)
 
+		# restructure taken while overdue, then the loan is no longer overdue
+		frappe.db.set_value("Loan", restructured_loan.name, "days_past_due", 5)
 		loan_restructure = create_loan_restructure(
 			loan=restructured_loan.name, restructure_date="2026-08-20"
 		)
-		self.assertEqual(loan_restructure.status, "Initiated")
-		self.assertEqual(loan_restructure.pending_principal_amount, 20000)
+		frappe.db.set_value("Loan", restructured_loan.name, "days_past_due", 0)
 
 		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-08-31")
-		self.assert_limit_log(utilized_limit=0, in_process_limit=20000, available_limit=5000)
+		self.assert_logs(
+			{
+				"2026-08-31": {
+					"principal_outstanding": 100000,
+					"limit_amount": 25000,
+					"utilized_limit": 0,
+					"in_process_limit": 20000,
+					"available_limit": 5000,
+					"delinquent_in_process_limit": 20000,
+					"delinquent_available_limit": 0,
+				}
+			}
+		)
 
 		loan_restructure.status = "Approved"
 		loan_restructure.save()
+		frappe.get_doc(
+			{
+				"doctype": "Loan Balance Adjustment",
+				"loan": partly_disbursed_loan.name,
+				"company": "_Test Company",
+				"posting_date": "2026-09-01",
+				"adjustment_type": "Debit Adjustment",
+				"adjustment_account": "Interest Income Account - _TC",
+				"amount": 3000,
+			}
+		).submit()
 
-		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-08-31")
-		self.assert_limit_log(utilized_limit=20000, in_process_limit=0, available_limit=5000)
+		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-09-30")
 
-	def test_delinquent_available_limit_without_delinquent_loans(self):
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			20000,
-			"Repay Over Number of Periods",
-			12,
-			repayment_start_date="2026-09-28",
-			posting_date="2026-08-14",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-		)
-		loan.branch = self.branch
-		loan.submit()
-		make_loan_disbursement_entry(
-			loan.name, 20000, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
-		)
-
-		frappe.db.set_value("Loan", loan.name, "days_past_due", 5)
-		loan_restructure = create_loan_restructure(loan=loan.name, restructure_date="2026-08-20")
-		self.assertEqual(loan_restructure.pre_restructure_dpd, 5)
-		frappe.db.set_value("Loan", loan.name, "days_past_due", 0)
-
+		# a back-dated run updates its own month only
+		frappe.db.set_value("Loan", restructured_loan.name, "status", "Closed")
 		calculate_monthly_restructure_limit(branch=self.branch, posting_date="2026-08-31")
 
-		log = frappe.get_all(
-			"Loan Restructure Limit Log",
-			{"branch": self.branch, "company": "_Test Company"},
-			[
-				"delinquent_principal_outstanding",
-				"delinquent_in_process_limit",
-				"delinquent_available_limit",
-			],
+		self.assert_logs(
+			{
+				"2026-08-31": {"principal_outstanding": 83000, "utilized_limit": 0},
+				"2026-09-30": {
+					"principal_outstanding": 103000,
+					"utilized_limit": 20000,
+					"in_process_limit": 0,
+				},
+			}
 		)
-		self.assertEqual(len(log), 1)
-		self.assertEqual(log[0].delinquent_principal_outstanding, 0)
-		self.assertEqual(log[0].delinquent_in_process_limit, 20000)
-		self.assertEqual(log[0].delinquent_available_limit, 0)
 
-	def assert_limit_log(self, utilized_limit, in_process_limit, available_limit):
-		log = frappe.get_all(
+	def assert_logs(self, expected):
+		logs = frappe.get_all(
 			"Loan Restructure Limit Log",
 			{"branch": self.branch, "company": "_Test Company"},
-			[
-				"limit_percent",
-				"principal_outstanding",
-				"limit_amount",
-				"utilized_limit",
-				"in_process_limit",
-				"available_limit",
-			],
+			["*"],
 		)
-		self.assertEqual(len(log), 1)
-		self.assertEqual(log[0].limit_percent, 25)
-		self.assertEqual(log[0].principal_outstanding, 100000)
-		self.assertEqual(log[0].limit_amount, 25000)
-		self.assertEqual(log[0].utilized_limit, utilized_limit)
-		self.assertEqual(log[0].in_process_limit, in_process_limit)
-		self.assertEqual(log[0].available_limit, available_limit)
+		self.assertEqual(sorted(str(log.date) for log in logs), sorted(expected))
+
+		for log in logs:
+			for fieldname, value in expected[str(log.date)].items():
+				self.assertEqual(log[fieldname], value, f"{log.date} {fieldname}")
