@@ -3,7 +3,9 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, getdate
+from frappe.utils import flt, get_first_day, get_last_day, getdate
+
+RUNNING_LOAN_STATUSES = ["Disbursed", "Partially Disbursed", "Active"]
 
 
 class ProcessLoanRestructureLimit(Document):
@@ -96,7 +98,11 @@ def update_or_create_limit_log(
 ):
 	existing_log = frappe.db.get_all(
 		"Loan Restructure Limit Log",
-		{"company": company, "branch": branch, "date": (">=", posting_date)},
+		{
+			"company": company,
+			"branch": branch,
+			"date": ("between", [get_first_day(posting_date), get_last_day(posting_date)]),
+		},
 		["name"],
 		order_by="date desc",
 		limit=1,
@@ -106,7 +112,9 @@ def update_or_create_limit_log(
 		doc = frappe.get_doc("Loan Restructure Limit Log", existing_log[0].name)
 	else:
 		doc = frappe.new_doc("Loan Restructure Limit Log")
-		doc.update({"company": company, "branch": branch, "date": posting_date})
+		doc.update({"company": company, "branch": branch})
+
+	doc.date = posting_date
 
 	doc.update(limit_details)
 	doc.update(delinquent_limit_details)
@@ -117,7 +125,7 @@ def get_outstanding_pos(branch, company, delinquent=0):
 	filters = {
 		"branch": branch,
 		"docstatus": 1,
-		"status": ("in", ["Disbursed", "Partially Disbursed", "Active"]),
+		"status": ("in", RUNNING_LOAN_STATUSES),
 		"company": company,
 	}
 
@@ -131,15 +139,29 @@ def get_outstanding_pos(branch, company, delinquent=0):
 			{"SUM": "total_payment", "as": "total_payment"},
 			{"SUM": "total_principal_paid", "as": "total_principal_paid"},
 			{"SUM": "total_interest_payable", "as": "total_interest_payable"},
+			{"SUM": "debit_adjustment_amount", "as": "debit_adjustment_amount"},
+			{"SUM": "credit_adjustment_amount", "as": "credit_adjustment_amount"},
 		],
 		as_dict=1,
 	)
 
-	return flt(pos.total_payment) - flt(pos.total_principal_paid) - flt(pos.total_interest_payable)
+	return (
+		flt(pos.total_payment)
+		+ flt(pos.debit_adjustment_amount)
+		- flt(pos.credit_adjustment_amount)
+		- flt(pos.total_principal_paid)
+		- flt(pos.total_interest_payable)
+	)
 
 
 def get_utilized_limit(branch, company, delinquent=0):
-	filters = {"loan.branch": branch, "docstatus": 1, "company": company, "status": "Approved"}
+	filters = {
+		"loan.branch": branch,
+		"loan.status": ("in", RUNNING_LOAN_STATUSES),
+		"docstatus": 1,
+		"company": company,
+		"status": "Approved",
+	}
 
 	if delinquent:
 		filters.update({"pre_restructure_dpd": (">=", 1)})
