@@ -3233,6 +3233,9 @@ def update_installment_counts(against_loan, loan_disbursement=None):
 
 	schedule = frappe.db.get_value("Loan Repayment Schedule", schedule_filters, "name")
 
+	if not schedule:
+		return
+
 	frappe.db.set_value(
 		"Loan Repayment Schedule",
 		schedule,
@@ -3355,6 +3358,8 @@ def get_accrued_interest(
 			& (LoanInterestAccrual.docstatus == 1)
 			& (LoanInterestAccrual.posting_date < posting_date)
 			& (LoanInterestAccrual.interest_type == interest_type)
+			# Imported accruals already have a matching imported demand.
+			& (LoanInterestAccrual.is_imported == 0)
 		)
 	)
 
@@ -3396,6 +3401,8 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 		)
 		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
 		.where(loan_interest_accrual_doc.docstatus == 1)
+		# Imported accruals already have a matching imported demand.
+		.where(loan_interest_accrual_doc.is_imported == 0)
 		.where(loan_interest_accrual_doc.posting_date < posting_date)
 		.groupby(loan_interest_accrual_doc.loan)
 		.select(

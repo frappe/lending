@@ -90,6 +90,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 	from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 		get_total_pledged_security_value,
 	)
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_pending_principal_amount,
+	)
 
 	update_time = get_datetime()
 
@@ -119,6 +122,9 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 			"total_payment",
 			"total_interest_payable",
 			"disbursed_amount",
+			"debit_adjustment_amount",
+			"credit_adjustment_amount",
+			"repayment_schedule_type",
 			"status",
 		],
 		filters=filters,
@@ -140,14 +146,7 @@ def check_for_ltv_shortfall(process_loan_security_shortfall, loan=None, applican
 
 	# Loan-wise shortfall processing
 	for loan in loans:
-		if loan.status == "Disbursed":
-			outstanding_amount = (
-				flt(loan.total_payment) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
-		else:
-			outstanding_amount = (
-				flt(loan.disbursed_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
-			)
+		outstanding_amount = get_pending_principal_amount(loan)
 
 		pledged_securities = get_pledged_security_qty(loan=loan.name)
 		security_value = 0.0
