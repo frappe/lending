@@ -121,7 +121,7 @@ class LendingTestSuite(ERPNextTestSuite):
 
 		frappe.db.before_commit.reset()
 		frappe.db.after_commit.reset()
-		frappe.db.run_after_transaction_callbacks(frappe.db.after_rollback)
+		frappe.db.after_rollback.run()
 		# redis_cache'd lookups like get_dpd_threshold_map can still hold the rolled back values
 		frappe.clear_cache()
 		frappe.local.request_cache.clear()
