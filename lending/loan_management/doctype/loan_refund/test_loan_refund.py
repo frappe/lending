@@ -13,41 +13,37 @@ from lending.tests.test_utils import (
 	create_loan,
 	create_loan_refund,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanRefund(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+	applicant2 = "_Test Loan Customer"
 
-	def test_loan_closure_post_refund_with_excess_amount(self):
-		set_loan_accrual_frequency("Daily")
-
-		posting_date = "2024-04-05"
-		repayment_start_date = "2024-05-05"
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Monthly")
 
 		loan = create_loan(
-			self.applicant2,
+			cls.applicant2,
 			"Term Loan Product 4",
 			1000000,
 			"Repay Over Number of Periods",
 			6,
 			applicant_type="Customer",
-			repayment_start_date=repayment_start_date,
-			posting_date=posting_date,
+			repayment_start_date="2024-05-05",
+			posting_date="2024-04-05",
 			rate_of_interest=23,
 		)
-
 		loan.submit()
+		cls.loan = loan.name
+
+	def test_loan_closure_post_refund_with_excess_amount(self):
+		posting_date = "2024-04-05"
+		loan = frappe.get_doc("Loan", self.loan)
+
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
@@ -78,24 +74,9 @@ class TestLoanRefund(LendingTestSuite):
 		self.assertTrue(repayment_schedule, "Repayment schedule not closed after refund")
 
 	def test_loan_closure_post_refund_with_security_amount(self):
-		set_loan_accrual_frequency("Daily")
-
 		posting_date = "2024-04-05"
-		repayment_start_date = "2024-05-05"
+		loan = frappe.get_doc("Loan", self.loan)
 
-		loan = create_loan(
-			self.applicant2,
-			"Term Loan Product 4",
-			1000000,
-			"Repay Over Number of Periods",
-			6,
-			applicant_type="Customer",
-			repayment_start_date=repayment_start_date,
-			posting_date=posting_date,
-			rate_of_interest=23,
-		)
-
-		loan.submit()
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
@@ -127,24 +108,9 @@ class TestLoanRefund(LendingTestSuite):
 		self.assertTrue(repayment_schedule, "Repayment schedule not closed after refund")
 
 	def test_security_amount_refund_cancel_restores_available_amount(self):
-		set_loan_accrual_frequency("Daily")
-
 		posting_date = "2024-04-05"
-		repayment_start_date = "2024-05-05"
+		loan = frappe.get_doc("Loan", self.loan)
 
-		loan = create_loan(
-			self.applicant2,
-			"Term Loan Product 4",
-			1000000,
-			"Repay Over Number of Periods",
-			6,
-			applicant_type="Customer",
-			repayment_start_date=repayment_start_date,
-			posting_date=posting_date,
-			rate_of_interest=23,
-		)
-
-		loan.submit()
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
