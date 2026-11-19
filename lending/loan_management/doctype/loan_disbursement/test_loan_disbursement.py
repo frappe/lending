@@ -6,6 +6,7 @@ import frappe
 from lending.loan_management.doctype.loan_disbursement.loan_disbursement import (
 	get_disbursal_amount,
 )
+from lending.loan_management.utils import get_ld_matching_query
 from lending.tests.test_utils import (
 	create_loan,
 	make_loan_disbursement_entry,
@@ -49,6 +50,17 @@ class TestLoanDisbursement(LendingTestSuite):
 		loan.maximum_loan_amount = 0
 
 		self.assertRaises(frappe.ValidationError, loan.save)
+
+	def test_bank_reconciliation_matching_query_returns_rank(self):
+		loan = create_loan("_Test Customer 1", "Personal Loan", 50000, "Repay Over Number of Periods", 2)
+		loan.submit()
+		disbursement = make_loan_disbursement_entry(loan.name, 50000)
+		transaction = frappe._dict(party_type="Customer", party="_Test Customer 1", unallocated_amount=50000)
+
+		rows = get_ld_matching_query(disbursement.disbursement_account, False, transaction).run(as_dict=True)
+
+		self.assertTrue(rows)
+		self.assertTrue(all("rank" in row for row in rows))
 
 
 class TestSanctionedLoanDisbursement(LendingTestSuite):
