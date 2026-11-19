@@ -2055,6 +2055,9 @@ class LoanRepayment(LoanController):
 						flt(d.paid_amount) for d in self.get("repayment_details") if d.loan_demand == demand.name
 					)
 					outstanding_amount = flt(flt(demand.outstanding_amount) - already_paid, precision)
+					if outstanding_amount <= 0:
+						continue
+
 					if amount_to_adjust >= outstanding_amount:
 						paid_amount = flt(outstanding_amount)
 						amount_to_adjust -= flt(outstanding_amount)
