@@ -714,6 +714,7 @@ class LoanRepayment(LoanController):
 			)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_npa_log.loan_npa_log import delink_npa_logs
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
@@ -735,6 +736,8 @@ class LoanRepayment(LoanController):
 
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
+		# paid demands this entry booked on submit are not in repayment_details
+		reverse_demands(self.against_loan, self.value_date, loan_repayment=self.name)
 		self.update_security_deposit_amount(cancel=1)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
