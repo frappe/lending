@@ -1,7 +1,6 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, date_diff, flt, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -16,20 +15,18 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanInterestAccrual(FrappeTestCase):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+class TestLoanInterestAccrual(LendingTestSuite):
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_accrual_in_batch_with_freeze_date(self):
 		set_loan_accrual_frequency("Daily")

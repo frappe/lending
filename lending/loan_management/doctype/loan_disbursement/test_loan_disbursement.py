@@ -2,24 +2,20 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanDisbursement(FrappeTestCase):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
+class TestSanctionedLoanDisbursement(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
-	def test_sales_invoice_created_on_loan_disbursement_with_charges(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -32,6 +28,10 @@ class TestLoanDisbursement(FrappeTestCase):
 			10,
 		)
 		loan.submit()
+		cls.loan = loan.name
+
+	def test_sales_invoice_created_on_loan_disbursement_with_charges(self):
+		loan = frappe.get_doc("Loan", self.loan)
 
 		make_loan_disbursement_entry(
 			loan.name,
