@@ -1816,6 +1816,8 @@ class LoanRepayment(LoanController):
 
 	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		# Settlement and Written Off flows waive or write off leftover interest, so they keep skipping it
+		allocate_interest = self.repayment_type == "Partial Settlement"
 
 		if loan_status == "Written Off":
 			allocation_order = self.get_allocation_order(
@@ -1834,10 +1836,12 @@ class LoanRepayment(LoanController):
 				"Collection Offset Sequence for Settlement Collection"
 			)
 		elif self.is_npa:
+			allocate_interest = True
 			allocation_order = self.get_allocation_order(
 				"Collection Offset Sequence for Sub Standard Asset"
 			)
 		else:
+			allocate_interest = True
 			allocation_order = self.get_allocation_order("Collection Offset Sequence for Standard Asset")
 
 		if self.shortfall_amount:
@@ -1847,7 +1851,11 @@ class LoanRepayment(LoanController):
 				self.principal_amount_paid = self.amount_paid
 
 		amount_paid = self.apply_allocation_order(
-			allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
+			allocation_order,
+			amount_paid,
+			amounts.get("unpaid_demands"),
+			status=loan_status,
+			allocate_interest=allocate_interest,
 		)
 
 		for payment in self.repayment_details:
@@ -1968,7 +1976,9 @@ class LoanRepayment(LoanController):
 
 		return amount_paid
 
-	def apply_allocation_order(self, allocation_order, pending_amount, demands, status=None):
+	def apply_allocation_order(
+		self, allocation_order, pending_amount, demands, status=None, allocate_interest=False
+	):
 		"""Allocate amount based on allocation order"""
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -2020,11 +2030,7 @@ class LoanRepayment(LoanController):
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
-			if (
-				d.demand_type == "Interest"
-				and self.repayment_type == "Partial Settlement"
-				and pending_amount > 0
-			):
+			if d.demand_type == "Interest" and allocate_interest and pending_amount > 0:
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
@@ -2042,7 +2048,11 @@ class LoanRepayment(LoanController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if self.get("loan_partner"):
-			partner_share = self.get_overall_partner_share(amount_to_adjust) or 0
+			# EMI interest and principal can be paid in separate steps, so share out the whole EMI amount once
+			emi_rows = [d for d in self.get("repayment_details") if d.demand_type == "EMI"]
+			partner_share = flt(
+				self.get_overall_partner_share(amount_to_adjust + sum(flt(d.paid_amount) for d in emi_rows))
+			) - sum(flt(d.partner_share) for d in emi_rows)
 
 		for demand in demands:
 			paid_amount = 0
