@@ -2080,9 +2080,12 @@ class LoanRepayment(LoanController):
 						amount_to_adjust = 0
 
 						if demand_type == "EMI" and self.get("loan_partner"):
-							partner_share_paid = (
-								self.get_loan_partner_share_paid(partner_share, paid_amount, demand) or 0
+							# an earlier full payment can use up more than the partner's ratio, so never go below 0
+							partner_share_paid = max(
+								flt(self.get_loan_partner_share_paid(partner_share, paid_amount, demand)), 0
 							)
+							if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
+								partner_share_paid = min(partner_share_paid, flt(demand.partner_outstanding))
 							partner_share -= partner_share_paid
 
 					if flt(paid_amount, precision) > 0:
