@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, nowdate
 
@@ -34,6 +35,8 @@ class BootStrapTestData:
 		self.make_master_data()
 
 	def make_presets(self):
+		# customer group and territory test records the loan customers link to
+		make_test_records("Customer", commit=True)
 		create_loan_accounts()
 		setup_loan_demand_offset_order()
 
@@ -50,7 +53,7 @@ class BootStrapTestData:
 		frappe.db.commit()  # nosemgrep
 
 
-bootstrap = BootStrapTestData()
+bootstrap = None
 
 
 class LendingTestSuite(FrappeTestCase):
@@ -64,7 +67,13 @@ class LendingTestSuite(FrappeTestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		global bootstrap
+
 		super().setUpClass()
+		# not at import: frappe makes a module's test records only after importing it
+		if not bootstrap:
+			bootstrap = BootStrapTestData()
+
 		if not cls.repost_days_past_due:
 			patcher = patch.object(loan_module, "repost_days_past_due_log")
 			patcher.start()
