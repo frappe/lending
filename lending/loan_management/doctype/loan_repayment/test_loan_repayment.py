@@ -1383,6 +1383,43 @@ class TestLoanRepayment(LendingTestSuite):
 			paid[row.loan_demand] = flt(paid.get(row.loan_demand)) + row.paid_amount
 		self.assertEqual(paid, demanded)
 
+	def test_interest_in_standard_offset_order_pays_emi_interest_demand(self):
+		create_demand_offset_order("Test Principal Then Interest Offset Order", ["Principal", "Interest"])
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Principal Then Interest Offset Order",
+		)
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			500000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-03-06",
+			rate_of_interest=25,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
+		)
+		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
+		demands = frappe.get_all(
+			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "demand_subtype", "demand_amount"]
+		)
+		interest_demanded = sum(d.demand_amount for d in demands if d.demand_subtype == "Interest")
+
+		repayment = create_repayment_entry(loan.name, "2024-04-05", sum(d.demand_amount for d in demands))
+		repayment.submit()
+
+		paid = {}
+		for row in repayment.get("repayment_details"):
+			paid[row.loan_demand] = flt(paid.get(row.loan_demand)) + row.paid_amount
+		self.assertEqual(paid, {d.name: d.demand_amount for d in demands})
+		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(interest_demanded, 2))
+
 	def test_create_loan_repayment_from_bank_transaction(self):
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 			create_loan_repayment_bts,
