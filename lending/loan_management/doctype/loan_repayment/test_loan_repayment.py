@@ -21,6 +21,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 from lending.tests.test_utils import (
 	create_demand_offset_order,
 	create_loan,
+	create_loan_partner,
 	create_repayment_entry,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
@@ -1355,6 +1356,8 @@ class TestLoanRepayment(LendingTestSuite):
 <<<<<<< HEAD
 =======
 	def test_interest_in_standard_offset_order_pays_emi_interest_demand(self):
+		if not frappe.db.exists("Loan Partner", "Test Loan Partner 1"):
+			create_loan_partner("Test Loan Partner 1", "Test Loan Partner 1", 80, "2024-01-01", 10)
 		create_demand_offset_order("Test Principal Then Interest Offset Order", ["Principal", "Interest"])
 		frappe.db.set_value(
 			"Company",
@@ -1364,32 +1367,38 @@ class TestLoanRepayment(LendingTestSuite):
 		)
 		loan = create_loan(
 			"_Test Customer 1",
-			"Term Loan Product 4",
+			"Personal Loan",
 			500000,
 			"Repay Over Number of Periods",
 			12,
 			repayment_start_date="2024-04-05",
 			posting_date="2024-03-06",
 			rate_of_interest=25,
+			loan_partner="Test Loan Partner 1",
 		)
 		loan.submit()
 		make_loan_disbursement_entry(
 			loan.name, loan.loan_amount, disbursement_date="2024-03-06", repayment_start_date="2024-04-05"
 		)
 		process_daily_loan_demands(posting_date="2024-04-05", loan=loan.name)
-		demands = frappe.get_all(
-			"Loan Demand", {"loan": loan.name, "docstatus": 1}, ["name", "demand_subtype", "demand_amount"]
-		)
-		interest_demanded = sum(d.demand_amount for d in demands if d.demand_subtype == "Interest")
+		demands = {
+			d.demand_subtype: d
+			for d in frappe.get_all(
+				"Loan Demand",
+				{"loan": loan.name, "docstatus": 1},
+				["name", "demand_subtype", "demand_amount", "partner_share"],
+			)
+		}
 
-		repayment = create_repayment_entry(loan.name, "2024-04-05", sum(d.demand_amount for d in demands))
+		# principal is paid in full first and the 2000 left must go to the interest demand
+		repayment = create_repayment_entry(loan.name, "2024-04-05", demands["Principal"].demand_amount + 2000)
 		repayment.submit()
 
-		paid = {}
-		for row in repayment.get("repayment_details"):
-			paid[row.loan_demand] = flt(paid.get(row.loan_demand)) + row.paid_amount
-		self.assertEqual(paid, {d.name: d.demand_amount for d in demands})
-		self.assertEqual(flt(repayment.total_interest_paid, 2), flt(interest_demanded, 2))
+		rows = {row.demand_subtype: row for row in repayment.get("repayment_details")}
+		self.assertEqual(rows["Principal"].paid_amount, demands["Principal"].demand_amount)
+		self.assertEqual(rows["Interest"].paid_amount, 2000)
+		for subtype, row in rows.items():
+			self.assertTrue(0 <= flt(row.partner_share, 2) <= flt(demands[subtype].partner_share, 2))
 
 	def test_create_loan_repayment_from_bank_transaction(self):
 		from lending.loan_management.doctype.loan_repayment.loan_repayment import (
