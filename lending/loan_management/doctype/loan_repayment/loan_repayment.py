@@ -1631,6 +1631,7 @@ class LoanRepayment(LoanController):
 		else:
 			amount_paid = self.allocate_amount_against_demands(loan_status, amounts, amount_paid)
 
+		unallocated_amount = 0
 		if flt(amount_paid, precision) > 0:
 			pending_interest = flt(amounts.get("unaccrued_interest")) + flt(
 				amounts.get("unbooked_interest")
@@ -1682,6 +1683,8 @@ class LoanRepayment(LoanController):
 				and flt(self.amount_paid, precision) < flt(self.payable_amount, precision)
 			):
 				self.principal_amount_paid += flt(amount_paid, precision)
+			elif self.repayment_type == "Partial Settlement":
+				unallocated_amount = flt(amount_paid, precision)
 			elif self.repayment_type in ("Penalty Waiver", "Penalty Capitalization"):
 				self.total_penalty_paid += amount_paid
 				amount_paid = 0
@@ -1694,6 +1697,7 @@ class LoanRepayment(LoanController):
 			self.principal_amount_paid = flt(self.principal_amount_paid, precision)
 
 		self.handle_final_closure_payments(amounts)
+		self.excess_amount = flt(flt(self.excess_amount) + unallocated_amount, precision)
 
 	def hard_clear_table(self):
 		records_to_delete = [d.name for d in self.get("repayment_details")]
