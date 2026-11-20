@@ -6,3 +6,5 @@ tags
 node_modules
 dist
 lending/public/dist
+lending/public/app_builds
+lending/portal/studio_build/baseline/

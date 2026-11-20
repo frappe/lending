@@ -152,6 +152,7 @@ class TestBureauPull(LendingTestSuite):
 		self.assertEqual(report.bureau, "Experian")
 		self.assertEqual(report.score, 750)
 		self.assertEqual(report.pan, TEST_PAN)
+		self.assertEqual(report.loan_lead, self.lead.name)
 		self.assertFalse(report.obligations_known)
 		self.assertFalse(report.applicant)
 

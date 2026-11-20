@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, now_datetime
 
+from lending.loan_origination.doctype.loan_lead.loan_lead import PORTAL_LEAD_SOURCE
+
 APPROVE = "Approve"
 REFER = "Refer"
 DECLINE = "Decline"
@@ -532,7 +534,10 @@ def _originating_lead(loan_application):
 		return None
 
 	return frappe.db.get_value(
-		LOAN_LEAD, lead_name, ["pan", "income", "age", "employment_type"], as_dict=True
+		LOAN_LEAD,
+		lead_name,
+		["name", "pan", "lead_source", "income", "age", "employment_type"],
+		as_dict=True,
 	)
 
 
@@ -552,10 +557,10 @@ def _add_bureau_variables(context, source, bureau_report=None, lead=None):
 
 def _report_for(source, lead=None):
 	if source.doctype == LOAN_LEAD:
-		return latest_bureau_report_for_pan(source.get("pan"))
+		return latest_bureau_report_for_lead(source)
 	return latest_bureau_report(
 		source.get("applicant_type"), source.get("applicant")
-	) or latest_bureau_report_for_pan(lead.pan if lead else None)
+	) or latest_bureau_report_for_lead(lead)
 
 
 def _report_by_name(bureau_report):
@@ -587,15 +592,22 @@ def latest_bureau_report(applicant_type, applicant):
 	return _latest_report({"applicant_type": applicant_type, "applicant": applicant})
 
 
-def latest_bureau_report_for_pan(pan):
-	if not pan:
+def latest_bureau_report_for_lead(lead):
+	if not (lead and lead.get("pan")):
 		return None
 
-	return _latest_report({"pan": pan})
+	filters = {"pan": lead.pan}
+
+	# A portal applicant's PAN is unverified, so it only reaches reports pulled for this lead.
+	if lead.get("lead_source") == PORTAL_LEAD_SOURCE:
+		filters["loan_lead"] = lead.name
+
+	return _latest_report(filters)
 
 
 def _latest_report(filters):
-	reports = frappe.get_list(
+	# get_all: callers gate on the lead or application, and a portal guest saves a lead too.
+	reports = frappe.get_all(
 		"Credit Bureau Report",
 		filters=dict(filters, docstatus=1),
 		fields=BUREAU_FIELDS,

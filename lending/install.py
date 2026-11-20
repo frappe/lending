@@ -2,6 +2,8 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
+from lending.portal.print_formats import ensure as ensure_print_formats
+
 LOAN_CUSTOM_FIELDS = {
 	"Sales Invoice": [
 		{
@@ -340,6 +342,7 @@ def after_install():
 	make_property_setter_for_journal_entry()
 	add_server_scripts()
 	add_adverse_action_reasons()
+	ensure_print_formats()
 
 
 def before_uninstall():

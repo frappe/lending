@@ -21,6 +21,7 @@ class CreditBureauReport(Document):
 		applicant_type: DF.Literal["Customer", "Employee"]
 		bureau: DF.Literal["CIBIL", "Experian", "Equifax", "CRIF", "Manual"]
 		external_id: DF.Data | None
+		loan_lead: DF.Link | None
 		obligations_known: DF.Check
 		pan: DF.Data | None
 		raw_payload: DF.LongText | None
