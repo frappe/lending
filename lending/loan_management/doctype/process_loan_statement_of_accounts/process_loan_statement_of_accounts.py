@@ -6,7 +6,7 @@ import copy
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_months, flt, format_date, getdate, today
+from frappe.utils import add_days, add_months, flt, format_date, get_email_address, getdate, today
 from frappe.utils.jinja import validate_template
 from frappe.utils.pdf import get_pdf
 from frappe.www.printview import get_letter_head, get_print_style
@@ -327,8 +327,10 @@ def send_emails(document_name: str, from_scheduler: bool = False):
 
 		if doc.sender:
 			sender_email = frappe.db.get_value("Email Account", doc.sender, "email_id")
+		elif frappe.session.user not in frappe.STANDARD_USERS:
+			sender_email = get_email_address()
 		else:
-			sender_email = frappe.session.user
+			sender_email = None
 
 		frappe.enqueue(
 			queue="short",
