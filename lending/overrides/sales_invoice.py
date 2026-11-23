@@ -13,23 +13,24 @@ from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual
 
 def generate_demand(self, method=None):
 	if self.get("loan") and not self.get("loan_disbursement") and not self.get("is_return"):
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		invoice_total = flt(self.base_rounded_total or self.base_grand_total, precision)
 		total_demand_amount = 0
 		total_items = len(self.get("items") or [])
 		for i, item in enumerate(self.get("items")):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
-			demand_amount = item.base_net_amount + flt(tax_amount)
-			total_demand_amount += demand_amount
+			demand_amount = flt(item.base_net_amount + flt(tax_amount), precision)
 			if i == total_items - 1:
-				precision_diff = self.rounded_total - total_demand_amount
-				if precision_diff > 0:
-					demand_amount += flt(precision_diff, 2)
+				# Last item takes the remaining amount so the total matches the invoice
+				demand_amount = flt(invoice_total - total_demand_amount, precision)
+			total_demand_amount += demand_amount
 
 			create_loan_demand(
 				self.loan,
 				self.value_date,
 				"Charges",
 				item.item_code,
-				flt(demand_amount, 2),
+				demand_amount,
 				sales_invoice=self.name,
 			)
 
