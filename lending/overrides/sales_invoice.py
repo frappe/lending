@@ -20,8 +20,8 @@ def generate_demand(self, method=None):
 			demand_amount = item.base_net_amount + flt(tax_amount)
 			total_demand_amount += demand_amount
 			if i == total_items - 1:
-				precision_diff = flt(self.rounded_total or self.grand_total) - total_demand_amount
-				if demand_amount + precision_diff > 0:
+				precision_diff = self.rounded_total - total_demand_amount
+				if abs(precision_diff) < 1 and demand_amount + precision_diff > 0:
 					demand_amount += flt(precision_diff, 2)
 
 			create_loan_demand(
@@ -43,16 +43,9 @@ def update_waived_amount_in_demand(self, method=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if self.get("is_return") and not self.get("loan_repayment"):
-		total_waived_amount = 0
-		total_items = len(self.get("items") or [])
-		for i, item in enumerate(self.get("items")):
+		for item in self.get("items"):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
 			waived_amount = flt(abs(item.base_net_amount + tax_amount), precision)
-			total_waived_amount += waived_amount
-			if i == total_items - 1:
-				precision_diff = abs(flt(self.rounded_total or self.grand_total)) - total_waived_amount
-				if waived_amount + precision_diff > 0:
-					waived_amount = flt(waived_amount + precision_diff, precision)
 
 			demand_details = frappe.db.get_value(
 				"Loan Demand",
@@ -67,8 +60,8 @@ def update_waived_amount_in_demand(self, method=None):
 			)
 
 			if demand_details:
-				# Ignore 0.1 difference due to precision loss
-				if flt(demand_details.outstanding_amount) - flt(waived_amount) < -0.1:
+				# Ignore a rounding difference of less than 1
+				if flt(demand_details.outstanding_amount) - flt(waived_amount) <= -1:
 					frappe.throw(
 						_("Waived amount {0} cannot be greater than outstanding amount {1}").format(
 							flt(waived_amount), flt(demand_details.outstanding_amount)
@@ -79,7 +72,7 @@ def update_waived_amount_in_demand(self, method=None):
 					waived_amount, precision
 				)
 
-				if 0 < precision_loss < 1:
+				if -1 < precision_loss < 1:
 					waived_amount += precision_loss
 
 				loan_demand = frappe.qb.DocType("Loan Demand")
