@@ -17,24 +17,23 @@ def generate_demand(self, method=None):
 		return
 
 	if self.get("loan") and not self.get("loan_disbursement") and not self.get("is_return"):
-		precision = cint(frappe.db.get_default("currency_precision")) or 2
-		invoice_total = flt(self.base_rounded_total or self.base_grand_total, precision)
 		total_demand_amount = 0
 		total_items = len(self.get("items") or [])
 		for i, item in enumerate(self.get("items")):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
-			demand_amount = flt(item.base_net_amount + flt(tax_amount), precision)
-			if i == total_items - 1:
-				# Last item takes the remaining amount so the total matches the invoice
-				demand_amount = flt(invoice_total - total_demand_amount, precision)
+			demand_amount = item.base_net_amount + flt(tax_amount)
 			total_demand_amount += demand_amount
+			if i == total_items - 1:
+				precision_diff = flt(self.rounded_total or self.grand_total) - total_demand_amount
+				if demand_amount + precision_diff > 0:
+					demand_amount += flt(precision_diff, 2)
 
 			create_loan_demand(
 				self.loan,
 				self.value_date,
 				"Charges",
 				item.item_code,
-				demand_amount,
+				flt(demand_amount, 2),
 				sales_invoice=self.name,
 			)
 
@@ -48,9 +47,16 @@ def update_waived_amount_in_demand(self, method=None):
 	precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 	if self.get("is_return") and not self.get("loan_repayment"):
-		for item in self.get("items"):
+		total_waived_amount = 0
+		total_items = len(self.get("items") or [])
+		for i, item in enumerate(self.get("items")):
 			tax_amount = get_tax_amount(self.get("taxes"), item.item_code)
 			waived_amount = flt(abs(item.base_net_amount + tax_amount), precision)
+			total_waived_amount += waived_amount
+			if i == total_items - 1:
+				precision_diff = abs(flt(self.rounded_total or self.grand_total)) - total_waived_amount
+				if waived_amount + precision_diff > 0:
+					waived_amount = flt(waived_amount + precision_diff, precision)
 
 			demand_details = frappe.db.get_value(
 				"Loan Demand",
