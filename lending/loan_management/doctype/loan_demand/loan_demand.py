@@ -8,9 +8,9 @@ from frappe.utils import add_days, cint, flt, get_datetime, getdate
 from lending.loan_management.controllers.loan_controller import LoanController
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	get_accrued_interest,
-	get_last_demand_date,
 	update_installment_counts,
 )
+from lending.loan_management.doctype.loan_repayment.utils import get_last_demand_date_map
 from lending.loan_management.utils import (
 	async_gl_reversal_enabled,
 	gl_consolidation_enabled,
@@ -456,11 +456,28 @@ def process_demand_loan_batch(loans, posting_date, process_loan_demand):
 
 
 def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
 	# Accruals from the last interest demand date up to the day before posting date
-	last_demand_date = get_last_demand_date(loan, posting_date)
+	last_demand_date = get_last_demand_date_map([loan], posting_date).get(loan)
 	total_pending_interest = get_accrued_interest(
 		loan, posting_date, last_demand_date=last_demand_date
 	)
+
+	loan_demand = frappe.qb.DocType("Loan Demand")
+	total_interest_demanded = (
+		frappe.qb.from_(loan_demand)
+		.select(frappe.query_builder.functions.Sum(loan_demand.demand_amount))
+		.where(loan_demand.loan == loan)
+		.where(loan_demand.docstatus == 1)
+		.where(loan_demand.demand_subtype == "Interest")
+		.where(loan_demand.demand_date <= posting_date)
+		.where(loan_demand.is_imported == 0)
+	).run()[0][0] or 0
+
+	# Never demand more than accrued, old demands may already include accruals of their own date
+	total_undemanded_interest = flt(get_accrued_interest(loan, posting_date) - total_interest_demanded, precision)
+	total_pending_interest = flt(min(total_pending_interest, max(total_undemanded_interest, 0)), precision)
 
 	create_loan_demand(
 		loan,
