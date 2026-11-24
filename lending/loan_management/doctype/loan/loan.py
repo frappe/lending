@@ -142,6 +142,7 @@ class Loan(LoanController):
 				self.is_imported = 1
 
 		self.set_status()
+		self.validate_loan_application()
 		self.set_loan_amount()
 		self.validate_loan_amount()
 		self.set_missing_fields()
@@ -628,6 +629,14 @@ class Loan(LoanController):
 			self.db_set("total_interest_payable", self.total_interest_payable)
 			self.db_set("monthly_repayment_amount", self.monthly_repayment_amount)
 			self.db_set("total_payment", self.total_payment)
+
+	def validate_loan_application(self):
+		if not self.loan_application or not self.is_new():
+			return
+
+		status = frappe.db.get_value("Loan Application", self.loan_application, "status")
+		if status != "Approved":
+			frappe.throw(_("Loan Application {0} is {1}, not Approved").format(self.loan_application, _(status)))
 
 	def set_loan_amount(self):
 		if self.repayment_schedule_type == "Line of Credit":
