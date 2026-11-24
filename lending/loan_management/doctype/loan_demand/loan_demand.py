@@ -6,7 +6,11 @@ from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
-from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	get_accrued_interest,
+	get_last_demand_date,
+	update_installment_counts,
+)
 from lending.loan_management.utils import (
 	async_gl_reversal_enabled,
 	gl_consolidation_enabled,
@@ -452,39 +456,11 @@ def process_demand_loan_batch(loans, posting_date, process_loan_demand):
 
 
 def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
-	# get last demand date
-	loan_demands = frappe.qb.DocType("Loan Demand")
-	query = (
-		frappe.qb.from_(loan_demands)
-		.select(loan_demands.demand_date)
-		.where(loan_demands.docstatus == 1)
-		.where(loan_demands.loan == loan)
-		.where(loan_demands.demand_date <= posting_date)
-		.orderby(loan_demands.demand_date, order=frappe.qb.desc)
-		.limit(1)
+	# Accruals from the last interest demand date up to the day before posting date
+	last_demand_date = get_last_demand_date(loan, posting_date)
+	total_pending_interest = get_accrued_interest(
+		loan, posting_date, last_demand_date=last_demand_date
 	)
-
-	last_demand_date = query.run()
-	if len(last_demand_date):
-		last_demand_date = last_demand_date[0][0]
-	else:
-		last_demand_date = None
-
-	interest_accruals = frappe.qb.DocType("Loan Interest Accrual")
-	query = (
-		frappe.qb.from_(interest_accruals)
-		.select(frappe.query_builder.functions.Sum(interest_accruals.interest_amount))
-		.where(interest_accruals.docstatus == 1)
-		.where(interest_accruals.loan == loan)
-	)
-	if last_demand_date:
-		query = query.where(interest_accruals.posting_date > last_demand_date)
-
-	total_pending_interest = query.run()
-	if len(total_pending_interest):
-		total_pending_interest = total_pending_interest[0][0]
-	else:
-		total_pending_interest = 0
 
 	create_loan_demand(
 		loan,
