@@ -290,7 +290,14 @@ class LoanApplication(Document):
 			interest_amount = rounded(
 				balance_amount * flt(self.rate_of_interest) / (get_frequency(self.repayment_frequency or "Monthly") * 100)
 			)
-			balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
+			next_balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
+			if next_balance_amount >= balance_amount:
+				frappe.throw(
+					_("Repayment Amount {0} does not reduce the balance, the interest per period is {1}").format(
+						self.repayment_amount, interest_amount
+					)
+				)
+			balance_amount = next_balance_amount
 
 			self.total_payable_interest += interest_amount
 
