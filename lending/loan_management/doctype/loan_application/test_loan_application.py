@@ -167,3 +167,11 @@ class TestLoanApplication(LendingTestSuite):
 		loan = create_loan(application.name)
 		loan.save()
 		self.assertEqual(loan.loan_application, application.name)
+
+	def test_repayment_amount_that_does_not_reduce_the_balance(self):
+		loan_application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		loan_application.repayment_method = "Repay Fixed Amount per Period"
+		loan_application.repayment_amount = 1916.9
+
+		with self.assertRaisesRegex(frappe.ValidationError, "does not reduce the balance"):
+			loan_application.save()
