@@ -21,7 +21,7 @@ def generate_demand(self, method=None):
 			total_demand_amount += demand_amount
 			if i == total_items - 1:
 				precision_diff = self.rounded_total - total_demand_amount
-				if precision_diff > 0:
+				if abs(precision_diff) < 1 and demand_amount + precision_diff > 0:
 					demand_amount += flt(precision_diff, 2)
 
 			create_loan_demand(
@@ -60,8 +60,8 @@ def update_waived_amount_in_demand(self, method=None):
 			)
 
 			if demand_details:
-				# Ignore 0.1 difference due to precision loss
-				if flt(demand_details.outstanding_amount) - flt(waived_amount) < -0.1:
+				# Ignore a rounding difference of less than 1
+				if flt(demand_details.outstanding_amount) - flt(waived_amount) <= -1:
 					frappe.throw(
 						_("Waived amount {0} cannot be greater than outstanding amount {1}").format(
 							flt(waived_amount), flt(demand_details.outstanding_amount)
@@ -72,7 +72,7 @@ def update_waived_amount_in_demand(self, method=None):
 					waived_amount, precision
 				)
 
-				if 0 < precision_loss < 1:
+				if -1 < precision_loss < 1:
 					waived_amount += precision_loss
 
 				loan_demand = frappe.qb.DocType("Loan Demand")
