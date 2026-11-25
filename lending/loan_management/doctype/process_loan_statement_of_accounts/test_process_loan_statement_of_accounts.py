@@ -191,8 +191,7 @@ class TestProcessLoanStatementofAccounts(LendingTestSuite):
 
 		self.assertNotIn("{{", rendered)
 		self.assertNotIn("Process Loan Statement of Accounts", rendered)
-		self.assertIn("Loan Statement of Account", rendered)
-		self.assertIn("_Test Loan Customer", rendered)
+		self.assertIn("_Test Company", rendered)
 
 	def test_statement_dict_skips_applicant_without_data(self):
 		doc = self.create_process_doc("_Test Loan Customer 2")

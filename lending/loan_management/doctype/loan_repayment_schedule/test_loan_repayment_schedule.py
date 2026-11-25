@@ -6,6 +6,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
 from frappe.utils import add_days, date_diff, flt, get_datetime, getdate
 
+from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
 )
@@ -385,3 +386,37 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 
 		# Loan must fully amortize: balance after the final row is zero.
 		self.assertEqual(flt(rows[-1].balance_loan_amount), 0)
+
+	def test_installment_counts_after_reversing_demands(self):
+		set_loan_accrual_frequency("Monthly")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			285000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2024-12-10",
+			posting_date="2024-11-05",
+			rate_of_interest=17,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-11-05", repayment_start_date="2024-12-10"
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-12-10")
+		create_repayment_entry(loan.name, "2024-12-10", 25994).submit()
+		create_repayment_entry(loan.name, "2024-12-15", 25994, repayment_type="Advance Payment").submit()
+
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		reverse_demands(loan.name, "2024-12-15", loan_repayment_schedule=schedule)
+
+		raised = frappe.db.count(
+			"Loan Demand",
+			{"loan": loan.name, "docstatus": 1, "demand_type": "EMI", "demand_subtype": "Principal"},
+		)
+		self.assertEqual(
+			frappe.db.get_value("Loan Repayment Schedule", schedule, "total_installments_raised"), raised
+		)

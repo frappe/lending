@@ -55,6 +55,9 @@ OUTSTANDING_FIELDS = [
 	"total_payment",
 	"total_interest_payable",
 	"disbursed_amount",
+	"debit_adjustment_amount",
+	"credit_adjustment_amount",
+	"repayment_schedule_type",
 	"status",
 ]
 
@@ -96,8 +99,11 @@ def get_current_price_map():
 
 
 def get_outstanding_amount(loan):
-	drawn_amount = loan.total_payment if loan.status == "Disbursed" else loan.disbursed_amount
-	return flt(drawn_amount) - flt(loan.total_interest_payable) - flt(loan.total_principal_paid)
+	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+		get_pending_principal_amount,
+	)
+
+	return get_pending_principal_amount(loan)
 
 
 def get_current_ltv(loan_amount, security_value):
