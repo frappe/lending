@@ -6,7 +6,11 @@ from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate
 
 from lending.loan_management.controllers.loan_controller import LoanController
-from lending.loan_management.doctype.loan_repayment.loan_repayment import update_installment_counts
+from lending.loan_management.doctype.loan_repayment.loan_repayment import (
+	get_accrued_interest,
+	update_installment_counts,
+)
+from lending.loan_management.doctype.loan_repayment.utils import get_last_demand_date_map
 from lending.loan_management.utils import (
 	async_gl_reversal_enabled,
 	gl_consolidation_enabled,
@@ -452,39 +456,28 @@ def process_demand_loan_batch(loans, posting_date, process_loan_demand):
 
 
 def make_loan_demand_for_demand_loan(posting_date, loan, process_loan_demand):
-	# get last demand date
-	loan_demands = frappe.qb.DocType("Loan Demand")
-	query = (
-		frappe.qb.from_(loan_demands)
-		.select(loan_demands.demand_date)
-		.where(loan_demands.docstatus == 1)
-		.where(loan_demands.loan == loan)
-		.where(loan_demands.demand_date <= posting_date)
-		.orderby(loan_demands.demand_date, order=frappe.qb.desc)
-		.limit(1)
+	precision = cint(frappe.db.get_default("currency_precision")) or 2
+
+	# Accruals from the last interest demand date up to the day before posting date
+	last_demand_date = get_last_demand_date_map([loan], posting_date).get(loan)
+	total_pending_interest = get_accrued_interest(
+		loan, posting_date, last_demand_date=last_demand_date
 	)
 
-	last_demand_date = query.run()
-	if len(last_demand_date):
-		last_demand_date = last_demand_date[0][0]
-	else:
-		last_demand_date = None
+	loan_demand = frappe.qb.DocType("Loan Demand")
+	total_interest_demanded = (
+		frappe.qb.from_(loan_demand)
+		.select(frappe.query_builder.functions.Sum(loan_demand.demand_amount))
+		.where(loan_demand.loan == loan)
+		.where(loan_demand.docstatus == 1)
+		.where(loan_demand.demand_subtype == "Interest")
+		.where(loan_demand.demand_date <= posting_date)
+		.where(loan_demand.is_imported == 0)
+	).run()[0][0] or 0
 
-	interest_accruals = frappe.qb.DocType("Loan Interest Accrual")
-	query = (
-		frappe.qb.from_(interest_accruals)
-		.select(frappe.query_builder.functions.Sum(interest_accruals.interest_amount))
-		.where(interest_accruals.docstatus == 1)
-		.where(interest_accruals.loan == loan)
-	)
-	if last_demand_date:
-		query = query.where(interest_accruals.posting_date > last_demand_date)
-
-	total_pending_interest = query.run()
-	if len(total_pending_interest):
-		total_pending_interest = total_pending_interest[0][0]
-	else:
-		total_pending_interest = 0
+	# Never demand more than accrued, old demands may already include accruals of their own date
+	total_undemanded_interest = flt(get_accrued_interest(loan, posting_date) - total_interest_demanded, precision)
+	total_pending_interest = flt(min(total_pending_interest, max(total_undemanded_interest, 0)), precision)
 
 	create_loan_demand(
 		loan,
@@ -613,12 +606,31 @@ def reverse_demands(
 	if loan_disbursement:
 		filters["loan_disbursement"] = loan_disbursement
 
-	for demand in frappe.get_all("Loan Demand", filters=filters, or_filters=or_filters):
+	disbursements_to_refresh = set()
+
+	for demand in frappe.get_all(
+		"Loan Demand",
+		filters=filters,
+		or_filters=or_filters,
+		fields=["name", "demand_type", "repayment_schedule_detail", "loan_disbursement"],
+	):
 		doc = frappe.get_doc("Loan Demand", demand.name, for_update=True)
 		doc.flags.ignore_links = True
 		if frappe.flags.on_repost:
 			doc.flags.notify_update = False
 		doc.cancel()
+
+		if demand.demand_type == "EMI" and demand.repayment_schedule_detail:
+			disbursements_to_refresh.add(demand.loan_disbursement)
+
+	if not disbursements_to_refresh:
+		return
+
+	if frappe.db.get_value("Loan", loan, "repayment_schedule_type") == "Line of Credit":
+		for disbursement in disbursements_to_refresh:
+			update_installment_counts(loan, loan_disbursement=disbursement)
+	else:
+		update_installment_counts(loan)
 
 
 def make_credit_note(
