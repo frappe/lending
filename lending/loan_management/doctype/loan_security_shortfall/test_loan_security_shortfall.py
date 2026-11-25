@@ -20,27 +20,24 @@ from lending.tests.test_utils import (
 	create_loan_security_price,
 	create_loan_security_type,
 	create_loan_with_security,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 	update_loan_security_price,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanSecurityShortfall(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
+	applicant2 = "_Test Loan Customer"
 
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 		create_loan_security_type()
 		create_loan_security()
 
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_shortfall(self):
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)

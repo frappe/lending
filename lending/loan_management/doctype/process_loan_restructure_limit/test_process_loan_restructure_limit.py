@@ -9,26 +9,17 @@ from lending.loan_management.doctype.loan_restructure.test_loan_restructure impo
 from lending.loan_management.doctype.process_loan_restructure_limit.process_loan_restructure_limit import (
 	calculate_monthly_restructure_limit,
 )
-from lending.tests.test_utils import (
-	create_loan,
-	init_customers,
-	init_loan_products,
-	make_loan_disbursement_entry,
-	master_init,
-)
+from lending.tests.test_utils import create_loan, make_loan_disbursement_entry
 from lending.tests.utils import LendingTestSuite
 
 
 class TestProcessLoanRestructureLimit(LendingTestSuite):
 	branch = "_Test Restructure Limit Branch"
 
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-
-		if not frappe.db.exists("Branch", self.branch):
-			frappe.get_doc({"doctype": "Branch", "branch": self.branch}).insert()
+	@classmethod
+	def make_class_data(cls):
+		if not frappe.db.exists("Branch", cls.branch):
+			frappe.get_doc({"doctype": "Branch", "branch": cls.branch}).insert()
 
 	def test_restructure_limit_log(self):
 		frappe.db.set_value("Company", "_Test Company", "loan_restructure_limit", 25)
