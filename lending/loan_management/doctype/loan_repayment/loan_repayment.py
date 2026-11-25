@@ -1090,6 +1090,19 @@ class LoanRepayment(LoanController):
 		elif self.repayment_type == "Charges Waiver":
 			return flt(amounts.get("payable_amount", 0), precision)
 
+	def accrue_interest_till_closure(self):
+		from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
+			calculate_accrual_amount_for_loans,
+		)
+
+		calculate_accrual_amount_for_loans(
+			frappe.get_doc("Loan", self.against_loan),
+			posting_date=self.value_date,
+			accrual_type="Regular",
+			loan_disbursement=self.loan_disbursement,
+			accrue_till_posting_date=True,
+		)
+
 	def book_interest_accrued_not_demanded(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 
@@ -1191,6 +1204,8 @@ class LoanRepayment(LoanController):
 
 			if not (self.flags.from_repost):
 				self.reverse_future_accruals_and_demands(on_settlement_or_closure=True)
+				if self.repayment_type == "Loan Closure" and self.is_term_loan:
+					self.accrue_interest_till_closure()
 
 		elif self.repayment_type == "Full Settlement":
 			if self.repayment_schedule_type != "Line of Credit":
@@ -2949,7 +2964,7 @@ def process_amount_for_loan(
 	else:
 		is_future_dated = False
 
-	if is_future_dated and not for_update:
+	if is_future_dated and (not for_update or payment_type == "Loan Closure"):
 		amounts["unaccrued_interest"] = flt(calculate_accrual_amount_for_loans(
 			loan,
 			posting_date=(posting_date if payment_type == "Loan Closure" else add_days(posting_date, -1))
@@ -2958,6 +2973,7 @@ def process_amount_for_loan(
 			accrual_type="Regular",
 			is_future_accrual=1,
 			loan_disbursement=loan_disbursement,
+			accrue_till_posting_date=payment_type == "Loan Closure",
 		), precision)
 
 		amounts["unbooked_penalty"] = calculate_penal_interest_for_loans(
