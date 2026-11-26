@@ -1,11 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, flt, getdate, nowdate
 
 from lending.collateral.mutual_fund import registry
-from lending.collateral.mutual_fund.nav_job import update_navs
+from lending.collateral.mutual_fund.amfi import AmfiNavAdapter
+from lending.collateral.mutual_fund.nav_job import get_nav_dates, update_navs
 from lending.collateral.mutual_fund.sample import (
 	OTP,
 	SampleNavAdapter,
@@ -16,6 +19,7 @@ from lending.collateral.mutual_fund.test_mutual_fund import (
 	ELSS,
 	FLEXI_CAP,
 	MF_TYPE,
+	NAV_FILE,
 	fund_line,
 	make_pledge,
 	setup_test_data,
@@ -260,3 +264,96 @@ class TestNavJob(LendingTestSuite):
 		use_nav("")
 		update_navs()
 		self.assertFalse(frappe.db.exists("Loan Security Price Update", {"loan_security_type": MF_TYPE}))
+
+	def test_amfi_prices_from_the_published_file(self):
+		use_nav(AmfiNavAdapter.key)
+		nav_date = last_weekday(getdate())
+		published = "\r\n".join(
+			[
+				NAV_FILE.splitlines()[0],
+				"PPFAS Mutual Fund",
+				f"122639;INF879O01027;-;Parag Parikh Flexi Cap Fund;Direct Plan;Growth;90.8844;{nav_date:%d-%b-%Y}",
+				# Not a scheme of this site, and dated a day later
+				f"151835;-;INF0QA701029;Bajaj Finserv Liquid Fund;Direct Plan;Daily - IDCW;1034.6939;{add_days(nav_date, 1):%d-%b-%Y}",
+			]
+		)
+		with patch("lending.collateral.mutual_fund.amfi.get_request_session") as session:
+			session.return_value.get.return_value.content = published.encode()
+			update_navs()
+
+		update = frappe.get_doc(
+			"Loan Security Price Update",
+			{"loan_security_type": MF_TYPE, "price_date": nav_date, "docstatus": 1},
+		)
+		self.assertEqual([(row.loan_security, flt(row.price)) for row in update.items], [(FLEXI_CAP, 90.8844)])
+		output = frappe.db.get_value(
+			"Integration Request", {"integration_request_service": AmfiNavAdapter.key}, "output", order_by="creation desc"
+		)
+		self.assertNotIn("151835", output)
+
+	def test_nav_dates_are_per_scheme(self):
+		# The liquid fund's weekend NAV of 18 October does not date the equity schemes
+		self.assertEqual(get_nav_dates(NAV_FILE, {"122639", "119544"}), [getdate("2026-10-16")])
+		self.assertEqual(
+			get_nav_dates(NAV_FILE, {"122639", "151835"}), [getdate("2026-10-16"), getdate("2026-10-18")]
+		)
+		self.assertEqual(get_nav_dates(NAV_FILE, {"100001"}), [])
+
+	def test_a_weekend_nav_does_not_cost_the_other_funds_their_price(self):
+		# ELSS stands in for a liquid fund of the same type that publishes a day later
+		make_pledge([fund_line(ELSS, purchase_date=add_days(nowdate(), -1095))])
+		use_nav(AmfiNavAdapter.key)
+		nav_date = last_weekday(getdate())
+		published = "\r\n".join(
+			[
+				NAV_FILE.splitlines()[0],
+				f"122639;INF879O01027;-;Parag Parikh Flexi Cap Fund;Direct Plan;Growth;90.8844;{nav_date:%d-%b-%Y}",
+				f"119544;INF209K01UN8;-;Aditya Birla Sun Life ELSS Tax Saver Fund;Direct Plan;GROWTH;66.15;{add_days(nav_date, 1):%d-%b-%Y}",
+			]
+		)
+		with patch("lending.collateral.mutual_fund.amfi.get_request_session") as session:
+			session.return_value.get.return_value.content = published.encode()
+			update_navs()
+
+		priced = {
+			update.price_date: [
+				(row.loan_security, flt(row.price))
+				for row in frappe.get_doc("Loan Security Price Update", update.name).items
+			]
+			for update in frappe.get_all(
+				"Loan Security Price Update",
+				filters={"loan_security_type": MF_TYPE, "docstatus": 1},
+				fields=["name", "price_date"],
+			)
+		}
+		self.assertEqual(
+			priced,
+			{nav_date: [(FLEXI_CAP, 90.8844)], getdate(add_days(nav_date, 1)): [(ELSS, 66.15)]},
+		)
+
+	def test_an_unpledged_fund_does_not_date_the_update(self):
+		# ELSS is of the same type but not pledged, so its later NAV must not move the price date
+		use_nav(AmfiNavAdapter.key)
+		nav_date = last_weekday(getdate())
+		published = "\r\n".join(
+			[
+				NAV_FILE.splitlines()[0],
+				f"122639;INF879O01027;-;Parag Parikh Flexi Cap Fund;Direct Plan;Growth;90.8844;{nav_date:%d-%b-%Y}",
+				f"119544;INF209K01UN8;-;Aditya Birla Sun Life ELSS Tax Saver Fund;Direct Plan;GROWTH;66.15;{add_days(nav_date, 1):%d-%b-%Y}",
+			]
+		)
+		with patch("lending.collateral.mutual_fund.amfi.get_request_session") as session:
+			session.return_value.get.return_value.content = published.encode()
+			update_navs()
+
+		self.assertEqual(
+			frappe.get_all(
+				"Loan Security Price Update",
+				filters={"loan_security_type": MF_TYPE, "docstatus": 1},
+				pluck="price_date",
+			),
+			[nav_date],
+		)
+		self.assertFalse(
+			frappe.db.exists("Error Log", {"method": ("like", f"%NAV update failed for {MF_TYPE}%")})
+		)

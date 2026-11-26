@@ -5,7 +5,7 @@ from datetime import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import nowdate
+from frappe.utils import flt, nowdate
 
 from lending.collateral.mutual_fund.nav_file import fill_prices, validate_price_update
 from lending.collateral.mutual_fund.registry import NAV_FIELD, SETTINGS, call, get_adapter_key
@@ -19,15 +19,14 @@ def update_navs():
 	if not content:
 		return
 
-	price_date = get_latest_nav_date(content)
-	if not price_date:
-		return
-
 	for security_type in frappe.get_all("Loan Security Type", {"is_mutual_fund": 1}, pluck="name"):
-		try:
-			create_price_update(security_type, price_date, content)
-		except Exception:
-			frappe.log_error(title=_("Mutual fund NAV update failed for {0}").format(security_type))
+		# Liquid and overnight funds also publish a NAV for weekends and holidays, so a type that holds
+		# them beside other funds needs one update for each date, or the other funds lose a day's price
+		for price_date in get_nav_dates(content, get_pledged_scheme_codes(security_type)):
+			try:
+				create_price_update(security_type, price_date, content)
+			except Exception:
+				frappe.log_error(title=_("Mutual fund NAV update failed for {0}").format(security_type))
 
 
 def fetch_nav_file():
@@ -70,15 +69,34 @@ def fetch_latest_nav(doc: str | dict):
 	return {"name": doc.name, "filled": filled}
 
 
-def get_latest_nav_date(content):
-	latest = None
+def get_pledged_scheme_codes(security_type):
+	# The same securities an update prices, so a date found here always fills at least one row
+	update = frappe.new_doc("Loan Security Price Update")
+	update.loan_security_type = security_type
+	securities = update.get_pledged_securities()
+	if not securities:
+		return set()
+
+	codes = frappe.get_all(
+		"Loan Security",
+		filters={"name": ("in", list(securities)), "amfi_scheme_code": ("is", "set")},
+		pluck="amfi_scheme_code",
+	)
+	return {code.strip() for code in codes}
+
+
+def get_nav_dates(content, scheme_codes):
+	latest = {}
 	for line in content.splitlines():
 		fields = line.split(";")
-		if len(fields) < 6 or not fields[0].strip().isdigit():
+		code = fields[0].strip()
+		if len(fields) < 6 or code not in scheme_codes or flt(fields[-2]) <= 0:
 			continue
 		try:
 			nav_date = datetime.strptime(fields[-1].strip(), "%d-%b-%Y").date()
 		except ValueError:
 			continue
-		latest = max(latest or nav_date, nav_date)
-	return latest
+		latest[code] = max(latest.get(code, nav_date), nav_date)
+
+	# Oldest first, so each later update ends the price the one before it set
+	return sorted(set(latest.values()))

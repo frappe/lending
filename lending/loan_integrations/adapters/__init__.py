@@ -9,7 +9,8 @@ from frappe import _
 _REGISTRIES: dict[str | None, dict[str, type]] = {}
 _LOADED: set[str | None] = set()
 
-_BUILTIN_ADAPTERS = ()
+# Public sources that need no credentials, so they ship with lending
+_BUILTIN_ADAPTERS = ("lending.collateral.mutual_fund.amfi.AmfiNavAdapter",)
 
 # Stand-ins for demos and tests. Never offered on a production site, where a fake lien would be a real loss
 _SAMPLE_ADAPTERS = (
