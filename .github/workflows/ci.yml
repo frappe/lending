@@ -42,7 +42,7 @@ jobs:
 
     services:
       mysql:
-        image: mariadb:11.3
+        image: mariadb:11.8
         env:
           MARIADB_ROOT_PASSWORD: 'root'
         ports:
@@ -56,7 +56,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Setup Node
         uses: actions/setup-node@v2
