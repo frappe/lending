@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import frappe
+
 from lending.loan_management.report.disbursement_analysis_report.disbursement_analysis_report import (
 	execute,
 	get_columns,
@@ -11,46 +13,6 @@ from lending.tests.utils import LendingTestSuite
 
 
 class TestDisbursementAnalysisReport(LendingTestSuite):
-	def test_disbursement_analysis_report_returns_expected_rows(self):
-		loan = create_loan(
-			"_Test Loan Customer",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			6,
-			"Customer",
-			repayment_start_date="2024-02-05",
-			posting_date="2024-01-05",
-			rate_of_interest=10,
-		)
-		loan.submit()
-
-		disb = make_loan_disbursement_entry(
-			loan.name,
-			loan.loan_amount,
-			disbursement_date="2024-01-05",
-			repayment_start_date="2024-02-05",
-			loan_disbursement_charges=[{"charge": "Processing Fee", "amount": 5000}],
-		)
-
-		columns, data = execute(
-			{"company": "_Test Company", "loan": loan.name, "loan_disbursement": disb.name}
-		)
-
-		self.assertTrue(data)
-		self.assertEqual(columns[0].get("fieldname"), "loan_account")
-
-		row = data[0]
-		self.assertEqual(row.get("loan_account"), loan.name)
-		self.assertEqual(row.get("loan_disbursement_id"), disb.name)
-		self.assertEqual(row.get("applicant"), "_Test Loan Customer")
-		self.assertEqual(row.get("applicant_type"), "Customer")
-		self.assertEqual(row.get("interest_rate"), 10)
-		self.assertEqual(row.get("disbursed_amount"), 100000)
-		self.assertEqual(row.get("charge_type"), "Processing Fee")
-		self.assertEqual(row.get("charge_amount"), 5000)
-		self.assertIsNotNone(row.get("maturity_date"))
-
 	def test_disbursement_analysis_report_assigns_tranche_numbers_in_order(self):
 		loan = create_loan(
 			"_Test Loan Customer",
@@ -85,7 +47,18 @@ class TestDisbursementAnalysisReport(LendingTestSuite):
 		disbursement_dates = [row.get("disbursement_date") for row in data]
 		self.assertEqual(disbursement_dates, sorted(disbursement_dates))
 
-	def test_disbursement_analysis_report_filters_by_applicant_type(self):
+	def test_disbursement_analysis_report_defines_columns(self):
+		columns = get_columns()
+		fieldnames = [c.get("fieldname") for c in columns]
+		self.assertIn("loan_account", fieldnames)
+		self.assertIn("tranche_number", fieldnames)
+		self.assertIn("disbursed_amount", fieldnames)
+		self.assertIn("charge_amount", fieldnames)
+
+
+class TestDisbursementAnalysisReportRows(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
 		loan = create_loan(
 			"_Test Loan Customer",
 			"Term Loan Product 4",
@@ -98,6 +71,10 @@ class TestDisbursementAnalysisReport(LendingTestSuite):
 			rate_of_interest=10,
 		)
 		loan.submit()
+		cls.loan = loan.name
+
+	def test_disbursement_analysis_report_filters_by_applicant_type(self):
+		loan = frappe.get_doc("Loan", self.loan)
 		make_loan_disbursement_entry(
 			loan.name,
 			loan.loan_amount,
@@ -115,10 +92,31 @@ class TestDisbursementAnalysisReport(LendingTestSuite):
 		)
 		self.assertEqual(empty, [])
 
-	def test_disbursement_analysis_report_defines_columns(self):
-		columns = get_columns()
-		fieldnames = [c.get("fieldname") for c in columns]
-		self.assertIn("loan_account", fieldnames)
-		self.assertIn("tranche_number", fieldnames)
-		self.assertIn("disbursed_amount", fieldnames)
-		self.assertIn("charge_amount", fieldnames)
+	def test_disbursement_analysis_report_returns_expected_rows(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		disb = make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2024-01-05",
+			repayment_start_date="2024-02-05",
+			loan_disbursement_charges=[{"charge": "Processing Fee", "amount": 5000}],
+		)
+
+		columns, data = execute(
+			{"company": "_Test Company", "loan": loan.name, "loan_disbursement": disb.name}
+		)
+
+		self.assertTrue(data)
+		self.assertEqual(columns[0].get("fieldname"), "loan_account")
+
+		row = data[0]
+		self.assertEqual(row.get("loan_account"), loan.name)
+		self.assertEqual(row.get("loan_disbursement_id"), disb.name)
+		self.assertEqual(row.get("applicant"), "_Test Loan Customer")
+		self.assertEqual(row.get("applicant_type"), "Customer")
+		self.assertEqual(row.get("interest_rate"), 10)
+		self.assertEqual(row.get("disbursed_amount"), 100000)
+		self.assertEqual(row.get("charge_type"), "Processing Fee")
+		self.assertEqual(row.get("charge_amount"), 5000)
+		self.assertIsNotNone(row.get("maturity_date"))

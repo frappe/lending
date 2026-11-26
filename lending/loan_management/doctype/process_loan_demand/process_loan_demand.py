@@ -45,8 +45,9 @@ class ProcessLoanDemand(Document):
 		self.ignore_linked_doctypes = ["Loan Demand"]
 
 
-def process_daily_loan_demands(posting_date=None, loan_product=None, loan=None):
+def process_daily_loan_demands(posting_date=None, loan_product=None, loan=None, ignore_permissions=False):
 	loan_process = frappe.new_doc("Process Loan Demand")
+	loan_process.flags.ignore_permissions = ignore_permissions
 	loan_process.posting_date = posting_date or nowdate()
 	loan_process.loan_product = loan_product
 	loan_process.loan = loan

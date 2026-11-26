@@ -47,6 +47,7 @@
   "credit_assessment",
   "repayment_info",
   "repayment_method",
+  "repayment_frequency",
   "total_payable_amount",
   "column_break_11",
   "repayment_periods",
@@ -98,6 +99,7 @@
    "search_index": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
@@ -203,6 +205,14 @@
    "fieldtype": "Currency",
    "label": "Monthly Repayment Amount",
    "options": "Company:company:default_currency"
+  },
+  {
+   "default": "Monthly",
+   "depends_on": "eval: doc.is_term_loan && doc.repayment_method == \"Repay Over Number of Periods\"",
+   "fieldname": "repayment_frequency",
+   "fieldtype": "Select",
+   "label": "Repayment Frequency",
+   "options": "Monthly\nWeekly\nBi-Weekly\nQuarterly"
   },
   {
    "depends_on": "repayment_method",
@@ -385,7 +395,8 @@
    "fieldname": "applicant_name",
    "fieldtype": "Data",
    "in_global_search": 1,
-   "label": "First Name"
+   "label": "First Name",
+   "mandatory_depends_on": "eval: doc.applicant_type == \"Customer\" && !doc.applicant"
   },
   {
    "fieldname": "connections_tab",
@@ -403,7 +414,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-18 19:00:00.000000",
+ "modified": "2026-10-29 11:30:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Application",

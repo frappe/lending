@@ -10,6 +10,11 @@ from frappe.utils import flt, getdate
 from lending.loan_management.doctype.process_loan_security_shortfall.process_loan_security_shortfall import (
 	create_process_loan_security_shortfall,
 )
+from lending.telemetry import (
+	capture_charge_applied,
+	capture_repayment_schedule_previewed,
+	capture_security_prices_updated,
+)
 
 
 @frappe.whitelist()
@@ -52,6 +57,7 @@ def get_repayment_schedule(loan_product: str, loan_amount: float, rate_of_intere
 		})
 
 	frappe.response["message"] = response
+	capture_repayment_schedule_previewed(repayment_frequency, tenure)
 
 @frappe.whitelist()
 def update_loan_security_price(data: dict):
@@ -74,6 +80,7 @@ def update_loan_security_price(data: dict):
 
 	create_process_loan_security_shortfall()
 	frappe.response["message"] = _("Loan Security Prices updated successfully")
+	capture_security_prices_updated(len(data))
 
 @frappe.whitelist()
 def get_due_details(loan: str, as_on_date: str, loan_disbursement: str | None = None) -> dict:
@@ -149,3 +156,4 @@ def apply_charge(loan: str, charge_type: str, based_on: str, percentage: float |
 		)
 
 	frappe.response["message"] = _("Charge applied successfully for amount {0}").format(charge_amount)
+	capture_charge_applied(based_on)

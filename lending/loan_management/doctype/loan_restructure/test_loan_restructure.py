@@ -23,158 +23,23 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	loan_classification_ranges,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
-from lending.tests.utils import LendingTestSuite
+from lending.tests.utils import LendingTestSuite, with_days_past_due_repost
 
 
 class TestLoanRestructure(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 		loan_classification_ranges()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
-
-	def test_loan_restructure_capitalization(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2026-09-28",
-			posting_date="2026-08-14",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-			penalty_charges_rate=36,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2026-09-27", loan=loan.name, company="_Test Company"
-		)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
-
-		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-03")
-
-		sales_invoice = frappe.get_doc(
-			{
-				"doctype": "Sales Invoice",
-				"customer": "_Test Customer 1",
-				"company": "_Test Company",
-				"loan": loan.name,
-				"posting_date": "2026-08-14",
-				"value_date": "2026-08-14",
-				"posting_time": "00:06:10",
-				"set_posting_time": 1,
-				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
-				"debit_to": "Processing Fee Receivable Account - _TC",
-			}
-		)
-		sales_invoice.submit()
-
-		sales_invoice = frappe.get_doc(
-			{
-				"doctype": "Sales Invoice",
-				"customer": "_Test Customer 1",
-				"company": "_Test Company",
-				"loan": loan.name,
-				"posting_date": "2026-08-14",
-				"value_date": "2026-08-14",
-				"posting_time": "00:06:10",
-				"set_posting_time": 1,
-				"items": [{"item_code": "Documentation Charge", "qty": 1, "rate": 1000}],
-			}
-		)
-		sales_invoice.submit()
-
-		loan_restructure = create_loan_restructure(
-			loan=loan.name,
-			restructure_date="2026-10-04",
-			interest_waiver_amount=500,
-			penal_waiver_amount=10,
-		)
-
-		loan_restructure.status = "Approved"
-		loan_restructure.save()
-
-		repayments = frappe.db.get_all(
-			"Loan Repayment",
-			filters={"loan_restructure": loan_restructure.name, "docstatus": 1},
-			pluck="name",
-		)
-
-		self.assertEqual(len(repayments), 8)
-
-	def test_clears_principal_overdue_demands_on_normal_restructure(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
-
-		loan = create_loan(
-			"_Test Customer 1",
-			"Term Loan Product 4",
-			100000,
-			"Repay Over Number of Periods",
-			22,
-			repayment_start_date="2026-09-28",
-			posting_date="2026-08-14",
-			rate_of_interest=8.5,
-			applicant_type="Customer",
-			penalty_charges_rate=36,
-		)
-
-		loan.submit()
-
-		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
-		)
-
-		process_loan_interest_accrual_for_loans(
-			posting_date="2026-09-27", loan=loan.name, company="_Test Company"
-		)
-
-		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
-
-		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-03")
-
-		loan_restructure = create_loan_restructure(
-			loan=loan.name,
-			restructure_date="2026-10-04",
-			interest_waiver_amount=500,
-			penal_waiver_amount=10,
-		)
-
-		loan_restructure.status = "Approved"
-		loan_restructure.save()
-
-		LoanDemand = DocType("Loan Demand")
-
-		total_outstanding = (
-			frappe.qb.from_(LoanDemand)
-			.select(Sum(LoanDemand.outstanding_amount))
-			.where(LoanDemand.loan == loan.name)
-			.where(LoanDemand.demand_type == "EMI")
-			.where(LoanDemand.demand_subtype == "Principal")
-			.where(LoanDemand.docstatus == 1)
-		).run()[0][0]
-
-		self.assertEqual(flt(total_outstanding), 0)
 
 	def test_loan_restructure_charges_waiver_and_capitalization(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -269,7 +134,7 @@ class TestLoanRestructure(LendingTestSuite):
 		self.assertEqual(sales_invoice.status, "Paid", "Expected the Sales Invoice for post-restructure charges to have status 'Paid'.")
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -336,7 +201,7 @@ class TestLoanRestructure(LendingTestSuite):
 			self.assertIn(expected, gl_entries, f"Missing GL entry: {expected}")
 
 	def test_normal_restructure_first_emi_schedule_days(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
 
 		loan = create_loan(
 			"_Test Customer 1",
@@ -378,6 +243,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		self.assertEqual(date_diff_value, number_of_days_for_first_emi)
 
+	@with_days_past_due_repost
 	def test_non_npa_restructure_resets_dpd_without_watch_period(self):
 		"""
 		Verify that restructuring a non-NPA loan resets DPD to zero
@@ -438,6 +304,7 @@ class TestLoanRestructure(LendingTestSuite):
 
 		self.assertEqual(loan.watch_period_end_date, getdate(watch_period_end_date))
 
+	@with_days_past_due_repost
 	def test_npa_restructure_keeps_classification_same(self):
 		"""
 		Verify that after restructuring an NPA loan,
@@ -611,6 +478,74 @@ class TestLoanRestructure(LendingTestSuite):
 		loan.reload()
 		self.assertEqual(loan.repayment_frequency, "One Time")
 
+	def test_cancel_restructure_after_its_repayment_schedule_is_gone(self):
+		for approve, delete_schedule in ((True, False), (True, True), (False, False), (False, True)):
+			with self.subTest(approve=approve, delete_schedule=delete_schedule):
+				loan = create_loan(
+					"_Test Customer 1",
+					"Term Loan Product 4",
+					1000,
+					"Repay Over Number of Periods",
+					12,
+					repayment_start_date="2026-10-24",
+					posting_date="2026-09-24",
+					rate_of_interest=20,
+					applicant_type="Customer",
+					repayment_frequency="One Time",
+				)
+				loan.submit()
+				make_loan_disbursement_entry(
+					loan.name,
+					loan.loan_amount,
+					disbursement_date="2026-09-24",
+					repayment_start_date="2026-10-24",
+					repayment_frequency="One Time",
+				)
+				loan_restructure = create_loan_restructure(
+					loan=loan.name,
+					restructure_date="2026-09-28",
+					repayment_start_date="2026-09-30",
+					treatment_of_normal_interest="Add To First EMI",
+					unaccrued_interest_treatment="Add To First EMI",
+					new_rate_of_interest=20,
+					new_repayment_method="Repay Over Number of Periods",
+					new_repayment_period_in_months=12,
+					waive_off_restructure_charges=1,
+				)
+				if approve:
+					loan_restructure.status = "Approved"
+					loan_restructure.save()
+					process_loan_interest_accrual_for_loans(
+						posting_date="2026-10-15", loan=loan.name, company="_Test Company"
+					)
+
+				schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan_restructure": loan_restructure.name, "docstatus": 1}
+				)
+				previous_schedule = frappe.db.get_value(
+					"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "name": ("!=", schedule)}
+				)
+				schedule_doc = frappe.get_doc("Loan Repayment Schedule", schedule)
+				self.assertRaises(frappe.ValidationError, schedule_doc.cancel)
+
+				frappe.db.set_value("Loan Repayment Schedule", schedule, "docstatus", 2)
+				if delete_schedule:
+					frappe.db.delete("Loan Repayment Schedule", schedule)
+
+				loan_restructure.reload()
+				loan_restructure.cancel()
+
+				self.assertEqual(loan_restructure.docstatus, 2)
+				if not delete_schedule:
+					accrual = {"loan_repayment_schedule": schedule, "docstatus": 1}
+					self.assertFalse(frappe.db.exists("Loan Interest Accrual", accrual))
+				if approve:
+					self.assertEqual(frappe.db.get_value("Loan", loan.name, "repayment_frequency"), "One Time")
+					self.assertEqual(
+						frappe.db.get_value("Loan Repayment Schedule", previous_schedule, "status"), "Active"
+					)
+
+	@with_days_past_due_repost
 	def test_npa_restructure_watch_period_resets_on_dpd(self):
 		"""
 		Verify that when DPD increases after NPA restructuring,
@@ -704,6 +639,9 @@ def create_loan_restructure(
 	new_repayment_method=None,
 	new_repayment_period_in_months=None,
 	waive_off_restructure_charges=0,
+	restructure_type="Normal Restructure",
+	skipped_dates=None,
+	submit=True,
 ):
 
 	doc = frappe.new_doc("Loan Restructure")
@@ -713,7 +651,7 @@ def create_loan_restructure(
 	doc.interest_waiver_amount = interest_waiver_amount
 	doc.unaccrued_interest_waiver = unaccrued_interest_waiver
 	doc.penal_interest_waiver = penal_waiver_amount
-	doc.restructure_type = "Normal Restructure"
+	doc.restructure_type = restructure_type
 	doc.treatment_of_normal_interest = treatment_of_normal_interest
 	doc.unaccrued_interest_treatment = unaccrued_interest_treatment
 	doc.treatment_of_penal_interest = treatment_of_penal_interest
@@ -735,6 +673,125 @@ def create_loan_restructure(
 				},
 			)
 
-	doc.submit()
+	for date in skipped_dates or []:
+		doc.append("skipped_installments", {"payment_date": date})
+
+	if submit:
+		doc.submit()
+	else:
+		doc.insert()
 
 	return doc
+
+
+class TestOverdueLoanRestructure(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		loan_classification_ranges()
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			22,
+			repayment_start_date="2026-09-28",
+			posting_date="2026-08-14",
+			rate_of_interest=8.5,
+			applicant_type="Customer",
+			penalty_charges_rate=36,
+		)
+
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2026-08-14", repayment_start_date="2026-09-28"
+		)
+
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-09-27", loan=loan.name, company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-28")
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2026-10-03")
+		cls.loan = loan.name
+
+	def test_loan_restructure_capitalization(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Processing Fee", "qty": 1, "rate": 5000}],
+				"debit_to": "Processing Fee Receivable Account - _TC",
+			}
+		)
+		sales_invoice.submit()
+
+		sales_invoice = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer 1",
+				"company": "_Test Company",
+				"loan": loan.name,
+				"posting_date": "2026-08-14",
+				"value_date": "2026-08-14",
+				"posting_time": "00:06:10",
+				"set_posting_time": 1,
+				"items": [{"item_code": "Documentation Charge", "qty": 1, "rate": 1000}],
+			}
+		)
+		sales_invoice.submit()
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-04",
+			interest_waiver_amount=500,
+			penal_waiver_amount=10,
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		repayments = frappe.db.get_all(
+			"Loan Repayment",
+			filters={"loan_restructure": loan_restructure.name, "docstatus": 1},
+			pluck="name",
+		)
+
+		self.assertEqual(len(repayments), 8)
+
+	def test_clears_principal_overdue_demands_on_normal_restructure(self):
+		loan = frappe.get_doc("Loan", self.loan)
+
+		loan_restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2026-10-04",
+			interest_waiver_amount=500,
+			penal_waiver_amount=10,
+		)
+
+		loan_restructure.status = "Approved"
+		loan_restructure.save()
+
+		LoanDemand = DocType("Loan Demand")
+
+		total_outstanding = (
+			frappe.qb.from_(LoanDemand)
+			.select(Sum(LoanDemand.outstanding_amount))
+			.where(LoanDemand.loan == loan.name)
+			.where(LoanDemand.demand_type == "EMI")
+			.where(LoanDemand.demand_subtype == "Principal")
+			.where(LoanDemand.docstatus == 1)
+		).run()[0][0]
+
+		self.assertEqual(flt(total_outstanding), 0)

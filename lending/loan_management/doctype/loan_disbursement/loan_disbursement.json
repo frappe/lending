@@ -258,6 +258,7 @@
   },
   {
    "depends_on": "is_term_loan",
+   "fetch_from": "against_loan.repayment_frequency",
    "fieldname": "repayment_frequency",
    "fieldtype": "Select",
    "label": "Repayment Frequency",
@@ -403,7 +404,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-09 14:40:00.544954",
+ "modified": "2026-10-21 11:58:41.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Disbursement",

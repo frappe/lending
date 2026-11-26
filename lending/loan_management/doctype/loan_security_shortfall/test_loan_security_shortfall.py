@@ -20,27 +20,24 @@ from lending.tests.test_utils import (
 	create_loan_security_price,
 	create_loan_security_type,
 	create_loan_with_security,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
+	set_loan_accrual_frequency,
 	update_loan_security_price,
 )
 from lending.tests.utils import LendingTestSuite
 
 
 class TestLoanSecurityShortfall(LendingTestSuite):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
+	applicant2 = "_Test Loan Customer"
 
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 		create_loan_security_type()
 		create_loan_security()
 
 		create_loan_security_price("Test Security 1", 500, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
 
 	def test_security_shortfall(self):
 		create_loan_security_price("Test Security 2", 250, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
@@ -254,3 +251,28 @@ class TestLoanSecurityShortfall(LendingTestSuite):
 		# Test Customer Sanctioned Limit
 		sanctioned_limit = frappe.db.get_value("Sanctioned Loan Amount", {"applicant": customer}, "sanctioned_amount_limit")
 		self.assertEqual(flt(sanctioned_limit), 400000)
+
+	def test_shortfall_for_partially_disbursed_term_loan(self):
+		pledges = [{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}]
+		loan_application = create_loan_application(
+			"_Test Company", self.applicant2, "Stock Loan", pledges, "Repay Over Number of Periods", 12
+		)
+		create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			self.applicant2, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+		make_loan_disbursement_entry(loan.name, 700000)
+
+		loan.reload()
+		self.assertEqual(loan.status, "Partially Disbursed")
+		self.assertTrue(flt(loan.total_interest_payable) > 0)
+
+		# 8,000 units at ₹170 allow ₹6,80,000 against ₹7,00,000 drawn
+		create_loan_security_price("Test Security 2", 170, "Nos", nowdate(), add_days(nowdate(), 1), update_if_existing=True)
+		create_process_loan_security_shortfall()
+
+		shortfall = frappe.get_doc("Loan Security Shortfall", {"loan": loan.name})
+		self.assertEqual(flt(shortfall.loan_amount, 2), 700000.00)
+		self.assertEqual(flt(shortfall.shortfall_amount, 2), 20000.00)
