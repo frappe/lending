@@ -130,8 +130,8 @@ def validate_credit_assessment(doc):
 		loan_doc, lines, assessment = doc, doc.proposed_pledges, doc.credit_assessment
 	elif doc.get("loan"):
 		loan_doc = frappe.get_doc("Loan", doc.loan)
-		# The Loan shows its Credit Assessment field only on a gold product, so ask only there
-		if not loan_doc.gold_loan_purpose:
+		# Read from the product: a Loan submitted before its product had a purpose keeps a blank copy
+		if not frappe.db.get_value("Loan Product", loan_doc.loan_product, "gold_loan_purpose"):
 			return
 		lines, assessment = doc.securities, get_loan_credit_assessment(loan_doc)
 	else:
@@ -147,6 +147,20 @@ def validate_credit_assessment(doc):
 				"Attach a Credit Assessment. The applicant's total gold and silver loans of {0} are above {1}"
 			).format(frappe.format_value(total, "Currency"), frappe.format_value(threshold, "Currency"))
 		)
+
+
+def sync_gold_loan_purpose(loan_product):
+	# A submitted Loan never fetches again, and its form shows Credit Assessment by this copy
+	if loan_product.is_new() or not loan_product.has_value_changed("gold_loan_purpose"):
+		return
+
+	frappe.db.set_value(
+		"Loan",
+		{"loan_product": loan_product.name},
+		"gold_loan_purpose",
+		loan_product.gold_loan_purpose,
+		update_modified=False,
+	)
 
 
 def validate_gold_ltv_slabs(loan_product):

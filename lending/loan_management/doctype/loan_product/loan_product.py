@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from lending.gold_loan.ltv import validate_gold_ltv_slabs
+from lending.gold_loan.ltv import sync_gold_loan_purpose, validate_gold_ltv_slabs
 from lending.loan_management.utils import loan_accounting_enabled
 
 
@@ -96,6 +96,9 @@ class LoanProduct(Document):
 		self.validate_rates()
 		self.validate_demand_offset_sequences()
 		validate_gold_ltv_slabs(self)
+
+	def on_update(self):
+		sync_gold_loan_purpose(self)
 
 	def set_missing_values(self):
 		company_min_days_bw_disbursement_first_repayment = frappe.get_cached_value(

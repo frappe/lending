@@ -229,6 +229,25 @@ class TestGoldLoanLTV(LendingTestSuite):
 			loan.db_set("credit_assessment", "/files/assessment.pdf")
 			create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
 
+	def test_credit_assessment_for_a_loan_made_before_its_product_had_a_purpose(self):
+		frappe.db.set_single_value("Lending Settings", "gold_credit_assessment_above", 250000)
+		product = frappe.get_doc("Loan Product", INCOME_PRODUCT)
+		product.gold_loan_purpose = ""
+		product.save()
+
+		loan = create_loan(APPLICANT, INCOME_PRODUCT, 299887, "Repay Over Number of Periods", 12)
+		self.assertFalse(loan.gold_loan_purpose)
+
+		product.gold_loan_purpose = "Income Generating"
+		product.save()
+		# The loan's copy follows, so its form shows the Credit Assessment field
+		self.assertEqual(frappe.db.get_value("Loan", loan.name, "gold_loan_purpose"), "Income Generating")
+
+		# Even with a stale copy, the check reads the product
+		loan.db_set("gold_loan_purpose", None)
+		with self.assertRaises(frappe.ValidationError):
+			create_loan_security_assignment(loan=loan.name, securities=[dict(MEENA_PLEDGE[0])])
+
 	def test_patch_sets_the_credit_assessment_threshold(self):
 		from lending.patches.v16_0.set_gold_credit_assessment_threshold import execute
 
