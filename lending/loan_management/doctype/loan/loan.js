@@ -67,6 +67,10 @@ frappe.ui.form.on('Loan', {
 
 	},
 
+	skip_installment: function (frm) {
+		frappe.new_doc("Loan Installment Skip Request", { loan: frm.doc.name });
+	},
+
 	refresh: function (frm) {
 		if (frm.doc.repayment_schedule_type == "Pro-rated calendar months") {
 			frm.set_df_property("repayment_start_date", "label", "Interest Calculation Start Date");
@@ -110,6 +114,12 @@ frappe.ui.form.on('Loan', {
 					frm.trigger("close_unsecured_term_loan");
 				},__('Status'));
 			}
+		}
+
+		if (frm.doc.docstatus == 1 && frm.doc.is_term_loan && frm.doc.status == "Disbursed") {
+			frm.add_custom_button(__('Installment Skip Request'), function() {
+				frm.trigger("skip_installment");
+			}, __('Create'));
 		}
 
 		if (frm.doc.docstatus == 1 && frm.doc.is_secured_loan) {

@@ -164,25 +164,21 @@ class LoanRepayment(LoanController):
 			create_update_loan_reschedule,
 		)
 
-		if self.needs_reschedule():
-			create_update_loan_reschedule(
-				self.against_loan,
-				self.value_date,
-				self.name,
-				self.repayment_type,
-				self.principal_amount_paid,
-				self.unbooked_interest_paid,
-				loan_disbursement=self.loan_disbursement,
-			)
-
-	def needs_reschedule(self):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
-		return (
-			self.repayment_type in ("Advance Payment", "Pre Payment")
-			and flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision)
-			and flt(self.amount_paid, precision) > flt(self.payable_amount, precision)
-		)
+		excess_amount = flt(self.principal_amount_paid, precision) - flt(self.pending_principal_amount, precision)
+
+		if self.repayment_type in ("Advance Payment", "Pre Payment") and excess_amount < 0:
+			if flt(self.amount_paid, precision) > flt(self.payable_amount, precision):
+				create_update_loan_reschedule(
+					self.against_loan,
+					self.value_date,
+					self.name,
+					self.repayment_type,
+					self.principal_amount_paid,
+					self.unbooked_interest_paid,
+					loan_disbursement=self.loan_disbursement,
+				)
 
 	def on_submit(self):
 		if self.is_imported:
@@ -233,11 +229,7 @@ class LoanRepayment(LoanController):
 		if flt(self.principal_amount_paid, precision) > 0 and flt(self.principal_amount_paid, precision) >= flt(self.pending_principal_amount, precision):
 			on_settlement_or_closure = True
 
-		needs_reschedule = self.needs_reschedule()
-
-		if self.repayment_type in ("Advance Payment", "Pre Payment") and (
-			on_settlement_or_closure or needs_reschedule
-		):
+		if self.repayment_type in ("Advance Payment", "Pre Payment"):
 			reversed_accruals += self.reverse_future_accruals_and_demands(on_settlement_or_closure=on_settlement_or_closure)
 
 		if flt(self.principal_amount_paid, precision) < flt(self.pending_principal_amount, precision):
@@ -256,7 +248,7 @@ class LoanRepayment(LoanController):
 				self.allocate_amounts(amounts, on_submit=True)
 				self.db_update_all()
 
-				if needs_reschedule:
+				if self.repayment_type in ("Advance Payment", "Pre Payment"):
 					create_update_loan_reschedule(
 						self.against_loan,
 						self.value_date,
@@ -722,6 +714,7 @@ class LoanRepayment(LoanController):
 			)
 
 	def on_cancel(self):
+		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_npa_log.loan_npa_log import delink_npa_logs
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
 			create_process_loan_classification,
@@ -743,6 +736,8 @@ class LoanRepayment(LoanController):
 
 		self.mark_as_unpaid()
 		self.update_demands(cancel=1)
+		# paid demands this entry booked on submit are not in repayment_details
+		reverse_demands(self.against_loan, self.value_date, loan_repayment=self.name)
 		self.update_security_deposit_amount(cancel=1)
 
 		frappe.db.set_value("Loan", self.against_loan, "days_past_due", self.days_past_due)
@@ -1824,6 +1819,8 @@ class LoanRepayment(LoanController):
 
 	def allocate_amount_against_demands(self, loan_status, amounts, amount_paid):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		# Settlement and Written Off flows waive or write off leftover interest, so they keep skipping it
+		allocate_interest = self.repayment_type == "Partial Settlement"
 
 		if loan_status == "Written Off":
 			allocation_order = self.get_allocation_order(
@@ -1842,10 +1839,12 @@ class LoanRepayment(LoanController):
 				"Collection Offset Sequence for Settlement Collection"
 			)
 		elif self.is_npa:
+			allocate_interest = True
 			allocation_order = self.get_allocation_order(
 				"Collection Offset Sequence for Sub Standard Asset"
 			)
 		else:
+			allocate_interest = True
 			allocation_order = self.get_allocation_order("Collection Offset Sequence for Standard Asset")
 
 		if self.shortfall_amount:
@@ -1855,7 +1854,11 @@ class LoanRepayment(LoanController):
 				self.principal_amount_paid = self.amount_paid
 
 		amount_paid = self.apply_allocation_order(
-			allocation_order, amount_paid, amounts.get("unpaid_demands"), status=loan_status
+			allocation_order,
+			amount_paid,
+			amounts.get("unpaid_demands"),
+			status=loan_status,
+			allocate_interest=allocate_interest,
 		)
 
 		for payment in self.repayment_details:
@@ -1976,7 +1979,9 @@ class LoanRepayment(LoanController):
 
 		return amount_paid
 
-	def apply_allocation_order(self, allocation_order, pending_amount, demands, status=None):
+	def apply_allocation_order(
+		self, allocation_order, pending_amount, demands, status=None, allocate_interest=False
+	):
 		"""Allocate amount based on allocation order"""
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
@@ -2028,11 +2033,7 @@ class LoanRepayment(LoanController):
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
-			if (
-				d.demand_type == "Interest"
-				and self.repayment_type == "Partial Settlement"
-				and pending_amount > 0
-			):
+			if d.demand_type == "Interest" and allocate_interest and pending_amount > 0:
 				pending_amount = self.adjust_component(
 					pending_amount, "EMI", demands, demand_subtype="Interest"
 				)
@@ -2050,7 +2051,11 @@ class LoanRepayment(LoanController):
 		precision = cint(frappe.db.get_default("currency_precision")) or 2
 
 		if self.get("loan_partner"):
-			partner_share = self.get_overall_partner_share(amount_to_adjust) or 0
+			# EMI interest and principal can be paid in separate steps, so share out the whole EMI amount once
+			emi_rows = [d for d in self.get("repayment_details") if d.demand_type == "EMI"]
+			partner_share = flt(
+				self.get_overall_partner_share(amount_to_adjust + sum(flt(d.paid_amount) for d in emi_rows))
+			) - sum(flt(d.partner_share) for d in emi_rows)
 
 		for demand in demands:
 			paid_amount = 0
@@ -2058,9 +2063,17 @@ class LoanRepayment(LoanController):
 
 			if demand.demand_type == demand_type:
 				if not demand_subtype or demand.demand_subtype == demand_subtype:
-					if amount_to_adjust >= demand.outstanding_amount:
-						paid_amount = flt(demand.outstanding_amount)
-						amount_to_adjust -= flt(demand.outstanding_amount)
+					# an offset order can reach the same demand twice, so leave out what this entry already paid
+					already_paid = sum(
+						flt(d.paid_amount) for d in self.get("repayment_details") if d.loan_demand == demand.name
+					)
+					outstanding_amount = flt(flt(demand.outstanding_amount) - already_paid, precision)
+					if outstanding_amount <= 0:
+						continue
+
+					if amount_to_adjust >= outstanding_amount:
+						paid_amount = flt(outstanding_amount)
+						amount_to_adjust -= flt(outstanding_amount)
 
 						if demand_type == "EMI" and self.get("loan_partner"):
 							partner_share_paid = self.get_loan_partner_share_paid(0, paid_amount, demand) or 0
@@ -2070,9 +2083,12 @@ class LoanRepayment(LoanController):
 						amount_to_adjust = 0
 
 						if demand_type == "EMI" and self.get("loan_partner"):
-							partner_share_paid = (
-								self.get_loan_partner_share_paid(partner_share, paid_amount, demand) or 0
+							# an earlier full payment can use up more than the partner's ratio, so never go below 0
+							partner_share_paid = max(
+								flt(self.get_loan_partner_share_paid(partner_share, paid_amount, demand)), 0
 							)
+							if self.loan_partner_repayment_schedule_type == "EMI (PMT) based":
+								partner_share_paid = min(partner_share_paid, flt(demand.partner_outstanding))
 							partner_share -= partner_share_paid
 
 					if flt(paid_amount, precision) > 0:
@@ -3232,6 +3248,9 @@ def update_installment_counts(against_loan, loan_disbursement=None):
 
 	schedule = frappe.db.get_value("Loan Repayment Schedule", schedule_filters, "name")
 
+	if not schedule:
+		return
+
 	frappe.db.set_value(
 		"Loan Repayment Schedule",
 		schedule,
@@ -3354,6 +3373,8 @@ def get_accrued_interest(
 			& (LoanInterestAccrual.docstatus == 1)
 			& (LoanInterestAccrual.posting_date < posting_date)
 			& (LoanInterestAccrual.interest_type == interest_type)
+			# Imported accruals already have a matching imported demand.
+			& (LoanInterestAccrual.is_imported == 0)
 		)
 	)
 
@@ -3395,6 +3416,8 @@ def get_unbooked_interest_for_bulk_loans(loans, posting_date):
 		)
 		.where(loan_interest_accrual_doc.interest_type == "Normal Interest")
 		.where(loan_interest_accrual_doc.docstatus == 1)
+		# Imported accruals already have a matching imported demand.
+		.where(loan_interest_accrual_doc.is_imported == 0)
 		.where(loan_interest_accrual_doc.posting_date < posting_date)
 		.groupby(loan_interest_accrual_doc.loan)
 		.select(

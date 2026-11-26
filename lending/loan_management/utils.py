@@ -5,6 +5,8 @@ from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt, getdate
 
+import erpnext
+
 
 def get_payment_entries_for_bank_clearance(
 	from_date, to_date, account, bank_account, include_reconciled_entries, include_pos_transactions
@@ -118,7 +120,7 @@ def get_ld_matching_query(bank_account, exact_match, transaction):
 	query = (
 		frappe.qb.from_(loan_disbursement)
 		.select(
-			ref_rank + party_rank + 1,
+			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Disbursement").as_("doctype"),
 			loan_disbursement.name,
 			loan_disbursement.disbursed_amount,
@@ -156,7 +158,7 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 	query = (
 		frappe.qb.from_(loan_repayment)
 		.select(
-			ref_rank + party_rank + 1,
+			(ref_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Loan Repayment").as_("doctype"),
 			loan_repayment.name,
 			loan_repayment.amount_paid,
@@ -362,6 +364,11 @@ def gl_consolidation_enabled(company: str, posting_date=None) -> bool:
 	return getdate(posting_date or getdate()) >= getdate(start_date)
 
 
+def get_loan_cost_center(loan: str, company: str) -> str | None:
+	cost_center = frappe.db.get_value("Loan", loan, "cost_center", cache=True)
+	return cost_center or erpnext.get_default_cost_center(company)
+
+
 def update_repayment_schedule_demand_generated(
 	loan,
 	loan_disbursement=None,
@@ -394,6 +401,17 @@ def update_repayment_schedule_demand_generated(
 
 	if to_date:
 		query = query.where(RS.payment_date < to_date)
+
+	if not demand_generated:
+		# Skipped installments of an Installment Skip schedule have nothing payable and never get
+		# a demand. Keep them marked.
+		skip_schedules = (
+			frappe.qb.from_(LRS)
+			.select(LRS.name)
+			.where(LRS.loan == loan)
+			.where(LRS.restructure_type == "Installment Skip")
+		)
+		query = query.where((RS.total_payment > 0) | RS.parent.notin(skip_schedules))
 
 	query.run()
 

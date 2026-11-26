@@ -5,10 +5,12 @@
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, flt, get_datetime, random_string
+from frappe.utils import add_days, add_months, flt, get_datetime, getdate, random_string
 
+from lending.loan_management.doctype.loan.loan import move_unpaid_interest_to_suspense_ledger
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
+	get_unbooked_interest_for_bulk_loans,
 	process_pending_credit_notes,
 )
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -760,7 +762,7 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 				"opening_additional_outstanding": 1500,
 				"opening_charge_outstanding": 800,
 				"opening_interest_outstanding": 28500,
-				"opening_principal_outstanding": 375000,
+				"opening_principal_outstanding": 100000,
 				"opening_penalty_outstanding": 3200,
 			}],
 		)
@@ -773,6 +775,125 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 		self.assertTrue(frappe.db.exists("Loan Disbursement", {"against_loan": loan.name, "is_imported": 1}))
 		self.assertTrue(frappe.db.exists("Loan Interest Accrual", {"loan": loan.name, "is_imported": 1}))
 		self.assertTrue(frappe.db.exists("Loan Demand", {"loan": loan.name, "is_imported": 1}))
+
+	def test_migrated_loan_opening_gl_entries(self):
+		self.assertRaises(frappe.ValidationError, self.make_imported_loan, opening_principal=5000)
+
+		loan = self.make_imported_loan()
+
+		demanded_principal = frappe.db.sql(
+			"""select sum(rs.principal_amount) from `tabRepayment Schedule` rs
+			join `tabLoan Repayment Schedule` lrs on rs.parent = lrs.name
+			where lrs.loan = %s and lrs.docstatus = 1 and rs.demand_generated = 1""",
+			loan.name,
+		)[0][0]
+		undemanded_principal = flt(12000 - demanded_principal, 2)
+
+		self.assertEqual(
+			self.get_loan_balances(loan.name),
+			{
+				"Loan Account - _TC": flt(1000 + undemanded_principal, 2),
+				"Interest Receivable - _TC": 120,
+				"Penalty Receivable - _TC": 30,
+				"Additional Interest Receivable - _TC": 20,
+				"Payment Account - _TC": flt(-1170 - undemanded_principal, 2),
+			},
+		)
+
+		create_repayment_entry(loan.name, "2024-06-15", 1170).submit()
+		balances = self.get_loan_balances(loan.name)
+		self.assertEqual(balances["Loan Account - _TC"], undemanded_principal)
+		self.assertEqual(balances["Interest Receivable - _TC"], 0)
+		self.assertEqual(balances["Penalty Receivable - _TC"], 0)
+		self.assertEqual(balances["Additional Interest Receivable - _TC"], 0)
+
+		loan.make_gl_entries(cancel=1)
+		opening_balances = frappe.db.sql(
+			"""select account, sum(debit) - sum(credit) from `tabGL Entry`
+			where voucher_type = 'Loan' and voucher_no = %s group by account""",
+			loan.name,
+		)
+		self.assertEqual(len(opening_balances), 5)
+		self.assertEqual({flt(balance, 2) for _account, balance in opening_balances}, {0})
+
+	def test_migrated_loan_opening_interest_moves_to_suspense_once(self):
+		loan = self.make_imported_loan(opening_penalty=0, opening_additional=0)
+
+		move_unpaid_interest_to_suspense_ledger(loan.name, "2024-06-20", "2024-06-20")
+
+		suspense = frappe.db.sql(
+			"""select sum(credit) - sum(debit) from `tabGL Entry`
+			where account = 'Suspense Income Account - _TC' and against_voucher = %s and is_cancelled = 0""",
+			loan.name,
+		)[0][0]
+		self.assertEqual(flt(suspense, 2), 120)
+		self.assertFalse(get_unbooked_interest_for_bulk_loans([loan.name], "2024-06-20").get(loan.name))
+
+	def test_migrated_loan_accrual_starts_after_migration_date(self):
+		accruals = {}
+		for opening_interest in (120, 0):
+			loan = self.make_imported_loan(opening_interest=opening_interest)
+			process_loan_interest_accrual_for_loans(posting_date="2024-06-30", loan=loan.name, company="_Test Company")
+			accruals[opening_interest] = frappe.get_all(
+				"Loan Interest Accrual",
+				filters={"loan": loan.name, "docstatus": 1, "is_imported": 0, "interest_type": "Normal Interest"},
+				fields=["start_date", "posting_date", "interest_amount"],
+				order_by="start_date",
+			)
+
+		self.assertEqual(getdate(accruals[0][0].start_date), getdate("2024-06-16"))
+		self.assertEqual(accruals[0], accruals[120])
+
+	def test_migrated_loan_needs_repayment_start_date(self):
+		loan = self.make_imported_loan(submit=False, loan_product="Term Loan Product 1")
+		loan.repayment_start_date = None
+		self.assertRaises(frappe.ValidationError, loan.save)
+
+	def make_imported_loan(
+		self,
+		opening_principal=1000,
+		opening_interest=120,
+		opening_penalty=30,
+		opening_additional=20,
+		submit=True,
+		loan_product="Term Loan Product 4",
+	):
+		loan = create_loan(
+			"_Test Customer 1",
+			loan_product,
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			applicant_type="Customer",
+			repayment_start_date="2024-02-15",
+			posting_date="2024-01-15",
+			rate_of_interest=12,
+			repayment_frequency="Monthly",
+			migration_date="2024-06-15",
+			is_imported=1,
+			loan_import_details=[{
+				"disbursed_amount": 12000,
+				"disbursement_date": "2024-01-15",
+				"loan_disbursement_id": f"DISB-OPEN-{random_string(5).upper()}",
+				"opening_principal_outstanding": opening_principal,
+				"opening_interest_outstanding": opening_interest,
+				"opening_penalty_outstanding": opening_penalty,
+				"opening_additional_outstanding": opening_additional,
+			}],
+		)
+		if submit:
+			loan.submit()
+		return loan
+
+
+	def get_loan_balances(self, loan):
+		balances = frappe.db.sql(
+			"""select account, sum(debit) - sum(credit) from `tabGL Entry`
+			where against_voucher_type = 'Loan' and against_voucher = %s and is_cancelled = 0
+			group by account""",
+			loan,
+		)
+		return {account: flt(balance, 2) for account, balance in balances}
 
 	def test_closed_migrated_loan_import(self):
 		loan = create_loan(

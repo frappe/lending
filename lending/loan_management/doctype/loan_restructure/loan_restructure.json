@@ -68,6 +68,9 @@
   "treatment_of_penal_interest",
   "section_break_ulrx",
   "loan_restructure_charges",
+  "skip_section",
+  "skipped_installments",
+  "loan_installment_skip_request",
   "loan_restructure_details_section",
   "new_rate_of_interest",
   "repayment_start_date",
@@ -261,7 +264,7 @@
    "fieldname": "restructure_type",
    "fieldtype": "Select",
    "label": "Restructure Type",
-   "options": "Normal Restructure\nPre Payment\nAdvance Payment"
+   "options": "Normal Restructure\nPre Payment\nAdvance Payment\nInstallment Skip"
   },
   {
    "fieldname": "penalty_overdue",
@@ -519,12 +522,34 @@
    "fieldtype": "Table",
    "label": "Loan Restructure Charges",
    "options": "Loan Restructure Charges"
+  },
+  {
+   "depends_on": "eval:doc.restructure_type == 'Installment Skip'",
+   "fieldname": "skip_section",
+   "fieldtype": "Section Break",
+   "label": "Installments to Skip"
+  },
+  {
+   "depends_on": "eval:doc.restructure_type == 'Installment Skip'",
+   "fieldname": "skipped_installments",
+   "fieldtype": "Table",
+   "label": "Skipped Installments",
+   "options": "Loan Skipped Installment"
+  },
+  {
+   "depends_on": "eval:doc.restructure_type == 'Installment Skip'",
+   "fieldname": "loan_installment_skip_request",
+   "fieldtype": "Link",
+   "label": "Installment Skip Request",
+   "no_copy": 1,
+   "options": "Loan Installment Skip Request",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-27 10:03:31.735055",
+ "modified": "2026-10-27 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Restructure",

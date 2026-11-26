@@ -3,6 +3,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
 from frappe.utils import add_days, date_diff, flt, getdate
 
+from lending.loan_management.doctype.loan_demand.loan_demand import create_loan_demand
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	process_interest_accrual_batch,
 )
@@ -15,6 +16,7 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_repayment_entry,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 )
@@ -303,6 +305,82 @@ class TestLoanInterestAccrual(LendingTestSuite):
 
 		self.assertEqual(accrual_sum_till_freeze_date, amounts["unbooked_interest"])
 		self.assertEqual(amounts["unaccrued_interest"], 0)
+
+	def test_demand_loan_interest_demand(self):
+		set_loan_accrual_frequency("Monthly")
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+		LoanDemand = DocType("Loan Demand")
+
+		loan = create_loan(
+			self.applicant2,
+			"Demand Loan",
+			50000,
+			None,
+			rate_of_interest=12,
+			posting_date="2024-08-01",
+			repayment_start_date="2024-08-01",
+		)
+		loan.submit()
+
+		accrual_filters = {"loan": loan.name, "docstatus": 1, "interest_type": "Normal Interest"}
+		demand_filters = {"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest"}
+
+		# Second disbursement before the first interest demand
+		make_loan_disbursement_entry(loan.name, 25000, disbursement_date="2024-08-01")
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-08-10", loan=loan.name, company="_Test Company"
+		)
+		make_loan_disbursement_entry(loan.name, 25000, disbursement_date="2024-08-11")
+		process_daily_loan_demands(posting_date="2024-08-11", loan=loan.name)
+
+		# Accrual and demand run for the same date, then a repayment
+		process_loan_interest_accrual_for_loans(
+			posting_date="2024-08-31", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2024-08-31", loan=loan.name)
+		repayment_entry = create_repayment_entry(loan.name, "2024-09-01", 10000)
+		repayment_entry.submit()
+
+		# Interest already demanded must not be paid again
+		interest_accrued = frappe.db.get_value(
+			"Loan Interest Accrual",
+			{**accrual_filters, "posting_date": ("<", "2024-09-01")},
+			fn.Sum(LoanInterestAccrual.interest_amount),
+		)
+		self.assertEqual(flt(repayment_entry.total_interest_paid, 2), flt(interest_accrued, 2))
+
+		# Like the scheduler: accrual for yesterday, then demand for today
+		for accrual_date, demand_date in (("2024-09-02", "2024-09-03"), ("2024-09-03", "2024-09-04")):
+			process_loan_interest_accrual_for_loans(
+				posting_date=accrual_date, loan=loan.name, company="_Test Company"
+			)
+			process_daily_loan_demands(posting_date=demand_date, loan=loan.name)
+
+		# Repayment on a demand date makes its own accrual for that date
+		create_repayment_entry(loan.name, "2024-09-04", 3000).submit()
+
+		# Extra interest demanded before this fix is taken off the next demand
+		for accrual_date, demand_date, extra_demand in (
+			("2024-09-30", "2024-10-01", 10),
+			("2024-10-31", "2024-11-01", 0),
+		):
+			process_loan_interest_accrual_for_loans(
+				posting_date=accrual_date, loan=loan.name, company="_Test Company"
+			)
+			process_daily_loan_demands(posting_date=demand_date, loan=loan.name)
+
+			self.assertEqual(
+				flt(frappe.db.get_value("Loan Demand", demand_filters, fn.Sum(LoanDemand.demand_amount)), 2),
+				flt(
+					frappe.db.get_value(
+						"Loan Interest Accrual", accrual_filters, fn.Sum(LoanInterestAccrual.interest_amount)
+					),
+					2,
+				),
+			)
+
+			if extra_demand:
+				create_loan_demand(loan.name, demand_date, "Normal", "Interest", extra_demand)
 
 
 def get_loan_object(loan_doc):
