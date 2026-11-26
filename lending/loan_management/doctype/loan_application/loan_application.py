@@ -349,7 +349,7 @@ def create_loan(source_name: str, target_doc: str | None = None, submit: int = 0
 		{
 			"Loan Application": {
 				"doctype": "Loan",
-				"validation": {"docstatus": ["=", 1]},
+				"validation": {"docstatus": ["=", 1], "status": ["=", "Approved"]},
 				"postprocess": update_accounts,
 			}
 		},
