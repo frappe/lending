@@ -149,12 +149,12 @@ class TestLoanApplication(LendingTestSuite):
 
 		self.assertEqual(loan_application.repayment_frequency, "Monthly")
 
-	def test_loan_needs_an_approved_application(self):
+	def test_create_loan_only_from_approved_application(self):
 		application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
 		application.status = "Open"
 		application.submit()
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaisesRegex(frappe.ValidationError, "status=Approved"):
 			create_loan(application.name)
 
 		application.db_set("status", "Approved")
@@ -162,3 +162,8 @@ class TestLoanApplication(LendingTestSuite):
 		application.db_set("status", "Rejected")
 		with self.assertRaisesRegex(frappe.ValidationError, "not Approved"):
 			loan.save()
+
+		application.db_set("status", "Approved")
+		loan = create_loan(application.name)
+		loan.save()
+		self.assertEqual(loan.loan_application, application.name)
