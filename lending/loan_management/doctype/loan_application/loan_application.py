@@ -300,13 +300,18 @@ class LoanApplication(Document):
 
 	def throw_repayment_amount_too_low(self, interest_amount):
 		currency = frappe.get_cached_value("Company", self.company, "default_currency")
+		if self.repayment_method == "Repay Over Number of Periods":
+			advice = _("Please reduce the Repayment Periods.")
+		else:
+			advice = _("Please increase the Repayment Amount.")
+
 		frappe.throw(
-			_(
-				"Repayment Amount {0} does not cover the interest of {1} for each period. Please increase the Repayment Amount or the number of Repayment Periods."
-			).format(
+			_("Repayment Amount {0} does not cover the interest of {1} for each period.").format(
 				fmt_money(self.repayment_amount, currency=currency),
 				fmt_money(interest_amount, currency=currency),
 			)
+			+ " "
+			+ advice
 		)
 
 	def set_loan_amount(self):

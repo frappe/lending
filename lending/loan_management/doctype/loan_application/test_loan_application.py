@@ -183,5 +183,5 @@ class TestLoanApplication(LendingTestSuite):
 		loan_application.repayment_method = "Repay Fixed Amount per Period"
 		loan_application.repayment_amount = 1916.67
 
-		with self.assertRaisesRegex(frappe.ValidationError, "does not cover the interest"):
+		with self.assertRaisesRegex(frappe.ValidationError, "increase the Repayment Amount"):
 			loan_application.save()
