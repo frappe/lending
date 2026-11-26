@@ -631,10 +631,20 @@ class Loan(LoanController):
 			self.db_set("total_payment", self.total_payment)
 
 	def validate_loan_application(self):
-		if not self.loan_application or not self.is_new():
+		# also on submit: a draft loan may predate this check
+		if not self.loan_application or not (self.is_new() or self._action == "submit"):
 			return
 
-		status = frappe.db.get_value("Loan Application", self.loan_application, "status")
+		docstatus, status = frappe.db.get_value(
+			"Loan Application", self.loan_application, ["docstatus", "status"]
+		)
+		if docstatus != 1:
+			frappe.throw(
+				_("Loan Application {0} must be submitted before a Loan can be made from it").format(
+					self.loan_application
+				)
+			)
+
 		if status != "Approved":
 			frappe.throw(_("Loan Application {0} is {1}, not Approved").format(self.loan_application, _(status)))
 
