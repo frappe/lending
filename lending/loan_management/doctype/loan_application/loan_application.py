@@ -10,7 +10,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder import Criterion
-from frappe.utils import cint, flt, rounded
+from frappe.utils import cint, flt, fmt_money
 
 from lending.loan_management.doctype.loan.loan import (
 	get_sanctioned_amount_limit,
@@ -280,26 +280,32 @@ class LoanApplication(Document):
 			self.total_payable_amount = self.loan_amount
 
 	def calculate_payable_amount(self):
-		balance_amount = self.loan_amount
-		self.total_payable_amount = 0
+		precision = cint(frappe.db.get_default("currency_precision")) or 2
+		periodic_rate = flt(self.rate_of_interest) / (get_frequency(self.repayment_frequency or "Monthly") * 100)
+		balance_amount = flt(self.loan_amount)
 		self.total_payable_interest = 0
 
 		while balance_amount > 0:
-			interest_amount = rounded(
-				balance_amount * flt(self.rate_of_interest) / (get_frequency(self.repayment_frequency or "Monthly") * 100)
-			)
-			next_balance_amount = rounded(balance_amount + interest_amount - self.repayment_amount)
+			interest_amount = flt(balance_amount * periodic_rate, precision)
+			next_balance_amount = flt(balance_amount + interest_amount - self.repayment_amount, precision)
 			if next_balance_amount >= balance_amount:
-				frappe.throw(
-					_("Repayment Amount {0} does not reduce the balance, the interest per period is {1}").format(
-						self.repayment_amount, interest_amount
-					)
-				)
+				self.throw_repayment_amount_too_low(interest_amount)
+
 			balance_amount = next_balance_amount
+			self.total_payable_interest = flt(self.total_payable_interest + interest_amount, precision)
 
-			self.total_payable_interest += interest_amount
+		self.total_payable_amount = flt(self.loan_amount + self.total_payable_interest, precision)
 
-		self.total_payable_amount = self.loan_amount + self.total_payable_interest
+	def throw_repayment_amount_too_low(self, interest_amount):
+		currency = frappe.get_cached_value("Company", self.company, "default_currency")
+		frappe.throw(
+			_(
+				"Repayment Amount {0} does not cover the interest of {1} for each period. Please increase the Repayment Amount or the number of Repayment Periods."
+			).format(
+				fmt_money(self.repayment_amount, currency=currency),
+				fmt_money(interest_amount, currency=currency),
+			)
+		)
 
 	def set_loan_amount(self):
 		if self.is_secured_loan and not self.proposed_pledges:
