@@ -976,7 +976,13 @@ class TestDemandWaiverOnExcessAmount(LendingTestSuite):
 class TestPenalWaiverOnAutoClose(LendingTestSuite):
 	@classmethod
 	def make_class_data(cls):
-		loan_classification_ranges()
+		# penalty waivers must reach Additional Interest demands, which only this offset order has
+		frappe.db.set_value(
+			"Company",
+			"_Test Company",
+			"collection_offset_sequence_for_standard_asset",
+			"Test Standard Loan Demand Offset Order",
+		)
 
 	def test_excess_amount_for_penal_waiver(self):
 		loan = create_loan(
