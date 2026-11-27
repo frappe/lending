@@ -723,6 +723,25 @@ class LoanRepayment(LoanController):
 				value_change=self.principal_amount_paid,
 			)
 
+	def before_cancel(self):
+		self.validate_cancel_after_restructure()
+
+	def validate_cancel_after_restructure(self):
+		from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
+			get_last_restructure,
+		)
+
+		if self.loan_restructure:
+			return
+
+		restructure = get_last_restructure(self.against_loan)
+		if restructure and getdate(self.value_date) <= getdate(restructure.restructure_date):
+			frappe.throw(
+				_(
+					"Cannot cancel a payment dated on or before {0}, the date of Normal Restructure {1}. Cancel the Loan Restructure first."
+				).format(frappe.bold(getdate(restructure.restructure_date)), frappe.bold(restructure.name))
+			)
+
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_demand.loan_demand import reverse_demands
 		from lending.loan_management.doctype.loan_npa_log.loan_npa_log import delink_npa_logs
