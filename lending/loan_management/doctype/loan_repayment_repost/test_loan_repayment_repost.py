@@ -124,3 +124,64 @@ class TestLoanRepaymentRepost(FrappeTestCase):
 		)
 		for demand in demands:
 			self.assertEqual(demand.outstanding_amount, 0)
+
+	def test_repost_counts_only_payments_after_restructure(self):
+		set_loan_accrual_frequency(loan_accrual_frequency="Weekly")
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 1",
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		process_daily_loan_demands(posting_date="2025-03-05", loan=loan.name)
+		payable_amount = calculate_amounts(loan.name, "2025-03-05")["payable_amount"]
+		repayment = create_repayment_entry(loan.name, "2025-03-05", payable_amount)
+		repayment.submit()
+
+		restructure = frappe.new_doc("Loan Restructure")
+		restructure.loan = loan.name
+		restructure.restructure_type = "Normal Restructure"
+		restructure.restructure_date = "2025-03-05"
+		restructure.repayment_start_date = "2025-04-05"
+		restructure.new_repayment_period_in_months = 6
+		restructure.submit()
+		restructure.status = "Approved"
+		restructure.save()
+
+		process_daily_loan_demands(posting_date="2025-04-05", loan=loan.name)
+		payable_amount = calculate_amounts(loan.name, "2025-04-05")["payable_amount"]
+		create_repayment_entry(loan.name, "2025-04-05", payable_amount).submit()
+
+		fields = ["total_principal_paid", "total_amount_paid", "excess_amount_paid"]
+		before = frappe.db.get_value("Loan", loan.name, fields, as_dict=1)
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_restructure": restructure.name, "docstatus": 1}, "name"
+		)
+
+		frappe.get_doc(
+			{"doctype": "Loan Repayment Repost", "loan": loan.name, "repost_date": "2025-03-06"}
+		).submit()
+
+		after = frappe.db.get_value("Loan", loan.name, fields, as_dict=1)
+		for field in fields:
+			self.assertEqual(flt(after[field], 2), flt(before[field], 2))
+		self.assertEqual(frappe.db.get_value("Loan Repayment Schedule", schedule, "status"), "Active")
+
+		repost = frappe.get_doc(
+			{"doctype": "Loan Repayment Repost", "loan": loan.name, "repost_date": "2025-03-05"}
+		)
+		self.assertRaises(frappe.ValidationError, repost.submit)
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(loan.name, "2025-03-04", 500).submit()
+		self.assertRaises(
+			frappe.ValidationError, frappe.get_doc("Loan Repayment", repayment.name).cancel
+		)

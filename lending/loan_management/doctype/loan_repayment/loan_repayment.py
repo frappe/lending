@@ -154,6 +154,7 @@ class LoanRepayment(AccountsController):
 		]:
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
+		self.validate_posting_date_after_restructure()
 		self.check_future_entries()
 		self.validate_security_deposit_amount()
 		self.validate_repayment_type()
@@ -646,6 +647,27 @@ class LoanRepayment(AccountsController):
 			value_change=self.principal_amount_paid,
 		)
 
+	def before_cancel(self):
+		self.validate_cancel_after_restructure()
+
+	def validate_cancel_after_restructure(self):
+		from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
+			get_last_restructure,
+		)
+
+		if self.loan_restructure:
+			return
+
+		restructure = get_last_restructure(self.against_loan)
+		if restructure and getdate(self.posting_date) <= getdate(restructure.restructure_date):
+			frappe.throw(
+				_(
+					"Cannot cancel a payment dated on or before {0}, the date of Normal Restructure {1}. Cancel the Loan Restructure first."
+				).format(
+					frappe.bold(getdate(restructure.restructure_date)), frappe.bold(restructure.name)
+				)
+			)
+
 	def on_cancel(self):
 		from lending.loan_management.doctype.loan_npa_log.loan_npa_log import delink_npa_logs
 		from lending.loan_management.doctype.process_loan_classification.process_loan_classification import (
@@ -828,6 +850,34 @@ class LoanRepayment(AccountsController):
 			)
 			if self.loan_disbursement not in disbursements:
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
+
+	def validate_posting_date_after_restructure(self):
+		from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
+			get_last_restructure,
+		)
+
+		if self.loan_restructure:
+			return
+
+		restructure = get_last_restructure(self.against_loan)
+		if not restructure:
+			return
+
+		posting_date = getdate(self.posting_date)
+		restructure_date = getdate(restructure.restructure_date)
+		# A backdated payment starts a repost, and a repost cannot start on or before the restructure date.
+		if posting_date < restructure_date or (
+			posting_date == restructure_date
+			and frappe.db.exists(
+				"Loan Repayment",
+				{"against_loan": self.against_loan, "docstatus": 1, "posting_date": (">", self.posting_date)},
+			)
+		):
+			frappe.throw(
+				_("Posting Date must be after {0}, the date of Normal Restructure {1}.").format(
+					frappe.bold(restructure_date), frappe.bold(restructure.name)
+				)
+			)
 
 	def check_future_entries(self, cancel=0):
 		if self.is_write_off_waiver:
