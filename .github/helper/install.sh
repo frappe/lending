@@ -1,14 +1,12 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
-cd ~ || exit
-
-sudo apt update
-sudo apt remove mysql-server mysql-client
-sudo apt install libcups2-dev redis-server mariadb-client
-
-pip install frappe-bench
+export PATH="$HOME/pilot/bin:$HOME/.local/bin:$PATH"
+export UV_PYTHON="${UV_PYTHON:-3.14}"
+if [ -n "${GITHUB_PATH:-}" ]; then
+    printf '%s\n' "$HOME/pilot/bin" "$HOME/.local/bin" >> "$GITHUB_PATH"
+fi
 
 LENDING_BRANCH=${BRANCH_TO_CLONE:-develop}
 
@@ -18,6 +16,9 @@ if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix
 elif [[ "$LENDING_BRANCH" == "version-16" || "$LENDING_BRANCH" == "version-16-beta" || "$LENDING_BRANCH" == "version-16-hotfix" ]]; then
     FRAPPE_BRANCH="version-16"
     ERPNEXT_BRANCH="version-16"
+elif [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+    FRAPPE_BRANCH="$(git ls-remote --symref https://github.com/frappe/frappe HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')"
+    ERPNEXT_BRANCH="$(git ls-remote --symref https://github.com/frappe/erpnext HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')"
 else
     FRAPPE_BRANCH="develop"
     ERPNEXT_BRANCH="develop"
@@ -27,44 +28,53 @@ echo "Using Frappe branch: $FRAPPE_BRANCH"
 echo "Using ERPNext branch: $ERPNEXT_BRANCH"
 echo "Using Lending branch: $LENDING_BRANCH"
 
-git clone https://github.com/frappe/frappe --branch $FRAPPE_BRANCH --depth 1
-bench init --skip-assets --frappe-path ~/frappe --python "$(which python)" frappe-bench
-
-mkdir ~/frappe-bench/sites/test_site
-cp -r "${GITHUB_WORKSPACE}/.github/helper/site_config.json" ~/frappe-bench/sites/test_site/
-
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
-
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'"
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "CREATE DATABASE test_frappe"
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'"
-
-mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "FLUSH PRIVILEGES"
-
 install_whktml() {
-    wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
+    wget -q -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
     tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
     sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
     sudo chmod o+x /usr/local/bin/wkhtmltopdf
 }
 install_whktml &
+wkhtml_pid=$!
 
-cd ~/frappe-bench || exit
+curl -fsSL https://raw.githubusercontent.com/frappe/pilot/develop/install.sh | sh -s -- --ci
 
-sed -i 's/watch:/# watch:/g' Procfile
-sed -i 's/schedule:/# schedule:/g' Procfile
-sed -i 's/socketio:/# socketio:/g' Procfile
-sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
+pilot new frappe-bench --frappe-branch "$FRAPPE_BRANCH"
+pilot -b frappe-bench set-bench-config python "3.14"
+pilot -b frappe-bench set-bench-config admin_allow_site_to_pilot_communication false
+pilot -b frappe-bench set-bench-config watch_apps_js false
+pilot -b frappe-bench set-bench-config mariadb_existing true
+pilot -b frappe-bench set-bench-config mariadb_host 127.0.0.1
+pilot -b frappe-bench set-bench-config mariadb_port 3306
+pilot -b frappe-bench set-bench-config mariadb_admin_user root
+pilot -b frappe-bench set-bench-config mariadb_password root
+pilot -b frappe-bench init --skip-frontend
 
-bench get-app payments
-bench get-app https://github.com/frappe/erpnext --branch $ERPNEXT_BRANCH --resolve-deps
-bench setup requirements --dev
+printf '[client]\nskip-ssl\n' > ~/.my.cnf
+mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
-bench start &> bench_run_logs.txt &
-CI=Yes bench build --app frappe &
-bench --site test_site reinstall --yes
+cd "$HOME/pilot/benches/frappe-bench" || exit 1
 
-bench get-app "${GITHUB_WORKSPACE}"
-bench --site test_site install-app lending
-bench setup requirements --dev
+uv pip install --python env/bin/python -e "apps/frappe[test]"
+pilot get-app https://github.com/frappe/payments --skip-assets
+pilot get-app https://github.com/frappe/erpnext --branch "$ERPNEXT_BRANCH" --skip-assets
+pilot get-app "${GITHUB_WORKSPACE}" --branch "$GITHUB_SHA" --skip-assets
+
+pilot -b frappe-bench start > "${RUNNER_TEMP:-/tmp}/pilot.log" 2>&1 &
+curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 \
+    http://127.0.0.1:7000/api/v1/health
+
+mkdir -p sites/assets && echo '{}' > sites/assets/assets.json
+
+site_name="${SITE_NAME:-test_site}"
+pilot new-site "$site_name" --admin-password admin --apps frappe payments erpnext lending --skip-assets
+pilot frappe --site "$site_name" set-config -p allow_tests True
+pilot frappe --site "$site_name" set-config host_name "http://test_site:8000"
+pilot frappe --site "$site_name" set-config auto_email_id "test@example.com"
+pilot frappe --site "$site_name" set-config mail_server "smtp.example.com"
+pilot frappe --site "$site_name" set-config mail_login "test@example.com"
+pilot frappe --site "$site_name" set-config mail_password "test"
+pilot frappe --site "$site_name" set-config -p throttle_user_limit 100
+
+wait "$wkhtml_pid"
