@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "autoname": "LSPU-.#####",
+ "creation": "2026-10-14 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "loan_security_type",
+  "price_date",
+  "column_break_meta",
+  "holiday_list",
+  "missing_count",
+  "section_break_items",
+  "items",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "loan_security_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Loan Security Type",
+   "options": "Loan Security Type",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "description": "The prices are valid from this date",
+   "fieldname": "price_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Price Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Days in this list do not count as working days for the price validity. When blank, every day counts",
+   "fieldname": "holiday_list",
+   "fieldtype": "Link",
+   "label": "Holiday List",
+   "options": "Holiday List"
+  },
+  {
+   "description": "Securities of this type in a Pledged assignment that have no row here. Their value is 0 after their current price runs out",
+   "fieldname": "missing_count",
+   "fieldtype": "Int",
+   "label": "Pledged Securities Without a Price",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Prices",
+   "options": "Loan Security Price Update Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Loan Security Price Update",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Loan Security Price Update",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Reporter"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "loan_security_type",
+ "track_changes": 1
+}

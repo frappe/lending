@@ -1,25 +1,83 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.utils import add_days, nowdate
 
+from lending.loan_management.doctype.loan.loan import unpledge_security
 from lending.loan_management.doctype.loan_application.loan_application import (
 	create_loan_security_assignment,
 )
+from lending.loan_management.doctype.loan_security_assignment.loan_security_assignment import (
+	release_loan_security_assignment,
+)
 from lending.loan_management.doctype.loan_security_release.loan_security_release import (
+	get_current_pledges,
 	get_pledged_security_qty,
 )
 from lending.tests.test_utils import (
 	create_loan,
+	create_loan_application,
 	create_loan_security,
 	create_loan_security_price,
 	create_loan_security_release,
 	create_loan_security_type,
+	create_loan_with_security,
 	make_loan_disbursement_entry,
 	set_loan_accrual_frequency,
 )
 from lending.tests.utils import LendingTestSuite
+
+APPLICANT = "_Test Loan Customer"
+
+
+def make_pledge(securities, loan=None, applicant=APPLICANT):
+	lsa = frappe.new_doc("Loan Security Assignment")
+	lsa.update(
+		{
+			"applicant_type": "Customer",
+			"applicant": applicant,
+			"company": "_Test Company",
+			"loan": loan,
+			"securities": securities,
+		}
+	)
+	return lsa.insert()
+
+
+def make_loan():
+	loan = create_loan(
+		"_Test Customer 1",
+		"Term Loan Product 5",
+		100000,
+		"Repay Over Number of Periods",
+		12,
+		repayment_start_date="2024-04-05",
+		posting_date="2024-03-06",
+		rate_of_interest=25,
+		applicant_type="Customer",
+		limit_applicable_start="2024-01-05",
+		limit_applicable_end="2024-12-05",
+	)
+	loan.submit()
+	return loan
+
+
+def make_release(securities):
+	release = frappe.new_doc("Loan Security Release")
+	release.update(
+		{
+			"applicant_type": "Customer",
+			"applicant": APPLICANT,
+			"company": "_Test Company",
+			"securities": securities,
+		}
+	)
+	release.insert()
+	release.submit()
+	return release
 
 
 class TestLoanSecurityAssignment(LendingTestSuite):
@@ -166,3 +224,261 @@ class TestLoanSecurityAssignment(LendingTestSuite):
 		release.db_set("unpledge_time", None)
 		later = create_loan_security_assignment(loan=loan.name, securities=pledge)
 		self.assertRaises(frappe.ValidationError, frappe.get_doc("Loan Security Assignment", later).cancel)
+
+	def test_lien_reference_is_optional(self):
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
+		lsa.submit()
+		self.assertEqual(lsa.status, "Pledged")
+
+		lsa = make_pledge([{"loan_security": "Test Security 2", "qty": 100, "lien_reference": "PSN-55821"}])
+		lsa.submit()
+		self.assertEqual(lsa.securities[0].lien_reference, "PSN-55821")
+
+	def test_application_pledge_is_pledged_by_the_loan_without_lien_reference(self):
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+		lsa = create_loan_security_assignment(loan_application)
+
+		loan = create_loan_with_security(
+			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		loan.submit()
+
+		self.assertEqual(frappe.db.get_value("Loan Security Assignment", lsa, "status"), "Pledged")
+
+	def test_disabled_security_cannot_be_pledged(self):
+		frappe.db.set_value("Loan Security", "Test Security 1", "disabled", 1)
+
+		self.assertRaises(
+			frappe.ValidationError, make_pledge, [{"loan_security": "Test Security 1", "qty": 100}]
+		)
+
+	def test_security_disabled_after_the_request_is_not_pledged_by_the_loan(self):
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 100, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+		create_loan_security_assignment(loan_application)
+		frappe.db.set_value("Loan Security", "Test Security 2", "disabled", 1)
+
+		loan = create_loan_with_security(
+			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+
+		self.assertRaisesRegex(frappe.ValidationError, "is disabled", loan.submit)
+
+	def test_single_security_share_cap(self):
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		# 2,00,000 of Test Security 1 against 25,000 of Test Security 2 is 88.89% in one security.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[
+				{"loan_security": "Test Security 1", "qty": 400},
+				{"loan_security": "Test Security 2", "qty": 100},
+			],
+		)
+
+		lsa = make_pledge(
+			[
+				{"loan_security": "Test Security 1", "qty": 100},
+				{"loan_security": "Test Security 2", "qty": 200},
+			]
+		)
+		self.assertEqual(lsa.total_security_value, 100000)
+
+	def test_exposure_cap_counts_existing_pledges(self):
+		already_pledged = get_current_pledges(securities=["Test Security 1"]).get("Test Security 1", 0)
+		# Room for 1,500 more units at 500 each.
+		frappe.db.set_value(
+			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 1500) * 500
+		)
+
+		make_pledge([{"loan_security": "Test Security 1", "qty": 1000}]).submit()
+
+		self.assertRaises(
+			frappe.ValidationError, make_pledge, [{"loan_security": "Test Security 1", "qty": 600}]
+		)
+		self.assertTrue(make_pledge([{"loan_security": "Test Security 1", "qty": 500}]))
+
+	def test_cap_takes_locks_only_on_submit(self):
+		frappe.db.set_value("Loan Security Type", "Stock", "max_exposure_per_security", 10**9)
+		module = "lending.loan_management.doctype.loan_security_assignment.loan_security_assignment"
+
+		with (
+			patch(f"{module}.lock_loan_securities") as lock,
+			patch(f"{module}.get_current_pledges", wraps=get_current_pledges) as count,
+		):
+			lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
+			lock.assert_not_called()
+			self.assertFalse(count.call_args.kwargs["for_update"])
+
+			lsa.submit()
+			lock.assert_called_once_with(["Test Security 1"])
+			self.assertTrue(count.call_args.kwargs["for_update"])
+
+	def test_release_reference_is_optional(self):
+		make_pledge([{"loan_security": "Test Security 1", "qty": 200}]).submit()
+
+		release = make_release([{"loan_security": "Test Security 1", "qty": 100}])
+		release.status = "Approved"
+		release.save()
+		self.assertTrue(release.unpledge_time)
+
+		release = make_release(
+			[{"loan_security": "Test Security 1", "qty": 100, "release_reference": "UNPLEDGE-1"}]
+		)
+		release.status = "Approved"
+		release.save()
+		self.assertEqual(release.securities[0].release_reference, "UNPLEDGE-1")
+
+	def test_top_up_share_is_measured_across_the_loan(self):
+		loan = make_loan()
+		make_pledge([{"loan_security": "Test Security 1", "qty": 1000}], loan=loan.name).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		# 1,00,000 next to the 5,00,000 already on the loan is 16.67%, not 100%.
+		self.assertTrue(make_pledge([{"loan_security": "Test Security 2", "qty": 400}], loan=loan.name))
+
+		# 10,00,000 next to 5,00,000 is 66.67%.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 2", "qty": 4000}],
+			loan=loan.name,
+		)
+
+	def test_release_button_takes_optional_release_reference(self):
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
+		lsa.submit()
+		release_loan_security_assignment(lsa.name)
+		lsa.reload()
+		self.assertEqual(lsa.status, "Released")
+		self.assertFalse(lsa.release_reference)
+
+		lsa = make_pledge([{"loan_security": "Test Security 2", "qty": 100}])
+		lsa.submit()
+		release_loan_security_assignment(lsa.name, " UNPLEDGE-1 ")
+		lsa.reload()
+		self.assertEqual(lsa.release_reference, "UNPLEDGE-1")
+
+	def test_unpledge_security_takes_release_references(self):
+		loan = make_loan()
+		make_pledge([{"loan_security": "Test Security 1", "qty": 100}], loan=loan.name).submit()
+
+		release = unpledge_security(
+			loan=loan.name,
+			save=1,
+			submit=1,
+			approve=1,
+			release_references={"Test Security 1": "UNPLEDGE-1"},
+		)
+		self.assertEqual(release.status, "Approved")
+		self.assertEqual(release.securities[0].release_reference, "UNPLEDGE-1")
+
+	def test_requested_pledge_holds_no_exposure_until_the_loan(self):
+		loan_application = create_loan_application(
+			"_Test Company",
+			APPLICANT,
+			"Stock Loan",
+			[{"loan_security": "Test Security 2", "qty": 8000.00, "haircut": 50}],
+			"Repay Over Number of Periods",
+			12,
+		)
+		create_loan_security_assignment(loan_application)
+
+		already_pledged = get_current_pledges(securities=["Test Security 2"]).get("Test Security 2", 0)
+		# Room for 100 more units at 250 each, not for the 8,000 requested as well.
+		frappe.db.set_value(
+			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 100) * 250
+		)
+
+		# The requested pledge is not counted, so another borrower's pledge that fits on its own goes through.
+		make_pledge(
+			[{"loan_security": "Test Security 2", "qty": 100}], applicant="_Test Loan Customer 1"
+		).submit()
+
+		# Creating the loan would mark the 8,000 Pledged, so the cap is checked again.
+		loan = create_loan_with_security(
+			APPLICANT, "Stock Loan", "Repay Over Number of Periods", 12, loan_application
+		)
+		self.assertRaises(frappe.ValidationError, loan.submit)
+
+	def test_exposure_cap_uses_current_price(self):
+		already_pledged = get_current_pledges(securities=["Test Security 1"]).get("Test Security 1", 0)
+		# Room for 100 more units at today's price of 500.
+		frappe.db.set_value(
+			"Loan Security Type", "Stock", "max_exposure_per_security", (already_pledged + 100) * 500
+		)
+
+		# 150 units at an old price of 100 would look like room to spare.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 1", "qty": 150, "loan_security_price": 100}],
+		)
+
+	def test_share_cap_uses_current_price(self):
+		loan = make_loan()
+		make_pledge([{"loan_security": "Test Security 1", "qty": 1000}], loan=loan.name).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		# At the old price of 100 this is 4,00,000 next to 5,00,000 on the loan, 44.44%.
+		# At today's price of 250 it is 10,00,000, 66.67%.
+		self.assertRaises(
+			frappe.ValidationError,
+			make_pledge,
+			[{"loan_security": "Test Security 2", "qty": 4000, "loan_security_price": 100}],
+			loan=loan.name,
+		)
+
+	def test_share_cap_keeps_the_pledged_price_once_it_expires(self):
+		loan = make_loan()
+		make_pledge(
+			[
+				{"loan_security": "Test Security 1", "qty": 1000},
+				{"loan_security": "Test Security 2", "qty": 2000},
+			],
+			loan=loan.name,
+		).submit()
+		frappe.db.set_value("Loan Security Type", "Stock", "max_single_security_pct", 60)
+
+		price = frappe.qb.DocType("Loan Security Price")
+		frappe.qb.update(price).set(price.valid_upto, add_days(nowdate(), -1)).where(
+			price.loan_security == "Test Security 2"
+		).run()
+
+		# 5,05,000 next to the 5,00,000 of Test Security 2 at its pledged price is 50.25%.
+		self.assertTrue(
+			make_pledge([{"loan_security": "Test Security 1", "qty": 10}], loan=loan.name)
+		)
+
+	def test_left_over_releases_do_not_hide_other_pledges(self):
+		before = get_current_pledges(securities=["Test Security 1"]).get("Test Security 1", 0)
+
+		make_pledge(
+			[{"loan_security": "Test Security 1", "qty": 100}], applicant="_Test Loan Customer 1"
+		).submit()
+
+		# This applicant releases 100 units, then the assignment is released as well.
+		lsa = make_pledge([{"loan_security": "Test Security 1", "qty": 100}])
+		lsa.submit()
+		release = make_release([{"loan_security": "Test Security 1", "qty": 100}])
+		release.status = "Approved"
+		release.save()
+		release_loan_security_assignment(lsa.name)
+
+		self.assertEqual(
+			get_current_pledges(securities=["Test Security 1"]).get("Test Security 1", 0), before + 100
+		)

@@ -2,6 +2,19 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Loan Security Assignment', {
+	setup: function(frm) {
+		frm.set_query("mutual_fund_holding", "securities", function(doc, cdt, cdn) {
+			let row = locals[cdt][cdn];
+			return {
+				filters: {
+					applicant_type: doc.applicant_type,
+					applicant: doc.applicant,
+					loan_security: row.loan_security,
+				}
+			};
+		});
+	},
+
 	refresh: function(frm) {
 		if (frm.doc.status === "Release Requested") {
 			frm.add_custom_button(__("Release"), function() {
@@ -27,17 +40,23 @@ frappe.ui.form.on('Loan Security Assignment', {
 	},
 
 	release_loan_security_assignment: function(frm) {
-		frappe.confirm(__("Do you really want to release this loan security assignment?"), function () {
+		frappe.prompt({
+			fieldname: "release_reference",
+			fieldtype: "Data",
+			label: __("Release Reference"),
+			description: __("Optional. The depository unpledge number, the gold handover receipt or the mortgage release deed number."),
+		}, function (values) {
 			frappe.call({
 				args: {
 					"loan_security_assignment": frm.doc.name,
+					"release_reference": values.release_reference,
 				},
 				method: "lending.loan_management.doctype.loan_security_assignment.loan_security_assignment.release_loan_security_assignment",
 				callback: function(r) {
 					frm.reload_doc();
 				}
 			})
-		})
+		}, __("Release Loan Security Assignment"), __("Release"))
 	},
 });
 
