@@ -16,6 +16,9 @@ if [[ "$LENDING_BRANCH" == "version-1" || "$LENDING_BRANCH" == "version-1-hotfix
 elif [[ "$LENDING_BRANCH" == "version-16" || "$LENDING_BRANCH" == "version-16-beta" || "$LENDING_BRANCH" == "version-16-hotfix" ]]; then
     FRAPPE_BRANCH="version-16"
     ERPNEXT_BRANCH="version-16"
+elif [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+    FRAPPE_BRANCH="$(git ls-remote --symref https://github.com/frappe/frappe HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')"
+    ERPNEXT_BRANCH="$(git ls-remote --symref https://github.com/frappe/erpnext HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')"
 else
     FRAPPE_BRANCH="develop"
     ERPNEXT_BRANCH="develop"
@@ -56,7 +59,7 @@ cd "$HOME/pilot/benches/frappe-bench" || exit 1
 uv pip install --python env/bin/python -e "apps/frappe[test]"
 pilot get-app https://github.com/frappe/payments --skip-assets
 pilot get-app https://github.com/frappe/erpnext --branch "$ERPNEXT_BRANCH" --skip-assets
-pilot get-app "${GITHUB_WORKSPACE}" --branch "$githubbranch" --skip-assets
+pilot get-app "${GITHUB_WORKSPACE}" --skip-assets
 
 pilot -b frappe-bench start > "${RUNNER_TEMP:-/tmp}/pilot.log" 2>&1 &
 curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 \
