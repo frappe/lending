@@ -52,3 +52,4 @@ lending.patches.v16_0.update_status_in_loan_repayment_repost
 lending.patches.v16_0.add_process_loan_accounting_fields
 lending.patches.v16_0.link_disbursement_to_legacy_repayment_schedule
 lending.patches.v16_0.convert_collection_offset_sequence_to_offset_order
+lending.patches.v16_0.set_empty_repayment_frequency_to_monthly

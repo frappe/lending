@@ -5,6 +5,9 @@ import frappe
 from frappe.utils import flt, get_datetime, getdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
+from lending.loan_management.doctype.loan_restructure.test_loan_restructure import (
+	create_loan_restructure,
+)
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
@@ -246,6 +249,77 @@ class TestLoanRepaymentRepost(LendingTestSuite):
 
 		loan.load_from_db()
 		self.assertEqual(loan.status, "Written Off")
+
+
+class TestRepostAfterNormalRestructure(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
+
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 1",
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		process_daily_loan_demands(posting_date="2025-03-05", loan=loan.name)
+		payable_amount = calculate_amounts(loan.name, "2025-03-05")["payable_amount"]
+		repayment = create_repayment_entry(loan.name, "2025-03-05", payable_amount)
+		repayment.submit()
+
+		restructure = create_loan_restructure(
+			loan=loan.name,
+			restructure_date="2025-03-05",
+			repayment_start_date="2025-04-05",
+			new_repayment_period_in_months=6,
+			waive_off_restructure_charges=1,
+		)
+		restructure.status = "Approved"
+		restructure.save()
+
+		process_daily_loan_demands(posting_date="2025-04-05", loan=loan.name)
+		payable_amount = calculate_amounts(loan.name, "2025-04-05")["payable_amount"]
+		create_repayment_entry(loan.name, "2025-04-05", payable_amount).submit()
+
+		cls.loan = loan.name
+		cls.restructure = restructure.name
+		cls.repayment_before_restructure = repayment.name
+
+	def test_repost_counts_only_payments_after_restructure(self):
+		fields = ["total_principal_paid", "total_amount_paid", "excess_amount_paid"]
+		before = frappe.db.get_value("Loan", self.loan, fields, as_dict=1)
+		schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan_restructure": self.restructure, "docstatus": 1}, "name"
+		)
+
+		frappe.get_doc(
+			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-03-06"}
+		).submit()
+
+		after = frappe.db.get_value("Loan", self.loan, fields, as_dict=1)
+		for field in fields:
+			self.assertEqual(flt(after[field], 2), flt(before[field], 2))
+		self.assertEqual(frappe.db.get_value("Loan Repayment Schedule", schedule, "status"), "Active")
+
+		repost = frappe.get_doc(
+			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-03-05"}
+		)
+		self.assertRaises(frappe.ValidationError, repost.submit)
+		with self.assertRaises(frappe.ValidationError):
+			create_repayment_entry(self.loan, "2025-03-04", 500).submit()
+		self.assertRaises(
+			frappe.ValidationError,
+			frappe.get_doc("Loan Repayment", self.repayment_before_restructure).cancel,
+		)
 
 
 class TestSameDayRepaymentRepost(LendingTestSuite):

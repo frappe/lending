@@ -698,10 +698,19 @@ class LoanRestructure(AccountsController):
 			schedule.insert()
 
 	def get_new_repayment_frequency(self):
-		if self.old_repayment_frequency == "One Time" and self.new_repayment_period_in_months > 1:
+		old_repayment_frequency = self.old_repayment_frequency or self.get_active_schedule_frequency()
+
+		if old_repayment_frequency == "One Time" and self.new_repayment_period_in_months > 1:
 			return "Monthly"
 
-		return self.old_repayment_frequency
+		return old_repayment_frequency
+
+	def get_active_schedule_frequency(self):
+		filters = {"loan": self.loan, "docstatus": 1, "status": "Active"}
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		return frappe.db.get_value("Loan Repayment Schedule", filters, "repayment_frequency")
 
 	def get_schedule_details(self, adjusted_interest=0):
 		return {
