@@ -1,5 +1,6 @@
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.query_builder import DocType
+from frappe.query_builder import functions as fn
 from frappe.utils import add_days, date_diff, flt, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -14,20 +15,18 @@ from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_
 )
 from lending.tests.test_utils import (
 	create_loan,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanInterestAccrual(FrappeTestCase):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+class TestLoanInterestAccrual(LendingTestSuite):
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_accrual_in_batch_with_freeze_date(self):
 		set_loan_accrual_frequency("Daily")
@@ -79,17 +78,19 @@ class TestLoanInterestAccrual(FrappeTestCase):
 			accrual_date="2024-04-20",
 		)
 
-		last_accrual_date_a = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan_a.name, "docstatus": 1},
-			"MAX(posting_date)",
-		)
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
 
-		last_accrual_date_b = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{"loan": loan_b.name, "docstatus": 1},
-			"MAX(posting_date)",
-		)
+		last_accrual_date_a = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Max(LoanInterestAccrual.posting_date))
+			.where((LoanInterestAccrual.loan == loan_a.name) & (LoanInterestAccrual.docstatus == 1))
+		).run()[0][0]
+
+		last_accrual_date_b = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Max(LoanInterestAccrual.posting_date))
+			.where((LoanInterestAccrual.loan == loan_b.name) & (LoanInterestAccrual.docstatus == 1))
+		).run()[0][0]
 
 		self.assertEqual(getdate(last_accrual_date_a), getdate("2024-04-10"))
 		self.assertEqual(getdate(last_accrual_date_b), getdate("2024-04-20"))
@@ -199,9 +200,14 @@ class TestLoanInterestAccrual(FrappeTestCase):
 		maturity_date = frappe.db.get_value(
 			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1}, "maturity_date"
 		)
-		last_accrual_date = frappe.db.get_value(
-			"Loan Interest Accrual", {"loan": loan.name, "docstatus": 1}, "MAX(posting_date)"
-		)
+
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+		last_accrual_date = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Max(LoanInterestAccrual.posting_date))
+			.where((LoanInterestAccrual.loan == loan.name) & (LoanInterestAccrual.docstatus == 1))
+		).run()[0][0]
+
 		self.assertEqual(getdate(last_accrual_date), add_days(getdate(maturity_date), -1))
 
 		process_loan_interest_accrual_for_loans(
@@ -273,16 +279,18 @@ class TestLoanInterestAccrual(FrappeTestCase):
 		)
 		freeze_date = "2024-04-10"
 
-		accrual_sum_till_freeze_date = frappe.db.get_value(
-			"Loan Interest Accrual",
-			{
-				"loan": loan.name,
-				"docstatus": 1,
-				"posting_date": ("<", freeze_date),
-				"interest_type": "Normal Interest",
-			},
-			"sum(interest_amount)",
-		)
+		LoanInterestAccrual = DocType("Loan Interest Accrual")
+
+		accrual_sum_till_freeze_date = (
+			frappe.qb.from_(LoanInterestAccrual)
+			.select(fn.Sum(LoanInterestAccrual.interest_amount))
+			.where(
+				(LoanInterestAccrual.loan == loan.name)
+				& (LoanInterestAccrual.docstatus == 1)
+				& (LoanInterestAccrual.posting_date < freeze_date)
+				& (LoanInterestAccrual.interest_type == "Normal Interest")
+			)
+		).run()[0][0] or 0
 
 		frappe.db.set_value("Loan", loan.name, {"freeze_account": 1, "freeze_date": freeze_date})
 

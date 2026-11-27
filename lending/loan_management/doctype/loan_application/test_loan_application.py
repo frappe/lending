@@ -1,23 +1,17 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
-import unittest
-
 import frappe
 
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
-from lending.tests.test_utils import (
-	create_loan_accounts,
-	create_loan_product,
-	set_loan_settings_in_company,
-)
+from lending.tests.test_utils import create_loan_product
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanApplication(unittest.TestCase):
-	def setUp(self):
-		set_loan_settings_in_company()
-		create_loan_accounts()
+class TestLoanApplication(LendingTestSuite):
+	@classmethod
+	def make_class_data(cls):
 		create_loan_product(
 			"Home Loan",
 			"Home Loan",
@@ -28,20 +22,22 @@ class TestLoanApplication(unittest.TestCase):
 			0,
 			repayment_schedule_type="Monthly as per repayment start date",
 		)
-		self.applicant = make_employee("kate_loan@loan.com", "_Test Company")
-		self.create_loan_application()
+		cls.applicant = make_employee("kate_loan@loan.com", "_Test Company")
+		cls.create_loan_application()
 
-	def create_loan_application(self):
+	@classmethod
+	def create_loan_application(cls):
 		loan_application = frappe.new_doc("Loan Application")
 		loan_application.update(
 			{
-				"applicant": self.applicant,
+				"applicant": cls.applicant,
 				"loan_product": "Home Loan",
 				"rate_of_interest": 9.2,
 				"loan_amount": 250000,
 				"repayment_method": "Repay Over Number of Periods",
 				"repayment_periods": 18,
 				"company": "_Test Company",
+				"applicant_type": "Employee",
 			}
 		)
 		loan_application.insert()

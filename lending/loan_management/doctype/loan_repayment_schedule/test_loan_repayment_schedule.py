@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, flt, getdate
 
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
@@ -12,28 +11,24 @@ from lending.loan_management.doctype.loan_repayment.loan_repayment import calcul
 from lending.loan_management.doctype.loan_repayment_schedule.utils import (
 	get_monthly_repayment_amount,
 )
-from lending.loan_management.doctype.loan_restructure.loan_restructure import create_loan_repayment
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
 	process_daily_loan_demands,
 )
-from lending.loan_management.doctype.repayment_schedule import repayment_schedule
 from lending.tests.test_utils import (
 	create_loan,
 	create_repayment_entry,
-	init_customers,
-	init_loan_products,
 	make_loan_disbursement_entry,
-	master_init,
 	set_loan_accrual_frequency,
 )
+from lending.tests.utils import LendingTestSuite
 
 
-class TestLoanRepaymentSchedule(FrappeTestCase):
-	def setUp(self):
-		master_init()
-		init_loan_products()
-		init_customers()
-		self.applicant2 = frappe.db.get_value("Customer", {"name": "_Test Loan Customer"}, "name")
+class TestLoanRepaymentSchedule(LendingTestSuite):
+	applicant2 = "_Test Loan Customer"
+
+	@classmethod
+	def make_class_data(cls):
+		set_loan_accrual_frequency("Weekly")
 
 	def test_correct_moratorium_periods_after_restructure(self):
 		loan = create_loan(
@@ -200,7 +195,7 @@ class TestLoanRepaymentSchedule(FrappeTestCase):
 			self.assertEqual(repayment_schedule.repayment_start_date, getdate("2025-08-05"))
 
 	def test_date_after_advance_payment_rescheduling(self):
-		set_loan_accrual_frequency("Daily")
+		set_loan_accrual_frequency("Monthly")
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
