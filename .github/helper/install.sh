@@ -56,7 +56,7 @@ cd "$HOME/pilot/benches/frappe-bench" || exit 1
 uv pip install --python env/bin/python -e "apps/frappe[test]"
 pilot get-app https://github.com/frappe/payments --skip-assets
 pilot get-app https://github.com/frappe/erpnext --branch "$ERPNEXT_BRANCH" --skip-assets
-pilot get-app "${GITHUB_WORKSPACE}" --branch "${GITHUB_SHA}" --skip-assets
+pilot get-app "${GITHUB_WORKSPACE}" --branch "$githubbranch" --skip-assets
 
 pilot -b frappe-bench start > "${RUNNER_TEMP:-/tmp}/pilot.log" 2>&1 &
 curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 \
