@@ -409,6 +409,28 @@ class TestLoanInterestAndClassification(LendingTestSuite):
 		self.assertEqual(loan.available_limit_amount, repayment_entry.principal_amount_paid)
 
 	@with_days_past_due_repost
+	def test_backdated_dpd_resets_when_loan_has_no_emi_demand(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			100000,
+			"Repay Over Number of Periods",
+			30,
+			repayment_start_date="2024-10-05",
+			posting_date="2024-09-15",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		).submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-09-15", repayment_start_date="2024-10-05"
+		)
+		frappe.db.set_value("Loan", loan.name, "days_past_due", 9)
+
+		create_process_loan_classification(posting_date="2024-09-20", loan=loan.name)
+
+		self.assertEqual(frappe.db.get_value("Loan", loan.name, "days_past_due"), 0)
+
+	@with_days_past_due_repost
 	def test_dpd_calculation_for_non_loc_loan_without_disbursement(self):
 		loan = create_loan(
 			"_Test Customer 1",
