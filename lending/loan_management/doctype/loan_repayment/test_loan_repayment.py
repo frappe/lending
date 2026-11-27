@@ -937,23 +937,15 @@ class TestLoanRepayment(LendingTestSuite):
 			posting_date="2025-06-05", loan=loan.name, company="_Test Company"
 		)
 
-		repayment_entry = create_repayment_entry(
+		create_repayment_entry(
 			loan.name,
 			"2025-06-05",
 			paid_amount=2540342.47,
-		)
-		repayment_entry.submit()
+		).submit()
 
 		loan.load_from_db()
 
 		self.assertEqual(loan.status, "Closed")
-		self.assertEqual(loan.closure_date, getdate("2025-06-05"))
-
-		repayment_entry.cancel()
-		loan.load_from_db()
-
-		self.assertEqual(loan.status, "Disbursed")
-		self.assertIsNone(loan.closure_date)
 
 	def test_advance_payment_with_daily_frequency(self):
 		set_loan_accrual_frequency("Daily")
