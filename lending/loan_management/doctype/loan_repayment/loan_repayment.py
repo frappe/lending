@@ -906,10 +906,22 @@ class LoanRepayment(LoanController):
 			return
 
 		restructure = get_last_restructure(self.against_loan)
-		if restructure and get_datetime(self.value_date) < get_datetime(restructure.restructure_date):
+		if not restructure:
+			return
+
+		value_date = getdate(self.value_date)
+		restructure_date = getdate(restructure.restructure_date)
+		# A backdated payment starts a repost, and a repost cannot start on or before the restructure date.
+		if value_date < restructure_date or (
+			value_date == restructure_date
+			and frappe.db.exists(
+				"Loan Repayment",
+				{"against_loan": self.against_loan, "docstatus": 1, "value_date": (">", self.value_date)},
+			)
+		):
 			frappe.throw(
-				_("Value Date must not be before {0}, the date of Normal Restructure {1}.").format(
-					frappe.bold(restructure.restructure_date), frappe.bold(restructure.name)
+				_("Value Date must be after {0}, the date of Normal Restructure {1}.").format(
+					frappe.bold(restructure_date), frappe.bold(restructure.name)
 				)
 			)
 
