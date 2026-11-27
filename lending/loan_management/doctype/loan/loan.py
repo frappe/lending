@@ -1697,14 +1697,6 @@ def update_loan_and_customer_status(
 	else:
 		is_written_off = 0
 
-	if loan_details.get("watch_period_end_date") and getdate(loan_details.get("watch_period_end_date")) >= getdate(posting_date):
-		classification_code = loan_details.get("classification_code")
-		classification_name = loan_details.get("classification_name")
-	else:
-		classification_code, classification_name = get_classification_code_and_name(
-			days_past_due, company, is_written_off=is_written_off
-		)
-
 	if loan_details.get("repayment_schedule_type") == "Line of Credit":
 		if loan_disbursement:
 			frappe.db.set_value(
@@ -1724,6 +1716,15 @@ def update_loan_and_customer_status(
 		).run()[0][0] or 0
 
 		days_past_due = max_dpd
+
+	# Classify on the loan's DPD, which for Line of Credit is the highest across disbursements.
+	if loan_details.get("watch_period_end_date") and getdate(loan_details.get("watch_period_end_date")) >= getdate(posting_date):
+		classification_code = loan_details.get("classification_code")
+		classification_name = loan_details.get("classification_name")
+	else:
+		classification_code, classification_name = get_classification_code_and_name(
+			days_past_due, company, is_written_off=is_written_off
+		)
 
 	if loan_details.get("status") == "Settled":
 		write_off_suspense_entries(loan, loan_details.get("loan_product"), posting_date, posting_date, company)
