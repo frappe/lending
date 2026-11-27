@@ -55,16 +55,16 @@ class TestLoanApplication(LendingTestSuite):
 	def test_loan_totals(self):
 		loan_application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
 
-		self.assertEqual(loan_application.total_payable_interest, 18599)
-		self.assertEqual(loan_application.total_payable_amount, 268599)
+		self.assertEqual(loan_application.total_payable_interest, 18601.44)
+		self.assertEqual(loan_application.total_payable_amount, 268601.44)
 		self.assertEqual(loan_application.repayment_amount, 14923)
 
 		loan_application.repayment_periods = 24
 		loan_application.save()
 		loan_application.reload()
 
-		self.assertEqual(loan_application.total_payable_interest, 24657)
-		self.assertEqual(loan_application.total_payable_amount, 274657)
+		self.assertEqual(loan_application.total_payable_interest, 24657.48)
+		self.assertEqual(loan_application.total_payable_amount, 274657.48)
 		self.assertEqual(loan_application.repayment_amount, 11445)
 
 	def test_approve_submitted_loan_application(self):
@@ -167,3 +167,21 @@ class TestLoanApplication(LendingTestSuite):
 		loan = create_loan(application.name)
 		loan.save()
 		self.assertEqual(loan.loan_application, application.name)
+
+	def test_repayment_amount_just_above_interest(self):
+		loan_application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		loan_application.repayment_method = "Repay Fixed Amount per Period"
+		loan_application.repayment_amount = 1916.9
+		loan_application.save()
+
+		self.assertEqual(loan_application.repayment_periods, 1181)
+		self.assertEqual(loan_application.total_payable_interest, 2012441.92)
+		self.assertEqual(loan_application.total_payable_amount, 2262441.92)
+
+	def test_repayment_amount_equal_to_interest_is_refused(self):
+		loan_application = frappe.get_doc("Loan Application", {"applicant": self.applicant})
+		loan_application.repayment_method = "Repay Fixed Amount per Period"
+		loan_application.repayment_amount = 1916.67
+
+		with self.assertRaisesRegex(frappe.ValidationError, "increase the Repayment Amount"):
+			loan_application.save()
