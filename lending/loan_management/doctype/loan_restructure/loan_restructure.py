@@ -271,6 +271,21 @@ class LoanRestructure(AccountsController):
 
 		return amount_to_adjust
 
+	def before_update_after_submit(self):
+		self.validate_status_change()
+
+	def validate_status_change(self):
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save or doc_before_save.status not in ("Approved", "Rejected"):
+			return
+
+		if self.status != doc_before_save.status:
+			frappe.throw(
+				_("Cannot change the status of a Loan Restructure that is already {0}. Cancel it instead.").format(
+					_(doc_before_save.status)
+				)
+			)
+
 	def on_update_after_submit(self):
 		doc_before_save = self.get_doc_before_save()
 
