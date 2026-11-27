@@ -22,6 +22,7 @@ from lending.loan_origination.doctype.decision_strategy.test_decision_strategy i
 	make_strategy,
 	rule,
 )
+from lending.loan_origination.test_decisioning import DecisioningTestSuite
 from lending.tests.utils import LendingTestSuite
 
 TEST_LOAN_PRODUCT = "Personal Loan"
@@ -180,7 +181,7 @@ class TestVariableSnapshotIsSerialisable(LendingTestSuite):
 
 		self.assertEqual(json.loads(frappe.as_json(context)).keys(), context.keys())
 
-class TestPriorityDecidesWhichStrategyRunsForALead(LendingTestSuite):
+class TestPriorityDecidesWhichStrategyRunsForALead(DecisioningTestSuite):
 	def prequalify(self, lead=None):
 		lead = lead or make_lead()
 		verdict = run_strategy(lead, PRE_QUALIFICATION)
@@ -367,7 +368,7 @@ class TestPriorityDecidesWhichStrategyRunsForALead(LendingTestSuite):
 		self.assertIsNone(verdict)
 		self.assertFalse(lead.prequalification_status)
 
-class TestTheKnockoutGateFailsClosed(LendingTestSuite):
+class TestTheKnockoutGateFailsClosed(DecisioningTestSuite):
 	def test_a_decline_that_could_not_be_checked_stops_the_transition(self):
 		make_strategy(
 			[rule(10, "bureau_score", "<", "600", "Decline", reason_code=make_reason())],

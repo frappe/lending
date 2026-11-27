@@ -16,12 +16,21 @@ from lending.loan_origination.doctype.decision_strategy.test_decision_strategy i
 	make_strategy,
 	rule,
 )
+from lending.loan_origination.doctype.loan_lead.loan_lead import PORTAL_LEAD_SOURCE
 from lending.tests.utils import LendingTestSuite
 
 TEST_LOAN_PRODUCT = "Personal Loan"
 OTHER_LOAN_PRODUCT = "Term Loan Product 1"
 TEST_CUSTOMER = "_Test Loan Customer"
 TEST_PAN = "ABCDE1234F"
+
+
+class DecisioningTestSuite(LendingTestSuite):
+	def setUp(self):
+		super().setUp()
+		# A site strategy for the lead's product would outrank the product-agnostic ones these
+		# tests create; the per-test rollback puts them back.
+		frappe.db.set_value("Decision Strategy", {"disabled": 0}, "disabled", 1)
 
 
 def make_lead(income=60000, employment_type="Salaried", date_of_birth="1992-01-01", **overrides):
@@ -41,6 +50,10 @@ def make_lead(income=60000, employment_type="Salaried", date_of_birth="1992-01-0
 	values.update(overrides)
 
 	return frappe.get_doc(values).insert(ignore_permissions=True)
+
+
+def make_portal_lead():
+	return make_lead(pan=TEST_PAN, applicant_country="India", lead_source=PORTAL_LEAD_SOURCE)
 
 
 def make_application(loan_lead=None, **overrides):
@@ -66,13 +79,14 @@ def make_application(loan_lead=None, **overrides):
 	return frappe.get_doc(values).insert(ignore_permissions=True)
 
 
-def make_bureau_report(score=712, total_emi=8000, applicant=TEST_CUSTOMER, pan=None):
+def make_bureau_report(score=712, total_emi=8000, applicant=TEST_CUSTOMER, pan=None, loan_lead=None):
 	report = frappe.get_doc(
 		{
 			"doctype": "Credit Bureau Report",
 			"applicant_type": "Customer",
 			"applicant": applicant,
 			"pan": pan,
+			"loan_lead": loan_lead,
 			"bureau": "Manual",
 			"score": score,
 			"total_emi": total_emi,
@@ -135,6 +149,24 @@ class TestVariableContextFromALead(LendingTestSuite):
 		context = build_variable_context(make_lead())
 
 		self.assertNotIn("bureau_score", context)
+
+	def test_a_portal_lead_does_not_reach_another_leads_report_by_pan(self):
+		make_bureau_report(score=540, pan=TEST_PAN)
+
+		lead = make_portal_lead()
+
+		self.assertNotIn("bureau_score", build_variable_context(lead))
+		self.assertFalse(lead.bureau_report)
+		self.assertFalse(lead.bureau_score)
+
+	def test_a_portal_lead_reaches_a_report_pulled_for_it(self):
+		lead = make_portal_lead()
+		report = make_bureau_report(score=540, applicant=None, pan=TEST_PAN, loan_lead=lead.name)
+
+		lead.save(ignore_permissions=True)
+
+		self.assertEqual(build_variable_context(lead)["bureau_score"], 540)
+		self.assertEqual(lead.bureau_report, report.name)
 
 	def test_an_income_of_zero_is_unknown_rather_than_zero(self):
 		context = build_variable_context(make_lead(income=0))
@@ -245,7 +277,8 @@ class TestUncollectedVariables(LendingTestSuite):
 		self.assertEqual(verdict.decision, "Approve")
 		self.assertEqual(verdict.skipped_variables, [])
 
-class TestKnockoutBlocksTheTransition(LendingTestSuite):
+
+class TestKnockoutBlocksTheTransition(DecisioningTestSuite):
 	def test_a_knockout_decline_throws_so_the_transition_rolls_back(self):
 		make_strategy(
 			[rule(10, "loan_amount", ">", "1000", "Decline", reason_code=make_reason())],
@@ -281,7 +314,8 @@ class TestKnockoutBlocksTheTransition(LendingTestSuite):
 	def test_no_strategy_means_no_verdict_and_no_throw(self):
 		self.assertIsNone(run_strategy(make_lead(), "Underwriting-does-not-exist"))
 
-class TestPreQualificationIsRecordedNotEnforced(LendingTestSuite):
+
+class TestPreQualificationIsRecordedNotEnforced(DecisioningTestSuite):
 	def prequalify(self, rules, **lead):
 		make_strategy(
 			rules, strategy_name="Test Pre-Qualification Strategy", strategy_type=PRE_QUALIFICATION
