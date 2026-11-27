@@ -1,0 +1,224 @@
+{
+ "actions": [],
+ "autoname": "MFH-.YYYY.-.#####",
+ "creation": "2026-10-20 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "applicant_type",
+  "applicant",
+  "applicant_name",
+  "column_break_applicant",
+  "loan_security",
+  "amfi_scheme_code",
+  "rta",
+  "lock_in_days",
+  "folio_section",
+  "folio_number",
+  "holding_mode",
+  "column_break_folio",
+  "holding_type",
+  "all_holders_signed",
+  "units_section",
+  "units_held",
+  "statement",
+  "column_break_units",
+  "pledged_units",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "default": "Customer",
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Employee\nMember\nCustomer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Applicant",
+   "options": "applicant_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "label": "Applicant Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_applicant",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loan_security",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Scheme",
+   "options": "Loan Security",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "loan_security.amfi_scheme_code",
+   "fieldname": "amfi_scheme_code",
+   "fieldtype": "Data",
+   "label": "AMFI Scheme Code",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_security.rta",
+   "fieldname": "rta",
+   "fieldtype": "Data",
+   "label": "RTA",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "loan_security.lock_in_days",
+   "fieldname": "lock_in_days",
+   "fieldtype": "Int",
+   "label": "Lock-in (Days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "folio_section",
+   "fieldtype": "Section Break",
+   "label": "Folio"
+  },
+  {
+   "fieldname": "folio_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Folio Number",
+   "reqd": 1
+  },
+  {
+   "description": "Demat units are pledged through CDSL or NSDL, others through the RTA or MFCentral",
+   "fieldname": "holding_mode",
+   "fieldtype": "Select",
+   "label": "Holding Mode",
+   "options": "\nDemat\nStatement of Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_folio",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "holding_type",
+   "fieldtype": "Select",
+   "label": "Holding Type",
+   "options": "\nSingle\nJoint\nAnyone or Survivor\nMinor",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Joint\", \"Anyone or Survivor\"].includes(doc.holding_type)",
+   "fieldname": "all_holders_signed",
+   "fieldtype": "Check",
+   "label": "All Holders Signed the Lien"
+  },
+  {
+   "fieldname": "units_section",
+   "fieldtype": "Section Break",
+   "label": "Units"
+  },
+  {
+   "description": "Units in the folio as per the statement. When set, open pledges of this holding cannot be more than this",
+   "fieldname": "units_held",
+   "fieldtype": "Float",
+   "label": "Units Held"
+  },
+  {
+   "description": "The account statement the folio details come from",
+   "fieldname": "statement",
+   "fieldtype": "Attach",
+   "label": "Statement"
+  },
+  {
+   "fieldname": "column_break_units",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Units on submitted pledges that are not yet released",
+   "fieldname": "pledged_units",
+   "fieldtype": "Float",
+   "is_virtual": 1,
+   "label": "Pledged Units",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "is_virtual": 1,
+   "label": "Status",
+   "options": "Free\nPartly Pledged\nPledged",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-20 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Collateral",
+ "name": "Mutual Fund Holding",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Reporter"
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "folio_number,applicant_name,loan_security",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
