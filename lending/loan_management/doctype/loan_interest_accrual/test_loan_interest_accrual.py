@@ -306,6 +306,46 @@ class TestLoanInterestAccrual(LendingTestSuite):
 		self.assertEqual(accrual_sum_till_freeze_date, amounts["unbooked_interest"])
 		self.assertEqual(amounts["unaccrued_interest"], 0)
 
+	def test_loan_closure_counts_interest_since_the_last_monthly_accrual(self):
+		set_loan_accrual_frequency("Monthly")
+		loan = create_loan(
+			self.applicant2,
+			"Term Loan Product 1",
+			120000,
+			"Repay Over Number of Periods",
+			12,
+			repayment_start_date="2026-09-01",
+			posting_date="2026-08-01",
+			rate_of_interest=10,
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, 120000, disbursement_date="2026-08-01", repayment_start_date="2026-09-01"
+		)
+		process_loan_interest_accrual_for_loans(
+			posting_date="2026-09-01", loan=loan.name, company="_Test Company"
+		)
+		process_daily_loan_demands(posting_date="2026-09-01", loan=loan.name)
+
+		# no month end or EMI falls between the last accrual (2026-08-31) and the closure date
+		amounts = calculate_amounts(loan.name, "2026-09-10", payment_type="Loan Closure")
+		closure_interest = flt(110469.18 * 10 * 10 / 36500, 2)
+		self.assertEqual(amounts["unaccrued_interest"], closure_interest)
+
+		repayment = create_repayment_entry(
+			loan.name, "2026-09-10", amounts["payable_amount"], repayment_type="Loan Closure"
+		)
+		repayment.submit()
+
+		accrued = frappe.get_all(
+			"Loan Interest Accrual",
+			{"loan": loan.name, "docstatus": 1, "interest_type": "Normal Interest"},
+			pluck="interest_amount",
+		)
+		self.assertEqual(flt(sum(accrued), 2), flt(repayment.total_interest_paid, 2))
+		self.assertEqual(flt(repayment.excess_amount, 2), 0)
+		self.assertEqual(frappe.db.get_value("Loan", loan.name, "status"), "Closed")
+
 	def test_demand_loan_interest_demand(self):
 		set_loan_accrual_frequency("Monthly")
 		LoanInterestAccrual = DocType("Loan Interest Accrual")

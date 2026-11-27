@@ -360,6 +360,7 @@ def calculate_accrual_amount_for_loans(
 	accrual_date=None,
 	loan_disbursement=None,
 	loan_accrual_frequency=None,
+	accrue_till_posting_date=False,
 ):
 	from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 		get_pending_principal_amount,
@@ -379,6 +380,7 @@ def calculate_accrual_amount_for_loans(
 			posting_date,
 			loan_accrual_frequency,
 			loan_disbursement=loan_disbursement,
+			include_posting_date=accrue_till_posting_date,
 		)
 
 		total_payable_interest = process_loan_interest_accrual_per_schedule(
@@ -571,7 +573,9 @@ def make_loan_interest_accrual_entry(
 		loan_interest_accrual.submit()
 
 
-def get_overlapping_dates(loan, posting_date, loan_accrual_frequency, loan_disbursement=None):
+def get_overlapping_dates(
+	loan, posting_date, loan_accrual_frequency, loan_disbursement=None, include_posting_date=False
+):
 	parent_wise_schedules, maturity_map, accrual_schedule_map = get_parent_wise_dates(
 		loan, posting_date, loan_accrual_frequency, loan_disbursement=loan_disbursement
 	)
@@ -589,6 +593,10 @@ def get_overlapping_dates(loan, posting_date, loan_accrual_frequency, loan_disbu
 			continue
 
 		accrual_frequency_breaks = [x for x in accrual_frequency_breaks if x < maturity_date]
+
+		# without it, the days after the last break are left out when no break falls before this date
+		if include_posting_date and getdate(posting_date) < getdate(maturity_date):
+			accrual_frequency_breaks.append(getdate(posting_date))
 
 		parent_wise_schedules[schedule_parent].extend((accrual_frequency_breaks))
 		parent_wise_schedules[schedule_parent] = list(set(parent_wise_schedules[schedule_parent]))
