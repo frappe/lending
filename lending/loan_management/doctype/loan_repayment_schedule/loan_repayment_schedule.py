@@ -359,6 +359,10 @@ class LoanRepaymentSchedule(Document):
 			)
 
 	def set_repayment_period(self):
+		# Old or imported loans can have no frequency; without one the payment dates never move.
+		if not self.repayment_frequency:
+			self.repayment_frequency = "Monthly"
+
 		if self.repayment_frequency == "One Time":
 			self.repayment_method = "Repay Over Number of Periods"
 			self.repayment_periods = 1

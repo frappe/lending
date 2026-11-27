@@ -10,6 +10,7 @@ from lending.loan_management.doctype.loan_demand.loan_demand import reverse_dema
 from lending.loan_management.doctype.loan_interest_accrual.loan_interest_accrual import (
 	get_interest_for_term,
 )
+from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.loan_repayment_schedule.loan_repayment_schedule import (
 	LoanRepaymentSchedule,
 )
@@ -327,6 +328,44 @@ class TestLoanRepaymentSchedule(LendingTestSuite):
 
 		emi = get_monthly_repayment_amount(10000, 10, 12, "Monthly", "Round to Nearest")
 		self.assertGreater(emi, 1)
+
+	def test_pre_payment_dates_move_when_repayment_frequency_is_empty(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 1",
+			12000,
+			"Repay Over Number of Periods",
+			12,
+			"Customer",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
+		)
+
+		frappe.db.set_value("Loan", loan.name, "repayment_frequency", "")
+		frappe.db.set_value("Loan Repayment Schedule", {"loan": loan.name}, "repayment_frequency", "")
+
+		process_daily_loan_demands(posting_date="2025-03-05", loan=loan.name)
+		payable_amount = calculate_amounts(loan.name, "2025-03-05")["payable_amount"]
+		create_repayment_entry(loan.name, "2025-03-05", payable_amount).submit()
+		create_repayment_entry(loan.name, "2025-03-20", 1000, repayment_type="Pre Payment").submit()
+
+		schedule = frappe.get_doc(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}
+		)
+		future_dates = [
+			getdate(d.payment_date)
+			for d in schedule.repayment_schedule
+			if getdate(d.payment_date) > getdate("2025-03-20")
+		]
+
+		self.assertEqual(schedule.repayment_frequency, "Monthly")
+		self.assertTrue(len(future_dates) > 1)
+		self.assertEqual(len(future_dates), len(set(future_dates)))
+		self.assertEqual(getdate(schedule.maturity_date), max(future_dates))
 
 	def test_get_next_payment_date_advances_when_schedule_type_is_blank(self):
 		# Blank repayment_schedule_type should still advance the date for Monthly frequency
