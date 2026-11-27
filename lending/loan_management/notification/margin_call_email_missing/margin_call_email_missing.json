@@ -1,0 +1,31 @@
+{
+ "attach_print": 0,
+ "channel": "System Notification",
+ "condition": "doc.email_missing",
+ "condition_type": "",
+ "creation": "2026-10-15 12:00:00.000000",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Loan Security Shortfall",
+ "enabled": 1,
+ "event": "Value Change",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>{{ doc.applicant }} has no email address, so the margin call notice for {% if doc.loan %}loan {{ doc.loan }}{% else %}their loans{% endif %} was not sent and the cure period has not started. Add an email to the borrower, and the next daily run sends the notice.</p>",
+ "minutes_offset": 0,
+ "modified": "2026-10-15 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Loan Management",
+ "name": "Margin Call Email Missing",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Loan Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "No email for the margin call on {{ doc.applicant }}",
+ "value_changed": "email_missing"
+}
