@@ -277,7 +277,7 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 
 		restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2025-03-10",
+			restructure_date="2025-03-05",
 			repayment_start_date="2025-04-05",
 			new_repayment_period_in_months=6,
 			waive_off_restructure_charges=1,
@@ -300,7 +300,7 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 		)
 
 		frappe.get_doc(
-			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-04-01"}
+			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-03-06"}
 		).submit()
 
 		after = frappe.db.get_value("Loan", self.loan, fields, as_dict=1)
@@ -309,11 +309,11 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 		self.assertEqual(frappe.db.get_value("Loan Repayment Schedule", schedule, "status"), "Active")
 
 		repost = frappe.get_doc(
-			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-03-01"}
+			{"doctype": "Loan Repayment Repost", "loan": self.loan, "repost_date": "2025-03-05"}
 		)
 		self.assertRaises(frappe.ValidationError, repost.submit)
 		with self.assertRaises(frappe.ValidationError):
-			create_repayment_entry(self.loan, "2025-03-08", 500).submit()
+			create_repayment_entry(self.loan, "2025-03-04", 500).submit()
 
 
 class TestSameDayRepaymentRepost(LendingTestSuite):
