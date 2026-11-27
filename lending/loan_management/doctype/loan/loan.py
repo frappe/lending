@@ -1549,6 +1549,23 @@ def repost_days_past_due_log(
 
 	demands = demand_query.run(as_dict=True)
 
+	if not demands:
+		# No EMI was ever raised, so nothing is overdue. Reset it the same way as the current-date path.
+		loan_details = frappe.db.get_value("Loan", loan, ["company", "applicant_type", "applicant"], as_dict=1)
+		update_loan_and_customer_status(
+			loan,
+			loan_details.company,
+			loan_details.applicant_type,
+			loan_details.applicant,
+			0,
+			0,
+			posting_date,
+			loan_disbursement=loan_disbursement,
+			dpd_threshold=get_dpd_threshold_map().get(loan_product, 0),
+		)
+		create_dpd_record(loan, loan_disbursement, posting_date, 0, process_loan_classification)
+		return
+
 	if demands:
 		repayment_schedule_type = frappe.db.get_value("Loan", loan, "repayment_schedule_type")
 
