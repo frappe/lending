@@ -31,39 +31,39 @@ class TestLoanRestructure(LendingTestSuite):
 		loan_classification_ranges()
 
 	def test_unaccrued_interest_capitalization_gl_entries(self):
-		set_loan_accrual_frequency(loan_accrual_frequency="Monthly")
+		set_loan_accrual_frequency(loan_accrual_frequency="Daily")
 
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
-			2300000,
+			100000,
 			"Repay Over Number of Periods",
-			24,
-			repayment_start_date="2025-11-05",
-			posting_date="2025-10-09",
-			rate_of_interest=27,
+			22,
+			repayment_start_date="2024-04-05",
+			posting_date="2024-02-20",
+			rate_of_interest=8.5,
 			applicant_type="Customer",
+			penalty_charges_rate=36,
 		)
 
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2025-10-09", repayment_start_date="2025-11-05"
+			loan.name, loan.loan_amount, disbursement_date="2024-02-20", repayment_start_date="2024-04-05"
 		)
 
 		process_loan_interest_accrual_for_loans(
-			posting_date="2025-12-04", loan=loan.name, company="_Test Company"
+			posting_date="2024-04-04", loan=loan.name, company="_Test Company"
 		)
-		process_daily_loan_demands(loan=loan.name, posting_date="2026-01-05")
-		process_loan_interest_accrual_for_loans(
-			posting_date="2026-02-03", loan=loan.name, company="_Test Company"
-		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2024-04-05")
+
+		process_loan_interest_accrual_for_loans(loan=loan.name, posting_date="2024-04-10")
 
 		loan_restructure = create_loan_restructure(
 			loan=loan.name,
-			restructure_date="2026-02-04",
-			interest_waiver_amount=1001,
-			unaccrued_interest_waiver=1004,
+			restructure_date="2024-04-11",
+			unaccrued_interest_waiver=100,
 		)
 
 		loan_restructure.status = "Approved"
@@ -75,13 +75,13 @@ class TestLoanRestructure(LendingTestSuite):
 				"loan_restructure": loan_restructure.name,
 				"docstatus": 1,
 				"repayment_type": "Interest Capitalization",
-				"unbooked_interest_paid": (">", 0),
+				"principal_amount_paid": (">", 0),
 			},
-			["name", "unbooked_interest_paid"],
+			["name", "principal_amount_paid"],
 			as_dict=True,
 		)
 
-		amount = flt(loan_repayment.unbooked_interest_paid, 2)
+		amount = flt(loan_repayment.principal_amount_paid, 2)
 
 		gl_entries = frappe.db.get_all(
 			"GL Entry",

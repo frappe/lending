@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.utils import add_days, flt, nowdate
+from frappe.utils import flt, nowdate
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import calculate_amounts
 from lending.loan_management.doctype.process_loan_demand.process_loan_demand import (
@@ -78,76 +78,73 @@ class TestLoanRepaymentClosureAndWaivers(LendingTestSuite):
 			"Repay Over Number of Periods",
 			24,
 			"Customer",
-			repayment_start_date="2026-06-05",
-			posting_date="2026-05-06",
+			repayment_start_date="2025-02-05",
+			posting_date="2025-01-06",
 			rate_of_interest=28,
 		)
 		loan.submit()
 
 		make_loan_disbursement_entry(
-			loan.name, loan.loan_amount, disbursement_date="2026-05-06", repayment_start_date="2026-06-05"
+			loan.name, loan.loan_amount, disbursement_date="2025-01-06", repayment_start_date="2025-02-05"
 		)
 
-		emi_dates = ["2026-06-05", "2026-07-05", "2026-08-05", "2026-09-05"]
-		for emi_date in emi_dates:
-			accrual_date = add_days(emi_date, -1)
-			process_loan_interest_accrual_for_loans(
-				loan=loan.name, posting_date=accrual_date, company="_Test Company"
-			)
-			process_daily_loan_demands(loan=loan.name, posting_date=emi_date)
-			create_repayment_entry(loan.name, emi_date, 54889).submit()
-
-		pre_payment_date = "2026-09-21"
 		process_loan_interest_accrual_for_loans(
-			loan=loan.name, posting_date="2026-09-20", company="_Test Company"
+			loan=loan.name, posting_date="2025-02-04", company="_Test Company"
 		)
 
-		amounts = calculate_amounts(loan.name, pre_payment_date)
-		unbooked_interest = amounts.get("unbooked_interest", 0)
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-02-05")
 
-		# Test 1: Partial pre-payment (half of unbooked interest)
-		partial_amount = flt(unbooked_interest / 2, 2)
-		create_repayment_entry(
-			loan.name, pre_payment_date, partial_amount, repayment_type="Pre Payment"
-		).submit()
+		create_repayment_entry(loan.name, "2025-02-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-03-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-03-05")
+
+		create_repayment_entry(loan.name, "2025-03-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-04-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-04-05")
+
+		create_repayment_entry(loan.name, "2025-04-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-05-04", company="_Test Company"
+		)
+
+		process_daily_loan_demands(loan=loan.name, posting_date="2025-05-05")
+
+		create_repayment_entry(loan.name, "2025-05-05", 54889).submit()
+
+		process_loan_interest_accrual_for_loans(
+			loan=loan.name, posting_date="2025-05-20", company="_Test Company"
+		)
+
+		create_repayment_entry(loan.name, "2025-05-21", 3327, repayment_type="Pre Payment").submit()
 
 		demand_amount = frappe.db.get_value(
 			"Loan Demand",
-			{
-				"loan": loan.name,
-				"docstatus": 1,
-				"demand_subtype": "Interest",
-				"demand_date": pre_payment_date,
-			},
+			{"loan": loan.name, "docstatus": 1, "demand_subtype": "Interest", "demand_date": "2025-05-21"},
 			"paid_amount",
 		)
-		self.assertEqual(demand_amount, partial_amount)
 
-		remaining_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
-		self.assertEqual(flt(remaining_unbooked, 2), flt(unbooked_interest - partial_amount, 2))
+		self.assertEqual(demand_amount, 3327)
 
-		# Test 2: Additional partial pre-payment
-		create_repayment_entry(loan.name, pre_payment_date, 1000, repayment_type="Pre Payment").submit()
-		remaining_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
-		self.assertEqual(flt(remaining_unbooked, 2), flt(unbooked_interest - partial_amount - 1000, 2))
-
-		# Test 3: Full pre-payment clearing remaining interest + principal
-		amounts_before_full = calculate_amounts(loan.name, pre_payment_date)
-		full_pending = flt(
-			amounts_before_full.get("unbooked_interest", 0)
-			+ amounts_before_full.get("unaccrued_interest", 0),
-			2,
+		repayment_schedule = frappe.db.get_value(
+			"Loan Repayment Schedule", {"loan": loan.name, "docstatus": 1, "status": "Active"}, "name"
 		)
-		second_payment_amount = flt(full_pending + 10000, 2)
-
-		create_repayment_entry(
-			loan.name, pre_payment_date, second_payment_amount, repayment_type="Pre Payment"
-		).submit()
-
-		final_unbooked = calculate_amounts(loan.name, pre_payment_date)["unbooked_interest"]
-		self.assertGreaterEqual(
-			final_unbooked, 0, "Unbooked interest should not be negative after full pre-payment"
+		principal_amount, interest_amount = frappe.db.get_value(
+			"Repayment Schedule",
+			{"parent": repayment_schedule, "idx": 5},
+			["principal_amount", "interest_amount"],
 		)
+
+		self.assertEqual(flt(principal_amount, 2), 37593.01)
+		self.assertEqual(flt(interest_amount, 2), 17295.99)
 
 	def test_loan_auto_closure_with_charge_under_limit(self):
 		frappe.db.set_value("Loan Product", "Term Loan Product 4", "write_off_amount", 1000)

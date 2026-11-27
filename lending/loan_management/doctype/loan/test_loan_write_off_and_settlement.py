@@ -219,9 +219,9 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 5",
-			60000,
+			100000,
 			"Repay Over Number of Periods",
-			4,
+			6,
 			repayment_start_date="2024-10-10",
 			posting_date="2024-10-01",
 			rate_of_interest=20,
@@ -232,7 +232,7 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 		loan.submit()
 
 		disbursement_1 = make_loan_disbursement_entry(
-			loan.name, 36000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
+			loan.name, 60000, disbursement_date="2024-10-01", repayment_start_date="2024-10-10"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-10", loan=loan.name)
@@ -242,14 +242,24 @@ class TestLoanWriteOffAndSettlement(LendingTestSuite):
 		)
 		repayment_entry.submit()
 
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-18", 10000, loan_disbursement=disbursement_1.name
+		)
+		repayment_entry.submit()
+
 		disbursement_2 = make_loan_disbursement_entry(
-			loan.name, 24000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
+			loan.name, 40000, disbursement_date="2024-10-05", repayment_start_date="2024-10-15"
 		)
 
 		process_daily_loan_demands(posting_date="2024-10-15", loan=loan.name)
 
 		repayment_entry = create_repayment_entry(
 			loan.name, "2024-10-15", 7000, loan_disbursement=disbursement_2.name
+		)
+		repayment_entry.submit()
+
+		repayment_entry = create_repayment_entry(
+			loan.name, "2024-10-25", 61, loan_disbursement=disbursement_2.name
 		)
 		repayment_entry.submit()
 
@@ -968,6 +978,7 @@ class TestPenalWaiverOnAutoClose(LendingTestSuite):
 	def make_class_data(cls):
 		loan_classification_ranges()
 
+	def test_excess_amount_for_penal_waiver(self):
 		loan = create_loan(
 			"_Test Customer 1",
 			"Term Loan Product 4",
@@ -986,10 +997,6 @@ class TestPenalWaiverOnAutoClose(LendingTestSuite):
 			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
 		)
 		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
-		cls.loan = loan.name
-
-	def test_excess_amount_for_penal_waiver(self):
-		loan = frappe.get_doc("Loan", self.loan)
 
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date="2024-07-07", company="_Test Company"
@@ -1023,7 +1030,24 @@ class TestPenalWaiverOnAutoClose(LendingTestSuite):
 		# This test verifies that when a normal repayment is made and the loan is auto-closed,
 		# any remaining penal charges are waived automatically by creating a penalty waiver entry.
 
-		loan = frappe.get_doc("Loan", self.loan)
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			1000000,
+			"Repay Over Number of Periods",
+			2,
+			"Customer",
+			"2024-06-05",
+			"2024-05-02",
+			rate_of_interest=29,
+			penalty_charges_rate=36,
+		)
+		loan.submit()
+
+		make_loan_disbursement_entry(
+			loan.name, loan.loan_amount, disbursement_date="2024-05-02", repayment_start_date="2024-06-05"
+		)
+		process_daily_loan_demands(posting_date="2024-07-07", loan=loan.name)
 
 		process_loan_interest_accrual_for_loans(
 			loan=loan.name, posting_date="2024-07-06", company="_Test Company"
