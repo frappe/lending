@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "creation": "2026-10-18 19:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "up_to_amount",
+  "ltv"
+ ],
+ "fields": [
+  {
+   "description": "Borrower's total consumption gold and silver loans, including this one. Leave blank on the last row",
+   "fieldname": "up_to_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Up To Amount"
+  },
+  {
+   "fieldname": "ltv",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Max LTV",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-18 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Gold Loan",
+ "name": "Gold LTV Slab",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

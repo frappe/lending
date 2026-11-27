@@ -15,6 +15,7 @@ class LendingSettings(Document):
 		from frappe.types import DF
 
 		auto_create_customer: DF.Check
+		gold_credit_assessment_above: DF.Currency
 		portal_logo: DF.AttachImage | None
 	# end: auto-generated types
 

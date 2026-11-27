@@ -1,0 +1,259 @@
+{
+ "actions": [],
+ "autoname": "GA-.YYYY.-.#####",
+ "creation": "2026-10-20 16:17:32.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "applicant_type",
+  "applicant",
+  "applicant_name",
+  "column_break_applicant",
+  "status",
+  "current_assignment",
+  "packet_number",
+  "title",
+  "article_section",
+  "article_kind",
+  "metal",
+  "description",
+  "pieces",
+  "column_break_article",
+  "image",
+  "last_assay_section",
+  "gross_weight",
+  "deduction_weight",
+  "net_weight",
+  "column_break_assay",
+  "fineness",
+  "defects",
+  "assayed_on"
+ ],
+ "fields": [
+  {
+   "default": "Customer",
+   "fieldname": "applicant_type",
+   "fieldtype": "Select",
+   "label": "Applicant Type",
+   "options": "Customer\nEmployee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant",
+   "fieldtype": "Dynamic Link",
+   "in_standard_filter": 1,
+   "label": "Applicant",
+   "options": "applicant_type",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Applicant Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_applicant",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Available",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "Available\nPledged\nReleased\nSold",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.current_assignment",
+   "fieldname": "current_assignment",
+   "fieldtype": "Link",
+   "label": "Current Assignment",
+   "no_copy": 1,
+   "options": "Loan Security Assignment",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.packet_number",
+   "fieldname": "packet_number",
+   "fieldtype": "Data",
+   "label": "Packet Number",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "article_section",
+   "fieldtype": "Section Break",
+   "label": "Article"
+  },
+  {
+   "fieldname": "article_kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Article Kind",
+   "options": "Ornament\nCoin",
+   "reqd": 1
+  },
+  {
+   "fieldname": "metal",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Metal",
+   "options": "Gold\nSilver",
+   "reqd": 1
+  },
+  {
+   "description": "For example, necklace with red stones",
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "A pair of bangles is one article of 2 pieces",
+   "fieldname": "pieces",
+   "fieldtype": "Int",
+   "label": "Pieces",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_article",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 1
+  },
+  {
+   "description": "Copied from the last pledge of this article",
+   "fieldname": "last_assay_section",
+   "fieldtype": "Section Break",
+   "label": "Last Assay"
+  },
+  {
+   "fieldname": "gross_weight",
+   "fieldtype": "Float",
+   "label": "Gross Weight (g)",
+   "no_copy": 1,
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deduction_weight",
+   "fieldtype": "Float",
+   "label": "Deduction Weight (g)",
+   "no_copy": 1,
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "net_weight",
+   "fieldtype": "Float",
+   "label": "Net Weight (g)",
+   "no_copy": 1,
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_assay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Parts per 1,000",
+   "fieldname": "fineness",
+   "fieldtype": "Int",
+   "label": "Fineness",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "defects",
+   "fieldtype": "Small Text",
+   "label": "Defects",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "assayed_on",
+   "fieldtype": "Date",
+   "label": "Assayed On",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "image_field": "image",
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Loan Security Assignment",
+   "link_fieldname": "gold_article",
+   "parent_doctype": "Loan Security Assignment",
+   "table_fieldname": "articles"
+  }
+ ],
+ "modified": "2026-10-20 16:17:32.000000",
+ "modified_by": "Administrator",
+ "module": "Gold Loan",
+ "name": "Gold Article",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Reporter"
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "search_fields": "description,applicant_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

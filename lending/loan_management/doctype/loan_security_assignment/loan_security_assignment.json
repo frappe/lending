@@ -18,6 +18,14 @@
   "status",
   "loan_security_details_section",
   "securities",
+  "articles_section",
+  "articles",
+  "assay_section",
+  "ownership_declaration",
+  "borrower_present_at_assay",
+  "column_break_assay",
+  "assayed_by",
+  "certificate_acknowledgement",
   "section_break_10",
   "total_security_value",
   "column_break_11",
@@ -167,12 +175,61 @@
    "fieldtype": "Link",
    "label": "Loan Application",
    "options": "Loan Application"
+  },
+  {
+   "depends_on": "eval:doc.loan || doc.loan_application",
+   "description": "Gold and silver articles. Their lines in Securities are made from this table, one line per purity",
+   "fieldname": "articles_section",
+   "fieldtype": "Section Break",
+   "label": "Articles"
+  },
+  {
+   "fieldname": "articles",
+   "fieldtype": "Table",
+   "label": "Articles",
+   "options": "Pledged Article"
+  },
+  {
+   "depends_on": "eval:doc.articles && doc.articles.length",
+   "fieldname": "assay_section",
+   "fieldtype": "Section Break",
+   "label": "Assay"
+  },
+  {
+   "description": "The applicant's declaration that they own the articles. Required to submit",
+   "fieldname": "ownership_declaration",
+   "fieldtype": "Attach",
+   "label": "Ownership Declaration"
+  },
+  {
+   "default": "0",
+   "description": "Required to submit",
+   "fieldname": "borrower_present_at_assay",
+   "fieldtype": "Check",
+   "label": "Borrower Present at Assay"
+  },
+  {
+   "fieldname": "column_break_assay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Employee or empanelled assayer",
+   "fieldname": "assayed_by",
+   "fieldtype": "Data",
+   "label": "Assayed By"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "The assay certificate signed by the borrower",
+   "fieldname": "certificate_acknowledgement",
+   "fieldtype": "Attach",
+   "label": "Certificate Acknowledgement"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-21 14:38:33.593531",
+ "modified": "2026-10-20 16:17:32.000000",
  "modified_by": "Administrator",
  "module": "Loan Management",
  "name": "Loan Security Assignment",

@@ -85,6 +85,9 @@
   "write_off_recovery_account",
   "co_lending_tab",
   "loan_partners",
+  "gold_loan_tab",
+  "gold_loan_purpose",
+  "gold_ltv_slabs",
   "connections_tab"
  ],
  "fields": [
@@ -312,6 +315,26 @@
    "fieldtype": "Table MultiSelect",
    "label": "Loan Partners",
    "options": "Loan Product Loan Partner"
+  },
+  {
+   "fieldname": "gold_loan_tab",
+   "fieldtype": "Tab Break",
+   "label": "Gold Loan"
+  },
+  {
+   "description": "Set for a product secured by gold or silver. Only Consumption loans follow the LTV slabs",
+   "fieldname": "gold_loan_purpose",
+   "fieldtype": "Select",
+   "label": "Gold Loan Purpose",
+   "options": "\nConsumption\nIncome Generating"
+  },
+  {
+   "depends_on": "eval:doc.gold_loan_purpose == \"Consumption\"",
+   "description": "Max LTV by the borrower's total consumption gold and silver loans",
+   "fieldname": "gold_ltv_slabs",
+   "fieldtype": "Table",
+   "label": "Gold LTV Slabs",
+   "options": "Gold LTV Slab"
   },
   {
    "fieldname": "product_code",
