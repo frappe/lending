@@ -6,7 +6,16 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import add_days, add_months, cint, flt, get_first_day, get_last_day, getdate
+from frappe.utils import (
+	add_days,
+	add_months,
+	cint,
+	flt,
+	get_datetime,
+	get_first_day,
+	get_last_day,
+	getdate,
+)
 
 from lending.loan_management.doctype.loan_repayment.loan_repayment import (
 	calculate_amounts,
@@ -47,6 +56,28 @@ class LoanRepaymentRepost(Document):
 
 	def validate(self):
 		self.get_repayment_entries()
+		self.validate_repost_date_after_restructure()
+
+	def validate_repost_date_after_restructure(self):
+		restructure = get_last_restructure(self.loan)
+		entries = self.get("repayment_entries")
+		if not restructure or not entries:
+			return
+
+		has_entry_before_restructure = any(
+			get_datetime(d.posting_date) < get_datetime(restructure.restructure_date) for d in entries
+		)
+		has_restructure_entry = frappe.db.exists(
+			"Loan Repayment",
+			{"name": ("in", [d.loan_repayment for d in entries]), "loan_restructure": restructure.name},
+		)
+
+		if has_entry_before_restructure or has_restructure_entry:
+			frappe.throw(
+				_(
+					"Repost Date must be after {0}, the date of Normal Restructure {1}. Payments made before a restructure cannot be posted again on the new schedule."
+				).format(frappe.bold(restructure.restructure_date), frappe.bold(restructure.name))
+			)
 
 	def get_repayment_entries(self):
 		self.set("repayment_entries", [])
@@ -263,7 +294,7 @@ class LoanRepaymentRepost(Document):
 
 			LoanRepayment = DocType("Loan Repayment")
 
-			totals = (
+			totals_query = (
 				frappe.qb.from_(LoanRepayment)
 				.select(
 					fn.Sum(LoanRepayment.principal_amount_paid).as_("total_principal_paid"),
@@ -274,7 +305,8 @@ class LoanRepaymentRepost(Document):
 					& (LoanRepayment.docstatus == 1)
 					& (LoanRepayment.value_date < self.repost_date)
 				)
-			).run(as_dict=True)[0]
+			)
+			totals = add_after_restructure_filter(totals_query, LoanRepayment, self.loan).run(as_dict=True)[0]
 
 			frappe.db.set_value(
 				"Loan",
@@ -482,11 +514,15 @@ class LoanRepaymentRepost(Document):
 
 			filters = (LoanRepayment.against_loan == self.loan) & (LoanRepayment.docstatus == 1)
 
-			total_principal_paid = (
+			total_principal_paid_query = (
 				frappe.qb.from_(LoanRepayment)
 				.select(fn.Sum(LoanRepayment.principal_amount_paid))
 				.where(filters)
-			).run()[0][0] or 0
+			)
+			total_principal_paid = (
+				add_after_restructure_filter(total_principal_paid_query, LoanRepayment, self.loan).run()[0][0]
+				or 0
+			)
 
 			frappe.db.set_value(
 				"Loan",
@@ -520,6 +556,28 @@ class LoanRepaymentRepost(Document):
 				loan=self.loan,
 				loan_disbursement=self.loan_disbursement,
 			)
+
+
+def get_last_restructure(loan):
+	return frappe.db.get_value(
+		"Loan Restructure",
+		{"loan": loan, "docstatus": 1, "status": "Approved", "restructure_type": "Normal Restructure"},
+		["name", "restructure_date"],
+		order_by="restructure_date desc",
+		as_dict=1,
+	)
+
+
+def add_after_restructure_filter(query, loan_repayment, loan):
+	# A Normal Restructure resets the loan totals, so payments made before it are already in the new loan amount.
+	restructure = get_last_restructure(loan)
+	if restructure:
+		query = query.where(
+			(loan_repayment.value_date >= restructure.restructure_date)
+			& (fn.Coalesce(loan_repayment.loan_restructure, "") != restructure.name)
+		)
+
+	return query
 
 
 def process_loan_repayment_repost(repost):

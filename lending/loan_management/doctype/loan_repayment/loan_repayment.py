@@ -140,6 +140,7 @@ class LoanRepayment(LoanController):
 		]:
 			self.validate_open_disbursement()
 		self.no_repayments_during_moratorium()
+		self.validate_value_date_after_restructure()
 		self.check_future_entries()
 		self.set_partner_payment_ratio()
 
@@ -895,6 +896,22 @@ class LoanRepayment(LoanController):
 			)
 			if self.loan_disbursement not in disbursements:
 				frappe.throw(_("Invalid Loan Disbursement linked for payment"))
+
+	def validate_value_date_after_restructure(self):
+		from lending.loan_management.doctype.loan_repayment_repost.loan_repayment_repost import (
+			get_last_restructure,
+		)
+
+		if self.loan_restructure:
+			return
+
+		restructure = get_last_restructure(self.against_loan)
+		if restructure and get_datetime(self.value_date) < get_datetime(restructure.restructure_date):
+			frappe.throw(
+				_("Value Date must not be before {0}, the date of Normal Restructure {1}.").format(
+					frappe.bold(restructure.restructure_date), frappe.bold(restructure.name)
+				)
+			)
 
 	def check_future_entries(self, cancel=0):
 		if self.is_write_off_waiver:
