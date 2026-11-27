@@ -514,11 +514,18 @@ class LoanRestructure(AccountsController):
 			"loan_amount": self.new_loan_amount,
 			"current_principal_amount": self.new_loan_amount,
 			"posting_date": self.restructure_date,
-			"repayment_frequency": self.old_repayment_frequency,
+			"repayment_frequency": self.old_repayment_frequency or self.get_active_schedule_frequency(),
 			"adjusted_interest": adjusted_interest if self.restructure_type == "Normal Restructure" else 0,
 			"restructure_type": self.restructure_type,
 			"loan_disbursement": self.loan_disbursement,
 		}
+
+	def get_active_schedule_frequency(self):
+		filters = {"loan": self.loan, "docstatus": 1, "status": "Active"}
+		if self.loan_disbursement:
+			filters["loan_disbursement"] = self.loan_disbursement
+
+		return frappe.db.get_value("Loan Repayment Schedule", filters, "repayment_frequency")
 
 	def update_totals(self, cancel=0):
 		total_payment = 0

@@ -338,6 +338,14 @@ class Loan(AccountsController):
 				"Loan Product", self.loan_product, "rate_of_interest"
 			)
 
+		if (
+			self.docstatus == 0
+			and self.is_term_loan
+			and self.repayment_schedule_type != "Line of Credit"
+			and not self.repayment_frequency
+		):
+			self.repayment_frequency = "Monthly"
+
 	def check_sanctioned_amount_limit(self):
 		sanctioned_amount_limit = get_sanctioned_amount_limit(
 			self.applicant_type, self.applicant, self.company

@@ -43,3 +43,4 @@ lending.patches.v1_0.create_custom_field_loan_accrual_rate_for_company
 lending.patches.v1_0.add_index_for_custom_fields_for_JE
 lending.patches.v1_0.link_disbursement_to_legacy_repayment_schedule
 lending.patches.v1_0.convert_collection_offset_sequence_to_offset_order
+lending.patches.v1_0.set_empty_repayment_frequency_to_monthly
