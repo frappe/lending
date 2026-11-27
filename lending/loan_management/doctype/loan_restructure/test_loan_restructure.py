@@ -415,6 +415,42 @@ class TestLoanRestructure(LendingTestSuite):
 		)
 		self.assertEqual(flt(new_schedule.repayment_schedule[-1].balance_loan_amount, 2), 0)
 
+	def test_status_cannot_change_after_approval(self):
+		loan = create_loan(
+			"_Test Customer 1",
+			"Term Loan Product 4",
+			130,
+			"Repay Over Number of Periods",
+			3,
+			repayment_start_date="2026-10-07",
+			posting_date="2026-09-01",
+			rate_of_interest=10,
+			applicant_type="Customer",
+		)
+		loan.submit()
+		make_loan_disbursement_entry(
+			loan.name,
+			loan.loan_amount,
+			disbursement_date="2026-09-01",
+			repayment_start_date="2026-10-07",
+			repayment_frequency="Monthly",
+		)
+		process_daily_loan_demands(loan=loan.name, posting_date="2026-09-07")
+
+		for first_status, changed_status in (("Rejected", "Approved"), ("Approved", "Rejected")):
+			loan_restructure = create_loan_restructure(
+				loan=loan.name,
+				restructure_date="2026-09-17",
+				repayment_start_date="2026-10-07",
+				new_repayment_period_in_months=6,
+				waive_off_restructure_charges=1,
+			)
+			loan_restructure.status = first_status
+			loan_restructure.save()
+
+			loan_restructure.status = changed_status
+			self.assertRaises(frappe.ValidationError, loan_restructure.save)
+
 	def test_restructure_of_one_time_loan_uses_new_tenure(self):
 		loan = create_loan(
 			"_Test Customer 1",
