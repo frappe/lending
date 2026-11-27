@@ -273,7 +273,8 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 
 		process_daily_loan_demands(posting_date="2025-03-05", loan=loan.name)
 		payable_amount = calculate_amounts(loan.name, "2025-03-05")["payable_amount"]
-		create_repayment_entry(loan.name, "2025-03-05", payable_amount).submit()
+		repayment = create_repayment_entry(loan.name, "2025-03-05", payable_amount)
+		repayment.submit()
 
 		restructure = create_loan_restructure(
 			loan=loan.name,
@@ -291,6 +292,7 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 
 		cls.loan = loan.name
 		cls.restructure = restructure.name
+		cls.repayment_before_restructure = repayment.name
 
 	def test_repost_counts_only_payments_after_restructure(self):
 		fields = ["total_principal_paid", "total_amount_paid", "excess_amount_paid"]
@@ -314,6 +316,10 @@ class TestRepostAfterNormalRestructure(LendingTestSuite):
 		self.assertRaises(frappe.ValidationError, repost.submit)
 		with self.assertRaises(frappe.ValidationError):
 			create_repayment_entry(self.loan, "2025-03-04", 500).submit()
+		self.assertRaises(
+			frappe.ValidationError,
+			frappe.get_doc("Loan Repayment", self.repayment_before_restructure).cancel,
+		)
 
 
 class TestSameDayRepaymentRepost(LendingTestSuite):
